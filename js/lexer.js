@@ -13,6 +13,7 @@ Lexer.punctuators = {
   "{": Token.LEFT_BRACE,
   "}": Token.RIGHT_BRACE,
   ";": Token.SEMICOLON,
+  ",": Token.COMMA,
 };
 
 Lexer.prototype.nextToken = function() {
@@ -30,6 +31,7 @@ Lexer.prototype.nextToken = function() {
   if (isDigit(c)) return this.number();
 
   switch (c) {
+    case "\"": return this.string();
     case "+": return this.makeToken(Token.PLUS);
     case "-": return this.makeToken(Token.MINUS);
     case "*": return this.makeToken(Token.STAR);
@@ -39,11 +41,11 @@ Lexer.prototype.nextToken = function() {
       return this.makeToken(Token.DOT);
 
     case "=":
-      if (this.match("=")) this.makeToken(Token.EQUALS_EQUALS);
+      if (this.match("=")) return this.makeToken(Token.EQUALS_EQUALS);
       return this.makeToken(Token.EQUALS);
 
     case "<":
-      if (this.match("=")) this.makeToken(Token.LESS_EQUALS);
+      if (this.match("=")) return this.makeToken(Token.LESS_EQUALS);
       return this.makeToken(Token.LESS);
 
     case ">":
@@ -80,6 +82,21 @@ Lexer.prototype.number = function() {
   return this.makeToken(Token.NUMBER, parseFloat);
 }
 
+Lexer.prototype.string = function() {
+  // TODO: Escapes.
+  this.consumeWhile(function(c) { return c != "\""; });
+
+  // Unterminated string.
+  if (this.isAtEnd()) return this.makeToken(Token.ERROR);
+
+  // The closing ".
+  this.advance();
+
+  return this.makeToken(Token.STRING, function(text) {
+    return text.substring(1, text.length - 1);
+  });
+}
+
 Lexer.prototype.makeToken = function(type, valueFn) {
   var text = this.source.substring(this.start, this.current);
   var value = null;
@@ -96,8 +113,8 @@ Lexer.prototype.consumeWhile = function(matcher) {
 }
 
 Lexer.prototype.match = function(expected) {
-  if (this.current + ahead >= this.source.length) return false;
-  if (this.source[this.current + ahead] != expected) return false;
+  if (this.current >= this.source.length) return false;
+  if (this.source[this.current] != expected) return false;
 
   this.current++;
   return true;

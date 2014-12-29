@@ -13,6 +13,11 @@ window.onload = function() {
 function refresh() {
   var input = document.querySelector("textarea#input");
 
+  displayTokens(input.value);
+  displayAst(input.value);
+}
+
+function displayTokens(source) {
   var lexer = new Lexer(input.value);
   var tokens = [];
   while (true) {
@@ -20,8 +25,6 @@ function refresh() {
     tokens.push(token);
     if (token.type == Token.END) break;
   }
-
-  var output = document.querySelector("#output");
 
   var html = "";
   for (var i = 0; i < tokens.length; i++) {
@@ -35,27 +38,43 @@ function refresh() {
     html += "</span>";
   }
 
-  output.innerHTML = html;
+  document.querySelector("#tokens").innerHTML = html;
 }
 
-// Returns true if `c` is an English letter or underscore.
-function isAlpha(c) {
-  return (c >= "a" && c <= "z") ||
-         (c >= "A" && c <= "Z") ||
-         c == "_";
+function displayAst(source) {
+  var lexer = new Lexer(input.value);
+  var parser = new Parser(lexer);
+  var node = parser.parseProgram();
+
+  var html = "<ul><li>" + astToString(node) + "</li></ul>";
+  document.querySelector("#ast").innerHTML = html;
 }
 
-// Returns true if `c` is an English letter, underscore, or digit.
-function isAlphaNumeric(c) {
-  return isAlpha(c) || isDigit(c);
-}
+function astToString(node) {
+  // TODO: Visitor pattern.
+  if (node instanceof BinaryNode) {
+    var html = "<span class='node'>" + node.op.toLowerCase() + "</span>";
+    html += "<ul>";
+    html += "<li>" + astToString(node.left) + "</li>";
+    html += "<li>" + astToString(node.right) + "</li>";
+    html += "</ul>";
+    return html;
+  } else if (node instanceof CallNode) {
+    var html = "<span class='node'>call</span>";
+    html += "<ul>";
+    html += "<li>" + astToString(node.fn) + "</li>";
 
-// Returns true if `c` is a space, newline, or tab.
-function isWhitespace(c) {
-  return c == " " || c == "\n" || c == "\t";
-}
+    for (var i = 0; i < node.args.length; i++) {
+      html += "<li>" + astToString(node.args[i]) + "</li>";
+    }
 
-// Returns true if `c` is a digit.
-function isDigit(c) {
-  return c >= "0" && c <= "9";
+    html += "</ul>";
+    return html;
+  } else if (node instanceof NumberNode) {
+    return "<span class='node number'>" + node.value + "</span>";
+  } else if (node instanceof StringNode) {
+    return "<span class='node string'>" + node.value + "</span>";
+  } else if (node instanceof VariableNode) {
+    return "<span class='node var'>" + node.name + "</span>";
+  }
 }
