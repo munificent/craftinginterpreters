@@ -36,6 +36,11 @@ Lexer.prototype.nextToken = function() {
     case "-": return this.makeToken(Token.MINUS);
     case "*": return this.makeToken(Token.STAR);
     case "/": return this.makeToken(Token.SLASH);
+    case "%": return this.makeToken(Token.PERCENT);
+    case "!":
+      if (this.match("=")) return this.makeToken(Token.BANG_EQUALS);
+      return this.makeToken(Token.ERROR);
+
     case ".":
       // TODO: Allow numbers starting with "."?
       return this.makeToken(Token.DOT);
