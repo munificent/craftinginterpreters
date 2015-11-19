@@ -1,12 +1,22 @@
+// Font stacks.
 $serif:   "Crimson Text", Georgia, serif;
 $mono:    "Droid Sans Mono", Menlo, Consolas, Monaco, monospace;
 $nav:     "Source Sans Pro", sans-serif;
 
-// TODO: Make a gradient from light to dark with slightly different hues instead
-// of a single $hue.
-$hue:       205;
-$primary:   hsl($hue, 80%, 45%);
-$hairline:  #eee;
+// The main intense primary accent color.
+$primary:   hsl(200, 80%, 40%);
+
+// A ramp of washed out blues from dark to light.
+$dark:    hsl(215, 20%, 20%);
+$gray-30: hsl(212, 23%, 30%);
+$gray-40: hsl(209, 26%, 40%);
+$gray-50: hsl(206, 30%, 50%);
+$gray-60: hsl(203, 30%, 60%);
+$light:   hsl(195, 30%, 90%);
+
+// An opposing warm light color (code background).
+$warm-dark:     hsl(40, 0%, 35%);
+$warm-light:    hsl(40, 30%, 97%);
 
 $col: 48px;
 
@@ -45,15 +55,15 @@ body {
 
 nav {
   font: 300 14px/24px $nav;
-  background: hsl($hue + 10, 20%, 20%);
-  color: hsl($hue - 10, 20%, 40%);
+  background: $dark;
+  color: $gray-40;
 
   a, h2 a {
-    color: hsl($hue, 20%, 60%);
+    color: $gray-60;
   }
 
   a:hover {
-    color: hsl($hue, 20%, 90%);
+    color: $light;
   }
 
   h1 {
@@ -84,8 +94,8 @@ nav {
   ol.toc {
     margin: 0 0 7px;
     padding: 7px 0 4px 24px;
-    border-top: solid 1px hsl($hue, 20%, 30%);
-    border-bottom: solid 1px hsl($hue, 20%, 30%);
+    border-top: solid 1px $gray-30;
+    border-bottom: solid 1px $gray-30;
   }
 
   ol > li > a {
@@ -108,7 +118,7 @@ nav.wide {
   }
 
   a:hover {
-    border-bottom: solid 1px hsl($hue, 20%, 40%);
+    border-bottom: solid 1px $gray-40;
   }
 }
 
@@ -137,7 +147,7 @@ nav.column {
     display: block;
     font-size: 20px;
     text-align: center;
-    color: hsl($hue, 20%, 40%);
+    color: $gray-40;
     cursor: pointer;
 
     transition: padding 0.2s ease,
@@ -150,7 +160,7 @@ nav.column {
   }
 
   #expand-nav:hover {
-    color: hsl($hue, 20%, 90%);
+    color: $light;
   }
 
   .expandable {
@@ -256,12 +266,31 @@ article {
   }
 }
 
+aside {
+  position: absolute;
+  right: 0;
+
+  width: $col * 6;
+
+  font: normal 16px/20px $serif;
+
+  border-top: solid 1px $light;
+
+  p {
+    margin: 20px 0;
+  }
+
+  p:first-child {
+    margin-top: 4px;
+  }
+}
+
 a {
   color: $primary;
   text-decoration: none;
   outline: none;
 
-  border-bottom: solid 1px hsla($hue, 80%, 90%, 0);
+  border-bottom: solid 1px transparentize($light, 1.0);
 
   transition: color 0.2s ease,
               border-color 0.4s ease;
@@ -269,11 +298,51 @@ a {
 
 a:hover {
   color: $primary;
-  border-bottom: solid 1px hsla($hue, 80%, 80%, 1.0);
+  border-bottom: solid 1px opacify($light, 1.0);
+}
+
+blockquote {
+  position: relative;
+
+  margin: 24px 0;
+
+  &::before, &::after {
+    position: absolute;
+    top: -20px;
+    font: italic 72px $serif;
+    color: $light;
+  }
+
+  &::before {
+    content: "\201c";
+    left: -7px;
+  }
+
+  &::after {
+    content: "\201d";
+    right: 8px;
+  }
+
+  p {
+    margin: 0 $col;
+    font: italic 24px $serif;
+    color: $gray-50;
+  }
+
+  cite {
+    display: block;
+    text-align: right;
+    color: $gray-60;
+
+    &::before {
+      content: "\2014\00a0";
+      color: $light;
+    }
+  }
 }
 
 footer {
-  border-top: solid 1px $hairline;
+  border-top: solid 1px $light;
   font-size: 15px;
   text-align: center;
   margin: 24px 0;
@@ -283,13 +352,17 @@ footer {
 img {
   max-width: 100%;
 
-  border: solid 1px hsl(40, 30%, 95%);
+  border: solid 1px $warm-light;
+  border-radius: 3px;
+}
+
+code, pre {
+  color: $warm-dark;
+  background: $warm-light;
   border-radius: 3px;
 }
 
 code {
-  color: #555;
-  background: hsl(45, 30%, 97%);
   font: normal 15px $mono;
   white-space: nowrap;
   padding: 2px 2px;
@@ -300,36 +373,12 @@ a code {
 }
 
 pre {
-  color: #444;
   font: normal 13px/20px $mono;
-
-  background: hsl(40, 30%, 97%);
   padding: 12px;
   margin: -12px;
 
   // Scroll horizontally if not wide enough.
   overflow: auto;
-
-  border-radius: 3px;
-}
-
-aside {
-  position: absolute;
-  right: 0;
-
-  width: $col * 6;
-
-  font: normal 16px/20px $serif;
-
-  border-top: solid 1px hsl($hue, 20%, 90%);
-
-  p {
-    margin: 20px 0;
-  }
-
-  p:first-child {
-    margin-top: 4px;
-  }
 }
 
 // Syntax highlighting.

@@ -3,6 +3,8 @@
 
 > Give behavior the flexibility of data by encoding it as instructions for a
 > virtual machine.
+>
+> <cite>Leonard Nimoy</cite>
 
 ## Motivation
 

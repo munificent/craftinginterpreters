@@ -41,6 +41,10 @@ PAGES = [
   'Glossary'
 ]
 
+num_chapters = 0
+empty_chapters = 0
+total_words = 0
+
 
 def make_toc(title):
   '''Generate the HTML for a table of contents for the given page.'''
@@ -84,7 +88,7 @@ def format_file(path, skip_up_to_date):
   if skip_up_to_date:
     source_mod = max(
         os.path.getmtime(path),
-        os.path.getmtime('asset/template/chapter.html'))
+        os.path.getmtime('asset/template/page.html'))
     # if os.path.exists(cpp_path(basename)):
     #   source_mod = max(source_mod, os.path.getmtime(cpp_path(basename)))
 
@@ -169,37 +173,35 @@ def format_file(path, skip_up_to_date):
     'next': adjacent_page(title, 1)
   }
 
-  template = environment.get_template('chapter.html')
+  template = environment.get_template('page.html')
   output = template.render(data)
 
   # Write the output.
   with codecs.open(output_path, "w", encoding="utf-8") as out:
     out.write(output)
 
-  # global total_words
-  # global num_chapters
-  # global empty_chapters
+  global total_words
+  global num_chapters
+  global empty_chapters
 
   word_count = len(contents.split(None))
-  # if part:
-  #   num_chapters += 1
-  #   if word_count < 50:
-  #     empty_chapters += 1
-  #     print "  {}".format(basename)
-  #   elif word_count < 2000:
-  #     empty_chapters += 1
-  #     print "{}-{} {} ({} words)".format(
-  #       YELLOW, DEFAULT, basename, word_count)
-  #   else:
-  #     total_words += word_count
-  #     print "{}✓{} {} ({} words)".format(
-  #       GREEN, DEFAULT, basename, word_count)
-  # else:
-  #   # Section header chapters aren't counted like regular chapters.
-  #   print "{}•{} {} ({} words)".format(
-  #     GREEN, DEFAULT, basename, word_count)
-  print "{}-{} {} ({} words)".format(
-      YELLOW, DEFAULT, basename, word_count)
+  # Non-chapter pages aren't counted like regular chapters.
+  if part:
+    num_chapters += 1
+    if word_count < 50:
+      empty_chapters += 1
+      print "  {}".format(basename)
+    elif word_count < 2000:
+      empty_chapters += 1
+      print "{}-{} {} ({} words)".format(
+        YELLOW, DEFAULT, basename, word_count)
+    else:
+      total_words += word_count
+      print "{}✓{} {} ({} words)".format(
+        GREEN, DEFAULT, basename, word_count)
+  else:
+    print "{}•{} {} ({} words)".format(
+      GREEN, DEFAULT, basename, word_count)
 
 
 def format_files(skip_up_to_date):
@@ -237,9 +239,9 @@ else:
   format_files(False)
   build_sass(False)
 
-  # average_word_count = total_words / (num_chapters - empty_chapters)
-  # estimated_word_count = total_words + (empty_chapters * average_word_count)
-  # percent_finished = total_words * 100 / estimated_word_count
+  average_word_count = total_words / (num_chapters - empty_chapters)
+  estimated_word_count = total_words + (empty_chapters * average_word_count)
+  percent_finished = total_words * 100 / estimated_word_count
 
-  # print "{}/~{} words ({}%)".format(
-  #   total_words, estimated_word_count, percent_finished)
+  print "{}/~{} words ({}%)".format(
+    total_words, estimated_word_count, percent_finished)
