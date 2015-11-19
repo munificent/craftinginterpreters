@@ -1,24 +1,12 @@
+$serif:   "Crimson Text", Georgia, serif;
+$mono:    "Droid Sans Mono", Menlo, Consolas, Monaco, monospace;
+$nav:     "Source Sans Pro", sans-serif;
 
-/*
-#30231d
-#6a5750
-#f6f1ed
-#b5a397
-*/
-
-//$serif: "Merriweather", Georgia, serif;
-$serif: "Crimson Text", Georgia, serif;
-
-$mono: "Droid Sans Mono", Menlo, Consolas, Monaco, monospace;
-$header: "Sintony", sans-serif;
-$nav: "Source Sans Pro", sans-serif;
-//$sans: "Source Sans Pro", "Lucida Grande", "Lucida Sans Unicode",
-//    Verdana, sans-serif;
-//$header: "Source Sans Pro", Georgia, serif;
-
-$hue: 205;
-$primary: hsl($hue, 80%, 45%);
-$hairline: #eee;
+// TODO: Make a gradient from light to dark with slightly different hues instead
+// of a single $hue.
+$hue:       205;
+$primary:   hsl($hue, 80%, 45%);
+$hairline:  #eee;
 
 $col: 48px;
 
@@ -57,11 +45,23 @@ body {
 
 nav {
   font: 300 14px/24px $nav;
+  background: hsl($hue + 10, 20%, 20%);
+  color: hsl($hue - 10, 20%, 40%);
+
+  a, h2 a {
+    color: hsl($hue, 20%, 60%);
+  }
+
+  a:hover {
+    color: hsl($hue, 20%, 90%);
+  }
 
   h1 {
+    padding: 125px 0 0 0;
     font: 300 21px/24px $nav;
     text-transform: uppercase;
     letter-spacing: 1px;
+    text-align: center;
   }
 
   h2 {
@@ -84,6 +84,8 @@ nav {
   ol.toc {
     margin: 0 0 7px;
     padding: 7px 0 4px 24px;
+    border-top: solid 1px hsl($hue, 20%, 30%);
+    border-bottom: solid 1px hsl($hue, 20%, 30%);
   }
 
   ol > li > a {
@@ -96,9 +98,6 @@ nav.wide {
   width: $col * 7;
   height: 100%;
 
-  background: hsl($hue + 10, 20%, 20%);
-  color: hsl($hue - 10, 20%, 40%);
-
   .contents {
     position: absolute;
     top: 175px;
@@ -108,76 +107,91 @@ nav.wide {
     overflow: hidden;
   }
 
-  h1 {
-    padding: 125px 0 0 0;
-    text-align: center;
-  }
-
-  ol.toc {
-    border-top: solid 1px hsl($hue, 20%, 30%);
-    border-bottom: solid 1px hsl($hue, 20%, 30%);
-  }
-
-  a, h2 a {
-    color: hsl($hue, 20%, 60%);
-  }
-
   a:hover {
-    color: hsl($hue, 20%, 90%);
     border-bottom: solid 1px hsl($hue, 20%, 40%);
   }
+}
+
+// This is needed to make the nav fixed (not scrolling with the content) but
+// still positioned horizontally based on the page.
+// See: http://stackoverflow.com/a/11833892/9457
+.nav-wrapper {
+  position: absolute;
+  background: red;
+  right: $col * 6;
 }
 
 nav.column {
   // Only shown on narrower screens.
   display: none;
-  position: relative;
 
-  margin: 0 -12px;
+  z-index: 2;
+  position: absolute;
+  width: $col * 6;
+
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
 
-  background: hsl($hue + 10, 20%, 25%);
-  color: hsl($hue - 10, 20%, 45%);
+  #expand-nav {
+    padding: 13px 0 6px 0;
+    display: block;
+    font-size: 20px;
+    text-align: center;
+    color: hsl($hue, 20%, 40%);
+    cursor: pointer;
 
-  h1 {
-    padding: 77px 12px 7px 12px;
+    transition: padding 0.2s ease,
+                margin 0.2s ease,
+                color 0.2s ease;
   }
 
-  table {
-    position: absolute;
-    bottom: 2px;
-    right: 12px;
-    width: $col * 6;
+  #expand-nav, #expand-nav:hover {
+    border-bottom: none;
+  }
 
-    td:last-child {
-      text-align: right;
-    }
+  #expand-nav:hover {
+    color: hsl($hue, 20%, 90%);
+  }
+
+  .expandable {
+    overflow: hidden;
+    padding: 0 12px;
+
+    // Using max-height instead of height to allow the list to navigation to
+    // automatically choose its height based on the size of the list while
+    // still transitioning.
+    // See: http://stackoverflow.com/a/8331169/9457
+    max-height: 0;
+    transition: max-height 1.0s ease;
+  }
+
+  .expandable.shown {
+    // This should be as small as possible while still being large enough for
+    // the worst case chapter.
+    max-height: 600px;
   }
 
   ol.toc {
-    position: absolute;
-    z-index: 2;
-    right: 0;
-    width: $col * 6;
-    background: hsl($hue + 10, 20%, 25%);
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
-    padding-bottom: 6px;
+    margin-top: 42px;
 
-    li {
-      margin-left: 8px;
-    }
+    transition: margin 0.2s ease;
+  }
+}
+
+nav.column.pinned {
+  position: fixed;
+
+  h1 {
+    padding-top: 12px;
   }
 
-  a, h2 a {
-    color: hsl($hue, 20%, 65%);
-    border-bottom: none;
+  #expand-nav {
+    margin-top: -12px;
+    padding: 7px 0 0 0;
   }
 
-  a:hover {
-    color: hsl($hue, 20%, 90%);
-    border-bottom: none;
+  ol.toc {
+    margin-top: 12px;
   }
 }
 
@@ -255,7 +269,15 @@ a {
 
 a:hover {
   color: $primary;
-  border-bottom: solid 1px hsla($hue, 80%, 80%, 100%);
+  border-bottom: solid 1px hsla($hue, 80%, 80%, 1.0);
+}
+
+footer {
+  border-top: solid 1px $hairline;
+  font-size: 15px;
+  text-align: center;
+  margin: 24px 0;
+  padding-top: 24px;
 }
 
 img {
@@ -330,19 +352,19 @@ aside {
   nav.column { display: block; }
 
   body {
-    margin: 0 $col;
+    margin: 0 24px;
   }
 
   .page {
     position: relative;
     width: inherit;
-    max-width: $col * 20;
+    max-width: $col * 19;
     margin: 0 auto;
   }
 
   article {
     width: inherit;
-    margin-right: $col * 8;
+    margin-right: $col * 7;
   }
 }
 

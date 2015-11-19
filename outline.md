@@ -66,6 +66,7 @@
         - variable references
         - scope
         - name binding
+        - undefined names
         - block scope
     - Control Flow
         - if
@@ -91,6 +92,13 @@ principles
   probably means doing all of parsing for the whole grammar isn't a good idea:
   it's boring until later chapters do something with it.
 
+- kinds of content in a chapter
+  - main narrative with prose and code
+  - historical context and people
+  - further things to learn
+  - omitted alternatives
+  - exercises
+  - quotation at beginning of each chapter
 
 stuff to maybe include:
 

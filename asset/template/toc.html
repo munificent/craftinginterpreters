@@ -1,0 +1,67 @@
+{% macro part_link(part_title) %}
+{% if part_title == title %}
+  <a href="#top"><strong>{{ part_title }}</strong></a>
+{% else %}
+  <a href="{{ part_title|file }}.html">
+    {{ part_title }}
+  </a>
+{% endif %}
+{% endmacro %}
+
+{% macro chapter(chapter_title) %}
+<li>
+  {% if chapter_title == title %}
+    <a href="#top"><strong>{{ chapter_title }}</strong></a>
+    {% if sections %}
+    <ul>
+      {% for section in sections %}
+        <li><a href="#{{ section|file }}">{{ section }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% else %}
+    <a href="{{ chapter_title|file }}.html">
+      {{ chapter_title }}
+    </a>
+  {% endif %}
+</li>
+{% endmacro %}
+
+<ol type="I" class="toc">
+  <li>{{ part_link('Warm Up') }}
+    {% if part == 'Warm Up' or title == 'Warm Up' %}
+      <ol start="1">
+        {{ chapter('Introduction') }}
+        {{ chapter('Your First Language') }}
+        {{ chapter('Your Second Language') }}
+      </ol>
+    {% endif %}
+  </li>
+  <li>{{ part_link('Practice') }}
+    {% if part == 'Practice' or title == 'Practice' %}
+      <ol start="4">
+        {{ chapter('Read, Eval, Print, Loop') }}
+        {{ chapter('Scanning') }}
+        {{ chapter('Parsing Expressions') }}
+        {{ chapter('Evaluating Trees') }}
+        {{ chapter('Variables') }}
+        {{ chapter('Control Flow') }}
+        {{ chapter('Functions') }}
+      </ol>
+    {% endif %}
+  </li>
+  <li>{{ part_link('Performance') }}
+    {% if part == 'Performance' or title == 'Performance' %}
+      <ol start="10">
+        {{ chapter('Bytecode') }}
+      </ol>
+    {% endif %}
+  </li>
+</ol>
+
+{% if prev %}
+<a href="{{ prev|file }}.html" title="{{ prev }}">←&nbsp;Previous</a>
+{% endif %}
+{% if next %}
+<a href="{{ next|file }}.html" title="{{ next }}" class="right">Next&nbsp;→</a>
+{% endif %}
