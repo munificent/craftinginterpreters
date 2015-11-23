@@ -1,3 +1,8 @@
+**TODO: when can we introduce a print statement/function?**
+
+needs to happen before statements and flow control otherwise those aren't
+visible to user.
+
 - Warming Up
     - Introduction
         - who book is for
@@ -48,9 +53,7 @@
     - Parsing Expressions
         - ast
         - recursive descent
-        - operator precedence
         - lookahead
-        - top-down operator precedence parsing
     - Tree Walk Interpreting
         - evaluating operands
         - recursion
@@ -60,11 +63,12 @@
         - dynamic typing and conversions
         - errors
     - Variables
-        - statements
+        - statements versus expressions
         - declaration
         - assignment
         - variable references
         - scope
+        - symbol table
         - name binding
         - undefined names
         - block scope
@@ -83,7 +87,33 @@
         - closures
         - ffi?
         - tail call optimization
+        - arity mismatch
+    - Objects
+        - classes
+        - prototypes?
+        - this
+        - methods
+        - dynamic dispatch
+        - constructors
+        - inheritance
 - Performance (C)
+    - Garbage Collection
+        - mark sweep
+        - roots
+        - stack
+        - ffi implications
+        - mention copy collection and lisp2
+    - Scanning
+        - pull based lazy scanning
+        - zero-alloc tokens
+    - Parsing
+        - top-down operator precedence parsing
+        - incomplete parsing for repl
+    - Compiling
+        - constant pools
+        - stack based bytecode
+        - register based
+        - virtual machine
 
 principles
 - each top-level section builds one interpreter starting from scratch
@@ -99,19 +129,13 @@ principles
   - omitted alternatives
   - exercises
   - quotation at beginning of each chapter
+  - engineering considerations: error handling, maintainability, etc.
+  - design and pyschology: usability, aesthetics, popularity, learnability, etc.
 
 stuff to maybe include:
 
-- gc
-    - mark-sweep collection
-    - copy collection
-    - lisp2 algorithm?
-    - bump-pointer allocation
-    - roots
 - error-handling
     - stack traces and line information
-    - lexer errors
-    - compile time errors
     - runtime errors
 - variables
     - scopes as dictionaries
@@ -133,16 +157,3 @@ stuff to maybe include:
 - syntax
     - aesthetics and usability of syntax design
     - backjumping and infinite lookahead or context-sensitive grammars
-- execution
-    - compiling to bytecode
-    - virtual machine
-    - stack based bytecode
-    - register based bytecode
-    - fibers and coroutines
-
-- kinds of asides
-  - historical context and people
-  - further things to learn
-  - omitted alternatives
-  - engineering considerations: error handling, maintainability, etc.
-  - design and pyschology: usability, aesthetics, popularity, learnability, etc.
