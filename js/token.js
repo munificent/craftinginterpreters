@@ -5,6 +5,12 @@ function Token(type, text, value) {
   this.value = value;
 }
 
+Token.prototype.toString = function() {
+  var result = "Token." + this.type + " '" + this.text + "'";
+  if (this.value != null) result += " " + this.value;
+  return result;
+}
+
 // Token types.
 Token.LEFT_PAREN = "LEFT_PAREN";
 Token.RIGHT_PAREN = "RIGHT_PAREN";
@@ -32,3 +38,5 @@ Token.STRING = "STRING";
 Token.NUMBER = "NUMBER";
 Token.END = "END";
 Token.ERROR = "ERROR";
+
+module.exports = Token;

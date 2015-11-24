@@ -1,3 +1,26 @@
+var Token = require("./token.js");
+
+// Returns true if `c` is an English letter or underscore.
+function isAlpha(c) {
+  return (c >= "a" && c <= "z") ||
+         (c >= "A" && c <= "Z") ||
+         c == "_";
+}
+
+// Returns true if `c` is an English letter, underscore, or digit.
+function isAlphaNumeric(c) {
+  return isAlpha(c) || isDigit(c);
+}
+
+// Returns true if `c` is a space, newline, or tab.
+function isWhitespace(c) {
+  return c == " " || c == "\n" || c == "\t";
+}
+
+// Returns true if `c` is a digit.
+function isDigit(c) {
+  return c >= "0" && c <= "9";
+}
 
 function Lexer(source) {
   this.source = source;
@@ -19,7 +42,7 @@ Lexer.punctuators = {
 Lexer.prototype.nextToken = function() {
   this.skipWhitespace();
 
-  if (this.current >= this.source.length) return new Token(Token.END, "end");
+  if (this.current >= this.source.length) return new Token(Token.END, "");
 
   var c = this.advance();
 
@@ -42,7 +65,8 @@ Lexer.prototype.nextToken = function() {
       return this.makeToken(Token.ERROR);
 
     case ".":
-      // TODO: Allow numbers starting with "."?
+      if (isDigit(this.peek())) return this.number();
+
       return this.makeToken(Token.DOT);
 
     case "=":
@@ -77,7 +101,7 @@ Lexer.prototype.number = function() {
   this.consumeWhile(isDigit);
 
   // Look for a fractional part.
-  if (this.peek() == "." && isDigit(this.peek(1))) {
+  if (this.peek() == "." && !isAlpha(this.peek(1))) {
     // Consume the "."
     this.advance();
 
@@ -89,6 +113,7 @@ Lexer.prototype.number = function() {
 
 Lexer.prototype.string = function() {
   // TODO: Escapes.
+  // TODO: What about newlines?
   this.consumeWhile(function(c) { return c != "\""; });
 
   // Unterminated string.
@@ -98,6 +123,7 @@ Lexer.prototype.string = function() {
   this.advance();
 
   return this.makeToken(Token.STRING, function(text) {
+    // Trim the surrounding quotes.
     return text.substring(1, text.length - 1);
   });
 }
@@ -140,3 +166,5 @@ Lexer.prototype.peek = function(ahead) {
 Lexer.prototype.isAtEnd = function() {
   return this.current >= this.source.length;
 }
+
+module.exports = Lexer;

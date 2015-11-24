@@ -45,11 +45,22 @@ visible to user.
         - regex
         - comments
         - numbers
+            - leading zeroes
+            - floating point
+            - leading and trailing "."
+            - range
+            - negative
         - token value
         - strings
         - token type
         - escaping
         - errors
+        - maximal munch
+        - fortran parsing identifiers without whitespace
+        - significant indentation
+        - ex: self-assignment and increment
+        - ex: scientific and hex
+        - ex: significant newlines
     - Parsing Expressions
         - ast
         - recursive descent
