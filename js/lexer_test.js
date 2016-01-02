@@ -1,5 +1,5 @@
-var Lexer = require("./lexer.js");
-var Token = require("./token.js");
+var Lexer = require("./lexer");
+var Token = require("./token");
 
 function testLexer(source, expectedTokens) {
   var lexer = new Lexer(source);

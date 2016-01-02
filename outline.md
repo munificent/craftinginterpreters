@@ -58,6 +58,7 @@ visible to user.
         - maximal munch
         - fortran parsing identifiers without whitespace
         - significant indentation
+        - state machine for identifiers
         - ex: self-assignment and increment
         - ex: scientific and hex
         - ex: significant newlines

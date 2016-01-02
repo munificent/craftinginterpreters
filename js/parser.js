@@ -1,3 +1,17 @@
+var Token = require("./token");
+
+// TODO: Use them qualified?
+var ast = require("./ast");
+var Expr = ast.Expr;
+var BinaryExpr = ast.BinaryExpr;
+var CallExpr = ast.CallExpr;
+var NumberExpr = ast.NumberExpr;
+var StringExpr = ast.StringExpr;
+var VariableExpr = ast.VariableExpr;
+var Stmt = ast.Stmt;
+var BlockStmt = ast.BlockStmt;
+var ExpressionStmt = ast.ExpressionStmt;
+
 function Parser(lexer) {
   this.lexer = lexer;
   this.current = null;
@@ -20,7 +34,7 @@ Parser.prototype.equality = function() {
   while (this.match(Token.EQUALS_EQUALS) || this.match(Token.BANG_EQUALS)) {
     var op = this.last.type;
     var right = this.comparison();
-    expr = new BinaryNode(expr, op, right);
+    expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
@@ -35,7 +49,7 @@ Parser.prototype.comparison = function() {
          this.match(Token.GREATER_EQUALS)) {
     var op = this.last.type;
     var right = this.term();
-    expr = new BinaryNode(expr, op, right);
+    expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
@@ -47,7 +61,7 @@ Parser.prototype.term = function() {
   while (this.match(Token.PLUS) || this.match(Token.MINUS)) {
     var op = this.last.type;
     var right = this.factor();
-    expr = new BinaryNode(expr, op, right);
+    expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
@@ -61,7 +75,7 @@ Parser.prototype.factor = function() {
          this.match(Token.PERCENT)) {
     var op = this.last.type;
     var right = this.call();
-    expr = new BinaryNode(expr, op, right);
+    expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
@@ -85,7 +99,7 @@ Parser.prototype.call = function() {
       this.match(Token.RIGHT_PAREN);
     }
 
-    expr = new CallNode(expr, args);
+    expr = new CallExpr(expr, args);
   }
 
   return expr;
@@ -95,15 +109,21 @@ Parser.prototype.primary = function() {
   // TODO: Switch on type?
 
   if (this.match(Token.NUMBER)) {
-    return new NumberNode(this.last.value);
+    return new NumberExpr(this.last.value);
   }
 
   if (this.match(Token.STRING)) {
-    return new StringNode(this.last.value);
+    return new StringExpr(this.last.value);
   }
 
   if (this.match(Token.IDENTIFIER)) {
-    return new VariableNode(this.last.text);
+    return new VariableExpr(this.last.text);
+  }
+
+  if (this.match(Token.LEFT_PAREN)) {
+    var expr = this.expression();
+    this.consume(Token.RIGHT_PAREN);
+    return expr;
   }
 
   // TODO: Error handling.
@@ -118,3 +138,18 @@ Parser.prototype.match = function(tokenType) {
   this.current = this.lexer.nextToken();
   return true;
 }
+
+Parser.prototype.consume = function(tokenType) {
+  if (this.current == null) this.current = this.lexer.nextToken();
+
+  if (this.current.type != tokenType) {
+    // TODO: Report error better.
+    console.log("Error! Expect " + tokenType + " got " + this.current.type);
+  }
+
+  this.last = this.current;
+  this.current = this.lexer.nextToken();
+  return this.last;
+}
+
+module.exports = Parser;

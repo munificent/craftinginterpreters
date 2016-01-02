@@ -1,4 +1,4 @@
-var Token = require("./token.js");
+var Token = require("./token");
 
 // Returns true if `c` is an English letter or underscore.
 function isAlpha(c) {

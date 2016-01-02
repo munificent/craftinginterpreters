@@ -1,3 +1,6 @@
+var Lexer = require("./lexer");
+var Parser = require("./parser");
+var Token = require("./token");
 
 window.onload = function() {
   var input = document.querySelector("textarea#input");
@@ -54,8 +57,10 @@ function displayAst(node) {
 }
 
 function astToString(node) {
+  if (node === undefined) return "ERROR";
+
   return node.accept({
-    visitBinary: function(node) {
+    visitBinaryExpr: function(node) {
       var html = "<span class='node'>" + node.op.toLowerCase() + "</span>";
       html += "<ul>";
       html += "<li>" + astToString(node.left) + "</li>";
@@ -63,7 +68,7 @@ function astToString(node) {
       html += "</ul>";
       return html;
     },
-    visitCall: function(node) {
+    visitCallExpr: function(node) {
       var html = "<span class='node'>call</span>";
       html += "<ul>";
       html += "<li>" + astToString(node.fn) + "</li>";
@@ -75,13 +80,13 @@ function astToString(node) {
       html += "</ul>";
       return html;
     },
-    visitNumber: function(node) {
+    visitNumberExpr: function(node) {
       return "<span class='node number'>" + node.value + "</span>";
     },
-    visitString: function(node) {
+    visitStringExpr: function(node) {
       return "<span class='node string'>" + node.value + "</span>";
     },
-    visitVariable: function(node) {
+    visitVariableExpr: function(node) {
       return "<span class='node var'>" + node.name + "</span>";
     }
   });
@@ -94,7 +99,7 @@ function evaluateAst(node) {
 
 function evaluate(node) {
   return node.accept({
-    visitBinary: function(node) {
+    visitBinaryExpr: function(node) {
       var left = evaluate(node.left);
       var right = evaluate(node.right);
 
@@ -115,16 +120,16 @@ function evaluate(node) {
 
       throw "unknown operator " + node.op;
     },
-    visitCall: function(node) {
+    visitCallExpr: function(node) {
       throw "call not implemented";
     },
-    visitNumber: function(node) {
+    visitNumberExpr: function(node) {
       return node.value;
     },
-    visitString: function(node) {
+    visitStringExpr: function(node) {
       return node.value;
     },
-    visitVariable: function(node) {
+    visitVariableExpr: function(node) {
       throw "variable not implemented";
     }
   });
