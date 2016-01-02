@@ -29,20 +29,20 @@ function Lexer(source) {
 }
 
 Lexer.punctuators = {
-  "(": Token.LEFT_PAREN,
-  ")": Token.RIGHT_PAREN,
-  "[": Token.LEFT_BRACKET,
-  "]": Token.RIGHT_BRACKET,
-  "{": Token.LEFT_BRACE,
-  "}": Token.RIGHT_BRACE,
-  ";": Token.SEMICOLON,
-  ",": Token.COMMA,
+  "(": Token.leftParen,
+  ")": Token.rightParen,
+  "[": Token.leftBracket,
+  "]": Token.rightBracket,
+  "{": Token.leftBrace,
+  "}": Token.rightBrace,
+  ";": Token.semicolon,
+  ",": Token.comma,
 };
 
 Lexer.prototype.nextToken = function() {
   this.skipWhitespace();
 
-  if (this.current >= this.source.length) return new Token(Token.END, "");
+  if (this.current >= this.source.length) return new Token(Token.end, "");
 
   var c = this.advance();
 
@@ -55,34 +55,34 @@ Lexer.prototype.nextToken = function() {
 
   switch (c) {
     case "\"": return this.string();
-    case "+": return this.makeToken(Token.PLUS);
-    case "-": return this.makeToken(Token.MINUS);
-    case "*": return this.makeToken(Token.STAR);
-    case "/": return this.makeToken(Token.SLASH);
-    case "%": return this.makeToken(Token.PERCENT);
+    case "+": return this.makeToken(Token.plus);
+    case "-": return this.makeToken(Token.minus);
+    case "*": return this.makeToken(Token.star);
+    case "/": return this.makeToken(Token.slash);
+    case "%": return this.makeToken(Token.percent);
     case "!":
-      if (this.match("=")) return this.makeToken(Token.BANG_EQUALS);
-      return this.makeToken(Token.ERROR);
+      if (this.match("=")) return this.makeToken(Token.bangEqual);
+      return this.makeToken(Token.bang);
 
     case ".":
       if (isDigit(this.peek())) return this.number();
 
-      return this.makeToken(Token.DOT);
+      return this.makeToken(Token.dot);
 
     case "=":
-      if (this.match("=")) return this.makeToken(Token.EQUALS_EQUALS);
-      return this.makeToken(Token.EQUALS);
+      if (this.match("=")) return this.makeToken(Token.equalEqual);
+      return this.makeToken(Token.equal);
 
     case "<":
-      if (this.match("=")) return this.makeToken(Token.LESS_EQUALS);
-      return this.makeToken(Token.LESS);
+      if (this.match("=")) return this.makeToken(Token.lessEqual);
+      return this.makeToken(Token.less);
 
     case ">":
-      if (this.match("=")) return this.makeToken(Token.GREATER_EQUALS);
-      return this.makeToken(Token.GREATER);
+      if (this.match("=")) return this.makeToken(Token.greaterEqual);
+      return this.makeToken(Token.greater);
   }
 
-  return this.makeToken(Token.ERROR);
+  return this.makeToken(Token.error);
 }
 
 Lexer.prototype.skipWhitespace = function() {
@@ -94,7 +94,7 @@ Lexer.prototype.skipWhitespace = function() {
 
 Lexer.prototype.identifier = function() {
   this.consumeWhile(isAlphaNumeric);
-  return this.makeToken(Token.IDENTIFIER);
+  return this.makeToken(Token.identifier);
 }
 
 Lexer.prototype.number = function() {
@@ -108,7 +108,7 @@ Lexer.prototype.number = function() {
     this.consumeWhile(isDigit);
   }
 
-  return this.makeToken(Token.NUMBER, parseFloat);
+  return this.makeToken(Token.number, parseFloat);
 }
 
 Lexer.prototype.string = function() {
@@ -117,12 +117,12 @@ Lexer.prototype.string = function() {
   this.consumeWhile(function(c) { return c != "\""; });
 
   // Unterminated string.
-  if (this.isAtEnd()) return this.makeToken(Token.ERROR);
+  if (this.isAtEnd()) return this.makeToken(Token.error);
 
   // The closing ".
   this.advance();
 
-  return this.makeToken(Token.STRING, function(text) {
+  return this.makeToken(Token.string, function(text) {
     // Trim the surrounding quotes.
     return text.substring(1, text.length - 1);
   });

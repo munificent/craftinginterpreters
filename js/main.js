@@ -32,7 +32,7 @@ function displayTokens(source) {
   while (true) {
     var token = lexer.nextToken();
     tokens.push(token);
-    if (token.type == Token.END) break;
+    if (token.type == Token.end) break;
   }
 
   var html = "";
@@ -52,29 +52,29 @@ function displayTokens(source) {
 
 function displayAst(node) {
 
-  var html = "<ul><li>" + astToString(node) + "</li></ul>";
+  var html = "<ul><li>" + astToHtml(node) + "</li></ul>";
   document.querySelector("#ast").innerHTML = html;
 }
 
-function astToString(node) {
+function astToHtml(node) {
   if (node === undefined) return "ERROR";
 
   return node.accept({
     visitBinaryExpr: function(node) {
-      var html = "<span class='node'>" + node.op.toLowerCase() + "</span>";
+      var html = "<span class='node'>" + node.op + "</span>";
       html += "<ul>";
-      html += "<li>" + astToString(node.left) + "</li>";
-      html += "<li>" + astToString(node.right) + "</li>";
+      html += "<li>" + astToHtml(node.left) + "</li>";
+      html += "<li>" + astToHtml(node.right) + "</li>";
       html += "</ul>";
       return html;
     },
     visitCallExpr: function(node) {
       var html = "<span class='node'>call</span>";
       html += "<ul>";
-      html += "<li>" + astToString(node.fn) + "</li>";
+      html += "<li>" + astToHtml(node.fn) + "</li>";
 
       for (var i = 0; i < node.args.length; i++) {
-        html += "<li>" + astToString(node.args[i]) + "</li>";
+        html += "<li>" + astToHtml(node.args[i]) + "</li>";
       }
 
       html += "</ul>";
@@ -85,6 +85,13 @@ function astToString(node) {
     },
     visitStringExpr: function(node) {
       return "<span class='node string'>" + node.value + "</span>";
+    },
+    visitUnaryExpr: function(node) {
+      var html = "<span class='node'>" + node.op + "</span>";
+      html += "<ul>";
+      html += "<li>" + astToHtml(node.right) + "</li>";
+      html += "</ul>";
+      return html;
     },
     visitVariableExpr: function(node) {
       return "<span class='node var'>" + node.name + "</span>";
@@ -105,17 +112,17 @@ function evaluate(node) {
 
       // TODO: Don't always use JS semantics.
       switch (node.op) {
-        case Token.PLUS: return left + right;
-        case Token.MINUS: return left - right;
-        case Token.STAR: return left * right;
-        case Token.SLASH: return left / right;
-        case Token.PERCENT: return left % right;
-        case Token.EQUALS_EQUALS: return left === right;
-        case Token.BANG_EQUALS: return left !== right;
-        case Token.LESS: return left < right;
-        case Token.GREATER: return left > right;
-        case Token.LESS_EQUALS: return left <= right;
-        case Token.GREATER_EQUALS: return left >= right;
+        case Token.plus: return left + right;
+        case Token.minus: return left - right;
+        case Token.star: return left * right;
+        case Token.slash: return left / right;
+        case Token.percent: return left % right;
+        case Token.equalEqual: return left === right;
+        case Token.bangEqual: return left !== right;
+        case Token.less: return left < right;
+        case Token.greater: return left > right;
+        case Token.lessEqual: return left <= right;
+        case Token.greaterEqual: return left >= right;
       }
 
       throw "unknown operator " + node.op;
@@ -128,6 +135,18 @@ function evaluate(node) {
     },
     visitStringExpr: function(node) {
       return node.value;
+    },
+    visitUnaryExpr: function(node) {
+      var right = evaluate(node.right);
+
+      // TODO: Don't always use JS semantics.
+      switch (node.op) {
+        case Token.plus: return +right;
+        case Token.minus: return -right;
+        case Token.bang: return !right;
+      }
+
+      throw "unknown operator " + node.op;
     },
     visitVariableExpr: function(node) {
       throw "variable not implemented";

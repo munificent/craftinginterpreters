@@ -7,6 +7,7 @@ var BinaryExpr = ast.BinaryExpr;
 var CallExpr = ast.CallExpr;
 var NumberExpr = ast.NumberExpr;
 var StringExpr = ast.StringExpr;
+var UnaryExpr = ast.UnaryExpr;
 var VariableExpr = ast.VariableExpr;
 var Stmt = ast.Stmt;
 var BlockStmt = ast.BlockStmt;
@@ -31,7 +32,7 @@ Parser.prototype.expression = function() {
 Parser.prototype.equality = function() {
   var expr = this.comparison();
 
-  while (this.match(Token.EQUALS_EQUALS) || this.match(Token.BANG_EQUALS)) {
+  while (this.match(Token.equalEqual) || this.match(Token.bangEqual)) {
     var op = this.last.type;
     var right = this.comparison();
     expr = new BinaryExpr(expr, op, right);
@@ -43,10 +44,10 @@ Parser.prototype.equality = function() {
 Parser.prototype.comparison = function() {
   var expr = this.term();
 
-  while (this.match(Token.LESS) ||
-         this.match(Token.GREATER) ||
-         this.match(Token.LESS_EQUALS) ||
-         this.match(Token.GREATER_EQUALS)) {
+  while (this.match(Token.less) ||
+         this.match(Token.greater) ||
+         this.match(Token.lessEqual) ||
+         this.match(Token.greaterEqual)) {
     var op = this.last.type;
     var right = this.term();
     expr = new BinaryExpr(expr, op, right);
@@ -58,7 +59,7 @@ Parser.prototype.comparison = function() {
 Parser.prototype.term = function() {
   var expr = this.factor();
 
-  while (this.match(Token.PLUS) || this.match(Token.MINUS)) {
+  while (this.match(Token.plus) || this.match(Token.minus)) {
     var op = this.last.type;
     var right = this.factor();
     expr = new BinaryExpr(expr, op, right);
@@ -68,35 +69,47 @@ Parser.prototype.term = function() {
 }
 
 Parser.prototype.factor = function() {
-  var expr = this.call();
+  var expr = this.unary();
 
-  while (this.match(Token.STAR) ||
-         this.match(Token.SLASH) ||
-         this.match(Token.PERCENT)) {
+  while (this.match(Token.star) ||
+         this.match(Token.slash) ||
+         this.match(Token.percent)) {
     var op = this.last.type;
-    var right = this.call();
+    var right = this.unary();
     expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
 }
 
+Parser.prototype.unary = function() {
+  if (this.match(Token.plus) ||
+      this.match(Token.minus) ||
+      this.match(Token.bang)) {
+    var op = this.last.type;
+    var right = this.unary();
+    return new UnaryExpr(op, right);
+  }
+
+  return this.call();
+}
+
 Parser.prototype.call = function() {
   var expr = this.primary();
 
-  while (this.match(Token.LEFT_PAREN)) {
+  while (this.match(Token.leftParen)) {
     // TODO: Comma-separated list.
     var args = [];
 
-    if (this.match(Token.RIGHT_PAREN)) {
+    if (this.match(Token.rightParen)) {
       // No arguments.
     } else {
       do {
         args.push(this.expression());
-      } while (this.match(Token.COMMA));
+      } while (this.match(Token.comma));
 
       // TODO: Consume and error if missing.
-      this.match(Token.RIGHT_PAREN);
+      this.match(Token.rightParen);
     }
 
     expr = new CallExpr(expr, args);
@@ -108,21 +121,21 @@ Parser.prototype.call = function() {
 Parser.prototype.primary = function() {
   // TODO: Switch on type?
 
-  if (this.match(Token.NUMBER)) {
+  if (this.match(Token.number)) {
     return new NumberExpr(this.last.value);
   }
 
-  if (this.match(Token.STRING)) {
+  if (this.match(Token.string)) {
     return new StringExpr(this.last.value);
   }
 
-  if (this.match(Token.IDENTIFIER)) {
+  if (this.match(Token.identifier)) {
     return new VariableExpr(this.last.text);
   }
 
-  if (this.match(Token.LEFT_PAREN)) {
+  if (this.match(Token.leftParen)) {
     var expr = this.expression();
-    this.consume(Token.RIGHT_PAREN);
+    this.consume(Token.rightParen);
     return expr;
   }
 

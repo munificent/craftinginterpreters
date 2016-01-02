@@ -54,6 +54,18 @@ function VariableExpr(name) {
   this.name = name;
 }
 
+function UnaryExpr(op, right) {
+  Expr.call(this);
+  this.op = op;
+  this.right = right;
+}
+
+UnaryExpr.prototype = Object.create(Expr.prototype);
+
+UnaryExpr.prototype.accept = function(visitor) {
+  return visitor.visitUnaryExpr(this);
+}
+
 VariableExpr.prototype = Object.create(Expr.prototype);
 
 VariableExpr.prototype.accept = function(visitor) {
@@ -90,6 +102,7 @@ exports.BinaryExpr = BinaryExpr;
 exports.CallExpr = CallExpr;
 exports.NumberExpr = NumberExpr;
 exports.StringExpr = StringExpr;
+exports.UnaryExpr = UnaryExpr;
 exports.VariableExpr = VariableExpr;
 exports.Stmt = Stmt;
 exports.BlockStmt = BlockStmt;
@@ -127,20 +140,20 @@ function Lexer(source) {
 }
 
 Lexer.punctuators = {
-  "(": Token.LEFT_PAREN,
-  ")": Token.RIGHT_PAREN,
-  "[": Token.LEFT_BRACKET,
-  "]": Token.RIGHT_BRACKET,
-  "{": Token.LEFT_BRACE,
-  "}": Token.RIGHT_BRACE,
-  ";": Token.SEMICOLON,
-  ",": Token.COMMA,
+  "(": Token.leftParen,
+  ")": Token.rightParen,
+  "[": Token.leftBracket,
+  "]": Token.rightBracket,
+  "{": Token.leftBrace,
+  "}": Token.rightBrace,
+  ";": Token.semicolon,
+  ",": Token.comma,
 };
 
 Lexer.prototype.nextToken = function() {
   this.skipWhitespace();
 
-  if (this.current >= this.source.length) return new Token(Token.END, "");
+  if (this.current >= this.source.length) return new Token(Token.end, "");
 
   var c = this.advance();
 
@@ -153,34 +166,34 @@ Lexer.prototype.nextToken = function() {
 
   switch (c) {
     case "\"": return this.string();
-    case "+": return this.makeToken(Token.PLUS);
-    case "-": return this.makeToken(Token.MINUS);
-    case "*": return this.makeToken(Token.STAR);
-    case "/": return this.makeToken(Token.SLASH);
-    case "%": return this.makeToken(Token.PERCENT);
+    case "+": return this.makeToken(Token.plus);
+    case "-": return this.makeToken(Token.minus);
+    case "*": return this.makeToken(Token.star);
+    case "/": return this.makeToken(Token.slash);
+    case "%": return this.makeToken(Token.percent);
     case "!":
-      if (this.match("=")) return this.makeToken(Token.BANG_EQUALS);
-      return this.makeToken(Token.ERROR);
+      if (this.match("=")) return this.makeToken(Token.bangEqual);
+      return this.makeToken(Token.bang);
 
     case ".":
       if (isDigit(this.peek())) return this.number();
 
-      return this.makeToken(Token.DOT);
+      return this.makeToken(Token.dot);
 
     case "=":
-      if (this.match("=")) return this.makeToken(Token.EQUALS_EQUALS);
-      return this.makeToken(Token.EQUALS);
+      if (this.match("=")) return this.makeToken(Token.equalEqual);
+      return this.makeToken(Token.equal);
 
     case "<":
-      if (this.match("=")) return this.makeToken(Token.LESS_EQUALS);
-      return this.makeToken(Token.LESS);
+      if (this.match("=")) return this.makeToken(Token.lessEqual);
+      return this.makeToken(Token.less);
 
     case ">":
-      if (this.match("=")) return this.makeToken(Token.GREATER_EQUALS);
-      return this.makeToken(Token.GREATER);
+      if (this.match("=")) return this.makeToken(Token.greaterEqual);
+      return this.makeToken(Token.greater);
   }
 
-  return this.makeToken(Token.ERROR);
+  return this.makeToken(Token.error);
 }
 
 Lexer.prototype.skipWhitespace = function() {
@@ -192,7 +205,7 @@ Lexer.prototype.skipWhitespace = function() {
 
 Lexer.prototype.identifier = function() {
   this.consumeWhile(isAlphaNumeric);
-  return this.makeToken(Token.IDENTIFIER);
+  return this.makeToken(Token.identifier);
 }
 
 Lexer.prototype.number = function() {
@@ -206,7 +219,7 @@ Lexer.prototype.number = function() {
     this.consumeWhile(isDigit);
   }
 
-  return this.makeToken(Token.NUMBER, parseFloat);
+  return this.makeToken(Token.number, parseFloat);
 }
 
 Lexer.prototype.string = function() {
@@ -215,12 +228,12 @@ Lexer.prototype.string = function() {
   this.consumeWhile(function(c) { return c != "\""; });
 
   // Unterminated string.
-  if (this.isAtEnd()) return this.makeToken(Token.ERROR);
+  if (this.isAtEnd()) return this.makeToken(Token.error);
 
   // The closing ".
   this.advance();
 
-  return this.makeToken(Token.STRING, function(text) {
+  return this.makeToken(Token.string, function(text) {
     // Trim the surrounding quotes.
     return text.substring(1, text.length - 1);
   });
@@ -302,7 +315,7 @@ function displayTokens(source) {
   while (true) {
     var token = lexer.nextToken();
     tokens.push(token);
-    if (token.type == Token.END) break;
+    if (token.type == Token.end) break;
   }
 
   var html = "";
@@ -322,29 +335,29 @@ function displayTokens(source) {
 
 function displayAst(node) {
 
-  var html = "<ul><li>" + astToString(node) + "</li></ul>";
+  var html = "<ul><li>" + astToHtml(node) + "</li></ul>";
   document.querySelector("#ast").innerHTML = html;
 }
 
-function astToString(node) {
+function astToHtml(node) {
   if (node === undefined) return "ERROR";
 
   return node.accept({
     visitBinaryExpr: function(node) {
-      var html = "<span class='node'>" + node.op.toLowerCase() + "</span>";
+      var html = "<span class='node'>" + node.op + "</span>";
       html += "<ul>";
-      html += "<li>" + astToString(node.left) + "</li>";
-      html += "<li>" + astToString(node.right) + "</li>";
+      html += "<li>" + astToHtml(node.left) + "</li>";
+      html += "<li>" + astToHtml(node.right) + "</li>";
       html += "</ul>";
       return html;
     },
     visitCallExpr: function(node) {
       var html = "<span class='node'>call</span>";
       html += "<ul>";
-      html += "<li>" + astToString(node.fn) + "</li>";
+      html += "<li>" + astToHtml(node.fn) + "</li>";
 
       for (var i = 0; i < node.args.length; i++) {
-        html += "<li>" + astToString(node.args[i]) + "</li>";
+        html += "<li>" + astToHtml(node.args[i]) + "</li>";
       }
 
       html += "</ul>";
@@ -355,6 +368,13 @@ function astToString(node) {
     },
     visitStringExpr: function(node) {
       return "<span class='node string'>" + node.value + "</span>";
+    },
+    visitUnaryExpr: function(node) {
+      var html = "<span class='node'>" + node.op + "</span>";
+      html += "<ul>";
+      html += "<li>" + astToHtml(node.right) + "</li>";
+      html += "</ul>";
+      return html;
     },
     visitVariableExpr: function(node) {
       return "<span class='node var'>" + node.name + "</span>";
@@ -375,17 +395,17 @@ function evaluate(node) {
 
       // TODO: Don't always use JS semantics.
       switch (node.op) {
-        case Token.PLUS: return left + right;
-        case Token.MINUS: return left - right;
-        case Token.STAR: return left * right;
-        case Token.SLASH: return left / right;
-        case Token.PERCENT: return left % right;
-        case Token.EQUALS_EQUALS: return left === right;
-        case Token.BANG_EQUALS: return left !== right;
-        case Token.LESS: return left < right;
-        case Token.GREATER: return left > right;
-        case Token.LESS_EQUALS: return left <= right;
-        case Token.GREATER_EQUALS: return left >= right;
+        case Token.plus: return left + right;
+        case Token.minus: return left - right;
+        case Token.star: return left * right;
+        case Token.slash: return left / right;
+        case Token.percent: return left % right;
+        case Token.equalEqual: return left === right;
+        case Token.bangEqual: return left !== right;
+        case Token.less: return left < right;
+        case Token.greater: return left > right;
+        case Token.lessEqual: return left <= right;
+        case Token.greaterEqual: return left >= right;
       }
 
       throw "unknown operator " + node.op;
@@ -398,6 +418,18 @@ function evaluate(node) {
     },
     visitStringExpr: function(node) {
       return node.value;
+    },
+    visitUnaryExpr: function(node) {
+      var right = evaluate(node.right);
+
+      // TODO: Don't always use JS semantics.
+      switch (node.op) {
+        case Token.plus: return +right;
+        case Token.minus: return -right;
+        case Token.bang: return !right;
+      }
+
+      throw "unknown operator " + node.op;
     },
     visitVariableExpr: function(node) {
       throw "variable not implemented";
@@ -415,6 +447,7 @@ var BinaryExpr = ast.BinaryExpr;
 var CallExpr = ast.CallExpr;
 var NumberExpr = ast.NumberExpr;
 var StringExpr = ast.StringExpr;
+var UnaryExpr = ast.UnaryExpr;
 var VariableExpr = ast.VariableExpr;
 var Stmt = ast.Stmt;
 var BlockStmt = ast.BlockStmt;
@@ -439,7 +472,7 @@ Parser.prototype.expression = function() {
 Parser.prototype.equality = function() {
   var expr = this.comparison();
 
-  while (this.match(Token.EQUALS_EQUALS) || this.match(Token.BANG_EQUALS)) {
+  while (this.match(Token.equalEqual) || this.match(Token.bangEqual)) {
     var op = this.last.type;
     var right = this.comparison();
     expr = new BinaryExpr(expr, op, right);
@@ -451,10 +484,10 @@ Parser.prototype.equality = function() {
 Parser.prototype.comparison = function() {
   var expr = this.term();
 
-  while (this.match(Token.LESS) ||
-         this.match(Token.GREATER) ||
-         this.match(Token.LESS_EQUALS) ||
-         this.match(Token.GREATER_EQUALS)) {
+  while (this.match(Token.less) ||
+         this.match(Token.greater) ||
+         this.match(Token.lessEqual) ||
+         this.match(Token.greaterEqual)) {
     var op = this.last.type;
     var right = this.term();
     expr = new BinaryExpr(expr, op, right);
@@ -466,7 +499,7 @@ Parser.prototype.comparison = function() {
 Parser.prototype.term = function() {
   var expr = this.factor();
 
-  while (this.match(Token.PLUS) || this.match(Token.MINUS)) {
+  while (this.match(Token.plus) || this.match(Token.minus)) {
     var op = this.last.type;
     var right = this.factor();
     expr = new BinaryExpr(expr, op, right);
@@ -476,35 +509,47 @@ Parser.prototype.term = function() {
 }
 
 Parser.prototype.factor = function() {
-  var expr = this.call();
+  var expr = this.unary();
 
-  while (this.match(Token.STAR) ||
-         this.match(Token.SLASH) ||
-         this.match(Token.PERCENT)) {
+  while (this.match(Token.star) ||
+         this.match(Token.slash) ||
+         this.match(Token.percent)) {
     var op = this.last.type;
-    var right = this.call();
+    var right = this.unary();
     expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
 }
 
+Parser.prototype.unary = function() {
+  if (this.match(Token.plus) ||
+      this.match(Token.minus) ||
+      this.match(Token.bang)) {
+    var op = this.last.type;
+    var right = this.unary();
+    return new UnaryExpr(op, right);
+  }
+
+  return this.call();
+}
+
 Parser.prototype.call = function() {
   var expr = this.primary();
 
-  while (this.match(Token.LEFT_PAREN)) {
+  while (this.match(Token.leftParen)) {
     // TODO: Comma-separated list.
     var args = [];
 
-    if (this.match(Token.RIGHT_PAREN)) {
+    if (this.match(Token.rightParen)) {
       // No arguments.
     } else {
       do {
         args.push(this.expression());
-      } while (this.match(Token.COMMA));
+      } while (this.match(Token.comma));
 
       // TODO: Consume and error if missing.
-      this.match(Token.RIGHT_PAREN);
+      this.match(Token.rightParen);
     }
 
     expr = new CallExpr(expr, args);
@@ -516,21 +561,21 @@ Parser.prototype.call = function() {
 Parser.prototype.primary = function() {
   // TODO: Switch on type?
 
-  if (this.match(Token.NUMBER)) {
+  if (this.match(Token.number)) {
     return new NumberExpr(this.last.value);
   }
 
-  if (this.match(Token.STRING)) {
+  if (this.match(Token.string)) {
     return new StringExpr(this.last.value);
   }
 
-  if (this.match(Token.IDENTIFIER)) {
+  if (this.match(Token.identifier)) {
     return new VariableExpr(this.last.text);
   }
 
-  if (this.match(Token.LEFT_PAREN)) {
+  if (this.match(Token.leftParen)) {
     var expr = this.expression();
-    this.consume(Token.RIGHT_PAREN);
+    this.consume(Token.rightParen);
     return expr;
   }
 
@@ -577,32 +622,33 @@ Token.prototype.toString = function() {
 }
 
 // Token types.
-Token.LEFT_PAREN = "LEFT_PAREN";
-Token.RIGHT_PAREN = "RIGHT_PAREN";
-Token.LEFT_BRACKET = "LEFT_BRACKET";
-Token.RIGHT_BRACKET = "RIGHT_BRACKET";
-Token.LEFT_BRACE = "LEFT_BRACE";
-Token.RIGHT_BRACE = "RIGHT_BRACE";
-Token.SEMICOLON = "SEMICOLON";
-Token.COMMA = "COMMA";
-Token.DOT = "DOT";
-Token.PLUS = "PLUS";
-Token.MINUS = "MINUS";
-Token.STAR = "STAR";
-Token.SLASH = "SLASH";
-Token.PERCENT = "PERCENT";
-Token.EQUALS = "EQUALS";
-Token.EQUALS_EQUALS = "EQUALS_EQUALS";
-Token.BANG_EQUALS = "BANG_EQUALS";
-Token.LESS = "LESS";
-Token.GREATER = "GREATER";
-Token.LESS_EQUALS = "LESS_EQUALS";
-Token.GREATER_EQUALS = "GREATER_EQUALS";
-Token.IDENTIFIER = "IDENTIFIER";
-Token.STRING = "STRING";
-Token.NUMBER = "NUMBER";
-Token.END = "END";
-Token.ERROR = "ERROR";
+Token.leftParen = "(";
+Token.rightParen = ")";
+Token.leftBracket = "[";
+Token.rightBracket = "]";
+Token.leftBrace = "{";
+Token.rightBrace = "}";
+Token.semicolon = ";";
+Token.comma = ",";
+Token.dot = ".";
+Token.bang = "!";
+Token.plus = "+";
+Token.minus = "-";
+Token.star = "*";
+Token.slash = "/";
+Token.percent = "%";
+Token.equal = "=";
+Token.equalEqual = "==";
+Token.bangEqual = "!=";
+Token.less = "<";
+Token.greater = ">";
+Token.lessEqual = "<=";
+Token.greaterEqual = ">=";
+Token.identifier = "identifier";
+Token.string = "string";
+Token.number = "number";
+Token.end = "end";
+Token.error = "error";
 
 module.exports = Token;
 

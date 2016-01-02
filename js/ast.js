@@ -53,6 +53,18 @@ function VariableExpr(name) {
   this.name = name;
 }
 
+function UnaryExpr(op, right) {
+  Expr.call(this);
+  this.op = op;
+  this.right = right;
+}
+
+UnaryExpr.prototype = Object.create(Expr.prototype);
+
+UnaryExpr.prototype.accept = function(visitor) {
+  return visitor.visitUnaryExpr(this);
+}
+
 VariableExpr.prototype = Object.create(Expr.prototype);
 
 VariableExpr.prototype.accept = function(visitor) {
@@ -89,6 +101,7 @@ exports.BinaryExpr = BinaryExpr;
 exports.CallExpr = CallExpr;
 exports.NumberExpr = NumberExpr;
 exports.StringExpr = StringExpr;
+exports.UnaryExpr = UnaryExpr;
 exports.VariableExpr = VariableExpr;
 exports.Stmt = Stmt;
 exports.BlockStmt = BlockStmt;
