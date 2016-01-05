@@ -21,7 +21,7 @@ function Parser(lexer) {
   this.last = null;
 }
 
-Parser.prototype.parseProgram = function() {
+Parser.prototype.parse = function() {
   return this.expression();
 
   // TODO: Consume end.
@@ -34,7 +34,8 @@ Parser.prototype.expression = function() {
 Parser.prototype.equality = function() {
   var expr = this.comparison();
 
-  while (this.match(Token.equalEqual) || this.match(Token.bangEqual)) {
+  while (this.match(Token.equalEqual) ||
+         this.match(Token.bangEqual)) {
     var op = this.last.type;
     var right = this.comparison();
     expr = new BinaryExpr(expr, op, right);
@@ -61,7 +62,8 @@ Parser.prototype.comparison = function() {
 Parser.prototype.term = function() {
   var expr = this.factor();
 
-  while (this.match(Token.plus) || this.match(Token.minus)) {
+  while (this.match(Token.plus) ||
+         this.match(Token.minus)) {
     var op = this.last.type;
     var right = this.factor();
     expr = new BinaryExpr(expr, op, right);
@@ -82,7 +84,27 @@ Parser.prototype.factor = function() {
   }
 
   return expr;
+
+  // TODO: Could use code like this for all of the binary operators instead.
+  /*
+  return this.binary(this.unary,
+      [Token.star, Token.slash, Token.percent]);
+  */
 }
+
+/*
+Parser.prototype.binary = function(parseOperand, operators) {
+  var expr = parseOperand.call(this);
+
+  while (this.matchAny(operators)) {
+    var op = this.last.type;
+    var right = parseOperand.call(this);
+    expr = new BinaryExpr(expr, op, right);
+  }
+
+  return expr;
+}
+*/
 
 Parser.prototype.unary = function() {
   if (this.match(Token.plus) ||
@@ -143,6 +165,16 @@ Parser.prototype.primary = function() {
 
   // TODO: Error handling.
 }
+
+/*
+Parser.prototype.matchAny = function(tokenTypes) {
+  for (var i = 0; i < tokenTypes.length; i++) {
+    if (this.match(tokenTypes[i])) return true;
+  }
+
+  return false;
+}
+*/
 
 Parser.prototype.match = function(tokenType) {
   if (this.current == null) this.current = this.lexer.nextToken();

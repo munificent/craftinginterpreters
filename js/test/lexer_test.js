@@ -1,9 +1,9 @@
 "use strict";
 
-var Lexer = require("./lexer");
-var Token = require("./token");
+var Lexer = require("../lexer");
+var Token = require("../token");
 
-function testLexer(source, expectedTokens) {
+function test(source, expectedTokens) {
   var lexer = new Lexer(source);
 
   // The tokens should complete with an END.
@@ -39,18 +39,47 @@ function testLexer(source, expectedTokens) {
   }
 }
 
-testLexer("([{)]},;", [
+test("([{)]},;.!", [
   [Token.leftParen,    "(", null],
   [Token.leftBracket,  "[", null],
   [Token.leftBrace,    "{", null],
   [Token.rightParen,   ")", null],
   [Token.rightBracket, "]", null],
   [Token.rightBrace,   "}", null],
-  [Token.comma,         ",", null],
-  [Token.semicolon,     ";", null]
+  [Token.comma,        ",", null],
+  [Token.semicolon,    ";", null],
+  [Token.dot,          ".", null],
+  [Token.bang,         "!", null]
 ]);
 
-testLexer("1234 0 000 -123", [
+test("+-*/% = == != < > <= >=", [
+  [Token.plus,         "+", null],
+  [Token.minus,        "-", null],
+  [Token.star,         "*", null],
+  [Token.slash,        "/", null],
+  [Token.percent,      "%", null],
+  [Token.equal,        "=", null],
+  [Token.equalEqual,   "==", null],
+  [Token.bangEqual,    "!=", null],
+  [Token.less,         "<", null],
+  [Token.greater,      ">", null],
+  [Token.lessEqual,    "<=", null],
+  [Token.greaterEqual, ">=", null]
+]);
+
+// Maximal munch.
+test("===>==<==!==", [
+  [Token.equalEqual,   "==", null],
+  [Token.equal,        "=", null],
+  [Token.greaterEqual, ">=", null],
+  [Token.equal,        "=", null],
+  [Token.lessEqual,    "<=", null],
+  [Token.equal,        "=", null],
+  [Token.bangEqual,    "!=", null],
+  [Token.equal,        "=", null]
+]);
+
+test("1234 0 000 -123", [
   [Token.number,        "1234", 1234],
   [Token.number,        "0",    0],
   [Token.number,        "000",  0],
@@ -58,7 +87,7 @@ testLexer("1234 0 000 -123", [
   [Token.number,        "123",  123]
 ]);
 
-testLexer("12.34 .45 56. 1.2.3 4..5", [
+test("12.34 .45 56. 1.2.3 4..5", [
   [Token.number,        "12.34", 12.34],
   [Token.number,        ".45",   0.45],
   [Token.number,        "56.",   56.0],
@@ -68,7 +97,7 @@ testLexer("12.34 .45 56. 1.2.3 4..5", [
   [Token.number,        ".5",    0.5]
 ]);
 
-testLexer("123.name 45..name", [
+test("123.name 45..name", [
   [Token.number,        "123",   123],
   [Token.dot,           ".",     null],
   [Token.identifier,    "name",  null],
@@ -77,4 +106,4 @@ testLexer("123.name 45..name", [
   [Token.identifier,    "name",  null]
 ]);
 
-// TODO: Operators, maximal munch. Reserved words.
+// TODO: Reserved words.

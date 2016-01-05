@@ -22,7 +22,7 @@ function refresh() {
 
   var lexer = new Lexer(input.value);
   var parser = new Parser(lexer);
-  var node = parser.parseProgram();
+  var node = parser.parse();
 
   displayAst(node);
   evaluateAst(node);
