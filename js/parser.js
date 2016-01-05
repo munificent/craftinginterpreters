@@ -1,3 +1,5 @@
+"use strict";
+
 var Token = require("./token");
 
 // TODO: Use them qualified?

@@ -1,3 +1,5 @@
+"use strict";
+
 var Lexer = require("./lexer");
 var Parser = require("./parser");
 var Token = require("./token");

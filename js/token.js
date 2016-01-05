@@ -1,3 +1,4 @@
+"use strict";
 
 function Token(type, text, value) {
   this.type = type;

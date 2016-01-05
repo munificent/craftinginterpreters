@@ -1,4 +1,51 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+
+function Expr() {}
+function Stmt() {}
+
+exports.Expr = Expr;
+exports.Stmt = Stmt;
+
+function defineAst(name, baseClass, baseName, fields) {
+  var constructor = function() {
+    for (var i = 0; i < fields.length; i++) {
+      this[fields[i]] = arguments[i];
+    }
+  }
+
+  constructor.prototype = Object.create(baseClass.prototype);
+
+  constructor.prototype.accept = function(visitor) {
+    return visitor["visit" + name + baseName](this);
+  }
+
+  exports[name + baseName] = constructor;
+}
+
+function defineExpr(name, fields) {
+  defineAst(name, Expr, "Expr", fields);
+}
+
+function defineStmt(name, fields) {
+  defineAst(name, Stmt, "Stmt", fields);
+}
+
+defineExpr("Binary",      ["left", "op", "right"]);
+defineExpr("Call",        ["fn, args"]);
+defineExpr("Number",      ["value"]);
+defineExpr("String",      ["value"]);
+defineExpr("Unary",       ["op", "right"]);
+defineExpr("Variable",    ["name"]);
+
+defineStmt("Block",       ["statements"]);
+defineStmt("Expression",  ["expression"]);
+defineStmt("For",         ["name", "iterator", "body"]);
+defineStmt("If",          ["condition", "thenBranch", "elseBranch"]);
+defineStmt("Var",         ["name", "initializer"]);
+defineStmt("While",       ["condition", "body"]);
+
+/*
 function Expr() {
 }
 
@@ -49,11 +96,6 @@ StringExpr.prototype.accept = function(visitor) {
   return visitor.visitStringExpr(this);
 }
 
-function VariableExpr(name) {
-  Expr.call(this);
-  this.name = name;
-}
-
 function UnaryExpr(op, right) {
   Expr.call(this);
   this.op = op;
@@ -64,6 +106,11 @@ UnaryExpr.prototype = Object.create(Expr.prototype);
 
 UnaryExpr.prototype.accept = function(visitor) {
   return visitor.visitUnaryExpr(this);
+}
+
+function VariableExpr(name) {
+  Expr.call(this);
+  this.name = name;
 }
 
 VariableExpr.prototype = Object.create(Expr.prototype);
@@ -107,8 +154,11 @@ exports.VariableExpr = VariableExpr;
 exports.Stmt = Stmt;
 exports.BlockStmt = BlockStmt;
 exports.ExpressionStmt = ExpressionStmt;
+*/
 
 },{}],2:[function(require,module,exports){
+"use strict";
+
 var Token = require("./token");
 
 // Returns true if `c` is an English letter or underscore.
@@ -281,6 +331,8 @@ Lexer.prototype.isAtEnd = function() {
 module.exports = Lexer;
 
 },{"./token":5}],3:[function(require,module,exports){
+"use strict";
+
 var Lexer = require("./lexer");
 var Parser = require("./parser");
 var Token = require("./token");
@@ -438,6 +490,8 @@ function evaluate(node) {
 }
 
 },{"./lexer":2,"./parser":4,"./token":5}],4:[function(require,module,exports){
+"use strict";
+
 var Token = require("./token");
 
 // TODO: Use them qualified?
@@ -470,18 +524,26 @@ Parser.prototype.expression = function() {
 }
 
 Parser.prototype.equality = function() {
+  return this.binary(this.comparison,
+      [Token.equalEqual, Token.bangEqual]);
+  /*
   var expr = this.comparison();
 
-  while (this.match(Token.equalEqual) || this.match(Token.bangEqual)) {
+  while (this.match(Token.equalEqual) ||
+         this.match(Token.bangEqual)) {
     var op = this.last.type;
     var right = this.comparison();
     expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
+  */
 }
 
 Parser.prototype.comparison = function() {
+  return this.binary(this.term,
+      [Token.less, Token.greater, Token.lessEqual, Token.greaterEqual]);
+  /*
   var expr = this.term();
 
   while (this.match(Token.less) ||
@@ -494,21 +556,27 @@ Parser.prototype.comparison = function() {
   }
 
   return expr;
+  */
 }
 
 Parser.prototype.term = function() {
+  /*
   var expr = this.factor();
 
-  while (this.match(Token.plus) || this.match(Token.minus)) {
+  while (this.match(Token.plus) ||
+         this.match(Token.minus)) {
     var op = this.last.type;
     var right = this.factor();
     expr = new BinaryExpr(expr, op, right);
   }
 
   return expr;
+  */
+  return this.binary(this.factor, [Token.plus, Token.minus]);
 }
 
 Parser.prototype.factor = function() {
+  /*
   var expr = this.unary();
 
   while (this.match(Token.star) ||
@@ -516,6 +584,21 @@ Parser.prototype.factor = function() {
          this.match(Token.percent)) {
     var op = this.last.type;
     var right = this.unary();
+    expr = new BinaryExpr(expr, op, right);
+  }
+
+  return expr;
+  */
+  return this.binary(this.unary,
+      [Token.star, Token.slash, Token.percent]);
+}
+
+Parser.prototype.binary = function(parseOperand, operators) {
+  var expr = parseOperand.call(this);
+
+  while (this.matchAny(operators)) {
+    var op = this.last.type;
+    var right = parseOperand.call(this);
     expr = new BinaryExpr(expr, op, right);
   }
 
@@ -582,6 +665,14 @@ Parser.prototype.primary = function() {
   // TODO: Error handling.
 }
 
+Parser.prototype.matchAny = function(tokenTypes) {
+  for (var i = 0; i < tokenTypes.length; i++) {
+    if (this.match(tokenTypes[i])) return true;
+  }
+
+  return false;
+}
+
 Parser.prototype.match = function(tokenType) {
   if (this.current == null) this.current = this.lexer.nextToken();
 
@@ -608,6 +699,7 @@ Parser.prototype.consume = function(tokenType) {
 module.exports = Parser;
 
 },{"./ast":1,"./token":5}],5:[function(require,module,exports){
+"use strict";
 
 function Token(type, text, value) {
   this.type = type;
