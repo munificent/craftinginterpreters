@@ -82,6 +82,14 @@ function astToHtml(node) {
       html += "</ul>";
       return html;
     },
+    visitLogicalExpr: function(node) {
+      var html = "<span class='node'>" + node.op + "</span>";
+      html += "<ul>";
+      html += "<li>" + astToHtml(node.left) + "</li>";
+      html += "<li>" + astToHtml(node.right) + "</li>";
+      html += "</ul>";
+      return html;
+    },
     visitNumberExpr: function(node) {
       return "<span class='node number'>" + node.value + "</span>";
     },
@@ -131,6 +139,17 @@ function evaluate(node) {
     },
     visitCallExpr: function(node) {
       throw "call not implemented";
+    },
+    visitLogicalExpr: function(node) {
+      var left = evaluate(node.left);
+
+      if (node.op == Token.and) {
+        if (!left) return left;
+      } else {
+        if (left) return left;
+      }
+
+      return evaluate(node.right);
     },
     visitNumberExpr: function(node) {
       return node.value;

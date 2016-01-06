@@ -33,6 +33,7 @@ function defineStmt(name, fields) {
 
 defineExpr("Binary",      ["left", "op", "right"]);
 defineExpr("Call",        ["fn, args"]);
+defineExpr("Logical",     ["left", "op", "right"]);
 defineExpr("Number",      ["value"]);
 defineExpr("String",      ["value"]);
 defineExpr("Unary",       ["op", "right"]);
@@ -45,6 +46,7 @@ defineStmt("If",          ["condition", "thenBranch", "elseBranch"]);
 defineStmt("Var",         ["name", "initializer"]);
 defineStmt("While",       ["condition", "body"]);
 
+// Old manual code:
 /*
 function Expr() {
 }
@@ -200,6 +202,11 @@ Lexer.punctuators = {
   ",": Token.comma,
 };
 
+Lexer.keywords = {
+  "and": Token.and,
+  "or": Token.or
+};
+
 Lexer.prototype.nextToken = function() {
   this.skipWhitespace();
 
@@ -255,7 +262,13 @@ Lexer.prototype.skipWhitespace = function() {
 
 Lexer.prototype.identifier = function() {
   this.consumeWhile(isAlphaNumeric);
-  return this.makeToken(Token.identifier);
+
+  // See if the identifier is a reserved word.
+  var text = this.source.substring(this.start, this.current);
+  var type = Lexer.keywords[text];
+  if (type === undefined) type = Token.identifier;
+
+  return this.makeToken(type);
 }
 
 Lexer.prototype.number = function() {
@@ -355,7 +368,7 @@ function refresh() {
 
   var lexer = new Lexer(input.value);
   var parser = new Parser(lexer);
-  var node = parser.parseProgram();
+  var node = parser.parse();
 
   displayAst(node);
   evaluateAst(node);
@@ -415,6 +428,14 @@ function astToHtml(node) {
       html += "</ul>";
       return html;
     },
+    visitLogicalExpr: function(node) {
+      var html = "<span class='node'>" + node.op + "</span>";
+      html += "<ul>";
+      html += "<li>" + astToHtml(node.left) + "</li>";
+      html += "<li>" + astToHtml(node.right) + "</li>";
+      html += "</ul>";
+      return html;
+    },
     visitNumberExpr: function(node) {
       return "<span class='node number'>" + node.value + "</span>";
     },
@@ -465,6 +486,17 @@ function evaluate(node) {
     visitCallExpr: function(node) {
       throw "call not implemented";
     },
+    visitLogicalExpr: function(node) {
+      var left = evaluate(node.left);
+
+      if (node.op == Token.and) {
+        if (!left) return left;
+      } else {
+        if (left) return left;
+      }
+
+      return evaluate(node.right);
+    },
     visitNumberExpr: function(node) {
       return node.value;
     },
@@ -499,6 +531,7 @@ var ast = require("./ast");
 var Expr = ast.Expr;
 var BinaryExpr = ast.BinaryExpr;
 var CallExpr = ast.CallExpr;
+var LogicalExpr = ast.LogicalExpr;
 var NumberExpr = ast.NumberExpr;
 var StringExpr = ast.StringExpr;
 var UnaryExpr = ast.UnaryExpr;
@@ -513,20 +546,41 @@ function Parser(lexer) {
   this.last = null;
 }
 
-Parser.prototype.parseProgram = function() {
+Parser.prototype.parse = function() {
   return this.expression();
 
   // TODO: Consume end.
 }
 
 Parser.prototype.expression = function() {
-  return this.equality();
+  return this.or();
+}
+
+Parser.prototype.or = function() {
+  var expr = this.and();
+
+  while (this.match(Token.or)) {
+    var op = this.last.type;
+    var right = this.and();
+    expr = new LogicalExpr(expr, op, right);
+  }
+
+  return expr;
+}
+
+Parser.prototype.and = function() {
+  var expr = this.equality();
+
+  while (this.match(Token.and)) {
+    var op = this.last.type;
+    var right = this.equality();
+    expr = new LogicalExpr(expr, op, right);
+  }
+
+  return expr;
 }
 
 Parser.prototype.equality = function() {
-  return this.binary(this.comparison,
-      [Token.equalEqual, Token.bangEqual]);
-  /*
   var expr = this.comparison();
 
   while (this.match(Token.equalEqual) ||
@@ -537,13 +591,9 @@ Parser.prototype.equality = function() {
   }
 
   return expr;
-  */
 }
 
 Parser.prototype.comparison = function() {
-  return this.binary(this.term,
-      [Token.less, Token.greater, Token.lessEqual, Token.greaterEqual]);
-  /*
   var expr = this.term();
 
   while (this.match(Token.less) ||
@@ -556,11 +606,9 @@ Parser.prototype.comparison = function() {
   }
 
   return expr;
-  */
 }
 
 Parser.prototype.term = function() {
-  /*
   var expr = this.factor();
 
   while (this.match(Token.plus) ||
@@ -571,12 +619,9 @@ Parser.prototype.term = function() {
   }
 
   return expr;
-  */
-  return this.binary(this.factor, [Token.plus, Token.minus]);
 }
 
 Parser.prototype.factor = function() {
-  /*
   var expr = this.unary();
 
   while (this.match(Token.star) ||
@@ -588,11 +633,15 @@ Parser.prototype.factor = function() {
   }
 
   return expr;
-  */
+
+  // TODO: Could use code like this for all of the binary operators instead.
+  /*
   return this.binary(this.unary,
       [Token.star, Token.slash, Token.percent]);
+  */
 }
 
+/*
 Parser.prototype.binary = function(parseOperand, operators) {
   var expr = parseOperand.call(this);
 
@@ -604,6 +653,7 @@ Parser.prototype.binary = function(parseOperand, operators) {
 
   return expr;
 }
+*/
 
 Parser.prototype.unary = function() {
   if (this.match(Token.plus) ||
@@ -665,6 +715,7 @@ Parser.prototype.primary = function() {
   // TODO: Error handling.
 }
 
+/*
 Parser.prototype.matchAny = function(tokenTypes) {
   for (var i = 0; i < tokenTypes.length; i++) {
     if (this.match(tokenTypes[i])) return true;
@@ -672,6 +723,7 @@ Parser.prototype.matchAny = function(tokenTypes) {
 
   return false;
 }
+*/
 
 Parser.prototype.match = function(tokenType) {
   if (this.current == null) this.current = this.lexer.nextToken();
@@ -736,9 +788,14 @@ Token.less = "<";
 Token.greater = ">";
 Token.lessEqual = "<=";
 Token.greaterEqual = ">=";
+
 Token.identifier = "identifier";
 Token.string = "string";
 Token.number = "number";
+
+Token.and = "and";
+Token.or = "or";
+
 Token.end = "end";
 Token.error = "error";
 

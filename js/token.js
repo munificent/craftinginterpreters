@@ -35,9 +35,16 @@ Token.less = "<";
 Token.greater = ">";
 Token.lessEqual = "<=";
 Token.greaterEqual = ">=";
+
 Token.identifier = "identifier";
 Token.string = "string";
 Token.number = "number";
+
+// Using keywords for these instead of || and && since we don't define the
+// bitwise forms and it's weird to lex || without |.
+Token.and = "and";
+Token.or = "or";
+
 Token.end = "end";
 Token.error = "error";
 

@@ -106,4 +106,10 @@ test("123.name 45..name", [
   [Token.identifier,    "name",  null]
 ]);
 
+test("and or andor", [
+  [Token.and,           "and",   null],
+  [Token.or,            "or",    null],
+  [Token.identifier,    "andor", null]
+]);
+
 // TODO: Reserved words.

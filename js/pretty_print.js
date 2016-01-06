@@ -21,6 +21,12 @@ function prettyPrint(node) {
       result += ")";
       return result;
     },
+    visitLogicalExpr: function(node) {
+      var result = "(" + prettyPrint(node.left);
+      result += " " + node.op + " ";
+      result += prettyPrint(node.right) + ")";
+      return result;
+    },
     visitNumberExpr: function(node) {
       return node.value.toString();
     },

@@ -7,6 +7,7 @@ var ast = require("./ast");
 var Expr = ast.Expr;
 var BinaryExpr = ast.BinaryExpr;
 var CallExpr = ast.CallExpr;
+var LogicalExpr = ast.LogicalExpr;
 var NumberExpr = ast.NumberExpr;
 var StringExpr = ast.StringExpr;
 var UnaryExpr = ast.UnaryExpr;
@@ -28,7 +29,31 @@ Parser.prototype.parse = function() {
 }
 
 Parser.prototype.expression = function() {
-  return this.equality();
+  return this.or();
+}
+
+Parser.prototype.or = function() {
+  var expr = this.and();
+
+  while (this.match(Token.or)) {
+    var op = this.last.type;
+    var right = this.and();
+    expr = new LogicalExpr(expr, op, right);
+  }
+
+  return expr;
+}
+
+Parser.prototype.and = function() {
+  var expr = this.equality();
+
+  while (this.match(Token.and)) {
+    var op = this.last.type;
+    var right = this.equality();
+    expr = new LogicalExpr(expr, op, right);
+  }
+
+  return expr;
 }
 
 Parser.prototype.equality = function() {

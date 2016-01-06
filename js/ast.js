@@ -32,6 +32,7 @@ function defineStmt(name, fields) {
 
 defineExpr("Binary",      ["left", "op", "right"]);
 defineExpr("Call",        ["fn, args"]);
+defineExpr("Logical",     ["left", "op", "right"]);
 defineExpr("Number",      ["value"]);
 defineExpr("String",      ["value"]);
 defineExpr("Unary",       ["op", "right"]);

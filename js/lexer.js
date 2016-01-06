@@ -41,6 +41,11 @@ Lexer.punctuators = {
   ",": Token.comma,
 };
 
+Lexer.keywords = {
+  "and": Token.and,
+  "or": Token.or
+};
+
 Lexer.prototype.nextToken = function() {
   this.skipWhitespace();
 
@@ -96,7 +101,13 @@ Lexer.prototype.skipWhitespace = function() {
 
 Lexer.prototype.identifier = function() {
   this.consumeWhile(isAlphaNumeric);
-  return this.makeToken(Token.identifier);
+
+  // See if the identifier is a reserved word.
+  var text = this.source.substring(this.start, this.current);
+  var type = Lexer.keywords[text];
+  if (type === undefined) type = Token.identifier;
+
+  return this.makeToken(type);
 }
 
 Lexer.prototype.number = function() {
