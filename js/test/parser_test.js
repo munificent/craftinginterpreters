@@ -3,13 +3,12 @@
 var Lexer = require("../lexer");
 var Parser = require("../parser");
 var prettyPrint = require("../pretty_print");
-//var Token = require("../token");
 
-function test(source, expectedAst) {
+function test(source, parseFn, expectedAst) {
   var lexer = new Lexer(source);
   var parser = new Parser(lexer);
 
-  var ast = parser.parse();
+  var ast = parser[parseFn]();
   var actual = prettyPrint(ast);
 
   if (actual == expectedAst) {
@@ -20,20 +19,38 @@ function test(source, expectedAst) {
   }
 }
 
+function testExpr(source, expectedAst) {
+  test(source, "expression", expectedAst);
+}
+
+function testStmt(source, expectedAst) {
+  test(source, "statement", expectedAst);
+}
+
 // Associativity.
-test("1 and 2 and 3", "((1 and 2) and 3)");
-test("1 or 2 or 3", "((1 or 2) or 3)");
-test("1 == 2 != 3 == 4 != 5", "((((1 == 2) != 3) == 4) != 5)");
-test("1 < 2 > 3 <= 4 >= 5", "((((1 < 2) > 3) <= 4) >= 5)");
-test("1 + 2 - 3 + 4 - 5", "((((1 + 2) - 3) + 4) - 5)");
-test("1 * 2 / 3 % 4 * 5 / 6 % 7", "((((((1 * 2) / 3) % 4) * 5) / 6) % 7)");
+testExpr("1 and 2 and 3", "((1 and 2) and 3)");
+testExpr("1 or 2 or 3", "((1 or 2) or 3)");
+testExpr("1 == 2 != 3 == 4 != 5", "((((1 == 2) != 3) == 4) != 5)");
+testExpr("1 < 2 > 3 <= 4 >= 5", "((((1 < 2) > 3) <= 4) >= 5)");
+testExpr("1 + 2 - 3 + 4 - 5", "((((1 + 2) - 3) + 4) - 5)");
+testExpr("1 * 2 / 3 % 4 * 5 / 6 % 7", "((((((1 * 2) / 3) % 4) * 5) / 6) % 7)");
 
 // Precedence.
-test("1 * 2 + 3 / 4 - 5", "(((1 * 2) + (3 / 4)) - 5)");
-test("1 + 2 < 3 - 4 > 5", "(((1 + 2) < (3 - 4)) > 5)");
-test("1 < 2 == 3 > 4 != 5", "(((1 < 2) == (3 > 4)) != 5)");
-test("1 and 2 == 3 and 4 != 5", "((1 and (2 == 3)) and (4 != 5))");
-test("1 or 2 and 3 or 4 and 5", "((1 or (2 and 3)) or (4 and 5))");
+testExpr("1 * 2 + 3 / 4 - 5", "(((1 * 2) + (3 / 4)) - 5)");
+testExpr("1 + 2 < 3 - 4 > 5", "(((1 + 2) < (3 - 4)) > 5)");
+testExpr("1 < 2 == 3 > 4 != 5", "(((1 < 2) == (3 > 4)) != 5)");
+testExpr("1 and 2 == 3 and 4 != 5", "((1 and (2 == 3)) and (4 != 5))");
+testExpr("1 or 2 and 3 or 4 and 5", "((1 or (2 and 3)) or (4 and 5))");
 
 // Unary.
-test("+-!1 or -2 * +3", "((+ (- (! 1))) or ((- 2) * (+ 3)))");
+testExpr("+-!1 or -2 * +3", "((+ (- (! 1))) or ((- 2) * (+ 3)))");
+
+// Expression statement.
+testStmt("1 + 2;", "(1 + 2);");
+
+// Block statement.
+testStmt("{}", "{ }");
+testStmt("{ 1; }", "{ 1; }");
+testStmt("{ 1; 2; 3; }", "{ 1; 2; 3; }");
+
+// TODO: Test parse errors.

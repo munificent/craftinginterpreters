@@ -5,6 +5,18 @@ function prettyPrint(node) {
   if (node === undefined) return "<error>";
 
   return node.accept({
+    visitBlockStmt: function(node) {
+      var result = "{";
+      for (var i = 0; i < node.statements.length; i++) {
+        result += " " + prettyPrint(node.statements[i]);
+      }
+
+      return result + " }";
+    },
+    visitExpressionStmt: function(node) {
+      return prettyPrint(node.expression) + ";";
+    },
+
     visitBinaryExpr: function(node) {
       var result = "(" + prettyPrint(node.left);
       result += " " + node.op + " ";

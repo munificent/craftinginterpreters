@@ -23,9 +23,29 @@ function Parser(lexer) {
 }
 
 Parser.prototype.parse = function() {
-  return this.expression();
+  return this.statement();
 
   // TODO: Consume end.
+}
+
+Parser.prototype.statement = function() {
+  // TODO: Other statements.
+
+  // Block.
+  if (this.match(Token.leftBrace)) {
+    var statements = [];
+
+    while (!this.match(Token.rightBrace)) {
+      statements.push(this.statement());
+    }
+
+    return new BlockStmt(statements);
+  }
+
+  // Expression statement.
+  var expr = this.expression();
+  this.consume(Token.semicolon);
+  return new ExpressionStmt(expr);
 }
 
 Parser.prototype.expression = function() {
@@ -202,9 +222,7 @@ Parser.prototype.matchAny = function(tokenTypes) {
 */
 
 Parser.prototype.match = function(tokenType) {
-  if (this.current == null) this.current = this.lexer.nextToken();
-
-  if (this.current.type != tokenType) return false;
+  if (this.peek() != tokenType) return false;
 
   this.last = this.current;
   this.current = this.lexer.nextToken();
@@ -212,16 +230,21 @@ Parser.prototype.match = function(tokenType) {
 }
 
 Parser.prototype.consume = function(tokenType) {
-  if (this.current == null) this.current = this.lexer.nextToken();
-
-  if (this.current.type != tokenType) {
+  if (this.peek() != tokenType) {
     // TODO: Report error better.
-    console.log("Error! Expect " + tokenType + " got " + this.current.type);
+    console.log("Error! Expect " + tokenType + " got " + this.peek());
   }
 
   this.last = this.current;
   this.current = this.lexer.nextToken();
   return this.last;
+}
+
+// Returns the type of the current token.
+Parser.prototype.peek = function() {
+  if (this.current == null) this.current = this.lexer.nextToken();
+
+  return this.current.type;
 }
 
 module.exports = Parser;
