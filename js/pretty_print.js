@@ -14,7 +14,22 @@ function prettyPrint(node) {
       return result + " }";
     },
     visitExpressionStmt: function(node) {
-      return prettyPrint(node.expression) + ";";
+      return "(" + prettyPrint(node.expression) + " ;)";
+    },
+    visitIfStmt: function(node) {
+      var result = "(if " + prettyPrint(node.condition) + " then ";
+      result += prettyPrint(node.thenBranch);
+      if (node.elseBranch !== null) {
+        result += " else " + prettyPrint(node.elseBranch);
+      }
+      return result + ")";
+    },
+    visitVarStmt: function(node) {
+      return "(var " + node.name + " = " + prettyPrint(node.initializer) + ")";
+    },
+    visitWhileStmt: function(node) {
+      var result = "(while " + prettyPrint(node.condition) + " ";
+      return result + prettyPrint(node.body) + ")";
     },
 
     visitBinaryExpr: function(node) {

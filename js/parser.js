@@ -15,6 +15,9 @@ var VariableExpr = ast.VariableExpr;
 var Stmt = ast.Stmt;
 var BlockStmt = ast.BlockStmt;
 var ExpressionStmt = ast.ExpressionStmt;
+var IfStmt = ast.IfStmt;
+var VarStmt = ast.VarStmt;
+var WhileStmt = ast.WhileStmt;
 
 function Parser(lexer) {
   this.lexer = lexer;
@@ -30,6 +33,42 @@ Parser.prototype.parse = function() {
 
 Parser.prototype.statement = function() {
   // TODO: Other statements.
+
+  // If.
+  if (this.match(Token.if_)) {
+    this.consume(Token.leftParen);
+    var condition = this.expression();
+    this.consume(Token.rightParen);
+    var thenBranch = this.statement();
+    var elseBranch = null;
+    if (this.match(Token.else_)) {
+      elseBranch = this.statement();
+    }
+
+    return new IfStmt(condition, thenBranch, elseBranch);
+  }
+
+  // Variable declaration.
+  if (this.match(Token.var_)) {
+    var name = this.consume(Token.identifier).text;
+
+    // TODO: Make this optional.
+    this.consume(Token.equal);
+    var initializer = this.expression();
+    this.consume(Token.semicolon);
+
+    return new VarStmt(name, initializer);
+  }
+
+  // While.
+  if (this.match(Token.while_)) {
+    this.consume(Token.leftParen);
+    var condition = this.expression();
+    this.consume(Token.rightParen);
+    var body = this.statement();
+
+    return new WhileStmt(condition, body);
+  }
 
   // Block.
   if (this.match(Token.leftBrace)) {
@@ -236,7 +275,7 @@ Parser.prototype.consume = function(tokenType) {
   }
 
   this.last = this.current;
-  this.current = this.lexer.nextToken();
+  this.current = null;
   return this.last;
 }
 

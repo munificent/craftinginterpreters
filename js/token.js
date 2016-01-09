@@ -40,10 +40,15 @@ Token.identifier = "identifier";
 Token.string = "string";
 Token.number = "number";
 
-// Using keywords for these instead of || and && since we don't define the
-// bitwise forms and it's weird to lex || without |.
+// Using keywords for "and" and "or" instead of "||" and "&&" since we don't
+// define the bitwise forms and it's weird to lex "||" without "|".
 Token.and = "and";
+Token.if_ = "if";
+Token.else_ = "else";
+Token.for_ = "for";
 Token.or = "or";
+Token.var_ = "var";
+Token.while_ = "while";
 
 Token.end = "end";
 Token.error = "error";

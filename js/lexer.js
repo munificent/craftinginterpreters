@@ -43,7 +43,12 @@ Lexer.punctuators = {
 
 Lexer.keywords = {
   "and": Token.and,
-  "or": Token.or
+  "else": Token.else_,
+  "for": Token.for_,
+  "if": Token.if_,
+  "or": Token.or,
+  "var": Token.var_,
+  "while": Token.while_
 };
 
 Lexer.prototype.nextToken = function() {
