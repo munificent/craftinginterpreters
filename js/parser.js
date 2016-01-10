@@ -5,10 +5,12 @@ var Token = require("./token");
 // TODO: Use them qualified?
 var ast = require("./ast");
 var Expr = ast.Expr;
+var AssignExpr = ast.AssignExpr;
 var BinaryExpr = ast.BinaryExpr;
 var CallExpr = ast.CallExpr;
 var LogicalExpr = ast.LogicalExpr;
 var NumberExpr = ast.NumberExpr;
+var PropertyExpr = ast.PropertyExpr;
 var StringExpr = ast.StringExpr;
 var UnaryExpr = ast.UnaryExpr;
 var VariableExpr = ast.VariableExpr;
@@ -88,7 +90,18 @@ Parser.prototype.statement = function() {
 }
 
 Parser.prototype.expression = function() {
-  return this.or();
+  return this.assignment();
+}
+
+Parser.prototype.assignment = function() {
+  var expr = this.or();
+
+  if (this.match(Token.equal)) {
+    var value = this.assignment();
+    return new AssignExpr(expr, value);
+  }
+
+  return expr;
 }
 
 Parser.prototype.or = function() {
@@ -205,22 +218,27 @@ Parser.prototype.unary = function() {
 Parser.prototype.call = function() {
   var expr = this.primary();
 
-  while (this.match(Token.leftParen)) {
-    // TODO: Comma-separated list.
-    var args = [];
+  while (true) {
+    if (this.match(Token.leftParen)) {
+      var args = [];
 
-    if (this.match(Token.rightParen)) {
-      // No arguments.
+      if (this.match(Token.rightParen)) {
+        // No arguments.
+      } else {
+        do {
+          args.push(this.expression());
+        } while (this.match(Token.comma));
+
+        this.consume(Token.rightParen);
+      }
+
+      expr = new CallExpr(expr, args);
+    } else if (this.match(Token.dot)) {
+      var name = this.consume(Token.identifier);
+      expr = new PropertyExpr(expr, name.text);
     } else {
-      do {
-        args.push(this.expression());
-      } while (this.match(Token.comma));
-
-      // TODO: Consume and error if missing.
-      this.match(Token.rightParen);
+      break;
     }
-
-    expr = new CallExpr(expr, args);
   }
 
   return expr;

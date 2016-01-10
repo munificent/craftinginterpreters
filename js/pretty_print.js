@@ -6,15 +6,15 @@ function prettyPrint(node) {
 
   return node.accept({
     visitBlockStmt: function(node) {
-      var result = "{";
+      var result = "(block";
       for (var i = 0; i < node.statements.length; i++) {
         result += " " + prettyPrint(node.statements[i]);
       }
 
-      return result + " }";
+      return result + ")";
     },
     visitExpressionStmt: function(node) {
-      return "(" + prettyPrint(node.expression) + " ;)";
+      return "(; " + prettyPrint(node.expression) + ")";
     },
     visitIfStmt: function(node) {
       var result = "(if " + prettyPrint(node.condition) + " then ";
@@ -32,30 +32,31 @@ function prettyPrint(node) {
       return result + prettyPrint(node.body) + ")";
     },
 
+    visitAssignExpr: function(node) {
+      var result = "(= " + prettyPrint(node.target) + " ";
+      return result + prettyPrint(node.value) + ")";
+    },
     visitBinaryExpr: function(node) {
-      var result = "(" + prettyPrint(node.left);
-      result += " " + node.op + " ";
-      result += prettyPrint(node.right) + ")";
-      return result;
+      var result = "(" + node.op + " " + prettyPrint(node.left) + " ";
+      return result + prettyPrint(node.right) + ")";
     },
     visitCallExpr: function(node) {
-      var result = "(" + prettyPrint(node.fn) + ")(";
+      var result = "(call " + prettyPrint(node.fn);
       for (var i = 0; i < node.args.length; i++) {
-        if (i > 0) result += ", ";
-        result += prettyPrint(node.args[i]);
+        result += " " + prettyPrint(node.args[i]);
       }
 
-      result += ")";
-      return result;
+      return result + ")";
     },
     visitLogicalExpr: function(node) {
-      var result = "(" + prettyPrint(node.left);
-      result += " " + node.op + " ";
-      result += prettyPrint(node.right) + ")";
-      return result;
+      var result = "(" + node.op + " " + prettyPrint(node.left) + " ";
+      return result + prettyPrint(node.right) + ")";
     },
     visitNumberExpr: function(node) {
       return node.value.toString();
+    },
+    visitPropertyExpr: function(node) {
+      return "(." + node.name + " " + prettyPrint(node.object) + ")";
     },
     visitStringExpr: function(node) {
       // TODO: Escape special characters.

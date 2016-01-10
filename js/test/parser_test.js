@@ -27,45 +27,63 @@ function testStmt(source, expectedAst) {
   test(source, "statement", expectedAst);
 }
 
-// Associativity.
-testExpr("1 and 2 and 3", "((1 and 2) and 3)");
-testExpr("1 or 2 or 3", "((1 or 2) or 3)");
-testExpr("1 == 2 != 3 == 4 != 5", "((((1 == 2) != 3) == 4) != 5)");
-testExpr("1 < 2 > 3 <= 4 >= 5", "((((1 < 2) > 3) <= 4) >= 5)");
-testExpr("1 + 2 - 3 + 4 - 5", "((((1 + 2) - 3) + 4) - 5)");
-testExpr("1 * 2 / 3 % 4 * 5 / 6 % 7", "((((((1 * 2) / 3) % 4) * 5) / 6) % 7)");
+// Call.
+testExpr("a()", "(call a)");
+testExpr("a(1)", "(call a 1)");
+testExpr("a(1, 2, 3, 4)", "(call a 1 2 3 4)");
+testExpr("a(1)(2)", "(call (call a 1) 2)");
 
-// Precedence.
-testExpr("1 * 2 + 3 / 4 - 5", "(((1 * 2) + (3 / 4)) - 5)");
-testExpr("1 + 2 < 3 - 4 > 5", "(((1 + 2) < (3 - 4)) > 5)");
-testExpr("1 < 2 == 3 > 4 != 5", "(((1 < 2) == (3 > 4)) != 5)");
-testExpr("1 and 2 == 3 and 4 != 5", "((1 and (2 == 3)) and (4 != 5))");
-testExpr("1 or 2 and 3 or 4 and 5", "((1 or (2 and 3)) or (4 and 5))");
+// Property.
+testExpr("a.b", "(.b a)");
+testExpr("a.b.c.d", "(.d (.c (.b a)))");
+testExpr("1.a", "(.a 1)");
+testExpr("a.b().c()", "(call (.c (call (.b a))))");
+// TODO: Invalid tokens after ".".
 
 // Unary.
-testExpr("+-!1 or -2 * +3", "((+ (- (! 1))) or ((- 2) * (+ 3)))");
+testExpr("+-!1 or -2 * +3", "(or (+ (- (! 1))) (* (- 2) (+ 3)))");
+
+// Binary associativity.
+testExpr("1 * 2 / 3 % 4 * 5 / 6 % 7", "(% (/ (* (% (/ (* 1 2) 3) 4) 5) 6) 7)");
+testExpr("1 + 2 - 3 + 4 - 5", "(- (+ (- (+ 1 2) 3) 4) 5)");
+testExpr("1 < 2 > 3 <= 4 >= 5", "(>= (<= (> (< 1 2) 3) 4) 5)");
+testExpr("1 == 2 != 3 == 4 != 5", "(!= (== (!= (== 1 2) 3) 4) 5)");
+testExpr("1 or 2 or 3", "(or (or 1 2) 3)");
+testExpr("1 and 2 and 3", "(and (and 1 2) 3)");
+testExpr("a = b = c = d", "(= a (= b (= c d)))");
+
+// Binary precedence.
+testExpr("1 * 2 + 3 / 4 - 5", "(- (+ (* 1 2) (/ 3 4)) 5)");
+testExpr("1 + 2 < 3 - 4 > 5", "(> (< (+ 1 2) (- 3 4)) 5)");
+testExpr("1 < 2 == 3 > 4 != 5", "(!= (== (< 1 2) (> 3 4)) 5)");
+testExpr("1 and 2 == 3 and 4 != 5", "(and (and 1 (== 2 3)) (!= 4 5))");
+testExpr("1 or 2 and 3 or 4 and 5", "(or (or 1 (and 2 3)) (and 4 5))");
+testExpr("a = b or c = d or e", "(= a (= (or b c) (or d e)))");
 
 // Expression statement.
-testStmt("1 + 2;", "((1 + 2) ;)");
+testStmt("1 + 2;", "(; (+ 1 2))");
 
 // Block statement.
-testStmt("{}", "{ }");
-testStmt("{ 1; }", "{ (1 ;) }");
-testStmt("{ 1; 2; 3; }", "{ (1 ;) (2 ;) (3 ;) }");
+testStmt("{}", "(block)");
+testStmt("{ 1; }", "(block (; 1))");
+testStmt("{ 1; 2; 3; }", "(block (; 1) (; 2) (; 3))");
 
 // If statement.
-testStmt("if (1 == 2) 3;", "(if (1 == 2) then (3 ;))");
-testStmt("if (1 == 2) 3; else 4;", "(if (1 == 2) then (3 ;) else (4 ;))");
+testStmt("if (1 == 2) 3;", "(if (== 1 2) then (; 3))");
+testStmt("if (1 == 2) 3; else 4;", "(if (== 1 2) then (; 3) else (; 4))");
+testStmt("if (1 == 2) {} else {}", "(if (== 1 2) then (block) else (block))");
 
 // Dangling else.
 testStmt("if (1 == 2) if (3 == 4) 5; else 6;",
-    "(if (1 == 2) then (if (3 == 4) then (5 ;) else (6 ;)))");
+    "(if (== 1 2) then (if (== 3 4) then (; 5) else (; 6)))");
 
 // While.
-testStmt("while (1) 2;", "(while 1 (2 ;))");
-testStmt("while (1) while (2) 3;", "(while 1 (while 2 (3 ;)))");
+testStmt("while (1) 2;", "(while 1 (; 2))");
+testStmt("while (1) while (2) 3;", "(while 1 (while 2 (; 3)))");
+testStmt("while (1) {}", "(while 1 (block))");
 
 // Variable declaration.
-testStmt("var name = 1 + 2;", "(var name = (1 + 2))");
+testStmt("var name = 1 + 2;", "(var name = (+ 1 2))");
+// TODO: Error if initializer is a statement.
 
 // TODO: Test parse errors.

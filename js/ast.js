@@ -30,10 +30,12 @@ function defineStmt(name, fields) {
   defineAst(name, Stmt, "Stmt", fields);
 }
 
+defineExpr("Assign",      ["target", "value"]);
 defineExpr("Binary",      ["left", "op", "right"]);
-defineExpr("Call",        ["fn, args"]);
+defineExpr("Call",        ["fn", "args"]);
 defineExpr("Logical",     ["left", "op", "right"]);
 defineExpr("Number",      ["value"]);
+defineExpr("Property",    ["object", "name"]);
 defineExpr("String",      ["value"]);
 defineExpr("Unary",       ["op", "right"]);
 defineExpr("Variable",    ["name"]);
