@@ -16,6 +16,31 @@ function prettyPrint(node) {
     visitExpressionStmt: function(node) {
       return "(; " + prettyPrint(node.expression) + ")";
     },
+    visitClassStmt: function(node) {
+      var result = "(class " + node.name + " ";
+
+      if (node.superclass != null) {
+        result += prettyPrint(node.superclass) + " ";
+      }
+
+      result += "(";
+      for (var i = 0; i < node.methods.length; i++) {
+        if (i > 0) result += " ";
+        result += prettyPrint(node.methods[i]);
+      }
+
+      return result + "))";
+    },
+    visitFunStmt: function(node) {
+      var result = "(fun " + node.name + " (";
+
+      for (var i = 0; i < node.parameters.length; i++) {
+        if (i > 0) result += " ";
+        result += node.parameters[i];
+      }
+
+      return result + ") " + prettyPrint(node.body) + ")";
+    },
     visitIfStmt: function(node) {
       var result = "(if " + prettyPrint(node.condition) + " then ";
       result += prettyPrint(node.thenBranch);

@@ -41,8 +41,10 @@ defineExpr("Unary",       ["op", "right"]);
 defineExpr("Variable",    ["name"]);
 
 defineStmt("Block",       ["statements"]);
+defineStmt("Class",       ["name", "superclass", "methods"]);
 defineStmt("Expression",  ["expression"]);
 defineStmt("For",         ["name", "iterator", "body"]);
+defineStmt("Fun",         ["name", "parameters", "body"]);
 defineStmt("If",          ["condition", "thenBranch", "elseBranch"]);
 defineStmt("Var",         ["name", "initializer"]);
 defineStmt("While",       ["condition", "body"]);

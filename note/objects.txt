@@ -1,0 +1,50 @@
+A couple of issues related to working with objects:
+
+* How do we distinguish field access from "getters"?
+* How do we distinguish method calls from invoking a function stored in a field?
+* Can methods be torn off?
+* How do we handle properties/methods on built-in types?
+* How do we handle operators? Are they methods or special?
+* What object represents a class?
+* How are objects constructed?
+
+Within a method, there are a few namespaces in play:
+- The lexical namespace of local variables and then the surrounding global oens.
+- The namespace of fields on the instance.
+- The namespace of methods on the class (and then any inherited methods).
+
+The simplest way to handle these is to have distinct syntaxes for each. We
+could do:
+
+- Bare names for variables.
+- "@" or some other sigil for fields.
+- Explicit property access (including on "this") for methods.
+
+That still leaves an ambiguity between a nullary method that returns a function
+versus a method call with parameters. The simplest solution is to do what Java
+does and not have getters, though that's gross for stuff like list.length(). If
+we don't want to have tear-offs, that might be the best solution.
+
+---
+
+For the class object, let's take a page from JS and make it the constructor.
+You then invoke it just like a function to create an instance. (I.e. no "new"
+keyword.)
+
+This is the bare minimum needed by the "class object" -- to be a generator for
+instances. Since this is just a teaching language, we can mention but not
+deal with metaclasses, static methods, etc.
+
+class Vector {
+  Vector(x, y) {
+    @x = x; @y = y;
+  }
+
+  length() {
+
+  }
+}
+
+This won't be *just* a function. It needs some additional stuff: in particular
+the method set that instances use and a superclass reference. But it's
+a superset of what a function can do.

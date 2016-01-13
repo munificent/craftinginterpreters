@@ -68,6 +68,18 @@ testStmt("{}", "(block)");
 testStmt("{ 1; }", "(block (; 1))");
 testStmt("{ 1; 2; 3; }", "(block (; 1) (; 2) (; 3))");
 
+// Class declaration.
+testStmt("class F {}", "(class F ())");
+testStmt("class F < B {}", "(class F B ())");
+testStmt("class F < B { a() {} b() {} }",
+    "(class F B ((fun a () (block)) (fun b () (block))))");
+testStmt("class F < (B + C) {}", "(class F (+ B C) ())");
+
+// Function declaration.
+testStmt("fun f() {}", "(fun f () (block))");
+testStmt("fun f(a, b, c) { d; e; }", "(fun f (a b c) (block (; d) (; e)))");
+// TODO: Error if body is not block.
+
 // If statement.
 testStmt("if (1 == 2) 3;", "(if (== 1 2) then (; 3))");
 testStmt("if (1 == 2) 3; else 4;", "(if (== 1 2) then (; 3) else (; 4))");

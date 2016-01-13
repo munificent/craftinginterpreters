@@ -16,7 +16,9 @@ var UnaryExpr = ast.UnaryExpr;
 var VariableExpr = ast.VariableExpr;
 var Stmt = ast.Stmt;
 var BlockStmt = ast.BlockStmt;
+var ClassStmt = ast.ClassStmt;
 var ExpressionStmt = ast.ExpressionStmt;
+var FunStmt = ast.FunStmt;
 var IfStmt = ast.IfStmt;
 var VarStmt = ast.VarStmt;
 var WhileStmt = ast.WhileStmt;
@@ -35,6 +37,29 @@ Parser.prototype.parse = function() {
 
 Parser.prototype.statement = function() {
   // TODO: Other statements.
+
+  // Class declaration.
+  if (this.match(Token.class_)) {
+    var name = this.consume(Token.identifier);
+
+    var superclass = null;
+    if (this.match(Token.less)) {
+      superclass = this.primary();
+    }
+
+    var methods = [];
+    this.consume(Token.leftBrace);
+    while (!this.match(Token.rightBrace)) {
+      methods.push(this.fun());
+    }
+
+    return new ClassStmt(name.text, superclass, methods);
+  }
+
+  // Function declaration.
+  if (this.match(Token.fun)) {
+    return this.fun();
+  }
 
   // If.
   if (this.match(Token.if_)) {
@@ -73,20 +98,42 @@ Parser.prototype.statement = function() {
   }
 
   // Block.
-  if (this.match(Token.leftBrace)) {
-    var statements = [];
-
-    while (!this.match(Token.rightBrace)) {
-      statements.push(this.statement());
-    }
-
-    return new BlockStmt(statements);
+  if (this.peek() == Token.leftBrace) {
+    return this.block();
   }
 
   // Expression statement.
   var expr = this.expression();
   this.consume(Token.semicolon);
   return new ExpressionStmt(expr);
+}
+
+Parser.prototype.fun = function() {
+  var name = this.consume(Token.identifier);
+
+  this.consume(Token.leftParen);
+  var parameters = [];
+  if (this.peek() != Token.rightParen) {
+    do {
+      var parameter = this.consume(Token.identifier);
+      parameters.push(parameter.text);
+    } while (this.match(Token.comma));
+  }
+  this.consume(Token.rightParen);
+
+  var body = this.block();
+  return new FunStmt(name.text, parameters, body);
+}
+
+Parser.prototype.block = function() {
+  this.consume(Token.leftBrace);
+  var statements = [];
+
+  while (!this.match(Token.rightBrace)) {
+    statements.push(this.statement());
+  }
+
+  return new BlockStmt(statements);
 }
 
 Parser.prototype.expression = function() {

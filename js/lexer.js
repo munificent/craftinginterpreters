@@ -43,7 +43,9 @@ Lexer.punctuators = {
 
 Lexer.keywords = {
   "and": Token.and,
+  "class": Token.class_,
   "else": Token.else_,
+  "fun": Token.fun,
   "for": Token.for_,
   "if": Token.if_,
   "or": Token.or,

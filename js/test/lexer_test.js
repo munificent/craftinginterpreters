@@ -106,10 +106,15 @@ test("123.name 45..name", [
   [Token.identifier,    "name",  null]
 ]);
 
-test("and or andor", [
+test("and class else fun for if or var while andor", [
   [Token.and,           "and",   null],
+  [Token.class_,        "class", null],
+  [Token.else_,         "else",  null],
+  [Token.fun,           "fun",   null],
+  [Token.for_,          "for",   null],
+  [Token.if_,           "if",    null],
   [Token.or,            "or",    null],
+  [Token.var_,          "var",   null],
+  [Token.while_,        "while", null],
   [Token.identifier,    "andor", null]
 ]);
-
-// TODO: Reserved words.
