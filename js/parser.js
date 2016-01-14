@@ -23,10 +23,22 @@ var IfStmt = ast.IfStmt;
 var VarStmt = ast.VarStmt;
 var WhileStmt = ast.WhileStmt;
 
-function Parser(lexer) {
+function Parser(lexer, errorReporter) {
+  if (errorReporter === undefined) {
+    errorReporter = {
+      error: function(message) {
+        console.log("Error: " + message);
+      }
+    };
+  }
+
   this.lexer = lexer;
+  this.errorReporter = errorReporter;
   this.current = null;
   this.last = null;
+
+  this.errorReporter.hasError = false;
+  this.needsMoreInput = false;
 }
 
 Parser.prototype.parse = function() {
@@ -98,13 +110,13 @@ Parser.prototype.statement = function() {
   }
 
   // Block.
-  if (this.peek() == Token.leftBrace) {
+  if (this.peek(Token.leftBrace)) {
     return this.block();
   }
 
   // Expression statement.
   var expr = this.expression();
-  this.consume(Token.semicolon);
+  this.consume(Token.semicolon, "Expect ';' after expression.");
   return new ExpressionStmt(expr);
 }
 
@@ -113,7 +125,7 @@ Parser.prototype.fun = function() {
 
   this.consume(Token.leftParen);
   var parameters = [];
-  if (this.peek() != Token.rightParen) {
+  if (!this.peek(Token.rightParen)) {
     do {
       var parameter = this.consume(Token.identifier);
       parameters.push(parameter.text);
@@ -129,7 +141,7 @@ Parser.prototype.block = function() {
   this.consume(Token.leftBrace);
   var statements = [];
 
-  while (!this.match(Token.rightBrace)) {
+  while (!this.match(Token.rightBrace) && !this.peek(Token.end)) {
     statements.push(this.statement());
   }
 
@@ -144,6 +156,12 @@ Parser.prototype.assignment = function() {
   var expr = this.or();
 
   if (this.match(Token.equal)) {
+    // Check that the left-hand side is a valid target.
+    if (!(expr instanceof VariableExpr) &&
+        !(expr instanceof PropertyExpr)) {
+      this.error("Invalid assignment target.");
+    }
+
     var value = this.assignment();
     return new AssignExpr(expr, value);
   }
@@ -326,17 +344,22 @@ Parser.prototype.matchAny = function(tokenTypes) {
 */
 
 Parser.prototype.match = function(tokenType) {
-  if (this.peek() != tokenType) return false;
+  if (!this.peek(tokenType)) return false;
 
   this.last = this.current;
   this.current = this.lexer.nextToken();
   return true;
 }
 
-Parser.prototype.consume = function(tokenType) {
-  if (this.peek() != tokenType) {
-    // TODO: Report error better.
-    console.log("Error! Expect " + tokenType + " got " + this.peek());
+Parser.prototype.consume = function(tokenType, message) {
+  if (!this.peek(tokenType)) {
+    // If the first error happened because we unexpectedly hit the end of the
+    // input, let the caller know.
+    if (!this.errorReporter.hasError && this.current.type == Token.end) {
+      this.errorReporter.needsMoreInput = true;
+    }
+
+    this.error(message);
   }
 
   this.last = this.current;
@@ -344,11 +367,20 @@ Parser.prototype.consume = function(tokenType) {
   return this.last;
 }
 
-// Returns the type of the current token.
-Parser.prototype.peek = function() {
+// Returns true if the current token is of tokenType, but does not consume it.
+Parser.prototype.peek = function(tokenType) {
   if (this.current == null) this.current = this.lexer.nextToken();
 
-  return this.current.type;
+  return this.current.type == tokenType;
+}
+
+Parser.prototype.error = function(message) {
+  if (message === undefined) {
+    message = "Expected " + tokenType + " got " + this.current.type;
+  }
+
+  this.errorReporter.error(message);
+  this.errorReporter.hasError = true;
 }
 
 module.exports = Parser;

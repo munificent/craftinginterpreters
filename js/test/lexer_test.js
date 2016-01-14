@@ -106,6 +106,12 @@ test("123.name 45..name", [
   [Token.identifier,    "name",  null]
 ]);
 
+test('"" "string"', [
+  [Token.string,         '""',       ""],
+  [Token.string,         '"string"', "string"],
+]);
+// TODO: Escapes. Unterminated string.
+
 test("and class else fun for if or var while andor", [
   [Token.and,           "and",   null],
   [Token.class_,        "class", null],
@@ -118,3 +124,5 @@ test("and class else fun for if or var while andor", [
   [Token.while_,        "while", null],
   [Token.identifier,    "andor", null]
 ]);
+
+// TODO: String literals.

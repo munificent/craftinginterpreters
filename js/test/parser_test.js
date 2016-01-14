@@ -60,6 +60,10 @@ testExpr("1 and 2 == 3 and 4 != 5", "(and (and 1 (== 2 3)) (!= 4 5))");
 testExpr("1 or 2 and 3 or 4 and 5", "(or (or 1 (and 2 3)) (and 4 5))");
 testExpr("a = b or c = d or e", "(= a (= (or b c) (or d e)))");
 
+// TODO: Valid and invalid assignment targets.
+// a + b = c
+// (a) = b
+
 // Expression statement.
 testStmt("1 + 2;", "(; (+ 1 2))");
 
