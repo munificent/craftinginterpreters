@@ -26,15 +26,12 @@ Interpreter.prototype.evaluate = function(expression) {
   return expression.accept(this);
 }
 
-  // return node.accept({
-  //   visitBlockStmt: function(node) {
-  //     var result = "(block";
-  //     for (var i = 0; i < node.statements.length; i++) {
-  //       result += " " + prettyPrint(node.statements[i]);
-  //     }
+Interpreter.prototype.visitBlockStmt = function(node) {
+  for (var i = 0; i < node.statements.length; i++) {
+    this.evaluate(node.statements[i]);
+  }
+}
 
-  //     return result + ")";
-  //   },
 Interpreter.prototype.visitExpressionStmt = function(node) {
   this.evaluate(node.expression);
 }
@@ -63,23 +60,30 @@ Interpreter.prototype.visitExpressionStmt = function(node) {
 
   //     return result + ") " + prettyPrint(node.body) + ")";
   //   },
-  //   visitIfStmt: function(node) {
-  //     var result = "(if " + prettyPrint(node.condition) + " then ";
-  //     result += prettyPrint(node.thenBranch);
-  //     if (node.elseBranch !== null) {
-  //       result += " else " + prettyPrint(node.elseBranch);
-  //     }
-  //     return result + ")";
-  //   },
+
+Interpreter.prototype.visitIfStmt = function(node) {
+  var condition = this.evaluate(node.condition);
+
+  // TODO: Don't use JS truthiness.
+  if (condition) {
+    this.evaluate(node.thenBranch);
+  } else {
+    this.evaluate(node.elseBranch);
+  }
+}
+
 Interpreter.prototype.visitVarStmt = function(node) {
   // TODO: Check for name collision.
   var value = this.evaluate(node.initializer);
   this.globals[node.name] = value;
 }
-  //   visitWhileStmt: function(node) {
-  //     var result = "(while " + prettyPrint(node.condition) + " ";
-  //     return result + prettyPrint(node.body) + ")";
-  //   },
+
+Interpreter.prototype.visitWhileStmt = function(node) {
+  // TODO: Don't use JS truthiness.
+  while (this.evaluate(node.condition)) {
+    this.evaluate(node.body);
+  }
+}
 
 Interpreter.prototype.visitAssignExpr = function(node) {
   var value = this.evaluate(node.value);
@@ -134,18 +138,27 @@ Interpreter.prototype.visitCallExpr = function(node) {
   }
 }
 
-  //     return result + ")";
-  //   },
-  //   visitLogicalExpr: function(node) {
-  //     var result = "(" + node.op + " " + prettyPrint(node.left) + " ";
-  //     return result + prettyPrint(node.right) + ")";
-  //   },
+Interpreter.prototype.visitLogicalExpr = function(node) {
+  var left = this.evaluate(node.left);
+
+  // TODO: Don't use JS truthiness.
+  if (node.op == Token.and) {
+    if (!left) return left;
+  } else {
+    if (left) return left;
+  }
+
+  return this.evaluate(node.right);
+}
+
 Interpreter.prototype.visitNumberExpr = function(node) {
   return node.value;
 }
-  //   visitPropertyExpr: function(node) {
-  //     return "(." + node.name + " " + prettyPrint(node.object) + ")";
-  //   },
+
+//   visitPropertyExpr: function(node) {
+//     return "(." + node.name + " " + prettyPrint(node.object) + ")";
+//   },
+
 Interpreter.prototype.visitStringExpr = function(node) {
   return node.value;
 }

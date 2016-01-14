@@ -141,9 +141,11 @@ Parser.prototype.block = function() {
   this.consume(Token.leftBrace);
   var statements = [];
 
-  while (!this.match(Token.rightBrace) && !this.peek(Token.end)) {
+  while (!this.peek(Token.rightBrace) && !this.peek(Token.end)) {
     statements.push(this.statement());
   }
+
+  this.consume(Token.rightBrace, "Expect '}' after block.");
 
   return new BlockStmt(statements);
 }
@@ -353,6 +355,10 @@ Parser.prototype.match = function(tokenType) {
 
 Parser.prototype.consume = function(tokenType, message) {
   if (!this.peek(tokenType)) {
+    if (message === undefined) {
+      message = "Expected " + tokenType + " got " + this.current.type;
+    }
+
     // If the first error happened because we unexpectedly hit the end of the
     // input, let the caller know.
     if (!this.errorReporter.hasError && this.current.type == Token.end) {
@@ -375,10 +381,6 @@ Parser.prototype.peek = function(tokenType) {
 }
 
 Parser.prototype.error = function(message) {
-  if (message === undefined) {
-    message = "Expected " + tokenType + " got " + this.current.type;
-  }
-
   this.errorReporter.error(message);
   this.errorReporter.hasError = true;
 }
