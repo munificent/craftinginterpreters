@@ -15,8 +15,8 @@ function defineAst(name, baseClass, baseName, fields) {
 
   constructor.prototype = Object.create(baseClass.prototype);
 
-  constructor.prototype.accept = function(visitor) {
-    return visitor["visit" + name + baseName](this);
+  constructor.prototype.accept = function(visitor, data) {
+    return visitor["visit" + name + baseName](this, data);
   }
 
   exports[name + baseName] = constructor;

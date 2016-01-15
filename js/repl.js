@@ -42,6 +42,8 @@ io.on("line", function(line) {
     try {
       interpreter.interpret(statement);
     } catch (error) {
+      if (!(error instanceof RuntimeError)) throw error;
+
       console.log(":( Runtime Error: " + error.message);
     }
   }
