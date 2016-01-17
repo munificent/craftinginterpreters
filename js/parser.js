@@ -5,6 +5,7 @@ var Token = require("./token");
 // TODO: Use them qualified?
 var ast = require("./ast");
 var Expr = ast.Expr;
+var Program = ast.Program;
 var AssignExpr = ast.AssignExpr;
 var BinaryExpr = ast.BinaryExpr;
 var CallExpr = ast.CallExpr;
@@ -41,6 +42,15 @@ function Parser(lexer, errorReporter) {
   this.needsMoreInput = false;
 }
 
+Parser.prototype.parseProgram = function() {
+  var statements = [];
+  while (!this.peek(Token.end)) {
+    statements.push(this.statement());
+  }
+
+  return new Program(statements);
+}
+
 Parser.prototype.parse = function() {
   return this.statement();
 
@@ -61,9 +71,12 @@ Parser.prototype.statement = function() {
 
     var methods = [];
     this.consume(Token.leftBrace);
-    while (!this.match(Token.rightBrace)) {
+
+    while (!this.peek(Token.rightBrace) && !this.peek(Token.end)) {
       methods.push(this.fun());
     }
+
+    this.consume(Token.rightBrace, "Expect '}' after class body.");
 
     return new ClassStmt(name.text, superclass, methods);
   }

@@ -58,6 +58,9 @@ Lexer.prototype.nextToken = function() {
 
   if (this.current >= this.source.length) return new Token(Token.end, "");
 
+  // The next token starts with the current character.
+  this.start = this.current;
+
   var c = this.advance();
 
   // See if it's a punctuator.
@@ -100,10 +103,17 @@ Lexer.prototype.nextToken = function() {
 }
 
 Lexer.prototype.skipWhitespace = function() {
-  this.consumeWhile(isWhitespace);
-
-  // Don't include these characters in the next token.
-  this.start = this.current;
+  while (true) {
+    var c = this.peek();
+    if (isWhitespace(c)) {
+      this.advance();
+    } else if (c == "/" && this.peek(1) == "/") {
+      // A comment goes until the end of the line.
+      this.consumeWhile(function(c) { return c != "\n"; });
+    } else {
+      return;
+    }
+  }
 }
 
 Lexer.prototype.identifier = function() {

@@ -29,13 +29,15 @@ function test(source, expectedTokens) {
     }
   }
 
+  var printableSource = source.replace("\n", "¬");
+
   if (failed) {
-    console.log("FAIL: " + source);
+    console.log("FAIL: " + printableSource);
     for (var i = 0; i < results.length; i++) {
       console.log("      " + results[i]);
     }
   } else {
-    console.log("PASS: " + source)
+    console.log("PASS: " + printableSource)
   }
 }
 
@@ -50,6 +52,12 @@ test("([{)]},;.!", [
   [Token.semicolon,    ";", null],
   [Token.dot,          ".", null],
   [Token.bang,         "!", null]
+]);
+
+test("1 // comment\n + // comment\n2", [
+  [Token.number,       "1", 1],
+  [Token.plus,         "+", null],
+  [Token.number,       "2", 2]
 ]);
 
 test("+-*/% = == != < > <= >=", [

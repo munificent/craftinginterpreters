@@ -13,8 +13,10 @@ function Interpreter() {
   });
 }
 
-Interpreter.prototype.interpret = function(statement) {
-  statement.accept(this, this.globals);
+Interpreter.prototype.interpret = function(program) {
+  for (var i = 0; i < program.statements.length; i++) {
+    program.statements[i].accept(this, this.globals);
+  }
 }
 
 Interpreter.prototype.evaluate = function(expression, context) {
@@ -32,24 +34,30 @@ Interpreter.prototype.visitBlockStmt = function(node, context) {
 Interpreter.prototype.visitExpressionStmt = function(node, context) {
   this.evaluate(node.expression, context);
 }
-  //   visitClassStmt: function(node) {
-  //     var result = "(class " + node.name + " ";
 
-  //     if (node.superclass != null) {
-  //       result += prettyPrint(node.superclass) + " ";
-  //     }
+Interpreter.prototype.visitClassStmt = function(node, context) {
+  // TODO: Evaluate and store superclass.
+  var constructor = null;
+  var methods = {};
+  for (var i = 0; i < node.methods.length; i++) {
+    var method = node.methods[i];
+    var fn = new VoxFunction(method.parameters, method.body, context);
 
-  //     result += "(";
-  //     for (var i = 0; i < node.methods.length; i++) {
-  //       if (i > 0) result += " ";
-  //       result += prettyPrint(node.methods[i]);
-  //     }
+    if (method.name == node.name) {
+      constructor = fn;
+    } else {
+      methods[method.name] = fn;
+    }
+  }
 
-  //     return result + "))";
-  //   },
+  var voxClass = new VoxClass(constructor, methods);
+  context.define(node.name, voxClass);
+}
 
 Interpreter.prototype.visitFunStmt = function(node, context) {
-  context.define(node.name, new Fun(node.parameters, node.body, context));
+  var fn = new VoxFunction(node.parameters, node.body, context);
+  // TODO: Decide if function should be in scope in its own body.
+  context.define(node.name, fn);
 }
 
 Interpreter.prototype.visitIfStmt = function(node, context) {
@@ -82,8 +90,14 @@ Interpreter.prototype.visitAssignExpr = function(node, context) {
   if (node.target instanceof VariableExpr) {
     context.assign(node.target.name, value);
   } else {
-    // TODO: Implement assigning properties.
-    throw "not impl";
+    // node is a PropertyExpr.
+    var object = this.evaluate(node.target.object, context);
+
+    if (object instanceof VoxObject) {
+      object.fields[node.target.name] = value;
+    } else {
+      throw new RuntimeError("Cannot add fields to " + object);
+    }
   }
 
   return value;
@@ -120,19 +134,46 @@ Interpreter.prototype.visitCallExpr = function(node, context) {
   // Primitive functions.
   if (fn instanceof Function) return fn.apply(this, args);
 
-  if (fn instanceof Fun) {
+  if (fn instanceof VoxFunction) {
     if (args.length != fn.parameters.length) {
       // TODO: Better message!
       throw new RuntimeError("Arity mismatch.");
     }
 
-    context = new Context(fn.context);
+    context = new Context(fn.closure);
 
     for (var i = 0; i < args.length; i++) {
       context.define(fn.parameters[i], args[i]);
     }
 
     return this.evaluate(fn.body, context);
+  }
+
+  if (fn instanceof VoxClass) {
+    // TODO: Store reference to class.
+    var object = new VoxObject();
+
+    if (fn.constructor !== null) {
+      var fn = fn.constructor;
+
+      // TODO: Decent amount of copy/paste with above. Clean up.
+      if (args.length != fn.parameters.length) {
+        // TODO: Better message!
+        throw new RuntimeError("Arity mismatch.");
+      }
+
+      context = new Context(fn.closure);
+
+      context.define("this", object);
+
+      for (var i = 0; i < args.length; i++) {
+        context.define(fn.parameters[i], args[i]);
+      }
+
+      this.evaluate(fn.body, context);
+    }
+
+    return object;
   }
 
   throw new RuntimeError(fn.toString() + " cannot be called.");
@@ -155,9 +196,23 @@ Interpreter.prototype.visitNumberExpr = function(node, context) {
   return node.value;
 }
 
-//   visitPropertyExpr: function(node) {
-//     return "(." + node.name + " " + prettyPrint(node.object) + ")";
-//   },
+Interpreter.prototype.visitPropertyExpr = function(node, context) {
+  var object = this.evaluate(node.object, context);
+
+  // TODO: Decide if we want to wrap all objects.
+  if (object instanceof VoxObject) {
+    if (object.fields.hasOwnProperty(node.name)) {
+      return object.fields[node.name];
+    } else {
+      // TODO: Look for a method to tear off.
+      // TODO: Figure out how to handle unknown properties.
+    }
+  } else {
+    // TODO: Native properties on strings and numbers?
+  }
+
+  throw "not impl";
+},
 
 Interpreter.prototype.visitStringExpr = function(node, context) {
   return node.value;
@@ -183,12 +238,29 @@ function RuntimeError(message) {
   this.message = message;
 }
 
-// TODO: Better name.
-function Fun(parameters, body, closure) {
+// TODO: Keep track of its VoxClass.
+function VoxObject() {
+  this.fields = {};
+}
+
+function VoxFunction(parameters, body, closure) {
+  VoxObject.call(this);
   this.parameters = parameters;
   this.body = body;
-  this.closure;
+  this.closure = closure;
 }
+
+VoxFunction.prototype = Object.create(VoxObject.prototype);
+
+function VoxClass(constructor, methods) {
+  VoxObject.call(this);
+  this.constructor = constructor;
+  this.methods = methods;
+}
+
+// TODO: Inherit from VoxFunction?
+VoxClass.prototype = Object.create(VoxObject.prototype);
+
 
 function Context(outer) {
   this.outer = outer;

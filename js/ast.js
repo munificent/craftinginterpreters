@@ -3,8 +3,13 @@
 function Expr() {}
 function Stmt() {}
 
+function Program(statements) {
+  this.statements = statements;
+}
+
 exports.Expr = Expr;
 exports.Stmt = Stmt;
+exports.Program = Program;
 
 function defineAst(name, baseClass, baseName, fields) {
   var constructor = function() {
