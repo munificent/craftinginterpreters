@@ -3,26 +3,26 @@
 var Token = require("./token");
 
 // TODO: Use them qualified?
-var ast = require("./ast");
-var Expr = ast.Expr;
-var Program = ast.Program;
-var AssignExpr = ast.AssignExpr;
-var BinaryExpr = ast.BinaryExpr;
-var CallExpr = ast.CallExpr;
-var LogicalExpr = ast.LogicalExpr;
-var NumberExpr = ast.NumberExpr;
-var PropertyExpr = ast.PropertyExpr;
-var StringExpr = ast.StringExpr;
-var UnaryExpr = ast.UnaryExpr;
-var VariableExpr = ast.VariableExpr;
-var Stmt = ast.Stmt;
-var BlockStmt = ast.BlockStmt;
-var ClassStmt = ast.ClassStmt;
-var ExpressionStmt = ast.ExpressionStmt;
-var FunStmt = ast.FunStmt;
-var IfStmt = ast.IfStmt;
-var VarStmt = ast.VarStmt;
-var WhileStmt = ast.WhileStmt;
+var ast = require("./ast"),
+    Expr = ast.Expr,
+    Program = ast.Program,
+    AssignExpr = ast.AssignExpr,
+    BinaryExpr = ast.BinaryExpr,
+    CallExpr = ast.CallExpr,
+    LogicalExpr = ast.LogicalExpr,
+    NumberExpr = ast.NumberExpr,
+    PropertyExpr = ast.PropertyExpr,
+    StringExpr = ast.StringExpr,
+    UnaryExpr = ast.UnaryExpr,
+    VariableExpr = ast.VariableExpr,
+    Stmt = ast.Stmt,
+    BlockStmt = ast.BlockStmt,
+    ClassStmt = ast.ClassStmt,
+    ExpressionStmt = ast.ExpressionStmt,
+    FunStmt = ast.FunStmt,
+    IfStmt = ast.IfStmt,
+    VarStmt = ast.VarStmt,
+    WhileStmt = ast.WhileStmt;
 
 function Parser(lexer, errorReporter) {
   if (errorReporter === undefined) {

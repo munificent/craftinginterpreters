@@ -5,9 +5,9 @@ var fs = require("fs");
 var process = require("process");
 var readline = require("readline");
 
-var interpreter = require("./interpreter");
-var Interpreter = interpreter.Interpreter;
-var RuntimeError = interpreter.RuntimeError;
+var interpreter = require("./interpreter"),
+    Interpreter = interpreter.Interpreter,
+    RuntimeError = interpreter.RuntimeError;
 
 var Lexer = require("./lexer");
 var Parser = require("./parser");

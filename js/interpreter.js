@@ -1,8 +1,13 @@
 "use strict";
 
+var object = require("./object"),
+    VoxObject = object.VoxObject,
+    VoxFunction = object.VoxFunction;
+
 var Token = require("./token");
-var ast = require("./ast");
-var VariableExpr = ast.VariableExpr;
+
+var ast = require("./ast"),
+    VariableExpr = ast.VariableExpr;
 
 function Interpreter() {
   this.globals = new Context(null);
@@ -237,30 +242,6 @@ function RuntimeError(message) {
   // TODO: Capture source location to show callstack.
   this.message = message;
 }
-
-// TODO: Keep track of its VoxClass.
-function VoxObject() {
-  this.fields = {};
-}
-
-function VoxFunction(parameters, body, closure) {
-  VoxObject.call(this);
-  this.parameters = parameters;
-  this.body = body;
-  this.closure = closure;
-}
-
-VoxFunction.prototype = Object.create(VoxObject.prototype);
-
-function VoxClass(constructor, methods) {
-  VoxObject.call(this);
-  this.constructor = constructor;
-  this.methods = methods;
-}
-
-// TODO: Inherit from VoxFunction?
-VoxClass.prototype = Object.create(VoxObject.prototype);
-
 
 function Context(outer) {
   this.outer = outer;
