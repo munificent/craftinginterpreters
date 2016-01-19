@@ -9,10 +9,9 @@ var ast = require("./ast"),
     AssignExpr = ast.AssignExpr,
     BinaryExpr = ast.BinaryExpr,
     CallExpr = ast.CallExpr,
+    LiteralExpr = ast.LiteralExpr,
     LogicalExpr = ast.LogicalExpr,
-    NumberExpr = ast.NumberExpr,
     PropertyExpr = ast.PropertyExpr,
-    StringExpr = ast.StringExpr,
     UnaryExpr = ast.UnaryExpr,
     VariableExpr = ast.VariableExpr,
     Stmt = ast.Stmt,
@@ -339,12 +338,16 @@ Parser.prototype.call = function() {
 Parser.prototype.primary = function() {
   // TODO: Switch on type?
 
+  if (this.match(Token.null_)) {
+    return new LiteralExpr(null);
+  }
+
   if (this.match(Token.number)) {
-    return new NumberExpr(this.last.value);
+    return new LiteralExpr(this.last.value);
   }
 
   if (this.match(Token.string)) {
-    return new StringExpr(this.last.value);
+    return new LiteralExpr(this.last.value);
   }
 
   if (this.match(Token.identifier)) {

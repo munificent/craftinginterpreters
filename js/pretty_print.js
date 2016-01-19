@@ -77,19 +77,15 @@ function prettyPrint(node) {
 
       return result + ")";
     },
+    visitLiteralExpr: function(node) {
+      return node.value.toString();
+    },
     visitLogicalExpr: function(node) {
       var result = "(" + node.op + " " + prettyPrint(node.left) + " ";
       return result + prettyPrint(node.right) + ")";
     },
-    visitNumberExpr: function(node) {
-      return node.value.toString();
-    },
     visitPropertyExpr: function(node) {
       return "(." + node.name + " " + prettyPrint(node.object) + ")";
-    },
-    visitStringExpr: function(node) {
-      // TODO: Escape special characters.
-      return node.value.toString();
     },
     visitUnaryExpr: function(node) {
       var result = "(" + node.op + " ";

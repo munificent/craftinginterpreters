@@ -127,6 +127,7 @@ test("and class else fun for if or return var while andor", [
   [Token.fun,           "fun",    null],
   [Token.for_,          "for",    null],
   [Token.if_,           "if",     null],
+  [Token.null_,         "null",   null],
   [Token.or,            "or",     null],
   [Token.return_,       "return", null],
   [Token.var_,          "var",    null],

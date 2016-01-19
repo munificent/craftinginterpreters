@@ -199,6 +199,10 @@ Interpreter.prototype.visitCallExpr = function(node, context) {
   throw new RuntimeError(fn.toString() + " cannot be called.");
 }
 
+Interpreter.prototype.visitLiteralExpr = function(node, context) {
+  return node.value;
+}
+
 Interpreter.prototype.visitLogicalExpr = function(node, context) {
   var left = this.evaluate(node.left, context);
 
@@ -210,10 +214,6 @@ Interpreter.prototype.visitLogicalExpr = function(node, context) {
   }
 
   return this.evaluate(node.right, context);
-}
-
-Interpreter.prototype.visitNumberExpr = function(node, context) {
-  return node.value;
 }
 
 Interpreter.prototype.visitPropertyExpr = function(node, context) {
@@ -233,10 +233,6 @@ Interpreter.prototype.visitPropertyExpr = function(node, context) {
 
   throw "not impl";
 },
-
-Interpreter.prototype.visitStringExpr = function(node, context) {
-  return node.value;
-}
 
 Interpreter.prototype.visitUnaryExpr = function(node, context) {
   var right = this.evaluate(node.right, context);

@@ -38,10 +38,9 @@ function defineStmt(name, fields) {
 defineExpr("Assign",      ["target", "value"]);
 defineExpr("Binary",      ["left", "op", "right"]);
 defineExpr("Call",        ["fn", "args"]);
+defineExpr("Literal",     ["value"]);
 defineExpr("Logical",     ["left", "op", "right"]);
-defineExpr("Number",      ["value"]);
 defineExpr("Property",    ["object", "name"]);
-defineExpr("String",      ["value"]);
 defineExpr("Unary",       ["op", "right"]);
 defineExpr("Variable",    ["name"]);
 

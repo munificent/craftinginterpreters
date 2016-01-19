@@ -48,6 +48,7 @@ Lexer.keywords = {
   "fun": Token.fun,
   "for": Token.for_,
   "if": Token.if_,
+  "null": Token.null_,
   "or": Token.or,
   "return": Token.return_,
   "var": Token.var_,
