@@ -77,6 +77,13 @@ Interpreter.prototype.visitIfStmt = function(node, context) {
   }
 }
 
+Interpreter.prototype.visitReturnStmt = function(node, context) {
+  var value = null;
+  if (node.value !== null) value = this.evaluate(node.value, context);
+
+  throw new ReturnValue(value);
+}
+
 Interpreter.prototype.visitVarStmt = function(node, context) {
   var value = this.evaluate(node.initializer, context);
   context.define(node.name, value);
@@ -151,7 +158,15 @@ Interpreter.prototype.visitCallExpr = function(node, context) {
       context.define(fn.parameters[i], args[i]);
     }
 
-    return this.evaluate(fn.body, context);
+    try {
+      this.evaluate(fn.body, context);
+      // TODO: Test implicit null return.
+      return null;
+    } catch (exception) {
+      if (!(exception instanceof ReturnValue)) throw exception;
+
+      return exception.value;
+    }
   }
 
   if (fn instanceof VoxClass) {
@@ -241,6 +256,10 @@ Interpreter.prototype.visitVariableExpr = function(node, context) {
 function RuntimeError(message) {
   // TODO: Capture source location to show callstack.
   this.message = message;
+}
+
+function ReturnValue(value) {
+  this.value = value;
 }
 
 function Context(outer) {

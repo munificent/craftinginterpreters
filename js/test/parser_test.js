@@ -93,13 +93,17 @@ testStmt("if (1 == 2) {} else {}", "(if (== 1 2) then (block) else (block))");
 testStmt("if (1 == 2) if (3 == 4) 5; else 6;",
     "(if (== 1 2) then (if (== 3 4) then (; 5) else (; 6)))");
 
+// Variable declaration.
+testStmt("var name = 1 + 2;", "(var name = (+ 1 2))");
+// TODO: Error if initializer is a statement.
+
+// Return.
+testStmt("return 1 or 2;", "(return (or 1 2))");
+testStmt("return;", "(return)");
+
 // While.
 testStmt("while (1) 2;", "(while 1 (; 2))");
 testStmt("while (1) while (2) 3;", "(while 1 (while 2 (; 3)))");
 testStmt("while (1) {}", "(while 1 (block))");
-
-// Variable declaration.
-testStmt("var name = 1 + 2;", "(var name = (+ 1 2))");
-// TODO: Error if initializer is a statement.
 
 // TODO: Test parse errors.

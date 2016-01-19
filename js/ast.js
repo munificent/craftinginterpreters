@@ -51,6 +51,7 @@ defineStmt("Expression",  ["expression"]);
 defineStmt("For",         ["name", "iterator", "body"]);
 defineStmt("Fun",         ["name", "parameters", "body"]);
 defineStmt("If",          ["condition", "thenBranch", "elseBranch"]);
+defineStmt("Return",      ["value"]);
 defineStmt("Var",         ["name", "initializer"]);
 defineStmt("While",       ["condition", "body"]);
 

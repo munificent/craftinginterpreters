@@ -49,6 +49,10 @@ function prettyPrint(node) {
       }
       return result + ")";
     },
+    visitReturnStmt: function(node) {
+      if (node.value === null) return "(return)";
+      return "(return " + prettyPrint(node.value) + ")";
+    },
     visitVarStmt: function(node) {
       return "(var " + node.name + " = " + prettyPrint(node.initializer) + ")";
     },

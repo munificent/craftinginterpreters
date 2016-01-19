@@ -120,17 +120,18 @@ test('"" "string"', [
 ]);
 // TODO: Escapes. Unterminated string.
 
-test("and class else fun for if or var while andor", [
-  [Token.and,           "and",   null],
-  [Token.class_,        "class", null],
-  [Token.else_,         "else",  null],
-  [Token.fun,           "fun",   null],
-  [Token.for_,          "for",   null],
-  [Token.if_,           "if",    null],
-  [Token.or,            "or",    null],
-  [Token.var_,          "var",   null],
-  [Token.while_,        "while", null],
-  [Token.identifier,    "andor", null]
+test("and class else fun for if or return var while andor", [
+  [Token.and,           "and",    null],
+  [Token.class_,        "class",  null],
+  [Token.else_,         "else",   null],
+  [Token.fun,           "fun",    null],
+  [Token.for_,          "for",    null],
+  [Token.if_,           "if",     null],
+  [Token.or,            "or",     null],
+  [Token.return_,       "return", null],
+  [Token.var_,          "var",    null],
+  [Token.while_,        "while",  null],
+  [Token.identifier,    "andor",  null]
 ]);
 
 // TODO: String literals.

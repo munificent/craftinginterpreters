@@ -21,6 +21,7 @@ var ast = require("./ast"),
     ExpressionStmt = ast.ExpressionStmt,
     FunStmt = ast.FunStmt,
     IfStmt = ast.IfStmt,
+    ReturnStmt = ast.ReturnStmt,
     VarStmt = ast.VarStmt,
     WhileStmt = ast.WhileStmt;
 
@@ -98,6 +99,17 @@ Parser.prototype.statement = function() {
     }
 
     return new IfStmt(condition, thenBranch, elseBranch);
+  }
+
+  // Return.
+  if (this.match(Token.return_)) {
+    var value = null;
+    if (!this.peek(Token.semicolon)) {
+      value = this.expression();
+    }
+
+    this.consume(Token.semicolon, "Expect ';' after return value.");
+    return new ReturnStmt(value);
   }
 
   // Variable declaration.

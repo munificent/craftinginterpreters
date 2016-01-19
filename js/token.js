@@ -49,6 +49,7 @@ Token.fun = "fun";
 Token.for_ = "for";
 Token.if_ = "if";
 Token.or = "or";
+Token.return_ = "return";
 Token.var_ = "var";
 Token.while_ = "while";
 
