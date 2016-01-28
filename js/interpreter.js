@@ -1,6 +1,7 @@
 "use strict";
 
 var object = require("./object"),
+    VoxClass = object.VoxClass,
     VoxObject = object.VoxObject,
     VoxFunction = object.VoxFunction;
 
@@ -24,8 +25,8 @@ Interpreter.prototype.interpret = function(program) {
   }
 }
 
-Interpreter.prototype.evaluate = function(expression, context) {
-  return expression.accept(this, context);
+Interpreter.prototype.evaluate = function(node, context) {
+  return node.accept(this, context);
 }
 
 Interpreter.prototype.visitBlockStmt = function(node, context) {
@@ -136,6 +137,7 @@ Interpreter.prototype.visitBinaryExpr = function(node, context) {
 }
 
 Interpreter.prototype.visitCallExpr = function(node, context) {
+  // TODO: "fn" -> "callee".
   var fn = this.evaluate(node.fn, context);
 
   var args = [];
@@ -170,8 +172,7 @@ Interpreter.prototype.visitCallExpr = function(node, context) {
   }
 
   if (fn instanceof VoxClass) {
-    // TODO: Store reference to class.
-    var object = new VoxObject();
+    var object = new VoxObject(fn);
 
     if (fn.constructor !== null) {
       var fn = fn.constructor;
@@ -232,7 +233,7 @@ Interpreter.prototype.visitPropertyExpr = function(node, context) {
   }
 
   throw "not impl";
-},
+}
 
 Interpreter.prototype.visitUnaryExpr = function(node, context) {
   var right = this.evaluate(node.right, context);

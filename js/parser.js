@@ -73,7 +73,7 @@ Parser.prototype.statement = function() {
     this.consume(Token.leftBrace);
 
     while (!this.peek(Token.rightBrace) && !this.peek(Token.end)) {
-      methods.push(this.fun());
+      methods.push(this.fun("method"));
     }
 
     this.consume(Token.rightBrace, "Expect '}' after class body.");
@@ -83,7 +83,7 @@ Parser.prototype.statement = function() {
 
   // Function declaration.
   if (this.match(Token.fun)) {
-    return this.fun();
+    return this.fun("function");
   }
 
   // If.
@@ -144,10 +144,10 @@ Parser.prototype.statement = function() {
   return new ExpressionStmt(expr);
 }
 
-Parser.prototype.fun = function() {
-  var name = this.consume(Token.identifier);
+Parser.prototype.fun = function(type) {
+  var name = this.consume(Token.identifier, "Expect " + type + " name.");
 
-  this.consume(Token.leftParen);
+  this.consume(Token.leftParen, "Expect '(' after " + type + " name.");
   var parameters = [];
   if (!this.peek(Token.rightParen)) {
     do {
@@ -155,7 +155,7 @@ Parser.prototype.fun = function() {
       parameters.push(parameter.text);
     } while (this.match(Token.comma));
   }
-  this.consume(Token.rightParen);
+  this.consume(Token.rightParen, "Expect ')' after parameters.");
 
   var body = this.block();
   return new FunStmt(name.text, parameters, body);
@@ -384,7 +384,7 @@ Parser.prototype.match = function(tokenType) {
 Parser.prototype.consume = function(tokenType, message) {
   if (!this.peek(tokenType)) {
     if (message === undefined) {
-      message = "Expected " + tokenType + " got " + this.current.type;
+      message = "Expected " + tokenType + ", got " + this.current.type + ".";
     }
 
     // If the first error happened because we unexpectedly hit the end of the
@@ -393,7 +393,7 @@ Parser.prototype.consume = function(tokenType, message) {
       this.errorReporter.needsMoreInput = true;
     }
 
-    this.error(message);
+    this.error("on " + this.current.type + ": " + message);
   }
 
   this.last = this.current;

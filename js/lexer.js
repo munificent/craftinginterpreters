@@ -67,7 +67,7 @@ Lexer.prototype.nextToken = function() {
 
   // See if it's a punctuator.
   var type = Lexer.punctuators[c];
-  if (type != undefined) return this.makeToken(type);
+  if (type !== undefined) return this.makeToken(type);
 
   if (isAlpha(c)) return this.identifier();
   if (isDigit(c)) return this.number();
@@ -123,8 +123,11 @@ Lexer.prototype.identifier = function() {
 
   // See if the identifier is a reserved word.
   var text = this.source.substring(this.start, this.current);
-  var type = Lexer.keywords[text];
-  if (type === undefined) type = Token.identifier;
+  var type = Token.identifier;
+
+  if (Lexer.keywords.hasOwnProperty(text)) {
+    type = Lexer.keywords[text];
+  }
 
   return this.makeToken(type);
 }

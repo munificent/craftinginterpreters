@@ -1,11 +1,13 @@
 "use strict";
 
 // TODO: Keep track of its VoxClass.
-function VoxObject() {
+function VoxObject(class_) {
+  this.class_ = class_;
   this.fields = {};
 }
 
 function VoxFunction(parameters, body, closure) {
+  // TODO: Class for functions.
   VoxObject.call(this);
   this.parameters = parameters;
   this.body = body;
@@ -15,6 +17,7 @@ function VoxFunction(parameters, body, closure) {
 VoxFunction.prototype = Object.create(VoxObject.prototype);
 
 function VoxClass(constructor, methods) {
+  // TODO: Class for classes.
   VoxObject.call(this);
   this.constructor = constructor;
   this.methods = methods;
