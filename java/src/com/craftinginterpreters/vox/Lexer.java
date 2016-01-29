@@ -26,6 +26,7 @@ class Lexer {
   private final String source;
   private int tokenStart = 0;
   private int current = 0;
+  private int line = 1;
 
   Lexer(String source) {
     this.source = source;
@@ -87,13 +88,27 @@ class Lexer {
   private void skipWhitespace() {
     while (true) {
       char c = peek();
-      if (isWhitespace(c)) {
-        advance();
-      } else if (c == '/' && peek(1) == '/') {
-        // A comment goes until the end of the line.
-        while (peek() != '\n' && !isAtEnd()) advance();
-      } else {
-        break;
+      switch (c) {
+        case ' ':
+        case '\r':
+        case '\t':
+          advance();
+          break;
+
+        case '\n':
+          line++;
+          advance();
+          break;
+
+        case '/':
+          if (peek(1) == '/') {
+            // A comment goes until the end of the line.
+            while (peek() != '\n' && !isAtEnd()) advance();
+          }
+          break;
+
+        default:
+          return;
       }
     }
   }
@@ -147,7 +162,7 @@ class Lexer {
 
   private Token makeToken(TokenType type, Object value) {
     String text = source.substring(tokenStart, current);
-    return new Token(type, text, value);
+    return new Token(type, text, value, line);
   }
 
   private boolean match(char expected) {
@@ -183,11 +198,6 @@ class Lexer {
   // Returns true if `c` is an English letter, underscore, or digit.
   private boolean isAlphaNumeric(char c) {
     return isAlpha(c) || isDigit(c);
-  }
-
-  // Returns true if `c` is a space, newline, or tab.
-  private boolean isWhitespace(char c) {
-    return c == ' ' || c == '\n' || c == '\t';
   }
 
   // Returns true if `c` is a digit.

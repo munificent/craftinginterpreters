@@ -14,10 +14,13 @@ public class Vox {
       return;
     }
 
-    Interpreter interpreter = new Interpreter();
+    ErrorReporter errorReporter = new ErrorReporter();
+    Interpreter interpreter = new Interpreter(errorReporter);
 
     if (args.length == 1) {
       interpreter.run(readFile(args[0]));
+
+      if (errorReporter.hadError) System.exit(65);
       return;
     }
 
@@ -30,6 +33,7 @@ public class Vox {
       String source = reader.readLine();
 
       try {
+        errorReporter.hadError = false;
         interpreter.run(source);
       } catch (RuntimeError error) {
         System.err.println("Runtime error: " + error.getMessage());

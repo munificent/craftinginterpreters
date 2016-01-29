@@ -5,16 +5,22 @@ import java.util.List;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
 class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void> {
-  private Variables variables;
+  private final ErrorReporter errorReporter;
+  // TODO: Make this private and expose methods to change?
+  Variables variables;
 
-  Interpreter() {
-    variables = new Variables(null, 0, "print", (Callable)this::primitivePrint);
+  Interpreter(ErrorReporter errorReporter) {
+    this.errorReporter = errorReporter;
+    variables = new Variables(null, "print", (Callable)Primitives::print);
   }
 
   void run(String source) {
     Lexer lexer = new Lexer(source);
-    Parser parser = new Parser(lexer, null);
+    Parser parser = new Parser(lexer, errorReporter);
     List<Stmt> statements = parser.parseProgram();
+
+    // Don't run if there was a parse error.
+    if (errorReporter.hadError) return;
 
     for (Stmt statement : statements) {
       execute(statement);
@@ -25,8 +31,18 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     return expr.accept(this, context);
   }
 
-  private void execute(Stmt stmt) {
+  void execute(Stmt stmt) {
     stmt.accept(this, null);
+  }
+
+  // Executes [stmt] in its own block scope.
+  private void executeInScope(Stmt stmt) {
+    Variables before = variables;
+    try {
+      execute(stmt);
+    } finally {
+      variables = before;
+    }
   }
 
   @Override
@@ -61,33 +77,43 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt, Void context) {
+    // TODO: Show what happens if don't define before creating fn.
+    variables = variables.define(stmt.name, null);
+    VoxFunction function = new VoxFunction(stmt, variables);
+    variables.assign(stmt.name, function);
     return null;
   }
 
   @Override
   public Void visitIfStmt(Stmt.If stmt, Void context) {
     if (isTrue(evaluate(stmt.condition, context))) {
-      execute(stmt.thenBranch);
+      executeInScope(stmt.thenBranch);
     } else if (stmt.elseBranch != null) {
-      execute(stmt.elseBranch);
+      executeInScope(stmt.elseBranch);
     }
     return null;
   }
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt, Void context) {
-    return null;
+    Object value = null;
+    if (stmt.value != null) value = evaluate(stmt.value, context);
+
+    throw new Return(value);
   }
 
   @Override
   public Void visitVarStmt(Stmt.Var stmt, Void context) {
     Object value = evaluate(stmt.initializer, context);
-    variables = variables.define(0, stmt.name, value);
+    variables = variables.define(stmt.name, value);
     return null;
   }
 
   @Override
   public Void visitWhileStmt(Stmt.While stmt, Void context) {
+    while (isTrue(evaluate(stmt.condition, context))) {
+      executeInScope(stmt.body);
+    }
     return null;
   }
 
@@ -134,7 +160,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     }
 
     if (callable instanceof Callable) {
-      return ((Callable)callable).call(arguments);
+      return ((Callable)callable).call(this, arguments);
     }
 
     // TODO: User-defined functions.
@@ -196,19 +222,5 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     if (object == null) return false;
     if (object instanceof Boolean) return (boolean)object;
     return true;
-  }
-
-  private Object primitivePrint(List<Object> arguments) {
-    Object value = arguments.get(0);
-    if (value instanceof Double) {
-      // TODO: Hack. Work around Java adding ".0" to integer-valued doubles.
-      String text = value.toString();
-      if (text.endsWith(".0")) text = text.substring(0, text.length() - 2);
-      System.out.println(text);
-    } else {
-      System.out.println(value);
-    }
-
-    return value;
   }
 }

@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Parser {
-  // TODO: Type for error reporter.
-  Parser(Lexer lexer, Object errorReporter) {
+  Parser(Lexer lexer, ErrorReporter errorReporter) {
     this.lexer = lexer;
     this.errorReporter = errorReporter;
 
@@ -317,8 +316,6 @@ class Parser {
 
   private Token consume(TokenType type, String message) {
     if (!peek(type)) {
-//      if (message === undefined) {
-//      message = "Expected " + tokenType + ", got " + this.current.type + ".";
       error(message);
     }
 
@@ -344,13 +341,11 @@ class Parser {
   }
 
   private void error(String message) {
-    System.out.println("Error: " + message);
-//    this.errorReporter.error(message);
-//    this.errorReporter.hasError = true;
+    errorReporter.error(current.line, message);
   }
 
   private final Lexer lexer;
-  private final Object errorReporter;
+  private final ErrorReporter errorReporter;
   private Token current;
   private Token previous;
 }
