@@ -13,24 +13,20 @@ class Parser {
 //    this.needsMoreInput = false;
   }
 
-  // TODO: Temp.
+  List<Stmt> parseProgram () {
+    List<Stmt> statements = new ArrayList<>();
+    while (!match(TokenType.EOF)) {
+      statements.add(statement());
+    }
+
+    return statements;
+  }
+
   Stmt parseStatement() {
-    return statement();
+    Stmt stmt = statement();
+    consume(TokenType.EOF, "Expect end.");
+    return stmt;
   }
-
-  // TODO: Temp.
-  Expr parseExpression() {
-    return expression();
-  }
-
-//Parser.prototype.parseProgram = function() {
-//  var statements = [];
-//  while (!this.peek(Token.end)) {
-//    statements.push(this.statement());
-//  }
-//
-//  return new Program(statements);
-//}
 
   private Stmt statement() {
     // Class declaration.
@@ -151,16 +147,18 @@ class Parser {
   private Expr assignment() {
     Expr expr = or();
 
-//  if (this.match(Token.equal)) {
-//    // Check that the left-hand side is a valid target.
-//    if (!(expr instanceof VariableExpr) &&
-//        !(expr instanceof PropertyExpr)) {
-//      this.error("Invalid assignment target.");
-//    }
-//
-//    var value = this.assignment();
-//    return new AssignExpr(expr, value);
-//  }
+  if (match(TokenType.EQUAL)) {
+    Expr value = assignment();
+
+    if (expr instanceof Expr.Variable) {
+      return new Expr.Assign(null, ((Expr.Variable)expr).name, value);
+    } else if (expr instanceof Expr.Property) {
+      Expr.Property property = (Expr.Property)expr;
+      return new Expr.Assign(property.object, property.name, value);
+    }
+
+    error("Invalid assignment target.");
+  }
 
     return expr;
   }
@@ -280,9 +278,9 @@ class Parser {
   private Expr primary() {
     // TODO: Switch on type?
 
-    if (match(TokenType.NULL)) {
-      return new Expr.Literal(null);
-    }
+    if (match(TokenType.FALSE)) return new Expr.Literal(false);
+    if (match(TokenType.TRUE)) return new Expr.Literal(true);
+    if (match(TokenType.NULL)) return new Expr.Literal(null);
 
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(previous.value);
@@ -298,8 +296,7 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 
-    // TODO: Error handling.
-    System.out.println("Error on " + current.text);
+    error("Unexpected token '" + current.text + "'.");
     return null;
   }
 
@@ -322,8 +319,7 @@ class Parser {
     if (!peek(type)) {
 //      if (message === undefined) {
 //      message = "Expected " + tokenType + ", got " + this.current.type + ".";
-      // TODO: Better error handling.
-      System.out.println(message);
+      error(message);
     }
 
 //    // If the first error happened because we unexpectedly hit the end of the
@@ -347,10 +343,11 @@ class Parser {
     return current.type == tokenType;
   }
 
-//    Parser.prototype.error = function(message) {
+  private void error(String message) {
+    System.out.println("Error: " + message);
 //    this.errorReporter.error(message);
 //    this.errorReporter.hasError = true;
-//    }
+  }
 
   private final Lexer lexer;
   private final Object errorReporter;

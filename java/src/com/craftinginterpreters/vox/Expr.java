@@ -16,8 +16,9 @@ abstract class Expr {
   }
 
   static class Assign extends Expr {
-    Assign(Expr target, Expr value) {
-      this.target = target;
+    Assign(Expr object, String name, Expr value) {
+      this.object = object;
+      this.name = name;
       this.value = value;
     }
 
@@ -25,7 +26,8 @@ abstract class Expr {
       return visitor.visitAssignExpr(this, context);
     }
 
-    final Expr target;
+    final Expr object;
+    final String name;
     final Expr value;
   }
 
@@ -46,8 +48,8 @@ abstract class Expr {
   }
 
   static class Call extends Expr {
-    Call(Expr target, List<Expr> arguments) {
-      this.target = target;
+    Call(Expr callee, List<Expr> arguments) {
+      this.callee = callee;
       this.arguments = arguments;
     }
 
@@ -55,7 +57,7 @@ abstract class Expr {
       return visitor.visitCallExpr(this, context);
     }
 
-    final Expr target;
+    final Expr callee;
     final List<Expr> arguments;
   }
 

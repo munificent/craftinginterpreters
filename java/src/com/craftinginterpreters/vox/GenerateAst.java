@@ -8,9 +8,9 @@ import java.util.List;
 public class GenerateAst {
   public static void main(String[] args) throws IOException {
     defineAstType("Expr", Arrays.asList(
-        "Assign   : Expr target, Expr value",
+        "Assign   : Expr object, String name, Expr value",
         "Binary   : Expr left, Token operator, Expr right",
-        "Call     : Expr target, List<Expr> arguments",
+        "Call     : Expr callee, List<Expr> arguments",
         "Grouping : Expr expression",
         "Literal  : Object value",
         "Logical  : Expr left, Token operator, Expr right",

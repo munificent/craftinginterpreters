@@ -11,12 +11,14 @@ class Lexer {
     keywords.put("and", TokenType.AND);
     keywords.put("class", TokenType.CLASS);
     keywords.put("else", TokenType.ELSE);
+    keywords.put("false", TokenType.FALSE);
     keywords.put("for", TokenType.FOR);
     keywords.put("fun", TokenType.FUN);
     keywords.put("if", TokenType.IF);
     keywords.put("null", TokenType.NULL);
     keywords.put("or", TokenType.OR);
     keywords.put("return", TokenType.RETURN);
+    keywords.put("true", TokenType.TRUE);
     keywords.put("var", TokenType.VAR);
     keywords.put("while", TokenType.WHILE);
   }

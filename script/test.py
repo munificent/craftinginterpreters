@@ -12,6 +12,7 @@ import sys
 # Runs the tests.
 REPO_DIR = dirname(dirname(realpath(__file__)))
 JS_INTERPRETER = join(REPO_DIR, 'js', 'vox.js')
+JAVA_INTERPRETER = join(REPO_DIR, 'jvox')
 
 EXPECT_PATTERN = re.compile(r'// expect: ?(.*)')
 EXPECT_ERROR_PATTERN = re.compile(r'// expect error(?! line)')
@@ -314,7 +315,7 @@ def run_script(app, path, type):
 
 
 def run_test(path):
-  run_script(JS_INTERPRETER, path, "test")
+  run_script(JAVA_INTERPRETER, path, "test")
 
 
 walk(join(REPO_DIR, 'test'), run_test)
