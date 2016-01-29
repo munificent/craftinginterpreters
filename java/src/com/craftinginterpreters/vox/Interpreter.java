@@ -66,6 +66,11 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Void visitIfStmt(Stmt.If stmt, Void context) {
+    if (isTrue(evaluate(stmt.condition, context))) {
+      execute(stmt.thenBranch);
+    } else if (stmt.elseBranch != null) {
+      execute(stmt.elseBranch);
+    }
     return null;
   }
 
@@ -77,7 +82,6 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   @Override
   public Void visitVarStmt(Stmt.Var stmt, Void context) {
     Object value = evaluate(stmt.initializer, context);
-
     variables = variables.define(0, stmt.name, value);
     return null;
   }
@@ -89,7 +93,10 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Object visitAssignExpr(Expr.Assign expr, Void context) {
-    return null;
+    Object value = evaluate(expr.value, context);
+    // TODO: Handle property assignment.
+    variables.assign(expr.name, value);
+    return value;
   }
 
   @Override
