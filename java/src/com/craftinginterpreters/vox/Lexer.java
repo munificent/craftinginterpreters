@@ -7,7 +7,7 @@ class Lexer {
   private static final Map<String, TokenType> keywords;
 
   static {
-    keywords = new HashMap<String, TokenType>();
+    keywords = new HashMap<>();
     keywords.put("and", TokenType.AND);
     keywords.put("class", TokenType.CLASS);
     keywords.put("else", TokenType.ELSE);
@@ -32,10 +32,10 @@ class Lexer {
   Token nextToken() {
     skipWhitespace();
 
-    if (current >= source.length()) return new Token(TokenType.EOF, "");
-
     // The next token starts with the current character.
     tokenStart = current;
+
+    if (isAtEnd()) return makeToken(TokenType.EOF);
 
     char c = advance();
 
@@ -51,7 +51,6 @@ class Lexer {
       case '}': return makeToken(TokenType.RIGHT_BRACE);
       case ';': return makeToken(TokenType.SEMICOLON);
       case ',': return makeToken(TokenType.COMMA);
-//      case "\"": return this.string();
       case '+': return makeToken(TokenType.PLUS);
       case '-': return makeToken(TokenType.MINUS);
       case '*': return makeToken(TokenType.STAR);
@@ -61,10 +60,9 @@ class Lexer {
         if (match('=')) return makeToken(TokenType.BANG_EQUAL);
         return makeToken(TokenType.BANG);
 
-//      case ".":
-//        if (isDigit(this.peek())) return this.number();
-//
-//        return this.makeToken(Token.dot);
+      case '.':
+        if (isDigit(peek())) return number();
+        return makeToken(TokenType.DOT);
 
       case '=':
         if (match('=')) return makeToken(TokenType.EQUAL_EQUAL);
@@ -77,6 +75,8 @@ class Lexer {
       case '>':
         if (match('=')) return makeToken(TokenType.GREATER_EQUAL);
         return makeToken(TokenType.GREATER);
+
+      case '"': return string();
     }
 
     return makeToken(TokenType.ERROR);
@@ -89,7 +89,7 @@ class Lexer {
         advance();
       } else if (c == '/' && peek(1) == '/') {
         // A comment goes until the end of the line.
-        while (peek() != '\n' && current < source.length()) advance();
+        while (peek() != '\n' && !isAtEnd()) advance();
       } else {
         break;
       }
@@ -119,30 +119,33 @@ class Lexer {
       while (isDigit(peek())) advance();
     }
 
-    // TODO: Parse number?
-    return makeToken(TokenType.NUMBER);
+    double value = Double.parseDouble(source.substring(tokenStart, current));
+    return makeToken(TokenType.NUMBER, value);
   }
 
-//  Lexer.prototype.string = function() {
-//    // TODO: Escapes.
-//    // TODO: What about newlines?
-//    this.consumeWhile(function(c) { return c != "\""; });
-//
-//    // Unterminated string.
-//    if (this.isAtEnd()) return this.makeToken(Token.error);
-//
-//    // The closing ".
-//    this.advance();
-//
-//    return this.makeToken(Token.string, function(text) {
-//      // Trim the surrounding quotes.
-//      return text.substring(1, text.length - 1);
-//    });
-//  }
+  private Token string() {
+    // TODO: Escapes.
+    // TODO: What about newlines?
+    while (peek() != '"' && !isAtEnd()) advance();
+
+    // Unterminated string.
+    if (isAtEnd()) return makeToken(TokenType.ERROR, "Unterminated string.");
+
+    // The closing ".
+    advance();
+
+    // Trim the surrounding quotes.
+    String value = source.substring(tokenStart + 1, current - 1);
+    return makeToken(TokenType.STRING, value);
+  }
 
   private Token makeToken(TokenType type) {
+    return makeToken(type, null);
+  }
+
+  private Token makeToken(TokenType type, Object value) {
     String text = source.substring(tokenStart, current);
-    return new Token(type, text);
+    return new Token(type, text, value);
   }
 
   private boolean match(char expected) {
@@ -190,7 +193,6 @@ class Lexer {
     return c >= '0' && c <= '9';
   }
 
-  // TODO: Use?
   private boolean isAtEnd() {
     return current >= source.length();
   }

@@ -39,7 +39,7 @@ function Parser(lexer, errorReporter) {
   this.last = null;
 
   this.errorReporter.hasError = false;
-  this.needsMoreInput = false;
+  this.errorReporter.needsMoreInput = false;
 }
 
 Parser.prototype.parseProgram = function() {
