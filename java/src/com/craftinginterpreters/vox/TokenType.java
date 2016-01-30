@@ -40,6 +40,7 @@ enum TokenType {
   NULL,
   OR,
   RETURN,
+  THIS,
   TRUE,
   VAR,
   WHILE,

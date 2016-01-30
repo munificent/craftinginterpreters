@@ -1,7 +1,9 @@
 package com.craftinginterpreters.vox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
 class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void> {
@@ -9,9 +11,21 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   // TODO: Make this private and expose methods to change?
   Variables variables;
 
+  private final VoxClass classClass;
+  private final VoxClass functionClass;
+
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
     variables = new Variables(null, "print", (Callable)Primitives::print);
+    variables = variables.define("clock", (Callable)Primitives::clock);
+
+    // TODO: Ctor and methods.
+    VoxClass objectClass = new VoxClass("Object", null, null);
+    classClass = new VoxClass("Class", null, null);
+    functionClass = new VoxClass("Function", null, null);
+    objectClass.setClass(classClass);
+    classClass.setClass(classClass);
+    functionClass.setClass(classClass);
   }
 
   void run(String source) {
@@ -61,6 +75,28 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Void visitClassStmt(Stmt.Class stmt, Void context) {
+    Map<String, VoxFunction> methods = new HashMap<>();
+
+    // TODO: Superclass.
+
+    // TODO: Show what happens if don't define before creating class.
+    variables = variables.define(stmt.name, null);
+
+    VoxFunction constructor = null;
+    for (Stmt.Function method : stmt.methods) {
+      VoxFunction function = new VoxFunction(method, variables);
+      function.setClass(functionClass);
+
+      if (method.name.equals(stmt.name)) {
+        constructor = function;
+      } else {
+        methods.put(method.name, function);
+      }
+    }
+
+    VoxClass voxClass = new VoxClass(stmt.name, constructor, methods);
+    voxClass.setClass(classClass);
+    variables.assign(stmt.name, voxClass);
     return null;
   }
 
@@ -80,6 +116,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     // TODO: Show what happens if don't define before creating fn.
     variables = variables.define(stmt.name, null);
     VoxFunction function = new VoxFunction(stmt, variables);
+    function.setClass(functionClass);
     variables.assign(stmt.name, function);
     return null;
   }
@@ -120,8 +157,18 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   @Override
   public Object visitAssignExpr(Expr.Assign expr, Void context) {
     Object value = evaluate(expr.value, context);
-    // TODO: Handle property assignment.
-    variables.assign(expr.name, value);
+
+    if (expr.object != null) {
+      Object object = evaluate(expr.object, context);
+      if (object instanceof VoxObject) {
+        ((VoxObject)object).properties.put(expr.name, value);
+      } else {
+        throw new RuntimeError("Cannot add properties to primitive values.");
+      }
+    } else {
+      variables.assign(expr.name, value);
+    }
+
     return value;
   }
 
@@ -141,7 +188,17 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
       case LESS_EQUAL: return (double)left <= (double)right;
       case MINUS: return (double)left - (double)right;
       case PERCENT: return (double)left % (double)right;
-      case PLUS: return (double)left + (double)right;
+      case PLUS:
+        if (left instanceof Double && right instanceof Double) {
+          return (double)left + (double)right;
+        }
+
+        if (left instanceof String || right instanceof String) {
+          return (String)left + (String)right;
+        }
+
+        throw new RuntimeError("Cannot add " + left + " and " + right + ".");
+
       case SLASH: return (double)left / (double)right;
       case STAR: return (double)left * (double)right;
     }
@@ -190,7 +247,12 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Object visitPropertyExpr(Expr.Property expr, Void context) {
-    return null;
+    Object object = evaluate(expr.object, context);
+    if (object instanceof VoxObject) {
+      return ((VoxObject)object).getProperty(expr.name);
+    }
+
+    throw new RuntimeError("Cannot access properties on primitive values.");
   }
 
   @Override

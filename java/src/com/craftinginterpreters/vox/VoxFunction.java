@@ -2,13 +2,17 @@ package com.craftinginterpreters.vox;
 
 import java.util.List;
 
-class VoxFunction implements Callable {
+class VoxFunction extends VoxObject implements Callable {
   final Stmt.Function declaration;
   final Variables closure;
 
   VoxFunction(Stmt.Function declaration, Variables closure) {
     this.declaration = declaration;
     this.closure = closure;
+  }
+
+  VoxFunction bind(VoxObject self) {
+    return new VoxFunction(declaration, closure.define("this", self));
   }
 
   @Override

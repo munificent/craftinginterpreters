@@ -150,7 +150,10 @@ class Parser {
     Expr value = assignment();
 
     if (expr instanceof Expr.Variable) {
-      return new Expr.Assign(null, ((Expr.Variable)expr).name, value);
+      String name = ((Expr.Variable)expr).name;
+      // TODO: Test.
+      if (name.equals("this")) error("Cannot assign to 'this'.");
+      return new Expr.Assign(null, name, value);
     } else if (expr instanceof Expr.Property) {
       Expr.Property property = (Expr.Property)expr;
       return new Expr.Assign(property.object, property.name, value);
@@ -284,6 +287,8 @@ class Parser {
     if (match(TokenType.NUMBER, TokenType.STRING)) {
       return new Expr.Literal(previous.value);
     }
+
+    if (match(TokenType.THIS)) return new Expr.Variable("this");
 
     if (match(TokenType.IDENTIFIER)) {
       return new Expr.Variable(previous.text);

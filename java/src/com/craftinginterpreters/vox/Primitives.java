@@ -4,7 +4,7 @@ import java.util.List;
 
 // Defines the primitive functions available to Vox that are implemented in
 // Java.
-public class Primitives {
+class Primitives {
   static Object print(Interpreter interpreter, List<Object> arguments) {
     Object value = arguments.get(0);
     if (value instanceof Double) {
@@ -17,5 +17,9 @@ public class Primitives {
     }
 
     return value;
+  }
+
+  static Object clock(Interpreter interpreter, List<Object> arguments) {
+    return (double)System.currentTimeMillis();
   }
 }
