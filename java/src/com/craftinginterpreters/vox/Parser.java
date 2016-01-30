@@ -21,12 +21,6 @@ class Parser {
     return statements;
   }
 
-  Stmt parseStatement() {
-    Stmt stmt = statement();
-    consume(TokenType.EOF, "Expect end.");
-    return stmt;
-  }
-
   private Stmt statement() {
     // Class declaration.
     if (match(TokenType.CLASS)) {
@@ -80,6 +74,7 @@ class Parser {
     // Variable declaration.
     if (match(TokenType.VAR)) {
       Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+      if (name.text.equals("this")) error("'this' cannot be a variable name.");
 
       // TODO: Make this optional.
       consume(TokenType.EQUAL, "Expect '=' after variable name.");
@@ -117,6 +112,10 @@ class Parser {
       do {
         Token parameter = consume(TokenType.IDENTIFIER,
             "Expect parameter name.");
+        if (parameters.contains(parameter.text)) {
+          error("Duplicate parameter '" + parameter.text + "'.");
+        }
+
         parameters.add(parameter.text);
       } while (match(TokenType.COMMA));
     }
@@ -151,7 +150,6 @@ class Parser {
 
     if (expr instanceof Expr.Variable) {
       String name = ((Expr.Variable)expr).name;
-      // TODO: Test.
       if (name.equals("this")) error("Cannot assign to 'this'.");
       return new Expr.Assign(null, name, value);
     } else if (expr instanceof Expr.Property) {

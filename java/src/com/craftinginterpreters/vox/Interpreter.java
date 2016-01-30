@@ -16,8 +16,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-    variables = new Variables(null, "print", (Callable)Primitives::print);
-    variables = variables.define("clock", (Callable)Primitives::clock);
+    variables = new Variables(null, "print", (Function)Primitives::print);
+    variables = variables.define("clock", (Function)Primitives::clock);
 
     // TODO: Ctor and methods.
     VoxClass objectClass = new VoxClass("Object", null, null);
@@ -216,8 +216,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
       arguments.add(evaluate(argument, context));
     }
 
-    if (callable instanceof Callable) {
-      return ((Callable)callable).call(this, arguments);
+    if (callable instanceof Function) {
+      return ((Function)callable).call(this, arguments);
     }
 
     // TODO: User-defined functions.

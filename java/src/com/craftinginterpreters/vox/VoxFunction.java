@@ -2,7 +2,7 @@ package com.craftinginterpreters.vox;
 
 import java.util.List;
 
-class VoxFunction extends VoxObject implements Callable {
+class VoxFunction extends VoxObject implements Function {
   final Stmt.Function declaration;
   final Variables closure;
 

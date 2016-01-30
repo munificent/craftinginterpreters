@@ -3,7 +3,7 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 import java.util.Map;
 
-class VoxClass extends VoxObject implements Callable {
+class VoxClass extends VoxObject implements Function {
   final String name;
   // TODO: Superclass.
   private final VoxFunction constructor;
