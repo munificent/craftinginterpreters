@@ -123,7 +123,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Void visitIfStmt(Stmt.If stmt, Void context) {
-    if (isTrue(evaluate(stmt.condition, context))) {
+    if (Primitives.isTrue(evaluate(stmt.condition, context))) {
       executeInScope(stmt.thenBranch);
     } else if (stmt.elseBranch != null) {
       executeInScope(stmt.elseBranch);
@@ -148,7 +148,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   @Override
   public Void visitWhileStmt(Stmt.While stmt, Void context) {
-    while (isTrue(evaluate(stmt.condition, context))) {
+    while (Primitives.isTrue(evaluate(stmt.condition, context))) {
       executeInScope(stmt.body);
     }
     return null;
@@ -194,7 +194,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
         }
 
         if (left instanceof String || right instanceof String) {
-          return (String)left + (String)right;
+          return Primitives.stringify(left) + Primitives.stringify(right);
         }
 
         throw new RuntimeError("Cannot add " + left + " and " + right + ".");
@@ -239,8 +239,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   public Object visitLogicalExpr(Expr.Logical expr, Void context) {
     Object left = evaluate(expr.left, context);
 
-    if (expr.operator.type == TokenType.OR && isTrue(left)) return left;
-    if (expr.operator.type == TokenType.AND && !isTrue(left)) return left;
+    if (expr.operator.type == TokenType.OR && Primitives.isTrue(left)) return left;
+    if (expr.operator.type == TokenType.AND && !Primitives.isTrue(left)) return left;
 
     return evaluate(expr.right, context);
   }
@@ -261,7 +261,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
     // TODO: Handle conversions.
     switch (expr.operator.type) {
-      case BANG: return !isTrue(right);
+      case BANG: return !Primitives.isTrue(right);
       case MINUS: return -(double)right;
       case PLUS: return +(double)right;
     }
@@ -278,11 +278,5 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     //   if (false) variableThatIsNotDefined;
     //
     // No error in a late bound language, but error in eager.
-  }
-
-  private boolean isTrue(Object object) {
-    if (object == null) return false;
-    if (object instanceof Boolean) return (boolean)object;
-    return true;
   }
 }

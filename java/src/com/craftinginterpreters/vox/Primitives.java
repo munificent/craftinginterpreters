@@ -5,18 +5,28 @@ import java.util.List;
 // Defines the primitive functions available to Vox that are implemented in
 // Java.
 class Primitives {
-  static Object print(Interpreter interpreter, List<Object> arguments) {
-    Object value = arguments.get(0);
-    if (value instanceof Double) {
-      // TODO: Hack. Work around Java adding ".0" to integer-valued doubles.
-      String text = value.toString();
+  static boolean isTrue(Object object) {
+    if (object == null) return false;
+    if (object instanceof Boolean) return (boolean)object;
+    return true;
+  }
+
+  static String stringify(Object object) {
+    if (object == null) return "null";
+
+    // Hack. Work around Java adding ".0" to integer-valued doubles.
+    if (object instanceof Double) {
+      String text = object.toString();
       if (text.endsWith(".0")) text = text.substring(0, text.length() - 2);
-      System.out.println(text);
-    } else {
-      System.out.println(value);
+      return text;
     }
 
-    return value;
+    return object.toString();
+  }
+
+  static Object print(Interpreter interpreter, List<Object> arguments) {
+    System.out.println(stringify(arguments.get(0)));
+    return arguments.get(0);
   }
 
   static Object clock(Interpreter interpreter, List<Object> arguments) {
