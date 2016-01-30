@@ -1,0 +1,50 @@
+program    = stmt* eof ;
+
+stmt       = classStmt |
+           | exprStmt |
+           | funStmt |
+           | ifStmt |
+           | returnStmt |
+           | varStmt |
+           | whileStmt |
+           | block ;
+
+classStmt  = "class" identifier ( "<" identifier )? "{" function* "}" ;
+exprStmt   = expr ";" ;
+funStmt    = "fun" function ;
+ifStmt     = "if" "(" expr ")" stmt ( "else" stmt )? ;
+returnStmt = "return" expr? ";" ;
+varStmt    = "var" identifier ( "=" expr ) ";" ;
+whileStmt  = "while" "(" expr ")" stmt ;
+
+block      = "{" stmt* "}" ;
+function   = identifier "(" parameters? ")" block ;
+parameters = identifier ( "," identifier )* ;
+
+expr       = assignment ;
+assignment = or ( "=" assignment )? ;
+or         = and ( "or" and )* ;
+and        = equality ( "and" equality )* ;
+equality   = comparison ( ( "!=" | "==" ) comparison )* ;
+comparison = term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term       = factor ( ( "-" | "+" ) factor )* ;
+factor     = unary ( ( "%" | "/" | "*" ) unary )* ;
+unary      = call | ( "!" | "-" | "+" ) unary ;
+call       = primary ( "(" arguments? ")" | "." identifier )* ;
+primary    = "true"
+           | "false"
+           | "null"
+           | "this"
+           | number
+           | string
+           | identifier
+           | "(" expression ")" ;
+
+arguments  = expression ( "," expression )* ;
+
+number     = digit+ ( "." digit* ) | "." digit+ ;
+string     = '"' <any char except '"'>* '"' ;
+identifier = alpha ( alpha | digit )* ;
+alpha      = 'a' ... 'z' | 'A' ... 'Z' | '_' ;
+digit      = '0' ... '9' ;
+eof        = <special token indicating end of input>
