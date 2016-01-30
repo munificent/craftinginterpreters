@@ -16,6 +16,11 @@ class VoxFunction extends VoxObject implements Function {
   }
 
   @Override
+  public String toString() {
+    return declaration.name.text;
+  }
+
+  @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
     Variables before = interpreter.variables;
     try {

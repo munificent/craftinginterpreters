@@ -11,14 +11,15 @@ class VoxObject {
     this.voxClass = voxClass;
   }
 
-  Object getProperty(String name) {
-    if (properties.containsKey(name)) return properties.get(name);
+  Object getProperty(Token name) {
+    if (properties.containsKey(name.text)) return properties.get(name.text);
 
-    if (voxClass.methods.containsKey(name)) {
-      return voxClass.methods.get(name).bind(this);
+    if (voxClass.methods.containsKey(name.text)) {
+      return voxClass.methods.get(name.text).bind(this);
     }
 
-    throw new RuntimeError("No property named '" + name + "' on " + this);
+    throw new RuntimeError(
+        "No property named '" + name.text + "' on " + this + ".", name);
   }
 
   @Override

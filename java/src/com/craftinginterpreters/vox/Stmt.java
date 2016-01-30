@@ -28,7 +28,7 @@ abstract class Stmt {
   }
 
   static class Class extends Stmt {
-    Class(String name, Expr superclass, List<Stmt.Function> methods) {
+    Class(Token name, Expr superclass, List<Stmt.Function> methods) {
       this.name = name;
       this.superclass = superclass;
       this.methods = methods;
@@ -38,7 +38,7 @@ abstract class Stmt {
       return visitor.visitClassStmt(this, context);
     }
 
-    final String name;
+    final Token name;
     final Expr superclass;
     final List<Stmt.Function> methods;
   }
@@ -72,7 +72,7 @@ abstract class Stmt {
   }
 
   static class Function extends Stmt {
-    Function(String name, List<String> parameters, Stmt body) {
+    Function(Token name, List<String> parameters, Stmt body) {
       this.name = name;
       this.parameters = parameters;
       this.body = body;
@@ -82,7 +82,7 @@ abstract class Stmt {
       return visitor.visitFunctionStmt(this, context);
     }
 
-    final String name;
+    final Token name;
     final List<String> parameters;
     final Stmt body;
   }

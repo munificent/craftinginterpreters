@@ -40,7 +40,7 @@ class Parser {
 
       consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 
-      return new Stmt.Class(name.text, superclass, methods);
+      return new Stmt.Class(name, superclass, methods);
     }
 
     // Function declaration.
@@ -122,7 +122,7 @@ class Parser {
     consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
 
     Stmt body = block();
-    return new Stmt.Function(name.text, parameters, body);
+    return new Stmt.Function(name, parameters, body);
   }
 
   private Stmt block() {
@@ -149,8 +149,8 @@ class Parser {
     Expr value = assignment();
 
     if (expr instanceof Expr.Variable) {
-      String name = ((Expr.Variable)expr).name;
-      if (name.equals("this")) error("Cannot assign to 'this'.");
+      Token name = ((Expr.Variable)expr).name;
+      if (name.text.equals("this")) error("Cannot assign to 'this'.");
       return new Expr.Assign(null, name, value);
     } else if (expr instanceof Expr.Property) {
       Expr.Property property = (Expr.Property)expr;
@@ -266,7 +266,7 @@ class Parser {
       } else if (match(TokenType.DOT)) {
         Token name = consume(TokenType.IDENTIFIER,
             "Expect property name after '.'.");
-        expr = new Expr.Property(expr, name.text);
+        expr = new Expr.Property(expr, name);
       } else {
         break;
       }
@@ -286,10 +286,10 @@ class Parser {
       return new Expr.Literal(previous.value);
     }
 
-    if (match(TokenType.THIS)) return new Expr.Variable("this");
+    if (match(TokenType.THIS)) return new Expr.Variable(previous);
 
     if (match(TokenType.IDENTIFIER)) {
-      return new Expr.Variable(previous.text);
+      return new Expr.Variable(previous);
     }
 
     if (match(TokenType.LEFT_PAREN)) {

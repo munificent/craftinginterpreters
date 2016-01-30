@@ -19,10 +19,10 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     variables = new Variables(null, "print", (Function)Primitives::print);
     variables = variables.define("clock", (Function)Primitives::clock);
 
-    // TODO: Ctor and methods.
-    VoxClass objectClass = new VoxClass("Object", null, null);
-    classClass = new VoxClass("Class", null, null);
-    functionClass = new VoxClass("Function", null, null);
+    // TODO: Methods.
+    VoxClass objectClass = new VoxClass("Object", null, new HashMap<>());
+    classClass = new VoxClass("Class", null, new HashMap<>());
+    functionClass = new VoxClass("Function", null, new HashMap<>());
     objectClass.setClass(classClass);
     classClass.setClass(classClass);
     functionClass.setClass(classClass);
@@ -80,21 +80,21 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     // TODO: Superclass.
 
     // TODO: Show what happens if don't define before creating class.
-    variables = variables.define(stmt.name, null);
+    variables = variables.define(stmt.name.text, null);
 
     VoxFunction constructor = null;
     for (Stmt.Function method : stmt.methods) {
       VoxFunction function = new VoxFunction(method, variables);
       function.setClass(functionClass);
 
-      if (method.name.equals(stmt.name)) {
+      if (method.name.text.equals(stmt.name.text)) {
         constructor = function;
       } else {
-        methods.put(method.name, function);
+        methods.put(method.name.text, function);
       }
     }
 
-    VoxClass voxClass = new VoxClass(stmt.name, constructor, methods);
+    VoxClass voxClass = new VoxClass(stmt.name.text, constructor, methods);
     voxClass.setClass(classClass);
     variables.assign(stmt.name, voxClass);
     return null;
@@ -114,7 +114,7 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt, Void context) {
     // TODO: Show what happens if don't define before creating fn.
-    variables = variables.define(stmt.name, null);
+    variables = variables.define(stmt.name.text, null);
     VoxFunction function = new VoxFunction(stmt, variables);
     function.setClass(functionClass);
     variables.assign(stmt.name, function);
@@ -161,9 +161,10 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     if (expr.object != null) {
       Object object = evaluate(expr.object, context);
       if (object instanceof VoxObject) {
-        ((VoxObject)object).properties.put(expr.name, value);
+        ((VoxObject)object).properties.put(expr.name.text, value);
       } else {
-        throw new RuntimeError("Cannot add properties to primitive values.");
+        throw new RuntimeError("Cannot add properties to primitive values.",
+            expr.name);
       }
     } else {
       variables.assign(expr.name, value);
@@ -197,7 +198,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
           return Primitives.stringify(left) + Primitives.stringify(right);
         }
 
-        throw new RuntimeError("Cannot add " + left + " and " + right + ".");
+        throw new RuntimeError("Cannot add " + left + " and " + right + ".",
+            expr.operator);
 
       case SLASH: return (double)left / (double)right;
       case STAR: return (double)left * (double)right;
@@ -252,7 +254,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
       return ((VoxObject)object).getProperty(expr.name);
     }
 
-    throw new RuntimeError("Cannot access properties on primitive values.");
+    throw new RuntimeError("Cannot access properties on primitive values.",
+        expr.name);
   }
 
   @Override

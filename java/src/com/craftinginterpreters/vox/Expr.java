@@ -16,7 +16,7 @@ abstract class Expr {
   }
 
   static class Assign extends Expr {
-    Assign(Expr object, String name, Expr value) {
+    Assign(Expr object, Token name, Expr value) {
       this.object = object;
       this.name = name;
       this.value = value;
@@ -27,7 +27,7 @@ abstract class Expr {
     }
 
     final Expr object;
-    final String name;
+    final Token name;
     final Expr value;
   }
 
@@ -102,7 +102,7 @@ abstract class Expr {
   }
 
   static class Property extends Expr {
-    Property(Expr object, String name) {
+    Property(Expr object, Token name) {
       this.object = object;
       this.name = name;
     }
@@ -112,7 +112,7 @@ abstract class Expr {
     }
 
     final Expr object;
-    final String name;
+    final Token name;
   }
 
   static class Unary extends Expr {
@@ -130,7 +130,7 @@ abstract class Expr {
   }
 
   static class Variable extends Expr {
-    Variable(String name) {
+    Variable(Token name) {
       this.name = name;
     }
 
@@ -138,7 +138,7 @@ abstract class Expr {
       return visitor.visitVariableExpr(this, context);
     }
 
-    final String name;
+    final Token name;
   }
 
     abstract <R, C> R accept(Visitor<R, C> visitor, C context);

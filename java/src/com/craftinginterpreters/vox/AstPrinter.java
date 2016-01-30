@@ -83,7 +83,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>, Expr.Visitor<String, Voi
 
   @Override
   public String visitAssignExpr(Expr.Assign expr, Void context) {
-    return join("(= ", expr.object, " ", expr.name, " ", expr.value, ")");
+    return join("(= ", expr.object, " ", expr.name.text, " ", expr.value, ")");
   }
 
   @Override
@@ -125,7 +125,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>, Expr.Visitor<String, Voi
 
   @Override
   public String visitPropertyExpr(Expr.Property expr, Void context) {
-    return join("(.", expr.object, " ", expr.name, ")");
+    return join("(.", expr.object, " ", expr.name.text, ")");
   }
 
   @Override
@@ -135,7 +135,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>, Expr.Visitor<String, Voi
 
   @Override
   public String visitVariableExpr(Expr.Variable expr, Void context) {
-    return expr.name;
+    return expr.name.text;
   }
 
   private String join(Object... parts) {

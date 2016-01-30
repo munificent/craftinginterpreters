@@ -14,7 +14,7 @@ exprStmt   = expr ";" ;
 funStmt    = "fun" function ;
 ifStmt     = "if" "(" expr ")" stmt ( "else" stmt )? ;
 returnStmt = "return" expr? ";" ;
-varStmt    = "var" identifier ( "=" expr ) ";" ;
+varStmt    = "var" identifier "=" expr ";" ;
 whileStmt  = "while" "(" expr ")" stmt ;
 
 block      = "{" stmt* "}" ;
@@ -22,6 +22,8 @@ function   = identifier "(" parameters? ")" block ;
 parameters = identifier ( "," identifier )* ;
 
 expr       = assignment ;
+assignment = ( primary "." )? identifier ( "=" assignment )?
+           | or ;
 assignment = or ( "=" assignment )? ;
 or         = and ( "or" and )* ;
 and        = equality ( "and" equality )* ;
@@ -29,7 +31,8 @@ equality   = comparison ( ( "!=" | "==" ) comparison )* ;
 comparison = term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term       = factor ( ( "-" | "+" ) factor )* ;
 factor     = unary ( ( "%" | "/" | "*" ) unary )* ;
-unary      = call | ( "!" | "-" | "+" ) unary ;
+unary      = ( "!" | "-" | "+" ) unary
+           | call ;
 call       = primary ( "(" arguments? ")" | "." identifier )* ;
 primary    = "true"
            | "false"

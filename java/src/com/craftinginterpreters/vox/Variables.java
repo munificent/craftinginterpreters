@@ -16,19 +16,23 @@ class Variables {
     return new Variables(this, name, value);
   }
 
-  Object lookUp(String name) {
-    if (this.name.equals(name)) return value;
+  Object lookUp(Token name) {
+    if (this.name.equals(name.text)) return value;
 
     if (previous == null) {
-      throw new RuntimeError("Variable '" + name + "' is not defined.");
+      throw new RuntimeError("Variable '" + name.text + "' is not defined.",
+          name);
     }
 
     return previous.lookUp(name);
   }
 
-  void assign(String name, Object value) {
-    if (this.name.equals(name)) {
+  void assign(Token name, Object value) {
+    if (this.name.equals(name.text)) {
       this.value = value;
+    } else if (previous == null) {
+      throw new RuntimeError("Variable '" + name.text + "' is not defined.",
+          name);
     } else {
       previous.assign(name, value);
     }

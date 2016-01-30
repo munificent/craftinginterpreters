@@ -18,7 +18,12 @@ public class Vox {
     Interpreter interpreter = new Interpreter(errorReporter);
 
     if (args.length == 1) {
-      interpreter.run(readFile(args[0]));
+      try {
+        interpreter.run(readFile(args[0]));
+      } catch (RuntimeError error) {
+        System.err.println(error);
+        System.exit(70);
+      }
 
       if (errorReporter.hadError) System.exit(65);
       return;
@@ -36,12 +41,12 @@ public class Vox {
         errorReporter.hadError = false;
         interpreter.run(source);
       } catch (RuntimeError error) {
-        System.err.println("Runtime error: " + error.getMessage());
+        System.err.println(error);
       }
     }
   }
 
-  static String readFile(String path) throws IOException {
+  private static String readFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
     return new String(bytes, Charset.defaultCharset());
   }
