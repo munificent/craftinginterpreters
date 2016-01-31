@@ -82,6 +82,7 @@ class Lexer {
       case '"': return string();
     }
 
+    // TODO: Tests for this. (Can use "|" or "&".)
     return makeToken(TokenType.ERROR);
   }
 
@@ -146,6 +147,7 @@ class Lexer {
     while (peek() != '"' && !isAtEnd()) advance();
 
     // Unterminated string.
+    // TODO: Test.
     if (isAtEnd()) return makeToken(TokenType.ERROR, "Unterminated string.");
 
     // The closing ".
@@ -166,7 +168,7 @@ class Lexer {
   }
 
   private boolean match(char expected) {
-    if (current >= source.length()) return false;
+    if (isAtEnd()) return false;
     if (source.charAt(current) != expected) return false;
 
     current++;
