@@ -81,7 +81,7 @@ class Parser {
       Expr initializer = expression();
       consume(TokenType.SEMICOLON, "Expect ';' after variable initializer.");
 
-      return new Stmt.Var(name.text, initializer);
+      return new Stmt.Var(name, initializer);
     }
 
     // While.

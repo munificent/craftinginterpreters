@@ -23,11 +23,11 @@ public class GenerateAst {
         "Block       : List<Stmt> statements",
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
         "Expression  : Expr expression",
-        "For         : String name, Expr iterator, Stmt body",
+        "For         : Token name, Expr iterator, Stmt body",
         "Function    : Token name, List<String> parameters, Stmt body",
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
         "Return      : Expr value",
-        "Var         : String name, Expr initializer",
+        "Var         : Token name, Expr initializer",
         "While       : Expr condition, Stmt body"
     ));
   }

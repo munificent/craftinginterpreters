@@ -11,9 +11,14 @@ class Variables {
     this.value = value;
   }
 
+  // TODO: Get rid of this and do something else for globals and "this".
   Variables define(String name, Object value) {
-    // TODO: Error if already defined.
     return new Variables(this, name, value);
+  }
+
+  Variables define(Token name, Object value) {
+    // TODO: Error if already defined.
+    return new Variables(this, name.text, value);
   }
 
   Object lookUp(Token name) {

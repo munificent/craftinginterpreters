@@ -56,7 +56,7 @@ abstract class Stmt {
   }
 
   static class For extends Stmt {
-    For(String name, Expr iterator, Stmt body) {
+    For(Token name, Expr iterator, Stmt body) {
       this.name = name;
       this.iterator = iterator;
       this.body = body;
@@ -66,7 +66,7 @@ abstract class Stmt {
       return visitor.visitForStmt(this, context);
     }
 
-    final String name;
+    final Token name;
     final Expr iterator;
     final Stmt body;
   }
@@ -116,7 +116,7 @@ abstract class Stmt {
   }
 
   static class Var extends Stmt {
-    Var(String name, Expr initializer) {
+    Var(Token name, Expr initializer) {
       this.name = name;
       this.initializer = initializer;
     }
@@ -125,7 +125,7 @@ abstract class Stmt {
       return visitor.visitVarStmt(this, context);
     }
 
-    final String name;
+    final Token name;
     final Expr initializer;
   }
 

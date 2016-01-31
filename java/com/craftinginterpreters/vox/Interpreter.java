@@ -6,17 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void> {
+class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Object, Variables> {
   private final ErrorReporter errorReporter;
-  Variables variables;
+  // TODO: Make this a map to top-level definitions are mutually recursive.
+  Variables globals;
 
   private final VoxClass classClass;
   private final VoxClass functionClass;
 
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-    variables = new Variables(null, "print", Callable.wrap(Primitives::print));
-    variables = variables.define("clock", Callable.wrap(Primitives::clock));
+    globals = new Variables(null, "print", Callable.wrap(Primitives::print));
+    globals = globals.define("clock", Callable.wrap(Primitives::clock));
 
     // TODO: Methods.
     VoxClass objectClass = new VoxClass("Object", null, new HashMap<>());
@@ -36,54 +37,39 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
     if (errorReporter.hadError) return;
 
     for (Stmt statement : statements) {
-      execute(statement);
+      globals = execute(statement, globals);
     }
   }
 
-  private Object evaluate(Expr expr, Void context) {
-    return expr.accept(this, context);
+  private Object evaluate(Expr expr, Variables locals) {
+    return expr.accept(this, locals);
   }
 
-  void execute(Stmt stmt) {
-    stmt.accept(this, null);
-  }
-
-  // Executes [stmt] in its own block scope.
-  private void executeInScope(Stmt stmt) {
-    Variables before = variables;
-    try {
-      execute(stmt);
-    } finally {
-      variables = before;
-    }
+  Variables execute(Stmt stmt, Variables locals) {
+    return stmt.accept(this, locals);
   }
 
   @Override
-  public Void visitBlockStmt(Stmt.Block stmt, Void context) {
-    Variables before = variables;
-
-    try {
-      for (Stmt statement : stmt.statements) {
-        execute(statement);
-      }
-    } finally {
-      variables = before;
+  public Variables visitBlockStmt(Stmt.Block stmt, Variables locals) {
+    Variables before = locals;
+    for (Stmt statement : stmt.statements) {
+      locals = execute(statement, locals);
     }
-    return null;
+    return before;
   }
 
   @Override
-  public Void visitClassStmt(Stmt.Class stmt, Void context) {
+  public Variables visitClassStmt(Stmt.Class stmt, Variables locals) {
     Map<String, VoxFunction> methods = new HashMap<>();
 
     // TODO: Superclass.
 
     // TODO: Show what happens if don't define before creating class.
-    variables = variables.define(stmt.name.text, null);
+    locals = locals.define(stmt.name.text, null);
 
     VoxFunction constructor = null;
     for (Stmt.Function method : stmt.methods) {
-      VoxFunction function = new VoxFunction(method, variables);
+      VoxFunction function = new VoxFunction(method, locals);
       function.setClass(functionClass);
 
       if (method.name.text.equals(stmt.name.text)) {
@@ -95,70 +81,69 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
     VoxClass voxClass = new VoxClass(stmt.name.text, constructor, methods);
     voxClass.setClass(classClass);
-    variables.assign(stmt.name, voxClass);
-    return null;
+    locals.assign(stmt.name, voxClass);
+    return locals;
   }
 
   @Override
-  public Void visitExpressionStmt(Stmt.Expression stmt, Void context) {
-    evaluate(stmt.expression, context);
-    return null;
+  public Variables visitExpressionStmt(Stmt.Expression stmt, Variables locals) {
+    evaluate(stmt.expression, locals);
+    return locals;
   }
 
   @Override
-  public Void visitForStmt(Stmt.For stmt, Void context) {
-    return null;
+  public Variables visitForStmt(Stmt.For stmt, Variables locals) {
+    return locals;
   }
 
   @Override
-  public Void visitFunctionStmt(Stmt.Function stmt, Void context) {
+  public Variables visitFunctionStmt(Stmt.Function stmt, Variables locals) {
     // TODO: Show what happens if don't define before creating fn.
-    variables = variables.define(stmt.name.text, null);
-    VoxFunction function = new VoxFunction(stmt, variables);
+    locals = locals.define(stmt.name.text, null);
+    VoxFunction function = new VoxFunction(stmt, locals);
     function.setClass(functionClass);
-    variables.assign(stmt.name, function);
-    return null;
+    locals.assign(stmt.name, function);
+    return locals;
   }
 
   @Override
-  public Void visitIfStmt(Stmt.If stmt, Void context) {
-    if (Primitives.isTrue(evaluate(stmt.condition, context))) {
-      executeInScope(stmt.thenBranch);
+  public Variables visitIfStmt(Stmt.If stmt, Variables locals) {
+    if (Primitives.isTrue(evaluate(stmt.condition, locals))) {
+      execute(stmt.thenBranch, locals);
     } else if (stmt.elseBranch != null) {
-      executeInScope(stmt.elseBranch);
+      execute(stmt.elseBranch, locals);
     }
-    return null;
+    return locals;
   }
 
   @Override
-  public Void visitReturnStmt(Stmt.Return stmt, Void context) {
+  public Variables visitReturnStmt(Stmt.Return stmt, Variables locals) {
     Object value = null;
-    if (stmt.value != null) value = evaluate(stmt.value, context);
+    if (stmt.value != null) value = evaluate(stmt.value, locals);
 
     throw new Return(value);
   }
 
   @Override
-  public Void visitVarStmt(Stmt.Var stmt, Void context) {
-    Object value = evaluate(stmt.initializer, context);
-    variables = variables.define(stmt.name, value);
-    return null;
+  public Variables visitVarStmt(Stmt.Var stmt, Variables locals) {
+    Object value = evaluate(stmt.initializer, locals);
+    return locals.define(stmt.name, value);
   }
 
   @Override
-  public Void visitWhileStmt(Stmt.While stmt, Void context) {
-    while (Primitives.isTrue(evaluate(stmt.condition, context))) {
-      executeInScope(stmt.body);
+  public Variables visitWhileStmt(Stmt.While stmt, Variables locals) {
+    while (Primitives.isTrue(evaluate(stmt.condition, locals))) {
+      execute(stmt.body, locals);
     }
-    return null;
+    return locals;
   }
 
   @Override
-  public Object visitAssignExpr(Expr.Assign expr, Void context) {
-    Object value = evaluate(expr.value, context);
+  public Object visitAssignExpr(Expr.Assign expr, Variables locals) {
+    Object value = evaluate(expr.value, locals);
 
     if (expr.object != null) {
-      Object object = evaluate(expr.object, context);
+      Object object = evaluate(expr.object, locals);
       if (object instanceof VoxObject) {
         ((VoxObject)object).properties.put(expr.name.text, value);
       } else {
@@ -166,16 +151,16 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
             expr.name);
       }
     } else {
-      variables.assign(expr.name, value);
+      locals.assign(expr.name, value);
     }
 
     return value;
   }
 
   @Override
-  public Object visitBinaryExpr(Expr.Binary expr, Void context) {
-    Object left = evaluate(expr.left, context);
-    Object right = evaluate(expr.right, context);
+  public Object visitBinaryExpr(Expr.Binary expr, Variables locals) {
+    Object left = evaluate(expr.left, locals);
+    Object right = evaluate(expr.right, locals);
 
     // TODO: Handle conversions.
     // TODO: String equality.
@@ -209,12 +194,12 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   }
 
   @Override
-  public Object visitCallExpr(Expr.Call expr, Void context) {
-    Object callable = evaluate(expr.callee, context);
+  public Object visitCallExpr(Expr.Call expr, Variables locals) {
+    Object callable = evaluate(expr.callee, locals);
 
     List<Object> arguments = new ArrayList<>();
     for (Expr argument : expr.arguments) {
-      arguments.add(evaluate(argument, context));
+      arguments.add(evaluate(argument, locals));
     }
 
     if (!(callable instanceof Callable)) {
@@ -231,28 +216,28 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   }
 
   @Override
-  public Object visitGroupingExpr(Expr.Grouping expr, Void context) {
-    return evaluate(expr.expression, context);
+  public Object visitGroupingExpr(Expr.Grouping expr, Variables locals) {
+    return evaluate(expr.expression, locals);
   }
 
   @Override
-  public Object visitLiteralExpr(Expr.Literal expr, Void context) {
+  public Object visitLiteralExpr(Expr.Literal expr, Variables locals) {
     return expr.value;
   }
 
   @Override
-  public Object visitLogicalExpr(Expr.Logical expr, Void context) {
-    Object left = evaluate(expr.left, context);
+  public Object visitLogicalExpr(Expr.Logical expr, Variables locals) {
+    Object left = evaluate(expr.left, locals);
 
     if (expr.operator.type == TokenType.OR && Primitives.isTrue(left)) return left;
     if (expr.operator.type == TokenType.AND && !Primitives.isTrue(left)) return left;
 
-    return evaluate(expr.right, context);
+    return evaluate(expr.right, locals);
   }
 
   @Override
-  public Object visitPropertyExpr(Expr.Property expr, Void context) {
-    Object object = evaluate(expr.object, context);
+  public Object visitPropertyExpr(Expr.Property expr, Variables locals) {
+    Object object = evaluate(expr.object, locals);
     if (object instanceof VoxObject) {
       return ((VoxObject)object).getProperty(expr.name);
     }
@@ -262,8 +247,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   }
 
   @Override
-  public Object visitUnaryExpr(Expr.Unary expr, Void context) {
-    Object right = evaluate(expr.right, context);
+  public Object visitUnaryExpr(Expr.Unary expr, Variables locals) {
+    Object right = evaluate(expr.right, locals);
 
     // TODO: Handle conversions.
     switch (expr.operator.type) {
@@ -279,8 +264,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
   }
 
   @Override
-  public Object visitVariableExpr(Expr.Variable expr, Void context) {
-    return variables.lookUp(expr.name);
+  public Object visitVariableExpr(Expr.Variable expr, Variables locals) {
+    return locals.lookUp(expr.name);
     // TODO: Talk about late binding:
     //
     //   if (false) variableThatIsNotDefined;

@@ -27,20 +27,16 @@ class VoxFunction extends VoxObject implements Callable {
 
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
-    Variables before = interpreter.variables;
     try {
-      interpreter.variables = closure;
+      Variables locals = closure;
       for (int i = 0; i < declaration.parameters.size(); i++) {
-        interpreter.variables = interpreter.variables.define(
-            declaration.parameters.get(i), arguments.get(i));
+        locals = locals.define(declaration.parameters.get(i), arguments.get(i));
       }
 
-      interpreter.execute(declaration.body);
+      interpreter.execute(declaration.body, locals);
       return null;
     } catch (Return returnValue) {
       return returnValue.value;
-    } finally {
-      interpreter.variables = before;
     }
   }
 }
