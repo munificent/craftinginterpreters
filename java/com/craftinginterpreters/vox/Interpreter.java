@@ -8,7 +8,6 @@ import java.util.Map;
 // Creates an unambiguous, if ugly, string representation of AST nodes.
 class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void> {
   private final ErrorReporter errorReporter;
-  // TODO: Make this private and expose methods to change?
   Variables variables;
 
   private final VoxClass classClass;
@@ -16,8 +15,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
 
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-    variables = new Variables(null, "print", (Function)Primitives::print);
-    variables = variables.define("clock", (Function)Primitives::clock);
+    variables = new Variables(null, "print", Callable.wrap(Primitives::print));
+    variables = variables.define("clock", Callable.wrap(Primitives::clock));
 
     // TODO: Methods.
     VoxClass objectClass = new VoxClass("Object", null, new HashMap<>());
@@ -218,13 +217,17 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
       arguments.add(evaluate(argument, context));
     }
 
-    if (callable instanceof Function) {
-      return ((Function)callable).call(this, arguments);
+    if (!(callable instanceof Callable)) {
+      throw new RuntimeError(
+          Primitives.represent(callable) + " cannot be called.", expr.paren);
     }
 
-    // TODO: User-defined functions.
-    // TODO: Error.
-    return null;
+    Callable function = (Callable)callable;
+    if (arguments.size() < function.requiredArguments()) {
+      throw new RuntimeError("Not enough arguments.", expr.paren);
+    }
+
+    return function.call(this, arguments);
   }
 
   @Override
@@ -268,6 +271,8 @@ class Interpreter implements Stmt.Visitor<Void, Void>, Expr.Visitor<Object, Void
       case MINUS: return -(double)right;
       case PLUS: return +(double)right;
     }
+
+    // TODO: Test error cases.
 
     // Unreachable.
     return null;

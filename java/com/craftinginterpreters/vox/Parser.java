@@ -261,8 +261,9 @@ class Parser {
           } while (match(TokenType.COMMA));
         }
 
-        consume(TokenType.RIGHT_PAREN, "Expect ')' after argument list.");
-        expr = new Expr.Call(expr, arguments);
+        Token paren = consume(TokenType.RIGHT_PAREN,
+            "Expect ')' after argument list.");
+        expr = new Expr.Call(expr, paren, arguments);
       } else if (match(TokenType.DOT)) {
         Token name = consume(TokenType.IDENTIFIER,
             "Expect property name after '.'.");

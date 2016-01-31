@@ -2,7 +2,7 @@ package com.craftinginterpreters.vox;
 
 import java.util.List;
 
-class VoxFunction extends VoxObject implements Function {
+class VoxFunction extends VoxObject implements Callable {
   final Stmt.Function declaration;
   final Variables closure;
 
@@ -18,6 +18,11 @@ class VoxFunction extends VoxObject implements Function {
   @Override
   public String toString() {
     return declaration.name.text;
+  }
+
+  @Override
+  public int requiredArguments() {
+    return declaration.parameters.size();
   }
 
   @Override

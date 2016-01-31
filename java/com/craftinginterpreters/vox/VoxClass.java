@@ -3,7 +3,7 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 import java.util.Map;
 
-class VoxClass extends VoxObject implements Function {
+class VoxClass extends VoxObject implements Callable {
   final String name;
   // TODO: Superclass.
   private final VoxFunction constructor;
@@ -19,6 +19,12 @@ class VoxClass extends VoxObject implements Function {
   @Override
   public String toString() {
     return name;
+  }
+
+  @Override
+  public int requiredArguments() {
+    if (constructor == null) return 0;
+    return constructor.requiredArguments();
   }
 
   @Override

@@ -1,7 +1,5 @@
 package com.craftinginterpreters.vox;
 
-import java.util.List;
-
 // Defines the primitive functions available to Vox that are implemented in
 // Java.
 class Primitives {
@@ -24,12 +22,20 @@ class Primitives {
     return object.toString();
   }
 
-  static Object print(Interpreter interpreter, List<Object> arguments) {
-    System.out.println(stringify(arguments.get(0)));
-    return arguments.get(0);
+  static String represent(Object object) {
+    if (object instanceof String) {
+      return "\"" + ((String) object).replace("\"", "\\\"") + "\"";
+    }
+
+    return stringify(object);
   }
 
-  static Object clock(Interpreter interpreter, List<Object> arguments) {
+  static Object print(Interpreter interpreter, Object argument) {
+    System.out.println(stringify(argument));
+    return argument;
+  }
+
+  static Object clock(Interpreter interpreter) {
     return (double)System.currentTimeMillis();
   }
 }

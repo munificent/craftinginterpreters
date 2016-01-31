@@ -10,7 +10,7 @@ public class GenerateAst {
     defineAstType("Expr", Arrays.asList(
         "Assign   : Expr object, Token name, Expr value",
         "Binary   : Expr left, Token operator, Expr right",
-        "Call     : Expr callee, List<Expr> arguments",
+        "Call     : Expr callee, Token paren, List<Expr> arguments",
         "Grouping : Expr expression",
         "Literal  : Object value",
         "Logical  : Expr left, Token operator, Expr right",
@@ -35,7 +35,7 @@ public class GenerateAst {
   private static void defineAstType(String baseName, List<String> types)
       throws IOException {
     PrintWriter writer = new PrintWriter(
-        "src/com/craftinginterpreters/vox/" + baseName + ".java", "UTF-8");
+        "com/craftinginterpreters/vox/" + baseName + ".java", "UTF-8");
 
     writer.println("package com.craftinginterpreters.vox;");
     writer.println("");
