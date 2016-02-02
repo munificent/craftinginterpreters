@@ -5,19 +5,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Creates an unambiguous, if ugly, string representation of AST nodes.
-class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Object, Variables> {
+// Tree-walk interpreter.
+class Interpreter implements Stmt.Visitor<Local, Local>,
+    Expr.Visitor<Object, Local> {
   private final ErrorReporter errorReporter;
-  // TODO: Make this a map to top-level definitions are mutually recursive.
-  Variables globals;
+
+  // The top level global variables.
+  private final Map<String, Object> globals = new HashMap<>();
 
   private final VoxClass classClass;
   private final VoxClass functionClass;
 
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-    globals = new Variables(null, "print", Callable.wrap(Primitives::print));
-    globals = globals.define("clock", Callable.wrap(Primitives::clock));
+
+    globals.put("print", Callable.wrap(Primitives::print));
+    globals.put("clock", Callable.wrap(Primitives::clock));
 
     // TODO: Methods.
     VoxClass objectClass = new VoxClass("Object", null, new HashMap<>());
@@ -37,35 +40,37 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
     if (errorReporter.hadError) return;
 
     for (Stmt statement : statements) {
-      globals = execute(statement, globals);
+      execute(statement, null);
     }
   }
 
-  private Object evaluate(Expr expr, Variables locals) {
+  private Object evaluate(Expr expr, Local locals) {
     return expr.accept(this, locals);
   }
 
-  Variables execute(Stmt stmt, Variables locals) {
+  Local execute(Stmt stmt, Local locals) {
     return stmt.accept(this, locals);
   }
 
   @Override
-  public Variables visitBlockStmt(Stmt.Block stmt, Variables locals) {
-    Variables before = locals;
+  public Local visitBlockStmt(Stmt.Block stmt, Local locals) {
+    Local before = locals;
+    locals = beginBlock(locals);
     for (Stmt statement : stmt.statements) {
       locals = execute(statement, locals);
     }
+
     return before;
   }
 
   @Override
-  public Variables visitClassStmt(Stmt.Class stmt, Variables locals) {
+  public Local visitClassStmt(Stmt.Class stmt, Local locals) {
     Map<String, VoxFunction> methods = new HashMap<>();
 
     // TODO: Superclass.
 
     // TODO: Show what happens if don't define before creating class.
-    locals = locals.define(stmt.name.text, null);
+    locals = define(locals, stmt.name, null);
 
     VoxFunction constructor = null;
     for (Stmt.Function method : stmt.methods) {
@@ -81,33 +86,34 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
 
     VoxClass voxClass = new VoxClass(stmt.name.text, constructor, methods);
     voxClass.setClass(classClass);
-    locals.assign(stmt.name, voxClass);
+    assign(locals, stmt.name, voxClass);
     return locals;
   }
 
   @Override
-  public Variables visitExpressionStmt(Stmt.Expression stmt, Variables locals) {
+  public Local visitExpressionStmt(Stmt.Expression stmt, Local locals) {
     evaluate(stmt.expression, locals);
     return locals;
   }
 
   @Override
-  public Variables visitForStmt(Stmt.For stmt, Variables locals) {
+  public Local visitForStmt(Stmt.For stmt, Local locals) {
     return locals;
   }
 
   @Override
-  public Variables visitFunctionStmt(Stmt.Function stmt, Variables locals) {
+  public Local visitFunctionStmt(Stmt.Function stmt, Local locals) {
     // TODO: Show what happens if don't define before creating fn.
-    locals = locals.define(stmt.name.text, null);
+    locals = define(locals, stmt.name, null);
     VoxFunction function = new VoxFunction(stmt, locals);
     function.setClass(functionClass);
-    locals.assign(stmt.name, function);
+    assign(locals, stmt.name, function);
     return locals;
   }
 
   @Override
-  public Variables visitIfStmt(Stmt.If stmt, Variables locals) {
+  public Local visitIfStmt(Stmt.If stmt, Local locals) {
+    locals = beginBlock(locals);
     if (Primitives.isTrue(evaluate(stmt.condition, locals))) {
       execute(stmt.thenBranch, locals);
     } else if (stmt.elseBranch != null) {
@@ -117,7 +123,7 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Variables visitReturnStmt(Stmt.Return stmt, Variables locals) {
+  public Local visitReturnStmt(Stmt.Return stmt, Local locals) {
     Object value = null;
     if (stmt.value != null) value = evaluate(stmt.value, locals);
 
@@ -125,13 +131,14 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Variables visitVarStmt(Stmt.Var stmt, Variables locals) {
+  public Local visitVarStmt(Stmt.Var stmt, Local locals) {
     Object value = evaluate(stmt.initializer, locals);
-    return locals.define(stmt.name, value);
+    return define(locals, stmt.name, value);
   }
 
   @Override
-  public Variables visitWhileStmt(Stmt.While stmt, Variables locals) {
+  public Local visitWhileStmt(Stmt.While stmt, Local locals) {
+    locals = beginBlock(locals);
     while (Primitives.isTrue(evaluate(stmt.condition, locals))) {
       execute(stmt.body, locals);
     }
@@ -139,7 +146,7 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Object visitAssignExpr(Expr.Assign expr, Variables locals) {
+  public Object visitAssignExpr(Expr.Assign expr, Local locals) {
     Object value = evaluate(expr.value, locals);
 
     if (expr.object != null) {
@@ -151,22 +158,21 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
             expr.name);
       }
     } else {
-      locals.assign(expr.name, value);
+      assign(locals, expr.name, value);
     }
 
     return value;
   }
 
   @Override
-  public Object visitBinaryExpr(Expr.Binary expr, Variables locals) {
+  public Object visitBinaryExpr(Expr.Binary expr, Local locals) {
     Object left = evaluate(expr.left, locals);
     Object right = evaluate(expr.right, locals);
 
-    // TODO: Handle conversions.
-    // TODO: String equality.
+    // TODO: Type check arithmetic operators.
     switch (expr.operator.type) {
-      case BANG_EQUAL: return left != right;
-      case EQUAL_EQUAL: return left == right;
+      case BANG_EQUAL: return !Primitives.isEqual(left, right);
+      case EQUAL_EQUAL: return Primitives.isEqual(left, right);
       case GREATER: return (double)left > (double)right;
       case GREATER_EQUAL: return (double)left >= (double)right;
       case LESS: return (double)left < (double)right;
@@ -194,7 +200,7 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Object visitCallExpr(Expr.Call expr, Variables locals) {
+  public Object visitCallExpr(Expr.Call expr, Local locals) {
     Object callable = evaluate(expr.callee, locals);
 
     List<Object> arguments = new ArrayList<>();
@@ -216,17 +222,17 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Object visitGroupingExpr(Expr.Grouping expr, Variables locals) {
+  public Object visitGroupingExpr(Expr.Grouping expr, Local locals) {
     return evaluate(expr.expression, locals);
   }
 
   @Override
-  public Object visitLiteralExpr(Expr.Literal expr, Variables locals) {
+  public Object visitLiteralExpr(Expr.Literal expr, Local locals) {
     return expr.value;
   }
 
   @Override
-  public Object visitLogicalExpr(Expr.Logical expr, Variables locals) {
+  public Object visitLogicalExpr(Expr.Logical expr, Local locals) {
     Object left = evaluate(expr.left, locals);
 
     if (expr.operator.type == TokenType.OR && Primitives.isTrue(left)) return left;
@@ -236,7 +242,7 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Object visitPropertyExpr(Expr.Property expr, Variables locals) {
+  public Object visitPropertyExpr(Expr.Property expr, Local locals) {
     Object object = evaluate(expr.object, locals);
     if (object instanceof VoxObject) {
       return ((VoxObject)object).getProperty(expr.name);
@@ -247,7 +253,7 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Object visitUnaryExpr(Expr.Unary expr, Variables locals) {
+  public Object visitUnaryExpr(Expr.Unary expr, Local locals) {
     Object right = evaluate(expr.right, locals);
 
     // TODO: Handle conversions.
@@ -264,12 +270,55 @@ class Interpreter implements Stmt.Visitor<Variables, Variables>, Expr.Visitor<Ob
   }
 
   @Override
-  public Object visitVariableExpr(Expr.Variable expr, Variables locals) {
-    return locals.lookUp(expr.name);
+  public Object visitVariableExpr(Expr.Variable expr, Local locals) {
+    return lookUp(locals, expr.name);
     // TODO: Talk about late binding:
     //
     //   if (false) variableThatIsNotDefined;
     //
     // No error in a late bound language, but error in eager.
+  }
+
+  private Local beginBlock(Local outer) {
+    return new Local(outer, null, null);
+  }
+
+  private Local define(Local locals, Token name, Object value) {
+    if (locals != null) {
+      return new Local(locals, name.text, value);
+    }
+
+    globals.put(name.text, value);
+    return null;
+  }
+
+  private Object lookUp(Local locals, Token name) {
+    Local local = locals;
+    while (local != null) {
+      if (name.text.equals(local.name)) return local.value;
+      local = local.previous;
+    }
+
+    if (globals.containsKey(name.text)) return globals.get(name.text);
+
+    throw new RuntimeError("Undefined variable '" + name.text + "'.", name);
+  }
+
+  private void assign(Local locals, Token name, Object value) {
+    Local local = locals;
+    while (local != null) {
+      if (name.text.equals(local.name)) {
+        local.value = value;
+        return;
+      }
+      local = local.previous;
+    }
+
+    if (globals.containsKey(name.text)) {
+      globals.put(name.text, value);
+      return;
+    }
+
+    throw new RuntimeError("Undefined variable '" + name.text + "'.", name);
   }
 }

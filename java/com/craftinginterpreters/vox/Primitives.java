@@ -9,6 +9,13 @@ class Primitives {
     return true;
   }
 
+  static boolean isEqual(Object a, Object b) {
+    if (a == null && b == null) return true;
+
+    if (a == null) return b.equals(a);
+    return a.equals(b);
+  }
+
   static String stringify(Object object) {
     if (object == null) return "null";
 
