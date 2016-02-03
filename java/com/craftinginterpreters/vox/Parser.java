@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Parser {
+  private interface ExprParser {
+    Expr parse();
+  }
+
   Parser(Lexer lexer, ErrorReporter errorReporter) {
     this.lexer = lexer;
     this.errorReporter = errorReporter;
-
-//    this.errorReporter.hasError = false;
-//    this.needsMoreInput = false;
   }
 
   List<Stmt> parseProgram () {
@@ -22,80 +23,13 @@ class Parser {
   }
 
   private Stmt statement() {
-    // Class declaration.
-    if (match(TokenType.CLASS)) {
-      Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
-
-      Expr superclass = null;
-      if (match(TokenType.LESS)) {
-        superclass = primary();
-      }
-
-      List<Stmt.Function> methods = new ArrayList<>();
-      consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
-
-      while (!peek(TokenType.RIGHT_BRACE) && !peek(TokenType.EOF)) {
-        methods.add(function("method"));
-      }
-
-      consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
-
-      return new Stmt.Class(name, superclass, methods);
-    }
-
-    // Function declaration.
+    if (match(TokenType.CLASS)) return classStatement();
     if (match(TokenType.FUN)) return function("function");
-
-    // If.
-    if (match(TokenType.IF)) {
-      consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
-      Expr condition = expression();
-      consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
-      Stmt thenBranch = statement();
-      Stmt elseBranch = null;
-      if (match(TokenType.ELSE)) {
-        elseBranch = statement();
-      }
-
-      return new Stmt.If(condition, thenBranch, elseBranch);
-    }
-
-    // Return.
-    if (match(TokenType.RETURN)) {
-      Expr value = null;
-      if (!peek(TokenType.SEMICOLON)) {
-        value = expression();
-      }
-
-      consume(TokenType.SEMICOLON, "Expect ';' after return value.");
-      return new Stmt.Return(value);
-    }
-
-    // Variable declaration.
-    if (match(TokenType.VAR)) {
-      Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
-      if (name.text.equals("this")) error("'this' cannot be a variable name.");
-
-      // TODO: Make this optional.
-      consume(TokenType.EQUAL, "Expect '=' after variable name.");
-      Expr initializer = expression();
-      consume(TokenType.SEMICOLON, "Expect ';' after variable initializer.");
-
-      return new Stmt.Var(name, initializer);
-    }
-
-    // While.
-    if (match(TokenType.WHILE)) {
-      consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
-      Expr condition = expression();
-      consume(TokenType.RIGHT_PAREN, "Expect '(' after condition.");
-      Stmt body = statement();
-
-      return new Stmt.While(condition, body);
-    }
-
-    // Block.
-    if (peek(TokenType.LEFT_BRACE)) return block();
+    if (match(TokenType.IF)) return ifStatement();
+    if (match(TokenType.RETURN)) return returnStatement();
+    if (match(TokenType.VAR)) return varStatement();
+    if (match(TokenType.WHILE)) return whileStatement();
+    if (check(TokenType.LEFT_BRACE)) return block();
 
     // Expression statement.
     Expr expr = expression();
@@ -103,12 +37,76 @@ class Parser {
     return new Stmt.Expression(expr);
   }
 
+  private Stmt classStatement() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+
+    Expr superclass = null;
+    if (match(TokenType.LESS)) {
+      superclass = primary();
+    }
+
+    List<Stmt.Function> methods = new ArrayList<>();
+    consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    while (!check(TokenType.RIGHT_BRACE) && !check(TokenType.EOF)) {
+      methods.add(function("method"));
+    }
+
+    consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+
+    return new Stmt.Class(name, superclass, methods);
+  }
+
+  private Stmt ifStatement() {
+    consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+    Expr condition = expression();
+    consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+    Stmt thenBranch = statement();
+    Stmt elseBranch = null;
+    if (match(TokenType.ELSE)) {
+      elseBranch = statement();
+    }
+
+    return new Stmt.If(condition, thenBranch, elseBranch);
+  }
+
+  private Stmt returnStatement() {
+    Expr value = null;
+    if (!check(TokenType.SEMICOLON)) {
+      value = expression();
+    }
+
+    consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    return new Stmt.Return(value);
+  }
+
+  private Stmt varStatement() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
+    if (name.text.equals("this")) error("'this' cannot be a variable name.");
+
+    // TODO: Make this optional.
+    consume(TokenType.EQUAL, "Expect '=' after variable name.");
+    Expr initializer = expression();
+    consume(TokenType.SEMICOLON, "Expect ';' after variable initializer.");
+
+    return new Stmt.Var(name, initializer);
+  }
+
+  private Stmt whileStatement() {
+    consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    Expr condition = expression();
+    consume(TokenType.RIGHT_PAREN, "Expect '(' after condition.");
+    Stmt body = statement();
+
+    return new Stmt.While(condition, body);
+  }
+
   private Stmt.Function function(String kind) {
     Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
 
     consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
     List<String> parameters = new ArrayList<>();
-    if (!peek(TokenType.RIGHT_PAREN)) {
+    if (!check(TokenType.RIGHT_PAREN)) {
       do {
         Token parameter = consume(TokenType.IDENTIFIER,
             "Expect parameter name.");
@@ -129,7 +127,7 @@ class Parser {
     consume(TokenType.LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
 
-    while (!peek(TokenType.RIGHT_BRACE) && !peek(TokenType.EOF)) {
+    while (!check(TokenType.RIGHT_BRACE) && !check(TokenType.EOF)) {
       statements.add(statement());
     }
 
@@ -236,7 +234,21 @@ class Parser {
     }
 
     return expr;
+    // TODO: Refactor to use this:
+//    return binary(this::unary, TokenType.PERCENT, TokenType.SLASH, TokenType.STAR);
   }
+
+//  private Expr binary(ExprParser operandParser, TokenType... types) {
+//    Expr expr = operandParser.parse();
+//
+//    while (match(types)) {
+//      Token operator = previous;
+//      Expr right = operandParser.parse();
+//      expr = new Expr.Binary(expr, operator, right);
+//    }
+//
+//    return expr;
+//  }
 
   private Expr unary() {
     if (match(TokenType.BANG, TokenType.MINUS, TokenType.PLUS)) {
@@ -255,7 +267,7 @@ class Parser {
       if (match(TokenType.LEFT_PAREN)) {
         List<Expr> arguments = new ArrayList<>();
 
-        if (!peek(TokenType.RIGHT_PAREN)) {
+        if (!check(TokenType.RIGHT_PAREN)) {
           do {
             arguments.add(expression());
           } while (match(TokenType.COMMA));
@@ -306,7 +318,7 @@ class Parser {
   private boolean match(TokenType... types) {
     boolean found = false;
     for (TokenType type : types) {
-      if (peek(type)) {
+      if (check(type)) {
         found = true;
         break;
       }
@@ -319,7 +331,7 @@ class Parser {
   }
 
   private Token consume(TokenType type, String message) {
-    if (!peek(type)) {
+    if (!check(type)) {
       error(message);
     }
 
@@ -337,9 +349,8 @@ class Parser {
     return previous;
   }
 
-  // TODO: Use different name since peek() in Lexer works differently.
   // Returns true if the current token is of tokenType, but does not consume it.
-  private boolean peek(TokenType tokenType) {
+  private boolean check(TokenType tokenType) {
     if (current == null) current = lexer.nextToken();
     return current.type == tokenType;
   }

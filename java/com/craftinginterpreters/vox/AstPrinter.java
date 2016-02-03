@@ -1,7 +1,8 @@
 package com.craftinginterpreters.vox;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-class AstPrinter implements Stmt.Visitor<String, Void>, Expr.Visitor<String, Void> {
+class AstPrinter implements Stmt.Visitor<String, Void>,
+    Expr.Visitor<String, Void> {
   String print(Expr expr) {
     return expr.accept(this, null);
   }

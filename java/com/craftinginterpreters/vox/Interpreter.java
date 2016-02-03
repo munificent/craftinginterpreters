@@ -19,9 +19,6 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
 
-    globals.put("print", Callable.wrap(Primitives::print));
-    globals.put("clock", Callable.wrap(Primitives::clock));
-
     // TODO: Methods.
     VoxClass objectClass = new VoxClass("Object", null, new HashMap<>());
     classClass = new VoxClass("Class", null, new HashMap<>());
@@ -29,6 +26,11 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
     objectClass.setClass(classClass);
     classClass.setClass(classClass);
     functionClass.setClass(classClass);
+
+    globals.put("print", Callable.wrap(Primitives::print));
+    globals.put("clock", Callable.wrap(Primitives::clock));
+    // TODO: What happens if a user tries to directly construct Class or
+    // Function objects?
   }
 
   void run(String source) {
