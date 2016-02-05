@@ -4,12 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Parser {
+  private final Scanner scanner;
+  private final ErrorReporter errorReporter;
+  private Token current;
+  private Token previous;
+
   private interface ExprParser {
     Expr parse();
   }
 
-  Parser(Lexer lexer, ErrorReporter errorReporter) {
-    this.lexer = lexer;
+  Parser(Scanner scanner, ErrorReporter errorReporter) {
+    this.scanner = scanner;
     this.errorReporter = errorReporter;
   }
 
@@ -326,7 +331,7 @@ class Parser {
     if (!found) return false;
 
     previous = current;
-    current = lexer.nextToken();
+    current = scanner.readToken();
     return true;
   }
 
@@ -345,22 +350,17 @@ class Parser {
 //    }
 
     previous = current;
-    current = lexer.nextToken();
+    current = scanner.readToken();
     return previous;
   }
 
   // Returns true if the current token is of tokenType, but does not consume it.
   private boolean check(TokenType tokenType) {
-    if (current == null) current = lexer.nextToken();
+    if (current == null) current = scanner.readToken();
     return current.type == tokenType;
   }
 
   private void error(String message) {
     errorReporter.error(current.line, message);
   }
-
-  private final Lexer lexer;
-  private final ErrorReporter errorReporter;
-  private Token current;
-  private Token previous;
 }

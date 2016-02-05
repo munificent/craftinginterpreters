@@ -1,9 +1,9 @@
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.scanning;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class Lexer {
+class Scanner {
   private static final Map<String, TokenType> keywords;
 
   static {
@@ -28,11 +28,11 @@ class Lexer {
   private int current = 0;
   private int line = 1;
 
-  Lexer(String source) {
+  Scanner(String source) {
     this.source = source;
   }
 
-  Token nextToken() {
+  Token readToken() {
     skipWhitespace();
 
     // The next token starts with the current character.

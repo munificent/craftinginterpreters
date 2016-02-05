@@ -30,7 +30,8 @@ class VoxFunction extends VoxObject implements Callable {
     try {
       Local locals = closure;
       for (int i = 0; i < declaration.parameters.size(); i++) {
-        locals = new Local(locals, declaration.parameters.get(i), arguments.get(i));
+        locals = new Local(locals, declaration.parameters.get(i),
+            arguments.get(i));
       }
 
       interpreter.execute(declaration.body, locals);

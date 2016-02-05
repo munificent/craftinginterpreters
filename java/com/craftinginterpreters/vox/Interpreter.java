@@ -34,8 +34,8 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
   }
 
   void run(String source) {
-    Lexer lexer = new Lexer(source);
-    Parser parser = new Parser(lexer, errorReporter);
+    Scanner scanner = new Scanner(source);
+    Parser parser = new Parser(scanner, errorReporter);
     List<Stmt> statements = parser.parseProgram();
 
     // Don't run if there was a parse error.
