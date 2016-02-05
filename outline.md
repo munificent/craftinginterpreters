@@ -64,6 +64,7 @@ visible to user.
         - ex: significant newlines
     - Parsing Expressions
         - ast
+        - metaprogramming the ast types
         - recursive descent
         - lookahead
     - Tree Walk Interpreting
@@ -80,13 +81,11 @@ visible to user.
         - assignment
         - variable references
         - scope
-        - symbol table
-        - name binding
         - undefined names
         - block scope
     - Control Flow
         - if
-        - && and ||
+        - and and or
         - while
         - for
     - Functions
@@ -100,6 +99,13 @@ visible to user.
         - ffi?
         - tail call optimization
         - arity mismatch
+    - Resolution
+        - compile errors
+        - recursion and mutual recursion
+        - decorating an ast
+        - symbol tables
+        - name binding
+        - early versus late binding
     - Objects
         - classes
         - prototypes?

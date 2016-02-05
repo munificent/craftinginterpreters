@@ -53,7 +53,16 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
 
   @Override
   public String visitFunctionStmt(Stmt.Function stmt, Void context) {
-    return join("(fun (", String.join(" ", stmt.parameters), ") ", stmt.body, ")");
+    StringBuilder builder = new StringBuilder();
+    builder.append("(fun " + stmt.name + "(");
+
+    for (Token param : stmt.parameters) {
+      if (param != stmt.parameters.get(0)) builder.append(" ");
+      builder.append(param.text);
+    }
+
+    builder.append(") " + stmt.body + ")");
+    return builder.toString();
   }
 
   @Override
