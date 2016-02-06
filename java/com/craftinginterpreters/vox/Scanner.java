@@ -83,7 +83,7 @@ class Scanner {
     }
 
     // TODO: Tests for this. (Can use "|" or "&".)
-    return makeToken(TokenType.ERROR);
+    return makeToken(TokenType.ERROR, "Unexpected character '" + c + "'.");
   }
 
   private void skipWhitespace() {
@@ -142,12 +142,10 @@ class Scanner {
   }
 
   private Token string() {
-    // TODO: Escapes.
     // TODO: What about newlines?
     while (peek() != '"' && !isAtEnd()) advance();
 
     // Unterminated string.
-    // TODO: Test.
     if (isAtEnd()) return makeToken(TokenType.ERROR, "Unterminated string.");
 
     // The closing ".

@@ -288,8 +288,6 @@ class Parser {
   }
 
   private Expr primary() {
-    // TODO: Switch on type?
-
     if (match(TokenType.FALSE)) return new Expr.Literal(false);
     if (match(TokenType.TRUE)) return new Expr.Literal(true);
     if (match(TokenType.NULL)) return new Expr.Literal(null);
@@ -308,6 +306,11 @@ class Parser {
       Expr expr = expression();
       consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
       return new Expr.Grouping(expr);
+    }
+
+    if (match(TokenType.ERROR)) {
+      error((String)previous.value);
+      return null;
     }
 
     error("Unexpected token '" + current.text + "'.");
@@ -330,7 +333,9 @@ class Parser {
   }
 
   private Token consume(TokenType type, String message) {
-    if (!check(type)) {
+    if (current.type == TokenType.ERROR) {
+      error((String)current.value);
+    } else if (!check(type)) {
       error(message);
     }
 
