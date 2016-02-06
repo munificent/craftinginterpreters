@@ -252,8 +252,14 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       return ((VoxObject)object).getProperty(expr.name);
     }
 
-    throw new RuntimeError("Cannot access properties on primitive values.",
+    throw new RuntimeError(
+        "Cannot access properties on primitive values.",
         expr.name);
+  }
+
+  @Override
+  public Object visitThisExpr(Expr.This expr, Environment env) {
+    return env.find(expr.name).get(expr.name.text);
   }
 
   @Override

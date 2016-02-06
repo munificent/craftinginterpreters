@@ -15,6 +15,7 @@ public class GenerateAst {
         "Literal  : Object value",
         "Logical  : Expr left, Token operator, Expr right",
         "Property : Expr object, Token name",
+        "This     : Token name",
         "Unary    : Token operator, Expr right",
         "Variable : Token name"
     ));
@@ -54,7 +55,7 @@ public class GenerateAst {
 
     // The base accept() method.
     writer.println("");
-    writer.println("    abstract <R, C> R accept(Visitor<R, C> visitor, C context);");
+    writer.println("  abstract <R, C> R accept(Visitor<R, C> visitor, C context);");
 
     writer.println("}");
     writer.close();

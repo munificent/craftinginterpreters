@@ -35,7 +35,7 @@ visible to user.
     - Your Second Interpreter
         - intro to full language we'll be implementing
         - ebnf
-- Practice (JS)
+- Practice (Java)
     - Read, Eval, Print, Loop
         - interpreters run from source
         - test framework
@@ -61,17 +61,21 @@ visible to user.
         - state machine for identifiers
         - ex: self-assignment and increment
         - ex: scientific and hex
-        - ex: significant newlines
+        - ex: significant indentation and newlines
+        - ex: escapes
     - Parsing Expressions
         - ast
         - metaprogramming the ast types
         - recursive descent
         - lookahead
+        - ex: "needs more input" for multi-line repl
     - Tree Walk Interpreting
         - evaluating operands
         - recursion
         - arithmetic
         - visitor pattern
+        - aside: interpreter pattern is putting interpret methods on nodes
+          - makes it possible to add new node types
         - values versus ast nodes for literals
         - dynamic typing and conversions
         - errors
@@ -110,10 +114,20 @@ visible to user.
         - classes
         - prototypes?
         - this
+        - properties
         - methods
         - dynamic dispatch
         - constructors
         - inheritance
+        - super calls?
+    - Lists and Loops
+        - list type
+        - subscript operator
+        - subscript setter
+        - for syntax
+        - iterator protocol
+        - desugaring
+        - ex: make string implement protocol
 - Performance (C)
     - Garbage Collection
         - mark sweep
@@ -145,7 +159,8 @@ principles
   - historical context and people
   - further things to learn
   - omitted alternatives
-  - exercises
+  - review questions: ask things chapter did explain
+  - challenges: add new features or compare other languages
   - quotation at beginning of each chapter
   - engineering considerations: error handling, maintainability, etc.
   - design and pyschology: usability, aesthetics, popularity, learnability, etc.

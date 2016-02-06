@@ -12,7 +12,9 @@ class VoxObject {
   }
 
   Object getProperty(Token name) {
-    if (properties.containsKey(name.text)) return properties.get(name.text);
+    if (properties.containsKey(name.text)) {
+      return properties.get(name.text);
+    }
 
     VoxFunction method = voxClass.findMethod(name.text);
     if (method != null) return method;

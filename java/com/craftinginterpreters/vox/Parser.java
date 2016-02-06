@@ -3,15 +3,13 @@ package com.craftinginterpreters.vox;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.craftinginterpreters.vox.TokenType.*;
+
 class Parser {
   private final Scanner scanner;
   private final ErrorReporter errorReporter;
   private Token current;
   private Token previous;
-
-  private interface ExprParser {
-    Expr parse();
-  }
 
   Parser(Scanner scanner, ErrorReporter errorReporter) {
     this.scanner = scanner;
@@ -20,7 +18,7 @@ class Parser {
 
   List<Stmt> parseProgram () {
     List<Stmt> statements = new ArrayList<>();
-    while (!match(TokenType.EOF)) {
+    while (!match(EOF)) {
       statements.add(statement());
     }
 
@@ -28,47 +26,48 @@ class Parser {
   }
 
   private Stmt statement() {
-    if (match(TokenType.CLASS)) return classStatement();
-    if (match(TokenType.FUN)) return function("function");
-    if (match(TokenType.IF)) return ifStatement();
-    if (match(TokenType.RETURN)) return returnStatement();
-    if (match(TokenType.VAR)) return varStatement();
-    if (match(TokenType.WHILE)) return whileStatement();
-    if (check(TokenType.LEFT_BRACE)) return block();
+    if (match(CLASS)) return classStatement();
+    if (match(FUN)) return function("function");
+    if (match(IF)) return ifStatement();
+    if (match(RETURN)) return returnStatement();
+    if (match(VAR)) return varStatement();
+    if (match(WHILE)) return whileStatement();
+    if (check(LEFT_BRACE)) return block();
 
     // Expression statement.
     Expr expr = expression();
-    consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
 
   private Stmt classStatement() {
-    Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+    Token name = consume(IDENTIFIER, "Expect class name.");
 
     Expr superclass = null;
-    if (match(TokenType.LESS)) {
+    if (match(LESS)) {
       superclass = primary();
     }
 
     List<Stmt.Function> methods = new ArrayList<>();
-    consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+    consume(LEFT_BRACE, "Expect '{' before class body.");
 
-    while (!check(TokenType.RIGHT_BRACE) && !check(TokenType.EOF)) {
+    while (!check(RIGHT_BRACE) && !check(EOF)) {
       methods.add(function("method"));
     }
 
-    consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+    consume(RIGHT_BRACE, "Expect '}' after class body.");
 
     return new Stmt.Class(name, superclass, methods);
   }
 
   private Stmt ifStatement() {
-    consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+    consume(LEFT_PAREN, "Expect '(' after 'if'.");
     Expr condition = expression();
-    consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+    consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
     Stmt thenBranch = statement();
     Stmt elseBranch = null;
-    if (match(TokenType.ELSE)) {
+    if (match(ELSE)) {
       elseBranch = statement();
     }
 
@@ -77,60 +76,60 @@ class Parser {
 
   private Stmt returnStatement() {
     Expr value = null;
-    if (!check(TokenType.SEMICOLON)) {
+    if (!check(SEMICOLON)) {
       value = expression();
     }
 
-    consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+    consume(SEMICOLON, "Expect ';' after return value.");
     return new Stmt.Return(value);
   }
 
   private Stmt varStatement() {
-    Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
-    if (name.text.equals("this")) error("'this' cannot be a variable name.");
-
-    consume(TokenType.EQUAL, "Expect '=' after variable name.");
+    Token name = consume(IDENTIFIER, "Expect variable name.");
+    consume(EQUAL, "Expect '=' after variable name.");
     Expr initializer = expression();
-    consume(TokenType.SEMICOLON, "Expect ';' after variable initializer.");
+    consume(SEMICOLON, "Expect ';' after variable initializer.");
 
     return new Stmt.Var(name, initializer);
   }
 
   private Stmt whileStatement() {
-    consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    consume(LEFT_PAREN, "Expect '(' after 'while'.");
     Expr condition = expression();
-    consume(TokenType.RIGHT_PAREN, "Expect '(' after condition.");
+    consume(RIGHT_PAREN, "Expect '(' after condition.");
     Stmt body = statement();
 
     return new Stmt.While(condition, body);
   }
 
   private Stmt.Function function(String kind) {
-    Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+    Token name = consume(IDENTIFIER,
+        "Expect " + kind + " name.");
 
-    consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+    consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
     List<Token> params = new ArrayList<>();
-    if (!check(TokenType.RIGHT_PAREN)) {
+    if (!check(RIGHT_PAREN)) {
       do {
-        Token param = consume(TokenType.IDENTIFIER, "Expect parameter name.");
+        Token param = consume(IDENTIFIER,
+            "Expect parameter name.");
         params.add(param);
-      } while (match(TokenType.COMMA));
+      } while (match(COMMA));
     }
-    consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+    consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
     Stmt body = block();
     return new Stmt.Function(name, params, body);
   }
 
   private Stmt block() {
-    consume(TokenType.LEFT_BRACE, "Expect '{' before block.");
+    consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
 
-    while (!check(TokenType.RIGHT_BRACE) && !check(TokenType.EOF)) {
+    while (!check(RIGHT_BRACE) && !check(EOF)) {
       statements.add(statement());
     }
 
-    consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+    consume(RIGHT_BRACE, "Expect '}' after block.");
 
     return new Stmt.Block(statements);
   }
@@ -142,16 +141,16 @@ class Parser {
   private Expr assignment() {
     Expr expr = or();
 
-  if (match(TokenType.EQUAL)) {
+  if (match(EQUAL)) {
     Expr value = assignment();
 
     if (expr instanceof Expr.Variable) {
       Token name = ((Expr.Variable)expr).name;
-      if (name.text.equals("this")) error("Cannot assign to 'this'.");
       return new Expr.Assign(null, name, value);
     } else if (expr instanceof Expr.Property) {
       Expr.Property property = (Expr.Property)expr;
-      return new Expr.Assign(property.object, property.name, value);
+      return new Expr.Assign(
+          property.object, property.name, value);
     }
 
     error("Invalid assignment target.");
@@ -163,7 +162,7 @@ class Parser {
   private Expr or() {
     Expr expr = and();
 
-    while (match(TokenType.OR)) {
+    while (match(OR)) {
       Token operator = previous;
       Expr right = and();
       expr = new Expr.Logical(expr, operator, right);
@@ -175,7 +174,7 @@ class Parser {
   private Expr and() {
     Expr expr = equality();
 
-    while (match(TokenType.AND)) {
+    while (match(AND)) {
       Token operator = previous;
       Expr right = equality();
       expr = new Expr.Logical(expr, operator, right);
@@ -187,7 +186,7 @@ class Parser {
   private Expr equality() {
     Expr expr = comparison();
 
-    while (match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL)) {
+    while (match(BANG_EQUAL, EQUAL_EQUAL)) {
       Token operator = previous;
       Expr right = comparison();
       expr = new Expr.Binary(expr, operator, right);
@@ -199,8 +198,7 @@ class Parser {
   private Expr comparison() {
     Expr expr = term();
 
-    while (match(TokenType.GREATER, TokenType.GREATER_EQUAL,
-                 TokenType.LESS, TokenType.LESS_EQUAL)) {
+    while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
       Token operator = previous;
       Expr right = term();
       expr = new Expr.Binary(expr, operator, right);
@@ -212,7 +210,7 @@ class Parser {
   private Expr term() {
     Expr expr = factor();
 
-    while (match(TokenType.MINUS, TokenType.PLUS)) {
+    while (match(MINUS, PLUS)) {
       Token operator = previous;
       Expr right = factor();
       expr = new Expr.Binary(expr, operator, right);
@@ -224,33 +222,17 @@ class Parser {
   private Expr factor() {
     Expr expr = unary();
 
-    // TODO: Refactor out redundancy between binary methods?
-
-    while (match(TokenType.PERCENT, TokenType.SLASH, TokenType.STAR)) {
+    while (match(PERCENT, SLASH, STAR)) {
       Token operator = previous;
       Expr right = unary();
       expr = new Expr.Binary(expr, operator, right);
     }
 
     return expr;
-    // TODO: Refactor to use this:
-//    return binary(this::unary, TokenType.PERCENT, TokenType.SLASH, TokenType.STAR);
   }
 
-//  private Expr binary(ExprParser operandParser, TokenType... types) {
-//    Expr expr = operandParser.parse();
-//
-//    while (match(types)) {
-//      Token operator = previous;
-//      Expr right = operandParser.parse();
-//      expr = new Expr.Binary(expr, operator, right);
-//    }
-//
-//    return expr;
-//  }
-
   private Expr unary() {
-    if (match(TokenType.BANG, TokenType.MINUS, TokenType.PLUS)) {
+    if (match(BANG, MINUS, PLUS)) {
       Token operator = previous;
       Expr right = unary();
       return new Expr.Unary(operator, right);
@@ -263,20 +245,20 @@ class Parser {
     Expr expr = primary();
 
     while (true) {
-      if (match(TokenType.LEFT_PAREN)) {
+      if (match(LEFT_PAREN)) {
         List<Expr> arguments = new ArrayList<>();
 
-        if (!check(TokenType.RIGHT_PAREN)) {
+        if (!check(RIGHT_PAREN)) {
           do {
             arguments.add(expression());
-          } while (match(TokenType.COMMA));
+          } while (match(COMMA));
         }
 
-        Token paren = consume(TokenType.RIGHT_PAREN,
+        Token paren = consume(RIGHT_PAREN,
             "Expect ')' after argument list.");
         expr = new Expr.Call(expr, paren, arguments);
-      } else if (match(TokenType.DOT)) {
-        Token name = consume(TokenType.IDENTIFIER,
+      } else if (match(DOT)) {
+        Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
         expr = new Expr.Property(expr, name);
       } else {
@@ -288,27 +270,27 @@ class Parser {
   }
 
   private Expr primary() {
-    if (match(TokenType.FALSE)) return new Expr.Literal(false);
-    if (match(TokenType.TRUE)) return new Expr.Literal(true);
-    if (match(TokenType.NULL)) return new Expr.Literal(null);
+    if (match(FALSE)) return new Expr.Literal(false);
+    if (match(TRUE)) return new Expr.Literal(true);
+    if (match(NULL)) return new Expr.Literal(null);
 
-    if (match(TokenType.NUMBER, TokenType.STRING)) {
+    if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous.value);
     }
 
-    if (match(TokenType.THIS)) return new Expr.Variable(previous);
+    if (match(THIS)) return new Expr.This(previous);
 
-    if (match(TokenType.IDENTIFIER)) {
+    if (match(IDENTIFIER)) {
       return new Expr.Variable(previous);
     }
 
-    if (match(TokenType.LEFT_PAREN)) {
+    if (match(LEFT_PAREN)) {
       Expr expr = expression();
-      consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+      consume(RIGHT_PAREN, "Expect ')' after expression.");
       return new Expr.Grouping(expr);
     }
 
-    if (match(TokenType.ERROR)) {
+    if (match(ERROR)) {
       error((String)previous.value);
       return null;
     }
@@ -333,7 +315,7 @@ class Parser {
   }
 
   private Token consume(TokenType type, String message) {
-    if (current.type == TokenType.ERROR) {
+    if (current.type == ERROR) {
       error((String)current.value);
     } else if (!check(type)) {
       error(message);
@@ -344,7 +326,8 @@ class Parser {
     return previous;
   }
 
-  // Returns true if the current token is of tokenType, but does not consume it.
+  // Returns true if the current token is of tokenType, but
+  // does not consume it.
   private boolean check(TokenType tokenType) {
     if (current == null) current = scanner.readToken();
     return current.type == tokenType;

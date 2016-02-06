@@ -12,7 +12,7 @@ interface Callable {
 
       @Override
       public Object call(Interpreter interpreter, List<Object> arguments) {
-        return primitive.call(interpreter);
+        return primitive.call();
       }
     };
   }
@@ -26,17 +26,17 @@ interface Callable {
 
       @Override
       public Object call(Interpreter interpreter, List<Object> arguments) {
-        return primitive.call(interpreter, arguments.get(0));
+        return primitive.call(arguments.get(0));
       }
     };
   }
 
   interface Primitive0 {
-    Object call(Interpreter interpreter);
+    Object call();
   }
 
   interface Primitive1 {
-    Object call(Interpreter interpreter, Object argument);
+    Object call(Object argument);
   }
 
   // The number of arguments this function requires.

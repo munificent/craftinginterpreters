@@ -3,24 +3,27 @@ package com.craftinginterpreters.scanning;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.craftinginterpreters.scanning.TokenType.*;
+
 class Scanner {
   private static final Map<String, TokenType> keywords;
 
   static {
     keywords = new HashMap<>();
-    keywords.put("and", TokenType.AND);
-    keywords.put("class", TokenType.CLASS);
-    keywords.put("else", TokenType.ELSE);
-    keywords.put("false", TokenType.FALSE);
-    keywords.put("for", TokenType.FOR);
-    keywords.put("fun", TokenType.FUN);
-    keywords.put("if", TokenType.IF);
-    keywords.put("null", TokenType.NULL);
-    keywords.put("or", TokenType.OR);
-    keywords.put("return", TokenType.RETURN);
-    keywords.put("true", TokenType.TRUE);
-    keywords.put("var", TokenType.VAR);
-    keywords.put("while", TokenType.WHILE);
+    keywords.put("and",    AND);
+    keywords.put("class",  CLASS);
+    keywords.put("else",   ELSE);
+    keywords.put("false",  FALSE);
+    keywords.put("for",    FOR);
+    keywords.put("fun",    FUN);
+    keywords.put("if",     IF);
+    keywords.put("null",   NULL);
+    keywords.put("or",     OR);
+    keywords.put("return", RETURN);
+    keywords.put("this",   THIS);
+    keywords.put("true",   TRUE);
+    keywords.put("var",    VAR);
+    keywords.put("while",  WHILE);
   }
 
   private final String source;
@@ -38,7 +41,7 @@ class Scanner {
     // The next token starts with the current character.
     tokenStart = current;
 
-    if (isAtEnd()) return makeToken(TokenType.EOF);
+    if (isAtEnd()) return makeToken(EOF);
 
     char c = advance();
 
@@ -46,44 +49,44 @@ class Scanner {
     if (isDigit(c)) return number();
 
     switch (c) {
-      case '(': return makeToken(TokenType.LEFT_PAREN);
-      case ')': return makeToken(TokenType.RIGHT_PAREN);
-      case '[': return makeToken(TokenType.LEFT_BRACKET);
-      case ']': return makeToken(TokenType.RIGHT_BRACKET);
-      case '{': return makeToken(TokenType.LEFT_BRACE);
-      case '}': return makeToken(TokenType.RIGHT_BRACE);
-      case ';': return makeToken(TokenType.SEMICOLON);
-      case ',': return makeToken(TokenType.COMMA);
-      case '+': return makeToken(TokenType.PLUS);
-      case '-': return makeToken(TokenType.MINUS);
-      case '*': return makeToken(TokenType.STAR);
-      case '/': return makeToken(TokenType.SLASH);
-      case '%': return makeToken(TokenType.PERCENT);
+      case '(': return makeToken(LEFT_PAREN);
+      case ')': return makeToken(RIGHT_PAREN);
+      case '[': return makeToken(LEFT_BRACKET);
+      case ']': return makeToken(RIGHT_BRACKET);
+      case '{': return makeToken(LEFT_BRACE);
+      case '}': return makeToken(RIGHT_BRACE);
+      case ';': return makeToken(SEMICOLON);
+      case ',': return makeToken(COMMA);
+      case '+': return makeToken(PLUS);
+      case '-': return makeToken(MINUS);
+      case '*': return makeToken(STAR);
+      case '/': return makeToken(SLASH);
+      case '%': return makeToken(PERCENT);
       case '!':
-        if (match('=')) return makeToken(TokenType.BANG_EQUAL);
-        return makeToken(TokenType.BANG);
+        if (match('=')) return makeToken(BANG_EQUAL);
+        return makeToken(BANG);
 
       case '.':
         if (isDigit(peek())) return number();
-        return makeToken(TokenType.DOT);
+        return makeToken(DOT);
 
       case '=':
-        if (match('=')) return makeToken(TokenType.EQUAL_EQUAL);
-        return makeToken(TokenType.EQUAL);
+        if (match('=')) return makeToken(EQUAL_EQUAL);
+        return makeToken(EQUAL);
 
       case '<':
-        if (match('=')) return makeToken(TokenType.LESS_EQUAL);
-        return makeToken(TokenType.LESS);
+        if (match('=')) return makeToken(LESS_EQUAL);
+        return makeToken(LESS);
 
       case '>':
-        if (match('=')) return makeToken(TokenType.GREATER_EQUAL);
-        return makeToken(TokenType.GREATER);
+        if (match('=')) return makeToken(GREATER_EQUAL);
+        return makeToken(GREATER);
 
       case '"': return string();
     }
 
-    // TODO: Tests for this. (Can use "|" or "&".)
-    return makeToken(TokenType.ERROR, "Unexpected character '" + c + "'.");
+    return makeToken(ERROR,
+        "Unexpected character '" + c + "'.");
   }
 
   private void skipWhitespace() {
@@ -121,7 +124,7 @@ class Scanner {
     String text = source.substring(tokenStart, current);
 
     TokenType type = keywords.get(text);
-    if (type == null) type = TokenType.IDENTIFIER;
+    if (type == null) type = IDENTIFIER;
 
     return makeToken(type);
   }
@@ -137,8 +140,9 @@ class Scanner {
       while (isDigit(peek())) advance();
     }
 
-    double value = Double.parseDouble(source.substring(tokenStart, current));
-    return makeToken(TokenType.NUMBER, value);
+    double value = Double.parseDouble(
+        source.substring(tokenStart, current));
+    return makeToken(NUMBER, value);
   }
 
   private Token string() {
@@ -146,14 +150,17 @@ class Scanner {
     while (peek() != '"' && !isAtEnd()) advance();
 
     // Unterminated string.
-    if (isAtEnd()) return makeToken(TokenType.ERROR, "Unterminated string.");
+    if (isAtEnd()) {
+      return makeToken(ERROR, "Unterminated string.");
+    }
 
     // The closing ".
     advance();
 
     // Trim the surrounding quotes.
-    String value = source.substring(tokenStart + 1, current - 1);
-    return makeToken(TokenType.STRING, value);
+    String value = source.substring(
+        tokenStart + 1, current - 1);
+    return makeToken(STRING, value);
   }
 
   private Token makeToken(TokenType type) {
@@ -195,7 +202,8 @@ class Scanner {
             c == '_';
   }
 
-  // Returns true if `c` is an English letter, underscore, or digit.
+  // Returns true if `c` is an English letter, underscore,
+  // or digit.
   private boolean isAlphaNumeric(char c) {
     return isAlpha(c) || isDigit(c);
   }

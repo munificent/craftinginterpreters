@@ -27,7 +27,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   @Override
   public String visitClassStmt(Stmt.Class stmt, Void context) {
     StringBuilder builder = new StringBuilder();
-    builder.append("(class " + stmt.name);
+    builder.append("(class " + stmt.name.text);
 
     if (stmt.superclass != null) {
       builder.append(" < " + print(stmt.superclass));
@@ -54,14 +54,14 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   @Override
   public String visitFunctionStmt(Stmt.Function stmt, Void context) {
     StringBuilder builder = new StringBuilder();
-    builder.append("(fun " + stmt.name + "(");
+    builder.append("(fun " + stmt.name.text + "(");
 
     for (Token param : stmt.parameters) {
       if (param != stmt.parameters.get(0)) builder.append(" ");
       builder.append(param.text);
     }
 
-    builder.append(") " + stmt.body + ")");
+    builder.append(") " + print(stmt.body) + ")");
     return builder.toString();
   }
 
@@ -83,7 +83,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
 
   @Override
   public String visitVarStmt(Stmt.Var stmt, Void context) {
-    return join("(var ", stmt.name, " = ", stmt.initializer, ")");
+    return join("(var ", stmt.name.text, " = ", stmt.initializer, ")");
   }
 
   @Override
@@ -93,6 +93,9 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
 
   @Override
   public String visitAssignExpr(Expr.Assign expr, Void context) {
+    if (expr.object == null) {
+      return join("(= ", expr.name.text, " ", expr.value, ")");
+    }
     return join("(= ", expr.object, " ", expr.name.text, " ", expr.value, ")");
   }
 
@@ -136,6 +139,11 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   @Override
   public String visitPropertyExpr(Expr.Property expr, Void context) {
     return join("(.", expr.object, " ", expr.name.text, ")");
+  }
+
+  @Override
+  public String visitThisExpr(Expr.This expr, Void context) {
+    return "*this";
   }
 
   @Override

@@ -37,12 +37,12 @@ class Primitives {
     return stringify(object);
   }
 
-  static Object print(Interpreter interpreter, Object argument) {
+  static Object print(Object argument) {
     System.out.println(stringify(argument));
     return argument;
   }
 
-  static Object clock(Interpreter interpreter) {
+  static Object clock() {
     return (double)System.currentTimeMillis();
   }
 }

@@ -11,6 +11,7 @@ abstract class Expr {
     R visitLiteralExpr(Literal expr, C context);
     R visitLogicalExpr(Logical expr, C context);
     R visitPropertyExpr(Property expr, C context);
+    R visitThisExpr(This expr, C context);
     R visitUnaryExpr(Unary expr, C context);
     R visitVariableExpr(Variable expr, C context);
   }
@@ -117,6 +118,18 @@ abstract class Expr {
     final Token name;
   }
 
+  static class This extends Expr {
+    This(Token name) {
+      this.name = name;
+    }
+
+    <R, C> R accept(Visitor<R, C> visitor, C context) {
+      return visitor.visitThisExpr(this, context);
+    }
+
+    final Token name;
+  }
+
   static class Unary extends Expr {
     Unary(Token operator, Expr right) {
       this.operator = operator;
@@ -143,5 +156,5 @@ abstract class Expr {
     final Token name;
   }
 
-    abstract <R, C> R accept(Visitor<R, C> visitor, C context);
+  abstract <R, C> R accept(Visitor<R, C> visitor, C context);
 }
