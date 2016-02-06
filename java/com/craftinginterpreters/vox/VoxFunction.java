@@ -3,16 +3,18 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 
 class VoxFunction extends VoxObject implements Callable {
-  final Stmt.Function declaration;
-  final Local closure;
+  private final Stmt.Function declaration;
+  private final Environment closure;
 
-  VoxFunction(Stmt.Function declaration, Local closure) {
+  VoxFunction(Stmt.Function declaration, Environment closure) {
     this.declaration = declaration;
     this.closure = closure;
   }
 
   VoxFunction bind(VoxObject self) {
-    return new VoxFunction(declaration, new Local(closure, "this", self));
+    Environment env = new Environment(closure);
+    env.assign("this", self);
+    return new VoxFunction(declaration, env);
   }
 
   @Override
@@ -28,13 +30,12 @@ class VoxFunction extends VoxObject implements Callable {
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
     try {
-      Local locals = closure;
+      Environment env = new Environment(closure);
       for (int i = 0; i < declaration.parameters.size(); i++) {
-        locals = new Local(locals, declaration.parameters.get(i),
-            arguments.get(i));
+        env.define(declaration.parameters.get(i), arguments.get(i));
       }
 
-      interpreter.execute(declaration.body, locals);
+      interpreter.execute(declaration.body, env);
       return null;
     } catch (Return returnValue) {
       return returnValue.value;

@@ -56,9 +56,9 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     StringBuilder builder = new StringBuilder();
     builder.append("(fun " + stmt.name + "(");
 
-    for (String param : stmt.parameters) {
+    for (Token param : stmt.parameters) {
       if (param != stmt.parameters.get(0)) builder.append(" ");
-      builder.append(param);
+      builder.append(param.text);
     }
 
     builder.append(") " + stmt.body + ")");

@@ -110,22 +110,17 @@ class Parser {
     Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
 
     consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
-    List<String> parameters = new ArrayList<>();
+    List<Token> params = new ArrayList<>();
     if (!check(TokenType.RIGHT_PAREN)) {
       do {
-        Token parameter = consume(TokenType.IDENTIFIER,
-            "Expect parameter name.");
-        if (parameters.contains(parameter.text)) {
-          error("Duplicate parameter '" + parameter.text + "'.");
-        }
-
-        parameters.add(parameter.text);
+        Token param = consume(TokenType.IDENTIFIER, "Expect parameter name.");
+        params.add(param);
       } while (match(TokenType.COMMA));
     }
     consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
 
     Stmt body = block();
-    return new Stmt.Function(name, parameters, body);
+    return new Stmt.Function(name, params, body);
   }
 
   private Stmt block() {

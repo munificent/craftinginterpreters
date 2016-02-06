@@ -24,7 +24,7 @@ public class GenerateAst {
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
         "Expression  : Expr expression",
         "For         : Token name, Expr iterator, Stmt body",
-        "Function    : Token name, List<String> parameters, Stmt body",
+        "Function    : Token name, List<Token> parameters, Stmt body",
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
         "Return      : Expr value",
         "Var         : Token name, Expr initializer",
