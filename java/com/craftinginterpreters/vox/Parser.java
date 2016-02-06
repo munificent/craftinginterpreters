@@ -89,7 +89,6 @@ class Parser {
     Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
     if (name.text.equals("this")) error("'this' cannot be a variable name.");
 
-    // TODO: Make this optional.
     consume(TokenType.EQUAL, "Expect '=' after variable name.");
     Expr initializer = expression();
     consume(TokenType.SEMICOLON, "Expect ';' after variable initializer.");
@@ -334,15 +333,6 @@ class Parser {
     if (!check(type)) {
       error(message);
     }
-
-//    // If the first error happened because we unexpectedly hit the end of the
-//    // input, let the caller know.
-//    if (!this.errorReporter.hasError && this.current.type == Token.end) {
-//    this.errorReporter.needsMoreInput = true;
-//    }
-//
-//    this.error("on " + this.current.type + ": " + message);
-//    }
 
     previous = current;
     current = scanner.readToken();

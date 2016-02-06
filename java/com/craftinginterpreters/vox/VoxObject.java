@@ -14,9 +14,8 @@ class VoxObject {
   Object getProperty(Token name) {
     if (properties.containsKey(name.text)) return properties.get(name.text);
 
-    if (voxClass.methods.containsKey(name.text)) {
-      return voxClass.methods.get(name.text).bind(this);
-    }
+    VoxFunction method = voxClass.findMethod(name.text);
+    if (method != null) return method;
 
     throw new RuntimeError(
         "No property named '" + name.text + "' on " + this + ".", name);

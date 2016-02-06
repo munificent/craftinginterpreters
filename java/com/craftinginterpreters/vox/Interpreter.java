@@ -13,6 +13,7 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
   // The top level global variables.
   private final Environment globals = new Environment(null);
 
+  private final VoxClass objectClass;
   private final VoxClass classClass;
   private final VoxClass functionClass;
 
@@ -20,9 +21,9 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     this.errorReporter = errorReporter;
 
     // TODO: Methods.
-    VoxClass objectClass = new VoxClass("Object", null, new HashMap<>());
-    classClass = new VoxClass("Class", null, new HashMap<>());
-    functionClass = new VoxClass("Function", null, new HashMap<>());
+    objectClass = new VoxClass("Object", null, null, new HashMap<>());
+    classClass = new VoxClass("Class", objectClass, null, new HashMap<>());
+    functionClass = new VoxClass("Function", objectClass, null, new HashMap<>());
     objectClass.setClass(classClass);
     classClass.setClass(classClass);
     functionClass.setClass(classClass);
@@ -67,7 +68,14 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
   public Void visitClassStmt(Stmt.Class stmt, Environment env) {
     Map<String, VoxFunction> methods = new HashMap<>();
 
-    // TODO: Superclass.
+    Object superclass = objectClass;
+    if (stmt.superclass != null) {
+      superclass = evaluate(stmt.superclass, env);
+      if (!(superclass instanceof VoxClass)) {
+        throw new RuntimeError(Primitives.stringify(superclass) + " is not a class.",
+            stmt.name);
+      }
+    }
 
     VoxFunction constructor = null;
     for (Stmt.Function method : stmt.methods) {
@@ -81,7 +89,7 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       }
     }
 
-    VoxClass voxClass = new VoxClass(stmt.name.text, constructor, methods);
+    VoxClass voxClass = new VoxClass(stmt.name.text, (VoxClass)superclass, constructor, methods);
     voxClass.setClass(classClass);
     env.define(stmt.name, voxClass);
     return null;

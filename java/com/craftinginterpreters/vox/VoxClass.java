@@ -5,15 +5,30 @@ import java.util.Map;
 
 class VoxClass extends VoxObject implements Callable {
   final String name;
-  // TODO: Superclass.
+  private final VoxClass superclass;
   private final VoxFunction constructor;
-  final Map<String, VoxFunction> methods;
+  private final Map<String, VoxFunction> methods;
 
-  VoxClass(String name, VoxFunction constructor,
+  VoxClass(String name, VoxClass superclass, VoxFunction constructor,
            Map<String, VoxFunction> methods) {
     this.name = name;
+    this.superclass = superclass;
     this.constructor = constructor;
     this.methods = methods;
+  }
+
+  VoxFunction findMethod(String name) {
+    VoxClass voxClass = this;
+    while (voxClass != null) {
+      if (voxClass.methods.containsKey(name)) {
+        return voxClass.methods.get(name).bind(this);
+      }
+
+      voxClass = voxClass.superclass;
+    }
+
+    // Not found.
+    return null;
   }
 
   @Override
