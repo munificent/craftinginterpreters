@@ -145,7 +145,7 @@ static Token number(Lexer* lexer) {
   while (isDigit(peek(lexer))) advance(lexer);
   
   // Look for a fractional part.
-  if (peek(lexer) == '.' && !isAlpha(peekNext(lexer))) {
+  if (peek(lexer) == '.' && isDigit(peekNext(lexer))) {
     // Consume the "."
     advance(lexer);
     
