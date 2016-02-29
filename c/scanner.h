@@ -1,5 +1,5 @@
-#ifndef cvox_lexer_h
-#define cvox_lexer_h
+#ifndef cvox_scanner_h
+#define cvox_scanner_h
 
 typedef enum {
   TOKEN_LEFT_PAREN,
@@ -65,10 +65,10 @@ typedef struct {
   const char* tokenStart;
   const char* current;
   int line;
-} Lexer;
+} Scanner;
 
-void initLexer(Lexer* lexer, const char* source);
+void initScanner(Scanner* scanner, const char* source);
 
-Token nextToken(Lexer* lexer);
+Token nextToken(Scanner* scanner);
 
 #endif
