@@ -54,9 +54,6 @@ typedef struct {
   TokenType type;
   const char* start;
   int length;
-
-  // TODO: Do something.
-  //  Object value;
   int line;
 } Token;
 

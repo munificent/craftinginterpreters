@@ -1,42 +1,17 @@
 #ifndef cvox_vm_h
 #define cvox_vm_h
 
+#include "object.h"
+
 #define MAX_STACK  256
 #define MAX_HEAP   (10 * 1024 * 1024)
 
-typedef struct sObj Obj;
-
-// TODO: Variant type.
-typedef Obj* Value;
-
 typedef enum {
-  OBJ_FORWARD,
-  OBJ_NUMBER,
-  OBJ_PAIR // TODO: Temp.
-} ObjType;
+  OP_CONSTANT,
+  OP_ADD
+} OpCode;
 
-struct sObj {
-  ObjType type;
-};
-
-typedef struct {
-  Obj obj;
-  Obj* to;
-} ObjForward;
-
-typedef struct {
-  Obj obj;
-  double value;
-} ObjNumber;
-
-// TODO: Temp.
-typedef struct {
-  Obj obj;
-  Value a;
-  Value b;
-} ObjPair;
-
-typedef struct {
+struct sVM {
   Value stack[MAX_STACK];
   int stackSize;
   
@@ -44,15 +19,12 @@ typedef struct {
   char* fromEnd;
   char* toStart;
   char* toEnd;
-} VM;
+};
 
 void initVM(VM* vm);
 
-void collectGarbage(VM* vm);
-
 // TODO: Temp.
 void pushNumber(VM* vm, double value);
-void pushPair(VM* vm);
 void printStack(VM* vm);
 void pop(VM* vm);
 

@@ -23,19 +23,6 @@ int main(int argc, const char * argv[]) {
   VM vm;
   initVM(&vm);
   
-  for (double d = 100.0; d < 200.0; d++) {
-    pushNumber(&vm, d);
-    pop(&vm);
-  }
-  
-  pushNumber(&vm, 1.0);
-  pushNumber(&vm, 2.0);
-  pushPair(&vm);
-  pushNumber(&vm, 3.0);
-  pushNumber(&vm, 4.0);
-  pushPair(&vm);
-  pushPair(&vm);
-  
   collectGarbage(&vm);
   printStack(&vm);
   
