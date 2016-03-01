@@ -25,7 +25,7 @@ static void* allocate(VM* vm, size_t size) {
   return result;
 }
 
-Value newArray(VM* vm, int size) {
+ObjArray* newArray(VM* vm, int size) {
   ObjArray* array = (ObjArray*)allocate(vm,
       sizeof(ObjArray) + size * sizeof(Value));
   array->obj.type = OBJ_ARRAY;
@@ -34,32 +34,44 @@ Value newArray(VM* vm, int size) {
   for (int i = 0; i < size; i++) {
     array->elements[i] = NULL;
   }
-  return (Value)array;
+  return array;
 }
 
-Value newNumber(VM* vm, double value) {
+ObjFunction* newFunction(VM* vm, uint8_t* code, int codeSize,
+                         ObjArray* constants) {
+  ObjFunction* function = (ObjFunction*)allocate(vm,
+      sizeof(ObjFunction) + codeSize);
+  function->obj.type = OBJ_FUNCTION;
+  
+  memcpy(function->code, code, codeSize);
+  function->codeSize = codeSize;
+  function->constants = constants;
+  return function;
+}
+
+ObjNumber* newNumber(VM* vm, double value) {
   ObjNumber* number = (ObjNumber*)allocate(vm, sizeof(ObjNumber));
   number->obj.type = OBJ_NUMBER;
   
   number->value = value;
-  return (Value)number;
+  return number;
 }
 
-Value newString(VM* vm, const char* chars, int length) {
+ObjString* newString(VM* vm, const char* chars, int length) {
   ObjString* string = (ObjString*)allocate(vm, sizeof(ObjString) + length + 1);
   string->obj.type = OBJ_STRING;
   
   memcpy(string->chars, chars, length);
   string->chars[length] = '\0';
-  return (Value)string;
+  return string;
 }
 
-Value newTable(VM* vm) {
+ObjTable* newTable(VM* vm) {
   ObjTable* table = (ObjTable*)allocate(vm, sizeof(ObjTable));
   table->obj.type = OBJ_TABLE;
   table->count = 0;
   table->entries = NULL;
-  return (Value)table;
+  return table;
 }
 
 void collectGarbage(VM* vm) {
@@ -119,10 +131,12 @@ size_t objectSize(Obj* obj) {
     case OBJ_FUNCTION:
       return sizeof(ObjFunction) +
           ((ObjFunction*)obj)->codeSize;
-    case OBJ_NUMBER:  return sizeof(ObjNumber);
+    case OBJ_NUMBER:
+      return sizeof(ObjNumber);
     case OBJ_STRING:
       return sizeof(ObjString) + ((ObjString*)obj)->length;
-    case OBJ_TABLE:   return sizeof(ObjTable);
+    case OBJ_TABLE:
+      return sizeof(ObjTable);
     case OBJ_TABLE_ENTRIES:
       return sizeof(ObjTableEntries) +
           ((ObjTableEntries*)obj)->size * sizeof(TableEntry);
@@ -144,6 +158,7 @@ void traverseObject(VM* vm, Obj* obj) {
     case OBJ_FORWARD:
       // Shouldn't have forwarding pointers in the to space!
       assert(false);
+      break;
       
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;

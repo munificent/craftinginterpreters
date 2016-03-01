@@ -8,7 +8,11 @@
 
 typedef enum {
   OP_CONSTANT,
-  OP_ADD
+  OP_ADD,
+  OP_SUBTRACT,
+  OP_MULTIPLY,
+  OP_DIVIDE,
+  OP_RETURN
 } OpCode;
 
 struct sVM {
@@ -23,9 +27,9 @@ struct sVM {
 
 void initVM(VM* vm);
 
+void run(VM* vm, ObjFunction* function);
+
 // TODO: Temp.
-void pushNumber(VM* vm, double value);
 void printStack(VM* vm);
-void pop(VM* vm);
 
 #endif

@@ -92,7 +92,7 @@ static Token makeToken(Scanner* scanner, TokenType type) {
 }
 
 static void skipWhitespace(Scanner* scanner) {
-  while (true) {
+  for (;;) {
     char c = peek(scanner);
     switch (c) {
       case ' ':

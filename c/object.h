@@ -1,6 +1,8 @@
 #ifndef cvox_object_h
 #define cvox_object_h
 
+#include <stdint.h>
+
 typedef struct sObj Obj;
 typedef struct sVM VM;
 
@@ -36,7 +38,7 @@ typedef struct {
   Obj obj;
   ObjArray* constants;
   int codeSize;
-  char code[];
+  uint8_t code[];
 } ObjFunction;
 
 typedef struct {
@@ -68,10 +70,11 @@ typedef struct {
 } ObjTable;
 
 // TODO: int or size_t for size? String too?
-Value newArray(VM* vm, int size);
-Value newNumber(VM* vm, double value);
-Value newString(VM* vm, const char* chars, int length);
-Value newTable(VM* vm);
+ObjArray* newArray(VM* vm, int size);
+ObjFunction* newFunction(VM* vm, uint8_t* code, int codeSize, ObjArray* constants);
+ObjNumber* newNumber(VM* vm, double value);
+ObjString* newString(VM* vm, const char* chars, int length);
+ObjTable* newTable(VM* vm);
 
 void collectGarbage(VM* vm);
 Value moveObject(VM* vm, Value value);
