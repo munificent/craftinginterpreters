@@ -7,6 +7,8 @@
 #include "object.h"
 #include "vm.h"
 
+#include "debug.h"
+
 static void* allocate(VM* vm, size_t size) {
   if (vm->fromEnd + size > vm->fromStart + MAX_HEAP) {
     collectGarbage(vm);
@@ -72,6 +74,37 @@ ObjTable* newTable(VM* vm) {
   table->count = 0;
   table->entries = NULL;
   return table;
+}
+
+// From: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
+static int powerOf2Ceil(int n)
+{
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  n++;
+  
+  return n;
+}
+
+ObjArray* ensureArraySize(VM* vm, ObjArray* array, int size) {
+  int currentSize = array == NULL ? 0 : array->size;
+  if (currentSize >= size) return array;
+  
+  size = powerOf2Ceil(size);
+  ObjArray* array2 = newArray(vm, size);
+  
+  // Copy the previous values over.
+  if (array != NULL) {
+    for (int i = 0; i < array->size; i++) {
+      array2->elements[i] = array->elements[i];
+    }
+  }
+  
+  return array2;
 }
 
 void collectGarbage(VM* vm) {
@@ -186,37 +219,5 @@ void traverseObject(VM* vm, Obj* obj) {
       }
       break;
     }
-  }
-}
-
-void printValue(Value value) {
-  switch (value->type) {
-    case OBJ_ARRAY:
-      printf("array");
-      break;
-      
-    case OBJ_FORWARD:
-      printf("fwd->%p", ((ObjForward*)value)->to);
-      break;
-
-    case OBJ_FUNCTION:
-      printf("function");
-      break;
-      
-    case OBJ_NUMBER:
-      printf("%g", ((ObjNumber*)value)->value);
-      break;
-      
-    case OBJ_STRING:
-      printf("%s", ((ObjString*)value)->chars);
-      break;
-      
-    case OBJ_TABLE:
-      printf("table");
-      break;
-      
-    case OBJ_TABLE_ENTRIES:
-      printf("table entries");
-      break;
   }
 }

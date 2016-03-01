@@ -1,10 +1,9 @@
 #ifndef cvox_compiler_h
 #define cvox_compiler_h
 
-#define MAX_STACK 256
+#include "object.h"
+#include "vm.h"
 
-typedef struct {
-  int dummy;
-} Compiler;
+ObjFunction* compile(VM* vm, const char* source);
 
 #endif

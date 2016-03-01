@@ -110,6 +110,8 @@ static void skipWhitespace(Scanner* scanner) {
         if (peekNext(scanner) == '/') {
           // A comment goes until the end of the line.
           while (peek(scanner) != '\n' && !isAtEnd(scanner)) advance(scanner);
+        } else {
+          return;
         }
         break;
 
@@ -166,7 +168,8 @@ static Token string(Scanner* scanner) {
   return makeToken(scanner, TOKEN_STRING);
 }
 
-Token nextToken(Scanner* scanner) {
+// TODO: Change name in jvox.
+Token scanToken(Scanner* scanner) {
   skipWhitespace(scanner);
 
   // The next token starts with the current character.
@@ -192,7 +195,6 @@ Token nextToken(Scanner* scanner) {
     case '-': return makeToken(scanner, TOKEN_MINUS);
     case '*': return makeToken(scanner, TOKEN_STAR);
     case '/': return makeToken(scanner, TOKEN_SLASH);
-    case '%': return makeToken(scanner, TOKEN_PERCENT);
     case '!':
       if (match(scanner, '=')) return makeToken(scanner, TOKEN_BANG_EQUAL);
       return makeToken(scanner, TOKEN_BANG);

@@ -76,11 +76,11 @@ ObjNumber* newNumber(VM* vm, double value);
 ObjString* newString(VM* vm, const char* chars, int length);
 ObjTable* newTable(VM* vm);
 
+ObjArray* ensureArraySize(VM* vm, ObjArray* array, int size);
+
 void collectGarbage(VM* vm);
 Value moveObject(VM* vm, Value value);
 size_t objectSize(Obj* obj);
 void traverseObject(VM* vm, Obj* obj);
-
-void printValue(Value value);
 
 #endif

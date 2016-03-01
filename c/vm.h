@@ -29,7 +29,4 @@ void initVM(VM* vm);
 
 void run(VM* vm, ObjFunction* function);
 
-// TODO: Temp.
-void printStack(VM* vm);
-
 #endif

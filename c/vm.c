@@ -64,18 +64,10 @@ void run(VM* vm, ObjFunction* function) {
         push(vm, (Value)newNumber(vm, a / b));
         break;
       }
-        
+ 
       case OP_RETURN:
-        printValue(vm->stack[vm->stackSize - 1]);
+        //printValue(vm->stack[vm->stackSize - 1]);
         return;
     }
-  }
-}
-
-void printStack(VM* vm) {
-  for (int i = 0; i < vm->stackSize; i++) {
-    printf("%d: ", i);
-    printValue(vm->stack[i]);
-    printf("\n");
   }
 }

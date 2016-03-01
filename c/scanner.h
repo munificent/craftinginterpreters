@@ -19,7 +19,6 @@ typedef enum {
   TOKEN_LESS,
   TOKEN_LESS_EQUAL,
   TOKEN_MINUS,
-  TOKEN_PERCENT,
   TOKEN_PLUS,
   TOKEN_SEMICOLON,
   TOKEN_SLASH,
@@ -66,6 +65,6 @@ typedef struct {
 
 void initScanner(Scanner* scanner, const char* source);
 
-Token nextToken(Scanner* scanner);
+Token scanToken(Scanner* scanner);
 
 #endif

@@ -61,7 +61,6 @@ class Scanner {
       case '-': return makeToken(MINUS);
       case '*': return makeToken(STAR);
       case '/': return makeToken(SLASH);
-      case '%': return makeToken(PERCENT);
       case '!':
         if (match('=')) return makeToken(BANG_EQUAL);
         return makeToken(BANG);

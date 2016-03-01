@@ -15,7 +15,6 @@ enum TokenType {
   LESS,
   LESS_EQUAL,
   MINUS,
-  PERCENT,
   PLUS,
   SEMICOLON,
   SLASH,
