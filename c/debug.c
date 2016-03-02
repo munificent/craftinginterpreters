@@ -34,10 +34,10 @@ void printValue(Value value) {
   }
 }
 
-void printStack(VM* vm) {
-  for (int i = 0; i < vm->stackSize; i++) {
+void printStack() {
+  for (int i = 0; i < vm.stackSize; i++) {
     printf("%d: ", i);
-    printValue(vm->stack[i]);
+    printValue(vm.stack[i]);
     printf("\n");
   }
 }

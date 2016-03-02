@@ -25,8 +25,10 @@ struct sVM {
   char* toEnd;
 };
 
-void initVM(VM* vm);
+// The singleton VM.
+extern VM vm;
 
-void run(VM* vm, ObjFunction* function);
+void vmInit();
+void vmRun(ObjFunction* function);
 
 #endif

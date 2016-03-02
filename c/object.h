@@ -70,17 +70,17 @@ typedef struct {
 } ObjTable;
 
 // TODO: int or size_t for size? String too?
-ObjArray* newArray(VM* vm, int size);
-ObjFunction* newFunction(VM* vm, uint8_t* code, int codeSize, ObjArray* constants);
-ObjNumber* newNumber(VM* vm, double value);
-ObjString* newString(VM* vm, const char* chars, int length);
-ObjTable* newTable(VM* vm);
+ObjArray* newArray(int size);
+ObjFunction* newFunction(uint8_t* code, int codeSize, ObjArray* constants);
+ObjNumber* newNumber(double value);
+ObjString* newString(const char* chars, int length);
+ObjTable* newTable();
 
-ObjArray* ensureArraySize(VM* vm, ObjArray* array, int size);
+ObjArray* ensureArraySize(ObjArray* array, int size);
 
-void collectGarbage(VM* vm);
-Value moveObject(VM* vm, Value value);
+void collectGarbage();
+Value moveObject(Value value);
 size_t objectSize(Obj* obj);
-void traverseObject(VM* vm, Obj* obj);
+void traverseObject(Obj* obj);
 
 #endif

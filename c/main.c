@@ -7,14 +7,13 @@
 #include "debug.h"
 
 int main(int argc, const char * argv[]) {
-  VM vm;
-  initVM(&vm);
+  vmInit();
   
-  ObjFunction* function = compile(&vm, "1 + 2 * 3 / 4 - 5");
+  ObjFunction* function = compile("1 + 2 * 3 / 4 - 5");
   printFunction(function);
-  run(&vm, function);
-  collectGarbage(&vm);
-  printStack(&vm);
+  vmRun(function);
+  collectGarbage();
+  printStack();
   
   return 0;
 }

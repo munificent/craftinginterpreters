@@ -29,11 +29,20 @@ static Keyword keywords[] = {
   {NULL,      0, TOKEN_EOF}
 };
 
-void initScanner(Scanner* scanner, const char* source) {
-  scanner->source = source;
-  scanner->tokenStart = source;
-  scanner->current = source;
-  scanner->line = 1;
+typedef struct {
+  const char* source;
+  const char* tokenStart;
+  const char* current;
+  int line;
+} Scanner;
+
+Scanner scanner;
+
+void scannerInit(const char* source) {
+  scanner.source = source;
+  scanner.tokenStart = source;
+  scanner.current = source;
+  scanner.line = 1;
 }
 
 // Returns true if `c` is an English letter or underscore.
@@ -53,63 +62,63 @@ static bool isAlphaNumeric(char c) {
   return isAlpha(c) || isDigit(c);
 }
 
-static bool isAtEnd(Scanner* scanner) {
-  return *scanner->current == '\0';
+static bool isAtEnd() {
+  return *scanner.current == '\0';
 }
 
-static char advance(Scanner* scanner) {
-  scanner->current++;
-  return scanner->current[-1];
+static char advance() {
+  scanner.current++;
+  return scanner.current[-1];
 }
 
-static char peek(Scanner* scanner) {
-  return *scanner->current;
+static char peek() {
+  return *scanner.current;
 }
 
-static char peekNext(Scanner* scanner) {
-  if (isAtEnd(scanner)) return '\0';
-  return scanner->current[1];
+static char peekNext() {
+  if (isAtEnd()) return '\0';
+  return scanner.current[1];
 }
 
-static bool match(Scanner* scanner, char expected) {
-  if (isAtEnd(scanner)) return false;
-  if (*scanner->current != expected) return false;
+static bool match(char expected) {
+  if (isAtEnd()) return false;
+  if (*scanner.current != expected) return false;
 
-  scanner->current++;
+  scanner.current++;
   return true;
 }
 
 // TODO: Take value?
-static Token makeToken(Scanner* scanner, TokenType type) {
+static Token makeToken(TokenType type) {
   Token token;
   // TODO: Use struct initializer?
   token.type = type;
-  token.start = scanner->tokenStart;
-  token.length = (int)(scanner->current - scanner->tokenStart);
-  token.line = scanner->line;
+  token.start = scanner.tokenStart;
+  token.length = (int)(scanner.current - scanner.tokenStart);
+  token.line = scanner.line;
 
   return token;
 }
 
-static void skipWhitespace(Scanner* scanner) {
+static void skipWhitespace() {
   for (;;) {
-    char c = peek(scanner);
+    char c = peek();
     switch (c) {
       case ' ':
       case '\r':
       case '\t':
-        advance(scanner);
+        advance();
         break;
 
       case '\n':
-        scanner->line++;
-        advance(scanner);
+        scanner.line++;
+        advance();
         break;
 
       case '/':
-        if (peekNext(scanner) == '/') {
+        if (peekNext() == '/') {
           // A comment goes until the end of the line.
-          while (peek(scanner) != '\n' && !isAtEnd(scanner)) advance(scanner);
+          while (peek() != '\n' && !isAtEnd()) advance();
         } else {
           return;
         }
@@ -121,103 +130,103 @@ static void skipWhitespace(Scanner* scanner) {
   }
 }
 
-static Token identifier(Scanner* scanner) {
-  while (isAlphaNumeric(peek(scanner))) advance(scanner);
+static Token identifier() {
+  while (isAlphaNumeric(peek())) advance();
 
   TokenType type = TOKEN_IDENTIFIER;
 
   // See if the identifier is a reserved word.
-  size_t length = scanner->current - scanner->tokenStart;
+  size_t length = scanner.current - scanner.tokenStart;
   for (Keyword* keyword = keywords; keyword->name != NULL; keyword++) {
     if (length == keyword->length &&
-        memcmp(scanner->tokenStart, keyword->name, length) == 0) {
+        memcmp(scanner.tokenStart, keyword->name, length) == 0) {
       type = keyword->type;
       break;
     }
   }
 
-  return makeToken(scanner, type);
+  return makeToken(type);
 }
 
-static Token number(Scanner* scanner) {
-  while (isDigit(peek(scanner))) advance(scanner);
+static Token number() {
+  while (isDigit(peek())) advance();
 
   // Look for a fractional part.
-  if (peek(scanner) == '.' && isDigit(peekNext(scanner))) {
+  if (peek() == '.' && isDigit(peekNext())) {
     // Consume the "."
-    advance(scanner);
+    advance();
 
-    while (isDigit(peek(scanner))) advance(scanner);
+    while (isDigit(peek())) advance();
   }
 
   // double value = Double.parseDouble(source.substring(tokenStart, current));
-  return makeToken(scanner, TOKEN_NUMBER);
+  return makeToken(TOKEN_NUMBER);
 }
 
-static Token string(Scanner* scanner) {
+static Token string() {
   // TODO: Escapes.
   // TODO: What about newlines?
-  while (peek(scanner) != '"' && !isAtEnd(scanner)) advance(scanner);
+  while (peek() != '"' && !isAtEnd()) advance();
 
   // Unterminated string.
   // TODO: Include error message. Maybe use special type?
-  if (isAtEnd(scanner)) return makeToken(scanner, TOKEN_ERROR);
+  if (isAtEnd()) return makeToken(TOKEN_ERROR);
 
   // The closing ".
-  advance(scanner);
-  return makeToken(scanner, TOKEN_STRING);
+  advance();
+  return makeToken(TOKEN_STRING);
 }
 
 // TODO: Change name in jvox.
-Token scanToken(Scanner* scanner) {
-  skipWhitespace(scanner);
+Token scannerNext() {
+  skipWhitespace();
 
   // The next token starts with the current character.
-  scanner->tokenStart = scanner->current;
+  scanner.tokenStart = scanner.current;
 
-  if (isAtEnd(scanner)) return makeToken(scanner, TOKEN_EOF);
+  if (isAtEnd()) return makeToken(TOKEN_EOF);
 
-  char c = advance(scanner);
+  char c = advance();
 
-  if (isAlpha(c)) return identifier(scanner);
-  if (isDigit(c)) return number(scanner);
+  if (isAlpha(c)) return identifier();
+  if (isDigit(c)) return number();
 
   switch (c) {
-    case '(': return makeToken(scanner, TOKEN_LEFT_PAREN);
-    case ')': return makeToken(scanner, TOKEN_RIGHT_PAREN);
-    case '[': return makeToken(scanner, TOKEN_LEFT_BRACKET);
-    case ']': return makeToken(scanner, TOKEN_RIGHT_BRACKET);
-    case '{': return makeToken(scanner, TOKEN_LEFT_BRACE);
-    case '}': return makeToken(scanner, TOKEN_RIGHT_BRACE);
-    case ';': return makeToken(scanner, TOKEN_SEMICOLON);
-    case ',': return makeToken(scanner, TOKEN_COMMA);
-    case '+': return makeToken(scanner, TOKEN_PLUS);
-    case '-': return makeToken(scanner, TOKEN_MINUS);
-    case '*': return makeToken(scanner, TOKEN_STAR);
-    case '/': return makeToken(scanner, TOKEN_SLASH);
+    case '(': return makeToken(TOKEN_LEFT_PAREN);
+    case ')': return makeToken(TOKEN_RIGHT_PAREN);
+    case '[': return makeToken(TOKEN_LEFT_BRACKET);
+    case ']': return makeToken(TOKEN_RIGHT_BRACKET);
+    case '{': return makeToken(TOKEN_LEFT_BRACE);
+    case '}': return makeToken(TOKEN_RIGHT_BRACE);
+    case ';': return makeToken(TOKEN_SEMICOLON);
+    case ',': return makeToken(TOKEN_COMMA);
+    case '+': return makeToken(TOKEN_PLUS);
+    case '-': return makeToken(TOKEN_MINUS);
+    case '*': return makeToken(TOKEN_STAR);
+    case '/': return makeToken(TOKEN_SLASH);
     case '!':
-      if (match(scanner, '=')) return makeToken(scanner, TOKEN_BANG_EQUAL);
-      return makeToken(scanner, TOKEN_BANG);
+      if (match('=')) return makeToken(TOKEN_BANG_EQUAL);
+      return makeToken(TOKEN_BANG);
 
     case '.':
-      if (isDigit(peek(scanner))) return number(scanner);
-      return makeToken(scanner, TOKEN_DOT);
+      if (isDigit(peek())) return number();
+      return makeToken(TOKEN_DOT);
 
     case '=':
-      if (match(scanner, '=')) return makeToken(scanner, TOKEN_EQUAL_EQUAL);
-      return makeToken(scanner, TOKEN_EQUAL);
+      if (match('=')) return makeToken(TOKEN_EQUAL_EQUAL);
+      return makeToken(TOKEN_EQUAL);
 
     case '<':
-      if (match(scanner, '=')) return makeToken(scanner, TOKEN_LESS_EQUAL);
-      return makeToken(scanner, TOKEN_LESS);
+      if (match('=')) return makeToken(TOKEN_LESS_EQUAL);
+      return makeToken(TOKEN_LESS);
 
     case '>':
-      if (match(scanner, '=')) return makeToken(scanner, TOKEN_GREATER_EQUAL);
-      return makeToken(scanner, TOKEN_GREATER);
+      if (match('=')) return makeToken(TOKEN_GREATER_EQUAL);
+      return makeToken(TOKEN_GREATER);
 
-    case '"': return string(scanner);
+    case '"': return string();
   }
 
   // TODO: Tests for this. (Can use "|" or "&".)
-  return makeToken(scanner, TOKEN_ERROR);
+  return makeToken(TOKEN_ERROR);
 }

@@ -6,7 +6,7 @@
 
 void printValue(Value value);
 
-void printStack(VM* vm);
+void printStack();
 
 void printFunction(ObjFunction* function);
 

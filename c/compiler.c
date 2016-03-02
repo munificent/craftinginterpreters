@@ -11,22 +11,18 @@
 #define MAX_CODE  1024
 
 typedef struct {
-  Scanner scanner;
   Token current;
   Token previous;
 } Parser;
 
 typedef struct Compiler {
   struct Compiler* parent;
-  Parser* parser;
-  VM* vm;
   uint8_t code[MAX_CODE];
   int codeSize;
 
   // TODO: Make this a root.
   ObjArray* constants;
   int numConstants;
-
 } Compiler;
 
 typedef enum {
@@ -51,6 +47,13 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 
+Parser parser;
+
+static void advance(Compiler* compiler) {
+  parser.previous = parser.current;
+  parser.current = scannerNext();
+}
+
 static void emitByte(Compiler* compiler, uint8_t byte) {
   compiler->code[compiler->codeSize++] = byte;
 }
@@ -67,7 +70,7 @@ static void parsePrecedence(Compiler* compiler, Precedence precedence,
 
 static uint8_t addConstant(Compiler* compiler, Value constant) {
   // TODO: Need to pin value.
-  compiler->constants = ensureArraySize(compiler->vm, compiler->constants,
+  compiler->constants = ensureArraySize(compiler->constants,
                                         compiler->numConstants + 1);
   compiler->constants->elements[compiler->numConstants++] = constant;
   return compiler->numConstants - 1;
@@ -75,14 +78,13 @@ static uint8_t addConstant(Compiler* compiler, Value constant) {
 }
 
 static void number(Compiler* compiler, bool canAssign) {
-  double value = strtod(compiler->parser->previous.start, NULL);
-  uint8_t constant = addConstant(compiler,
-                                 (Value)newNumber(compiler->vm, value));
+  double value = strtod(parser.previous.start, NULL);
+  uint8_t constant = addConstant(compiler, (Value)newNumber(value));
   emitByteOp(compiler, OP_CONSTANT, constant);
 }
 
 static void infixOperator(Compiler* compiler, bool canAssign) {
-  TokenType operatorType = compiler->parser->previous.type;
+  TokenType operatorType = parser.previous.type;
   ParseRule* rule = getRule(operatorType);
 
   // Compile the right-hand operand.
@@ -118,7 +120,6 @@ ParseRule rules[] = {
   { NULL,   NULL,           PREC_NONE },   // TOKEN_LESS
   { NULL,   NULL,           PREC_NONE },   // TOKEN_LESS_EQUAL
   { NULL,   infixOperator,  PREC_TERM },   // TOKEN_MINUS
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_PERCENT
   { NULL,   infixOperator,  PREC_TERM },   // TOKEN_PLUS
   { NULL,   NULL,           PREC_NONE },   // TOKEN_SEMICOLON
   { NULL,   infixOperator,  PREC_FACTOR }, // TOKEN_SLASH
@@ -147,29 +148,24 @@ ParseRule rules[] = {
   { NULL,   NULL,           PREC_NONE },   // TOKEN_EOF
 };
 
-static void advance(Compiler* compiler) {
-  compiler->parser->previous = compiler->parser->current;
-  compiler->parser->current = scanToken(&compiler->parser->scanner);
-}
-
 // TODO: Do we need canAssign, or does precedence cover it?
 // Top-down operator precedence parser.
 static void parsePrecedence(Compiler* compiler, Precedence precedence,
                             bool canAssign) {
   advance(compiler);
-  ParseFn prefixRule = getRule(compiler->parser->previous.type)->prefix;
+  ParseFn prefixRule = getRule(parser.previous.type)->prefix;
 
   if (prefixRule == NULL) {
     // TODO: Compile error.
-    //error(compiler, "Expected expression.");
+    printf("Expected expression.\n");
     return;
   }
 
   prefixRule(compiler, canAssign);
 
-  while (precedence <= getRule(compiler->parser->current.type)->precedence) {
+  while (precedence <= getRule(parser.current.type)->precedence) {
     advance(compiler);
-    ParseFn infixRule = getRule(compiler->parser->previous.type)->infix;
+    ParseFn infixRule = getRule(parser.previous.type)->infix;
     infixRule(compiler, canAssign);
   }
 }
@@ -182,14 +178,11 @@ void expression(Compiler* compiler) {
   parsePrecedence(compiler, PREC_ASSIGNMENT, true);
 }
 
-ObjFunction* compile(VM* vm, const char* source) {
-  Parser parser;
-  initScanner(&parser.scanner, source);
+ObjFunction* compile(const char* source) {
+  scannerInit(source);
 
   Compiler compiler;
   compiler.parent = NULL;
-  compiler.parser = &parser;
-  compiler.vm = vm;
   compiler.codeSize = 0;
   compiler.constants = NULL;
   compiler.numConstants = 0;
@@ -204,5 +197,5 @@ ObjFunction* compile(VM* vm, const char* source) {
 
   // TODO: Dropping numConstants is weird here. End up with an array that has
   // extra slots that we think are used.
-  return newFunction(vm, compiler.code, compiler.codeSize, compiler.constants);
+  return newFunction(compiler.code, compiler.codeSize, compiler.constants);
 }

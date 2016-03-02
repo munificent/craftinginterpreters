@@ -4,6 +4,6 @@
 #include "object.h"
 #include "vm.h"
 
-ObjFunction* compile(VM* vm, const char* source);
+ObjFunction* compile(const char* source);
 
 #endif
