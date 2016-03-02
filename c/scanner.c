@@ -38,7 +38,7 @@ typedef struct {
 
 Scanner scanner;
 
-void scannerInit(const char* source) {
+void initScanner(const char* source) {
   scanner.source = source;
   scanner.tokenStart = source;
   scanner.current = source;
@@ -178,7 +178,7 @@ static Token string() {
 }
 
 // TODO: Change name in jvox.
-Token scannerNext() {
+Token scanToken() {
   skipWhitespace();
 
   // The next token starts with the current character.

@@ -8,7 +8,7 @@
 
 VM vm;
 
-void vmInit() {
+void initVM() {
   vm.stackSize = 0;
   
   vm.fromStart = malloc(MAX_HEAP);
@@ -25,7 +25,7 @@ static Value pop() {
   return vm.stack[--vm.stackSize];
 }
 
-void vmRun(ObjFunction* function) {
+void run(ObjFunction* function) {
   uint8_t* ip = function->code;
   for (;;) {
     switch (*ip++) {

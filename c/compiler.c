@@ -51,7 +51,7 @@ Parser parser;
 
 static void advance(Compiler* compiler) {
   parser.previous = parser.current;
-  parser.current = scannerNext();
+  parser.current = scanToken();
 }
 
 static void emitByte(Compiler* compiler, uint8_t byte) {
@@ -179,7 +179,7 @@ void expression(Compiler* compiler) {
 }
 
 ObjFunction* compile(const char* source) {
-  scannerInit(source);
+  initScanner(source);
 
   Compiler compiler;
   compiler.parent = NULL;

@@ -28,7 +28,7 @@ struct sVM {
 // The singleton VM.
 extern VM vm;
 
-void vmInit();
-void vmRun(ObjFunction* function);
+void initVM();
+void run(ObjFunction* function);
 
 #endif
