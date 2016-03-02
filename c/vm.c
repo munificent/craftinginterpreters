@@ -33,7 +33,7 @@ static Value pop() {
 }
 
 static void run(ObjFunction* function) {
-  uint8_t* ip = function->code;
+  uint8_t* ip = function->code->chars;
   for (;;) {
     switch (*ip++) {
       case OP_CONSTANT: {

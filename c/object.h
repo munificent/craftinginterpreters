@@ -36,21 +36,22 @@ typedef struct {
 
 typedef struct {
   Obj obj;
+  int length;
+  uint8_t chars[];
+} ObjString;
+
+typedef struct {
+  Obj obj;
   ObjArray* constants;
   int codeSize;
-  uint8_t code[];
+  ObjString* code;
+  int numConstants;
 } ObjFunction;
 
 typedef struct {
   Obj obj;
   double value;
 } ObjNumber;
-
-typedef struct {
-  Obj obj;
-  int length;
-  uint8_t chars[];
-} ObjString;
 
 typedef struct {
   Value key;
@@ -71,13 +72,16 @@ typedef struct {
 
 // TODO: int or size_t for size? String too?
 ObjArray* newArray(int size);
-ObjFunction* newFunction(uint8_t* code, int codeSize, ObjArray* constants);
+ObjFunction* newFunction();
 ObjNumber* newNumber(double value);
 ObjString* newString(const uint8_t* chars, int length);
+ObjString* newByteString(int length);
 ObjTable* newTable();
 
 ObjArray* ensureArraySize(ObjArray* array, int size);
+ObjString* ensureStringLength(ObjString* string, int length);
 
 void collectGarbage();
+Value moveObject(Value value);
 
 #endif

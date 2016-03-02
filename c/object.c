@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "compiler.h"
 #include "object.h"
 #include "vm.h"
 
@@ -49,13 +50,14 @@ ObjArray* newArray(int size) {
   return array;
 }
 
-ObjFunction* newFunction(uint8_t* code, int codeSize, ObjArray* constants) {
-  ObjFunction* function = ALLOCATE_FLEX(ObjFunction, uint8_t, codeSize);
+ObjFunction* newFunction() {
+  ObjFunction* function = ALLOCATE(ObjFunction);
   function->obj.type = OBJ_FUNCTION;
   
-  memcpy(function->code, code, codeSize);
-  function->codeSize = codeSize;
-  function->constants = constants;
+  function->codeSize = 0;
+  function->code = NULL;
+  function->numConstants = 0;
+  function->constants = NULL;
   return function;
 }
 
@@ -68,11 +70,16 @@ ObjNumber* newNumber(double value) {
 }
 
 ObjString* newString(const uint8_t* chars, int length) {
-  ObjString* string = ALLOCATE_FLEX(ObjString, char, length + 1);
-  string->obj.type = OBJ_STRING;
-  
+  ObjString* string = newByteString(length + 1);
   memcpy(string->chars, chars, length);
   string->chars[length] = '\0';
+  return string;
+}
+
+ObjString* newByteString(int length) {
+  ObjString* string = ALLOCATE_FLEX(ObjString, char, length);
+  string->obj.type = OBJ_STRING;
+  string->length = length;
   return string;
 }
 
@@ -115,6 +122,22 @@ ObjArray* ensureArraySize(ObjArray* array, int size) {
   return array2;
 }
 
+// TODO: Lot of copy paste with above.
+ObjString* ensureStringLength(ObjString* string, int length) {
+  int currentLength = string == NULL ? 0 : string->length;
+  if (currentLength >= length) return string;
+  
+  length = powerOf2Ceil(length);
+  ObjString* string2 = newByteString(length);
+  
+  // Copy the previous values over.
+  if (string != NULL) {
+    memcpy(string2->chars, string->chars, string->length);
+  }
+  
+  return string2;
+}
+
 static size_t objectSize(Obj* obj) {
   switch (obj->type) {
     case OBJ_ARRAY:
@@ -125,8 +148,7 @@ static size_t objectSize(Obj* obj) {
       assert(false);
       return 0;
     case OBJ_FUNCTION:
-      return sizeof(ObjFunction) +
-          ((ObjFunction*)obj)->codeSize;
+      return sizeof(ObjFunction);
     case OBJ_NUMBER:
       return sizeof(ObjNumber);
     case OBJ_STRING:
@@ -143,16 +165,16 @@ static size_t objectSize(Obj* obj) {
 
 // TODO: Instead of returning new value, have it take pointer to one and update
 // directly?
-static Value moveObject(Value value) {
+Value moveObject(Value value) {
   if (value == NULL) return NULL;
   
   // If it's already been copied, return its new location.
   if (value->type == OBJ_FORWARD) return ((ObjForward*)value)->to;
   
-  //  printf("copy ");
-  //  printValue(value);
-  //  printf(" from %p to %p\n", value, vm.toEnd);
-  
+//  printf("copy ");
+//  printValue(value);
+//  printf(" (%ld bytes) from %p to %p\n", objectSize(value), value, vm.toEnd);
+
   // Move it to the new semispace.
   size_t size = objectSize(value);
   memcpy(vm.toEnd, value, size);
@@ -185,6 +207,7 @@ static void traverseObject(Obj* obj) {
       
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
+      function->code = (ObjString*)moveObject((Obj*)function->code);
       function->constants = (ObjArray*)moveObject((Obj*)function->constants);
       break;
     }
@@ -218,11 +241,13 @@ void collectGarbage() {
     vm.stack[i] = moveObject(vm.stack[i]);
   }
   
+  traceCompilerRoots();
+  
   // Traverse everything referenced by the roots.
-  Obj* obj = (Obj*)vm.toStart;
-  while ((char*)obj < vm.toEnd) {
-    traverseObject(obj);
-    obj += objectSize(obj);
+  char* obj = vm.toStart;
+  while (obj < vm.toEnd) {
+    traverseObject((Obj*)obj);
+    obj += objectSize((Obj*)obj);
   }
   
   // TODO: Temp for debugging.

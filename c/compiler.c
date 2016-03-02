@@ -4,28 +4,15 @@
 #include <stdlib.h>
 
 #include "compiler.h"
+#include "object.h"
 #include "scanner.h"
 #include "vm.h"
-
-// TODO: Grow dynamically.
-#define MAX_CODE  1024
 
 typedef struct {
   bool hadError;
   Token current;
   Token previous;
 } Parser;
-
-// A function being compiled.
-typedef struct Function {
-  struct Function* enclosing;
-  uint8_t code[MAX_CODE];
-  int codeSize;
-
-  // TODO: Make this a root.
-  ObjArray* constants;
-  int numConstants;
-} Function;
 
 typedef enum {
   PREC_NONE,
@@ -49,10 +36,18 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 
+typedef struct Compiler {
+  // The compiler for the enclosing function, if any.
+  struct Compiler* enclosing;
+  
+  // The function being compiled.
+  ObjFunction* function;
+} Compiler;
+
 Parser parser;
 
-// The innermost function currently being compiled.
-Function* function;
+// The compiler for the innermost function currently being compiled.
+Compiler* compiler;
 
 static void advance() {
   parser.previous = parser.current;
@@ -73,7 +68,9 @@ static void consume(TokenType type, const char* message) {
 }
 
 static void emitByte(uint8_t byte) {
-  function->code[function->codeSize++] = byte;
+  compiler->function->code = ensureStringLength(
+      compiler->function->code, compiler->function->codeSize + 1);
+  compiler->function->code->chars[compiler->function->codeSize++] = byte;
 }
 
 static void emitByteOp(uint8_t op, uint8_t argument) {
@@ -85,18 +82,18 @@ static void emitByteOp(uint8_t op, uint8_t argument) {
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence, bool canAssign);
 
-static uint8_t addConstant(Value constant) {
-  // TODO: Need to pin value.
-  function->constants = ensureArraySize(function->constants,
-                                        function->numConstants + 1);
-  function->constants->elements[function->numConstants++] = constant;
-  return (uint8_t)function->numConstants - 1;
+static uint8_t allocateConstant() {
+  compiler->function->constants = ensureArraySize(compiler->function->constants,
+                                        ++compiler->function->numConstants);
+  return (uint8_t)compiler->function->numConstants - 1;
   // TODO: check for overflow.
 }
 
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
-  uint8_t constant = addConstant((Value)newNumber(value));
+  uint8_t constant = allocateConstant();
+  compiler->function->constants->elements[constant] = (Value)newNumber(value);
+
   emitByteOp(OP_CONSTANT, constant);
 }
 
@@ -203,13 +200,13 @@ static void statement() {
 ObjFunction* compile(const char* source) {
   initScanner(source);
   
-  Function main;
-  main.enclosing = NULL;
-  main.codeSize = 0;
-  main.constants = NULL;
-  main.numConstants = 0;
+  Compiler mainCompiler;
+  mainCompiler.enclosing = NULL;
+  mainCompiler.function = NULL;
+  
+  compiler = &mainCompiler;
 
-  function = &main;
+  mainCompiler.function = newFunction();
   
   // Prime the pump.
   parser.hadError = false;
@@ -220,13 +217,19 @@ ObjFunction* compile(const char* source) {
 
   emitByte(OP_RETURN);
 
-  function = NULL;
+  compiler = NULL;
   
   // If there was a compile error, the code is not valid, so don't create a
   // function.
   if (parser.hadError) return NULL;
   
-  // TODO: Dropping numConstants is weird here. End up with an array that has
-  // extra slots that we think are used.
-  return newFunction(main.code, main.codeSize, main.constants);
+  return mainCompiler.function;
+}
+
+void traceCompilerRoots() {
+  Compiler* thisCompiler = compiler;
+  while (thisCompiler != NULL) {
+    thisCompiler->function = (ObjFunction*)moveObject((Value)thisCompiler->function);
+    thisCompiler = thisCompiler->enclosing;
+  }
 }
