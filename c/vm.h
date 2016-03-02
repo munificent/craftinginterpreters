@@ -29,6 +29,7 @@ struct sVM {
 extern VM vm;
 
 void initVM();
-void run(ObjFunction* function);
+void interpret(const char* source);
+void endVM();
 
 #endif

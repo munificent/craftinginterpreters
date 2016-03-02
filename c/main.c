@@ -1,19 +1,28 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "compiler.h"
 #include "vm.h"
 
-#include "debug.h"
+#define MAX_LINE_LENGTH 1024
 
 int main(int argc, const char * argv[]) {
   initVM();
   
-  ObjFunction* function = compile("1 + 2 * 3 / 4 - 5");
-  printFunction(function);
-  run(function);
-  collectGarbage();
-  printStack();
+//  char line[MAX_LINE_LENGTH];
+//  for (;;) {
+//    printf("> ");
+//    
+//    if (!fgets(line, MAX_LINE_LENGTH, stdin)) {
+//      printf("\n");
+//      break;
+//    }
+//    
+//    interpret(line);
+//  }
+  
+  interpret("1 * 3 + 4 / 7;");
+  
+  endVM();
   
   return 0;
 }

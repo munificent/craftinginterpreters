@@ -9,6 +9,8 @@
 
 #include "debug.h"
 
+//#define DEBUG_STRESS_GC
+
 #define ALLOCATE(type) (type*)allocate(sizeof(type))
 
 #define ALLOCATE_FLEX(type, flexType, count) \
@@ -16,16 +18,20 @@
 
 static void* allocate(size_t size) {
   if (vm.fromEnd + size > vm.fromStart + MAX_HEAP) {
-    collectGarbage(vm);
+    collectGarbage();
     
     if (vm.fromEnd + size > vm.fromStart + MAX_HEAP) {
       fprintf(stderr, "Heap full. Need %ld bytes, but only %ld available.\n",
               size, MAX_HEAP - (vm.fromEnd - vm.fromStart));
       exit(1);
     }
+  } else {
+    #ifdef DEBUG_STRESS_GC
+    collectGarbage();
+    #endif
   }
   
-  printf("allocate %ld at %p\n", size, vm.fromEnd);
+//  printf("allocate %ld at %p\n", size, vm.fromEnd);
   
   void* result = vm.fromEnd;
   vm.fromEnd += size;
@@ -61,7 +67,7 @@ ObjNumber* newNumber(double value) {
   return number;
 }
 
-ObjString* newString(const char* chars, int length) {
+ObjString* newString(const uint8_t* chars, int length) {
   ObjString* string = ALLOCATE_FLEX(ObjString, char, length + 1);
   string->obj.type = OBJ_STRING;
   
@@ -109,52 +115,7 @@ ObjArray* ensureArraySize(ObjArray* array, int size) {
   return array2;
 }
 
-void collectGarbage() {
-  // Copy the roots over.
-  for (int i = 0; i < vm.stackSize; i++) {
-    vm.stack[i] = moveObject(vm.stack[i]);
-  }
-  
-  // Traverse everything referenced by the roots.
-  Obj* obj = (Obj*)vm.toStart;
-  while ((char*)obj < vm.toEnd) {
-    traverseObject(obj);
-    obj += objectSize(obj);
-  }
-  
-  char* temp = vm.fromStart;
-  vm.fromStart = vm.toStart;
-  vm.fromEnd = vm.toEnd;
-  vm.toStart = temp;
-  vm.toEnd = temp;
-}
-
-Value moveObject(Value value) {
-  if (value == NULL) return NULL;
-  
-  // If it's already been copied, return its new location.
-  if (value->type == OBJ_FORWARD) return ((ObjForward*)value)->to;
-  
-  printf("copy ");
-  printValue(value);
-  printf(" from %p to %p\n", value, vm.toEnd);
-  
-  // Move it to the new semispace.
-  size_t size = objectSize(value);
-  memcpy(vm.toEnd, value, size);
-  
-  // And turn the original one into a forwarding pointer.
-  ObjForward* old = (ObjForward*)value;
-  old->obj.type = OBJ_FORWARD;
-  old->to = (Obj*)vm.toEnd;
-  
-  Value newValue = (Value)vm.toEnd;
-  vm.toEnd += size;
-  
-  return newValue;
-}
-
-size_t objectSize(Obj* obj) {
+static size_t objectSize(Obj* obj) {
   switch (obj->type) {
     case OBJ_ARRAY:
       return sizeof(ObjArray) +
@@ -180,7 +141,34 @@ size_t objectSize(Obj* obj) {
   assert(false); // Unreachable.
 }
 
-void traverseObject(Obj* obj) {
+// TODO: Instead of returning new value, have it take pointer to one and update
+// directly?
+static Value moveObject(Value value) {
+  if (value == NULL) return NULL;
+  
+  // If it's already been copied, return its new location.
+  if (value->type == OBJ_FORWARD) return ((ObjForward*)value)->to;
+  
+  //  printf("copy ");
+  //  printValue(value);
+  //  printf(" from %p to %p\n", value, vm.toEnd);
+  
+  // Move it to the new semispace.
+  size_t size = objectSize(value);
+  memcpy(vm.toEnd, value, size);
+  
+  // And turn the original one into a forwarding pointer.
+  ObjForward* old = (ObjForward*)value;
+  old->obj.type = OBJ_FORWARD;
+  old->to = (Obj*)vm.toEnd;
+  
+  Value newValue = (Value)vm.toEnd;
+  vm.toEnd += size;
+  
+  return newValue;
+}
+
+static void traverseObject(Obj* obj) {
   switch (obj->type) {
     case OBJ_ARRAY: {
       ObjArray* array = (ObjArray*)obj;
@@ -222,4 +210,27 @@ void traverseObject(Obj* obj) {
       break;
     }
   }
+}
+
+void collectGarbage() {
+  // Copy the roots over.
+  for (int i = 0; i < vm.stackSize; i++) {
+    vm.stack[i] = moveObject(vm.stack[i]);
+  }
+  
+  // Traverse everything referenced by the roots.
+  Obj* obj = (Obj*)vm.toStart;
+  while ((char*)obj < vm.toEnd) {
+    traverseObject(obj);
+    obj += objectSize(obj);
+  }
+  
+  // TODO: Temp for debugging.
+  memset(vm.fromStart, 0xcc, MAX_HEAP);
+
+  char* temp = vm.fromStart;
+  vm.fromStart = vm.toStart;
+  vm.fromEnd = vm.toEnd;
+  vm.toStart = temp;
+  vm.toEnd = temp;
 }

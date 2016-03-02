@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "compiler.h"
+#include "debug.h"
 #include "vm.h"
 
 VM vm;
@@ -17,6 +19,11 @@ void initVM() {
   vm.toEnd = vm.toStart;
 }
 
+void endVM() {
+  free(vm.fromStart);
+  free(vm.toStart);
+}
+
 static void push(Value value) {
   vm.stack[vm.stackSize++] = value;
 }
@@ -25,7 +32,7 @@ static Value pop() {
   return vm.stack[--vm.stackSize];
 }
 
-void run(ObjFunction* function) {
+static void run(ObjFunction* function) {
   uint8_t* ip = function->code;
   for (;;) {
     switch (*ip++) {
@@ -72,4 +79,14 @@ void run(ObjFunction* function) {
         return;
     }
   }
+}
+
+void interpret(const char* source) {
+  ObjFunction* function = compile(source);
+  if (function == NULL) return;
+
+//  printFunction(function);
+  run(function);
+  collectGarbage();
+  printStack();
 }

@@ -49,7 +49,7 @@ typedef struct {
 typedef struct {
   Obj obj;
   int length;
-  char chars[];
+  uint8_t chars[];
 } ObjString;
 
 typedef struct {
@@ -73,14 +73,11 @@ typedef struct {
 ObjArray* newArray(int size);
 ObjFunction* newFunction(uint8_t* code, int codeSize, ObjArray* constants);
 ObjNumber* newNumber(double value);
-ObjString* newString(const char* chars, int length);
+ObjString* newString(const uint8_t* chars, int length);
 ObjTable* newTable();
 
 ObjArray* ensureArraySize(ObjArray* array, int size);
 
 void collectGarbage();
-Value moveObject(Value value);
-size_t objectSize(Obj* obj);
-void traverseObject(Obj* obj);
 
 #endif

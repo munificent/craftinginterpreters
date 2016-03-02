@@ -11,19 +11,21 @@
 #define MAX_CODE  1024
 
 typedef struct {
+  bool hadError;
   Token current;
   Token previous;
 } Parser;
 
-typedef struct Compiler {
-  struct Compiler* parent;
+// A function being compiled.
+typedef struct Function {
+  struct Function* enclosing;
   uint8_t code[MAX_CODE];
   int codeSize;
 
   // TODO: Make this a root.
   ObjArray* constants;
   int numConstants;
-} Compiler;
+} Function;
 
 typedef enum {
   PREC_NONE,
@@ -39,7 +41,7 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)(Compiler*, bool canAssign);
+typedef void (*ParseFn)(bool canAssign);
 
 typedef struct {
   ParseFn prefix;
@@ -49,54 +51,69 @@ typedef struct {
 
 Parser parser;
 
-static void advance(Compiler* compiler) {
+// The innermost function currently being compiled.
+Function* function;
+
+static void advance() {
   parser.previous = parser.current;
   parser.current = scanToken();
 }
 
-static void emitByte(Compiler* compiler, uint8_t byte) {
-  compiler->code[compiler->codeSize++] = byte;
+static void error(const char* message) {
+  fprintf(stderr, "%s\n", message);
+  parser.hadError = true;
 }
 
-static void emitByteOp(Compiler* compiler, uint8_t op, uint8_t argument) {
-  emitByte(compiler, op);
-  emitByte(compiler, argument);
+static void consume(TokenType type, const char* message) {
+  if (parser.current.type != type) {
+    error(message);
+  }
+  
+  advance();
+}
+
+static void emitByte(uint8_t byte) {
+  function->code[function->codeSize++] = byte;
+}
+
+static void emitByteOp(uint8_t op, uint8_t argument) {
+  emitByte(op);
+  emitByte(argument);
 }
 
 // Forward declarations since the grammar is recursive.
 static ParseRule* getRule(TokenType type);
-static void parsePrecedence(Compiler* compiler, Precedence precedence,
-                            bool canAssign);
+static void parsePrecedence(Precedence precedence, bool canAssign);
 
-static uint8_t addConstant(Compiler* compiler, Value constant) {
+static uint8_t addConstant(Value constant) {
   // TODO: Need to pin value.
-  compiler->constants = ensureArraySize(compiler->constants,
-                                        compiler->numConstants + 1);
-  compiler->constants->elements[compiler->numConstants++] = constant;
-  return compiler->numConstants - 1;
+  function->constants = ensureArraySize(function->constants,
+                                        function->numConstants + 1);
+  function->constants->elements[function->numConstants++] = constant;
+  return (uint8_t)function->numConstants - 1;
   // TODO: check for overflow.
 }
 
-static void number(Compiler* compiler, bool canAssign) {
+static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
-  uint8_t constant = addConstant(compiler, (Value)newNumber(value));
-  emitByteOp(compiler, OP_CONSTANT, constant);
+  uint8_t constant = addConstant((Value)newNumber(value));
+  emitByteOp(OP_CONSTANT, constant);
 }
 
-static void infixOperator(Compiler* compiler, bool canAssign) {
+static void infixOperator(bool canAssign) {
   TokenType operatorType = parser.previous.type;
   ParseRule* rule = getRule(operatorType);
 
   // Compile the right-hand operand.
-  parsePrecedence(compiler, (Precedence)(rule->precedence + 1), false);
+  parsePrecedence((Precedence)(rule->precedence + 1), false);
 
   // Emit the operator instruction.
   // TODO: Other operators.
   switch (operatorType) {
-    case TOKEN_PLUS: emitByte(compiler, OP_ADD); break;
-    case TOKEN_MINUS: emitByte(compiler, OP_SUBTRACT); break;
-    case TOKEN_STAR: emitByte(compiler, OP_MULTIPLY); break;
-    case TOKEN_SLASH: emitByte(compiler, OP_DIVIDE); break;
+    case TOKEN_PLUS: emitByte(OP_ADD); break;
+    case TOKEN_MINUS: emitByte(OP_SUBTRACT); break;
+    case TOKEN_STAR: emitByte(OP_MULTIPLY); break;
+    case TOKEN_SLASH: emitByte(OP_DIVIDE); break;
     default:
       assert(false); // Unreachable.
   }
@@ -150,23 +167,21 @@ ParseRule rules[] = {
 
 // TODO: Do we need canAssign, or does precedence cover it?
 // Top-down operator precedence parser.
-static void parsePrecedence(Compiler* compiler, Precedence precedence,
-                            bool canAssign) {
-  advance(compiler);
+static void parsePrecedence(Precedence precedence, bool canAssign) {
+  advance();
   ParseFn prefixRule = getRule(parser.previous.type)->prefix;
 
   if (prefixRule == NULL) {
-    // TODO: Compile error.
-    printf("Expected expression.\n");
+    error("Expected expression.\n");
     return;
   }
 
-  prefixRule(compiler, canAssign);
+  prefixRule(canAssign);
 
   while (precedence <= getRule(parser.current.type)->precedence) {
-    advance(compiler);
+    advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
-    infixRule(compiler, canAssign);
+    infixRule(canAssign);
   }
 }
 
@@ -174,28 +189,44 @@ static ParseRule* getRule(TokenType type) {
   return &rules[type];
 }
 
-void expression(Compiler* compiler) {
-  parsePrecedence(compiler, PREC_ASSIGNMENT, true);
+void expression() {
+  parsePrecedence(PREC_ASSIGNMENT, true);
+}
+
+static void statement() {
+  // TODO: Other statements.
+  
+  expression();
+  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 
 ObjFunction* compile(const char* source) {
   initScanner(source);
+  
+  Function main;
+  main.enclosing = NULL;
+  main.codeSize = 0;
+  main.constants = NULL;
+  main.numConstants = 0;
 
-  Compiler compiler;
-  compiler.parent = NULL;
-  compiler.codeSize = 0;
-  compiler.constants = NULL;
-  compiler.numConstants = 0;
-
+  function = &main;
+  
   // Prime the pump.
-  advance(&compiler);
+  parser.hadError = false;
+  advance();
 
-  // TODO: Should parse statements.
-  expression(&compiler);
+  // TODO: Should parse multiple statements.
+  statement();
 
-  emitByte(&compiler, OP_RETURN);
+  emitByte(OP_RETURN);
 
+  function = NULL;
+  
+  // If there was a compile error, the code is not valid, so don't create a
+  // function.
+  if (parser.hadError) return NULL;
+  
   // TODO: Dropping numConstants is weird here. End up with an array that has
   // extra slots that we think are used.
-  return newFunction(compiler.code, compiler.codeSize, compiler.constants);
+  return newFunction(main.code, main.codeSize, main.constants);
 }
