@@ -19,10 +19,14 @@ struct sVM {
   Value stack[MAX_STACK];
   int stackSize;
   
-  char* fromStart;
-  char* fromEnd;
-  char* toStart;
-  char* toEnd;
+  size_t bytesAllocated;
+  size_t nextGC;
+  
+  Obj* objects;
+  
+  int grayCount;
+  int grayCapacity;
+  Obj** grayStack;
 };
 
 // The singleton VM.

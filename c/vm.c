@@ -13,15 +13,23 @@ VM vm;
 void initVM() {
   vm.stackSize = 0;
   
-  vm.fromStart = malloc(MAX_HEAP);
-  vm.fromEnd = vm.fromStart;
-  vm.toStart = malloc(MAX_HEAP);
-  vm.toEnd = vm.toStart;
+  vm.objects = NULL;
+  
+  vm.grayCount = 0;
+  vm.grayCapacity = 0;
+  vm.grayStack = NULL;
 }
 
 void endVM() {
-  free(vm.fromStart);
-  free(vm.toStart);
+  // Free all objects.
+  Obj* obj = vm.objects;
+  while (obj != NULL) {
+    Obj* next = obj->next;
+    freeObject(obj);
+    obj = next;
+  }
+  
+  free(vm.grayStack);
 }
 
 static void push(Value value) {
@@ -33,12 +41,15 @@ static Value pop() {
 }
 
 static void run(ObjFunction* function) {
-  uint8_t* ip = function->code->chars;
+  // TODO: Hack. Stuff it on the stack so it doesn't get collected.
+  push((Value)function);
+  
+  uint8_t* ip = function->code;
   for (;;) {
     switch (*ip++) {
       case OP_CONSTANT: {
         uint8_t constant = *ip++;
-        push(function->constants->elements[constant]);
+        push(function->constants[constant]);
         break;
       }
         

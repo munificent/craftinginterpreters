@@ -68,9 +68,20 @@ static void consume(TokenType type, const char* message) {
 }
 
 static void emitByte(uint8_t byte) {
-  compiler->function->code = ensureStringLength(
-      compiler->function->code, compiler->function->codeSize + 1);
-  compiler->function->code->chars[compiler->function->codeSize++] = byte;
+  ObjFunction* function = compiler->function;
+  // TODO: allocateConstant() has almost the exact same code. Reuse somehow.
+  if (function->codeCapacity < function->codeCount + 1) {
+    if (function->codeCapacity == 0) {
+      function->codeCapacity = 4;
+    } else {
+      function->codeCapacity *= 2;
+    }
+    
+    function->code = reallocate(function->code,
+                                sizeof(uint8_t) * function->codeCapacity);
+  }
+
+  function->code[function->codeCount++] = byte;
 }
 
 static void emitByteOp(uint8_t op, uint8_t argument) {
@@ -83,16 +94,30 @@ static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence, bool canAssign);
 
 static uint8_t allocateConstant() {
-  compiler->function->constants = ensureArraySize(compiler->function->constants,
-                                        ++compiler->function->numConstants);
-  return (uint8_t)compiler->function->numConstants - 1;
+  ObjFunction* function = compiler->function;
+  if (function->constantCapacity < function->constantCount + 1) {
+    if (function->constantCapacity == 0) {
+      function->constantCapacity = 4;
+    } else {
+      function->constantCapacity *= 2;
+    }
+
+    function->constants = reallocate(function->constants,
+                                     sizeof(Value) * function->constantCapacity);
+  }
+
+  // Make sure allocating the constant later doesn't see an uninitialized
+  // slot.
+  // TODO: Do something cleaner. Pin the constant?
+  function->constants[function->constantCount] = NULL;
+  return (uint8_t)function->constantCount++;
   // TODO: check for overflow.
 }
 
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
   uint8_t constant = allocateConstant();
-  compiler->function->constants->elements[constant] = (Value)newNumber(value);
+  compiler->function->constants[constant] = (Value)newNumber(value);
 
   emitByteOp(OP_CONSTANT, constant);
 }
@@ -226,10 +251,10 @@ ObjFunction* compile(const char* source) {
   return mainCompiler.function;
 }
 
-void traceCompilerRoots() {
+void grayCompilerRoots() {
   Compiler* thisCompiler = compiler;
   while (thisCompiler != NULL) {
-    thisCompiler->function = (ObjFunction*)moveObject((Value)thisCompiler->function);
+    grayValue((Value)thisCompiler->function);
     thisCompiler = thisCompiler->enclosing;
   }
 }

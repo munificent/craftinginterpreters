@@ -4,14 +4,6 @@
 
 void printValue(Value value) {
   switch (value->type) {
-    case OBJ_ARRAY:
-      printf("array[%d]", ((ObjArray*)value)->size);
-      break;
-      
-    case OBJ_FORWARD:
-      printf("fwd->%p", ((ObjForward*)value)->to);
-      break;
-
     case OBJ_FUNCTION:
       printf("function");
       break;
@@ -27,10 +19,6 @@ void printValue(Value value) {
     case OBJ_TABLE:
       printf("table");
       break;
-      
-    case OBJ_TABLE_ENTRIES:
-      printf("table entries");
-      break;
   }
 }
 
@@ -43,12 +31,12 @@ void printStack() {
 }
 
 void printFunction(ObjFunction* function) {
-  for (int i = 0; i < function->codeSize;) {
-    switch (function->code->chars[i++]) {
+  for (int i = 0; i < function->codeCount;) {
+    switch (function->code[i++]) {
       case OP_CONSTANT: {
-        uint8_t constant = function->code->chars[i++];
+        uint8_t constant = function->code[i++];
         printf("%-10s %5d '", "OP_CONSTANT", constant);
-        printValue(function->constants->elements[constant]);
+        printValue(function->constants[constant]);
         printf("'\n");
         break;
       }

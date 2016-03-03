@@ -10,205 +10,109 @@
 
 #include "debug.h"
 
-//#define DEBUG_STRESS_GC
+#define DEBUG_STRESS_GC
+#define DEBUG_TRACE_GC
 
-#define ALLOCATE(type) (type*)allocate(sizeof(type))
+#define ALLOCATE(type, objType) (type*)allocateObj(sizeof(type), objType)
 
-#define ALLOCATE_FLEX(type, flexType, count) \
-    (type*)allocate(sizeof(type) + sizeof(flexType) * (count))
-
-static void* allocate(size_t size) {
-  if (vm.fromEnd + size > vm.fromStart + MAX_HEAP) {
-    collectGarbage();
-    
-    if (vm.fromEnd + size > vm.fromStart + MAX_HEAP) {
-      fprintf(stderr, "Heap full. Need %ld bytes, but only %ld available.\n",
-              size, MAX_HEAP - (vm.fromEnd - vm.fromStart));
-      exit(1);
-    }
-  } else {
-    #ifdef DEBUG_STRESS_GC
-    collectGarbage();
-    #endif
-  }
+void* reallocate(void* previous, size_t size) {
+#ifdef DEBUG_STRESS_GC
+  collectGarbage();
+#endif
   
-//  printf("allocate %ld at %p\n", size, vm.fromEnd);
+  // TODO: Collect after certain amount.
   
-  void* result = vm.fromEnd;
-  vm.fromEnd += size;
-  return result;
+  return realloc(previous, size);
 }
 
-ObjArray* newArray(int size) {
-  ObjArray* array = ALLOCATE_FLEX(ObjArray, Value, size);
-  array->obj.type = OBJ_ARRAY;
+Obj* allocateObj(size_t size, ObjType type) {
+  Obj* obj = (Obj*)reallocate(NULL, size);
+  obj->type = type;
+  obj->isDark = false;
   
-  array->size = size;
-  for (int i = 0; i < size; i++) {
-    array->elements[i] = NULL;
-  }
-  return array;
+  obj->next = vm.objects;
+  vm.objects = obj;
+
+#ifdef DEBUG_TRACE_GC
+  printf("%p allocate %ld for %d\n", obj, size, type);
+#endif
+  
+  return obj;
 }
 
 ObjFunction* newFunction() {
-  ObjFunction* function = ALLOCATE(ObjFunction);
-  function->obj.type = OBJ_FUNCTION;
+  ObjFunction* function = ALLOCATE(ObjFunction, OBJ_FUNCTION);
   
-  function->codeSize = 0;
+  function->codeCount = 0;
+  function->codeCapacity = 0;
   function->code = NULL;
-  function->numConstants = 0;
+  function->constantCount = 0;
+  function->constantCapacity = 0;
   function->constants = NULL;
   return function;
 }
 
 ObjNumber* newNumber(double value) {
-  ObjNumber* number = ALLOCATE(ObjNumber);
-  number->obj.type = OBJ_NUMBER;
+  ObjNumber* number = ALLOCATE(ObjNumber, OBJ_NUMBER);
   
   number->value = value;
   return number;
 }
 
 ObjString* newString(const uint8_t* chars, int length) {
-  ObjString* string = newByteString(length + 1);
-  memcpy(string->chars, chars, length);
-  string->chars[length] = '\0';
-  return string;
-}
-
-ObjString* newByteString(int length) {
-  ObjString* string = ALLOCATE_FLEX(ObjString, char, length);
-  string->obj.type = OBJ_STRING;
+  // Copy the string to the heap so the object can own it.
+  char* stringChars = reallocate(NULL, length + 1);
+  memcpy(stringChars, chars, length);
+  stringChars[length] = '\0';
+  
+  ObjString* string = ALLOCATE(ObjString, OBJ_STRING);
   string->length = length;
+  string->chars = stringChars;
   return string;
 }
 
 ObjTable* newTable() {
-  ObjTable* table = ALLOCATE(ObjTable);
-  table->obj.type = OBJ_TABLE;
+  ObjTable* table = ALLOCATE(ObjTable, OBJ_TABLE);
   table->count = 0;
   table->entries = NULL;
   return table;
 }
 
-// From: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
-static int powerOf2Ceil(int n)
-{
-  n--;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  n++;
+void grayValue(Value value) {
+  if (value == NULL) return;
   
-  return n;
-}
-
-ObjArray* ensureArraySize(ObjArray* array, int size) {
-  int currentSize = array == NULL ? 0 : array->size;
-  if (currentSize >= size) return array;
+  // Don't get caught in cycle.
+  if (value->isDark) return;
   
-  size = powerOf2Ceil(size);
-  ObjArray* array2 = newArray(size);
+#ifdef DEBUG_TRACE_GC
+  printf("%p gray ", value);
+  printValue(value);
+  printf("\n");
+#endif
   
-  // Copy the previous values over.
-  if (array != NULL) {
-    for (int i = 0; i < array->size; i++) {
-      array2->elements[i] = array->elements[i];
-    }
+  value->isDark = true;
+  
+  if (vm.grayCapacity < vm.grayCount + 1) {
+    vm.grayCapacity = vm.grayCapacity == 0 ? 4 : vm.grayCapacity * 2;
+    vm.grayStack = realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
+    
+    vm.grayStack[vm.grayCount++] = value;
   }
-  
-  return array2;
 }
 
-// TODO: Lot of copy paste with above.
-ObjString* ensureStringLength(ObjString* string, int length) {
-  int currentLength = string == NULL ? 0 : string->length;
-  if (currentLength >= length) return string;
-  
-  length = powerOf2Ceil(length);
-  ObjString* string2 = newByteString(length);
-  
-  // Copy the previous values over.
-  if (string != NULL) {
-    memcpy(string2->chars, string->chars, string->length);
-  }
-  
-  return string2;
-}
+static void blackenObject(Obj* obj) {
+#ifdef DEBUG_TRACE_GC
+  printf("%p blacken ", obj);
+  printValue((Value)obj);
+  printf("\n");
+#endif
 
-static size_t objectSize(Obj* obj) {
   switch (obj->type) {
-    case OBJ_ARRAY:
-      return sizeof(ObjArray) +
-          ((ObjArray*)obj)->size * sizeof(Value);
-    case OBJ_FORWARD:
-      // Shouldn't have forwarding pointers in the to space!
-      assert(false);
-      return 0;
-    case OBJ_FUNCTION:
-      return sizeof(ObjFunction);
-    case OBJ_NUMBER:
-      return sizeof(ObjNumber);
-    case OBJ_STRING:
-      return sizeof(ObjString) + ((ObjString*)obj)->length;
-    case OBJ_TABLE:
-      return sizeof(ObjTable);
-    case OBJ_TABLE_ENTRIES:
-      return sizeof(ObjTableEntries) +
-          ((ObjTableEntries*)obj)->size * sizeof(TableEntry);
-  }
-  
-  assert(false); // Unreachable.
-}
-
-// TODO: Instead of returning new value, have it take pointer to one and update
-// directly?
-Value moveObject(Value value) {
-  if (value == NULL) return NULL;
-  
-  // If it's already been copied, return its new location.
-  if (value->type == OBJ_FORWARD) return ((ObjForward*)value)->to;
-  
-//  printf("copy ");
-//  printValue(value);
-//  printf(" (%ld bytes) from %p to %p\n", objectSize(value), value, vm.toEnd);
-
-  // Move it to the new semispace.
-  size_t size = objectSize(value);
-  memcpy(vm.toEnd, value, size);
-  
-  // And turn the original one into a forwarding pointer.
-  ObjForward* old = (ObjForward*)value;
-  old->obj.type = OBJ_FORWARD;
-  old->to = (Obj*)vm.toEnd;
-  
-  Value newValue = (Value)vm.toEnd;
-  vm.toEnd += size;
-  
-  return newValue;
-}
-
-static void traverseObject(Obj* obj) {
-  switch (obj->type) {
-    case OBJ_ARRAY: {
-      ObjArray* array = (ObjArray*)obj;
-      for (int i = 0; i < array->size; i++) {
-        array->elements[i] = moveObject(array->elements[i]);
-      }
-      break;
-    }
-
-    case OBJ_FORWARD:
-      // Shouldn't have forwarding pointers in the to space!
-      assert(false);
-      break;
-      
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
-      function->code = (ObjString*)moveObject((Obj*)function->code);
-      function->constants = (ObjArray*)moveObject((Obj*)function->constants);
+      for (int i = 0; i < function->constantCount; i++) {
+        grayValue(function->constants[i]);
+      }
       break;
     }
       
@@ -219,43 +123,75 @@ static void traverseObject(Obj* obj) {
       
     case OBJ_TABLE: {
       ObjTable* table = (ObjTable*)obj;
-      table->entries = (ObjTableEntries*)moveObject((Obj*)table->entries);
-      break;
-    }
-      
-    case OBJ_TABLE_ENTRIES: {
-      ObjTableEntries* entries = (ObjTableEntries*)obj;
-      for (int i = 0; i < entries->size; i++) {
-        TableEntry* entry = &entries->entries[i];
-        entry->key = moveObject(entry->key);
-        entry->value = moveObject(entry->value);
+      for (int i = 0; i < table->capacity; i++) {
+        TableEntry* entry = &table->entries[i];
+        grayValue(entry->key);
+        grayValue(entry->value);
       }
       break;
     }
   }
 }
 
-void collectGarbage() {
-  // Copy the roots over.
-  for (int i = 0; i < vm.stackSize; i++) {
-    vm.stack[i] = moveObject(vm.stack[i]);
-  }
-  
-  traceCompilerRoots();
-  
-  // Traverse everything referenced by the roots.
-  char* obj = vm.toStart;
-  while (obj < vm.toEnd) {
-    traverseObject((Obj*)obj);
-    obj += objectSize((Obj*)obj);
-  }
-  
-  // TODO: Temp for debugging.
-  memset(vm.fromStart, 0xcc, MAX_HEAP);
+void freeObject(Obj* obj) {
+#ifdef DEBUG_TRACE_GC
+  printf("%p free ", obj);
+  printValue((Value)obj);
+  printf("\n");
+#endif
 
-  char* temp = vm.fromStart;
-  vm.fromStart = vm.toStart;
-  vm.fromEnd = vm.toEnd;
-  vm.toStart = temp;
-  vm.toEnd = temp;
+  switch (obj->type) {
+    case OBJ_FUNCTION: {
+      ObjFunction* function = (ObjFunction*)obj;
+      free(function->code);
+      free(function->constants);
+      break;
+    }
+      
+    case OBJ_NUMBER:
+    case OBJ_STRING:
+      // No references.
+      break;
+      
+    case OBJ_TABLE: {
+      ObjTable* table = (ObjTable*)obj;
+      free(table->entries);
+      break;
+    }
+  }
+}
+
+void collectGarbage() {
+#ifdef DEBUG_TRACE_GC
+  printf("-- gc --\n");
+#endif
+  
+  // Mark the roots.
+  for (int i = 0; i < vm.stackSize; i++) {
+    grayValue(vm.stack[i]);
+  }
+  
+  grayCompilerRoots();
+
+  while (vm.grayCount > 0) {
+    // Pop an item from the gray stack.
+    Obj* obj = vm.grayStack[--vm.grayCount];
+    blackenObject(obj);
+  }
+  
+  // Collect the white objects.
+  Obj** obj = &vm.objects;
+  while (*obj != NULL) {
+    if (!((*obj)->isDark)) {
+      // This object wasn't reached, so remove it from the list and free it.
+      Obj* unreached = *obj;
+      *obj = unreached->next;
+      freeObject(unreached);
+    } else {
+      // This object was reached, so unmark it (for the next GC) and move on to
+      // the next.
+      (*obj)->isDark = false;
+      obj = &(*obj)->next;
+    }
+  }
 }

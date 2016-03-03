@@ -5,6 +5,6 @@
 #include "vm.h"
 
 ObjFunction* compile(const char* source);
-void traceCompilerRoots();
+void grayCompilerRoots();
 
 #endif
