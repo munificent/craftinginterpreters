@@ -8,10 +8,16 @@
 
 typedef enum {
   OP_CONSTANT,
+  OP_GREATER,
+  OP_GREATER_EQUAL,
+  OP_LESS,
+  OP_LESS_EQUAL,
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
+  OP_NOT,
+  OP_NEGATE,
   OP_RETURN
 } OpCode;
 

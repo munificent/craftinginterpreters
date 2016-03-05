@@ -39,7 +39,7 @@ typedef struct {
 typedef struct Compiler {
   // The compiler for the enclosing function, if any.
   struct Compiler* enclosing;
-  
+
   // The function being compiled.
   ObjFunction* function;
 } Compiler;
@@ -63,7 +63,7 @@ static void consume(TokenType type, const char* message) {
   if (parser.current.type != type) {
     error(message);
   }
-  
+
   advance();
 }
 
@@ -76,7 +76,7 @@ static void emitByte(uint8_t byte) {
     } else {
       function->codeCapacity *= 2;
     }
-    
+
     function->code = reallocate(function->code,
                                 sizeof(uint8_t) * function->codeCapacity);
   }
@@ -84,14 +84,15 @@ static void emitByte(uint8_t byte) {
   function->code[function->codeCount++] = byte;
 }
 
-static void emitByteOp(uint8_t op, uint8_t argument) {
-  emitByte(op);
-  emitByte(argument);
+static void emitBytes(uint8_t byte1, uint8_t byte2) {
+  emitByte(byte1);
+  emitByte(byte2);
 }
 
 // Forward declarations since the grammar is recursive.
+static void expression();
 static ParseRule* getRule(TokenType type);
-static void parsePrecedence(Precedence precedence, bool canAssign);
+static void parsePrecedence(Precedence precedence);
 
 static uint8_t allocateConstant() {
   ObjFunction* function = compiler->function;
@@ -114,82 +115,122 @@ static uint8_t allocateConstant() {
   // TODO: check for overflow.
 }
 
-static void number(bool canAssign) {
-  double value = strtod(parser.previous.start, NULL);
-  uint8_t constant = allocateConstant();
-  compiler->function->constants[constant] = (Value)newNumber(value);
-
-  emitByteOp(OP_CONSTANT, constant);
-}
-
-static void infixOperator(bool canAssign) {
+static void binary(bool canAssign) {
   TokenType operatorType = parser.previous.type;
   ParseRule* rule = getRule(operatorType);
 
   // Compile the right-hand operand.
-  parsePrecedence((Precedence)(rule->precedence + 1), false);
+  parsePrecedence((Precedence)(rule->precedence + 1));
 
   // Emit the operator instruction.
   // TODO: Other operators.
   switch (operatorType) {
-    case TOKEN_PLUS: emitByte(OP_ADD); break;
-    case TOKEN_MINUS: emitByte(OP_SUBTRACT); break;
-    case TOKEN_STAR: emitByte(OP_MULTIPLY); break;
-    case TOKEN_SLASH: emitByte(OP_DIVIDE); break;
+    case TOKEN_GREATER:       emitByte(OP_GREATER); break;
+    case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
+    case TOKEN_LESS:          emitByte(OP_LESS); break;
+    case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
+    case TOKEN_PLUS:          emitByte(OP_ADD); break;
+    case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
+    case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
+    case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
     default:
       assert(false); // Unreachable.
   }
 }
 
+static void boolean(bool canAssign) {
+  uint8_t constant = allocateConstant();
+  compiler->function->constants[constant] =
+      (Value)newBool(parser.previous.type == TOKEN_TRUE);
+
+  emitBytes(OP_CONSTANT, constant);
+}
+
+static void grouping(bool canAssign) {
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+}
+
+static void unary(bool canAssign) {
+  TokenType operatorType = parser.previous.type;
+  
+  // Compile the operand.
+  parsePrecedence((Precedence)(PREC_UNARY + 1));
+
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_BANG: emitByte(OP_NOT); break;
+    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
+    default:
+      assert(false); // Unreachable.
+  }
+}
+
+static void number(bool canAssign) {
+  double value = strtod(parser.previous.start, NULL);
+  uint8_t constant = allocateConstant();
+  compiler->function->constants[constant] = (Value)newNumber(value);
+
+  emitBytes(OP_CONSTANT, constant);
+}
+
+static void string(bool canAssign) {
+  uint8_t constant = allocateConstant();
+  ObjString* string = newString((uint8_t*)parser.previous.start + 1,
+                                parser.previous.length - 2);
+  compiler->function->constants[constant] = (Value)string;
+  
+  emitBytes(OP_CONSTANT, constant);
+}
+
 ParseRule rules[] = {
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_LEFT_PAREN
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_RIGHT_PAREN
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_LEFT_BRACKET
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_RIGHT_BRACKET
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_LEFT_BRACE
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_RIGHT_BRACE
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_BANG
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_BANG_EQUAL
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_COMMA
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_DOT
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_EQUAL
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_EQUAL_EQUAL
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_GREATER
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_GREATER_EQUAL
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_LESS
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_LESS_EQUAL
-  { NULL,   infixOperator,  PREC_TERM },   // TOKEN_MINUS
-  { NULL,   infixOperator,  PREC_TERM },   // TOKEN_PLUS
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_SEMICOLON
-  { NULL,   infixOperator,  PREC_FACTOR }, // TOKEN_SLASH
-  { NULL,   infixOperator,  PREC_FACTOR }, // TOKEN_STAR
+  { grouping, NULL,    PREC_NONE },       // TOKEN_LEFT_PAREN
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACKET
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACKET
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
+  { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG_EQUAL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_DOT
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL_EQUAL
+  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER
+  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
+  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS
+  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS_EQUAL
+  { unary,    binary,  PREC_TERM },       // TOKEN_MINUS
+  { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
+  { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
+  { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
 
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_IDENTIFIER
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_STRING
-  { number, NULL,           PREC_NONE },   // TOKEN_NUMBER
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
+  { string,   NULL,    PREC_NONE },       // TOKEN_STRING
+  { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
 
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_AND
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_CLASS
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_ELSE
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_FALSE
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_FUN
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_FOR
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_IF
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_NULL
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_OR
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_RETURN
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_THIS
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_TRUE
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_VAR
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_WHILE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_AND
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
+  { boolean,  NULL,    PREC_NONE },       // TOKEN_FALSE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_NULL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_OR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
+  { boolean,  NULL,    PREC_NONE },       // TOKEN_TRUE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE
 
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_ERROR
-  { NULL,   NULL,           PREC_NONE },   // TOKEN_EOF
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_ERROR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_EOF
 };
 
-// TODO: Do we need canAssign, or does precedence cover it?
 // Top-down operator precedence parser.
-static void parsePrecedence(Precedence precedence, bool canAssign) {
+static void parsePrecedence(Precedence precedence) {
   advance();
   ParseFn prefixRule = getRule(parser.previous.type)->prefix;
 
@@ -198,6 +239,7 @@ static void parsePrecedence(Precedence precedence, bool canAssign) {
     return;
   }
 
+  bool canAssign = precedence <= PREC_ASSIGNMENT;
   prefixRule(canAssign);
 
   while (precedence <= getRule(parser.current.type)->precedence) {
@@ -212,27 +254,27 @@ static ParseRule* getRule(TokenType type) {
 }
 
 void expression() {
-  parsePrecedence(PREC_ASSIGNMENT, true);
+  parsePrecedence(PREC_ASSIGNMENT);
 }
 
 static void statement() {
   // TODO: Other statements.
-  
+
   expression();
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 
 ObjFunction* compile(const char* source) {
   initScanner(source);
-  
+
   Compiler mainCompiler;
   mainCompiler.enclosing = NULL;
   mainCompiler.function = NULL;
-  
+
   compiler = &mainCompiler;
 
   mainCompiler.function = newFunction();
-  
+
   // Prime the pump.
   parser.hadError = false;
   advance();
@@ -243,11 +285,11 @@ ObjFunction* compile(const char* source) {
   emitByte(OP_RETURN);
 
   compiler = NULL;
-  
+
   // If there was a compile error, the code is not valid, so don't create a
   // function.
   if (parser.hadError) return NULL;
-  
+
   return mainCompiler.function;
 }
 

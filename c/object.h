@@ -9,6 +9,7 @@ typedef struct sVM VM;
 // TODO: Unboxed numbers?
 
 typedef enum {
+  OBJ_BOOL,
   OBJ_FUNCTION,
   OBJ_NUMBER,
   OBJ_STRING,
@@ -24,6 +25,11 @@ typedef struct sObj {
 } Obj;
 
 typedef Obj* Value;
+
+typedef struct {
+  Obj obj;
+  bool value;
+} ObjBool;
 
 typedef struct {
   Obj obj;
@@ -63,6 +69,7 @@ typedef struct {
 // TODO: Move elsewhere?
 void* reallocate(void* previous, size_t size);
 
+ObjBool* newBool(bool value);
 ObjFunction* newFunction();
 ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?

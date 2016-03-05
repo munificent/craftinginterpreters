@@ -10,8 +10,8 @@
 
 #include "debug.h"
 
-#define DEBUG_STRESS_GC
-#define DEBUG_TRACE_GC
+//#define DEBUG_STRESS_GC
+//#define DEBUG_TRACE_GC
 
 #define ALLOCATE(type, objType) (type*)allocateObj(sizeof(type), objType)
 
@@ -40,6 +40,12 @@ Obj* allocateObj(size_t size, ObjType type) {
   return obj;
 }
 
+ObjBool* newBool(bool value) {
+  ObjBool* boolean = ALLOCATE(ObjBool, OBJ_BOOL);
+  boolean->value = value;
+  return boolean;
+}
+
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE(ObjFunction, OBJ_FUNCTION);
   
@@ -54,7 +60,6 @@ ObjFunction* newFunction() {
 
 ObjNumber* newNumber(double value) {
   ObjNumber* number = ALLOCATE(ObjNumber, OBJ_NUMBER);
-  
   number->value = value;
   return number;
 }
@@ -62,8 +67,11 @@ ObjNumber* newNumber(double value) {
 ObjString* newString(const uint8_t* chars, int length) {
   // Copy the string to the heap so the object can own it.
   char* stringChars = reallocate(NULL, length + 1);
-  memcpy(stringChars, chars, length);
   stringChars[length] = '\0';
+  
+  if (chars != NULL) {
+    memcpy(stringChars, chars, length);
+  }
   
   ObjString* string = ALLOCATE(ObjString, OBJ_STRING);
   string->length = length;
@@ -116,11 +124,6 @@ static void blackenObject(Obj* obj) {
       break;
     }
       
-    case OBJ_NUMBER:
-    case OBJ_STRING:
-      // No references.
-      break;
-      
     case OBJ_TABLE: {
       ObjTable* table = (ObjTable*)obj;
       for (int i = 0; i < table->capacity; i++) {
@@ -130,6 +133,12 @@ static void blackenObject(Obj* obj) {
       }
       break;
     }
+      
+    case OBJ_BOOL:
+    case OBJ_NUMBER:
+    case OBJ_STRING:
+      // No references.
+      break;
   }
 }
 
@@ -148,16 +157,17 @@ void freeObject(Obj* obj) {
       break;
     }
       
-    case OBJ_NUMBER:
-    case OBJ_STRING:
-      // No references.
-      break;
-      
     case OBJ_TABLE: {
       ObjTable* table = (ObjTable*)obj;
       free(table->entries);
       break;
     }
+      
+    case OBJ_BOOL:
+    case OBJ_NUMBER:
+    case OBJ_STRING:
+      // No references.
+      break;
   }
 }
 

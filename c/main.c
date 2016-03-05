@@ -20,7 +20,7 @@ int main(int argc, const char * argv[]) {
 //    interpret(line);
 //  }
   
-  interpret("1 * 3 + 4 / 7;");
+  interpret("\"abc\" + \"def\";");
   
   endVM();
   

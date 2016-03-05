@@ -4,6 +4,10 @@
 
 void printValue(Value value) {
   switch (value->type) {
+    case OBJ_BOOL:
+      printf(((ObjBool*)value)->value ? "true" : "false");
+      break;
+      
     case OBJ_FUNCTION:
       printf("function");
       break;
@@ -13,7 +17,7 @@ void printValue(Value value) {
       break;
       
     case OBJ_STRING:
-      printf("string[%d]", ((ObjString*)value)->length);
+      printf("%.*s", ((ObjString*)value)->length, ((ObjString*)value)->chars);
       break;
       
     case OBJ_TABLE:
