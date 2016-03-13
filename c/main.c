@@ -20,7 +20,7 @@ int main(int argc, const char * argv[]) {
 //    interpret(line);
 //  }
   
-  interpret("\"abc\" + \"def\";");
+  interpret("var a = 123; a = 234; a = a + a; a;");
   
   endVM();
   

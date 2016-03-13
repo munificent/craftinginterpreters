@@ -67,6 +67,12 @@ static void consume(TokenType type, const char* message) {
   advance();
 }
 
+static bool match(TokenType type) {
+  if (parser.current.type != type) return false;
+  advance();
+  return true;
+}
+
 static void emitByte(uint8_t byte) {
   ObjFunction* function = compiler->function;
   // TODO: allocateConstant() has almost the exact same code. Reuse somehow.
@@ -89,6 +95,12 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte2);
 }
 
+// TODO: Remove?
+//static void emitShort(uint16_t value) {
+//  emitByte((value >> 8) & 0xff);
+//  emitByte(value & 0xff);
+//}
+
 // Forward declarations since the grammar is recursive.
 static void expression();
 static ParseRule* getRule(TokenType type);
@@ -96,23 +108,24 @@ static void parsePrecedence(Precedence precedence);
 
 static uint8_t allocateConstant() {
   ObjFunction* function = compiler->function;
-  if (function->constantCapacity < function->constantCount + 1) {
-    if (function->constantCapacity == 0) {
-      function->constantCapacity = 4;
-    } else {
-      function->constantCapacity *= 2;
-    }
-
-    function->constants = reallocate(function->constants,
-                                     sizeof(Value) * function->constantCapacity);
-  }
-
+  ensureArrayCapacity(&function->constants);
+  
   // Make sure allocating the constant later doesn't see an uninitialized
   // slot.
   // TODO: Do something cleaner. Pin the constant?
-  function->constants[function->constantCount] = NULL;
-  return (uint8_t)function->constantCount++;
+  function->constants.values[function->constants.count] = NULL;
+  return (uint8_t)function->constants.count++;
   // TODO: check for overflow.
+}
+
+// Creates a string constant for the previous identifier token. Returns the
+// index of the constant.
+static uint8_t nameConstant() {
+  uint8_t constant = allocateConstant();
+  ObjString* name = newString((uint8_t*)parser.previous.start,
+                              parser.previous.length);
+  compiler->function->constants.values[constant] = (Value)name;
+  return constant;
 }
 
 static void binary(bool canAssign) {
@@ -140,7 +153,7 @@ static void binary(bool canAssign) {
 
 static void boolean(bool canAssign) {
   uint8_t constant = allocateConstant();
-  compiler->function->constants[constant] =
+  compiler->function->constants.values[constant] =
       (Value)newBool(parser.previous.type == TOKEN_TRUE);
 
   emitBytes(OP_CONSTANT, constant);
@@ -169,7 +182,7 @@ static void unary(bool canAssign) {
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
   uint8_t constant = allocateConstant();
-  compiler->function->constants[constant] = (Value)newNumber(value);
+  compiler->function->constants.values[constant] = (Value)newNumber(value);
 
   emitBytes(OP_CONSTANT, constant);
 }
@@ -178,9 +191,20 @@ static void string(bool canAssign) {
   uint8_t constant = allocateConstant();
   ObjString* string = newString((uint8_t*)parser.previous.start + 1,
                                 parser.previous.length - 2);
-  compiler->function->constants[constant] = (Value)string;
+  compiler->function->constants.values[constant] = (Value)string;
   
   emitBytes(OP_CONSTANT, constant);
+}
+
+static void variable(bool canAssign) {
+  uint8_t constant = nameConstant();
+  
+  if (canAssign && match(TOKEN_EQUAL)) {
+    expression();
+    emitBytes(OP_ASSIGN_GLOBAL, constant);
+  } else {
+    emitBytes(OP_GET_GLOBAL, constant);
+  }
 }
 
 ParseRule rules[] = {
@@ -206,7 +230,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
 
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
+  { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
 
@@ -258,6 +282,19 @@ void expression() {
 }
 
 static void statement() {
+  if (match(TOKEN_VAR)) {
+    consume(TOKEN_IDENTIFIER, "Expect variable name.");
+    uint8_t constant = nameConstant();
+
+    // Compile the initializer.
+    consume(TOKEN_EQUAL, "Expect '=' after variable name.");
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after initializer.");
+
+    emitBytes(OP_DEFINE_GLOBAL, constant);
+    return;
+  }
+  
   // TODO: Other statements.
 
   expression();
@@ -279,8 +316,9 @@ ObjFunction* compile(const char* source) {
   parser.hadError = false;
   advance();
 
-  // TODO: Should parse multiple statements.
-  statement();
+  do {
+    statement();
+  } while (!match(TOKEN_EOF));
 
   emitByte(OP_RETURN);
 

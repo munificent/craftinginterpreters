@@ -8,6 +8,9 @@
 
 typedef enum {
   OP_CONSTANT,
+  OP_GET_GLOBAL,
+  OP_DEFINE_GLOBAL,
+  OP_ASSIGN_GLOBAL,
   OP_GREATER,
   OP_GREATER_EQUAL,
   OP_LESS,
@@ -24,6 +27,8 @@ typedef enum {
 struct sVM {
   Value stack[MAX_STACK];
   int stackSize;
+  
+  ObjTable* globals;
   
   size_t bytesAllocated;
   size_t nextGC;

@@ -27,6 +27,12 @@ typedef struct sObj {
 typedef Obj* Value;
 
 typedef struct {
+  Value* values;
+  int capacity;
+  int count;
+} ValueArray;
+
+typedef struct {
   Obj obj;
   bool value;
 } ObjBool;
@@ -38,9 +44,7 @@ typedef struct {
   int codeCapacity;
   uint8_t* code;
 
-  int constantCount;
-  int constantCapacity;
-  Value* constants;
+  ValueArray constants;
 } ObjFunction;
 
 typedef struct {
@@ -55,7 +59,7 @@ typedef struct {
 } ObjString;
 
 typedef struct {
-  Value key;
+  ObjString* key;
   Value value;
 } TableEntry;
 
@@ -75,7 +79,16 @@ ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?
 ObjString* newString(const uint8_t* chars, int length);
 ObjTable* newTable();
+Value tableGet(ObjTable* table, ObjString* key);
+void tableSet(ObjTable* table, ObjString* key, Value value);
 
+bool valuesEqual(Value a, Value b);
+
+void initArray(ValueArray* array);
+// TODO: Better name. "growCapacity"?
+void ensureArrayCapacity(ValueArray* array);
+void freeArray(ValueArray* array);
+  
 void grayValue(Value value);
 void freeObject(Obj* obj);
 void collectGarbage();

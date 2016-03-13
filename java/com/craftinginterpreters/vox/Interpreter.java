@@ -182,7 +182,6 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       case LESS: return (double)left < (double)right;
       case LESS_EQUAL: return (double)left <= (double)right;
       case MINUS: return (double)left - (double)right;
-      case PERCENT: return (double)left % (double)right;
       case PLUS:
         if (left instanceof Double && right instanceof Double) {
           return (double)left + (double)right;

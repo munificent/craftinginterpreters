@@ -12,15 +12,18 @@ VM vm;
 
 void initVM() {
   vm.stackSize = 0;
-  
   vm.objects = NULL;
   
   vm.grayCount = 0;
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
+
+  vm.globals = newTable();
 }
 
 void endVM() {
+  vm.globals = NULL;
+  
   // Free all objects.
   Obj* obj = vm.objects;
   while (obj != NULL) {
@@ -99,10 +102,44 @@ static void run(ObjFunction* function) {
   
   uint8_t* ip = function->code;
   for (;;) {
+    // TODO: Clean up or remove.
+//    for (int i = 0; i < vm.stackSize; i++) {
+//      printf("|%d ", i);
+//      printValue(vm.stack[i]);
+//      printf(" ");
+//    }
+//    printf("\n");
+    
     switch (*ip++) {
       case OP_CONSTANT: {
         uint8_t constant = *ip++;
-        push(function->constants[constant]);
+        push(function->constants.values[constant]);
+        break;
+      }
+        
+      case OP_GET_GLOBAL: {
+        uint8_t constant = *ip++;
+        ObjString* name = (ObjString*)function->constants.values[constant];
+        Value global = tableGet(vm.globals, name);
+        // TODO: Runtime error for undefined variable.
+        push(global);
+        break;
+      }
+        
+      case OP_DEFINE_GLOBAL: {
+        uint8_t constant = *ip++;
+        ObjString* name = (ObjString*)function->constants.values[constant];
+        tableSet(vm.globals, name, peek(1));
+        pop();
+        break;
+      }
+        
+      case OP_ASSIGN_GLOBAL: {
+        uint8_t constant = *ip++;
+        ObjString* name = (ObjString*)function->constants.values[constant];
+        // TODO: Error if not defined.
+        tableSet(vm.globals, name, peek(1));
+        pop();
         break;
       }
         

@@ -13,6 +13,8 @@
 //#define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC
 
+#define TABLE_MAX_LOAD 0.75
+
 #define ALLOCATE(type, objType) (type*)allocateObj(sizeof(type), objType)
 
 void* reallocate(void* previous, size_t size) {
@@ -52,9 +54,8 @@ ObjFunction* newFunction() {
   function->codeCount = 0;
   function->codeCapacity = 0;
   function->code = NULL;
-  function->constantCount = 0;
-  function->constantCapacity = 0;
-  function->constants = NULL;
+  
+  initArray(&function->constants);
   return function;
 }
 
@@ -81,9 +82,105 @@ ObjString* newString(const uint8_t* chars, int length) {
 
 ObjTable* newTable() {
   ObjTable* table = ALLOCATE(ObjTable, OBJ_TABLE);
+  table->capacity = 0;
   table->count = 0;
   table->entries = NULL;
   return table;
+}
+
+void ensureTableCapacity(ObjTable* table) {
+  if (table->capacity * TABLE_MAX_LOAD > table->count) return;
+  
+  if (table->capacity == 0) {
+    table->capacity = 4;
+  } else {
+    table->capacity *= 2;
+  }
+  
+  // TODO: Rehash everything.
+  table->entries = realloc(table->entries, sizeof(TableEntry) * table->capacity);
+}
+
+Value tableGet(ObjTable* table, ObjString* key) {
+  // TODO: Actually hash it!
+  for (int i = 0; i < table->count; i++) {
+    TableEntry* entry = &table->entries[i];
+    if (entry->key->length == key->length &&
+        memcmp(entry->key->chars, key->chars, key->length) == 0) {
+      return table->entries[i].value;
+    }
+  }
+  
+  // TODO: Return "undefined" value.
+  return NULL;
+}
+
+void tableSet(ObjTable* table, ObjString* key, Value value) {
+  // TODO: Actually hash it!
+  for (int i = 0; i < table->count; i++) {
+    TableEntry* entry = &table->entries[i];
+    if (entry->key->length == key->length &&
+        memcmp(entry->key->chars, key->chars, key->length) == 0) {
+      table->entries[i].value = value;
+      return;
+    }
+  }
+  
+  ensureTableCapacity(table);
+  TableEntry* entry = &table->entries[table->count++];
+  entry->key = key;
+  entry->value = value;
+}
+
+bool valuesEqual(Value a, Value b) {
+  // Identity.
+  if (a == b) return true;
+  
+  // No implicit conversions.
+  if (a->type != b->type) return false;
+  
+  switch (a->type) {
+    case OBJ_BOOL:
+      // TODO: Canonicalize bools?
+      return ((ObjBool*)a)->value == ((ObjBool*)b)->value;
+      
+    case OBJ_NUMBER:
+      return ((ObjNumber*)a)->value == ((ObjNumber*)b)->value;
+      
+    case OBJ_STRING: {
+      ObjString* aString = (ObjString*)a;
+      ObjString* bString = (ObjString*)b;
+      return aString->length == bString->length &&
+             memcmp(aString->chars, bString->chars, aString->length) == 0;
+    }
+      
+    case OBJ_FUNCTION:
+    case OBJ_TABLE:
+      // These have reference equality.
+      return false;
+  }
+}
+
+void initArray(ValueArray* array) {
+  array->values = NULL;
+  array->capacity = 0;
+  array->count = 0;
+}
+
+void ensureArrayCapacity(ValueArray* array) {
+  if (array->capacity > array->count) return;
+  
+  if (array->capacity == 0) {
+    array->capacity = 4;
+  } else {
+    array->capacity *= 2;
+  }
+  
+  array->values = realloc(array->values, sizeof(Value) * array->capacity);
+}
+
+void freeArray(ValueArray* array) {
+  free(array->values);
 }
 
 void grayValue(Value value) {
@@ -103,8 +200,14 @@ void grayValue(Value value) {
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = vm.grayCapacity == 0 ? 4 : vm.grayCapacity * 2;
     vm.grayStack = realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
-    
-    vm.grayStack[vm.grayCount++] = value;
+  }
+
+  vm.grayStack[vm.grayCount++] = value;
+}
+
+static void grayArray(ValueArray* array) {
+  for (int i = 0; i < array->count; i++) {
+    grayValue(array->values[i]);
   }
 }
 
@@ -118,17 +221,15 @@ static void blackenObject(Obj* obj) {
   switch (obj->type) {
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
-      for (int i = 0; i < function->constantCount; i++) {
-        grayValue(function->constants[i]);
-      }
+      grayArray(&function->constants);
       break;
     }
       
     case OBJ_TABLE: {
       ObjTable* table = (ObjTable*)obj;
-      for (int i = 0; i < table->capacity; i++) {
+      for (int i = 0; i < table->count; i++) {
         TableEntry* entry = &table->entries[i];
-        grayValue(entry->key);
+        grayValue((Value)entry->key);
         grayValue(entry->value);
       }
       break;
@@ -153,7 +254,7 @@ void freeObject(Obj* obj) {
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
       free(function->code);
-      free(function->constants);
+      freeArray(&function->constants);
       break;
     }
       
@@ -169,8 +270,11 @@ void freeObject(Obj* obj) {
       // No references.
       break;
   }
+  
+  free(obj);
 }
 
+// TODO: Move to vm.c?
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
   printf("-- gc --\n");
@@ -181,6 +285,7 @@ void collectGarbage() {
     grayValue(vm.stack[i]);
   }
   
+  grayValue((Value)vm.globals);
   grayCompilerRoots();
 
   while (vm.grayCount > 0) {
