@@ -3,6 +3,11 @@
 #include "debug.h"
 
 void printValue(Value value) {
+  if (value == NULL) {
+    printf("null");
+    return;
+  }
+  
   switch (value->type) {
     case OBJ_BOOL:
       printf(((ObjBool*)value)->value ? "true" : "false");
@@ -45,6 +50,7 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
+    case OP_NULL: printf("OP_NULL\n"); break;
     case OP_POP: printf("OP_POP\n"); break;
       
     case OP_GET_GLOBAL: {

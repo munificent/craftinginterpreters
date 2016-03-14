@@ -122,6 +122,10 @@ static void run(ObjFunction* function) {
         break;
       }
         
+      case OP_NULL:
+        push(NULL);
+        break;
+
       case OP_POP:
         pop();
         break;

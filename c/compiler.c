@@ -206,6 +206,10 @@ static void grouping(bool canAssign) {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
+static void null_(bool canAssign) {
+  emitByte(OP_NULL);
+}
+
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
   uint8_t constant = allocateConstant();
@@ -308,7 +312,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_NULL
+  { null_,    NULL,    PREC_NONE },       // TOKEN_NULL
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
