@@ -151,29 +151,6 @@ static uint8_t nameConstant() {
   return constant;
 }
 
-static void binary(bool canAssign) {
-  TokenType operatorType = parser.previous.type;
-  ParseRule* rule = getRule(operatorType);
-
-  // Compile the right-hand operand.
-  parsePrecedence((Precedence)(rule->precedence + 1));
-
-  // Emit the operator instruction.
-  // TODO: Other operators.
-  switch (operatorType) {
-    case TOKEN_GREATER:       emitByte(OP_GREATER); break;
-    case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
-    case TOKEN_LESS:          emitByte(OP_LESS); break;
-    case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
-    case TOKEN_PLUS:          emitByte(OP_ADD); break;
-    case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
-    case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
-    case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
-    default:
-      assert(false); // Unreachable.
-  }
-}
-
 static void and_(bool canAssign) {
   // left operand...
   // OP_JUMP_IF       ------.
@@ -188,8 +165,32 @@ static void and_(bool canAssign) {
   // Compile the right operand.
   emitByte(OP_POP); // Left operand.
   parsePrecedence(PREC_AND);
-
+  
   patchJump(endJump);
+}
+
+static void binary(bool canAssign) {
+  TokenType operatorType = parser.previous.type;
+  ParseRule* rule = getRule(operatorType);
+
+  // Compile the right-hand operand.
+  parsePrecedence((Precedence)(rule->precedence + 1));
+
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
+    case TOKEN_EQUAL_EQUAL:   emitByte(OP_EQUAL); break;
+    case TOKEN_GREATER:       emitByte(OP_GREATER); break;
+    case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
+    case TOKEN_LESS:          emitByte(OP_LESS); break;
+    case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
+    case TOKEN_PLUS:          emitByte(OP_ADD); break;
+    case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
+    case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
+    case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
+    default:
+      assert(false); // Unreachable.
+  }
 }
 
 static void boolean(bool canAssign) {
@@ -281,11 +282,11 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
   { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG_EQUAL
+  { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
   { NULL,     NULL,    PREC_NONE },       // TOKEN_DOT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL_EQUAL
+  { NULL,     binary,  PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS

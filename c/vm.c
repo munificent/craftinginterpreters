@@ -152,6 +152,13 @@ static void run(ObjFunction* function) {
         break;
       }
         
+      case OP_EQUAL: {
+        bool equal = valuesEqual(peek(1), peek(2));
+        pop(); pop();
+        push((Value)newBool(equal));
+        break;
+      }
+
       case OP_GREATER: {
         double a, b;
         if (!popNumbers(&a, &b)) return;
@@ -248,6 +255,10 @@ void interpret(const char* source) {
 
   printFunction(function);
   run(function);
+  
+  // TODO: Hack. Discard the function.
+  vm.stackSize = 0;
+  
   collectGarbage();
   printStack();
 }

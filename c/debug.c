@@ -71,10 +71,9 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
+    case OP_EQUAL: printf("OP_EQUAL\n"); break;
     case OP_GREATER: printf("OP_GREATER\n"); break;
-    case OP_GREATER_EQUAL: printf("OP_GREATER_EQUAL\n"); break;
     case OP_LESS: printf("OP_LESS\n"); break;
-    case OP_LESS_EQUAL: printf("OP_LESS_EQUAL\n"); break;
     case OP_ADD: printf("OP_ADD\n"); break;
     case OP_SUBTRACT: printf("OP_SUBTRACT\n"); break;
     case OP_MULTIPLY: printf("OP_MULTIPLY\n"); break;

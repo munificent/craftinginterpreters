@@ -8,19 +8,19 @@
 int main(int argc, const char * argv[]) {
   initVM();
   
-//  char line[MAX_LINE_LENGTH];
-//  for (;;) {
-//    printf("> ");
-//    
-//    if (!fgets(line, MAX_LINE_LENGTH, stdin)) {
-//      printf("\n");
-//      break;
-//    }
-//    
-//    interpret(line);
-//  }
+  char line[MAX_LINE_LENGTH];
+  for (;;) {
+    printf("> ");
+    
+    if (!fgets(line, MAX_LINE_LENGTH, stdin)) {
+      printf("\n");
+      break;
+    }
+    
+    interpret(line);
+  }
   
-  interpret("false and true;");
+//  interpret("false and true;");
   
   endVM();
   
