@@ -159,7 +159,6 @@ static Token number() {
     while (isDigit(peek())) advance();
   }
 
-  // double value = Double.parseDouble(source.substring(tokenStart, current));
   return makeToken(TOKEN_NUMBER);
 }
 

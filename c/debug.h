@@ -8,6 +8,8 @@ void printValue(Value value);
 
 void printStack();
 
+int printInstruction(ObjFunction* function, int i);
+
 void printFunction(ObjFunction* function);
 
 #endif

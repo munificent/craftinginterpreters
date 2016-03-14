@@ -101,24 +101,33 @@ static void run(ObjFunction* function) {
   push((Value)function);
   
   uint8_t* ip = function->code;
+  
+#define READ_BYTE() (*ip++)
+#define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
+
   for (;;) {
     // TODO: Clean up or remove.
-//    for (int i = 0; i < vm.stackSize; i++) {
-//      printf("|%d ", i);
-//      printValue(vm.stack[i]);
-//      printf(" ");
-//    }
-//    printf("\n");
+    for (int i = 0; i < vm.stackSize; i++) {
+      printf("| ");
+      printValue(vm.stack[i]);
+      printf(" ");
+    }
+    printf("\n");
+    printInstruction(function, (int)(ip - function->code));
     
     switch (*ip++) {
       case OP_CONSTANT: {
-        uint8_t constant = *ip++;
+        uint8_t constant = READ_BYTE();
         push(function->constants.values[constant]);
         break;
       }
         
+      case OP_POP:
+        pop();
+        break;
+        
       case OP_GET_GLOBAL: {
-        uint8_t constant = *ip++;
+        uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
         Value global = tableGet(vm.globals, name);
         // TODO: Runtime error for undefined variable.
@@ -127,7 +136,7 @@ static void run(ObjFunction* function) {
       }
         
       case OP_DEFINE_GLOBAL: {
-        uint8_t constant = *ip++;
+        uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
         tableSet(vm.globals, name, peek(1));
         pop();
@@ -135,7 +144,7 @@ static void run(ObjFunction* function) {
       }
         
       case OP_ASSIGN_GLOBAL: {
-        uint8_t constant = *ip++;
+        uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
         // TODO: Error if not defined.
         tableSet(vm.globals, name, peek(1));
@@ -209,8 +218,26 @@ static void run(ObjFunction* function) {
       }
         
       case OP_RETURN:
+        // TODO: Implement me.
         //printValue(vm->stack[vm->stackSize - 1]);
         return;
+        
+      case OP_JUMP: {
+        uint16_t offset = READ_SHORT();
+        ip += offset;
+        break;
+      }
+        
+      case OP_JUMP_IF_FALSE: {
+        uint16_t offset = READ_SHORT();
+        Value condition = peek(1);
+        if (condition == NULL ||
+            (condition->type == OBJ_BOOL &&
+                ((ObjBool*)condition)->value == false)) {
+          ip += offset;
+        }
+        break;
+      }
     }
   }
 }

@@ -101,6 +101,29 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
 //  emitByte(value & 0xff);
 //}
 
+// Emits [instruction] followed by a placeholder for a jump offset. The
+// placeholder can be patched by calling [jumpPatch]. Returns the index of the
+// placeholder.
+static int emitJump(uint8_t instruction) {
+  emitByte(instruction);
+  emitByte(0xff);
+  emitByte(0xff);
+  return compiler->function->codeCount - 2;
+}
+
+// Replaces the placeholder argument for a previous CODE_JUMP or CODE_JUMP_IF
+// instruction with an offset that jumps to the current end of bytecode.
+static void patchJump(int offset) {
+  // -2 to adjust for the bytecode for the jump offset itself.
+  int jump = compiler->function->codeCount - offset - 2;
+  
+  // TODO: Do this.
+  //if (jump > MAX_JUMP) error(compiler, "Too much code to jump over.");
+  
+  compiler->function->code[offset] = (jump >> 8) & 0xff;
+  compiler->function->code[offset + 1] = jump & 0xff;
+}
+
 // Forward declarations since the grammar is recursive.
 static void expression();
 static ParseRule* getRule(TokenType type);
@@ -151,6 +174,24 @@ static void binary(bool canAssign) {
   }
 }
 
+static void and_(bool canAssign) {
+  // left operand...
+  // OP_JUMP_IF       ------.
+  // OP_POP // left operand |
+  // right operand...       |
+  //   <--------------------'
+  // ...
+  
+  // Short circuit if the left operand is false.
+  int endJump = emitJump(OP_JUMP_IF_FALSE);
+  
+  // Compile the right operand.
+  emitByte(OP_POP); // Left operand.
+  parsePrecedence(PREC_AND);
+
+  patchJump(endJump);
+}
+
 static void boolean(bool canAssign) {
   uint8_t constant = allocateConstant();
   compiler->function->constants.values[constant] =
@@ -164,27 +205,37 @@ static void grouping(bool canAssign) {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
-static void unary(bool canAssign) {
-  TokenType operatorType = parser.previous.type;
-  
-  // Compile the operand.
-  parsePrecedence((Precedence)(PREC_UNARY + 1));
-
-  // Emit the operator instruction.
-  switch (operatorType) {
-    case TOKEN_BANG: emitByte(OP_NOT); break;
-    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
-    default:
-      assert(false); // Unreachable.
-  }
-}
-
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
   uint8_t constant = allocateConstant();
   compiler->function->constants.values[constant] = (Value)newNumber(value);
 
   emitBytes(OP_CONSTANT, constant);
+}
+
+static void or_(bool canAssign) {
+  // left operand...
+  // OP_JUMP_IF       ---.
+  // OP_JUMP          ---+--.
+  //   <-----------------'  |
+  // OP_POP // left operand |
+  // right operand...       |
+  //   <--------------------'
+  // ...
+  
+  // If the operand is *true* we want to keep it, so when it's false, jump to
+  // the code to evaluate the right operand.
+  int elseJump = emitJump(OP_JUMP_IF_FALSE);
+
+  // If we get here, the operand is true, so jump to the end to keep it.
+  int endJump = emitJump(OP_JUMP);
+  
+  // Compile the right operand.
+  patchJump(elseJump);
+  emitByte(OP_POP); // Left operand.
+  
+  parsePrecedence(PREC_OR);
+  patchJump(endJump);
 }
 
 static void string(bool canAssign) {
@@ -194,6 +245,21 @@ static void string(bool canAssign) {
   compiler->function->constants.values[constant] = (Value)string;
   
   emitBytes(OP_CONSTANT, constant);
+}
+
+static void unary(bool canAssign) {
+  TokenType operatorType = parser.previous.type;
+  
+  // Compile the operand.
+  parsePrecedence((Precedence)(PREC_UNARY + 1));
+  
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_BANG: emitByte(OP_NOT); break;
+    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
+    default:
+      assert(false); // Unreachable.
+  }
 }
 
 static void variable(bool canAssign) {
@@ -234,7 +300,7 @@ ParseRule rules[] = {
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
 
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_AND
+  { NULL,     and_,    PREC_AND },        // TOKEN_AND
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
   { boolean,  NULL,    PREC_NONE },       // TOKEN_FALSE
@@ -242,7 +308,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
   { NULL,     NULL,    PREC_NONE },       // TOKEN_NULL
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_OR
+  { NULL,     or_,     PREC_OR },         // TOKEN_OR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
   { boolean,  NULL,    PREC_NONE },       // TOKEN_TRUE
@@ -282,6 +348,31 @@ void expression() {
 }
 
 static void statement() {
+  if (match(TOKEN_IF)) {
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+    
+    // Jump to the else branch if the condition is false.
+    int elseJump = emitJump(OP_JUMP_IF_FALSE);
+    
+    // Compile the then branch.
+    emitByte(OP_POP); // Condition.
+    statement(compiler);
+    
+    // Jump over the else branch when the if branch is taken.
+    int endJump = emitJump(OP_JUMP);
+    
+    // Compile the else branch.
+    patchJump(elseJump);
+    emitByte(OP_POP); // Condition.
+
+    if (match(TOKEN_ELSE)) statement();
+    
+    patchJump(endJump);
+    return;
+  }
+  
   if (match(TOKEN_VAR)) {
     consume(TOKEN_IDENTIFIER, "Expect variable name.");
     uint8_t constant = nameConstant();
@@ -298,6 +389,7 @@ static void statement() {
   // TODO: Other statements.
 
   expression();
+  emitByte(OP_POP);
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 

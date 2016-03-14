@@ -8,6 +8,7 @@
 
 typedef enum {
   OP_CONSTANT,
+  OP_POP,
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_ASSIGN_GLOBAL,
@@ -21,7 +22,9 @@ typedef enum {
   OP_DIVIDE,
   OP_NOT,
   OP_NEGATE,
-  OP_RETURN
+  OP_RETURN,
+  OP_JUMP,
+  OP_JUMP_IF_FALSE
 } OpCode;
 
 struct sVM {
