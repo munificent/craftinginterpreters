@@ -53,6 +53,18 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_NULL: printf("OP_NULL\n"); break;
     case OP_POP: printf("OP_POP\n"); break;
       
+    case OP_GET_LOCAL: {
+      uint8_t slot = function->code[i++];
+      printf("%-16s %4d\n", "OP_GET_LOCAL", slot);
+      break;
+    }
+      
+    case OP_SET_LOCAL: {
+      uint8_t slot = function->code[i++];
+      printf("%-16s %4d\n", "OP_SET_LOCAL", slot);
+      break;
+    }
+
     case OP_GET_GLOBAL: {
       uint8_t name = function->code[i++];
       printf("%-16s %4d '", "OP_GET_GLOBAL", name);
@@ -69,9 +81,9 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
-    case OP_ASSIGN_GLOBAL: {
+    case OP_SET_GLOBAL: {
       uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_ASSIGN_GLOBAL", name);
+      printf("%-16s %4d '", "OP_SET_GLOBAL", name);
       printValue(function->constants.values[name]);
       printf("'\n");
       break;

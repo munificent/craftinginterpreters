@@ -6,7 +6,10 @@
 #include "compiler.h"
 #include "object.h"
 #include "scanner.h"
+#include "string.h"
 #include "vm.h"
+
+#define MAX_LOCALS 256
 
 typedef struct {
   bool hadError;
@@ -36,12 +39,33 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 
+typedef struct
+{
+  // The name of the local variable.
+  Token name;
+  
+  // The depth in the scope chain that this variable was declared at. Zero is
+  // the outermost scope--parameters for a method, or the first local block in
+  // top level code. One is the scope within that, etc.
+  int depth;
+} Local;
+
 typedef struct Compiler {
   // The compiler for the enclosing function, if any.
   struct Compiler* enclosing;
 
   // The function being compiled.
   ObjFunction* function;
+  
+  // The currently in scope local variables.
+  Local locals[MAX_LOCALS];
+  
+  // The number of local variables currently in scope.
+  int numLocals;
+  
+  // The current level of block scope nesting. Zero is the outermost local
+  // scope. -1 is global scope.
+  int scopeDepth;
 } Compiler;
 
 Parser parser;
@@ -67,8 +91,12 @@ static void consume(TokenType type, const char* message) {
   advance();
 }
 
+static bool check(TokenType type) {
+  return parser.current.type == type;
+}
+
 static bool match(TokenType type) {
-  if (parser.current.type != type) return false;
+  if (!check(type)) return false;
   advance();
   return true;
 }
@@ -124,8 +152,24 @@ static void patchJump(int offset) {
   compiler->function->code[offset + 1] = jump & 0xff;
 }
 
+static void beginScope() {
+  compiler->scopeDepth++;
+}
+
+static void endScope() {
+  compiler->scopeDepth--;
+  
+  while (compiler->numLocals > 0 &&
+         compiler->locals[compiler->numLocals - 1].depth > compiler->scopeDepth) {
+    // TODO: Close upvalues.
+    emitByte(OP_POP);
+    compiler->numLocals--;
+  }
+}
+
 // Forward declarations since the grammar is recursive.
 static void expression();
+static void statement();
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
@@ -267,14 +311,39 @@ static void unary(bool canAssign) {
   }
 }
 
+static int resolveLocal(Token* name) {
+  for (int i = compiler->numLocals - 1; i >= 0; i--) {
+    if (compiler->locals[i].name.length == name->length &&
+        memcmp(compiler->locals[i].name.start, name->start, name->length) == 0)
+    {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
 static void variable(bool canAssign) {
-  uint8_t constant = nameConstant();
-  
-  if (canAssign && match(TOKEN_EQUAL)) {
-    expression();
-    emitBytes(OP_ASSIGN_GLOBAL, constant);
+  // Look it up in the local scopes. Look in reverse order so that the most
+  // nested variable is found first and shadows outer ones.
+  // TODO: Simplify code.
+  int local = resolveLocal(&parser.previous);
+  if (local != -1) {
+    if (canAssign && match(TOKEN_EQUAL)) {
+      expression();
+      emitBytes(OP_SET_LOCAL, (uint8_t)local);
+    } else {
+      emitBytes(OP_GET_LOCAL, (uint8_t)local);
+    }
   } else {
-    emitBytes(OP_GET_GLOBAL, constant);
+    uint8_t constant = nameConstant();
+    
+    if (canAssign && match(TOKEN_EQUAL)) {
+      expression();
+      emitBytes(OP_SET_GLOBAL, constant);
+    } else {
+      emitBytes(OP_GET_GLOBAL, constant);
+    }
   }
 }
 
@@ -352,47 +421,85 @@ void expression() {
   parsePrecedence(PREC_ASSIGNMENT);
 }
 
+static void block() {
+  consume(TOKEN_LEFT_BRACE, "Expect '{' before block.");
+
+  while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+    statement();
+  }
+  
+  consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
+}
+
+static void ifStatement() {
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  
+  beginScope();
+  
+  // Jump to the else branch if the condition is false.
+  int elseJump = emitJump(OP_JUMP_IF_FALSE);
+  
+  // Compile the then branch.
+  emitByte(OP_POP); // Condition.
+  statement(compiler);
+  
+  // Jump over the else branch when the if branch is taken.
+  int endJump = emitJump(OP_JUMP);
+  
+  // Compile the else branch.
+  patchJump(elseJump);
+  emitByte(OP_POP); // Condition.
+  
+  if (match(TOKEN_ELSE)) statement();
+  
+  patchJump(endJump);
+  endScope();
+}
+
+static void varStatement() {
+  consume(TOKEN_IDENTIFIER, "Expect variable name.");
+  Token name = parser.previous;
+  uint8_t constant = nameConstant();
+  
+  // Compile the initializer.
+  consume(TOKEN_EQUAL, "Expect '=' after variable name.");
+  expression();
+  consume(TOKEN_SEMICOLON, "Expect ';' after initializer.");
+  
+  if (compiler->scopeDepth == -1) {
+    emitBytes(OP_DEFINE_GLOBAL, constant);
+  } else {
+    // TODO: Error if already declared in current scope.
+    Local* local = &compiler->locals[compiler->numLocals];
+    local->name = name;
+    local->depth = compiler->scopeDepth;
+    // TODO: Check for overflow.
+    compiler->numLocals++;
+  }
+}
+
 static void statement() {
   if (match(TOKEN_IF)) {
-    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
-    expression();
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
-    
-    // Jump to the else branch if the condition is false.
-    int elseJump = emitJump(OP_JUMP_IF_FALSE);
-    
-    // Compile the then branch.
-    emitByte(OP_POP); // Condition.
-    statement(compiler);
-    
-    // Jump over the else branch when the if branch is taken.
-    int endJump = emitJump(OP_JUMP);
-    
-    // Compile the else branch.
-    patchJump(elseJump);
-    emitByte(OP_POP); // Condition.
-
-    if (match(TOKEN_ELSE)) statement();
-    
-    patchJump(endJump);
+    ifStatement();
     return;
   }
   
   if (match(TOKEN_VAR)) {
-    consume(TOKEN_IDENTIFIER, "Expect variable name.");
-    uint8_t constant = nameConstant();
-
-    // Compile the initializer.
-    consume(TOKEN_EQUAL, "Expect '=' after variable name.");
-    expression();
-    consume(TOKEN_SEMICOLON, "Expect ';' after initializer.");
-
-    emitBytes(OP_DEFINE_GLOBAL, constant);
+    varStatement();
     return;
   }
   
   // TODO: Other statements.
 
+  if (check(TOKEN_LEFT_BRACE)) {
+    beginScope();
+    block();
+    endScope();
+    return;
+  }
+  
   expression();
   emitByte(OP_POP);
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
@@ -404,6 +511,8 @@ ObjFunction* compile(const char* source) {
   Compiler mainCompiler;
   mainCompiler.enclosing = NULL;
   mainCompiler.function = NULL;
+  mainCompiler.numLocals = 0;
+  mainCompiler.scopeDepth = -1;
 
   compiler = &mainCompiler;
 

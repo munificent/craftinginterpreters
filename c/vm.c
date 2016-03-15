@@ -130,6 +130,18 @@ static void run(ObjFunction* function) {
         pop();
         break;
         
+      case OP_GET_LOCAL: {
+        uint8_t slot = READ_BYTE();
+        // TODO: Offset from current call frame.
+        push(vm.stack[slot]);
+      }
+        
+      case OP_SET_LOCAL: {
+        uint8_t slot = READ_BYTE();
+        // TODO: Offset from current call frame.
+        vm.stack[slot] = pop();
+      }
+        
       case OP_GET_GLOBAL: {
         uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
@@ -147,7 +159,7 @@ static void run(ObjFunction* function) {
         break;
       }
         
-      case OP_ASSIGN_GLOBAL: {
+      case OP_SET_GLOBAL: {
         uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
         // TODO: Error if not defined.
