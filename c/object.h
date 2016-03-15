@@ -11,6 +11,7 @@ typedef struct sVM VM;
 typedef enum {
   OBJ_BOOL,
   OBJ_FUNCTION,
+  OBJ_NATIVE,
   OBJ_NUMBER,
   OBJ_STRING,
   OBJ_TABLE,
@@ -47,6 +48,13 @@ typedef struct {
   ValueArray constants;
 } ObjFunction;
 
+typedef Value (*NativeFn)(int argCount, Value* args);
+
+typedef struct {
+  Obj obj;
+  NativeFn function;
+} ObjNative;
+
 typedef struct {
   Obj obj;
   double value;
@@ -75,6 +83,7 @@ void* reallocate(void* previous, size_t size);
 
 ObjBool* newBool(bool value);
 ObjFunction* newFunction();
+ObjNative* newNative(NativeFn function);
 ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?
 ObjString* newString(const uint8_t* chars, int length);

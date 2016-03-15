@@ -59,6 +59,12 @@ ObjFunction* newFunction() {
   return function;
 }
 
+ObjNative* newNative(NativeFn function) {
+  ObjNative* native = ALLOCATE(ObjNative, OBJ_NATIVE);
+  native->function = function;
+  return native;
+}
+
 ObjNumber* newNumber(double value) {
   ObjNumber* number = ALLOCATE(ObjNumber, OBJ_NUMBER);
   number->value = value;
@@ -155,6 +161,7 @@ bool valuesEqual(Value a, Value b) {
     }
       
     case OBJ_FUNCTION:
+    case OBJ_NATIVE:
     case OBJ_TABLE:
       // These have reference equality.
       return false;
@@ -236,6 +243,7 @@ static void blackenObject(Obj* obj) {
     }
       
     case OBJ_BOOL:
+    case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:
       // No references.
@@ -265,6 +273,7 @@ void freeObject(Obj* obj) {
     }
       
     case OBJ_BOOL:
+    case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:
       // No references.

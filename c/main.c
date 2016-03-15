@@ -59,8 +59,10 @@ static char* readFile(const char* path) {
 
 static void runFile(const char* path) {
   char* source = readFile(path);
-  interpret(source);
+  bool compiled = interpret(source);
   free(source);
+  
+  if (!compiled) exit(65);
 }
 
 int main(int argc, const char* argv[]) {

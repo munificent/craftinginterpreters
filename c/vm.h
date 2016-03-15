@@ -26,7 +26,16 @@ typedef enum {
   OP_NEGATE,
   OP_RETURN,
   OP_JUMP,
-  OP_JUMP_IF_FALSE
+  OP_JUMP_IF_FALSE,
+  OP_CALL_0,
+  OP_CALL_1,
+  OP_CALL_2,
+  OP_CALL_3,
+  OP_CALL_4,
+  OP_CALL_5,
+  OP_CALL_6,
+  OP_CALL_7,
+  OP_CALL_8
 } OpCode;
 
 struct sVM {
@@ -49,7 +58,7 @@ struct sVM {
 extern VM vm;
 
 void initVM();
-void interpret(const char* source);
+bool interpret(const char* source);
 void endVM();
 
 #endif

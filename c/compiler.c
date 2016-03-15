@@ -79,15 +79,12 @@ static void advance() {
 }
 
 static void error(const char* message) {
-  fprintf(stderr, "%s\n", message);
+  fprintf(stderr, "[line %d] Error: %s\n", parser.current.line, message);
   parser.hadError = true;
 }
 
 static void consume(TokenType type, const char* message) {
-  if (parser.current.type != type) {
-    error(message);
-  }
-
+  if (parser.current.type != type) error(message);
   advance();
 }
 
@@ -245,6 +242,20 @@ static void boolean(bool canAssign) {
   emitBytes(OP_CONSTANT, constant);
 }
 
+static void call(bool canAssign) {
+  uint8_t argCount = 0;
+  if (!check(TOKEN_RIGHT_PAREN)) {
+    do {
+      expression();
+      argCount++;
+      // TODO: Check for overflow.
+    } while (match(TOKEN_COMMA));
+  }
+  
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
+  emitByte(OP_CALL_0 + argCount);
+}
+
 static void grouping(bool canAssign) {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
@@ -348,7 +359,7 @@ static void variable(bool canAssign) {
 }
 
 ParseRule rules[] = {
-  { grouping, NULL,    PREC_NONE },       // TOKEN_LEFT_PAREN
+  { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACKET
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACKET

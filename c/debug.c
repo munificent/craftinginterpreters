@@ -17,6 +17,10 @@ void printValue(Value value) {
       printf("function");
       break;
       
+    case OBJ_NATIVE:
+      printf("<fn %p>", ((ObjNative*)value)->function);
+      break;
+      
     case OBJ_NUMBER:
       printf("%g", ((ObjNumber*)value)->value);
       break;
@@ -113,6 +117,16 @@ int printInstruction(ObjFunction* function, int i) {
       printf("%-16s %4d -> %d\n", "OP_JUMP_IF_FALSE", offset, i + offset);
       break;
     }
+
+    case OP_CALL_0: printf("OP_CALL_0\n"); break;
+    case OP_CALL_1: printf("OP_CALL_1\n"); break;
+    case OP_CALL_2: printf("OP_CALL_2\n"); break;
+    case OP_CALL_3: printf("OP_CALL_3\n"); break;
+    case OP_CALL_4: printf("OP_CALL_4\n"); break;
+    case OP_CALL_5: printf("OP_CALL_5\n"); break;
+    case OP_CALL_6: printf("OP_CALL_6\n"); break;
+    case OP_CALL_7: printf("OP_CALL_7\n"); break;
+    case OP_CALL_8: printf("OP_CALL_8\n"); break;
   }
   
   return i;

@@ -10,6 +10,12 @@
 
 VM vm;
 
+static Value printNative(int argCount, Value* args) {
+  printValue(args[0]);
+  printf("\n");
+  return args[0];
+}
+
 void initVM() {
   vm.stackSize = 0;
   vm.objects = NULL;
@@ -19,6 +25,12 @@ void initVM() {
   vm.grayStack = NULL;
 
   vm.globals = newTable();
+  
+  // TODO: Clean up.
+  vm.stack[vm.stackSize++] = (Value)newString((uint8_t*)"print", 5);
+  vm.stack[vm.stackSize++] = (Value)newNative(printNative);
+  tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
+  vm.stackSize = 0;
 }
 
 void endVM() {
@@ -44,7 +56,7 @@ static Value pop() {
 }
 
 static Value peek(int distance) {
-  return vm.stack[vm.stackSize - distance];
+  return vm.stack[vm.stackSize - distance - 1];
 }
 
 // TODO: Lots of duplication here.
@@ -85,8 +97,8 @@ static double popNumber(double* a) {
 }
 
 static void concatenate() {
-  ObjString* b = (ObjString*)peek(1);
-  ObjString* a = (ObjString*)peek(2);
+  ObjString* b = (ObjString*)peek(0);
+  ObjString* a = (ObjString*)peek(1);
   
   ObjString* result = newString(NULL, a->length + b->length);
   memcpy(result->chars, a->chars, a->length);
@@ -106,16 +118,18 @@ static void run(ObjFunction* function) {
 #define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
 
   for (;;) {
-    // TODO: Clean up or remove.
-//    for (int i = 0; i < vm.stackSize; i++) {
-//      printf("| ");
-//      printValue(vm.stack[i]);
-//      printf(" ");
-//    }
-//    printf("\n");
-//    printInstruction(function, (int)(ip - function->code));
+#ifdef DEBUG_TRACE_EXECUTION
+    for (int i = 0; i < vm.stackSize; i++) {
+      printf("| ");
+      printValue(vm.stack[i]);
+      printf(" ");
+    }
+    printf("\n");
+    printInstruction(function, (int)(ip - function->code));
+#endif
     
-    switch (*ip++) {
+    uint8_t instruction;
+    switch (instruction = *ip++) {
       case OP_CONSTANT: {
         uint8_t constant = READ_BYTE();
         push(function->constants.values[constant]);
@@ -139,7 +153,7 @@ static void run(ObjFunction* function) {
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
         // TODO: Offset from current call frame.
-        vm.stack[slot] = pop();
+        vm.stack[slot] = peek(0);
       }
         
       case OP_GET_GLOBAL: {
@@ -154,7 +168,7 @@ static void run(ObjFunction* function) {
       case OP_DEFINE_GLOBAL: {
         uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
-        tableSet(vm.globals, name, peek(1));
+        tableSet(vm.globals, name, peek(0));
         pop();
         break;
       }
@@ -163,13 +177,12 @@ static void run(ObjFunction* function) {
         uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)function->constants.values[constant];
         // TODO: Error if not defined.
-        tableSet(vm.globals, name, peek(1));
-        pop();
+        tableSet(vm.globals, name, peek(0));
         break;
       }
         
       case OP_EQUAL: {
-        bool equal = valuesEqual(peek(1), peek(2));
+        bool equal = valuesEqual(peek(0), peek(1));
         pop(); pop();
         push((Value)newBool(equal));
         break;
@@ -191,11 +204,11 @@ static void run(ObjFunction* function) {
 
       case OP_ADD: {
         // TODO: Can't do bare ->type here. Need to check for NULL.
-        if (peek(1)->type == OBJ_STRING &&
-            peek(2)->type == OBJ_STRING) {
+        if (peek(0)->type == OBJ_STRING &&
+            peek(1)->type == OBJ_STRING) {
           concatenate();
-        } else if (peek(1)->type == OBJ_NUMBER &&
-                   peek(2)->type == OBJ_NUMBER) {
+        } else if (peek(0)->type == OBJ_NUMBER &&
+                   peek(1)->type == OBJ_NUMBER) {
           double b = ((ObjNumber*)pop())->value;
           double a = ((ObjNumber*)pop())->value;
           push((Value)newNumber(a + b));
@@ -254,7 +267,7 @@ static void run(ObjFunction* function) {
         
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-        Value condition = peek(1);
+        Value condition = peek(0);
         if (condition == NULL ||
             (condition->type == OBJ_BOOL &&
                 ((ObjBool*)condition)->value == false)) {
@@ -262,20 +275,38 @@ static void run(ObjFunction* function) {
         }
         break;
       }
+        
+      case OP_CALL_0:
+      case OP_CALL_1:
+      case OP_CALL_2:
+      case OP_CALL_3:
+      case OP_CALL_4:
+      case OP_CALL_5:
+      case OP_CALL_6:
+      case OP_CALL_7:
+      case OP_CALL_8: {
+        int argCount = instruction - OP_CALL_0;
+        Value function = peek(argCount);
+        // TODO: Check type and handle other types.
+        Value result = ((ObjNative*)function)->function(argCount,
+            &vm.stack[vm.stackSize - argCount]);
+        vm.stackSize -= argCount + 1;
+        push(result);
+        break;
+      }
     }
   }
 }
 
-void interpret(const char* source) {
+bool interpret(const char* source) {
   ObjFunction* function = compile(source);
-  if (function == NULL) return;
+  if (function == NULL) return false;
 
 //  printFunction(function);
   run(function);
   
   // TODO: Hack. Discard the function.
   vm.stackSize = 0;
-  
-  collectGarbage();
 //  printStack();
+  return true;
 }
