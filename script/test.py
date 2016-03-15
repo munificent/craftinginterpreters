@@ -11,7 +11,7 @@ import sys
 
 # Runs the tests.
 REPO_DIR = dirname(dirname(realpath(__file__)))
-C_INTERPRETER = join(REPO_DIR, 'bin', 'cvoxd')
+C_INTERPRETER = join(REPO_DIR, 'build', 'cvoxd')
 JS_INTERPRETER = join(REPO_DIR, 'js', 'vox.js')
 JAVA_INTERPRETER = join(REPO_DIR, 'jvox')
 
