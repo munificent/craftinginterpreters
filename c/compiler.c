@@ -522,9 +522,11 @@ ObjFunction* compile(const char* source) {
   parser.hadError = false;
   advance();
 
-  do {
-    statement();
-  } while (!match(TOKEN_EOF));
+  if (!match(TOKEN_EOF)) {
+    do {
+      statement();
+    } while (!match(TOKEN_EOF));
+  }
 
   emitByte(OP_RETURN);
 

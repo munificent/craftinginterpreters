@@ -107,13 +107,13 @@ static void run(ObjFunction* function) {
 
   for (;;) {
     // TODO: Clean up or remove.
-    for (int i = 0; i < vm.stackSize; i++) {
-      printf("| ");
-      printValue(vm.stack[i]);
-      printf(" ");
-    }
-    printf("\n");
-    printInstruction(function, (int)(ip - function->code));
+//    for (int i = 0; i < vm.stackSize; i++) {
+//      printf("| ");
+//      printValue(vm.stack[i]);
+//      printf(" ");
+//    }
+//    printf("\n");
+//    printInstruction(function, (int)(ip - function->code));
     
     switch (*ip++) {
       case OP_CONSTANT: {
@@ -190,6 +190,7 @@ static void run(ObjFunction* function) {
       }
 
       case OP_ADD: {
+        // TODO: Can't do bare ->type here. Need to check for NULL.
         if (peek(1)->type == OBJ_STRING &&
             peek(2)->type == OBJ_STRING) {
           concatenate();
@@ -269,12 +270,12 @@ void interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return;
 
-  printFunction(function);
+//  printFunction(function);
   run(function);
   
   // TODO: Hack. Discard the function.
   vm.stackSize = 0;
   
   collectGarbage();
-  printStack();
+//  printStack();
 }

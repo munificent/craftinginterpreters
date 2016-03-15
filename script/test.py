@@ -11,6 +11,7 @@ import sys
 
 # Runs the tests.
 REPO_DIR = dirname(dirname(realpath(__file__)))
+C_INTERPRETER = join(REPO_DIR, 'bin', 'cvoxd')
 JS_INTERPRETER = join(REPO_DIR, 'js', 'vox.js')
 JAVA_INTERPRETER = join(REPO_DIR, 'jvox')
 
@@ -315,7 +316,7 @@ def run_script(app, path, type):
 
 
 def run_test(path):
-  run_script(JAVA_INTERPRETER, path, "test")
+  run_script(C_INTERPRETER, path, "test")
 
 
 walk(join(REPO_DIR, 'test'), run_test)
