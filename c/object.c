@@ -54,6 +54,7 @@ ObjFunction* newFunction() {
   function->codeCount = 0;
   function->codeCapacity = 0;
   function->code = NULL;
+  function->codeLines = NULL;
   
   initArray(&function->constants);
   return function;
@@ -143,6 +144,8 @@ bool valuesEqual(Value a, Value b) {
   // Identity.
   if (a == b) return true;
   
+  if (IS_NULL(a) || IS_NULL(b)) return false;
+  
   // No implicit conversions.
   if (a->type != b->type) return false;
   
@@ -192,7 +195,7 @@ void freeArray(ValueArray* array) {
 }
 
 void grayValue(Value value) {
-  if (value == NULL) return;
+  if (IS_NULL(value)) return;
   
   // Don't get caught in cycle.
   if (value->isDark) return;
@@ -290,15 +293,15 @@ void collectGarbage() {
   printf("-- gc --\n");
 #endif
   
-  // Mark the roots.
-  for (int i = 0; i < vm.stackSize; i++) {
-    grayValue(vm.stack[i]);
+  // Mark the stack roots.
+  for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
+    grayValue((Value)frame->function);
+    for (int i = 0; i < frame->stackSize; i++) {
+      grayValue(frame->stack[i]);
+    }
   }
   
-  for (int i = 0; i < vm.callFrameCount; i++) {
-    grayValue((Value)vm.callFrames[i].function);
-  }
-  
+  // Mark the global roots.
   grayValue((Value)vm.globals);
   grayCompilerRoots();
 

@@ -19,10 +19,19 @@ static Value printNative(int argCount, Value* args) {
   return args[0];
 }
 
-void initVM() {
-  vm.stackSize = 0;
-  vm.callFrameCount = 0;
+static void call(ObjFunction* function) {
+  CallFrame* frame = (CallFrame*)reallocate(NULL, sizeof(CallFrame));
   
+  frame->function = function;
+  frame->ip = function->code;
+  frame->stackSize = 0;
+  
+  frame->caller = vm.frame;
+  vm.frame = frame;
+}
+
+void initVM() {
+  vm.frame = NULL;
   vm.objects = NULL;
   
   vm.grayCount = 0;
@@ -32,10 +41,13 @@ void initVM() {
   vm.globals = newTable();
   
   // TODO: Clean up.
-  vm.stack[vm.stackSize++] = (Value)newString((uint8_t*)"print", 5);
-  vm.stack[vm.stackSize++] = (Value)newNative(printNative);
-  tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
-  vm.stackSize = 0;
+  vm.frame = (CallFrame*)reallocate(NULL, sizeof(CallFrame));
+  vm.frame->function = NULL;
+  vm.frame->stackSize = 0;
+  vm.frame->stack[vm.frame->stackSize++] = (Value)newString((uint8_t*)"print", 5);
+  vm.frame->stack[vm.frame->stackSize++] = (Value)newNative(printNative);
+  tableSet(vm.globals, (ObjString*)vm.frame->stack[0], vm.frame->stack[1]);
+  vm.frame = NULL;
 }
 
 void endVM() {
@@ -58,8 +70,7 @@ static void runtimeError(const char* format, ...) {
   vfprintf(stderr, format, args);
   va_end(args);
 
-  for (int i = vm.callFrameCount - 1; i >= 0; i--) {
-    CallFrame* frame = &vm.callFrames[i];
+  for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
     size_t instruction = frame->ip - frame->function->code;
     int line = frame->function->codeLines[instruction];
     // TODO: Include function name.
@@ -68,25 +79,25 @@ static void runtimeError(const char* format, ...) {
 }
 
 static void push(Value value) {
-  vm.stack[vm.stackSize++] = value;
+  vm.frame->stack[vm.frame->stackSize++] = value;
 }
 
 static Value pop() {
-  return vm.stack[--vm.stackSize];
+  return vm.frame->stack[--vm.frame->stackSize];
 }
 
 static Value peek(int distance) {
-  return vm.stack[vm.stackSize - distance - 1];
+  return vm.frame->stack[vm.frame->stackSize - distance - 1];
 }
 
 // TODO: Lots of duplication here.
 static bool popNumbers(double* a, double* b) {
-  if (vm.stack[vm.stackSize - 1]->type != OBJ_NUMBER) {
+  if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 1])) {
     runtimeError("Right operand must be a number.\n");
     return false;
   }
 
-  if (vm.stack[vm.stackSize - 2]->type != OBJ_NUMBER) {
+  if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 2])) {
     runtimeError("Left operand must be a number.\n");
     return false;
   }
@@ -97,8 +108,8 @@ static bool popNumbers(double* a, double* b) {
 }
 
 static bool popBool(bool* a) {
-  if (vm.stack[vm.stackSize - 1]->type != OBJ_BOOL) {
-    runtimeError("Operand must be a number.\n");
+  if (!IS_BOOL(vm.frame->stack[vm.frame->stackSize - 1])) {
+    runtimeError("Operand must be a boolean.\n");
     return false;
   }
   
@@ -107,7 +118,7 @@ static bool popBool(bool* a) {
 }
 
 static bool popNumber(double* a) {
-  if (vm.stack[vm.stackSize - 1]->type != OBJ_NUMBER) {
+  if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 1])) {
     runtimeError("Operand must be a number.\n");
     return false;
   }
@@ -129,8 +140,7 @@ static void concatenate() {
 }
 
 static bool run() {
-  CallFrame* frame = &vm.callFrames[vm.callFrameCount - 1];
-  uint8_t* ip = frame->ip;
+  uint8_t* ip = vm.frame->ip;
   
 #define READ_BYTE() (*ip++)
 #define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
@@ -150,7 +160,7 @@ static bool run() {
     switch (instruction = *ip++) {
       case OP_CONSTANT: {
         uint8_t constant = READ_BYTE();
-        push(frame->function->constants.values[constant]);
+        push(vm.frame->function->constants.values[constant]);
         break;
       }
         
@@ -164,19 +174,19 @@ static bool run() {
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        push(vm.stack[frame->stackStart + slot]);
+        push(vm.frame->stack[slot]);
         break;
       }
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        vm.stack[frame->stackStart + slot] = peek(0);
+        vm.frame->stack[slot] = peek(0);
         break;
       }
         
       case OP_GET_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
         Value global;
         if (!tableGet(vm.globals, name, &global)) {
           runtimeError("Undefined variable '%s'.\n", name->chars);
@@ -188,7 +198,7 @@ static bool run() {
         
       case OP_DEFINE_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
         tableSet(vm.globals, name, peek(0));
         pop();
         break;
@@ -196,7 +206,7 @@ static bool run() {
         
       case OP_SET_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
         if (!tableSet(vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.\n", name->chars);
           return false;
@@ -227,11 +237,9 @@ static bool run() {
 
       case OP_ADD: {
         // TODO: Can't do bare ->type here. Need to check for NULL.
-        if (peek(0)->type == OBJ_STRING &&
-            peek(1)->type == OBJ_STRING) {
+        if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
-        } else if (peek(0)->type == OBJ_NUMBER &&
-                   peek(1)->type == OBJ_NUMBER) {
+        } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
           double b = ((ObjNumber*)pop())->value;
           double a = ((ObjNumber*)pop())->value;
           push((Value)newNumber(a + b));
@@ -291,7 +299,7 @@ static bool run() {
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
         Value condition = peek(0);
-        if (condition == NULL ||
+        if (IS_NULL(condition) ||
             (condition->type == OBJ_BOOL &&
                 ((ObjBool*)condition)->value == false)) {
           ip += offset;
@@ -310,11 +318,17 @@ static bool run() {
       case OP_CALL_8: {
         int argCount = instruction - OP_CALL_0;
         Value function = peek(argCount);
-        // TODO: Check type and handle other types.
-        Value result = ((ObjNative*)function)->function(argCount,
-            &vm.stack[vm.stackSize - argCount]);
-        vm.stackSize -= argCount + 1;
-        push(result);
+        
+        // TODO: Check for NULL.
+        if (function->type == OBJ_NATIVE) {
+          NativeFn native = ((ObjNative*)function)->function;
+          Value result = native(argCount,
+                                &vm.frame->stack[vm.frame->stackSize - argCount]);
+          vm.frame->stackSize -= argCount + 1;
+          push(result);
+        } else {
+          // TODO: Check type and handle other types.
+        }
         break;
       }
     }
@@ -327,10 +341,7 @@ InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-  vm.callFrames[0].function = function;
-  vm.callFrames[0].ip = function->code;
-  vm.callFrames[0].stackStart = 0;
-  vm.callFrameCount = 1;
+  call(function);
   
 //  printFunction(function);
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;

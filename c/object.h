@@ -6,6 +6,13 @@
 
 typedef struct sVM VM;
 
+#define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
+#define IS_NUMBER(value) isNonNullType((value), OBJ_NUMBER)
+#define IS_NULL(value) ((value) == NULL)
+#define IS_NATIVE(value) isNonNullType((value), OBJ_NATIVE)
+#define IS_STRING(value) isNonNullType((value), OBJ_STRING)
+#define IS_TABLE(value) isNonNullType((value), OBJ_TABLE)
+
 // TODO: Unboxed numbers?
 
 typedef enum {
@@ -102,5 +109,12 @@ void freeArray(ValueArray* array);
 void grayValue(Value value);
 void freeObject(Obj* obj);
 void collectGarbage();
+
+// Returns true if [value] is an object of type [type]. Do not call this
+// directly, instead use the [IS___] macro for the type in question.
+static inline bool isNonNullType(Value value, ObjType type)
+{
+  return value != NULL && value->type == type;
+}
 
 #endif
