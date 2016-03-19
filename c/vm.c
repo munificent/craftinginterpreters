@@ -307,6 +307,12 @@ static bool run() {
         break;
       }
         
+      case OP_LOOP: {
+        uint16_t offset = READ_SHORT();
+        ip -= offset;
+        break;
+      }
+        
       case OP_CALL_0:
       case OP_CALL_1:
       case OP_CALL_2:

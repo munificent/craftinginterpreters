@@ -117,7 +117,14 @@ int printInstruction(ObjFunction* function, int i) {
       printf("%-16s %4d -> %d\n", "OP_JUMP_IF_FALSE", offset, i + offset);
       break;
     }
-
+      
+    case OP_LOOP: {
+      uint16_t offset = (uint16_t)(function->code[i++] << 8);
+      offset |= function->code[i++];
+      printf("%-16s %4d -> %d\n", "OP_LOOP", offset, i - offset);
+      break;
+    }
+      
     case OP_CALL_0: printf("OP_CALL_0\n"); break;
     case OP_CALL_1: printf("OP_CALL_1\n"); break;
     case OP_CALL_2: printf("OP_CALL_2\n"); break;

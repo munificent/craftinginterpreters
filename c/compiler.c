@@ -123,11 +123,14 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte2);
 }
 
-// TODO: Remove?
-//static void emitShort(uint16_t value) {
-//  emitByte((value >> 8) & 0xff);
-//  emitByte(value & 0xff);
-//}
+static void emitLoop(int loopStart) {
+  emitByte(OP_LOOP);
+  
+  // TODO: Check for overflow.
+  int offset = compiler->function->codeCount - loopStart + 2;
+  emitByte((offset >> 8) & 0xff);
+  emitByte(offset & 0xff);
+}
 
 // Emits [instruction] followed by a placeholder for a jump offset. The
 // placeholder can be patched by calling [jumpPatch]. Returns the index of the
@@ -494,29 +497,47 @@ static void varStatement() {
   }
 }
 
+static void whileStatement() {
+  int loopStart = compiler->function->codeCount;
+  
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  
+  beginScope();
+  
+  // Jump out of the loop if the condition is false.
+  int exitJump = emitJump(OP_JUMP_IF_FALSE);
+
+  // Compile the body.
+  emitByte(OP_POP); // Condition.
+  statement(compiler);
+
+  // Loop back to the start.
+  emitLoop(loopStart);
+  
+  patchJump(exitJump);
+  endScope();
+}
+
 static void statement() {
   if (match(TOKEN_IF)) {
     ifStatement();
-    return;
-  }
-  
-  if (match(TOKEN_VAR)) {
+  } else if (match(TOKEN_VAR)) {
     varStatement();
-    return;
-  }
-  
-  // TODO: Other statements.
-
-  if (check(TOKEN_LEFT_BRACE)) {
+  } else if (match(TOKEN_WHILE)) {
+    whileStatement();
+  } else if (check(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
     endScope();
-    return;
+  } else {
+    expression();
+    emitByte(OP_POP);
+    consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
   }
   
-  expression();
-  emitByte(OP_POP);
-  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  // TODO: Other statements.
 }
 
 ObjFunction* compile(const char* source) {
