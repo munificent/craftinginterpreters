@@ -107,28 +107,28 @@ void ensureTableCapacity(ObjTable* table) {
   table->entries = realloc(table->entries, sizeof(TableEntry) * table->capacity);
 }
 
-Value tableGet(ObjTable* table, ObjString* key) {
+bool tableGet(ObjTable* table, ObjString* key, Value* value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
     TableEntry* entry = &table->entries[i];
     if (entry->key->length == key->length &&
         memcmp(entry->key->chars, key->chars, key->length) == 0) {
-      return table->entries[i].value;
+      *value = table->entries[i].value;
+      return true;
     }
   }
   
-  // TODO: Return "undefined" value.
-  return NULL;
+  return false;
 }
 
-void tableSet(ObjTable* table, ObjString* key, Value value) {
+bool tableSet(ObjTable* table, ObjString* key, Value value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
     TableEntry* entry = &table->entries[i];
     if (entry->key->length == key->length &&
         memcmp(entry->key->chars, key->chars, key->length) == 0) {
       table->entries[i].value = value;
-      return;
+      return true;
     }
   }
   
@@ -136,6 +136,7 @@ void tableSet(ObjTable* table, ObjString* key, Value value) {
   TableEntry* entry = &table->entries[table->count++];
   entry->key = key;
   entry->value = value;
+  return false;
 }
 
 bool valuesEqual(Value a, Value b) {
@@ -292,6 +293,10 @@ void collectGarbage() {
   // Mark the roots.
   for (int i = 0; i < vm.stackSize; i++) {
     grayValue(vm.stack[i]);
+  }
+  
+  for (int i = 0; i < vm.callFrameCount; i++) {
+    grayValue((Value)vm.callFrames[i].function);
   }
   
   grayValue((Value)vm.globals);

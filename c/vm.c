@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +8,8 @@
 #include "compiler.h"
 #include "debug.h"
 #include "vm.h"
+
+//#define DEBUG_TRACE_EXECUTION
 
 VM vm;
 
@@ -18,6 +21,8 @@ static Value printNative(int argCount, Value* args) {
 
 void initVM() {
   vm.stackSize = 0;
+  vm.callFrameCount = 0;
+  
   vm.objects = NULL;
   
   vm.grayCount = 0;
@@ -47,6 +52,21 @@ void endVM() {
   free(vm.grayStack);
 }
 
+static void runtimeError(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+
+  for (int i = vm.callFrameCount - 1; i >= 0; i--) {
+    CallFrame* frame = &vm.callFrames[i];
+    size_t instruction = frame->ip - frame->function->code;
+    int line = frame->function->codeLines[instruction];
+    // TODO: Include function name.
+    fprintf(stderr, "[line %d]\n", line);
+  }
+}
+
 static void push(Value value) {
   vm.stack[vm.stackSize++] = value;
 }
@@ -62,12 +82,12 @@ static Value peek(int distance) {
 // TODO: Lots of duplication here.
 static bool popNumbers(double* a, double* b) {
   if (vm.stack[vm.stackSize - 1]->type != OBJ_NUMBER) {
-    fprintf(stderr, "Right operand must be a number.\n");
+    runtimeError("Right operand must be a number.\n");
     return false;
   }
 
   if (vm.stack[vm.stackSize - 2]->type != OBJ_NUMBER) {
-    fprintf(stderr, "Left operand must be a number.\n");
+    runtimeError("Left operand must be a number.\n");
     return false;
   }
 
@@ -78,7 +98,7 @@ static bool popNumbers(double* a, double* b) {
 
 static bool popBool(bool* a) {
   if (vm.stack[vm.stackSize - 1]->type != OBJ_BOOL) {
-    fprintf(stderr, "Operand must be a number.\n");
+    runtimeError("Operand must be a number.\n");
     return false;
   }
   
@@ -86,9 +106,9 @@ static bool popBool(bool* a) {
   return true;
 }
 
-static double popNumber(double* a) {
+static bool popNumber(double* a) {
   if (vm.stack[vm.stackSize - 1]->type != OBJ_NUMBER) {
-    fprintf(stderr, "Operand must be a number.\n");
+    runtimeError("Operand must be a number.\n");
     return false;
   }
   
@@ -108,11 +128,9 @@ static void concatenate() {
   push((Value)result);
 }
 
-static void run(ObjFunction* function) {
-  // TODO: Hack. Stuff it on the stack so it doesn't get collected.
-  push((Value)function);
-  
-  uint8_t* ip = function->code;
+static bool run() {
+  CallFrame* frame = &vm.callFrames[vm.callFrameCount - 1];
+  uint8_t* ip = frame->ip;
   
 #define READ_BYTE() (*ip++)
 #define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
@@ -132,7 +150,7 @@ static void run(ObjFunction* function) {
     switch (instruction = *ip++) {
       case OP_CONSTANT: {
         uint8_t constant = READ_BYTE();
-        push(function->constants.values[constant]);
+        push(frame->function->constants.values[constant]);
         break;
       }
         
@@ -146,28 +164,31 @@ static void run(ObjFunction* function) {
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        // TODO: Offset from current call frame.
-        push(vm.stack[slot]);
+        push(vm.stack[frame->stackStart + slot]);
+        break;
       }
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        // TODO: Offset from current call frame.
-        vm.stack[slot] = peek(0);
+        vm.stack[frame->stackStart + slot] = peek(0);
+        break;
       }
         
       case OP_GET_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)function->constants.values[constant];
-        Value global = tableGet(vm.globals, name);
-        // TODO: Runtime error for undefined variable.
+        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        Value global;
+        if (!tableGet(vm.globals, name, &global)) {
+          runtimeError("Undefined variable '%s'.\n", name->chars);
+          return false;
+        }
         push(global);
         break;
       }
         
       case OP_DEFINE_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)function->constants.values[constant];
+        ObjString* name = (ObjString*)frame->function->constants.values[constant];
         tableSet(vm.globals, name, peek(0));
         pop();
         break;
@@ -175,9 +196,11 @@ static void run(ObjFunction* function) {
         
       case OP_SET_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)function->constants.values[constant];
-        // TODO: Error if not defined.
-        tableSet(vm.globals, name, peek(0));
+        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        if (!tableSet(vm.globals, name, peek(0))) {
+          runtimeError("Undefined variable '%s'.\n", name->chars);
+          return false;
+        }
         break;
       }
         
@@ -190,14 +213,14 @@ static void run(ObjFunction* function) {
 
       case OP_GREATER: {
         double a, b;
-        if (!popNumbers(&a, &b)) return;
+        if (!popNumbers(&a, &b)) return false;
         push((Value)newBool(a > b));
         break;
       }
         
       case OP_LESS: {
         double a, b;
-        if (!popNumbers(&a, &b)) return;
+        if (!popNumbers(&a, &b)) return false;
         push((Value)newBool(a < b));
         break;
       }
@@ -213,43 +236,43 @@ static void run(ObjFunction* function) {
           double a = ((ObjNumber*)pop())->value;
           push((Value)newNumber(a + b));
         } else {
-          fprintf(stderr, "Can only add two strings or two numbers.\n");
-          return;
+          runtimeError("Can only add two strings or two numbers.\n");
+          return false;
         }
         break;
       }
         
       case OP_SUBTRACT: {
         double a, b;
-        if (!popNumbers(&a, &b)) return;
+        if (!popNumbers(&a, &b)) return false;
         push((Value)newNumber(a - b));
         break;
       }
         
       case OP_MULTIPLY: {
         double a, b;
-        if (!popNumbers(&a, &b)) return;
+        if (!popNumbers(&a, &b)) return false;
         push((Value)newNumber(a * b));
         break;
       }
         
       case OP_DIVIDE: {
         double a, b;
-        if (!popNumbers(&a, &b)) return;
+        if (!popNumbers(&a, &b)) return false;
         push((Value)newNumber(a / b));
         break;
       }
         
       case OP_NOT: {
         bool a;
-        if (!popBool(&a)) return;
+        if (!popBool(&a)) return false;
         push((Value)newBool(!a));
         break;
       }
 
       case OP_NEGATE: {
         double a;
-        if (!popNumber(&a)) return;
+        if (!popNumber(&a)) return false;
         push((Value)newNumber(-a));
         break;
       }
@@ -257,7 +280,7 @@ static void run(ObjFunction* function) {
       case OP_RETURN:
         // TODO: Implement me.
         //printValue(vm->stack[vm->stackSize - 1]);
-        return;
+        return true;
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
@@ -296,17 +319,19 @@ static void run(ObjFunction* function) {
       }
     }
   }
+  
+  return true;
 }
 
-bool interpret(const char* source) {
+InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
-  if (function == NULL) return false;
+  if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-//  printFunction(function);
-  run(function);
+  vm.callFrames[0].function = function;
+  vm.callFrames[0].ip = function->code;
+  vm.callFrames[0].stackStart = 0;
+  vm.callFrameCount = 1;
   
-  // TODO: Hack. Discard the function.
-  vm.stackSize = 0;
-//  printStack();
-  return true;
+//  printFunction(function);
+  return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 }

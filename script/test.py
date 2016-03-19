@@ -172,6 +172,7 @@ class Test:
   def validate_compile_errors(self, error_lines):
     # Validate that every compile error was expected.
     found_errors = set()
+    num_unexpected = 0
     for line in error_lines:
       match = ERROR_PATTERN.search(line)
       if match:
@@ -179,11 +180,18 @@ class Test:
         if error_line in self.compile_errors:
           found_errors.add(error_line)
         else:
-          self.fail('Unexpected error:')
-          self.fail(line)
+          if num_unexpected < 10:
+            self.fail('Unexpected error:')
+            self.fail(line)
+          num_unexpected += 1
       elif line != '':
-        self.fail('Unexpected output on stderr:')
-        self.fail(line)
+        if num_unexpected < 10:
+          self.fail('Unexpected output on stderr:')
+          self.fail(line)
+        num_unexpected += 1
+
+    if num_unexpected > 10:
+      self.fail('(truncated ' + str(num_unexpected - 10) + ' more...)')
 
     # Validate that every expected error occurred.
     for line in self.compile_errors - found_errors:
@@ -193,6 +201,9 @@ class Test:
   def validate_exit_code(self, exit_code, error_lines):
     if exit_code == self.exit_code: return
 
+    if len(error_lines) > 10:
+      error_lines = error_lines[0:10]
+      error_lines.append('(truncated...)')
     self.fail('Expected return code {0} and got {1}. Stderr:',
         self.exit_code, exit_code)
     self.failures += error_lines

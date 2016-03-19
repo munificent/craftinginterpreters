@@ -110,9 +110,12 @@ static void emitByte(uint8_t byte) {
 
     function->code = reallocate(function->code,
                                 sizeof(uint8_t) * function->codeCapacity);
+    function->codeLines = reallocate(function->codeLines,
+                                      sizeof(int) * function->codeCapacity);
   }
 
-  function->code[function->codeCount++] = byte;
+  function->code[function->codeCount] = byte;
+  function->codeLines[function->codeCount++] = parser.previous.line;
 }
 
 static void emitBytes(uint8_t byte1, uint8_t byte2) {

@@ -44,6 +44,7 @@ typedef struct {
   int codeCount;
   int codeCapacity;
   uint8_t* code;
+  int* codeLines;
 
   ValueArray constants;
 } ObjFunction;
@@ -88,8 +89,8 @@ ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?
 ObjString* newString(const uint8_t* chars, int length);
 ObjTable* newTable();
-Value tableGet(ObjTable* table, ObjString* key);
-void tableSet(ObjTable* table, ObjString* key, Value value);
+bool tableGet(ObjTable* table, ObjString* key, Value* value);
+bool tableSet(ObjTable* table, ObjString* key, Value value);
 
 bool valuesEqual(Value a, Value b);
 
