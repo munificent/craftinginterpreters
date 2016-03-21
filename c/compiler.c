@@ -2,11 +2,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "compiler.h"
+#include "debug.h"
 #include "object.h"
 #include "scanner.h"
-#include "string.h"
 #include "vm.h"
 
 #define MAX_LOCALS 256
@@ -61,7 +62,7 @@ typedef struct Compiler {
   Local locals[MAX_LOCALS];
   
   // The number of local variables currently in scope.
-  int numLocals;
+  int localCount;
   
   // The current level of block scope nesting. Zero is the outermost local
   // scope. -1 is global scope.
@@ -71,16 +72,20 @@ typedef struct Compiler {
 Parser parser;
 
 // The compiler for the innermost function currently being compiled.
-Compiler* compiler;
+Compiler* compiler = NULL;
 
 static void advance() {
   parser.previous = parser.current;
   parser.current = scanToken();
 }
 
-static void error(const char* message) {
-  fprintf(stderr, "[line %d] Error: %s\n", parser.current.line, message);
+static void errorAt(int line, const char* message) {
+  fprintf(stderr, "[line %d] Error: %s\n", line, message);
   parser.hadError = true;
+}
+
+static void error(const char* message) {
+  errorAt(parser.previous.line, message);
 }
 
 static void consume(TokenType type, const char* message) {
@@ -155,19 +160,49 @@ static void patchJump(int offset) {
   compiler->function->code[offset + 1] = jump & 0xff;
 }
 
+static void beginCompiler(Compiler* newCompiler) {
+  newCompiler->enclosing = compiler;
+  newCompiler->function = NULL;
+  newCompiler->localCount = 0;
+  newCompiler->scopeDepth = -1;
+  
+  compiler = newCompiler;
+  
+  newCompiler->function = newFunction();
+}
+
+static ObjFunction* endCompiler() {
+  emitBytes(OP_NULL, OP_RETURN);
+  
+  ObjFunction* function = compiler->function;
+  compiler = compiler->enclosing;
+
+//  if (!parser.hadError) printFunction(function);
+
+  // If there was a compile error, the code is not valid, so don't create a
+  // function.
+  return parser.hadError ? NULL : function;
+}
+
 static void beginScope() {
   compiler->scopeDepth++;
 }
 
 static void endScope() {
-  compiler->scopeDepth--;
-  
-  while (compiler->numLocals > 0 &&
-         compiler->locals[compiler->numLocals - 1].depth > compiler->scopeDepth) {
-    // TODO: Close upvalues.
-    emitByte(OP_POP);
-    compiler->numLocals--;
+  for (int i = compiler->localCount - 1; i >= 0; i--) {
+    Local* local = &compiler->locals[i];
+    if (local->depth < compiler->scopeDepth) break;
+    
+    // Clear the name of the local to make it out of scope. Do not remove it
+    // from the list. This ensures another local declared later does not take
+    // over its slot. That would do the wrong thing if a closure capture's the
+    // first local. While this local is out of scope *textually*, it may still
+    // be reachable at runtime by a closure.
+    // TODO: Detect if it was closed over and eliminate it completely if not?
+    local->name.length = 0;
   }
+
+  compiler->scopeDepth--;
 }
 
 // Forward declarations since the grammar is recursive.
@@ -329,7 +364,7 @@ static void unary(bool canAssign) {
 }
 
 static int resolveLocal(Token* name) {
-  for (int i = compiler->numLocals - 1; i >= 0; i--) {
+  for (int i = compiler->localCount - 1; i >= 0; i--) {
     if (compiler->locals[i].name.length == name->length &&
         memcmp(compiler->locals[i].name.start, name->start, name->length) == 0)
     {
@@ -338,6 +373,43 @@ static int resolveLocal(Token* name) {
   }
 
   return -1;
+}
+
+static Token parseVariable(const char* error, uint8_t* constant) {
+  consume(TOKEN_IDENTIFIER, error);
+  Token name = parser.previous;
+  if (compiler->scopeDepth == -1) {
+    *constant = nameConstant();
+  }
+  return name;
+}
+
+static void declareVariable(Token* name, uint8_t constant) {
+  if (compiler->scopeDepth == -1) {
+    emitBytes(OP_DEFINE_GLOBAL, constant);
+  } else {
+    for (int i = compiler->localCount - 1; i >= 0; i--) {
+      Local* local = &compiler->locals[i];
+      if (local->depth < compiler->scopeDepth) break;
+      if (name->length == local->name.length &&
+          memcmp(name->start, local->name.start, name->length) == 0) {
+        // TODO: Having to report error at explicit line means errors could be
+        // reported out of order. Another option is to declare the local in
+        // parseVariable(), but that means putting it in a half-declared state,
+        // so that it can't be accessed in its own initializer. Ruby and JS do
+        // something odd here, where a variable can be accessed in its own
+        // initializer and doing so implicitly nulls it out (!).
+        errorAt(name->line,
+                "Variable with this name already declared in this scope.");
+      }
+    }
+    
+    Local* local = &compiler->locals[compiler->localCount];
+    local->name = *name;
+    local->depth = compiler->scopeDepth;
+    // TODO: Check for overflow.
+    compiler->localCount++;
+  }
 }
 
 static void variable(bool canAssign) {
@@ -448,6 +520,43 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
+static void funStatement() {
+  uint8_t nameConstant = 0xff;
+  Token name = parseVariable("Expect function name.", &nameConstant);
+  
+  uint8_t fnConstant = allocateConstant();
+
+  Compiler functionCompiler;
+  beginCompiler(&functionCompiler);
+  beginScope();
+  
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
+  
+  if (!check(TOKEN_RIGHT_PAREN)) {
+    do {
+      uint8_t paramConstant;
+      Token param = parseVariable("Expect parameter name.", &paramConstant);
+      declareVariable(&param, paramConstant);
+      compiler->function->arity++;
+      // TODO: Check for overflow.
+    } while (match(TOKEN_COMMA));
+  }
+  
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
+
+  block();
+
+  endScope();
+  ObjFunction* function = endCompiler();
+  
+  compiler->function->constants.values[fnConstant] = (Value)function;
+  emitBytes(OP_CONSTANT, fnConstant);
+  
+  // TODO: Closure stuff to capture frame.
+  
+  declareVariable(&name, nameConstant);
+}
+
 static void ifStatement() {
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
@@ -476,25 +585,15 @@ static void ifStatement() {
 }
 
 static void varStatement() {
-  consume(TOKEN_IDENTIFIER, "Expect variable name.");
-  Token name = parser.previous;
-  uint8_t constant = nameConstant();
+  uint8_t constant = 0xff;
+  Token name = parseVariable("Expect variable name.", &constant);
   
   // Compile the initializer.
   consume(TOKEN_EQUAL, "Expect '=' after variable name.");
   expression();
   consume(TOKEN_SEMICOLON, "Expect ';' after initializer.");
   
-  if (compiler->scopeDepth == -1) {
-    emitBytes(OP_DEFINE_GLOBAL, constant);
-  } else {
-    // TODO: Error if already declared in current scope.
-    Local* local = &compiler->locals[compiler->numLocals];
-    local->name = name;
-    local->depth = compiler->scopeDepth;
-    // TODO: Check for overflow.
-    compiler->numLocals++;
-  }
+  declareVariable(&name, constant);
 }
 
 static void whileStatement() {
@@ -521,7 +620,9 @@ static void whileStatement() {
 }
 
 static void statement() {
-  if (match(TOKEN_IF)) {
+  if (match(TOKEN_FUN)) {
+    funStatement();
+  } else if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_VAR)) {
     varStatement();
@@ -544,14 +645,7 @@ ObjFunction* compile(const char* source) {
   initScanner(source);
 
   Compiler mainCompiler;
-  mainCompiler.enclosing = NULL;
-  mainCompiler.function = NULL;
-  mainCompiler.numLocals = 0;
-  mainCompiler.scopeDepth = -1;
-
-  compiler = &mainCompiler;
-
-  mainCompiler.function = newFunction();
+  beginCompiler(&mainCompiler);
 
   // Prime the pump.
   parser.hadError = false;
@@ -563,15 +657,7 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-  emitByte(OP_RETURN);
-
-  compiler = NULL;
-
-  // If there was a compile error, the code is not valid, so don't create a
-  // function.
-  if (parser.hadError) return NULL;
-
-  return mainCompiler.function;
+  return endCompiler();
 }
 
 void grayCompilerRoots() {

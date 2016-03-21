@@ -14,11 +14,11 @@ void printValue(Value value) {
       break;
       
     case OBJ_FUNCTION:
-      printf("function");
+      printf("<fn %p>", value);
       break;
       
     case OBJ_NATIVE:
-      printf("<fn %p>", ((ObjNative*)value)->function);
+      printf("<native %p>", ((ObjNative*)value)->function);
       break;
       
     case OBJ_NUMBER:

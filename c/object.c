@@ -55,6 +55,7 @@ ObjFunction* newFunction() {
   function->codeCapacity = 0;
   function->code = NULL;
   function->codeLines = NULL;
+  function->arity = 0;
   
   initArray(&function->constants);
   return function;

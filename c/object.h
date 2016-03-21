@@ -7,6 +7,7 @@
 typedef struct sVM VM;
 
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
+#define IS_FUNCTION(value) isNonNullType((value), OBJ_FUNCTION)
 #define IS_NUMBER(value) isNonNullType((value), OBJ_NUMBER)
 #define IS_NULL(value) ((value) == NULL)
 #define IS_NATIVE(value) isNonNullType((value), OBJ_NATIVE)
@@ -52,6 +53,7 @@ typedef struct {
   int codeCapacity;
   uint8_t* code;
   int* codeLines;
+  int arity;
 
   ValueArray constants;
 } ObjFunction;

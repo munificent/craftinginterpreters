@@ -19,12 +19,24 @@ static Value printNative(int argCount, Value* args) {
   return args[0];
 }
 
-static void call(ObjFunction* function) {
+static void call(ObjFunction* function, int argCount) {
   CallFrame* frame = (CallFrame*)reallocate(NULL, sizeof(CallFrame));
+  
+  // TODO: Check for arity mismatch.
   
   frame->function = function;
   frame->ip = function->code;
-  frame->stackSize = 0;
+  frame->stackSize = function->arity;
+  
+  // TODO: Error if argCount < arity.
+  // Copy the arguments to the callee's stack.
+  for (int i = 0; i < function->arity; i++) {
+    frame->stack[i] = vm.frame->stack[vm.frame->stackSize - argCount + i];
+  }
+  
+  // Pop them off the caller's stack.
+  // TODO: if check is just for very first call. Get rid of.
+  if (vm.frame != NULL) vm.frame->stackSize -= argCount + 1;
   
   frame->caller = vm.frame;
   vm.frame = frame;
@@ -69,6 +81,8 @@ static void runtimeError(const char* format, ...) {
   va_start(args, format);
   vfprintf(stderr, format, args);
   va_end(args);
+  
+  fputs("\n", stderr);
 
   for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
     size_t instruction = frame->ip - frame->function->code;
@@ -93,12 +107,12 @@ static Value peek(int distance) {
 // TODO: Lots of duplication here.
 static bool popNumbers(double* a, double* b) {
   if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 1])) {
-    runtimeError("Right operand must be a number.\n");
+    runtimeError("Right operand must be a number.");
     return false;
   }
 
   if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 2])) {
-    runtimeError("Left operand must be a number.\n");
+    runtimeError("Left operand must be a number.");
     return false;
   }
 
@@ -109,7 +123,7 @@ static bool popNumbers(double* a, double* b) {
 
 static bool popBool(bool* a) {
   if (!IS_BOOL(vm.frame->stack[vm.frame->stackSize - 1])) {
-    runtimeError("Operand must be a boolean.\n");
+    runtimeError("Operand must be a boolean.");
     return false;
   }
   
@@ -119,7 +133,7 @@ static bool popBool(bool* a) {
 
 static bool popNumber(double* a) {
   if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 1])) {
-    runtimeError("Operand must be a number.\n");
+    runtimeError("Operand must be a number.");
     return false;
   }
   
@@ -147,13 +161,13 @@ static bool run() {
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
-    for (int i = 0; i < vm.stackSize; i++) {
+    for (int i = 0; i < vm.frame->stackSize; i++) {
       printf("| ");
-      printValue(vm.stack[i]);
+      printValue(vm.frame->stack[i]);
       printf(" ");
     }
     printf("\n");
-    printInstruction(function, (int)(ip - function->code));
+    printInstruction(vm.frame->function, (int)(ip - vm.frame->function->code));
 #endif
     
     uint8_t instruction;
@@ -189,7 +203,7 @@ static bool run() {
         ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
         Value global;
         if (!tableGet(vm.globals, name, &global)) {
-          runtimeError("Undefined variable '%s'.\n", name->chars);
+          runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }
         push(global);
@@ -208,7 +222,7 @@ static bool run() {
         uint8_t constant = READ_BYTE();
         ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
         if (!tableSet(vm.globals, name, peek(0))) {
-          runtimeError("Undefined variable '%s'.\n", name->chars);
+          runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }
         break;
@@ -244,7 +258,7 @@ static bool run() {
           double a = ((ObjNumber*)pop())->value;
           push((Value)newNumber(a + b));
         } else {
-          runtimeError("Can only add two strings or two numbers.\n");
+          runtimeError("Can only add two strings or two numbers.");
           return false;
         }
         break;
@@ -285,10 +299,15 @@ static bool run() {
         break;
       }
         
-      case OP_RETURN:
-        // TODO: Implement me.
-        //printValue(vm->stack[vm->stackSize - 1]);
-        return true;
+      case OP_RETURN: {
+        Value result = pop();
+        vm.frame = vm.frame->caller;
+        if (vm.frame == NULL) return true;
+
+        ip = vm.frame->ip;
+        push(result);
+        break;
+      }
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
@@ -323,17 +342,23 @@ static bool run() {
       case OP_CALL_7:
       case OP_CALL_8: {
         int argCount = instruction - OP_CALL_0;
-        Value function = peek(argCount);
+        Value called = peek(argCount);
         
         // TODO: Check for NULL.
-        if (function->type == OBJ_NATIVE) {
-          NativeFn native = ((ObjNative*)function)->function;
+        if (IS_NATIVE(called)) {
+          NativeFn native = ((ObjNative*)called)->function;
           Value result = native(argCount,
                                 &vm.frame->stack[vm.frame->stackSize - argCount]);
           vm.frame->stackSize -= argCount + 1;
           push(result);
+        } else if (IS_FUNCTION(called)) {
+          ObjFunction* function = (ObjFunction*)called;
+          vm.frame->ip = ip;
+          call(function, argCount);
+          ip = function->code;
         } else {
-          // TODO: Check type and handle other types.
+          // TODO: Better error message.
+          runtimeError("Not callable.");
         }
         break;
       }
@@ -347,8 +372,7 @@ InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-  call(function);
+  call(function, 0);
   
-//  printFunction(function);
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 }
