@@ -27,7 +27,8 @@ static void runtimeError(const char* format, ...) {
   
   fputs("\n", stderr);
   
-  for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
+  for (int i = vm.frameCount - 1; i >= 0; i--) {
+    CallFrame* frame = &vm.frames[i];
     size_t instruction = frame->ip - frame->function->code;
     int line = frame->function->codeLines[instruction];
     // TODO: Include function name.
@@ -36,33 +37,24 @@ static void runtimeError(const char* format, ...) {
 }
 
 static bool call(ObjFunction* function, int argCount) {
-  CallFrame* frame = (CallFrame*)reallocate(NULL, sizeof(CallFrame));
-  
   if (argCount < function->arity) {
     runtimeError("Not enough arguments.");
     return false;
   }
-  
+
+  // TODO: Check for overflow.
+  CallFrame* frame = &vm.frames[vm.frameCount++];
   frame->function = function;
   frame->ip = function->code;
-  frame->stackSize = function->arity;
-  
-  // Copy the arguments to the callee's stack.
-  for (int i = 0; i < function->arity; i++) {
-    frame->stack[i] = vm.frame->stack[vm.frame->stackSize - argCount + i];
-  }
-  
-  // Pop them off the caller's stack.
-  // TODO: if check is just for very first call. Get rid of.
-  if (vm.frame != NULL) vm.frame->stackSize -= argCount + 1;
-  
-  frame->caller = vm.frame;
-  vm.frame = frame;
+  // TODO: Should the frame's stack start include the called function or not?
+  // If so, we need the compiler to set aside slot 0 for it. Also need to figure
+  // out how we want to handle methods.
+  frame->stackStart = vm.stackSize - function->arity;
   return true;
 }
 
 void initVM() {
-  vm.frame = NULL;
+  vm.frameCount = 0;
   vm.objects = NULL;
   
   vm.grayCount = 0;
@@ -72,13 +64,10 @@ void initVM() {
   vm.globals = newTable();
   
   // TODO: Clean up.
-  vm.frame = (CallFrame*)reallocate(NULL, sizeof(CallFrame));
-  vm.frame->function = NULL;
-  vm.frame->stackSize = 0;
-  vm.frame->stack[vm.frame->stackSize++] = (Value)newString((uint8_t*)"print", 5);
-  vm.frame->stack[vm.frame->stackSize++] = (Value)newNative(printNative);
-  tableSet(vm.globals, (ObjString*)vm.frame->stack[0], vm.frame->stack[1]);
-  vm.frame = NULL;
+  vm.stack[vm.stackSize++] = (Value)newString((uint8_t*)"print", 5);
+  vm.stack[vm.stackSize++] = (Value)newNative(printNative);
+  tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
+  vm.stackSize = 0;
 }
 
 void endVM() {
@@ -96,25 +85,25 @@ void endVM() {
 }
 
 static void push(Value value) {
-  vm.frame->stack[vm.frame->stackSize++] = value;
+  vm.stack[vm.stackSize++] = value;
 }
 
 static Value pop() {
-  return vm.frame->stack[--vm.frame->stackSize];
+  return vm.stack[--vm.stackSize];
 }
 
 static Value peek(int distance) {
-  return vm.frame->stack[vm.frame->stackSize - distance - 1];
+  return vm.stack[vm.stackSize - distance - 1];
 }
 
 // TODO: Lots of duplication here.
 static bool popNumbers(double* a, double* b) {
-  if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 1])) {
+  if (!IS_NUMBER(vm.stack[vm.stackSize - 1])) {
     runtimeError("Right operand must be a number.");
     return false;
   }
 
-  if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 2])) {
+  if (!IS_NUMBER(vm.stack[vm.stackSize - 2])) {
     runtimeError("Left operand must be a number.");
     return false;
   }
@@ -125,7 +114,7 @@ static bool popNumbers(double* a, double* b) {
 }
 
 static bool popBool(bool* a) {
-  if (!IS_BOOL(vm.frame->stack[vm.frame->stackSize - 1])) {
+  if (!IS_BOOL(vm.stack[vm.stackSize - 1])) {
     runtimeError("Operand must be a boolean.");
     return false;
   }
@@ -135,7 +124,7 @@ static bool popBool(bool* a) {
 }
 
 static bool popNumber(double* a) {
-  if (!IS_NUMBER(vm.frame->stack[vm.frame->stackSize - 1])) {
+  if (!IS_NUMBER(vm.stack[vm.stackSize - 1])) {
     runtimeError("Operand must be a number.");
     return false;
   }
@@ -157,27 +146,28 @@ static void concatenate() {
 }
 
 static bool run() {
-  uint8_t* ip = vm.frame->ip;
+  CallFrame* frame = &vm.frames[vm.frameCount - 1];
+  uint8_t* ip = frame->ip;
   
 #define READ_BYTE() (*ip++)
 #define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
-    for (int i = 0; i < vm.frame->stackSize; i++) {
+    for (int i = 0; i < vm.stackSize; i++) {
       printf("| ");
-      printValue(vm.frame->stack[i]);
+      printValue(vm.stack[i]);
       printf(" ");
     }
     printf("\n");
-    printInstruction(vm.frame->function, (int)(ip - vm.frame->function->code));
+    printInstruction(frame->function, (int)(ip - frame->function->code));
 #endif
     
     uint8_t instruction;
     switch (instruction = *ip++) {
       case OP_CONSTANT: {
         uint8_t constant = READ_BYTE();
-        push(vm.frame->function->constants.values[constant]);
+        push(frame->function->constants.values[constant]);
         break;
       }
         
@@ -191,19 +181,19 @@ static bool run() {
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        push(vm.frame->stack[slot]);
+        push(vm.stack[frame->stackStart + slot]);
         break;
       }
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        vm.frame->stack[slot] = peek(0);
+        vm.stack[frame->stackStart + slot] = peek(0);
         break;
       }
         
       case OP_GET_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)frame->function->constants.values[constant];
         Value global;
         if (!tableGet(vm.globals, name, &global)) {
           runtimeError("Undefined variable '%s'.", name->chars);
@@ -215,7 +205,7 @@ static bool run() {
         
       case OP_DEFINE_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)frame->function->constants.values[constant];
         tableSet(vm.globals, name, peek(0));
         pop();
         break;
@@ -223,7 +213,7 @@ static bool run() {
         
       case OP_SET_GLOBAL: {
         uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)vm.frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)frame->function->constants.values[constant];
         if (!tableSet(vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
@@ -253,7 +243,6 @@ static bool run() {
       }
 
       case OP_ADD: {
-        // TODO: Can't do bare ->type here. Need to check for NULL.
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
         } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
@@ -302,16 +291,6 @@ static bool run() {
         break;
       }
         
-      case OP_RETURN: {
-        Value result = pop();
-        vm.frame = vm.frame->caller;
-        if (vm.frame == NULL) return true;
-
-        ip = vm.frame->ip;
-        push(result);
-        break;
-      }
-        
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
         ip += offset;
@@ -350,18 +329,35 @@ static bool run() {
         if (IS_NATIVE(called)) {
           NativeFn native = ((ObjNative*)called)->function;
           Value result = native(argCount,
-                                &vm.frame->stack[vm.frame->stackSize - argCount]);
-          vm.frame->stackSize -= argCount + 1;
+                                &vm.stack[vm.stackSize - argCount]);
+          vm.stackSize -= argCount + 1;
           push(result);
         } else if (IS_FUNCTION(called)) {
           ObjFunction* function = (ObjFunction*)called;
-          vm.frame->ip = ip;
+          frame->ip = ip;
           if (!call(function, argCount)) return false;
+          frame = &vm.frames[vm.frameCount - 1];
           ip = function->code;
         } else {
           runtimeError("Can only call functions and classes.");
           return false;
         }
+        break;
+      }
+        
+      case OP_RETURN: {
+        Value result = pop();
+        // TODO: Close upvalues.
+        if (vm.frameCount == 1) return true;
+        
+        // TODO: -1 here because the stack start does not include the function,
+        // which we also want to discard.
+        vm.stackSize = frame->stackStart - 1;
+        push(result);
+        
+        vm.frameCount--;
+        frame = &vm.frames[vm.frameCount - 1];
+        ip = frame->ip;
         break;
       }
     }

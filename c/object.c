@@ -10,7 +10,7 @@
 
 #include "debug.h"
 
-//#define DEBUG_STRESS_GC
+#define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC
 
 #define TABLE_MAX_LOAD 0.75
@@ -295,11 +295,12 @@ void collectGarbage() {
 #endif
   
   // Mark the stack roots.
-  for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
-    grayValue((Value)frame->function);
-    for (int i = 0; i < frame->stackSize; i++) {
-      grayValue(frame->stack[i]);
-    }
+  for (int i = 0; i < vm.stackSize; i++) {
+    grayValue(vm.stack[i]);
+  }
+  
+  for (int i = 0; i < vm.frameCount; i++) {
+    grayValue((Value)vm.frames[i].function);
   }
   
   // Mark the global roots.

@@ -3,8 +3,8 @@
 
 #include "object.h"
 
-// TODO: Dynamically allocate based on fn.
-#define MAX_STACK       64
+#define MAX_STACK       256
+#define MAX_FRAMES      64
 #define MAX_HEAP        (10 * 1024 * 1024)
 
 typedef enum {
@@ -25,7 +25,6 @@ typedef enum {
   OP_DIVIDE,
   OP_NOT,
   OP_NEGATE,
-  OP_RETURN,
   OP_JUMP,
   OP_JUMP_IF_FALSE,
   OP_LOOP,
@@ -37,21 +36,24 @@ typedef enum {
   OP_CALL_5,
   OP_CALL_6,
   OP_CALL_7,
-  OP_CALL_8
+  OP_CALL_8,
+  OP_RETURN
 } OpCode;
 
-typedef struct sCallFrame {
-  // TODO: Handle closures.
+typedef struct {
   ObjFunction* function;
   uint8_t* ip;
-  
-  Value stack[MAX_STACK];
-  int stackSize;
-  struct sCallFrame* caller;
+  // TODO: Make pointer?
+  int stackStart;
 } CallFrame;
 
 struct sVM {
-  CallFrame* frame;
+  Value stack[MAX_STACK];
+  // TODO: stackCount.
+  int stackSize;
+  
+  CallFrame frames[MAX_FRAMES];
+  int frameCount;
   
   ObjTable* globals;
   

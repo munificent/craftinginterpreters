@@ -36,9 +36,9 @@ void printValue(Value value) {
 }
 
 void printStack() {
-  for (int i = 0; i < vm.frame->stackSize; i++) {
+  for (int i = 0; i < vm.stackSize; i++) {
     printf("%d: ", i);
-    printValue(vm.frame->stack[i]);
+    printValue(vm.stack[i]);
     printf("\n");
   }
 }
@@ -102,7 +102,6 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_NOT: printf("OP_NOT\n"); break;
     case OP_DIVIDE: printf("OP_DIVIDE\n"); break;
     case OP_NEGATE: printf("OP_NEGATE\n"); break;
-    case OP_RETURN: printf("OP_RETURN\n"); break;
       
     case OP_JUMP: {
       uint16_t offset = (uint16_t)(function->code[i++] << 8);
@@ -134,6 +133,7 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_CALL_6: printf("OP_CALL_6\n"); break;
     case OP_CALL_7: printf("OP_CALL_7\n"); break;
     case OP_CALL_8: printf("OP_CALL_8\n"); break;
+    case OP_RETURN: printf("OP_RETURN\n"); break;
   }
   
   return i;
