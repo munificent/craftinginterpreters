@@ -584,6 +584,17 @@ static void ifStatement() {
   endScope();
 }
 
+static void returnStatement() {
+  if (match(TOKEN_SEMICOLON)) {
+    emitByte(OP_NULL);
+  } else {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+  }
+  
+  emitByte(OP_RETURN);
+}
+
 static void varStatement() {
   uint8_t constant = 0xff;
   Token name = parseVariable("Expect variable name.", &constant);
@@ -624,6 +635,8 @@ static void statement() {
     funStatement();
   } else if (match(TOKEN_IF)) {
     ifStatement();
+  } else if (match(TOKEN_RETURN)) {
+    returnStatement();
   } else if (match(TOKEN_VAR)) {
     varStatement();
   } else if (match(TOKEN_WHILE)) {
