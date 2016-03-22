@@ -19,16 +19,34 @@ static Value printNative(int argCount, Value* args) {
   return args[0];
 }
 
-static void call(ObjFunction* function, int argCount) {
+static void runtimeError(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+  
+  fputs("\n", stderr);
+  
+  for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
+    size_t instruction = frame->ip - frame->function->code;
+    int line = frame->function->codeLines[instruction];
+    // TODO: Include function name.
+    fprintf(stderr, "[line %d]\n", line);
+  }
+}
+
+static bool call(ObjFunction* function, int argCount) {
   CallFrame* frame = (CallFrame*)reallocate(NULL, sizeof(CallFrame));
   
-  // TODO: Check for arity mismatch.
+  if (argCount < function->arity) {
+    runtimeError("Not enough arguments.");
+    return false;
+  }
   
   frame->function = function;
   frame->ip = function->code;
   frame->stackSize = function->arity;
   
-  // TODO: Error if argCount < arity.
   // Copy the arguments to the callee's stack.
   for (int i = 0; i < function->arity; i++) {
     frame->stack[i] = vm.frame->stack[vm.frame->stackSize - argCount + i];
@@ -40,6 +58,7 @@ static void call(ObjFunction* function, int argCount) {
   
   frame->caller = vm.frame;
   vm.frame = frame;
+  return true;
 }
 
 void initVM() {
@@ -74,22 +93,6 @@ void endVM() {
   }
   
   free(vm.grayStack);
-}
-
-static void runtimeError(const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  vfprintf(stderr, format, args);
-  va_end(args);
-  
-  fputs("\n", stderr);
-
-  for (CallFrame* frame = vm.frame; frame != NULL; frame = frame->caller) {
-    size_t instruction = frame->ip - frame->function->code;
-    int line = frame->function->codeLines[instruction];
-    // TODO: Include function name.
-    fprintf(stderr, "[line %d]\n", line);
-  }
 }
 
 static void push(Value value) {
@@ -344,7 +347,6 @@ static bool run() {
         int argCount = instruction - OP_CALL_0;
         Value called = peek(argCount);
         
-        // TODO: Check for NULL.
         if (IS_NATIVE(called)) {
           NativeFn native = ((ObjNative*)called)->function;
           Value result = native(argCount,
@@ -354,11 +356,11 @@ static bool run() {
         } else if (IS_FUNCTION(called)) {
           ObjFunction* function = (ObjFunction*)called;
           vm.frame->ip = ip;
-          call(function, argCount);
+          if (!call(function, argCount)) return false;
           ip = function->code;
         } else {
-          // TODO: Better error message.
-          runtimeError("Not callable.");
+          runtimeError("Can only call functions and classes.");
+          return false;
         }
         break;
       }
