@@ -45,6 +45,12 @@ void printStack() {
 
 int printInstruction(ObjFunction* function, int i) {
   printf("%04d ", i);
+  if (i > 0 && function->codeLines[i] == function->codeLines[i - 1]) {
+    printf("  | ");
+  } else {
+    printf("%3d ", function->codeLines[i]);
+  }
+  
   switch (function->code[i++]) {
     case OP_CONSTANT: {
       uint8_t constant = function->code[i++];
@@ -140,6 +146,9 @@ int printInstruction(ObjFunction* function, int i) {
 }
 
 void printFunction(ObjFunction* function) {
+  // TODO: Show function name.
+  printf("-----\n");
+
   for (int i = 0; i < function->codeCount;) {
     i = printInstruction(function, i);
   }

@@ -151,10 +151,9 @@ static void concatenate() {
 
 static bool run() {
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
-  uint8_t* ip = frame->ip;
   
-#define READ_BYTE() (*ip++)
-#define READ_SHORT() (ip += 2, (uint16_t)((ip[-2] << 8) | ip[-1]))
+#define READ_BYTE() (*frame->ip++)
+#define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -168,7 +167,7 @@ static bool run() {
 #endif
     
     uint8_t instruction;
-    switch (instruction = *ip++) {
+    switch (instruction = *frame->ip++) {
       case OP_CONSTANT: {
         uint8_t constant = READ_BYTE();
         push(frame->function->constants.values[constant]);
@@ -297,7 +296,7 @@ static bool run() {
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
-        ip += offset;
+        frame->ip += offset;
         break;
       }
         
@@ -307,14 +306,14 @@ static bool run() {
         if (IS_NULL(condition) ||
             (condition->type == OBJ_BOOL &&
                 ((ObjBool*)condition)->value == false)) {
-          ip += offset;
+          frame->ip += offset;
         }
         break;
       }
         
       case OP_LOOP: {
         uint16_t offset = READ_SHORT();
-        ip -= offset;
+        frame->ip -= offset;
         break;
       }
         
@@ -338,10 +337,8 @@ static bool run() {
           push(result);
         } else if (IS_FUNCTION(called)) {
           ObjFunction* function = (ObjFunction*)called;
-          frame->ip = ip;
           if (!call(function, argCount)) return false;
           frame = &vm.frames[vm.frameCount - 1];
-          ip = function->code;
         } else {
           runtimeError("Can only call functions and classes.");
           return false;
@@ -361,7 +358,6 @@ static bool run() {
         
         vm.frameCount--;
         frame = &vm.frames[vm.frameCount - 1];
-        ip = frame->ip;
         break;
       }
     }
