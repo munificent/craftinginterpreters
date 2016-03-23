@@ -36,9 +36,9 @@ void printValue(Value value) {
 }
 
 void printStack() {
-  for (int i = 0; i < vm.stackSize; i++) {
-    printf("%d: ", i);
-    printValue(vm.stack[i]);
+  for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+    printf("%d: ", (int)(slot - vm.stack));
+    printValue(*slot);
     printf("\n");
   }
 }

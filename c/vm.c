@@ -49,7 +49,7 @@ static bool call(ObjFunction* function, int argCount) {
   // TODO: Should the frame's stack start include the called function or not?
   // If so, we need the compiler to set aside slot 0 for it. Also need to figure
   // out how we want to handle methods.
-  frame->stackStart = vm.stackSize - function->arity;
+  frame->slots = vm.stackTop - argCount;
   return true;
 }
 
@@ -63,11 +63,13 @@ void initVM() {
 
   vm.globals = newTable();
   
+  vm.stackTop = vm.stack;
+
   // TODO: Clean up.
-  vm.stack[vm.stackSize++] = (Value)newString((uint8_t*)"print", 5);
-  vm.stack[vm.stackSize++] = (Value)newNative(printNative);
+  *(vm.stackTop++) = (Value)newString((uint8_t*)"print", 5);
+  *(vm.stackTop++) = (Value)newNative(printNative);
   tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
-  vm.stackSize = 0;
+  vm.stackTop = vm.stack;
 }
 
 void endVM() {
@@ -85,25 +87,27 @@ void endVM() {
 }
 
 static void push(Value value) {
-  vm.stack[vm.stackSize++] = value;
+  *vm.stackTop = value;
+  vm.stackTop++;
 }
 
 static Value pop() {
-  return vm.stack[--vm.stackSize];
+  vm.stackTop--;
+  return *vm.stackTop;
 }
 
 static Value peek(int distance) {
-  return vm.stack[vm.stackSize - distance - 1];
+  return vm.stackTop[-1 - distance];
 }
 
 // TODO: Lots of duplication here.
 static bool popNumbers(double* a, double* b) {
-  if (!IS_NUMBER(vm.stack[vm.stackSize - 1])) {
+  if (!IS_NUMBER(vm.stackTop[-1])) {
     runtimeError("Right operand must be a number.");
     return false;
   }
 
-  if (!IS_NUMBER(vm.stack[vm.stackSize - 2])) {
+  if (!IS_NUMBER(vm.stackTop[-2])) {
     runtimeError("Left operand must be a number.");
     return false;
   }
@@ -114,7 +118,7 @@ static bool popNumbers(double* a, double* b) {
 }
 
 static bool popBool(bool* a) {
-  if (!IS_BOOL(vm.stack[vm.stackSize - 1])) {
+  if (!IS_BOOL(vm.stackTop[-1])) {
     runtimeError("Operand must be a boolean.");
     return false;
   }
@@ -124,7 +128,7 @@ static bool popBool(bool* a) {
 }
 
 static bool popNumber(double* a) {
-  if (!IS_NUMBER(vm.stack[vm.stackSize - 1])) {
+  if (!IS_NUMBER(vm.stackTop[-1])) {
     runtimeError("Operand must be a number.");
     return false;
   }
@@ -154,9 +158,9 @@ static bool run() {
 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
-    for (int i = 0; i < vm.stackSize; i++) {
+    for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
       printf("| ");
-      printValue(vm.stack[i]);
+      printValue(*slot);
       printf(" ");
     }
     printf("\n");
@@ -181,13 +185,13 @@ static bool run() {
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        push(vm.stack[frame->stackStart + slot]);
+        push(frame->slots[slot]);
         break;
       }
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-        vm.stack[frame->stackStart + slot] = peek(0);
+        frame->slots[slot] = peek(0);
         break;
       }
         
@@ -329,8 +333,8 @@ static bool run() {
         if (IS_NATIVE(called)) {
           NativeFn native = ((ObjNative*)called)->function;
           Value result = native(argCount,
-                                &vm.stack[vm.stackSize - argCount]);
-          vm.stackSize -= argCount + 1;
+                                vm.stackTop - argCount);
+          vm.stackTop -= argCount + 1;
           push(result);
         } else if (IS_FUNCTION(called)) {
           ObjFunction* function = (ObjFunction*)called;
@@ -352,7 +356,7 @@ static bool run() {
         
         // TODO: -1 here because the stack start does not include the function,
         // which we also want to discard.
-        vm.stackSize = frame->stackStart - 1;
+        vm.stackTop = frame->slots - 1;
         push(result);
         
         vm.frameCount--;

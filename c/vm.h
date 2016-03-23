@@ -43,14 +43,12 @@ typedef enum {
 typedef struct {
   ObjFunction* function;
   uint8_t* ip;
-  // TODO: Make pointer?
-  int stackStart;
+  Value* slots;
 } CallFrame;
 
 struct sVM {
   Value stack[MAX_STACK];
-  // TODO: stackCount.
-  int stackSize;
+  Value* stackTop;
   
   CallFrame frames[MAX_FRAMES];
   int frameCount;

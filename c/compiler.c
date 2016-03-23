@@ -189,20 +189,14 @@ static void beginScope() {
 }
 
 static void endScope() {
-  for (int i = compiler->localCount - 1; i >= 0; i--) {
-    Local* local = &compiler->locals[i];
-    if (local->depth < compiler->scopeDepth) break;
-    
-    // Clear the name of the local to make it out of scope. Do not remove it
-    // from the list. This ensures another local declared later does not take
-    // over its slot. That would do the wrong thing if a closure capture's the
-    // first local. While this local is out of scope *textually*, it may still
-    // be reachable at runtime by a closure.
-    // TODO: Detect if it was closed over and eliminate it completely if not?
-    local->name.length = 0;
-  }
-
   compiler->scopeDepth--;
+  
+  while (compiler->localCount > 0 &&
+         compiler->locals[compiler->localCount - 1].depth > compiler->scopeDepth) {
+    // TODO: Close upvalues.
+    emitByte(OP_POP);
+    compiler->localCount--;
+  }
 }
 
 // Forward declarations since the grammar is recursive.

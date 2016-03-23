@@ -295,8 +295,8 @@ void collectGarbage() {
 #endif
   
   // Mark the stack roots.
-  for (int i = 0; i < vm.stackSize; i++) {
-    grayValue(vm.stack[i]);
+  for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+    grayValue(*slot);
   }
   
   for (int i = 0; i < vm.frameCount; i++) {
