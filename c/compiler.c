@@ -205,26 +205,27 @@ static void statement();
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
-static uint8_t allocateConstant() {
+static uint8_t addConstant(Value value) {
+  // Make sure the value doesn't get collected when resizing the array.
+  push(value);
   ObjFunction* function = compiler->function;
   ensureArrayCapacity(&function->constants);
   
-  // Make sure allocating the constant later doesn't see an uninitialized
-  // slot.
-  // TODO: Do something cleaner. Pin the constant?
-  function->constants.values[function->constants.count] = NULL;
-  return (uint8_t)function->constants.count++;
+  function->constants.values[function->constants.count++] = pop();
+  return (uint8_t)function->constants.count;
   // TODO: check for overflow.
 }
 
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
 static uint8_t nameConstant() {
-  uint8_t constant = allocateConstant();
-  ObjString* name = newString((uint8_t*)parser.previous.start,
-                              parser.previous.length);
-  compiler->function->constants.values[constant] = (Value)name;
-  return constant;
+  return addConstant((Value)newString((uint8_t*)parser.previous.start,
+                                      parser.previous.length));
+}
+
+static void emitConstant(Value value) {
+  uint8_t constant = addConstant(value);
+  emitBytes(OP_CONSTANT, constant);
 }
 
 static void and_(bool canAssign) {
@@ -270,11 +271,7 @@ static void binary(bool canAssign) {
 }
 
 static void boolean(bool canAssign) {
-  uint8_t constant = allocateConstant();
-  compiler->function->constants.values[constant] =
-      (Value)newBool(parser.previous.type == TOKEN_TRUE);
-
-  emitBytes(OP_CONSTANT, constant);
+  emitConstant((Value)newBool(parser.previous.type == TOKEN_TRUE));
 }
 
 static void call(bool canAssign) {
@@ -302,10 +299,8 @@ static void null_(bool canAssign) {
 
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
-  uint8_t constant = allocateConstant();
-  compiler->function->constants.values[constant] = (Value)newNumber(value);
-
-  emitBytes(OP_CONSTANT, constant);
+  // TODO: Handle error.
+  emitConstant((Value)newNumber(value));
 }
 
 static void or_(bool canAssign) {
@@ -334,12 +329,8 @@ static void or_(bool canAssign) {
 }
 
 static void string(bool canAssign) {
-  uint8_t constant = allocateConstant();
-  ObjString* string = newString((uint8_t*)parser.previous.start + 1,
-                                parser.previous.length - 2);
-  compiler->function->constants.values[constant] = (Value)string;
-  
-  emitBytes(OP_CONSTANT, constant);
+  emitConstant((Value)newString((uint8_t*)parser.previous.start + 1,
+                                parser.previous.length - 2));
 }
 
 static void unary(bool canAssign) {
@@ -517,8 +508,6 @@ static void block() {
 static void funStatement() {
   uint8_t nameConstant = 0xff;
   Token name = parseVariable("Expect function name.", &nameConstant);
-  
-  uint8_t fnConstant = allocateConstant();
 
   Compiler functionCompiler;
   beginCompiler(&functionCompiler);
@@ -542,9 +531,7 @@ static void funStatement() {
 
   endScope();
   ObjFunction* function = endCompiler();
-  
-  compiler->function->constants.values[fnConstant] = (Value)function;
-  emitBytes(OP_CONSTANT, fnConstant);
+  emitConstant((Value)function);
   
   // TODO: Closure stuff to capture frame.
   

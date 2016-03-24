@@ -86,12 +86,12 @@ void endVM() {
   free(vm.grayStack);
 }
 
-static void push(Value value) {
+void push(Value value) {
   *vm.stackTop = value;
   vm.stackTop++;
 }
 
-static Value pop() {
+Value pop() {
   vm.stackTop--;
   return *vm.stackTop;
 }
