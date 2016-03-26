@@ -16,6 +16,8 @@ typedef enum {
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
+  OP_GET_UPVALUE,
+  OP_SET_UPVALUE,
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
@@ -37,11 +39,14 @@ typedef enum {
   OP_CALL_6,
   OP_CALL_7,
   OP_CALL_8,
+  OP_CLOSURE,
+  OP_CLOSE_UPVALUE,
   OP_RETURN
 } OpCode;
 
 typedef struct {
   ObjFunction* function;
+  ObjClosure* closure;
   uint8_t* ip;
   Value* slots;
 } CallFrame;
@@ -54,6 +59,8 @@ struct sVM {
   int frameCount;
   
   ObjTable* globals;
+  
+  ObjUpvalue* openUpvalues;
   
   size_t bytesAllocated;
   size_t nextGC;

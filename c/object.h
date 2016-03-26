@@ -7,6 +7,7 @@
 typedef struct sVM VM;
 
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
+#define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
 #define IS_FUNCTION(value) isNonNullType((value), OBJ_FUNCTION)
 #define IS_NUMBER(value) isNonNullType((value), OBJ_NUMBER)
 #define IS_NULL(value) ((value) == NULL)
@@ -18,11 +19,13 @@ typedef struct sVM VM;
 
 typedef enum {
   OBJ_BOOL,
+  OBJ_CLOSURE,
   OBJ_FUNCTION,
   OBJ_NATIVE,
   OBJ_NUMBER,
   OBJ_STRING,
   OBJ_TABLE,
+  OBJ_UPVALUE
 } ObjType;
 
 typedef struct sObj {
@@ -54,7 +57,8 @@ typedef struct {
   uint8_t* code;
   int* codeLines;
   int arity;
-
+  int upvalueCount;
+  
   ValueArray constants;
 } ObjFunction;
 
@@ -88,16 +92,40 @@ typedef struct {
   TableEntry* entries;
 } ObjTable;
 
+typedef struct sUpvalue {
+  Obj obj;
+  
+  // Pointer to the variable this upvalue is referencing.
+  Value* value;
+  
+  // If the upvalue is closed (i.e. the local variable it was pointing too has
+  // been popped off the stack) then the closed-over value is hoisted out of
+  // the stack into here. [value] is then be changed to point to this.
+  Value closed;
+  
+  // Open upvalues are stored in a linked list. This points to the next one in
+  // that list.
+  struct sUpvalue* next;
+} ObjUpvalue;
+
+typedef struct {
+  Obj obj;
+  ObjFunction* function;
+  ObjUpvalue** upvalues;
+} ObjClosure;
+
 // TODO: Move elsewhere?
 void* reallocate(void* previous, size_t size);
 
 ObjBool* newBool(bool value);
+ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
 ObjNative* newNative(NativeFn function);
 ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?
 ObjString* newString(const uint8_t* chars, int length);
 ObjTable* newTable();
+ObjUpvalue* newUpvalue(Value* slot);
 bool tableGet(ObjTable* table, ObjString* key, Value* value);
 bool tableSet(ObjTable* table, ObjString* key, Value value);
 

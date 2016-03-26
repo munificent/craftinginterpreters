@@ -48,6 +48,21 @@ ObjBool* newBool(bool value) {
   return boolean;
 }
 
+ObjClosure* newClosure(ObjFunction* function) {
+  // TODO: Flex array?
+  // Allocate the upvalue array first so it doesn't cause the closure to get
+  // collected.
+  ObjUpvalue** upvalues = (ObjUpvalue**)reallocate(NULL, sizeof(ObjUpvalue*) * function->upvalueCount);
+  for (int i = 0; i < function->upvalueCount; i++) {
+    upvalues[i] = NULL;
+  }
+  
+  ObjClosure* closure = ALLOCATE(ObjClosure, OBJ_CLOSURE);
+  closure->function = function;
+  closure->upvalues = upvalues;
+  return closure;
+}
+
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE(ObjFunction, OBJ_FUNCTION);
   
@@ -56,6 +71,7 @@ ObjFunction* newFunction() {
   function->code = NULL;
   function->codeLines = NULL;
   function->arity = 0;
+  function->upvalueCount = 0;
   
   initArray(&function->constants);
   return function;
@@ -94,6 +110,15 @@ ObjTable* newTable() {
   table->count = 0;
   table->entries = NULL;
   return table;
+}
+
+ObjUpvalue* newUpvalue(Value* slot) {
+  ObjUpvalue* upvalue = ALLOCATE(ObjUpvalue, OBJ_UPVALUE);
+  upvalue->closed = NULL;
+  upvalue->value = slot;
+  upvalue->next = NULL;
+  
+  return upvalue;
 }
 
 void ensureTableCapacity(ObjTable* table) {
@@ -165,9 +190,11 @@ bool valuesEqual(Value a, Value b) {
              memcmp(aString->chars, bString->chars, aString->length) == 0;
     }
       
+    case OBJ_CLOSURE:
     case OBJ_FUNCTION:
     case OBJ_NATIVE:
     case OBJ_TABLE:
+    case OBJ_UPVALUE:
       // These have reference equality.
       return false;
   }
@@ -231,6 +258,15 @@ static void blackenObject(Obj* obj) {
 #endif
 
   switch (obj->type) {
+    case OBJ_CLOSURE: {
+      ObjClosure* closure = (ObjClosure*)obj;
+      grayValue((Value)closure->function);
+      for (int i = 0; i < closure->function->upvalueCount; i++) {
+        grayValue((Value)closure->upvalues[i]);
+      }
+      break;
+    }
+      
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
       grayArray(&function->constants);
@@ -246,6 +282,10 @@ static void blackenObject(Obj* obj) {
       }
       break;
     }
+      
+    case OBJ_UPVALUE:
+      grayValue(((ObjUpvalue*)obj)->closed);
+      break;
       
     case OBJ_BOOL:
     case OBJ_NATIVE:
@@ -264,6 +304,12 @@ void freeObject(Obj* obj) {
 #endif
 
   switch (obj->type) {
+    case OBJ_CLOSURE: {
+      ObjClosure* closure = (ObjClosure*)obj;
+      free(closure->upvalues);
+      break;
+    }
+      
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
       free(function->code);
@@ -281,7 +327,8 @@ void freeObject(Obj* obj) {
     case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:
-      // No references.
+    case OBJ_UPVALUE:
+      // No separately allocated memory.
       break;
   }
   
@@ -301,6 +348,13 @@ void collectGarbage() {
   
   for (int i = 0; i < vm.frameCount; i++) {
     grayValue((Value)vm.frames[i].function);
+  }
+  
+  // Mark the open upvalues.
+  for (ObjUpvalue* upvalue = vm.openUpvalues;
+       upvalue != NULL;
+       upvalue = upvalue->next) {
+    grayValue((Value)upvalue);
   }
   
   // Mark the global roots.

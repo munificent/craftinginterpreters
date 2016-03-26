@@ -10,7 +10,11 @@
 #include "scanner.h"
 #include "vm.h"
 
+//#define DEBUG_PRINT_CODE
+
+// TODO: These are kind of pointless. Unify?
 #define MAX_LOCALS 256
+#define MAX_UPVALUES 256
 
 typedef struct {
   bool hadError;
@@ -40,8 +44,7 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 
-typedef struct
-{
+typedef struct {
   // The name of the local variable.
   Token name;
   
@@ -49,7 +52,20 @@ typedef struct
   // the outermost scope--parameters for a method, or the first local block in
   // top level code. One is the scope within that, etc.
   int depth;
+  
+  // True if this local variable is captured as an upvalue by a function.
+  bool isUpvalue;
 } Local;
+
+typedef struct {
+  // The index of the local variable or upvalue being captured from the
+  // enclosing function.
+  uint8_t index;
+  
+  // Whether the captured variable is a local or upvalue in the enclosing
+  // function.
+  bool isLocal;
+} Upvalue;
 
 typedef struct Compiler {
   // The compiler for the enclosing function, if any.
@@ -64,6 +80,10 @@ typedef struct Compiler {
   // The number of local variables currently in scope.
   int localCount;
   
+  Upvalue upvalues[MAX_UPVALUES];
+  
+  int upvalueCount;
+  
   // The current level of block scope nesting. Zero is the outermost local
   // scope. -1 is global scope.
   int scopeDepth;
@@ -72,7 +92,7 @@ typedef struct Compiler {
 Parser parser;
 
 // The compiler for the innermost function currently being compiled.
-Compiler* compiler = NULL;
+Compiler* current = NULL;
 
 static void advance() {
   parser.previous = parser.current;
@@ -104,7 +124,7 @@ static bool match(TokenType type) {
 }
 
 static void emitByte(uint8_t byte) {
-  ObjFunction* function = compiler->function;
+  ObjFunction* function = current->function;
   // TODO: allocateConstant() has almost the exact same code. Reuse somehow.
   if (function->codeCapacity < function->codeCount + 1) {
     if (function->codeCapacity == 0) {
@@ -132,7 +152,7 @@ static void emitLoop(int loopStart) {
   emitByte(OP_LOOP);
   
   // TODO: Check for overflow.
-  int offset = compiler->function->codeCount - loopStart + 2;
+  int offset = current->function->codeCount - loopStart + 2;
   emitByte((offset >> 8) & 0xff);
   emitByte(offset & 0xff);
 }
@@ -144,58 +164,62 @@ static int emitJump(uint8_t instruction) {
   emitByte(instruction);
   emitByte(0xff);
   emitByte(0xff);
-  return compiler->function->codeCount - 2;
+  return current->function->codeCount - 2;
 }
 
 // Replaces the placeholder argument for a previous CODE_JUMP or CODE_JUMP_IF
 // instruction with an offset that jumps to the current end of bytecode.
 static void patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
-  int jump = compiler->function->codeCount - offset - 2;
+  int jump = current->function->codeCount - offset - 2;
   
   // TODO: Do this.
   //if (jump > MAX_JUMP) error(compiler, "Too much code to jump over.");
   
-  compiler->function->code[offset] = (jump >> 8) & 0xff;
-  compiler->function->code[offset + 1] = jump & 0xff;
+  current->function->code[offset] = (jump >> 8) & 0xff;
+  current->function->code[offset + 1] = jump & 0xff;
 }
 
-static void beginCompiler(Compiler* newCompiler) {
-  newCompiler->enclosing = compiler;
-  newCompiler->function = NULL;
-  newCompiler->localCount = 0;
-  newCompiler->scopeDepth = -1;
+static void beginCompiler(Compiler* compiler) {
+  compiler->enclosing = current;
+  compiler->function = NULL;
+  compiler->localCount = 0;
+  compiler->upvalueCount = 0;
+  compiler->scopeDepth = -1;
   
-  compiler = newCompiler;
+  current = compiler;
   
-  newCompiler->function = newFunction();
+  compiler->function = newFunction();
 }
 
 static ObjFunction* endCompiler() {
   emitBytes(OP_NULL, OP_RETURN);
   
-  ObjFunction* function = compiler->function;
-  compiler = compiler->enclosing;
+  ObjFunction* function = current->function;
+  current = current->enclosing;
 
-//  if (!parser.hadError) printFunction(function);
-
-  // If there was a compile error, the code is not valid, so don't create a
-  // function.
-  return parser.hadError ? NULL : function;
+#ifdef DEBUG_PRINT_CODE
+  if (!parser.hadError) printFunction(function);
+#endif
+  
+  return function;
 }
 
 static void beginScope() {
-  compiler->scopeDepth++;
+  current->scopeDepth++;
 }
 
 static void endScope() {
-  compiler->scopeDepth--;
+  current->scopeDepth--;
   
-  while (compiler->localCount > 0 &&
-         compiler->locals[compiler->localCount - 1].depth > compiler->scopeDepth) {
-    // TODO: Close upvalues.
-    emitByte(OP_POP);
-    compiler->localCount--;
+  while (current->localCount > 0 &&
+         current->locals[current->localCount - 1].depth > current->scopeDepth) {
+    if (current->locals[current->localCount - 1].isUpvalue) {
+      emitByte(OP_CLOSE_UPVALUE);
+    } else {
+      emitByte(OP_POP);
+    }
+    current->localCount--;
   }
 }
 
@@ -208,11 +232,11 @@ static void parsePrecedence(Precedence precedence);
 static uint8_t addConstant(Value value) {
   // Make sure the value doesn't get collected when resizing the array.
   push(value);
-  ObjFunction* function = compiler->function;
+  ObjFunction* function = current->function;
   ensureArrayCapacity(&function->constants);
   
-  function->constants.values[function->constants.count++] = pop();
-  return (uint8_t)function->constants.count;
+  function->constants.values[function->constants.count] = pop();
+  return (uint8_t)function->constants.count++;
   // TODO: check for overflow.
 }
 
@@ -348,7 +372,9 @@ static void unary(bool canAssign) {
   }
 }
 
-static int resolveLocal(Token* name) {
+static int resolveLocal(Compiler* compiler, Token* name) {
+  // Look it up in the local scopes. Look in reverse order so that the most
+  // nested variable is found first and shadows outer ones.
   for (int i = compiler->localCount - 1; i >= 0; i--) {
     if (compiler->locals[i].name.length == name->length &&
         memcmp(compiler->locals[i].name.start, name->start, name->length) == 0)
@@ -356,68 +382,125 @@ static int resolveLocal(Token* name) {
       return i;
     }
   }
+  
+  return -1;
+}
 
+// Adds an upvalue to [compiler]'s function with the given properties. Does not
+// add one if an upvalue for that variable is already in the list. Returns the
+// index of the upvalue.
+static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
+  // Look for an existing one.
+  for (int i = 0; i < compiler->function->upvalueCount; i++) {
+    Upvalue* upvalue = &compiler->upvalues[i];
+    if (upvalue->index == index && upvalue->isLocal == isLocal) return i;
+  }
+  
+  // If we got here, it's a new upvalue.
+  compiler->upvalues[compiler->function->upvalueCount].isLocal = isLocal;
+  compiler->upvalues[compiler->function->upvalueCount].index = index;
+  return compiler->function->upvalueCount++;
+}
+
+// Attempts to look up [name] in the functions enclosing the one being compiled
+// by [compiler]. If found, it adds an upvalue for it to this compiler's list
+// of upvalues (unless it's already in there) and returns its index. If not
+// found, returns -1.
+//
+// If the name is found outside of the immediately enclosing function, this
+// will flatten the closure and add upvalues to all of the intermediate
+// functions so that it gets walked down to this one.
+static int resolveUpvalue(Compiler* compiler, Token* name) {
+  // If we are at the top level, we didn't find it.
+  if (compiler->enclosing == NULL) return -1;
+  
+  // See if it's a local variable in the immediately enclosing function.
+  int local = resolveLocal(compiler->enclosing, name);
+  if (local != -1) {
+    // Mark the local as an upvalue so we know to close it when it goes out of
+    // scope.
+    compiler->enclosing->locals[local].isUpvalue = true;
+    return addUpvalue(compiler, (uint8_t)local, true);
+  }
+  
+  // See if it's an upvalue in the immediately enclosing function. In other
+  // words, if it's a local variable in a non-immediately enclosing function.
+  // This "flattens" closures automatically: it adds upvalues to all of the
+  // intermediate functions to get from the function where a local is declared
+  // all the way into the possibly deeply nested function that is closing over
+  // it.
+  int upvalue = resolveUpvalue(compiler->enclosing, name);
+  if (upvalue != -1) {
+    return addUpvalue(compiler, (uint8_t)upvalue, false);
+  }
+  
+  // If we got here, we walked all the way up the parent chain and couldn't
+  // find it.
   return -1;
 }
 
 static Token parseVariable(const char* error, uint8_t* constant) {
   consume(TOKEN_IDENTIFIER, error);
   Token name = parser.previous;
-  if (compiler->scopeDepth == -1) {
+  if (current->scopeDepth == -1) {
     *constant = nameConstant();
   }
   return name;
 }
 
 static void declareVariable(Token* name, uint8_t constant) {
-  if (compiler->scopeDepth == -1) {
+  if (current->scopeDepth == -1) {
     emitBytes(OP_DEFINE_GLOBAL, constant);
-  } else {
-    for (int i = compiler->localCount - 1; i >= 0; i--) {
-      Local* local = &compiler->locals[i];
-      if (local->depth < compiler->scopeDepth) break;
-      if (name->length == local->name.length &&
-          memcmp(name->start, local->name.start, name->length) == 0) {
-        // TODO: Having to report error at explicit line means errors could be
-        // reported out of order. Another option is to declare the local in
-        // parseVariable(), but that means putting it in a half-declared state,
-        // so that it can't be accessed in its own initializer. Ruby and JS do
-        // something odd here, where a variable can be accessed in its own
-        // initializer and doing so implicitly nulls it out (!).
-        errorAt(name->line,
-                "Variable with this name already declared in this scope.");
-      }
-    }
-    
-    Local* local = &compiler->locals[compiler->localCount];
-    local->name = *name;
-    local->depth = compiler->scopeDepth;
-    // TODO: Check for overflow.
-    compiler->localCount++;
+    return;
   }
+  
+  // See if a local variable with this name is already declared in this scope.
+  for (int i = current->localCount - 1; i >= 0; i--) {
+    Local* local = &current->locals[i];
+    if (local->depth < current->scopeDepth) break;
+    if (name->length == local->name.length &&
+        memcmp(name->start, local->name.start, name->length) == 0) {
+      // TODO: Having to report error at explicit line means errors could be
+      // reported out of order. Another option is to declare the local in
+      // parseVariable(), but that means putting it in a half-declared state,
+      // so that it can't be accessed in its own initializer. Ruby and JS do
+      // something odd here, where a variable can be accessed in its own
+      // initializer and doing so implicitly nulls it out (!).
+      errorAt(name->line,
+              "Variable with this name already declared in this scope.");
+    }
+  }
+  
+  Local* local = &current->locals[current->localCount];
+  local->name = *name;
+  local->depth = current->scopeDepth;
+  local->isUpvalue = false;
+  // TODO: Check for overflow.
+  current->localCount++;
 }
 
 static void variable(bool canAssign) {
-  // Look it up in the local scopes. Look in reverse order so that the most
-  // nested variable is found first and shadows outer ones.
   // TODO: Simplify code.
-  int local = resolveLocal(&parser.previous);
-  if (local != -1) {
-    if (canAssign && match(TOKEN_EQUAL)) {
-      expression();
-      emitBytes(OP_SET_LOCAL, (uint8_t)local);
-    } else {
-      emitBytes(OP_GET_LOCAL, (uint8_t)local);
-    }
+  uint8_t getOp, setOp;
+  
+  int arg = resolveLocal(current, &parser.previous);
+  if (arg != -1) {
+    getOp = OP_GET_LOCAL;
+    setOp = OP_SET_LOCAL;
+  } else if ((arg = resolveUpvalue(current, &parser.previous)) != -1) {
+    getOp = OP_GET_UPVALUE;
+    setOp = OP_SET_UPVALUE;
   } else {
-    uint8_t constant = nameConstant();
-    
-    if (canAssign && match(TOKEN_EQUAL)) {
-      expression();
-      emitBytes(OP_SET_GLOBAL, constant);
-    } else {
-      emitBytes(OP_GET_GLOBAL, constant);
-    }
+    arg = nameConstant();
+    getOp = OP_GET_GLOBAL;
+    setOp = OP_SET_GLOBAL;
+  }
+
+  if (canAssign && match(TOKEN_EQUAL)) {
+    expression();
+    emitBytes(setOp, (uint8_t)arg);
+  } else {
+    emitBytes(getOp, (uint8_t)arg);
   }
 }
 
@@ -520,7 +603,7 @@ static void funStatement() {
       uint8_t paramConstant;
       Token param = parseVariable("Expect parameter name.", &paramConstant);
       declareVariable(&param, paramConstant);
-      compiler->function->arity++;
+      current->function->arity++;
       // TODO: Check for overflow.
     } while (match(TOKEN_COMMA));
   }
@@ -531,7 +614,22 @@ static void funStatement() {
 
   endScope();
   ObjFunction* function = endCompiler();
-  emitConstant((Value)function);
+  
+  // TODO: Always create closure?
+  if (function->upvalueCount == 0) {
+    emitConstant((Value)function);
+  } else {
+    // Capture the upvalues in the new closure object.
+    uint8_t constant = addConstant((Value)function);
+    emitBytes(OP_CLOSURE, constant);
+    
+    // Emit arguments for each upvalue to know whether to capture a local or
+    // an upvalue.
+    for (int i = 0; i < function->upvalueCount; i++) {
+      emitByte(functionCompiler.upvalues[i].isLocal ? 1 : 0);
+      emitByte(functionCompiler.upvalues[i].index);
+    }
+  }
   
   // TODO: Closure stuff to capture frame.
   
@@ -550,7 +648,7 @@ static void ifStatement() {
   
   // Compile the then branch.
   emitByte(OP_POP); // Condition.
-  statement(compiler);
+  statement();
   
   // Jump over the else branch when the if branch is taken.
   int endJump = emitJump(OP_JUMP);
@@ -589,7 +687,7 @@ static void varStatement() {
 }
 
 static void whileStatement() {
-  int loopStart = compiler->function->codeCount;
+  int loopStart = current->function->codeCount;
   
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
@@ -602,7 +700,7 @@ static void whileStatement() {
 
   // Compile the body.
   emitByte(OP_POP); // Condition.
-  statement(compiler);
+  statement();
 
   // Loop back to the start.
   emitLoop(loopStart);
@@ -651,13 +749,17 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-  return endCompiler();
+  ObjFunction* function = endCompiler();
+  
+  // If there was a compile error, the code is not valid, so don't create a
+  // function.
+  return parser.hadError ? NULL : function;
 }
 
 void grayCompilerRoots() {
-  Compiler* thisCompiler = compiler;
-  while (thisCompiler != NULL) {
-    grayValue((Value)thisCompiler->function);
-    thisCompiler = thisCompiler->enclosing;
+  Compiler* compiler = current;
+  while (compiler != NULL) {
+    grayValue((Value)compiler->function);
+    compiler = compiler->enclosing;
   }
 }

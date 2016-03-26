@@ -13,6 +13,10 @@ void printValue(Value value) {
       printf(((ObjBool*)value)->value ? "true" : "false");
       break;
       
+    case OBJ_CLOSURE:
+      printf("closure");
+      break;
+
     case OBJ_FUNCTION:
       printf("<fn %p>", value);
       break;
@@ -31,6 +35,10 @@ void printValue(Value value) {
       
     case OBJ_TABLE:
       printf("table");
+      break;
+      
+    case OBJ_UPVALUE:
+      printf("upvalue");
       break;
   }
 }
@@ -99,6 +107,18 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
+    case OP_GET_UPVALUE: {
+      uint8_t slot = function->code[i++];
+      printf("%-16s %4d\n", "OP_GET_UPVALUE", slot);
+      break;
+    }
+      
+    case OP_SET_UPVALUE: {
+      uint8_t slot = function->code[i++];
+      printf("%-16s %4d\n", "OP_SET_UPVALUE", slot);
+      break;
+    }
+      
     case OP_EQUAL: printf("OP_EQUAL\n"); break;
     case OP_GREATER: printf("OP_GREATER\n"); break;
     case OP_LESS: printf("OP_LESS\n"); break;
@@ -139,6 +159,23 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_CALL_6: printf("OP_CALL_6\n"); break;
     case OP_CALL_7: printf("OP_CALL_7\n"); break;
     case OP_CALL_8: printf("OP_CALL_8\n"); break;
+    case OP_CLOSURE: {
+      uint8_t constant = function->code[i++];
+      printf("%-16s %4d ", "CLOSURE", constant);
+      printValue(function->constants.values[constant]);
+      printf("\n");
+      
+      ObjFunction* closedFunction = (ObjFunction*)function->constants.values[constant];
+      for (int j = 0; j < closedFunction->upvalueCount; j++) {
+        int isLocal = function->code[i++];
+        int index = function->code[i++];
+        printf("%04d   |                     %s %d\n",
+               i - 2, isLocal ? "local" : "upvalue", index);
+      }
+      break;
+    }
+      
+    case OP_CLOSE_UPVALUE: printf("OP_CLOSE_UPVALUE\n"); break;
     case OP_RETURN: printf("OP_RETURN\n"); break;
   }
   
@@ -147,7 +184,7 @@ int printInstruction(ObjFunction* function, int i) {
 
 void printFunction(ObjFunction* function) {
   // TODO: Show function name.
-  printf("-----\n");
+  printf("----\n");
 
   for (int i = 0; i < function->codeCount;) {
     i = printInstruction(function, i);

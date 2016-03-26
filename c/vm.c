@@ -36,26 +36,11 @@ static void runtimeError(const char* format, ...) {
   }
 }
 
-static bool call(ObjFunction* function, int argCount) {
-  if (argCount < function->arity) {
-    runtimeError("Not enough arguments.");
-    return false;
-  }
-
-  // TODO: Check for overflow.
-  CallFrame* frame = &vm.frames[vm.frameCount++];
-  frame->function = function;
-  frame->ip = function->code;
-  // TODO: Should the frame's stack start include the called function or not?
-  // If so, we need the compiler to set aside slot 0 for it. Also need to figure
-  // out how we want to handle methods.
-  frame->slots = vm.stackTop - argCount;
-  return true;
-}
-
 void initVM() {
+  vm.stackTop = vm.stack;
   vm.frameCount = 0;
   vm.objects = NULL;
+  vm.openUpvalues = NULL;
   
   vm.grayCount = 0;
   vm.grayCapacity = 0;
@@ -63,13 +48,11 @@ void initVM() {
 
   vm.globals = newTable();
   
-  vm.stackTop = vm.stack;
-
   // TODO: Clean up.
-  *(vm.stackTop++) = (Value)newString((uint8_t*)"print", 5);
-  *(vm.stackTop++) = (Value)newNative(printNative);
+  push((Value)newString((uint8_t*)"print", 5));
+  push((Value)newNative(printNative));
   tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
-  vm.stackTop = vm.stack;
+  pop(); pop();
 }
 
 void endVM() {
@@ -98,6 +81,100 @@ Value pop() {
 
 static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
+}
+
+static bool call(Value callee, int argCount) {
+  ObjFunction* function;
+  ObjClosure* closure;
+  
+  if (IS_NATIVE(callee)) {
+    NativeFn native = ((ObjNative*)callee)->function;
+    Value result = native(argCount,
+                          vm.stackTop - argCount);
+    vm.stackTop -= argCount + 1;
+    push(result);
+    return true;
+  } else if (IS_FUNCTION(callee)) {
+    function = (ObjFunction*)callee;
+    closure = NULL;
+  } else if (IS_CLOSURE(callee)) {
+    closure = (ObjClosure*)callee;
+    function = closure->function;
+  } else {
+    runtimeError("Can only call functions and classes.");
+    return false;
+  }
+  
+  if (argCount < function->arity) {
+    runtimeError("Not enough arguments.");
+    return false;
+  }
+  
+  // TODO: Check for overflow.
+  CallFrame* frame = &vm.frames[vm.frameCount++];
+  frame->function = function;
+  frame->closure = closure;
+  frame->ip = function->code;
+  // TODO: Should the frame's stack start include the called function or not?
+  // If so, we need the compiler to set aside slot 0 for it. Also need to figure
+  // out how we want to handle methods.
+  frame->slots = vm.stackTop - argCount;
+  return true;
+}
+
+// Captures the local variable [local] into an [Upvalue]. If that local is
+// already in an upvalue, the existing one is used. (This is important to
+// ensure that multiple closures closing over the same variable actually see
+// the same variable.) Otherwise, it creates a new open upvalue and adds it to
+// the VM's list of upvalues.
+static ObjUpvalue* captureUpvalue(Value* local) {
+  // If there are no open upvalues at all, we must need a new one.
+  if (vm.openUpvalues == NULL) {
+    vm.openUpvalues = newUpvalue(local);
+    return vm.openUpvalues;
+  }
+  
+  ObjUpvalue* prevUpvalue = NULL;
+  ObjUpvalue* upvalue = vm.openUpvalues;
+  
+  // Walk towards the bottom of the stack until we find a previously existing
+  // upvalue or reach where it should be.
+  while (upvalue != NULL && upvalue->value > local) {
+    prevUpvalue = upvalue;
+    upvalue = upvalue->next;
+  }
+  
+  // If we found it, reuse it.
+  if (upvalue != NULL && upvalue->value == local) return upvalue;
+
+  // We walked past the local on the stack, so there must not be an upvalue for
+  // it already. Make a new one and link it in in the right place to keep the
+  // list sorted.
+  ObjUpvalue* createdUpvalue = newUpvalue(local);
+  createdUpvalue->next = upvalue;
+
+  if (prevUpvalue == NULL) {
+    // The new one is the first one in the list.
+    vm.openUpvalues = createdUpvalue;
+  } else {
+    prevUpvalue->next = createdUpvalue;
+  }
+  
+  return createdUpvalue;
+}
+
+static void closeUpvalues(Value* last) {
+  while (vm.openUpvalues != NULL &&
+         vm.openUpvalues->value >= last) {
+    ObjUpvalue* upvalue = vm.openUpvalues;
+    
+    // Move the value into the upvalue itself and point the upvalue to it.
+    upvalue->closed = *upvalue->value;
+    upvalue->value = &upvalue->closed;
+    
+    // Pop it off the open upvalue list.
+    vm.openUpvalues = upvalue->next;
+  }
 }
 
 // TODO: Lots of duplication here.
@@ -163,7 +240,7 @@ static bool run() {
       printf(" ");
     }
     printf("\n");
-    printInstruction(frame->function, (int)(ip - frame->function->code));
+    printInstruction(frame->function, (int)(frame->ip - frame->function->code));
 #endif
     
     uint8_t instruction;
@@ -221,6 +298,18 @@ static bool run() {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }
+        break;
+      }
+        
+      case OP_GET_UPVALUE: {
+        uint8_t slot = READ_BYTE();
+        push(*frame->closure->upvalues[slot]->value);
+        break;
+      }
+        
+      case OP_SET_UPVALUE: {
+        uint8_t slot = READ_BYTE();
+        *frame->closure->upvalues[slot]->value = pop();
         break;
       }
         
@@ -327,28 +416,47 @@ static bool run() {
       case OP_CALL_7:
       case OP_CALL_8: {
         int argCount = instruction - OP_CALL_0;
-        Value called = peek(argCount);
-        
-        if (IS_NATIVE(called)) {
-          NativeFn native = ((ObjNative*)called)->function;
-          Value result = native(argCount,
-                                vm.stackTop - argCount);
-          vm.stackTop -= argCount + 1;
-          push(result);
-        } else if (IS_FUNCTION(called)) {
-          ObjFunction* function = (ObjFunction*)called;
-          if (!call(function, argCount)) return false;
-          frame = &vm.frames[vm.frameCount - 1];
-        } else {
-          runtimeError("Can only call functions and classes.");
-          return false;
-        }
+        if (!call(peek(argCount), argCount)) return false;
+        frame = &vm.frames[vm.frameCount - 1];
         break;
       }
         
+      case OP_CLOSURE: {
+        uint8_t constant = READ_BYTE();
+        ObjFunction* function = (ObjFunction*)frame->function->constants.values[constant];
+        
+        // Create the closure and push it on the stack before creating upvalues
+        // so that it doesn't get collected.
+        ObjClosure* closure = newClosure(function);
+        push((Value)closure);
+        
+        // Capture upvalues.
+        for (int i = 0; i < function->upvalueCount; i++) {
+          uint8_t isLocal = READ_BYTE();
+          uint8_t index = READ_BYTE();
+          if (isLocal) {
+            // Make an new upvalue to close over the parent's local variable.
+            closure->upvalues[i] = captureUpvalue(frame->slots + index);
+          } else {
+            // Use the same upvalue as the current call frame.
+            closure->upvalues[i] = frame->closure->upvalues[index];
+          }
+        }
+
+        break;
+      }
+        
+      case OP_CLOSE_UPVALUE:
+        closeUpvalues(vm.stackTop - 1);
+        pop();
+        break;
+        
       case OP_RETURN: {
         Value result = pop();
-        // TODO: Close upvalues.
+        
+        // Close any upvalues still in scope.
+        closeUpvalues(frame->slots);
+
         if (vm.frameCount == 1) return true;
         
         // TODO: -1 here because the stack start does not include the function,
@@ -370,7 +478,7 @@ InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-  call(function, 0);
+  call((Value)function, 0);
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 }
