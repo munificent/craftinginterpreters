@@ -615,23 +615,16 @@ static void funStatement() {
   endScope();
   ObjFunction* function = endCompiler();
   
-  // TODO: Always create closure?
-  if (function->upvalueCount == 0) {
-    emitConstant((Value)function);
-  } else {
-    // Capture the upvalues in the new closure object.
-    uint8_t constant = addConstant((Value)function);
-    emitBytes(OP_CLOSURE, constant);
-    
-    // Emit arguments for each upvalue to know whether to capture a local or
-    // an upvalue.
-    for (int i = 0; i < function->upvalueCount; i++) {
-      emitByte(functionCompiler.upvalues[i].isLocal ? 1 : 0);
-      emitByte(functionCompiler.upvalues[i].index);
-    }
-  }
+  // Capture the upvalues in the new closure object.
+  uint8_t constant = addConstant((Value)function);
+  emitBytes(OP_CLOSURE, constant);
   
-  // TODO: Closure stuff to capture frame.
+  // Emit arguments for each upvalue to know whether to capture a local or
+  // an upvalue.
+  for (int i = 0; i < function->upvalueCount; i++) {
+    emitByte(functionCompiler.upvalues[i].isLocal ? 1 : 0);
+    emitByte(functionCompiler.upvalues[i].index);
+  }
   
   declareVariable(&name, nameConstant);
 }

@@ -29,8 +29,8 @@ static void runtimeError(const char* format, ...) {
   
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
-    size_t instruction = frame->ip - frame->function->code;
-    int line = frame->function->codeLines[instruction];
+    size_t instruction = frame->ip - frame->closure->function->code;
+    int line = frame->closure->function->codeLines[instruction];
     // TODO: Include function name.
     fprintf(stderr, "[line %d]\n", line);
   }
@@ -84,9 +84,7 @@ static Value peek(int distance) {
 }
 
 static bool call(Value callee, int argCount) {
-  ObjFunction* function;
   ObjClosure* closure;
-  
   if (IS_NATIVE(callee)) {
     NativeFn native = ((ObjNative*)callee)->function;
     Value result = native(argCount,
@@ -94,32 +92,28 @@ static bool call(Value callee, int argCount) {
     vm.stackTop -= argCount + 1;
     push(result);
     return true;
-  } else if (IS_FUNCTION(callee)) {
-    function = (ObjFunction*)callee;
-    closure = NULL;
-  } else if (IS_CLOSURE(callee)) {
+  }
+  
+  if (IS_CLOSURE(callee)) {
     closure = (ObjClosure*)callee;
-    function = closure->function;
-  } else {
-    runtimeError("Can only call functions and classes.");
-    return false;
+    if (argCount < closure->function->arity) {
+      runtimeError("Not enough arguments.");
+      return false;
+    }
+    
+    // TODO: Check for overflow.
+    CallFrame* frame = &vm.frames[vm.frameCount++];
+    frame->closure = closure;
+    frame->ip = closure->function->code;
+    // TODO: Should the frame's stack start include the called function or not?
+    // If so, we need the compiler to set aside slot 0 for it. Also need to figure
+    // out how we want to handle methods.
+    frame->slots = vm.stackTop - argCount;
+    return true;
   }
   
-  if (argCount < function->arity) {
-    runtimeError("Not enough arguments.");
-    return false;
-  }
-  
-  // TODO: Check for overflow.
-  CallFrame* frame = &vm.frames[vm.frameCount++];
-  frame->function = function;
-  frame->closure = closure;
-  frame->ip = function->code;
-  // TODO: Should the frame's stack start include the called function or not?
-  // If so, we need the compiler to set aside slot 0 for it. Also need to figure
-  // out how we want to handle methods.
-  frame->slots = vm.stackTop - argCount;
-  return true;
+  runtimeError("Can only call functions and classes.");
+  return false;
 }
 
 // Captures the local variable [local] into an [Upvalue]. If that local is
@@ -231,7 +225,8 @@ static bool run() {
   
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
-
+#define READ_CONSTANT() (frame->closure->function->constants.values[READ_BYTE()])
+  
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
@@ -246,8 +241,7 @@ static bool run() {
     uint8_t instruction;
     switch (instruction = *frame->ip++) {
       case OP_CONSTANT: {
-        uint8_t constant = READ_BYTE();
-        push(frame->function->constants.values[constant]);
+        push(READ_CONSTANT());
         break;
       }
         
@@ -272,8 +266,7 @@ static bool run() {
       }
         
       case OP_GET_GLOBAL: {
-        uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)READ_CONSTANT();
         Value global;
         if (!tableGet(vm.globals, name, &global)) {
           runtimeError("Undefined variable '%s'.", name->chars);
@@ -284,16 +277,14 @@ static bool run() {
       }
         
       case OP_DEFINE_GLOBAL: {
-        uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)READ_CONSTANT();
         tableSet(vm.globals, name, peek(0));
         pop();
         break;
       }
         
       case OP_SET_GLOBAL: {
-        uint8_t constant = READ_BYTE();
-        ObjString* name = (ObjString*)frame->function->constants.values[constant];
+        ObjString* name = (ObjString*)READ_CONSTANT();
         if (!tableSet(vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
@@ -422,8 +413,7 @@ static bool run() {
       }
         
       case OP_CLOSURE: {
-        uint8_t constant = READ_BYTE();
-        ObjFunction* function = (ObjFunction*)frame->function->constants.values[constant];
+        ObjFunction* function = (ObjFunction*)READ_CONSTANT();
         
         // Create the closure and push it on the stack before creating upvalues
         // so that it doesn't get collected.
@@ -478,7 +468,11 @@ InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-  call((Value)function, 0);
+  push((Value)function);
+  ObjClosure* closure = newClosure(function);
+  pop();
+  
+  call((Value)closure, 0);
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 }

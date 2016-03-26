@@ -347,7 +347,7 @@ void collectGarbage() {
   }
   
   for (int i = 0; i < vm.frameCount; i++) {
-    grayValue((Value)vm.frames[i].function);
+    grayValue((Value)vm.frames[i].closure);
   }
   
   // Mark the open upvalues.
