@@ -15,7 +15,7 @@
 
 #define TABLE_MAX_LOAD 0.75
 
-#define ALLOCATE(type, objType) (type*)allocateObj(sizeof(type), objType)
+#define ALLOCATE_OBJ(type, objType) (type*)allocateObj(sizeof(type), objType)
 
 void* reallocate(void* previous, size_t size) {
 #ifdef DEBUG_STRESS_GC
@@ -43,13 +43,13 @@ Obj* allocateObj(size_t size, ObjType type) {
 }
 
 ObjBool* newBool(bool value) {
-  ObjBool* boolean = ALLOCATE(ObjBool, OBJ_BOOL);
+  ObjBool* boolean = ALLOCATE_OBJ(ObjBool, OBJ_BOOL);
   boolean->value = value;
   return boolean;
 }
 
 ObjClass* newClass(ObjString* name, Value superclass) {
-  ObjClass* klass = ALLOCATE(ObjClass, OBJ_CLASS);
+  ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
   // TODO: Use superclass.  
   klass->methods = NULL;
@@ -60,19 +60,19 @@ ObjClosure* newClosure(ObjFunction* function) {
   // TODO: Flex array?
   // Allocate the upvalue array first so it doesn't cause the closure to get
   // collected.
-  ObjUpvalue** upvalues = (ObjUpvalue**)reallocate(NULL, sizeof(ObjUpvalue*) * function->upvalueCount);
+  ObjUpvalue** upvalues = REALLOCATE(NULL, ObjUpvalue*, function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
   }
   
-  ObjClosure* closure = ALLOCATE(ObjClosure, OBJ_CLOSURE);
+  ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
   closure->function = function;
   closure->upvalues = upvalues;
   return closure;
 }
 
 ObjFunction* newFunction() {
-  ObjFunction* function = ALLOCATE(ObjFunction, OBJ_FUNCTION);
+  ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
   
   function->codeCount = 0;
   function->codeCapacity = 0;
@@ -86,41 +86,41 @@ ObjFunction* newFunction() {
 }
 
 ObjInstance* newInstance(ObjClass* klass) {
-  ObjInstance* instance = ALLOCATE(ObjInstance, OBJ_INSTANCE);
+  ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
   instance->klass = klass;
   instance->fields = NULL;
   return instance;
 }
 
 ObjNative* newNative(NativeFn function) {
-  ObjNative* native = ALLOCATE(ObjNative, OBJ_NATIVE);
+  ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
   native->function = function;
   return native;
 }
 
 ObjNumber* newNumber(double value) {
-  ObjNumber* number = ALLOCATE(ObjNumber, OBJ_NUMBER);
+  ObjNumber* number = ALLOCATE_OBJ(ObjNumber, OBJ_NUMBER);
   number->value = value;
   return number;
 }
 
 ObjString* newString(const uint8_t* chars, int length) {
   // Copy the string to the heap so the object can own it.
-  char* stringChars = reallocate(NULL, length + 1);
+  char* stringChars = REALLOCATE(NULL, char, length + 1);
   stringChars[length] = '\0';
   
   if (chars != NULL) {
     memcpy(stringChars, chars, length);
   }
   
-  ObjString* string = ALLOCATE(ObjString, OBJ_STRING);
+  ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = stringChars;
   return string;
 }
 
 ObjTable* newTable() {
-  ObjTable* table = ALLOCATE(ObjTable, OBJ_TABLE);
+  ObjTable* table = ALLOCATE_OBJ(ObjTable, OBJ_TABLE);
   table->capacity = 0;
   table->count = 0;
   table->entries = NULL;
@@ -128,7 +128,7 @@ ObjTable* newTable() {
 }
 
 ObjUpvalue* newUpvalue(Value* slot) {
-  ObjUpvalue* upvalue = ALLOCATE(ObjUpvalue, OBJ_UPVALUE);
+  ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
   upvalue->closed = NULL;
   upvalue->value = slot;
   upvalue->next = NULL;
@@ -136,7 +136,7 @@ ObjUpvalue* newUpvalue(Value* slot) {
   return upvalue;
 }
 
-void ensureTableCapacity(ObjTable* table) {
+static void growTable(ObjTable* table) {
   if (table->capacity * TABLE_MAX_LOAD > table->count) return;
   
   if (table->capacity == 0) {
@@ -146,7 +146,7 @@ void ensureTableCapacity(ObjTable* table) {
   }
   
   // TODO: Rehash everything.
-  table->entries = realloc(table->entries, sizeof(TableEntry) * table->capacity);
+  table->entries = REALLOCATE(table->entries, TableEntry, table->capacity);
 }
 
 bool tableGet(ObjTable* table, ObjString* key, Value* value) {
@@ -174,7 +174,7 @@ bool tableSet(ObjTable* table, ObjString* key, Value value) {
     }
   }
   
-  ensureTableCapacity(table);
+  growTable(table);
   TableEntry* entry = &table->entries[table->count++];
   entry->key = key;
   entry->value = value;
@@ -223,7 +223,7 @@ void initArray(ValueArray* array) {
   array->count = 0;
 }
 
-void ensureArrayCapacity(ValueArray* array) {
+void growArray(ValueArray* array) {
   if (array->capacity > array->count) return;
   
   if (array->capacity == 0) {

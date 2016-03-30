@@ -6,6 +6,9 @@
 
 typedef struct sVM VM;
 
+#define REALLOCATE(previous, type, count) \
+    (type*)reallocate(previous, sizeof(type) * count)
+
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
 #define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
 #define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
@@ -84,8 +87,6 @@ typedef struct {
   char* chars;
 } ObjString;
 
-// TODO: Bare tables are not first class in the language, so don't make this
-// an Obj?
 typedef struct {
   ObjString* key;
   Value value;
@@ -153,8 +154,7 @@ bool tableSet(ObjTable* table, ObjString* key, Value value);
 bool valuesEqual(Value a, Value b);
 
 void initArray(ValueArray* array);
-// TODO: Better name. "growCapacity"?
-void ensureArrayCapacity(ValueArray* array);
+void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
   
 void grayValue(Value value);

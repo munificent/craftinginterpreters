@@ -133,10 +133,8 @@ static void emitByte(uint8_t byte) {
       function->codeCapacity *= 2;
     }
 
-    function->code = reallocate(function->code,
-                                sizeof(uint8_t) * function->codeCapacity);
-    function->codeLines = reallocate(function->codeLines,
-                                      sizeof(int) * function->codeCapacity);
+    function->code = REALLOCATE(function->code, uint8_t, function->codeCapacity);
+    function->codeLines = REALLOCATE(function->codeLines, int, function->codeCapacity);
   }
 
   function->code[function->codeCount] = byte;
@@ -233,7 +231,7 @@ static uint8_t addConstant(Value value) {
   // Make sure the value doesn't get collected when resizing the array.
   push(value);
   ObjFunction* function = current->function;
-  ensureArrayCapacity(&function->constants);
+  growArray(&function->constants);
   
   function->constants.values[function->constants.count] = pop();
   return (uint8_t)function->constants.count++;
