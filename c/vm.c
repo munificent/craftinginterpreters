@@ -331,11 +331,10 @@ static bool run() {
         
       case OP_GET_FIELD: {
         if (!IS_INSTANCE(peek(0))) {
-          runtimeError("Primitive values cannot have fields.");
+          runtimeError("Only instances have fields.");
           return false;
         }
         
-        // TODO: Class fields.
         ObjInstance* instance = (ObjInstance*)pop();
         ObjString* name = (ObjString*)READ_CONSTANT();
         Value value;
@@ -349,16 +348,15 @@ static bool run() {
         
       case OP_SET_FIELD: {
         if (!IS_INSTANCE(peek(1))) {
-          runtimeError("Primitive values cannot have fields.");
+          runtimeError("Only instances have fields.");
           return false;
         }
         
-        // TODO: Class fields.
         ObjInstance* instance = (ObjInstance*)peek(1);
         tableSet(instance->fields, (ObjString*)READ_CONSTANT(), peek(0));
         Value value = pop();
         pop();
-        push(value); // TODO: Test return value of field setter expression.
+        push(value);
         break;
       }
         

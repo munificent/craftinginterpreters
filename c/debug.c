@@ -60,6 +60,14 @@ void printStack() {
   }
 }
 
+static int constantInstruction(ObjFunction* function, int i, const char* name) {
+  uint8_t constant = function->code[i++];
+  printf("%-16s %4d '", name, constant);
+  printValue(function->constants.values[constant]);
+  printf("'\n");
+  return i;
+}
+
 int printInstruction(ObjFunction* function, int i) {
   printf("%04d ", i);
   if (i > 0 && function->codeLines[i] == function->codeLines[i - 1]) {
@@ -68,14 +76,11 @@ int printInstruction(ObjFunction* function, int i) {
     printf("%3d ", function->codeLines[i]);
   }
   
-  switch (function->code[i++]) {
-    case OP_CONSTANT: {
-      uint8_t constant = function->code[i++];
-      printf("%-16s %4d '", "OP_CONSTANT", constant);
-      printValue(function->constants.values[constant]);
-      printf("'\n");
+  uint8_t instruction = function->code[i++];
+  switch (instruction) {
+    case OP_CONSTANT:
+      i = constantInstruction(function, i, "OP_CONSTANT");
       break;
-    }
       
     case OP_NULL: printf("OP_NULL\n"); break;
     case OP_POP: printf("OP_POP\n"); break;
@@ -92,29 +97,17 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
 
-    case OP_GET_GLOBAL: {
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_GET_GLOBAL", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+    case OP_GET_GLOBAL:
+      i = constantInstruction(function, i, "OP_GET_GLOBAL");
       break;
-    }
       
-    case OP_DEFINE_GLOBAL: {
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_DEFINE_GLOBAL", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+    case OP_DEFINE_GLOBAL:
+      i = constantInstruction(function, i, "OP_DEFINE_GLOBAL");
       break;
-    }
       
-    case OP_SET_GLOBAL: {
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_SET_GLOBAL", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+    case OP_SET_GLOBAL:
+      i = constantInstruction(function, i, "OP_SET_GLOBAL");
       break;
-    }
       
     case OP_GET_UPVALUE: {
       uint8_t slot = function->code[i++];
@@ -128,21 +121,13 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
-    case OP_GET_FIELD: {
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_GET_FIELD", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+    case OP_GET_FIELD:
+      i = constantInstruction(function, i, "OP_GET_FIELD");
       break;
-    }
       
-    case OP_SET_FIELD: {
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_SET_FIELD", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+    case OP_SET_FIELD:
+      i = constantInstruction(function, i, "OP_SET_FIELD");
       break;
-    }
 
     case OP_EQUAL: printf("OP_EQUAL\n"); break;
     case OP_GREATER: printf("OP_GREATER\n"); break;
@@ -175,18 +160,21 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
-    case OP_CALL_0: printf("OP_CALL_0\n"); break;
-    case OP_CALL_1: printf("OP_CALL_1\n"); break;
-    case OP_CALL_2: printf("OP_CALL_2\n"); break;
-    case OP_CALL_3: printf("OP_CALL_3\n"); break;
-    case OP_CALL_4: printf("OP_CALL_4\n"); break;
-    case OP_CALL_5: printf("OP_CALL_5\n"); break;
-    case OP_CALL_6: printf("OP_CALL_6\n"); break;
-    case OP_CALL_7: printf("OP_CALL_7\n"); break;
-    case OP_CALL_8: printf("OP_CALL_8\n"); break;
+    case OP_CALL_0:
+    case OP_CALL_1:
+    case OP_CALL_2:
+    case OP_CALL_3:
+    case OP_CALL_4:
+    case OP_CALL_5:
+    case OP_CALL_6:
+    case OP_CALL_7:
+    case OP_CALL_8:
+      printf("OP_CALL_%d\n", instruction - OP_CALL_0);
+      break;
+      
     case OP_CLOSURE: {
       uint8_t constant = function->code[i++];
-      printf("%-16s %4d ", "CLOSURE", constant);
+      printf("%-16s %4d ", "OP_CLOSURE", constant);
       printValue(function->constants.values[constant]);
       printf("\n");
       
@@ -203,20 +191,13 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_CLOSE_UPVALUE: printf("OP_CLOSE_UPVALUE\n"); break;
     case OP_RETURN: printf("OP_RETURN\n"); break;
 
-    case OP_CLASS: {
+    case OP_CLASS:
       // TODO: Superclass.
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_CLASS", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+      i = constantInstruction(function, i, "OP_CLASS");
       break;
-    }
       
-    case OP_METHOD: printf("OP_METHOD\n");
-      uint8_t name = function->code[i++];
-      printf("%-16s %4d '", "OP_METHOD", name);
-      printValue(function->constants.values[name]);
-      printf("'\n");
+    case OP_METHOD:
+      i = constantInstruction(function, i, "OP_METHOD");
       break;
   }
   
