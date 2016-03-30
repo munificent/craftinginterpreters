@@ -1,16 +1,15 @@
 #include <assert.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "common.h"
 #include "compiler.h"
 #include "debug.h"
 #include "object.h"
+#include "memory.h"
 #include "scanner.h"
 #include "vm.h"
-
-//#define DEBUG_PRINT_CODE
 
 // TODO: These are kind of pointless. Unify?
 #define MAX_LOCALS 256

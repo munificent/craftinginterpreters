@@ -6,9 +6,6 @@
 
 typedef struct sVM VM;
 
-#define REALLOCATE(previous, type, count) \
-    (type*)reallocate(previous, sizeof(type) * count)
-
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
 #define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
 #define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
@@ -134,9 +131,6 @@ typedef struct {
   ObjTable* fields;
 } ObjInstance;
 
-// TODO: Move elsewhere?
-void* reallocate(void* previous, size_t size);
-
 ObjBool* newBool(bool value);
 ObjClass* newClass(ObjString* name, Value superclass);
 ObjClosure* newClosure(ObjFunction* function);
@@ -156,10 +150,6 @@ bool valuesEqual(Value a, Value b);
 void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
-  
-void grayValue(Value value);
-void freeObject(Obj* obj);
-void collectGarbage();
 
 // Returns true if [value] is an object of type [type]. Do not call this
 // directly, instead use the [IS___] macro for the type in question.

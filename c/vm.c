@@ -1,15 +1,13 @@
-#include <assert.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "common.h"
 #include "compiler.h"
 #include "debug.h"
+#include "memory.h"
 #include "vm.h"
-
-//#define DEBUG_TRACE_EXECUTION
 
 VM vm;
 
@@ -61,16 +59,7 @@ void initVM() {
 
 void endVM() {
   vm.globals = NULL;
-  
-  // Free all objects.
-  Obj* obj = vm.objects;
-  while (obj != NULL) {
-    Obj* next = obj->next;
-    freeObject(obj);
-    obj = next;
-  }
-  
-  free(vm.grayStack);
+  freeObjects();
 }
 
 void push(Value value) {

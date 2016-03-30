@@ -5,7 +5,6 @@
 
 #define MAX_STACK       256
 #define MAX_FRAMES      64
-#define MAX_HEAP        (10 * 1024 * 1024)
 
 typedef enum {
   OP_CONSTANT,
@@ -85,7 +84,6 @@ typedef enum {
 extern VM vm;
 
 void initVM();
-
 
 void push(Value value);
 Value pop();
