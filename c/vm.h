@@ -18,6 +18,8 @@ typedef enum {
   OP_SET_GLOBAL,
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
+  OP_GET_FIELD,
+  OP_SET_FIELD,
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
@@ -41,7 +43,9 @@ typedef enum {
   OP_CALL_8,
   OP_CLOSURE,
   OP_CLOSE_UPVALUE,
-  OP_RETURN
+  OP_RETURN,
+  OP_CLASS,
+  OP_METHOD
 } OpCode;
 
 typedef struct {

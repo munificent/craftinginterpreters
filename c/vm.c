@@ -36,6 +36,14 @@ static void runtimeError(const char* format, ...) {
   }
 }
 
+static void defineNative(const char* name, NativeFn function) {
+  push((Value)newString((uint8_t*)name, (int)strlen(name)));
+  push((Value)newNative(function));
+  tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
+  pop();
+  pop();
+}
+
 void initVM() {
   vm.stackTop = vm.stack;
   vm.frameCount = 0;
@@ -48,11 +56,7 @@ void initVM() {
 
   vm.globals = newTable();
   
-  // TODO: Clean up.
-  push((Value)newString((uint8_t*)"print", 5));
-  push((Value)newNative(printNative));
-  tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
-  pop(); pop();
+  defineNative("print", printNative);
 }
 
 void endVM() {
@@ -84,18 +88,24 @@ static Value peek(int distance) {
 }
 
 static bool call(Value callee, int argCount) {
-  ObjClosure* closure;
-  if (IS_NATIVE(callee)) {
-    NativeFn native = ((ObjNative*)callee)->function;
-    Value result = native(argCount,
-                          vm.stackTop - argCount);
-    vm.stackTop -= argCount + 1;
-    push(result);
+  if (IS_CLASS(callee)) {
+    ObjClass* klass = (ObjClass*)callee;
+
+    ObjInstance* instance = newInstance(klass);
+    
+    // Swap out the class for the instance.
+    vm.stackTop[-argCount - 1] = (Value)instance;
+
+    // Give it a field table.
+    instance->fields = newTable();
+    
+    // TODO: Call constructor if there is one.
+    vm.stackTop -= argCount;
     return true;
   }
   
   if (IS_CLOSURE(callee)) {
-    closure = (ObjClosure*)callee;
+    ObjClosure* closure = (ObjClosure*)callee;
     if (argCount < closure->function->arity) {
       runtimeError("Not enough arguments.");
       return false;
@@ -109,6 +119,15 @@ static bool call(Value callee, int argCount) {
     // If so, we need the compiler to set aside slot 0 for it. Also need to figure
     // out how we want to handle methods.
     frame->slots = vm.stackTop - argCount;
+    return true;
+  }
+  
+  if (IS_NATIVE(callee)) {
+    NativeFn native = ((ObjNative*)callee)->function;
+    Value result = native(argCount,
+                          vm.stackTop - argCount);
+    vm.stackTop -= argCount + 1;
+    push(result);
     return true;
   }
   
@@ -169,6 +188,22 @@ static void closeUpvalues(Value* last) {
     // Pop it off the open upvalue list.
     vm.openUpvalues = upvalue->next;
   }
+}
+
+static void createClass(ObjString* name) {
+  push((Value)newClass(name, peek(0)));
+}
+
+static void bindMethod(ObjString* name) {
+  Value method = peek(0);
+  ObjClass* klass = (ObjClass*)peek(1);
+  
+  if (klass->methods == NULL) {
+    klass->methods = newTable();
+  }
+  
+  tableSet(klass->methods, name, method);
+  pop();
 }
 
 // TODO: Lots of duplication here.
@@ -235,7 +270,8 @@ static bool run() {
       printf(" ");
     }
     printf("\n");
-    printInstruction(frame->function, (int)(frame->ip - frame->function->code));
+    printInstruction(frame->closure->function,
+                     (int)(frame->ip - frame->closure->function->code));
 #endif
     
     uint8_t instruction;
@@ -267,12 +303,12 @@ static bool run() {
         
       case OP_GET_GLOBAL: {
         ObjString* name = (ObjString*)READ_CONSTANT();
-        Value global;
-        if (!tableGet(vm.globals, name, &global)) {
+        Value value;
+        if (!tableGet(vm.globals, name, &value)) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }
-        push(global);
+        push(value);
         break;
       }
         
@@ -301,6 +337,39 @@ static bool run() {
       case OP_SET_UPVALUE: {
         uint8_t slot = READ_BYTE();
         *frame->closure->upvalues[slot]->value = pop();
+        break;
+      }
+        
+      case OP_GET_FIELD: {
+        if (!IS_INSTANCE(peek(0))) {
+          runtimeError("Primitive values cannot have fields.");
+          return false;
+        }
+        
+        // TODO: Class fields.
+        ObjInstance* instance = (ObjInstance*)pop();
+        ObjString* name = (ObjString*)READ_CONSTANT();
+        Value value;
+        if (!tableGet(instance->fields, name, &value)) {
+          runtimeError("Undefined field '%s'.", name->chars);
+          return false;
+        }
+        push(value);
+        break;
+      }
+        
+      case OP_SET_FIELD: {
+        if (!IS_INSTANCE(peek(1))) {
+          runtimeError("Primitive values cannot have fields.");
+          return false;
+        }
+        
+        // TODO: Class fields.
+        ObjInstance* instance = (ObjInstance*)peek(1);
+        tableSet(instance->fields, (ObjString*)READ_CONSTANT(), peek(0));
+        Value value = pop();
+        pop();
+        push(value); // TODO: Test return value of field setter expression.
         break;
       }
         
@@ -458,6 +527,14 @@ static bool run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
+        
+      case OP_CLASS:
+        createClass((ObjString*)READ_CONSTANT());
+        break;
+        
+      case OP_METHOD:
+        bindMethod((ObjString*)READ_CONSTANT());
+        break;
     }
   }
   

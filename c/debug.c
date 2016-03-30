@@ -2,6 +2,7 @@
 
 #include "debug.h"
 
+// TODO: Not really for debugging. Move to object.c?
 void printValue(Value value) {
   if (value == NULL) {
     printf("null");
@@ -13,6 +14,10 @@ void printValue(Value value) {
       printf(((ObjBool*)value)->value ? "true" : "false");
       break;
       
+    case OBJ_CLASS:
+      printf("%s", ((ObjClass*)value)->name->chars);
+      break;
+      
     case OBJ_CLOSURE:
       printf("closure");
       break;
@@ -21,6 +26,10 @@ void printValue(Value value) {
       printf("<fn %p>", value);
       break;
       
+    case OBJ_INSTANCE:
+      printf("%s instance", ((ObjInstance*)value)->klass->name->chars);
+      break;
+
     case OBJ_NATIVE:
       printf("<native %p>", ((ObjNative*)value)->function);
       break;
@@ -119,6 +128,22 @@ int printInstruction(ObjFunction* function, int i) {
       break;
     }
       
+    case OP_GET_FIELD: {
+      uint8_t name = function->code[i++];
+      printf("%-16s %4d '", "OP_GET_FIELD", name);
+      printValue(function->constants.values[name]);
+      printf("'\n");
+      break;
+    }
+      
+    case OP_SET_FIELD: {
+      uint8_t name = function->code[i++];
+      printf("%-16s %4d '", "OP_SET_FIELD", name);
+      printValue(function->constants.values[name]);
+      printf("'\n");
+      break;
+    }
+
     case OP_EQUAL: printf("OP_EQUAL\n"); break;
     case OP_GREATER: printf("OP_GREATER\n"); break;
     case OP_LESS: printf("OP_LESS\n"); break;
@@ -177,6 +202,22 @@ int printInstruction(ObjFunction* function, int i) {
       
     case OP_CLOSE_UPVALUE: printf("OP_CLOSE_UPVALUE\n"); break;
     case OP_RETURN: printf("OP_RETURN\n"); break;
+
+    case OP_CLASS: {
+      // TODO: Superclass.
+      uint8_t name = function->code[i++];
+      printf("%-16s %4d '", "OP_CLASS", name);
+      printValue(function->constants.values[name]);
+      printf("'\n");
+      break;
+    }
+      
+    case OP_METHOD: printf("OP_METHOD\n");
+      uint8_t name = function->code[i++];
+      printf("%-16s %4d '", "OP_METHOD", name);
+      printValue(function->constants.values[name]);
+      printf("'\n");
+      break;
   }
   
   return i;

@@ -242,7 +242,7 @@ static uint8_t addConstant(Value value) {
 
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
-static uint8_t nameConstant() {
+static uint8_t identifierConstant() {
   return addConstant((Value)newString((uint8_t*)parser.previous.start,
                                       parser.previous.length));
 }
@@ -250,126 +250,6 @@ static uint8_t nameConstant() {
 static void emitConstant(Value value) {
   uint8_t constant = addConstant(value);
   emitBytes(OP_CONSTANT, constant);
-}
-
-static void and_(bool canAssign) {
-  // left operand...
-  // OP_JUMP_IF       ------.
-  // OP_POP // left operand |
-  // right operand...       |
-  //   <--------------------'
-  // ...
-  
-  // Short circuit if the left operand is false.
-  int endJump = emitJump(OP_JUMP_IF_FALSE);
-  
-  // Compile the right operand.
-  emitByte(OP_POP); // Left operand.
-  parsePrecedence(PREC_AND);
-  
-  patchJump(endJump);
-}
-
-static void binary(bool canAssign) {
-  TokenType operatorType = parser.previous.type;
-  ParseRule* rule = getRule(operatorType);
-
-  // Compile the right-hand operand.
-  parsePrecedence((Precedence)(rule->precedence + 1));
-
-  // Emit the operator instruction.
-  switch (operatorType) {
-    case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
-    case TOKEN_EQUAL_EQUAL:   emitByte(OP_EQUAL); break;
-    case TOKEN_GREATER:       emitByte(OP_GREATER); break;
-    case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
-    case TOKEN_LESS:          emitByte(OP_LESS); break;
-    case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
-    case TOKEN_PLUS:          emitByte(OP_ADD); break;
-    case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
-    case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
-    case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
-    default:
-      assert(false); // Unreachable.
-  }
-}
-
-static void boolean(bool canAssign) {
-  emitConstant((Value)newBool(parser.previous.type == TOKEN_TRUE));
-}
-
-static void call(bool canAssign) {
-  uint8_t argCount = 0;
-  if (!check(TOKEN_RIGHT_PAREN)) {
-    do {
-      expression();
-      argCount++;
-      // TODO: Check for overflow.
-    } while (match(TOKEN_COMMA));
-  }
-  
-  consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
-  emitByte(OP_CALL_0 + argCount);
-}
-
-static void grouping(bool canAssign) {
-  expression();
-  consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
-}
-
-static void null_(bool canAssign) {
-  emitByte(OP_NULL);
-}
-
-static void number(bool canAssign) {
-  double value = strtod(parser.previous.start, NULL);
-  // TODO: Handle error.
-  emitConstant((Value)newNumber(value));
-}
-
-static void or_(bool canAssign) {
-  // left operand...
-  // OP_JUMP_IF       ---.
-  // OP_JUMP          ---+--.
-  //   <-----------------'  |
-  // OP_POP // left operand |
-  // right operand...       |
-  //   <--------------------'
-  // ...
-  
-  // If the operand is *true* we want to keep it, so when it's false, jump to
-  // the code to evaluate the right operand.
-  int elseJump = emitJump(OP_JUMP_IF_FALSE);
-
-  // If we get here, the operand is true, so jump to the end to keep it.
-  int endJump = emitJump(OP_JUMP);
-  
-  // Compile the right operand.
-  patchJump(elseJump);
-  emitByte(OP_POP); // Left operand.
-  
-  parsePrecedence(PREC_OR);
-  patchJump(endJump);
-}
-
-static void string(bool canAssign) {
-  emitConstant((Value)newString((uint8_t*)parser.previous.start + 1,
-                                parser.previous.length - 2));
-}
-
-static void unary(bool canAssign) {
-  TokenType operatorType = parser.previous.type;
-  
-  // Compile the operand.
-  parsePrecedence((Precedence)(PREC_UNARY + 1));
-  
-  // Emit the operator instruction.
-  switch (operatorType) {
-    case TOKEN_BANG: emitByte(OP_NOT); break;
-    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
-    default:
-      assert(false); // Unreachable.
-  }
 }
 
 static int resolveLocal(Compiler* compiler, Token* name) {
@@ -443,7 +323,7 @@ static Token parseVariable(const char* error, uint8_t* constant) {
   consume(TOKEN_IDENTIFIER, error);
   Token name = parser.previous;
   if (current->scopeDepth == -1) {
-    *constant = nameConstant();
+    *constant = identifierConstant();
   }
   return name;
 }
@@ -479,6 +359,140 @@ static void declareVariable(Token* name, uint8_t constant) {
   current->localCount++;
 }
 
+static void and_(bool canAssign) {
+  // left operand...
+  // OP_JUMP_IF       ------.
+  // OP_POP // left operand |
+  // right operand...       |
+  //   <--------------------'
+  // ...
+  
+  // Short circuit if the left operand is false.
+  int endJump = emitJump(OP_JUMP_IF_FALSE);
+  
+  // Compile the right operand.
+  emitByte(OP_POP); // Left operand.
+  parsePrecedence(PREC_AND);
+  
+  patchJump(endJump);
+}
+
+static void binary(bool canAssign) {
+  TokenType operatorType = parser.previous.type;
+  ParseRule* rule = getRule(operatorType);
+
+  // Compile the right-hand operand.
+  parsePrecedence((Precedence)(rule->precedence + 1));
+
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
+    case TOKEN_EQUAL_EQUAL:   emitByte(OP_EQUAL); break;
+    case TOKEN_GREATER:       emitByte(OP_GREATER); break;
+    case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
+    case TOKEN_LESS:          emitByte(OP_LESS); break;
+    case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
+    case TOKEN_PLUS:          emitByte(OP_ADD); break;
+    case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
+    case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
+    case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
+    default:
+      assert(false); // Unreachable.
+  }
+}
+
+static void boolean(bool canAssign) {
+  emitConstant((Value)newBool(parser.previous.type == TOKEN_TRUE));
+}
+
+static void call(bool canAssign) {
+  uint8_t argCount = 0;
+  if (!check(TOKEN_RIGHT_PAREN)) {
+    do {
+      expression();
+      argCount++;
+      // TODO: Check for overflow.
+    } while (match(TOKEN_COMMA));
+  }
+  
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
+  emitByte(OP_CALL_0 + argCount);
+}
+
+static void dot(bool canAssign) {
+  consume(TOKEN_IDENTIFIER, "Expect property name.");
+  uint8_t name = identifierConstant();
+  
+  if (canAssign && match(TOKEN_EQUAL)) {
+    expression();
+    emitBytes(OP_SET_FIELD, name);
+  } else {
+    emitBytes(OP_GET_FIELD, name);
+  }
+  
+  // TODO: Method calls.
+}
+
+static void grouping(bool canAssign) {
+  expression();
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+}
+
+static void null_(bool canAssign) {
+  emitByte(OP_NULL);
+}
+
+static void number(bool canAssign) {
+  double value = strtod(parser.previous.start, NULL);
+  // TODO: Handle error.
+  emitConstant((Value)newNumber(value));
+}
+
+static void or_(bool canAssign) {
+  // left operand...
+  // OP_JUMP_IF       ---.
+  // OP_JUMP          ---+--.
+  //   <-----------------'  |
+  // OP_POP // left operand |
+  // right operand...       |
+  //   <--------------------'
+  // ...
+  
+  // If the operand is *true* we want to keep it, so when it's false, jump to
+  // the code to evaluate the right operand.
+  int elseJump = emitJump(OP_JUMP_IF_FALSE);
+
+  // If we get here, the operand is true, so jump to the end to keep it.
+  int endJump = emitJump(OP_JUMP);
+  
+  // Compile the right operand.
+  patchJump(elseJump);
+  emitByte(OP_POP); // Left operand.
+  
+  parsePrecedence(PREC_OR);
+  patchJump(endJump);
+}
+
+static void string(bool canAssign) {
+  emitConstant((Value)newString((uint8_t*)parser.previous.start + 1,
+                                parser.previous.length - 2));
+}
+
+static void unary(bool canAssign) {
+  TokenType operatorType = parser.previous.type;
+  
+  // Compile the operand.
+  parsePrecedence((Precedence)(PREC_UNARY + 1));
+  
+  // Emit the operator instruction.
+  switch (operatorType) {
+    case TOKEN_BANG: emitByte(OP_NOT); break;
+    case TOKEN_MINUS: emitByte(OP_NEGATE); break;
+    default:
+      assert(false); // Unreachable.
+  }
+}
+
 static void variable(bool canAssign) {
   // TODO: Simplify code.
   uint8_t getOp, setOp;
@@ -491,7 +505,7 @@ static void variable(bool canAssign) {
     getOp = OP_GET_UPVALUE;
     setOp = OP_SET_UPVALUE;
   } else {
-    arg = nameConstant();
+    arg = identifierConstant();
     getOp = OP_GET_GLOBAL;
     setOp = OP_SET_GLOBAL;
   }
@@ -514,7 +528,7 @@ ParseRule rules[] = {
   { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_DOT
+  { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER
@@ -588,14 +602,12 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-static void funStatement() {
-  uint8_t nameConstant = 0xff;
-  Token name = parseVariable("Expect function name.", &nameConstant);
-
+static void function() {
   Compiler functionCompiler;
   beginCompiler(&functionCompiler);
   beginScope();
   
+  // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
   
   if (!check(TOKEN_RIGHT_PAREN)) {
@@ -609,9 +621,11 @@ static void funStatement() {
   }
   
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
-
+  
+  // The body.
   block();
-
+  
+  // Create the function object.
   endScope();
   ObjFunction* function = endCompiler();
   
@@ -625,6 +639,38 @@ static void funStatement() {
     emitByte(functionCompiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(functionCompiler.upvalues[i].index);
   }
+}
+
+static void method() {
+  consume(TOKEN_IDENTIFIER, "Expect method name.");
+  uint8_t constant = identifierConstant();
+  
+  function();
+  
+  emitBytes(OP_METHOD, constant);
+}
+
+static void classStatement() {
+  uint8_t nameConstant = 0xff;
+  Token name = parseVariable("Expect class name.", &nameConstant);
+  
+  emitBytes(OP_CLASS, nameConstant);
+  declareVariable(&name, nameConstant);
+
+  consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
+  
+  while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+    method();
+  }
+  
+  consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
+}
+
+static void funStatement() {
+  uint8_t nameConstant = 0xff;
+  Token name = parseVariable("Expect function name.", &nameConstant);
+
+  function();
   
   declareVariable(&name, nameConstant);
 }
@@ -703,7 +749,9 @@ static void whileStatement() {
 }
 
 static void statement() {
-  if (match(TOKEN_FUN)) {
+  if (match(TOKEN_CLASS)) {
+    classStatement();
+  } else if (match(TOKEN_FUN)) {
     funStatement();
   } else if (match(TOKEN_IF)) {
     ifStatement();

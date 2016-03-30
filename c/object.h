@@ -7,8 +7,10 @@
 typedef struct sVM VM;
 
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
+#define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
 #define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
 #define IS_FUNCTION(value) isNonNullType((value), OBJ_FUNCTION)
+#define IS_INSTANCE(value) isNonNullType((value), OBJ_INSTANCE)
 #define IS_NUMBER(value) isNonNullType((value), OBJ_NUMBER)
 #define IS_NULL(value) ((value) == NULL)
 #define IS_NATIVE(value) isNonNullType((value), OBJ_NATIVE)
@@ -19,8 +21,10 @@ typedef struct sVM VM;
 
 typedef enum {
   OBJ_BOOL,
+  OBJ_CLASS,
   OBJ_CLOSURE,
   OBJ_FUNCTION,
+  OBJ_INSTANCE,
   OBJ_NATIVE,
   OBJ_NUMBER,
   OBJ_STRING,
@@ -80,6 +84,8 @@ typedef struct {
   char* chars;
 } ObjString;
 
+// TODO: Bare tables are not first class in the language, so don't make this
+// an Obj?
 typedef struct {
   ObjString* key;
   Value value;
@@ -114,12 +120,27 @@ typedef struct {
   ObjUpvalue** upvalues;
 } ObjClosure;
 
+typedef struct {
+  Obj obj;
+  ObjString* name;
+  ObjTable* methods;
+} ObjClass;
+
+typedef struct {
+  Obj obj;
+  ObjClass* klass;
+  // TODO: Rename properties to fields in jvox.
+  ObjTable* fields;
+} ObjInstance;
+
 // TODO: Move elsewhere?
 void* reallocate(void* previous, size_t size);
 
 ObjBool* newBool(bool value);
+ObjClass* newClass(ObjString* name, Value superclass);
 ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
+ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
 ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?

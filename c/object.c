@@ -48,6 +48,14 @@ ObjBool* newBool(bool value) {
   return boolean;
 }
 
+ObjClass* newClass(ObjString* name, Value superclass) {
+  ObjClass* klass = ALLOCATE(ObjClass, OBJ_CLASS);
+  klass->name = name;
+  // TODO: Use superclass.  
+  klass->methods = NULL;
+  return klass;
+}
+
 ObjClosure* newClosure(ObjFunction* function) {
   // TODO: Flex array?
   // Allocate the upvalue array first so it doesn't cause the closure to get
@@ -75,6 +83,13 @@ ObjFunction* newFunction() {
   
   initArray(&function->constants);
   return function;
+}
+
+ObjInstance* newInstance(ObjClass* klass) {
+  ObjInstance* instance = ALLOCATE(ObjInstance, OBJ_INSTANCE);
+  instance->klass = klass;
+  instance->fields = NULL;
+  return instance;
 }
 
 ObjNative* newNative(NativeFn function) {
@@ -190,8 +205,10 @@ bool valuesEqual(Value a, Value b) {
              memcmp(aString->chars, bString->chars, aString->length) == 0;
     }
       
+    case OBJ_CLASS:
     case OBJ_CLOSURE:
     case OBJ_FUNCTION:
+    case OBJ_INSTANCE:
     case OBJ_NATIVE:
     case OBJ_TABLE:
     case OBJ_UPVALUE:
@@ -258,6 +275,13 @@ static void blackenObject(Obj* obj) {
 #endif
 
   switch (obj->type) {
+    case OBJ_CLASS: {
+      ObjClass* klass = (ObjClass*)obj;
+      grayValue((Value)klass->name);
+      grayValue((Value)klass->methods);
+      break;
+    }
+
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)obj;
       grayValue((Value)closure->function);
@@ -270,6 +294,13 @@ static void blackenObject(Obj* obj) {
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
       grayArray(&function->constants);
+      break;
+    }
+      
+    case OBJ_INSTANCE: {
+      ObjInstance* instance = (ObjInstance*)obj;
+      grayValue((Value)instance->klass);
+      grayValue((Value)instance->fields);
       break;
     }
       
@@ -324,6 +355,8 @@ void freeObject(Obj* obj) {
     }
       
     case OBJ_BOOL:
+    case OBJ_CLASS:
+    case OBJ_INSTANCE:
     case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:
