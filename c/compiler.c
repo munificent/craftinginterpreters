@@ -84,7 +84,7 @@ typedef struct Compiler {
   int upvalueCount;
   
   // The current level of block scope nesting. Zero is the outermost local
-  // scope. -1 is global scope.
+  // scope. 0 is global scope.
   int scopeDepth;
 } Compiler;
 
@@ -98,13 +98,9 @@ static void advance() {
   parser.current = scanToken();
 }
 
-static void errorAt(int line, const char* message) {
-  fprintf(stderr, "[line %d] Error: %s\n", line, message);
-  parser.hadError = true;
-}
-
 static void error(const char* message) {
-  errorAt(parser.previous.line, message);
+  fprintf(stderr, "[line %d] Error: %s\n", parser.previous.line, message);
+  parser.hadError = true;
 }
 
 static void consume(TokenType type, const char* message) {
@@ -182,7 +178,7 @@ static void beginCompiler(Compiler* compiler) {
   compiler->function = NULL;
   compiler->localCount = 0;
   compiler->upvalueCount = 0;
-  compiler->scopeDepth = -1;
+  compiler->scopeDepth = 0;
   
   current = compiler;
   
@@ -249,13 +245,21 @@ static void emitConstant(Value value) {
   emitBytes(OP_CONSTANT, constant);
 }
 
-static int resolveLocal(Compiler* compiler, Token* name) {
+static bool identifiersEqual(Token* a, Token* b) {
+  if (a->length != b->length) return false;
+  return memcmp(a->start, b->start, a->length) == 0;
+}
+
+static int resolveLocal(Compiler* compiler, Token* name, bool fromInner) {
   // Look it up in the local scopes. Look in reverse order so that the most
   // nested variable is found first and shadows outer ones.
   for (int i = compiler->localCount - 1; i >= 0; i--) {
-    if (compiler->locals[i].name.length == name->length &&
-        memcmp(compiler->locals[i].name.start, name->start, name->length) == 0)
+    Local* local = &compiler->locals[i];
+    if (identifiersEqual(name, &local->name))
     {
+      if (!fromInner && local->depth == -1) {
+        error("A local variable cannot be used in its own initializer.");
+      }
       return i;
     }
   }
@@ -292,7 +296,7 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   if (compiler->enclosing == NULL) return -1;
   
   // See if it's a local variable in the immediately enclosing function.
-  int local = resolveLocal(compiler->enclosing, name);
+  int local = resolveLocal(compiler->enclosing, name, true);
   if (local != -1) {
     // Mark the local as an upvalue so we know to close it when it goes out of
     // scope.
@@ -316,44 +320,43 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   return -1;
 }
 
-static Token parseVariable(const char* error, uint8_t* constant) {
-  consume(TOKEN_IDENTIFIER, error);
-  Token name = parser.previous;
-  if (current->scopeDepth == -1) {
-    *constant = identifierConstant();
-  }
-  return name;
-}
-
-static void declareVariable(Token* name, uint8_t constant) {
-  if (current->scopeDepth == -1) {
-    emitBytes(OP_DEFINE_GLOBAL, constant);
-    return;
+static uint8_t parseVariable(const char* errorMessage) {
+  consume(TOKEN_IDENTIFIER, errorMessage);
+  
+  // If it's a global variable, create a string constant for it.
+  if (current->scopeDepth == 0) {
+    return identifierConstant();
   }
   
   // See if a local variable with this name is already declared in this scope.
+  Token* name = &parser.previous;
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];
-    if (local->depth < current->scopeDepth) break;
-    if (name->length == local->name.length &&
-        memcmp(name->start, local->name.start, name->length) == 0) {
-      // TODO: Having to report error at explicit line means errors could be
-      // reported out of order. Another option is to declare the local in
-      // parseVariable(), but that means putting it in a half-declared state,
-      // so that it can't be accessed in its own initializer. Ruby and JS do
-      // something odd here, where a variable can be accessed in its own
-      // initializer and doing so implicitly nulls it out (!).
-      errorAt(name->line,
-              "Variable with this name already declared in this scope.");
+    if (local->depth != -1 && local->depth < current->scopeDepth) break;
+    if (identifiersEqual(name, &local->name)) {
+      error("Variable with this name already declared in this scope.");
     }
   }
   
+  // Declare the local variable.
   Local* local = &current->locals[current->localCount];
   local->name = *name;
-  local->depth = current->scopeDepth;
+  
+  // The local is declared but not yet defined.
+  local->depth = -1;
   local->isUpvalue = false;
   // TODO: Check for overflow.
   current->localCount++;
+  return 0;
+}
+
+static void defineVariable(uint8_t global) {
+  if (current->scopeDepth == 0) {
+    emitBytes(OP_DEFINE_GLOBAL, global);
+  } else {
+    // Mark the local as defined now.
+    current->locals[current->localCount - 1].depth = current->scopeDepth;
+  }
 }
 
 static void and_(bool canAssign) {
@@ -494,7 +497,7 @@ static void variable(bool canAssign) {
   // TODO: Simplify code.
   uint8_t getOp, setOp;
   
-  int arg = resolveLocal(current, &parser.previous);
+  int arg = resolveLocal(current, &parser.previous, false);
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
@@ -609,9 +612,9 @@ static void function() {
   
   if (!check(TOKEN_RIGHT_PAREN)) {
     do {
-      uint8_t paramConstant;
-      Token param = parseVariable("Expect parameter name.", &paramConstant);
-      declareVariable(&param, paramConstant);
+      uint8_t paramConstant = parseVariable("Expect parameter name.");
+      defineVariable(paramConstant);
+
       current->function->arity++;
       // TODO: Check for overflow.
     } while (match(TOKEN_COMMA));
@@ -648,28 +651,23 @@ static void method() {
 }
 
 static void classStatement() {
-  uint8_t nameConstant = 0xff;
-  Token name = parseVariable("Expect class name.", &nameConstant);
-  
+  // TODO: Doesn't work for a class in local scope!
+  uint8_t nameConstant = parseVariable("Expect class name.");
   emitBytes(OP_CLASS, nameConstant);
-  declareVariable(&name, nameConstant);
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
-  
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     method();
   }
-  
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
+  
+  defineVariable(nameConstant);
 }
 
 static void funStatement() {
-  uint8_t nameConstant = 0xff;
-  Token name = parseVariable("Expect function name.", &nameConstant);
-
+  uint8_t global = parseVariable("Expect function name.");
   function();
-  
-  declareVariable(&name, nameConstant);
+  defineVariable(global);
 }
 
 static void ifStatement() {
@@ -711,15 +709,14 @@ static void returnStatement() {
 }
 
 static void varStatement() {
-  uint8_t constant = 0xff;
-  Token name = parseVariable("Expect variable name.", &constant);
-  
+  uint8_t global = parseVariable("Expect variable name.");
+
   // Compile the initializer.
   consume(TOKEN_EQUAL, "Expect '=' after variable name.");
   expression();
   consume(TOKEN_SEMICOLON, "Expect ';' after initializer.");
   
-  declareVariable(&name, constant);
+  defineVariable(global);
 }
 
 static void whileStatement() {

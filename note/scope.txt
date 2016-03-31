@@ -1,4 +1,15 @@
-Following Scheme (R5RS):
+Mostly following Scheme (R5RS):
+
+- Accessing an undefined name is a runtime error. It is not a compile time
+  error.
+
+  (define (eval-foo) foo) ; OK, though foo is undefined.
+  (eval-foo)              ; Runtime error.
+  (define foo "ok")       ; Now foo is defined.
+  (eval-foo)              ; Now it works.
+
+  - Allows mutual recursion at the top level.
+  - Does so in a way that's friendly to the REPL and incremental evaluation.
 
 - Assigning to an undefined name is a runtime error. It is not a compile time
   error.
@@ -8,6 +19,9 @@ Following Scheme (R5RS):
   (define bar "ok")                   ; Now bar is defined.
   (setbar)                            ; Now it works.
 
+  - Avoids the mushiness of treating a typo in an assignment as "let's just
+    create a new global variable", which is probably not what the user wants.
+
 - Top level variables can be defined multiple times.
 
   (define foo "1")
@@ -15,10 +29,35 @@ Following Scheme (R5RS):
   (define foo "2")  ; OK.
   foo               ; 2
 
-- Accessing an undefined name is a runtime error. It is not a compile time
-  error.
+  - REPL friendly.
 
-  (define (eval-foo) foo) ; OK, though foo is undefined.
-  (eval-foo)              ; Runtime error.
-  (define foo "ok")       ; Now foo is defined.
-  (eval-foo)              ; Now it works.
+- A local variable is in scope within its initializer. It is a compile error to
+  access it. It does not look for a surrounding variable.
+
+  - Consistent with fun and class where the name is in scope as soon as it
+    appears in the program text.
+
+  - Consistent with global variables where referring to it refers to its
+    previous definition:
+
+        var a = "first";
+        var a = a;
+        print(a); // "first"
+
+  - Plays nice with anonymous functions which could reasonably refer to the
+    variable:
+
+        var a = fun () { print(a); } // ok
+
+  - Reinforces that a named variable declaration is essentially sugar for the
+    above example.
+
+- A variable is not in scope in its own initializer. It is declared after its
+  initializer is run.
+
+  (define foo "outer")
+  (let ((foo foo)) foo) ; "outer"
+
+  - We could declare it in an invalid state and then report a compile error if
+    an undefined variable is accessed in its initializer, but that would only
+    work for local variables. For global variables, there is no way to declare
