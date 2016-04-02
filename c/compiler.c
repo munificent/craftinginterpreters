@@ -250,14 +250,14 @@ static bool identifiersEqual(Token* a, Token* b) {
   return memcmp(a->start, b->start, a->length) == 0;
 }
 
-static int resolveLocal(Compiler* compiler, Token* name, bool fromInner) {
+static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
   // Look it up in the local scopes. Look in reverse order so that the most
   // nested variable is found first and shadows outer ones.
   for (int i = compiler->localCount - 1; i >= 0; i--) {
     Local* local = &compiler->locals[i];
     if (identifiersEqual(name, &local->name))
     {
-      if (!fromInner && local->depth == -1) {
+      if (!inFunction && local->depth == -1) {
         error("A local variable cannot be used in its own initializer.");
       }
       return i;

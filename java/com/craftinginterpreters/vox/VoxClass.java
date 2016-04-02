@@ -3,7 +3,7 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 import java.util.Map;
 
-class VoxClass extends VoxObject implements Callable {
+class VoxClass implements Callable {
   final String name;
   private final VoxClass superclass;
   private final VoxFunction constructor;
@@ -17,11 +17,11 @@ class VoxClass extends VoxObject implements Callable {
     this.methods = methods;
   }
 
-  VoxFunction findMethod(String name) {
+  VoxFunction findMethod(VoxObject instance, String name) {
     VoxClass voxClass = this;
     while (voxClass != null) {
       if (voxClass.methods.containsKey(name)) {
-        return voxClass.methods.get(name).bind(this);
+        return voxClass.methods.get(name).bind(instance);
       }
 
       voxClass = voxClass.superclass;
@@ -44,8 +44,7 @@ class VoxClass extends VoxObject implements Callable {
 
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
-    VoxObject instance = new VoxObject();
-    instance.setClass(this);
+    VoxObject instance = new VoxObject(this);
 
     if (constructor != null) {
       constructor.bind(instance).call(interpreter, arguments);

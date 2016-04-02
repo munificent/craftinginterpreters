@@ -327,7 +327,7 @@ def run_script(app, path, type):
 
 
 def run_test(path):
-  run_script(C_INTERPRETER, path, "test")
+  run_script(JAVA_INTERPRETER, path, "test")
 
 
 walk(join(REPO_DIR, 'test'), run_test)

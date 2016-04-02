@@ -112,6 +112,13 @@ class Parser {
       do {
         Token param = consume(IDENTIFIER,
             "Expect parameter name.");
+
+        for (Token other : params) {
+          if (other.text.equals(param.text)) {
+            error("Duplicate parameter.");
+          }
+        }
+
         params.add(param);
       } while (match(COMMA));
     }

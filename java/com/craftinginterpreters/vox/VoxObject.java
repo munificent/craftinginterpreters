@@ -5,27 +5,26 @@ import java.util.Map;
 
 class VoxObject {
   private VoxClass voxClass;
-  final Map<String, Object> properties = new HashMap<>();
+  final Map<String, Object> fields = new HashMap<>();
 
-  void setClass(VoxClass voxClass) {
+  VoxObject(VoxClass voxClass) {
     this.voxClass = voxClass;
   }
 
-  Object getProperty(Token name) {
-    if (properties.containsKey(name.text)) {
-      return properties.get(name.text);
+  Object getField(Token name) {
+    if (fields.containsKey(name.text)) {
+      return fields.get(name.text);
     }
 
-    VoxFunction method = voxClass.findMethod(name.text);
+    VoxFunction method = voxClass.findMethod(this, name.text);
     if (method != null) return method;
 
     throw new RuntimeError(
-        "No property named '" + name.text + "' on " + this + ".", name);
+        "Undefined field '" + name.text + "'.", name);
   }
 
   @Override
   public String toString() {
-    if (voxClass == null) return "[Object]";
     return voxClass.name + " instance";
   }
 }
