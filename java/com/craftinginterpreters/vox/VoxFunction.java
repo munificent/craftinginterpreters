@@ -30,8 +30,9 @@ class VoxFunction implements Callable {
     try {
       Environment environment = closure.enterScope();
       for (int i = 0; i < declaration.parameters.size(); i++) {
-        // TODO: Handle duplicate?
-        environment = environment.define(declaration.parameters.get(i).text, arguments.get(i));
+        environment = environment.define(
+            declaration.parameters.get(i).text,
+            arguments.get(i));
       }
 
       interpreter.execute(declaration.body, environment);

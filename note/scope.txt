@@ -31,35 +31,23 @@ Mostly following Scheme (R5RS):
 
   - REPL friendly.
 
-TODO: These are in conflict:
-
-- A local variable is in scope within its initializer. It is a compile error to
-  access it. It does not look for a surrounding variable.
-
-  - Consistent with fun and class where the name is in scope as soon as it
-    appears in the program text.
-
-  - Consistent with global variables where referring to it refers to its
-    previous definition:
-
-        var a = "first";
-        var a = a;
-        print(a); // "first"
-
-  - Plays nice with anonymous functions which could reasonably refer to the
-    variable:
-
-        var a = fun () { print(a); } // ok
-
-  - Reinforces that a named variable declaration is essentially sugar for the
-    above example.
-
 - A variable is not in scope in its own initializer. It is declared after its
   initializer is run.
 
-  (define foo "outer")
-  (let ((foo foo)) foo) ; "outer"
+  (define foo foo) ; Error: foo is not defined.
 
-  - We could declare it in an invalid state and then report a compile error if
-    an undefined variable is accessed in its initializer, but that would only
-    work for local variables. For global variables, there is no way to declare
+  (define bar "outer")
+  (let ((bar bar)) bar) ; "outer"
+
+  (define baz 1)
+  (define baz (+ baz 1))  ; Refer to previous definition of baz.
+  baz                     ; 2
+
+  - This is different from classes and functions, but that's probably OK.
+
+  - If we want it to be a compile error for a local to be in scope in its own
+    initializer, we'd need some sort of resolving step in jvox.
+
+  - If we want it to be a runtime error, that error would always occur, so it
+    feels weird to defer that. And it would make cvox slower, or require us to
+    emit some special case "always throw runtime error here" code.

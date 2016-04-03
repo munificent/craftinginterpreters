@@ -25,6 +25,16 @@ class GlobalEnvironment implements Environment {
   }
 
   @Override
+  public Environment declare(Token name) {
+    // Note: Can't just use define(name, null). That will
+    // overwrite a previously defined global value.
+    if (!values.containsKey(name.text)) {
+      values.put(name.text, null);
+    }
+    return this;
+  }
+
+  @Override
   public Environment define(String name, Object value) {
     values.put(name, value);
     return this;

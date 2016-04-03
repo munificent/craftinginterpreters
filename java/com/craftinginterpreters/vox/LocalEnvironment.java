@@ -29,6 +29,11 @@ class LocalEnvironment implements Environment {
   }
 
   @Override
+  public Environment declare(Token name) {
+    return new LocalEnvironment(this, name.text, null);
+  }
+
+  @Override
   public Environment define(String name, Object value) {
     return new LocalEnvironment(this, name, value);
   }

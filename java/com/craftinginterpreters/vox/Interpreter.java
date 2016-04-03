@@ -58,7 +58,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
   @Override
   public Environment visitClassStmt(Stmt.Class stmt, Environment environment) {
-    environment = environment.define(stmt.name.text, null);
+    environment = environment.declare(stmt.name);
 
     Map<String, VoxFunction> methods = new HashMap<>();
     Object superclass = objectClass;
@@ -101,7 +101,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
   @Override
   public Environment visitFunctionStmt(Stmt.Function stmt, Environment environment) {
-    environment = environment.define(stmt.name.text, null);
+    environment = environment.declare(stmt.name);
     VoxFunction function = new VoxFunction(stmt, environment);
     environment.set(stmt.name, function);
     return environment;
@@ -131,10 +131,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
   @Override
   public Environment visitVarStmt(Stmt.Var stmt, Environment environment) {
-    environment = environment.define(stmt.name.text, null);
     Object value = evaluate(stmt.initializer, environment);
-    environment.set(stmt.name, value);
-    return environment;
+    return environment.define(stmt.name.text, value);
   }
 
   @Override
