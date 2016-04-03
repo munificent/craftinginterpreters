@@ -107,6 +107,8 @@ class Scanner {
           if (peek(1) == '/') {
             // A comment goes until the end of the line.
             while (peek() != '\n' && !isAtEnd()) advance();
+          } else {
+            return;
           }
           break;
 

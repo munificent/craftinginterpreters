@@ -171,15 +171,29 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     Object left = evaluate(expr.left, environment);
     Object right = evaluate(expr.right, environment);
 
-    // TODO: Type check arithmetic operators.
     switch (expr.operator.type) {
       case BANG_EQUAL: return !Primitives.isEqual(left, right);
       case EQUAL_EQUAL: return Primitives.isEqual(left, right);
-      case GREATER: return (double)left > (double)right;
-      case GREATER_EQUAL: return (double)left >= (double)right;
-      case LESS: return (double)left < (double)right;
-      case LESS_EQUAL: return (double)left <= (double)right;
-      case MINUS: return (double)left - (double)right;
+
+      case GREATER:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left > (double)right;
+
+      case GREATER_EQUAL:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left >= (double)right;
+      case LESS:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left < (double)right;
+
+      case LESS_EQUAL:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left <= (double)right;
+
+      case MINUS:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left - (double)right;
+
       case PLUS:
         if (left instanceof Double && right instanceof Double) {
           return (double)left + (double)right;
@@ -190,11 +204,16 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
         }
 
         throw new RuntimeError(
-            "Can only add two strings or two numbers.",
+            "Operands must be two numbers or two strings.",
             expr.operator);
 
-      case SLASH: return (double)left / (double)right;
-      case STAR: return (double)left * (double)right;
+      case SLASH:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left / (double)right;
+
+      case STAR:
+        checkNumberOperands(expr.operator, left, right);
+        return (double)left * (double)right;
     }
 
     // Unreachable.
@@ -263,14 +282,12 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   public Object visitUnaryExpr(Expr.Unary expr, Environment environment) {
     Object right = evaluate(expr.right, environment);
 
-    // TODO: Handle conversions.
     switch (expr.operator.type) {
       case BANG: return !Primitives.isTrue(right);
-      case MINUS: return -(double)right;
-      case PLUS: return +(double)right;
+      case MINUS:
+        checkNumberOperand(expr.operator, right);
+        return -(double)right;
     }
-
-    // TODO: Test error cases.
 
     // Unreachable.
     return null;
@@ -284,5 +301,21 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     //   if (false) variableThatIsNotDefined;
     //
     // No error in a late bound language, but error in eager.
+  }
+
+  private void checkNumberOperands(Token operator, Object left, Object right) {
+    if (left instanceof Double && right instanceof Double) {
+      return;
+    }
+
+    throw new RuntimeError("Operands must be numbers.", operator);
+  }
+
+  private void checkNumberOperand(Token operator, Object left) {
+    if (left instanceof Double) {
+      return;
+    }
+
+    throw new RuntimeError("Operand must be a number.", operator);
   }
 }

@@ -1,0 +1,1 @@
+-"s"; // expect runtime error: Operand must be a number.
