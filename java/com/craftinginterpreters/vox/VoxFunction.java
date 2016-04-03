@@ -4,15 +4,15 @@ import java.util.List;
 
 class VoxFunction implements Callable {
   private final Stmt.Function declaration;
-  private final Local closure;
+  private final Environment closure;
 
-  VoxFunction(Stmt.Function declaration, Local closure) {
+  VoxFunction(Stmt.Function declaration, Environment closure) {
     this.declaration = declaration;
     this.closure = closure;
   }
 
   VoxFunction bind(VoxObject self) {
-    return new VoxFunction(declaration, new Local(closure, "this", self));
+    return new VoxFunction(declaration, new LocalEnvironment(closure, "this", self));
   }
 
   @Override
@@ -28,13 +28,13 @@ class VoxFunction implements Callable {
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
     try {
-      Local locals = closure;
+      Environment environment = closure.enterScope();
       for (int i = 0; i < declaration.parameters.size(); i++) {
         // TODO: Handle duplicate?
-        locals = new Local(locals, declaration.parameters.get(i).text, arguments.get(i));
+        environment = environment.define(declaration.parameters.get(i).text, arguments.get(i));
       }
 
-      interpreter.execute(declaration.body, locals);
+      interpreter.execute(declaration.body, environment);
       return null;
     } catch (Return returnValue) {
       return returnValue.value;

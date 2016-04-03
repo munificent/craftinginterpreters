@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 // Tree-walk interpreter.
-class Interpreter implements Stmt.Visitor<Local, Local>,
-    Expr.Visitor<Object, Local> {
+class Interpreter implements Stmt.Visitor<Environment, Environment>,
+    Expr.Visitor<Object, Environment> {
   private final ErrorReporter errorReporter;
 
   // The top level global variables.
-  private final Map<String, Object> globals = new HashMap<>();
+  private final Environment globals = new GlobalEnvironment();
 
   private final VoxClass objectClass;
 
@@ -21,8 +21,8 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
     // TODO: Methods.
     objectClass = new VoxClass("Object", null, null, new HashMap<>());
 
-    globals.put("print", Callable.wrap(Primitives::print));
-    globals.put("clock", Callable.wrap(Primitives::clock));
+    globals.define("print", Callable.wrap(Primitives::print));
+    globals.define("clock", Callable.wrap(Primitives::clock));
   }
 
   void run(String source) {
@@ -34,36 +34,36 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
     if (errorReporter.hadError) return;
 
     for (Stmt statement : statements) {
-      execute(statement, null);
+      execute(statement, globals);
     }
   }
 
-  private Object evaluate(Expr expr, Local locals) {
-    return expr.accept(this, locals);
+  private Object evaluate(Expr expr, Environment environment) {
+    return expr.accept(this, environment);
   }
 
-  Local execute(Stmt stmt, Local locals) {
-    return stmt.accept(this, locals);
+  Environment execute(Stmt stmt, Environment environment) {
+    return stmt.accept(this, environment);
   }
 
   @Override
-  public Local visitBlockStmt(Stmt.Block stmt, Local locals) {
-    Local before = locals;
-    locals = new Local(locals, "", null);
+  public Environment visitBlockStmt(Stmt.Block stmt, Environment environment) {
+    Environment before = environment;
+    environment = environment.enterScope();
     for (Stmt statement : stmt.statements) {
-      locals = execute(statement, locals);
+      environment = execute(statement, environment);
     }
     return before;
   }
 
   @Override
-  public Local visitClassStmt(Stmt.Class stmt, Local locals) {
-    locals = declareVariable(locals, stmt.name);
+  public Environment visitClassStmt(Stmt.Class stmt, Environment environment) {
+    environment = environment.define(stmt.name.text, null);
 
     Map<String, VoxFunction> methods = new HashMap<>();
     Object superclass = objectClass;
     if (stmt.superclass != null) {
-      superclass = evaluate(stmt.superclass, locals);
+      superclass = evaluate(stmt.superclass, environment);
       if (!(superclass instanceof VoxClass)) {
         throw new RuntimeError(Primitives.stringify(superclass) + " is not a class.",
             stmt.name);
@@ -72,7 +72,7 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
 
     VoxFunction constructor = null;
     for (Stmt.Function method : stmt.methods) {
-      VoxFunction function = new VoxFunction(method, locals);
+      VoxFunction function = new VoxFunction(method, environment);
 
       if (method.name.text.equals(stmt.name.text)) {
         constructor = function;
@@ -83,77 +83,78 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
 
     VoxClass voxClass = new VoxClass(stmt.name.text,
         (VoxClass)superclass, constructor, methods);
-    defineVariable(locals, stmt.name, voxClass);
-    return locals;
+
+    environment.set(stmt.name, voxClass);
+    return environment;
   }
 
   @Override
-  public Local visitExpressionStmt(Stmt.Expression stmt, Local locals) {
-    evaluate(stmt.expression, locals);
-    return locals;
+  public Environment visitExpressionStmt(Stmt.Expression stmt, Environment environment) {
+    evaluate(stmt.expression, environment);
+    return environment;
   }
 
   @Override
-  public Local visitForStmt(Stmt.For stmt, Local locals) {
-    return locals;
+  public Environment visitForStmt(Stmt.For stmt, Environment environment) {
+    return environment;
   }
 
   @Override
-  public Local visitFunctionStmt(Stmt.Function stmt, Local locals) {
-    locals = declareVariable(locals, stmt.name);
-    VoxFunction function = new VoxFunction(stmt, locals);
-    defineVariable(locals, stmt.name, function);
-    return locals;
+  public Environment visitFunctionStmt(Stmt.Function stmt, Environment environment) {
+    environment = environment.define(stmt.name.text, null);
+    VoxFunction function = new VoxFunction(stmt, environment);
+    environment.set(stmt.name, function);
+    return environment;
   }
 
   @Override
-  public Local visitIfStmt(Stmt.If stmt, Local locals) {
-    Local before = locals;
-    locals = new Local(locals, "", null);
+  public Environment visitIfStmt(Stmt.If stmt, Environment environment) {
+    Environment before = environment;
+    environment = environment.enterScope();
 
-    if (Primitives.isTrue(evaluate(stmt.condition, locals))) {
-      execute(stmt.thenBranch, locals);
+    if (Primitives.isTrue(evaluate(stmt.condition, environment))) {
+      execute(stmt.thenBranch, environment);
     } else if (stmt.elseBranch != null) {
-      execute(stmt.elseBranch, locals);
+      execute(stmt.elseBranch, environment);
     }
 
     return before;
   }
 
   @Override
-  public Local visitReturnStmt(Stmt.Return stmt, Local locals) {
+  public Environment visitReturnStmt(Stmt.Return stmt, Environment environment) {
     Object value = null;
-    if (stmt.value != null) value = evaluate(stmt.value, locals);
+    if (stmt.value != null) value = evaluate(stmt.value, environment);
 
     throw new Return(value);
   }
 
   @Override
-  public Local visitVarStmt(Stmt.Var stmt, Local locals) {
-    locals = declareVariable(locals, stmt.name);
-    Object value = evaluate(stmt.initializer, locals);
-    defineVariable(locals, stmt.name, value);
-    return locals;
+  public Environment visitVarStmt(Stmt.Var stmt, Environment environment) {
+    environment = environment.define(stmt.name.text, null);
+    Object value = evaluate(stmt.initializer, environment);
+    environment.set(stmt.name, value);
+    return environment;
   }
 
   @Override
-  public Local visitWhileStmt(Stmt.While stmt, Local locals) {
-    Local before = locals;
-    locals = new Local(locals, "", null);
+  public Environment visitWhileStmt(Stmt.While stmt, Environment environment) {
+    Environment before = environment;
+    environment = environment.enterScope();
 
-    while (Primitives.isTrue(evaluate(stmt.condition, locals))) {
-      execute(stmt.body, locals);
+    while (Primitives.isTrue(evaluate(stmt.condition, environment))) {
+      execute(stmt.body, environment);
     }
 
     return before;
   }
 
   @Override
-  public Object visitAssignExpr(Expr.Assign expr, Local locals) {
-    Object value = evaluate(expr.value, locals);
+  public Object visitAssignExpr(Expr.Assign expr, Environment environment) {
+    Object value = evaluate(expr.value, environment);
 
     if (expr.object != null) {
-      Object object = evaluate(expr.object, locals);
+      Object object = evaluate(expr.object, environment);
       if (object instanceof VoxObject) {
         ((VoxObject)object).fields.put(expr.name.text, value);
       } else {
@@ -161,16 +162,16 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
             expr.name);
       }
     } else {
-      assign(expr.name, value, locals);
+      environment.set(expr.name, value);
     }
 
     return value;
   }
 
   @Override
-  public Object visitBinaryExpr(Expr.Binary expr, Local locals) {
-    Object left = evaluate(expr.left, locals);
-    Object right = evaluate(expr.right, locals);
+  public Object visitBinaryExpr(Expr.Binary expr, Environment environment) {
+    Object left = evaluate(expr.left, environment);
+    Object right = evaluate(expr.right, environment);
 
     // TODO: Type check arithmetic operators.
     switch (expr.operator.type) {
@@ -203,12 +204,12 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
   }
 
   @Override
-  public Object visitCallExpr(Expr.Call expr, Local locals) {
-    Object callable = evaluate(expr.callee, locals);
+  public Object visitCallExpr(Expr.Call expr, Environment environment) {
+    Object callable = evaluate(expr.callee, environment);
 
     List<Object> arguments = new ArrayList<>();
     for (Expr argument : expr.arguments) {
-      arguments.add(evaluate(argument, locals));
+      arguments.add(evaluate(argument, environment));
     }
 
     if (!(callable instanceof Callable)) {
@@ -225,28 +226,28 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
   }
 
   @Override
-  public Object visitGroupingExpr(Expr.Grouping expr, Local locals) {
-    return evaluate(expr.expression, locals);
+  public Object visitGroupingExpr(Expr.Grouping expr, Environment environment) {
+    return evaluate(expr.expression, environment);
   }
 
   @Override
-  public Object visitLiteralExpr(Expr.Literal expr, Local locals) {
+  public Object visitLiteralExpr(Expr.Literal expr, Environment environment) {
     return expr.value;
   }
 
   @Override
-  public Object visitLogicalExpr(Expr.Logical expr, Local locals) {
-    Object left = evaluate(expr.left, locals);
+  public Object visitLogicalExpr(Expr.Logical expr, Environment environment) {
+    Object left = evaluate(expr.left, environment);
 
     if (expr.operator.type == TokenType.OR && Primitives.isTrue(left)) return left;
     if (expr.operator.type == TokenType.AND && !Primitives.isTrue(left)) return left;
 
-    return evaluate(expr.right, locals);
+    return evaluate(expr.right, environment);
   }
 
   @Override
-  public Object visitPropertyExpr(Expr.Property expr, Local locals) {
-    Object object = evaluate(expr.object, locals);
+  public Object visitPropertyExpr(Expr.Property expr, Environment environment) {
+    Object object = evaluate(expr.object, environment);
     if (object instanceof VoxObject) {
       return ((VoxObject)object).getField(expr.name);
     }
@@ -256,13 +257,13 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
   }
 
   @Override
-  public Object visitThisExpr(Expr.This expr, Local locals) {
-    return lookUp(expr.name, locals);
+  public Object visitThisExpr(Expr.This expr, Environment environment) {
+    return environment.get(expr.name);
   }
 
   @Override
-  public Object visitUnaryExpr(Expr.Unary expr, Local locals) {
-    Object right = evaluate(expr.right, locals);
+  public Object visitUnaryExpr(Expr.Unary expr, Environment environment) {
+    Object right = evaluate(expr.right, environment);
 
     // TODO: Handle conversions.
     switch (expr.operator.type) {
@@ -278,61 +279,12 @@ class Interpreter implements Stmt.Visitor<Local, Local>,
   }
 
   @Override
-  public Object visitVariableExpr(Expr.Variable expr, Local locals) {
-    return lookUp(expr.name, locals);
+  public Object visitVariableExpr(Expr.Variable expr, Environment environment) {
+    return environment.get(expr.name);
     // TODO: Talk about late binding:
     //
     //   if (false) variableThatIsNotDefined;
     //
     // No error in a late bound language, but error in eager.
-  }
-
-  private Local declareVariable(Local locals, Token name) {
-    // Globals don't need to be explicitly declared.
-    if (locals == null) return null;
-
-    return new Local(locals, name.text, null);
-  }
-
-  private void defineVariable(Local locals, Token name,
-                              Object value) {
-    if (locals == null) {
-      globals.put(name.text, value);
-    } else {
-      locals.value = value;
-    }
-  }
-
-  private Object lookUp(Token name, Local locals) {
-    Local local = findVariable(locals, name);
-    if (local != null) {
-      return local.value;
-    }
-
-    return globals.get(name.text);
-  }
-
-  private void assign(Token name, Object value, Local locals) {
-    Local local = findVariable(locals, name);
-    if (local != null) {
-      local.value = value;
-      return;
-    }
-
-    globals.put(name.text, value);
-  }
-
-  private Local findVariable(Local locals, Token name) {
-    while (locals != null) {
-      if (locals.name.equals(name.text)) return locals;
-      locals = locals.previous;
-    }
-
-    if (!globals.containsKey(name.text)) {
-      throw new RuntimeError("Undefined variable '" + name.text + "'.", name);
-    }
-
-    // It's global.
-    return null;
   }
 }
