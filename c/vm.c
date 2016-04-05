@@ -195,30 +195,14 @@ static void bindMethod(ObjString* name) {
   pop();
 }
 
-// TODO: Lots of duplication here.
 static bool popNumbers(double* a, double* b) {
-  if (!IS_NUMBER(vm.stackTop[-1])) {
-    runtimeError("Right operand must be a number.");
-    return false;
-  }
-
-  if (!IS_NUMBER(vm.stackTop[-2])) {
-    runtimeError("Left operand must be a number.");
+  if (!IS_NUMBER(vm.stackTop[-1]) || !IS_NUMBER(vm.stackTop[-2])) {
+    runtimeError("Operands must be numbers.");
     return false;
   }
 
   *b = ((ObjNumber*)pop())->value;
   *a = ((ObjNumber*)pop())->value;
-  return true;
-}
-
-static bool popBool(bool* a) {
-  if (!IS_BOOL(vm.stackTop[-1])) {
-    runtimeError("Operand must be a boolean.");
-    return false;
-  }
-  
-  *a = ((ObjBool*)pop())->value;
   return true;
 }
 
@@ -230,6 +214,11 @@ static bool popNumber(double* a) {
   
   *a = ((ObjNumber*)pop())->value;
   return true;
+}
+
+static bool isFalsey(Value value) {
+  return IS_NULL(value) ||
+        (IS_BOOL(value) && ((ObjBool*)value)->value == false);
 }
 
 static void concatenate() {
@@ -389,7 +378,7 @@ static bool run() {
           double a = ((ObjNumber*)pop())->value;
           push((Value)newNumber(a + b));
         } else {
-          runtimeError("Can only add two strings or two numbers.");
+          runtimeError("Operands must be two numbers or two strings.");
           return false;
         }
         break;
@@ -416,12 +405,9 @@ static bool run() {
         break;
       }
         
-      case OP_NOT: {
-        bool a;
-        if (!popBool(&a)) return false;
-        push((Value)newBool(!a));
+      case OP_NOT:
+        push((Value)newBool(isFalsey(pop())));
         break;
-      }
 
       case OP_NEGATE: {
         double a;
@@ -438,12 +424,7 @@ static bool run() {
         
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-        Value condition = peek(0);
-        if (IS_NULL(condition) ||
-            (condition->type == OBJ_BOOL &&
-                ((ObjBool*)condition)->value == false)) {
-          frame->ip += offset;
-        }
+        if (isFalsey(peek(0))) frame->ip += offset;
         break;
       }
         

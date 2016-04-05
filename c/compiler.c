@@ -595,9 +595,11 @@ void expression() {
 static void block() {
   consume(TOKEN_LEFT_BRACE, "Expect '{' before block.");
 
+  beginScope();
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     statement();
   }
+  endScope();
   
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
@@ -756,9 +758,7 @@ static void statement() {
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
   } else if (check(TOKEN_LEFT_BRACE)) {
-    beginScope();
     block();
-    endScope();
   } else {
     expression();
     emitByte(OP_POP);
