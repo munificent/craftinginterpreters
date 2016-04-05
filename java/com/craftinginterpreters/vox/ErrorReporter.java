@@ -3,8 +3,10 @@ package com.craftinginterpreters.vox;
 class ErrorReporter {
   boolean hadError = false;
 
-  void error(int line, String message) {
-    System.err.println("[line " + line + "] Error: " + message);
+  void error(Token token, String message) {
+    System.err.println("[line " + token.line +
+        "] Error on '" +
+        token.text + "': " + message);
     hadError = true;
   }
 }

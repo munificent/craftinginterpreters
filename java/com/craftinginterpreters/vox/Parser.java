@@ -110,16 +110,7 @@ class Parser {
     List<Token> params = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
       do {
-        Token param = consume(IDENTIFIER,
-            "Expect parameter name.");
-
-        for (Token other : params) {
-          if (other.text.equals(param.text)) {
-            error("Duplicate parameter.");
-          }
-        }
-
-        params.add(param);
+        params.add(consume(IDENTIFIER, "Expect parameter name."));
       } while (match(COMMA));
     }
     consume(RIGHT_PAREN, "Expect ')' after parameters.");
@@ -341,6 +332,6 @@ class Parser {
   }
 
   private void error(String message) {
-    errorReporter.error(current.line, message);
+    errorReporter.error(current, message);
   }
 }

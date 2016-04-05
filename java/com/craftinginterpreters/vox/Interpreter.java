@@ -30,6 +30,11 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     Parser parser = new Parser(scanner, errorReporter);
     List<Stmt> statements = parser.parseProgram();
 
+    if (!errorReporter.hadError) {
+      Resolver resolver = new Resolver(errorReporter);
+      resolver.resolve(statements);
+    }
+
     // Don't run if there was a parse error.
     if (errorReporter.hadError) return;
 
@@ -222,19 +227,19 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
   @Override
   public Object visitCallExpr(Expr.Call expr, Environment environment) {
-    Object callable = evaluate(expr.callee, environment);
+    Object callee = evaluate(expr.callee, environment);
 
     List<Object> arguments = new ArrayList<>();
     for (Expr argument : expr.arguments) {
       arguments.add(evaluate(argument, environment));
     }
 
-    if (!(callable instanceof Callable)) {
+    if (!(callee instanceof Callable)) {
       throw new RuntimeError(
           "Can only call functions and classes.", expr.paren);
     }
 
-    Callable function = (Callable)callable;
+    Callable function = (Callable)callee;
     if (arguments.size() < function.requiredArguments()) {
       throw new RuntimeError("Not enough arguments.", expr.paren);
     }

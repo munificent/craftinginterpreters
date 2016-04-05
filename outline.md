@@ -148,6 +148,7 @@ visible to user.
         - virtual machine
 
 principles
+
 - each top-level section builds one interpreter starting from scratch
 - since the book will be "published" online serially, the chapters should be
   ordered such that they are useful even while the book is incomplete. that
