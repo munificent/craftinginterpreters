@@ -22,6 +22,7 @@ static Keyword keywords[] = {
   {"null",    4, TOKEN_NULL},
   {"or",      2, TOKEN_OR},
   {"return",  6, TOKEN_RETURN},
+  {"this",    4, TOKEN_THIS},
   {"true",    4, TOKEN_TRUE},
   {"var",     3, TOKEN_VAR},
   {"while",   5, TOKEN_WHILE},

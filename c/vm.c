@@ -76,6 +76,22 @@ static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
 
+static bool callClosure(ObjClosure* closure, int argCount) {
+  if (argCount < closure->function->arity) {
+    runtimeError("Not enough arguments.");
+    return false;
+  }
+  
+  // TODO: Check for overflow.
+  CallFrame* frame = &vm.frames[vm.frameCount++];
+  frame->closure = closure;
+  frame->ip = closure->function->code;
+
+  // -1 to include either the called function or the receiver.
+  frame->slots = vm.stackTop - argCount - 1;
+  return true;
+}
+
 static bool call(Value callee, int argCount) {
   if (IS_CLASS(callee)) {
     ObjClass* klass = (ObjClass*)callee;
@@ -94,21 +110,7 @@ static bool call(Value callee, int argCount) {
   }
   
   if (IS_CLOSURE(callee)) {
-    ObjClosure* closure = (ObjClosure*)callee;
-    if (argCount < closure->function->arity) {
-      runtimeError("Not enough arguments.");
-      return false;
-    }
-    
-    // TODO: Check for overflow.
-    CallFrame* frame = &vm.frames[vm.frameCount++];
-    frame->closure = closure;
-    frame->ip = closure->function->code;
-    // TODO: Should the frame's stack start include the called function or not?
-    // If so, we need the compiler to set aside slot 0 for it. Also need to figure
-    // out how we want to handle methods.
-    frame->slots = vm.stackTop - argCount;
-    return true;
+    return callClosure((ObjClosure*)callee, argCount);
   }
   
   if (IS_NATIVE(callee)) {
@@ -122,6 +124,25 @@ static bool call(Value callee, int argCount) {
   
   runtimeError("Can only call functions and classes.");
   return false;
+}
+
+static bool invoke(Value receiver, ObjString* methodName, int argCount) {
+  if (!IS_INSTANCE(receiver)) {
+    runtimeError("Only instances have methods.");
+    return false;
+  }
+  
+  ObjInstance* instance = (ObjInstance*)receiver;
+  ObjClass* klass = instance->klass;
+  Value method;
+  if (!tableGet(klass->methods, methodName, &method)) {
+    // TODO: Walk superclasses.
+    runtimeError("%s does not implement '%s'.",
+                 klass->name->chars, methodName->chars);
+    return false;
+  }
+  
+  return callClosure((ObjClosure*)method, argCount);
 }
 
 // Captures the local variable [local] into an [Upvalue]. If that local is
@@ -180,17 +201,15 @@ static void closeUpvalues(Value* last) {
 }
 
 static void createClass(ObjString* name) {
-  push((Value)newClass(name, peek(0)));
+  ObjClass* klass = newClass(name, peek(0));
+  push((Value)klass);
+  
+  klass->methods = newTable();
 }
 
 static void bindMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = (ObjClass*)peek(1);
-  
-  if (klass->methods == NULL) {
-    klass->methods = newTable();
-  }
-  
   tableSet(klass->methods, name, method);
   pop();
 }
@@ -449,6 +468,22 @@ static bool run() {
         break;
       }
         
+      case OP_INVOKE_0:
+      case OP_INVOKE_1:
+      case OP_INVOKE_2:
+      case OP_INVOKE_3:
+      case OP_INVOKE_4:
+      case OP_INVOKE_5:
+      case OP_INVOKE_6:
+      case OP_INVOKE_7:
+      case OP_INVOKE_8: {
+        ObjString* method = (ObjString*)READ_CONSTANT();
+        int argCount = instruction - OP_INVOKE_0;
+        if (!invoke(peek(argCount), method, argCount)) return false;
+        frame = &vm.frames[vm.frameCount - 1];
+        break;
+      }
+        
       case OP_CLOSURE: {
         ObjFunction* function = (ObjFunction*)READ_CONSTANT();
         
@@ -486,9 +521,7 @@ static bool run() {
 
         if (vm.frameCount == 1) return true;
         
-        // TODO: -1 here because the stack start does not include the function,
-        // which we also want to discard.
-        vm.stackTop = frame->slots - 1;
+        vm.stackTop = frame->slots;
         push(result);
         
         vm.frameCount--;
@@ -516,7 +549,7 @@ InterpretResult interpret(const char* source) {
   push((Value)function);
   ObjClosure* closure = newClosure(function);
   pop();
-  
+  push((Value)closure);
   call((Value)closure, 0);
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;

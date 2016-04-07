@@ -173,16 +173,30 @@ static void patchJump(int offset) {
   current->function->code[offset + 1] = jump & 0xff;
 }
 
-static void beginCompiler(Compiler* compiler) {
+static void beginCompiler(Compiler* compiler, int scopeDepth, bool isMethod) {
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->localCount = 0;
   compiler->upvalueCount = 0;
-  compiler->scopeDepth = 0;
+  compiler->scopeDepth = scopeDepth;
   
   current = compiler;
   
   compiler->function = newFunction();
+  
+  // The first slot is always implicitly declared. In a method, it holds the
+  // receiver, "this". In a function, it holds the function, but cannot be
+  // referenced, so has no name.
+  Local* local = &current->locals[current->localCount++];
+  local->depth = current->scopeDepth;
+  local->isUpvalue = false;
+  if (isMethod) {
+    local->name.start = "this";
+    local->name.length = 4;
+  } else {
+    local->name.start = "";
+    local->name.length = 0;
+  }
 }
 
 static ObjFunction* endCompiler() {
@@ -320,13 +334,11 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   return -1;
 }
 
-static uint8_t parseVariable(const char* errorMessage) {
-  consume(TOKEN_IDENTIFIER, errorMessage);
-  
-  // If it's a global variable, create a string constant for it.
-  if (current->scopeDepth == 0) {
-    return identifierConstant();
-  }
+// Allocates a local slot for the value currently on the stack, if we're in a
+// local scope.
+static void declareVariable() {
+  // Global variables are implicitly declared.
+  if (current->scopeDepth == 0) return;
   
   // See if a local variable with this name is already declared in this scope.
   Token* name = &parser.previous;
@@ -347,6 +359,17 @@ static uint8_t parseVariable(const char* errorMessage) {
   local->isUpvalue = false;
   // TODO: Check for overflow.
   current->localCount++;
+}
+
+static uint8_t parseVariable(const char* errorMessage) {
+  consume(TOKEN_IDENTIFIER, errorMessage);
+  
+  // If it's a global variable, create a string constant for it.
+  if (current->scopeDepth == 0) {
+    return identifierConstant();
+  }
+  
+  declareVariable();
   return 0;
 }
 
@@ -357,6 +380,20 @@ static void defineVariable(uint8_t global) {
     // Mark the local as defined now.
     current->locals[current->localCount - 1].depth = current->scopeDepth;
   }
+}
+
+static uint8_t argumentList() {
+  uint8_t argCount = 0;
+  if (!check(TOKEN_RIGHT_PAREN)) {
+    do {
+      expression();
+      argCount++;
+      // TODO: Check for overflow.
+    } while (match(TOKEN_COMMA));
+  }
+  
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
+  return argCount;
 }
 
 static void and_(bool canAssign) {
@@ -406,16 +443,7 @@ static void boolean(bool canAssign) {
 }
 
 static void call(bool canAssign) {
-  uint8_t argCount = 0;
-  if (!check(TOKEN_RIGHT_PAREN)) {
-    do {
-      expression();
-      argCount++;
-      // TODO: Check for overflow.
-    } while (match(TOKEN_COMMA));
-  }
-  
-  consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
+  uint8_t argCount = argumentList();
   emitByte(OP_CALL_0 + argCount);
 }
 
@@ -426,6 +454,9 @@ static void dot(bool canAssign) {
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
     emitBytes(OP_SET_FIELD, name);
+  } else if (match(TOKEN_LEFT_PAREN)) {
+    uint8_t argCount = argumentList();
+    emitBytes(OP_INVOKE_0 + argCount, name);
   } else {
     emitBytes(OP_GET_FIELD, name);
   }
@@ -476,6 +507,17 @@ static void or_(bool canAssign) {
 static void string(bool canAssign) {
   emitConstant((Value)newString((uint8_t*)parser.previous.start + 1,
                                 parser.previous.length - 2));
+}
+
+static void this_(bool canAssign) {
+  int arg = resolveLocal(current, &parser.previous, false);
+  if (arg != -1) {
+    emitBytes(OP_GET_LOCAL, (uint8_t)arg);
+  } else if ((arg = resolveUpvalue(current, &parser.previous)) != -1) {
+    emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
+  } else {
+    error("Cannot use 'this' outside of a class.");
+  }
 }
 
 static void unary(bool canAssign) {
@@ -555,7 +597,7 @@ ParseRule rules[] = {
   { null_,    NULL,    PREC_NONE },       // TOKEN_NULL
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
+  { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
   { boolean,  NULL,    PREC_NONE },       // TOKEN_TRUE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE
@@ -604,10 +646,9 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-static void function() {
+static void function(bool isMethod) {
   Compiler functionCompiler;
-  beginCompiler(&functionCompiler);
-  beginScope();
+  beginCompiler(&functionCompiler, 1, isMethod);
   
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
@@ -647,14 +688,15 @@ static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
   uint8_t constant = identifierConstant();
   
-  function();
+  function(true);
   
   emitBytes(OP_METHOD, constant);
 }
 
 static void classStatement() {
-  // TODO: Doesn't work for a class in local scope!
-  uint8_t nameConstant = parseVariable("Expect class name.");
+  consume(TOKEN_IDENTIFIER, "Expect class name.");
+  uint8_t nameConstant = identifierConstant();
+  declareVariable();
   emitBytes(OP_CLASS, nameConstant);
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
@@ -668,7 +710,7 @@ static void classStatement() {
 
 static void funStatement() {
   uint8_t global = parseVariable("Expect function name.");
-  function();
+  function(false);
   defineVariable(global);
 }
 
@@ -772,8 +814,8 @@ ObjFunction* compile(const char* source) {
   initScanner(source);
 
   Compiler mainCompiler;
-  beginCompiler(&mainCompiler);
-
+  beginCompiler(&mainCompiler, 0, false);  
+  
   // Prime the pump.
   parser.hadError = false;
   advance();

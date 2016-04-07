@@ -172,6 +172,16 @@ int printInstruction(ObjFunction* function, int i) {
       printf("OP_CALL_%d\n", instruction - OP_CALL_0);
       break;
       
+    case OP_INVOKE_0: i = constantInstruction(function, i, "OP_INVOKE_0"); break;
+    case OP_INVOKE_1: i = constantInstruction(function, i, "OP_INVOKE_1"); break;
+    case OP_INVOKE_2: i = constantInstruction(function, i, "OP_INVOKE_2"); break;
+    case OP_INVOKE_3: i = constantInstruction(function, i, "OP_INVOKE_3"); break;
+    case OP_INVOKE_4: i = constantInstruction(function, i, "OP_INVOKE_4"); break;
+    case OP_INVOKE_5: i = constantInstruction(function, i, "OP_INVOKE_5"); break;
+    case OP_INVOKE_6: i = constantInstruction(function, i, "OP_INVOKE_6"); break;
+    case OP_INVOKE_7: i = constantInstruction(function, i, "OP_INVOKE_7"); break;
+    case OP_INVOKE_8: i = constantInstruction(function, i, "OP_INVOKE_8"); break;
+      
     case OP_CLOSURE: {
       uint8_t constant = function->code[i++];
       printf("%-16s %4d ", "OP_CLOSURE", constant);
