@@ -189,10 +189,8 @@ static void beginCompiler(Compiler* compiler, int scopeDepth, bool isMethod) {
   compiler->localCount = 0;
   compiler->upvalueCount = 0;
   compiler->scopeDepth = scopeDepth;
-  
-  current = compiler;
-  
   compiler->function = newFunction();
+  current = compiler;
   
   // The first slot is always implicitly declared. In a method, it holds the
   // receiver, "this". In a function, it holds the function, but cannot be

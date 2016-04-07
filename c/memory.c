@@ -57,7 +57,7 @@ static void blackenObject(Obj* obj) {
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)obj;
       grayValue((Value)klass->name);
-      grayValue((Value)klass->methods);
+      grayTable(&klass->methods);
       break;
     }
       
@@ -79,17 +79,7 @@ static void blackenObject(Obj* obj) {
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)obj;
       grayValue((Value)instance->klass);
-      grayValue((Value)instance->fields);
-      break;
-    }
-      
-    case OBJ_TABLE: {
-      ObjTable* table = (ObjTable*)obj;
-      for (int i = 0; i < table->count; i++) {
-        TableEntry* entry = &table->entries[i];
-        grayValue((Value)entry->key);
-        grayValue(entry->value);
-      }
+      grayTable(&instance->fields);
       break;
     }
       
@@ -114,6 +104,12 @@ static void freeObject(Obj* obj) {
 #endif
   
   switch (obj->type) {
+    case OBJ_CLASS: {
+      ObjClass* klass = (ObjClass*)obj;
+      freeTable(&klass->methods);
+      break;
+    }
+
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)obj;
       free(closure->upvalues);
@@ -127,15 +123,13 @@ static void freeObject(Obj* obj) {
       break;
     }
       
-    case OBJ_TABLE: {
-      ObjTable* table = (ObjTable*)obj;
-      free(table->entries);
+    case OBJ_INSTANCE: {
+      ObjInstance* instance = (ObjInstance*)obj;
+      freeTable(&instance->fields);
       break;
     }
       
     case OBJ_BOOL:
-    case OBJ_CLASS:
-    case OBJ_INSTANCE:
     case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:
@@ -170,7 +164,7 @@ void collectGarbage() {
   }
   
   // Mark the global roots.
-  grayValue((Value)vm.globals);
+  grayTable(&vm.globals);
   grayCompilerRoots();
   
   while (vm.grayCount > 0) {

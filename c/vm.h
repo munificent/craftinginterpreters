@@ -2,6 +2,7 @@
 #define cvox_vm_h
 
 #include "object.h"
+#include "table.h"
 
 #define MAX_STACK       256
 #define MAX_FRAMES      64
@@ -69,7 +70,7 @@ struct sVM {
   CallFrame frames[MAX_FRAMES];
   int frameCount;
   
-  ObjTable* globals;
+  Table globals;
   
   ObjUpvalue* openUpvalues;
   

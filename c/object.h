@@ -4,7 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct sVM VM;
+#include "common.h"
+#include "table.h"
 
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
 #define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
@@ -15,7 +16,6 @@ typedef struct sVM VM;
 #define IS_NULL(value) ((value) == NULL)
 #define IS_NATIVE(value) isNonNullType((value), OBJ_NATIVE)
 #define IS_STRING(value) isNonNullType((value), OBJ_STRING)
-#define IS_TABLE(value) isNonNullType((value), OBJ_TABLE)
 
 // TODO: Unboxed numbers?
 
@@ -28,19 +28,16 @@ typedef enum {
   OBJ_NATIVE,
   OBJ_NUMBER,
   OBJ_STRING,
-  OBJ_TABLE,
   OBJ_UPVALUE
 } ObjType;
 
-typedef struct sObj {
+struct sObj {
   ObjType type;
   // TODO: Stuff into low bit of next?
   bool isDark;
   
   struct sObj* next;
-} Obj;
-
-typedef Obj* Value;
+};
 
 typedef struct {
   Value* values;
@@ -78,23 +75,11 @@ typedef struct {
   double value;
 } ObjNumber;
 
-typedef struct {
+struct sObjString {
   Obj obj;
   int length;
   char* chars;
-} ObjString;
-
-typedef struct {
-  ObjString* key;
-  Value value;
-} TableEntry;
-
-typedef struct {
-  Obj obj;
-  int count;
-  int capacity;
-  TableEntry* entries;
-} ObjTable;
+};
 
 typedef struct sUpvalue {
   Obj obj;
@@ -121,14 +106,14 @@ typedef struct {
 typedef struct {
   Obj obj;
   ObjString* name;
-  ObjTable* methods;
+  Table methods;
 } ObjClass;
 
 typedef struct {
   Obj obj;
   ObjClass* klass;
   // TODO: Rename properties to fields in jvox.
-  ObjTable* fields;
+  Table fields;
 } ObjInstance;
 
 ObjBool* newBool(bool value);
@@ -140,10 +125,7 @@ ObjNative* newNative(NativeFn function);
 ObjNumber* newNumber(double value);
 // TODO: int or size_t for length?
 ObjString* newString(const uint8_t* chars, int length);
-ObjTable* newTable();
 ObjUpvalue* newUpvalue(Value* slot);
-bool tableGet(ObjTable* table, ObjString* key, Value* value);
-bool tableSet(ObjTable* table, ObjString* key, Value value);
 
 bool valuesEqual(Value a, Value b);
 

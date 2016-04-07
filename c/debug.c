@@ -42,10 +42,6 @@ void printValue(Value value) {
       printf("%.*s", ((ObjString*)value)->length, ((ObjString*)value)->chars);
       break;
       
-    case OBJ_TABLE:
-      printf("table");
-      break;
-      
     case OBJ_UPVALUE:
       printf("upvalue");
       break;

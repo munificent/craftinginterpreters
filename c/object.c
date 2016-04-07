@@ -5,16 +5,10 @@
 #include <string.h>
 
 #include "compiler.h"
+#include "debug.h"
 #include "memory.h"
 #include "object.h"
 #include "vm.h"
-
-#include "debug.h"
-
-#define DEBUG_STRESS_GC
-//#define DEBUG_TRACE_GC
-
-#define TABLE_MAX_LOAD 0.75
 
 #define ALLOCATE_OBJ(type, objType) (type*)allocateObj(sizeof(type), objType)
 
@@ -42,8 +36,8 @@ ObjBool* newBool(bool value) {
 ObjClass* newClass(ObjString* name, Value superclass) {
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
-  // TODO: Use superclass.  
-  klass->methods = NULL;
+  // TODO: Use superclass.
+  initTable(&klass->methods);
   return klass;
 }
 
@@ -79,7 +73,7 @@ ObjFunction* newFunction() {
 ObjInstance* newInstance(ObjClass* klass) {
   ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
   instance->klass = klass;
-  instance->fields = NULL;
+  initTable(&instance->fields);
   return instance;
 }
 
@@ -110,14 +104,6 @@ ObjString* newString(const uint8_t* chars, int length) {
   return string;
 }
 
-ObjTable* newTable() {
-  ObjTable* table = ALLOCATE_OBJ(ObjTable, OBJ_TABLE);
-  table->capacity = 0;
-  table->count = 0;
-  table->entries = NULL;
-  return table;
-}
-
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
   upvalue->closed = NULL;
@@ -125,51 +111,6 @@ ObjUpvalue* newUpvalue(Value* slot) {
   upvalue->next = NULL;
   
   return upvalue;
-}
-
-static void growTable(ObjTable* table) {
-  if (table->capacity * TABLE_MAX_LOAD > table->count) return;
-  
-  if (table->capacity == 0) {
-    table->capacity = 4;
-  } else {
-    table->capacity *= 2;
-  }
-  
-  // TODO: Rehash everything.
-  table->entries = REALLOCATE(table->entries, TableEntry, table->capacity);
-}
-
-bool tableGet(ObjTable* table, ObjString* key, Value* value) {
-  // TODO: Actually hash it!
-  for (int i = 0; i < table->count; i++) {
-    TableEntry* entry = &table->entries[i];
-    if (entry->key->length == key->length &&
-        memcmp(entry->key->chars, key->chars, key->length) == 0) {
-      *value = table->entries[i].value;
-      return true;
-    }
-  }
-  
-  return false;
-}
-
-bool tableSet(ObjTable* table, ObjString* key, Value value) {
-  // TODO: Actually hash it!
-  for (int i = 0; i < table->count; i++) {
-    TableEntry* entry = &table->entries[i];
-    if (entry->key->length == key->length &&
-        memcmp(entry->key->chars, key->chars, key->length) == 0) {
-      table->entries[i].value = value;
-      return true;
-    }
-  }
-  
-  growTable(table);
-  TableEntry* entry = &table->entries[table->count++];
-  entry->key = key;
-  entry->value = value;
-  return false;
 }
 
 bool valuesEqual(Value a, Value b) {
@@ -201,7 +142,6 @@ bool valuesEqual(Value a, Value b) {
     case OBJ_FUNCTION:
     case OBJ_INSTANCE:
     case OBJ_NATIVE:
-    case OBJ_TABLE:
     case OBJ_UPVALUE:
       // These have reference equality.
       return false;

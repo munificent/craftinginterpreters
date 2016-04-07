@@ -37,7 +37,7 @@ static void runtimeError(const char* format, ...) {
 static void defineNative(const char* name, NativeFn function) {
   push((Value)newString((uint8_t*)name, (int)strlen(name)));
   push((Value)newNative(function));
-  tableSet(vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
+  tableSet(&vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
   pop();
   pop();
 }
@@ -52,13 +52,13 @@ void initVM() {
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
 
-  vm.globals = newTable();
+  initTable(&vm.globals);
   
   defineNative("print", printNative);
 }
 
 void endVM() {
-  vm.globals = NULL;
+  freeTable(&vm.globals);
   freeObjects();
 }
 
@@ -100,9 +100,6 @@ static bool call(Value callee, int argCount) {
     
     // Swap out the class for the instance.
     vm.stackTop[-argCount - 1] = (Value)instance;
-
-    // Give it a field table.
-    instance->fields = newTable();
     
     // TODO: Call constructor if there is one.
     vm.stackTop -= argCount;
@@ -135,7 +132,7 @@ static bool invoke(Value receiver, ObjString* methodName, int argCount) {
   ObjInstance* instance = (ObjInstance*)receiver;
   ObjClass* klass = instance->klass;
   Value method;
-  if (!tableGet(klass->methods, methodName, &method)) {
+  if (!tableGet(&klass->methods, methodName, &method)) {
     // TODO: Walk superclasses.
     runtimeError("%s does not implement '%s'.",
                  klass->name->chars, methodName->chars);
@@ -200,17 +197,16 @@ static void closeUpvalues(Value* last) {
   }
 }
 
+// TODO: Remove?
 static void createClass(ObjString* name) {
   ObjClass* klass = newClass(name, peek(0));
   push((Value)klass);
-  
-  klass->methods = newTable();
 }
 
 static void bindMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = (ObjClass*)peek(1);
-  tableSet(klass->methods, name, method);
+  tableSet(&klass->methods, name, method);
   pop();
 }
 
@@ -301,7 +297,7 @@ static bool run() {
       case OP_GET_GLOBAL: {
         ObjString* name = (ObjString*)READ_CONSTANT();
         Value value;
-        if (!tableGet(vm.globals, name, &value)) {
+        if (!tableGet(&vm.globals, name, &value)) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }
@@ -311,14 +307,14 @@ static bool run() {
         
       case OP_DEFINE_GLOBAL: {
         ObjString* name = (ObjString*)READ_CONSTANT();
-        tableSet(vm.globals, name, peek(0));
+        tableSet(&vm.globals, name, peek(0));
         pop();
         break;
       }
         
       case OP_SET_GLOBAL: {
         ObjString* name = (ObjString*)READ_CONSTANT();
-        if (!tableSet(vm.globals, name, peek(0))) {
+        if (!tableSet(&vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }
@@ -346,7 +342,7 @@ static bool run() {
         ObjInstance* instance = (ObjInstance*)pop();
         ObjString* name = (ObjString*)READ_CONSTANT();
         Value value;
-        if (!tableGet(instance->fields, name, &value)) {
+        if (!tableGet(&instance->fields, name, &value)) {
           runtimeError("Undefined field '%s'.", name->chars);
           return false;
         }
@@ -361,7 +357,7 @@ static bool run() {
         }
         
         ObjInstance* instance = (ObjInstance*)peek(1);
-        tableSet(instance->fields, (ObjString*)READ_CONSTANT(), peek(0));
+        tableSet(&instance->fields, (ObjString*)READ_CONSTANT(), peek(0));
         Value value = pop();
         pop();
         push(value);
