@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +15,7 @@
 // TODO: These are kind of pointless. Unify?
 #define MAX_LOCALS 256
 #define MAX_UPVALUES 256
+#define MAX_PARAMETERS 8
 
 typedef struct {
   bool hadError;
@@ -98,8 +100,16 @@ static void advance() {
   parser.current = scanToken();
 }
 
-static void error(const char* message) {
-  fprintf(stderr, "[line %d] Error: %s\n", parser.previous.line, message);
+static void error(const char* format, ...) {
+  fprintf(stderr, "[line %d] Error at '%.*s': ", parser.previous.line,
+          parser.previous.length, parser.previous.start);
+  
+  va_list args;
+  va_start(args, format);
+  vfprintf(stderr, format, args);
+  va_end(args);
+  
+  fprintf(stderr, "\n");
   parser.hadError = true;
 }
 
@@ -388,7 +398,10 @@ static uint8_t argumentList() {
     do {
       expression();
       argCount++;
-      // TODO: Check for overflow.
+      
+      if (argCount > MAX_PARAMETERS) {
+        error("Cannot have more than %d arguments.", MAX_PARAMETERS);
+      }
     } while (match(TOKEN_COMMA));
   }
   
@@ -612,7 +625,7 @@ static void parsePrecedence(Precedence precedence) {
   ParseFn prefixRule = getRule(parser.previous.type)->prefix;
 
   if (prefixRule == NULL) {
-    error("Expected expression.\n");
+    error("Expected expression.");
     return;
   }
 
@@ -659,7 +672,9 @@ static void function(bool isMethod) {
       defineVariable(paramConstant);
 
       current->function->arity++;
-      // TODO: Check for overflow.
+      if (current->function->arity > MAX_PARAMETERS) {
+        error("Cannot have more than %d parameters.", MAX_PARAMETERS);
+      }
     } while (match(TOKEN_COMMA));
   }
   
@@ -814,7 +829,7 @@ ObjFunction* compile(const char* source) {
   initScanner(source);
 
   Compiler mainCompiler;
-  beginCompiler(&mainCompiler, 0, false);  
+  beginCompiler(&mainCompiler, 0, false);
   
   // Prime the pump.
   parser.hadError = false;
