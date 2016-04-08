@@ -107,16 +107,20 @@ class Parser {
         "Expect " + kind + " name.");
 
     consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-    List<Token> params = new ArrayList<>();
+    List<Token> parameters = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
       do {
-        params.add(consume(IDENTIFIER, "Expect parameter name."));
+        parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+
+        if (parameters.size() > 8) {
+          error("Cannot have more than 8 arguments.");
+        }
       } while (match(COMMA));
     }
     consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
     Stmt body = block();
-    return new Stmt.Function(name, params, body);
+    return new Stmt.Function(name, parameters, body);
   }
 
   private Stmt block() {
@@ -249,11 +253,16 @@ class Parser {
         if (!check(RIGHT_PAREN)) {
           do {
             arguments.add(expression());
+
+            if (arguments.size() > 8) {
+              error("Cannot have more than 8 arguments.");
+            }
           } while (match(COMMA));
         }
 
         Token paren = consume(RIGHT_PAREN,
             "Expect ')' after argument list.");
+
         expr = new Expr.Call(expr, paren, arguments);
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,

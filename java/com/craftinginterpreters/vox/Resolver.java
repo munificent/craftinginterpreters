@@ -7,6 +7,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   private final ErrorReporter errorReporter;
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+  private int enclosingClasses = 0;
 
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
@@ -35,12 +36,17 @@ class Resolver implements Stmt.Visitor<Void, Void>,
       resolve(stmt.superclass);
     }
 
+    enclosingClasses++;
+
     for (Stmt.Function method : stmt.methods) {
       // TODO: Note that we're in a class?
       resolve(method);
     }
 
     // TODO: Check for method collisions?
+
+    enclosingClasses--;
+
     return null;
   }
 
@@ -167,6 +173,10 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   @Override
   public Void visitThisExpr(Expr.This expr, Void dummy) {
     // TODO: Error if outside class?
+    if (enclosingClasses == 0) {
+      errorReporter.error(expr.name,
+          "Cannot use 'this' outside of a class.");
+    }
     return null;
   }
 
@@ -179,16 +189,10 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   @Override
   public Void visitVariableExpr(Expr.Variable expr, Void dummy) {
     // TODO: Mark name depth?
-    for (int i = 0; i < scopes.size(); i++) {
-      Map<String, Boolean> scope = scopes.get(i);
-      if (scope.containsKey(expr.name.text)) {
-        if (!scope.get(expr.name.text)) {
-          errorReporter.error(expr.name,
-              "A local variable cannot be used in its own initializer.");
-        }
-
-        break;
-      }
+    if (!scopes.isEmpty() &&
+        scopes.peek().get(expr.name.text) == Boolean.FALSE) {
+      errorReporter.error(expr.name,
+          "A local variable cannot be used in its own initializer.");
     }
 
     return null;
