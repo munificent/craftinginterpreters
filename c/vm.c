@@ -123,19 +123,26 @@ static bool call(Value callee, int argCount) {
   return false;
 }
 
-static bool invoke(Value receiver, ObjString* methodName, int argCount) {
+static bool invoke(Value receiver, ObjString* name, int argCount) {
   if (!IS_INSTANCE(receiver)) {
     runtimeError("Only instances have methods.");
     return false;
   }
   
   ObjInstance* instance = (ObjInstance*)receiver;
+
+  Value value;
+  if (tableGet(&instance->fields, name, &value)) {
+    vm.stackTop[-argCount] = value;
+    return call(value, argCount);
+  }
+
   ObjClass* klass = instance->klass;
   Value method;
-  if (!tableGet(&klass->methods, methodName, &method)) {
+  if (!tableGet(&klass->methods, name, &method)) {
     // TODO: Walk superclasses.
     runtimeError("%s does not implement '%s'.",
-                 klass->name->chars, methodName->chars);
+                 klass->name->chars, name->chars);
     return false;
   }
   
