@@ -118,6 +118,11 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
+  public String visitFieldExpr(Expr.Field expr, Void context) {
+    return join("(.", expr.object, " ", expr.name.text, ")");
+  }
+
+  @Override
   public String visitGroupingExpr(Expr.Grouping expr, Void context) {
     return join("(group ", expr.expression, ")");
   }
@@ -134,11 +139,6 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   @Override
   public String visitLogicalExpr(Expr.Logical expr, Void context) {
     return join("(", expr.operator, " ", expr.left, " ", expr.right, ")");
-  }
-
-  @Override
-  public String visitPropertyExpr(Expr.Property expr, Void context) {
-    return join("(.", expr.object, " ", expr.name.text, ")");
   }
 
   @Override

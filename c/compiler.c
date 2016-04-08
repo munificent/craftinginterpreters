@@ -471,8 +471,6 @@ static void dot(bool canAssign) {
   } else {
     emitBytes(OP_GET_FIELD, name);
   }
-  
-  // TODO: Method calls.
 }
 
 static void grouping(bool canAssign) {
@@ -547,9 +545,7 @@ static void unary(bool canAssign) {
 }
 
 static void variable(bool canAssign) {
-  // TODO: Simplify code.
   uint8_t getOp, setOp;
-  
   int arg = resolveLocal(current, &parser.previous, false);
   if (arg != -1) {
     getOp = OP_GET_LOCAL;

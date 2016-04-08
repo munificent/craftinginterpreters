@@ -112,7 +112,6 @@ typedef struct {
 typedef struct {
   Obj obj;
   ObjClass* klass;
-  // TODO: Rename properties to fields in jvox.
   Table fields;
 } ObjInstance;
 

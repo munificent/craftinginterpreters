@@ -10,7 +10,7 @@ abstract class Expr {
     R visitGroupingExpr(Grouping expr, C context);
     R visitLiteralExpr(Literal expr, C context);
     R visitLogicalExpr(Logical expr, C context);
-    R visitPropertyExpr(Property expr, C context);
+    R visitFieldExpr(Field expr, C context);
     R visitThisExpr(This expr, C context);
     R visitUnaryExpr(Unary expr, C context);
     R visitVariableExpr(Variable expr, C context);
@@ -104,14 +104,14 @@ abstract class Expr {
     final Expr right;
   }
 
-  static class Property extends Expr {
-    Property(Expr object, Token name) {
+  static class Field extends Expr {
+    Field(Expr object, Token name) {
       this.object = object;
       this.name = name;
     }
 
     <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitPropertyExpr(this, context);
+      return visitor.visitFieldExpr(this, context);
     }
 
     final Expr object;

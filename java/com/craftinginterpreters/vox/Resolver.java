@@ -147,6 +147,12 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   @Override
+  public Void visitFieldExpr(Expr.Field expr, Void dummy) {
+    resolve(expr.object);
+    return null;
+  }
+
+  @Override
   public Void visitGroupingExpr(Expr.Grouping expr, Void dummy) {
     resolve(expr.expression);
     return null;
@@ -161,12 +167,6 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   public Void visitLogicalExpr(Expr.Logical expr, Void dummy) {
     resolve(expr.left);
     resolve(expr.right);
-    return null;
-  }
-
-  @Override
-  public Void visitPropertyExpr(Expr.Property expr, Void dummy) {
-    resolve(expr.object);
     return null;
   }
 
