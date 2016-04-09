@@ -29,20 +29,12 @@ class Primitives {
     return object.toString();
   }
 
-  static String represent(Object object) {
-    if (object instanceof String) {
-      return "\"" + ((String) object).replace("\"", "\\\"") + "\"";
-    }
-
-    return stringify(object);
-  }
-
   static Object print(Object argument) {
     System.out.println(stringify(argument));
     return argument;
   }
 
   static Object clock() {
-    return (double)System.currentTimeMillis();
+    return (double)System.currentTimeMillis() / 1000.0;
   }
 }

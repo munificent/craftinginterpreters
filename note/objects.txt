@@ -48,3 +48,60 @@ class Vector {
 This won't be *just* a function. It needs some additional stuff: in particular
 the method set that instances use and a superclass reference. But it's
 a superset of what a function can do.
+
+---
+
+It is nice to use based "." style for properties, both on this and other
+objects. It's familiar to users coming from C, JS, etc:
+
+    foo.bar = "value";
+
+It does cause a couple of ambiguities:
+
+    foo.bar;
+
+Is that:
+
+A. Accessing a field "bar" on foo?
+B. Closurizing a reference to the method "bar" on foo?
+
+Likewise:
+
+    foo.bar();
+
+Is that:
+
+C. Invoking the method "bar" on foo with zero arguments?
+D. Accessing the field "bar" on foo, which returns a function, then calling
+   that with zero arguments?
+
+We obviously need to support A and C. B is really difficult given how we
+currently compile "this". We'd need to compile it to an upvalue for every
+method just in case it gets closed over. But then for normal invocations, we
+would then have to allocate a closure every time. We don't want to do that.
+
+A couple of options:
+
+1. Come up with a separate OP_THIS that handles both the closurized and regular
+   call cases. But how?
+2. Always store this in the first slot, even when it's closed over. When
+   calling a function (not a method), copy the caller's zero slot into the
+   callee's. In other words, instead of storing the function in slot zero for
+   function calls, store the surrounding "this".
+
+   Hmm, wait. That's wrong. A function should use lexical scope to find "this",
+   not dynamic.
+3. Not allow closurization.
+
+Currently leaning towards 3.
+
+D is a little annoying, but I think users would expect it to work. The only
+downside is that it means we have to do two lookups on every method call, first
+to look for a field (which shadows the method) and then to look for a method.
+
+Another option is to have different syntax for fields (like @foo) and no
+getters. That keeps all cases distinct, at the expense of making the very handy
+foo.bar not even be valid syntax.
+
+For now, let's try sticking with the current syntax and just not allow B. I'll
+see what kind of perf hit D causes and go from there.

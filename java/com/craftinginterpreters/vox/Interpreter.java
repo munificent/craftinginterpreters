@@ -70,8 +70,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass, environment);
       if (!(superclass instanceof VoxClass)) {
-        throw new RuntimeError(Primitives.stringify(superclass) + " is not a class.",
-            stmt.name);
+        throw new RuntimeError("Superclass must be a class.", stmt.name);
       }
     }
 

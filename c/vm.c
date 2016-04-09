@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "common.h"
 #include "compiler.h"
@@ -10,6 +11,10 @@
 #include "vm.h"
 
 VM vm;
+
+static Value clockNative(int argCount, Value* args) {
+  return (Value)newNumber((double)clock() / CLOCKS_PER_SEC);
+}
 
 static Value printNative(int argCount, Value* args) {
   printValue(args[0]);
@@ -54,6 +59,7 @@ void initVM() {
 
   initTable(&vm.globals);
   
+  defineNative("clock", clockNative);
   defineNative("print", printNative);
 }
 
@@ -202,12 +208,6 @@ static void closeUpvalues(Value* last) {
     // Pop it off the open upvalue list.
     vm.openUpvalues = upvalue->next;
   }
-}
-
-// TODO: Remove?
-static void createClass(ObjString* name) {
-  ObjClass* klass = newClass(name, peek(0));
-  push((Value)klass);
 }
 
 static void bindMethod(ObjString* name) {
@@ -533,7 +533,12 @@ static bool run() {
       }
         
       case OP_CLASS:
-        createClass((ObjString*)READ_CONSTANT());
+        push((Value)newClass((ObjString*)READ_CONSTANT(), NULL));
+        break;
+        
+      case OP_SUBCLASS:
+        printf("implement me!\n");
+        push((Value)newClass((ObjString*)READ_CONSTANT(), NULL));
         break;
         
       case OP_METHOD:
