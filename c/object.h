@@ -103,9 +103,10 @@ typedef struct {
   ObjUpvalue** upvalues;
 } ObjClosure;
 
-typedef struct {
+typedef struct sObjClass {
   Obj obj;
   ObjString* name;
+  struct sObjClass* superclass;
   Table methods;
 } ObjClass;
 
@@ -116,7 +117,7 @@ typedef struct {
 } ObjInstance;
 
 ObjBool* newBool(bool value);
-ObjClass* newClass(ObjString* name, Value superclass);
+ObjClass* newClass(ObjString* name, ObjClass* superclass);
 ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);

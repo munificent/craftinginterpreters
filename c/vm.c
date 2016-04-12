@@ -143,16 +143,19 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
     return call(value, argCount);
   }
 
+  // TODO: Copy-down inheritance at class creation time.
   ObjClass* klass = instance->klass;
-  Value method;
-  if (!tableGet(&klass->methods, name, &method)) {
-    // TODO: Walk superclasses.
-    runtimeError("%s does not implement '%s'.",
-                 klass->name->chars, name->chars);
-    return false;
+  while (klass != NULL) {
+    Value method;
+    if (tableGet(&klass->methods, name, &method)) {
+      return callClosure((ObjClosure*)method, argCount);
+    }
+    klass = klass->superclass;
   }
-  
-  return callClosure((ObjClosure*)method, argCount);
+
+  runtimeError("%s does not implement '%s'.",
+               instance->klass->name->chars, name->chars);
+  return false;
 }
 
 // Captures the local variable [local] into an [Upvalue]. If that local is
@@ -261,6 +264,7 @@ static bool run() {
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->constants.values[READ_BYTE()])
+#define READ_SYMBOL() ((ObjString*)READ_CONSTANT())
   
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -302,7 +306,7 @@ static bool run() {
       }
         
       case OP_GET_GLOBAL: {
-        ObjString* name = (ObjString*)READ_CONSTANT();
+        ObjString* name = READ_SYMBOL();
         Value value;
         if (!tableGet(&vm.globals, name, &value)) {
           runtimeError("Undefined variable '%s'.", name->chars);
@@ -313,14 +317,14 @@ static bool run() {
       }
         
       case OP_DEFINE_GLOBAL: {
-        ObjString* name = (ObjString*)READ_CONSTANT();
+        ObjString* name = READ_SYMBOL();
         tableSet(&vm.globals, name, peek(0));
         pop();
         break;
       }
         
       case OP_SET_GLOBAL: {
-        ObjString* name = (ObjString*)READ_CONSTANT();
+        ObjString* name = READ_SYMBOL();
         if (!tableSet(&vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
@@ -347,7 +351,7 @@ static bool run() {
         }
         
         ObjInstance* instance = (ObjInstance*)pop();
-        ObjString* name = (ObjString*)READ_CONSTANT();
+        ObjString* name = READ_SYMBOL();
         Value value;
         if (!tableGet(&instance->fields, name, &value)) {
           runtimeError("Undefined field '%s'.", name->chars);
@@ -364,7 +368,7 @@ static bool run() {
         }
         
         ObjInstance* instance = (ObjInstance*)peek(1);
-        tableSet(&instance->fields, (ObjString*)READ_CONSTANT(), peek(0));
+        tableSet(&instance->fields, READ_SYMBOL(), peek(0));
         Value value = pop();
         pop();
         push(value);
@@ -480,7 +484,7 @@ static bool run() {
       case OP_INVOKE_6:
       case OP_INVOKE_7:
       case OP_INVOKE_8: {
-        ObjString* method = (ObjString*)READ_CONSTANT();
+        ObjString* method = READ_SYMBOL();
         int argCount = instruction - OP_INVOKE_0;
         if (!invoke(peek(argCount), method, argCount)) return false;
         frame = &vm.frames[vm.frameCount - 1];
@@ -533,16 +537,22 @@ static bool run() {
       }
         
       case OP_CLASS:
-        push((Value)newClass((ObjString*)READ_CONSTANT(), NULL));
+        push((Value)newClass(READ_SYMBOL(), NULL));
         break;
         
-      case OP_SUBCLASS:
-        printf("implement me!\n");
-        push((Value)newClass((ObjString*)READ_CONSTANT(), NULL));
+      case OP_SUBCLASS: {
+        Value superclass = pop();
+        if (!IS_CLASS(superclass)) {
+          runtimeError("Superclass must be a class.");
+          return false;
+        }
+        
+        push((Value)newClass(READ_SYMBOL(), (ObjClass*)superclass));
         break;
+      }
         
       case OP_METHOD:
-        bindMethod((ObjString*)READ_CONSTANT());
+        bindMethod(READ_SYMBOL());
         break;
     }
   }

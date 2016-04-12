@@ -33,10 +33,10 @@ ObjBool* newBool(bool value) {
   return boolean;
 }
 
-ObjClass* newClass(ObjString* name, Value superclass) {
+ObjClass* newClass(ObjString* name, ObjClass* superclass) {
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
-  // TODO: Use superclass.
+  klass->superclass = superclass;
   initTable(&klass->methods);
   return klass;
 }

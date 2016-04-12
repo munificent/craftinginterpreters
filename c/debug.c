@@ -198,10 +198,13 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_RETURN: printf("OP_RETURN\n"); break;
 
     case OP_CLASS:
-      // TODO: Superclass.
       i = constantInstruction(function, i, "OP_CLASS");
       break;
       
+    case OP_SUBCLASS:
+      i = constantInstruction(function, i, "OP_SUBCLASS");
+      break;
+  
     case OP_METHOD:
       i = constantInstruction(function, i, "OP_METHOD");
       break;

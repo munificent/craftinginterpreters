@@ -533,7 +533,7 @@ static void unary(bool canAssign) {
   TokenType operatorType = parser.previous.type;
   
   // Compile the operand.
-  parsePrecedence((Precedence)(PREC_UNARY + 1));
+  parsePrecedence(PREC_CALL);
   
   // Emit the operator instruction.
   switch (operatorType) {
@@ -706,7 +706,15 @@ static void classStatement() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
   uint8_t nameConstant = identifierConstant();
   declareVariable();
-  emitBytes(OP_CLASS, nameConstant);
+  
+  if (match(TOKEN_LESS)) {
+    parsePrecedence(PREC_CALL);
+    emitBytes(OP_SUBCLASS, nameConstant);
+  } else {
+    // TODO: If "Object" becomes an in-scope name, use that and get rid of
+    // separate op codes for class and subclass.
+    emitBytes(OP_CLASS, nameConstant);
+  }
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
