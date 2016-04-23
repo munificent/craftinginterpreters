@@ -28,13 +28,13 @@ static void growTable(Table* table) {
   }
   
   // TODO: Rehash everything.
-  table->entries = REALLOCATE(table->entries, TableEntry2, table->capacity);
+  table->entries = REALLOCATE(table->entries, TableEntry, table->capacity);
 }
 
 bool tableGet(Table* table, ObjString* key, Value* value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
-    TableEntry2* entry = &table->entries[i];
+    TableEntry* entry = &table->entries[i];
     if (entry->key->length == key->length &&
         memcmp(entry->key->chars, key->chars, key->length) == 0) {
       *value = table->entries[i].value;
@@ -48,7 +48,7 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
 bool tableSet(Table* table, ObjString* key, Value value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
-    TableEntry2* entry = &table->entries[i];
+    TableEntry* entry = &table->entries[i];
     if (entry->key->length == key->length &&
         memcmp(entry->key->chars, key->chars, key->length) == 0) {
       table->entries[i].value = value;
@@ -57,7 +57,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   }
   
   growTable(table);
-  TableEntry2* entry = &table->entries[table->count++];
+  TableEntry* entry = &table->entries[table->count++];
   entry->key = key;
   entry->value = value;
   return false;
@@ -65,7 +65,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 
 void grayTable(Table* table) {
   for (int i = 0; i < table->count; i++) {
-    TableEntry2* entry = &table->entries[i];
+    TableEntry* entry = &table->entries[i];
     grayValue((Value)entry->key);
     grayValue(entry->value);
   }

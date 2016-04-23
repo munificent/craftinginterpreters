@@ -93,8 +93,8 @@ static bool callClosure(ObjClosure* closure, int argCount) {
   frame->closure = closure;
   frame->ip = closure->function->code;
 
-  // -1 to include either the called function or the receiver.
-  frame->slots = vm.stackTop - argCount - 1;
+  // +1 to include either the called function or the receiver.
+  frame->slots = vm.stackTop - (argCount + 1);
   return true;
 }
 
@@ -137,20 +137,18 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
   
   ObjInstance* instance = (ObjInstance*)receiver;
 
+  // First look for a field which may shadow a method.
   Value value;
   if (tableGet(&instance->fields, name, &value)) {
     vm.stackTop[-argCount] = value;
     return call(value, argCount);
   }
 
-  // TODO: Copy-down inheritance at class creation time.
+  // Look for a method.
   ObjClass* klass = instance->klass;
-  while (klass != NULL) {
-    Value method;
-    if (tableGet(&klass->methods, name, &method)) {
-      return callClosure((ObjClosure*)method, argCount);
-    }
-    klass = klass->superclass;
+  Value method;
+  if (tableGet(&klass->methods, name, &method)) {
+    return callClosure((ObjClosure*)method, argCount);
   }
 
   runtimeError("%s does not implement '%s'.",
@@ -218,6 +216,19 @@ static void bindMethod(ObjString* name) {
   ObjClass* klass = (ObjClass*)peek(1);
   tableSet(&klass->methods, name, method);
   pop();
+}
+
+static void createClass(ObjString* name, ObjClass* superclass) {
+  ObjClass* klass = newClass(name, superclass);
+  push((Value)klass);
+  
+  // Inherit methods.
+  if (superclass != NULL) {
+    for (int i = 0; i < superclass->methods.count; i++) {
+      TableEntry* method = &superclass->methods.entries[i];
+      tableSet(&klass->methods, method->key, method->value);
+    }
+  }
 }
 
 static bool popNumbers(double* a, double* b) {
@@ -353,11 +364,13 @@ static bool run() {
         ObjInstance* instance = (ObjInstance*)pop();
         ObjString* name = READ_SYMBOL();
         Value value;
-        if (!tableGet(&instance->fields, name, &value)) {
-          runtimeError("Undefined field '%s'.", name->chars);
-          return false;
+        if (tableGet(&instance->fields, name, &value)) {
+          push(value);
+          break;
         }
-        push(value);
+        
+        runtimeError("Undefined field '%s'.", name->chars);
+        return false;
         break;
       }
         
@@ -537,7 +550,7 @@ static bool run() {
       }
         
       case OP_CLASS:
-        push((Value)newClass(READ_SYMBOL(), NULL));
+        createClass(READ_SYMBOL(), NULL);
         break;
         
       case OP_SUBCLASS: {
@@ -547,7 +560,7 @@ static bool run() {
           return false;
         }
         
-        push((Value)newClass(READ_SYMBOL(), (ObjClass*)superclass));
+        createClass(READ_SYMBOL(), (ObjClass*)superclass);
         break;
       }
         

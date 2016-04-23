@@ -6,12 +6,12 @@
 typedef struct {
   ObjString* key;
   Value value;
-} TableEntry2;
+} TableEntry;
 
 typedef struct {
   int count;
   int capacity;
-  TableEntry2* entries;
+  TableEntry* entries;
 } Table;
 
 void initTable(Table* table);
