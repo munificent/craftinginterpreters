@@ -11,8 +11,15 @@ default: cvox jvox
 debug:
 	@ $(MAKE) -f c/cvox.make MODE=debug
 
-test: jvox debug
+# TODO: Get this working even if the first returns non-zero.
+test: test_java test_c
 	@ python script/test.py
+
+test_c: debug
+	@ python script/test.py --c
+
+test_java: jvox
+	@ python script/test.py --java
 
 # Remove all build outputs and intermediate files.
 clean:
@@ -32,4 +39,4 @@ $(BUILD_DIR)/java/$(JVOX_DIR)/%.class: java/$(JVOX_DIR)/%.java
 	@ javac -cp java -d $(BUILD_DIR)/java $(JAVA_OPTIONS) -implicit:none $<
 	@ printf "%10s %-60s %s\n" javac $< "$(JAVA_OPTIONS)"
 
-.PHONY: clean cvox debug default jvox test
+.PHONY: clean cvox debug default jvox test test_c test_java

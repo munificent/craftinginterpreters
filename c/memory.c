@@ -54,6 +54,13 @@ static void blackenObject(Obj* obj) {
 #endif
   
   switch (obj->type) {
+    case OBJ_BOUND_METHOD: {
+      ObjBoundMethod* bound = (ObjBoundMethod*)obj;
+      grayValue((Value)bound->receiver);
+      grayValue((Value)bound->method);
+      break;
+    }
+      
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)obj;
       grayValue((Value)klass->name);
@@ -130,6 +137,7 @@ static void freeObject(Obj* obj) {
     }
       
     case OBJ_BOOL:
+    case OBJ_BOUND_METHOD:
     case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:

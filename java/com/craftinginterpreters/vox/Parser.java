@@ -149,9 +149,9 @@ class Parser {
     if (expr instanceof Expr.Variable) {
       Token name = ((Expr.Variable)expr).name;
       return new Expr.Assign(null, name, value);
-    } else if (expr instanceof Expr.Field) {
-      Expr.Field field = (Expr.Field)expr;
-      return new Expr.Assign(field.object, field.name, value);
+    } else if (expr instanceof Expr.Property) {
+      Expr.Property property = (Expr.Property)expr;
+      return new Expr.Assign(property.object, property.name, value);
     }
 
     error("Invalid assignment target.");
@@ -265,8 +265,8 @@ class Parser {
         expr = new Expr.Call(expr, paren, arguments);
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
-            "Expect field name after '.'.");
-        expr = new Expr.Field(expr, name);
+            "Expect property name after '.'.");
+        expr = new Expr.Property(expr, name);
       } else {
         break;
       }

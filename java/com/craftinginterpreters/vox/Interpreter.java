@@ -247,17 +247,6 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitFieldExpr(Expr.Field expr, Environment environment) {
-    Object object = evaluate(expr.object, environment);
-    if (object instanceof VoxObject) {
-      return ((VoxObject)object).getField(expr.name);
-    }
-
-    throw new RuntimeError("Only instances have fields.",
-        expr.name);
-  }
-
-  @Override
   public Object visitGroupingExpr(Expr.Grouping expr, Environment environment) {
     return evaluate(expr.expression, environment);
   }
@@ -275,6 +264,17 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     if (expr.operator.type == TokenType.AND && !Primitives.isTrue(left)) return left;
 
     return evaluate(expr.right, environment);
+  }
+
+  @Override
+  public Object visitPropertyExpr(Expr.Property expr, Environment environment) {
+    Object object = evaluate(expr.object, environment);
+    if (object instanceof VoxObject) {
+      return ((VoxObject)object).getProperty(expr.name);
+    }
+
+    throw new RuntimeError("Only instances have properties.",
+        expr.name);
   }
 
   @Override

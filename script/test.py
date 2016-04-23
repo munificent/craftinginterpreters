@@ -30,6 +30,7 @@ num_skipped = 0
 skipped = defaultdict(int)
 expectations = 0
 
+interpreter = C_INTERPRETER
 
 class Test:
   def __init__(self, path):
@@ -327,8 +328,15 @@ def run_script(app, path, type):
 
 
 def run_test(path):
-  run_script(JAVA_INTERPRETER, path, "test")
+  run_script(interpreter, path, "test")
 
+
+if "--c" in sys.argv:
+  sys.argv.remove("--c")
+  interpreter = C_INTERPRETER
+elif "--java" in sys.argv:
+  sys.argv.remove("--java")
+  interpreter = JAVA_INTERPRETER
 
 walk(join(REPO_DIR, 'test'), run_test)
 

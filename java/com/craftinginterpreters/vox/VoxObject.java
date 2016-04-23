@@ -11,7 +11,7 @@ class VoxObject {
     this.voxClass = voxClass;
   }
 
-  Object getField(Token name) {
+  Object getProperty(Token name) {
     if (fields.containsKey(name.text)) {
       return fields.get(name.text);
     }
@@ -20,7 +20,7 @@ class VoxObject {
     if (method != null) return method;
 
     throw new RuntimeError(
-        "Undefined field '" + name.text + "'.", name);
+        "Undefined property '" + name.text + "'.", name);
   }
 
   @Override

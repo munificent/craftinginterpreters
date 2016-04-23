@@ -33,6 +33,14 @@ ObjBool* newBool(bool value) {
   return boolean;
 }
 
+ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
+  ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+
+  bound->receiver = receiver;
+  bound->method = method;
+  return bound;
+}
+
 ObjClass* newClass(ObjString* name, ObjClass* superclass) {
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
@@ -136,7 +144,8 @@ bool valuesEqual(Value a, Value b) {
       return aString->length == bString->length &&
              memcmp(aString->chars, bString->chars, aString->length) == 0;
     }
-      
+    
+    case OBJ_BOUND_METHOD:
     case OBJ_CLASS:
     case OBJ_CLOSURE:
     case OBJ_FUNCTION:

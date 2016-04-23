@@ -10,9 +10,10 @@ class Primitives {
   }
 
   static boolean isEqual(Object a, Object b) {
+    // null is only equal to null.
     if (a == null && b == null) return true;
+    if (a == null) return false;
 
-    if (a == null) return b.equals(a);
     return a.equals(b);
   }
 

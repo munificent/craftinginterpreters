@@ -18,10 +18,8 @@ void printValue(Value value) {
       printf("%s", ((ObjClass*)value)->name->chars);
       break;
       
+    case OBJ_BOUND_METHOD:
     case OBJ_CLOSURE:
-      printf("closure");
-      break;
-
     case OBJ_FUNCTION:
       printf("<fn %p>", value);
       break;

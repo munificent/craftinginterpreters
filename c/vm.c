@@ -99,6 +99,17 @@ static bool callClosure(ObjClosure* closure, int argCount) {
 }
 
 static bool call(Value callee, int argCount) {
+  // TODO: Use switch for types?
+  
+  if (IS_BOUND_METHOD(callee)) {
+    ObjBoundMethod* bound = (ObjBoundMethod*)callee;
+    
+    // Replace the bound method with the receiver so it's in the right slot
+    // when the method is called.
+    vm.stackTop[-argCount - 1] = bound->receiver;
+    return callClosure(bound->method, argCount);
+  }
+  
   if (IS_CLASS(callee)) {
     ObjClass* klass = (ObjClass*)callee;
 
@@ -151,8 +162,7 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
     return callClosure((ObjClosure*)method, argCount);
   }
 
-  runtimeError("%s does not implement '%s'.",
-               instance->klass->name->chars, name->chars);
+  runtimeError("Undefined property '%s'.", name->chars);
   return false;
 }
 
@@ -211,7 +221,7 @@ static void closeUpvalues(Value* last) {
   }
 }
 
-static void bindMethod(ObjString* name) {
+static void defineMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = (ObjClass*)peek(1);
   tableSet(&klass->methods, name, method);
@@ -357,19 +367,27 @@ static bool run() {
         
       case OP_GET_FIELD: {
         if (!IS_INSTANCE(peek(0))) {
-          runtimeError("Only instances have fields.");
+          runtimeError("Only instances have properties.");
           return false;
         }
         
-        ObjInstance* instance = (ObjInstance*)pop();
+        ObjInstance* instance = (ObjInstance*)peek(0);
         ObjString* name = READ_SYMBOL();
         Value value;
         if (tableGet(&instance->fields, name, &value)) {
+          pop(); // Instance.
           push(value);
           break;
         }
         
-        runtimeError("Undefined field '%s'.", name->chars);
+        if (tableGet(&instance->klass->methods, name, &value)) {
+          ObjBoundMethod* bound = newBoundMethod(peek(0), (ObjClosure*)value);
+          pop(); // Instance.
+          push((Value)bound);
+          break;
+        }
+        
+        runtimeError("Undefined property '%s'.", name->chars);
         return false;
         break;
       }
@@ -565,7 +583,7 @@ static bool run() {
       }
         
       case OP_METHOD:
-        bindMethod(READ_SYMBOL());
+        defineMethod(READ_SYMBOL());
         break;
     }
   }

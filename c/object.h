@@ -9,6 +9,7 @@
 
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
 #define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
+#define IS_BOUND_METHOD(value) isNonNullType((value), OBJ_BOUND_METHOD)
 #define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
 #define IS_FUNCTION(value) isNonNullType((value), OBJ_FUNCTION)
 #define IS_INSTANCE(value) isNonNullType((value), OBJ_INSTANCE)
@@ -21,6 +22,7 @@
 
 typedef enum {
   OBJ_BOOL,
+  OBJ_BOUND_METHOD,
   OBJ_CLASS,
   OBJ_CLOSURE,
   OBJ_FUNCTION,
@@ -116,7 +118,14 @@ typedef struct {
   Table fields;
 } ObjInstance;
 
+typedef struct {
+  Obj obj;
+  Value receiver;
+  ObjClosure* method;
+} ObjBoundMethod;
+
 ObjBool* newBool(bool value);
+ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
 ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
