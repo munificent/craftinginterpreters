@@ -177,7 +177,6 @@ static Token string() {
   return makeToken(TOKEN_STRING);
 }
 
-// TODO: Change name in jvox.
 Token scanToken() {
   skipWhitespace();
 

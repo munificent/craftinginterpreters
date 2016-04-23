@@ -35,7 +35,7 @@ class Scanner {
     this.source = source;
   }
 
-  Token readToken() {
+  Token scanToken() {
     skipWhitespace();
 
     // The next token starts with the current character.

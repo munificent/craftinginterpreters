@@ -823,8 +823,6 @@ static void statement() {
     emitByte(OP_POP);
     consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
   }
-  
-  // TODO: Other statements.
 }
 
 ObjFunction* compile(const char* source) {

@@ -15,7 +15,7 @@ public class Vox {
 
       Scanner scanner = new Scanner(source);
       while (true) {
-        Token token = scanner.readToken();
+        Token token = scanner.scanToken();
         System.out.println(token);
         if (token.type == TokenType.EOF) break;
       }

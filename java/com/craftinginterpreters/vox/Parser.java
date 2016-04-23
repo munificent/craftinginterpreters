@@ -316,7 +316,7 @@ class Parser {
     if (!found) return false;
 
     previous = current;
-    current = scanner.readToken();
+    current = scanner.scanToken();
     return true;
   }
 
@@ -328,14 +328,14 @@ class Parser {
     }
 
     previous = current;
-    current = scanner.readToken();
+    current = scanner.scanToken();
     return previous;
   }
 
   // Returns true if the current token is of tokenType, but
   // does not consume it.
   private boolean check(TokenType tokenType) {
-    if (current == null) current = scanner.readToken();
+    if (current == null) current = scanner.scanToken();
     return current.type == tokenType;
   }
 

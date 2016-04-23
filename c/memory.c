@@ -149,7 +149,6 @@ static void freeObject(Obj* obj) {
   free(obj);
 }
 
-// TODO: Move to vm.c?
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
   printf("-- gc --\n");
