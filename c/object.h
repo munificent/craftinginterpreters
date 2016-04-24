@@ -109,6 +109,7 @@ typedef struct sObjClass {
   Obj obj;
   ObjString* name;
   struct sObjClass* superclass;
+  Value constructor;
   Table methods;
 } ObjClass;
 

@@ -119,7 +119,7 @@ visible to user.
         - dynamic dispatch
         - constructors
         - inheritance
-        - super calls?
+        - super calls
     - Lists and Loops
         - list type
         - subscript operator

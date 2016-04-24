@@ -118,9 +118,15 @@ static bool call(Value callee, int argCount) {
     // Swap out the class for the instance.
     vm.stackTop[-argCount - 1] = (Value)instance;
     
-    // TODO: Call constructor if there is one.
-    vm.stackTop -= argCount;
-    return true;
+    // Call the constructor if there is one.
+    if (klass->constructor != NULL) {
+      return callClosure((ObjClosure*)klass->constructor, argCount);
+    } else {
+      // No constructor, so just discard the arguments.
+      // TODO: Error if there are args.
+      vm.stackTop -= argCount;
+      return true;
+    }
   }
   
   if (IS_CLOSURE(callee)) {
@@ -224,7 +230,14 @@ static void closeUpvalues(Value* last) {
 static void defineMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = (ObjClass*)peek(1);
-  tableSet(&klass->methods, name, method);
+  
+  // TODO: Use "==" if we intern strings.
+  if (valuesEqual((Value)name, (Value)klass->name)) {
+    klass->constructor = method;
+  } else {
+    tableSet(&klass->methods, name, method);
+  }
+  
   pop();
 }
 

@@ -90,10 +90,19 @@ typedef struct Compiler {
   int scopeDepth;
 } Compiler;
 
+typedef struct ClassCompiler {
+  struct ClassCompiler* enclosing;
+  
+  Token name;
+} ClassCompiler;
+
 Parser parser;
 
 // The compiler for the innermost function currently being compiled.
 Compiler* current = NULL;
+
+// The compiler for the innermost class currently being compiled.
+ClassCompiler* currentClass = NULL;
 
 static void advance() {
   parser.previous = parser.current;
@@ -653,7 +662,7 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-static void function(bool isMethod) {
+static void function(bool isMethod, bool isConstructor) {
   Compiler functionCompiler;
   beginCompiler(&functionCompiler, 1, isMethod);
   
@@ -677,6 +686,12 @@ static void function(bool isMethod) {
   // The body.
   block();
   
+  // If this is a constructor the body automatically returns "this".
+  if (isConstructor) {
+    emitBytes(OP_GET_LOCAL, 0);
+    emitByte(OP_RETURN);
+  }
+  
   // Create the function object.
   endScope();
   ObjFunction* function = endCompiler();
@@ -697,7 +712,9 @@ static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
   uint8_t constant = identifierConstant();
   
-  function(true);
+  // If the method has the same name as the class, it's a constructor.
+  bool isConstructor = identifiersEqual(&parser.previous, &currentClass->name);
+  function(true, isConstructor);
   
   emitBytes(OP_METHOD, constant);
 }
@@ -706,6 +723,11 @@ static void classStatement() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
   uint8_t nameConstant = identifierConstant();
   declareVariable();
+  
+  ClassCompiler classCompiler;
+  classCompiler.name = parser.previous;
+  classCompiler.enclosing = currentClass;
+  currentClass = &classCompiler;
   
   if (match(TOKEN_LESS)) {
     parsePrecedence(PREC_CALL);
@@ -723,11 +745,13 @@ static void classStatement() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
   
   defineVariable(nameConstant);
+  
+  currentClass = currentClass->enclosing;
 }
 
 static void funStatement() {
   uint8_t global = parseVariable("Expect function name.");
-  function(false);
+  function(false, false);
   defineVariable(global);
 }
 
