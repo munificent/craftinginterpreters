@@ -267,8 +267,8 @@ static uint8_t addConstant(Value value) {
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant() {
-  return addConstant((Value)newString((uint8_t*)parser.previous.start,
-                                      parser.previous.length));
+  return addConstant((Value)copyString((uint8_t*)parser.previous.start,
+                                       parser.previous.length));
 }
 
 static void emitConstant(Value value) {
@@ -523,8 +523,8 @@ static void or_(bool canAssign) {
 }
 
 static void string(bool canAssign) {
-  emitConstant((Value)newString((uint8_t*)parser.previous.start + 1,
-                                parser.previous.length - 2));
+  emitConstant((Value)copyString((uint8_t*)parser.previous.start + 1,
+                                 parser.previous.length - 2));
 }
 
 static void this_(bool canAssign) {

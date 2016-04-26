@@ -35,7 +35,8 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
     TableEntry* entry = &table->entries[i];
-    if (entry->key->length == key->length &&
+    if (entry->key->hash == key->hash &&
+        entry->key->length == key->length &&
         memcmp(entry->key->chars, key->chars, key->length) == 0) {
       *value = table->entries[i].value;
       return true;
@@ -49,7 +50,8 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
     TableEntry* entry = &table->entries[i];
-    if (entry->key->length == key->length &&
+    if (entry->key->hash == key->hash &&
+        entry->key->length == key->length &&
         memcmp(entry->key->chars, key->chars, key->length) == 0) {
       table->entries[i].value = value;
       return true;

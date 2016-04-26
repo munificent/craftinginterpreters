@@ -40,7 +40,7 @@ static void runtimeError(const char* format, ...) {
 }
 
 static void defineNative(const char* name, NativeFn function) {
-  push((Value)newString((uint8_t*)name, (int)strlen(name)));
+  push((Value)copyString((uint8_t*)name, (int)strlen(name)));
   push((Value)newNative(function));
   tableSet(&vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
   pop();
@@ -284,9 +284,13 @@ static void concatenate() {
   ObjString* b = (ObjString*)peek(0);
   ObjString* a = (ObjString*)peek(1);
   
-  ObjString* result = newString(NULL, a->length + b->length);
-  memcpy(result->chars, a->chars, a->length);
-  memcpy(result->chars + a->length, b->chars, b->length);
+  int length = a->length + b->length;
+  uint8_t* chars = REALLOCATE(NULL, uint8_t, length + 1);
+  memcpy(chars, a->chars, a->length);
+  memcpy(chars + a->length, b->chars, b->length);
+  chars[length] = '\0';
+  
+  ObjString* result = newString(chars, length);
   pop();
   pop();
   push((Value)result);

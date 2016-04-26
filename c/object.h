@@ -80,7 +80,8 @@ typedef struct {
 struct sObjString {
   Obj obj;
   int length;
-  char* chars;
+  uint32_t hash;
+  uint8_t* chars;
 };
 
 typedef struct sUpvalue {
@@ -133,8 +134,8 @@ ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
 ObjNumber* newNumber(double value);
-// TODO: int or size_t for length?
-ObjString* newString(const uint8_t* chars, int length);
+ObjString* newString(uint8_t* chars, int length);
+ObjString* copyString(const uint8_t* chars, int length);
 ObjUpvalue* newUpvalue(Value* slot);
 
 bool valuesEqual(Value a, Value b);

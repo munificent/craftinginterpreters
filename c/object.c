@@ -98,19 +98,40 @@ ObjNumber* newNumber(double value) {
   return number;
 }
 
-ObjString* newString(const uint8_t* chars, int length) {
-  // Copy the string to the heap so the object can own it.
-  char* stringChars = REALLOCATE(NULL, char, length + 1);
-  stringChars[length] = '\0';
-  
-  if (chars != NULL) {
-    memcpy(stringChars, chars, length);
+
+// Calculates the hash code for [string].
+static uint32_t stringHash(uint8_t* chars, int length)
+{
+  // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
+  uint32_t hash = 2166136261u;
+
+  // This is O(n) on the length of the string, but we only call this when a new
+  // string is created. Since the creation is also O(n) (to copy/initialize all
+  // the bytes), we allow this here.
+  for (int i = 0; i < length; i++)
+  {
+    hash ^= chars[i];
+    hash *= 16777619;
   }
-  
+
+  return hash;
+}
+
+ObjString* newString(uint8_t* chars, int length) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
-  string->chars = stringChars;
+  string->chars = chars;
+  string->hash = stringHash(chars, length);
   return string;
+}
+
+ObjString* copyString(const uint8_t* chars, int length) {
+  // Copy the characters to the heap so the object can own it.
+  uint8_t* heapChars = REALLOCATE(NULL, uint8_t, length + 1);
+  memcpy(heapChars, chars, length);
+  heapChars[length] = '\0';
+  
+  return newString(heapChars, length);
 }
 
 ObjUpvalue* newUpvalue(Value* slot) {
@@ -142,7 +163,8 @@ bool valuesEqual(Value a, Value b) {
     case OBJ_STRING: {
       ObjString* aString = (ObjString*)a;
       ObjString* bString = (ObjString*)b;
-      return aString->length == bString->length &&
+      return aString->hash == bString->hash &&
+             aString->length == bString->length &&
              memcmp(aString->chars, bString->chars, aString->length) == 0;
     }
     
