@@ -117,21 +117,36 @@ static uint32_t stringHash(uint8_t* chars, int length)
   return hash;
 }
 
-ObjString* newString(uint8_t* chars, int length) {
+static ObjString* allocateString(uint8_t* chars, int length) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
   string->hash = stringHash(chars, length);
+  
+  push((Value)string);
+  tableSet(&vm.strings, string, NULL);
+  pop();
+  
   return string;
 }
 
+ObjString* newString(uint8_t* chars, int length) {
+  ObjString* interned = tableFindKey(&vm.strings, chars, length);
+  if (interned != NULL) return interned;
+
+  return allocateString(chars, length);
+}
+
 ObjString* copyString(const uint8_t* chars, int length) {
+  ObjString* interned = tableFindKey(&vm.strings, chars, length);
+  if (interned != NULL) return interned;
+  
   // Copy the characters to the heap so the object can own it.
   uint8_t* heapChars = REALLOCATE(NULL, uint8_t, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
   
-  return newString(heapChars, length);
+  return allocateString(heapChars, length);
 }
 
 ObjUpvalue* newUpvalue(Value* slot) {
@@ -160,14 +175,7 @@ bool valuesEqual(Value a, Value b) {
     case OBJ_NUMBER:
       return ((ObjNumber*)a)->value == ((ObjNumber*)b)->value;
       
-    case OBJ_STRING: {
-      ObjString* aString = (ObjString*)a;
-      ObjString* bString = (ObjString*)b;
-      return aString->hash == bString->hash &&
-             aString->length == bString->length &&
-             memcmp(aString->chars, bString->chars, aString->length) == 0;
-    }
-    
+    case OBJ_STRING:
     case OBJ_BOUND_METHOD:
     case OBJ_CLASS:
     case OBJ_CLOSURE:

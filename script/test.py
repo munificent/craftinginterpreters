@@ -282,6 +282,8 @@ def print_line(line=None):
 
 
 def run_script(app, path, type):
+  if "benchmark" in path: return
+
   global passed
   global failed
   global num_skipped

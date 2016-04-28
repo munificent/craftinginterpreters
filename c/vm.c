@@ -58,6 +58,7 @@ void initVM() {
   vm.grayStack = NULL;
 
   initTable(&vm.globals);
+  initTable(&vm.strings);
   
   defineNative("clock", clockNative);
   defineNative("print", printNative);
@@ -65,6 +66,7 @@ void initVM() {
 
 void endVM() {
   freeTable(&vm.globals);
+  freeTable(&vm.strings);
   freeObjects();
 }
 

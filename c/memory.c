@@ -186,11 +186,15 @@ void collectGarbage() {
   grayTable(&vm.globals);
   grayCompilerRoots();
   
+  // Traverse the references.
   while (vm.grayCount > 0) {
     // Pop an item from the gray stack.
     Obj* obj = vm.grayStack[--vm.grayCount];
     blackenObject(obj);
   }
+  
+  // Delete unused interned strings.
+  tableRemoveWhite(&vm.strings);
   
   // Collect the white objects.
   Obj** obj = &vm.objects;

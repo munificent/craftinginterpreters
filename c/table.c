@@ -35,9 +35,7 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
     TableEntry* entry = &table->entries[i];
-    if (entry->key->hash == key->hash &&
-        entry->key->length == key->length &&
-        memcmp(entry->key->chars, key->chars, key->length) == 0) {
+    if (entry->key == key) {
       *value = table->entries[i].value;
       return true;
     }
@@ -50,9 +48,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   // TODO: Actually hash it!
   for (int i = 0; i < table->count; i++) {
     TableEntry* entry = &table->entries[i];
-    if (entry->key->hash == key->hash &&
-        entry->key->length == key->length &&
-        memcmp(entry->key->chars, key->chars, key->length) == 0) {
+    if (entry->key == key) {
       table->entries[i].value = value;
       return true;
     }
@@ -63,6 +59,29 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   entry->key = key;
   entry->value = value;
   return false;
+}
+
+ObjString* tableFindKey(Table* table, const uint8_t* chars, int length) {
+  // TODO: Actually hash it!
+  for (int i = 0; i < table->count; i++) {
+    TableEntry* entry = &table->entries[i];
+    if (entry->key->length == length &&
+        memcmp(entry->key->chars, chars, length) == 0) {
+      return entry->key;
+    }
+  }
+  
+  return NULL;
+}
+
+void tableRemoveWhite(Table* table) {
+  int dest = 0;
+  for (int i = 0; i < table->count; i++) {
+    TableEntry* entry = &table->entries[i];
+    if (entry->key->obj.isDark) table->entries[dest++] = *entry;
+  }
+  
+  table->count = dest;
 }
 
 void grayTable(Table* table) {

@@ -72,6 +72,7 @@ struct sVM {
   int frameCount;
   
   Table globals;
+  Table strings;
   
   ObjUpvalue* openUpvalues;
   
