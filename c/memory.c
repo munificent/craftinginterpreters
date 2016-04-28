@@ -6,12 +6,23 @@
 #include "object.h"
 #include "vm.h"
 
+#ifdef DEBUG_TRACE_GC
+#include <stdio.h>
+#include "debug.h"
+#endif
+
 void* reallocate(void* previous, size_t size) {
 #ifdef DEBUG_STRESS_GC
   collectGarbage();
 #endif
   
-  // TODO: Collect after certain amount.
+  // TODO: Tune this or come up with better algorithm.
+  // TODO: Doesn't take into account growing an existing allocation.
+  vm.bytesAllocated += size;
+  if (vm.bytesAllocated > 1024 * 1024 * 10) {
+    collectGarbage();
+    vm.bytesAllocated = 0;
+  }
   
   return realloc(previous, size);
 }
