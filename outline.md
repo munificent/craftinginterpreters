@@ -36,7 +36,8 @@ visible to user.
         - intro to full language we'll be implementing
         - ebnf
 - Practice (Java)
-    - Read, Eval, Print, Loop
+    - Framework
+        - repl
         - interpreters run from source
         - test framework
     - Scanning
@@ -63,6 +64,7 @@ visible to user.
         - ex: scientific and hex
         - ex: significant indentation and newlines
         - ex: escapes
+        - eagerly scan to list of tokens
     - Parsing Expressions
         - ast
         - metaprogramming the ast types
@@ -110,7 +112,7 @@ visible to user.
         - symbol tables
         - name binding
         - early versus late binding
-    - Objects
+    - Classes
         - classes
         - prototypes?
         - this
@@ -118,6 +120,7 @@ visible to user.
         - methods
         - dynamic dispatch
         - constructors
+    - Inheritance
         - inheritance
         - super calls
     - Lists and Loops
@@ -128,24 +131,51 @@ visible to user.
         - iterator protocol
         - desugaring
         - ex: make string implement protocol
+        TODO: Cut this?
+
+TODO: Still needs a lot of work:
+
 - Performance (C)
-    - Garbage Collection
-        - mark sweep
-        - roots
+    - Framework
+    - A Virtual Machine
         - stack
-        - ffi implications
-        - mention copy collection and lisp2
+        - for now, just make Value an int?
+        - bytecode
+        ^ this is enough to execute arithmetic exprs
     - Scanning
         - pull based lazy scanning
         - zero-alloc tokens
-    - Parsing
+    - Compiling Expressions
         - top-down operator precedence parsing
-        - incomplete parsing for repl
-    - Compiling
-        - constant pools
-        - stack based bytecode
-        - register based
-        - virtual machine
+        - single-pass compiling
+        ^ can now compile and run arithmetic exprs
+        TODO: This isn't right. Can't compile expressions until we have
+        literals, which means we need constant pools, which means functions.
+    - Representing Objects
+        - numbers, strings, bools, null
+        - dynamic typing
+        ^ now can handle "str" + "another"
+    - Garbage Collection
+        ^ since previous chapter needs to heap alloc stuff, need to manage it
+    - String Interning and Symbols
+        - string interning
+        - fast equality
+        - hashing?
+        - separate symbol types
+        - intern all or some strings
+        - gcing interned strings
+    - Variables
+        - statements versus expressions
+    - Control Flow
+        - branching instructions
+
+    - Functions
+        - upvalues
+
+    TODO: other stuff...
+    - constant pools
+    - functions
+    - symbol tables
 
 principles
 
