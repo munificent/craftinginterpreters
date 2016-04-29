@@ -11,11 +11,11 @@ void printValue(Value value) {
   
   switch (value->type) {
     case OBJ_BOOL:
-      printf(((ObjBool*)value)->value ? "true" : "false");
+      printf(AS_BOOL(value) ? "true" : "false");
       break;
       
     case OBJ_CLASS:
-      printf("%s", ((ObjClass*)value)->name->chars);
+      printf("%s", AS_CLASS(value)->name->chars);
       break;
       
     case OBJ_BOUND_METHOD:
@@ -25,19 +25,19 @@ void printValue(Value value) {
       break;
       
     case OBJ_INSTANCE:
-      printf("%s instance", ((ObjInstance*)value)->klass->name->chars);
+      printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
       break;
 
     case OBJ_NATIVE:
-      printf("<native %p>", ((ObjNative*)value)->function);
+      printf("<native %p>", AS_NATIVE(value));
       break;
       
     case OBJ_NUMBER:
-      printf("%g", ((ObjNumber*)value)->value);
+      printf("%g", AS_NUMBER(value));
       break;
       
     case OBJ_STRING:
-      printf("%.*s", ((ObjString*)value)->length, ((ObjString*)value)->chars);
+      printf("%s", AS_CSTRING(value));
       break;
       
     case OBJ_UPVALUE:
@@ -182,7 +182,7 @@ int printInstruction(ObjFunction* function, int i) {
       printValue(function->constants.values[constant]);
       printf("\n");
       
-      ObjFunction* closedFunction = (ObjFunction*)function->constants.values[constant];
+      ObjFunction* closedFunction = AS_FUNCTION(function->constants.values[constant]);
       for (int j = 0; j < closedFunction->upvalueCount; j++) {
         int isLocal = function->code[i++];
         int index = function->code[i++];

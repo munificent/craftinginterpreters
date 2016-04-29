@@ -8,8 +8,8 @@
 #include "table.h"
 
 #define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
-#define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
 #define IS_BOUND_METHOD(value) isNonNullType((value), OBJ_BOUND_METHOD)
+#define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
 #define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
 #define IS_FUNCTION(value) isNonNullType((value), OBJ_FUNCTION)
 #define IS_INSTANCE(value) isNonNullType((value), OBJ_INSTANCE)
@@ -17,6 +17,17 @@
 #define IS_NULL(value) ((value) == NULL)
 #define IS_NATIVE(value) isNonNullType((value), OBJ_NATIVE)
 #define IS_STRING(value) isNonNullType((value), OBJ_STRING)
+
+#define AS_BOOL(val) (((ObjBool*)val)->value)
+#define AS_BOUND_METHOD(value) ((ObjBoundMethod*)value)
+#define AS_CLASS(value) ((ObjClass*)value)
+#define AS_CLOSURE(value) ((ObjClosure*)value)
+#define AS_FUNCTION(value) ((ObjFunction*)value)
+#define AS_INSTANCE(value) ((ObjInstance*)value)
+#define AS_NUMBER(val) (((ObjNumber*)val)->value)
+#define AS_NATIVE(value) (((ObjNative*)value)->function)
+#define AS_STRING(value) ((ObjString*)value)
+#define AS_CSTRING(value) (((ObjString*)value)->chars)
 
 // TODO: Unboxed numbers?
 

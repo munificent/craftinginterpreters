@@ -42,7 +42,7 @@ static void runtimeError(const char* format, ...) {
 static void defineNative(const char* name, NativeFn function) {
   push((Value)copyString((uint8_t*)name, (int)strlen(name)));
   push((Value)newNative(function));
-  tableSet(&vm.globals, (ObjString*)vm.stack[0], vm.stack[1]);
+  tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
   pop();
   pop();
 }
@@ -104,7 +104,7 @@ static bool call(Value callee, int argCount) {
   // TODO: Use switch for types?
   
   if (IS_BOUND_METHOD(callee)) {
-    ObjBoundMethod* bound = (ObjBoundMethod*)callee;
+    ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
     
     // Replace the bound method with the receiver so it's in the right slot
     // when the method is called.
@@ -113,7 +113,7 @@ static bool call(Value callee, int argCount) {
   }
   
   if (IS_CLASS(callee)) {
-    ObjClass* klass = (ObjClass*)callee;
+    ObjClass* klass = AS_CLASS(callee);
 
     ObjInstance* instance = newInstance(klass);
     
@@ -122,7 +122,8 @@ static bool call(Value callee, int argCount) {
     
     // Call the constructor if there is one.
     if (klass->constructor != NULL) {
-      return callClosure((ObjClosure*)klass->constructor, argCount);
+      // TODO: Store ctor as ObjClosure*?
+      return callClosure(AS_CLOSURE(klass->constructor), argCount);
     } else {
       // No constructor, so just discard the arguments.
       // TODO: Error if there are args.
@@ -132,13 +133,12 @@ static bool call(Value callee, int argCount) {
   }
   
   if (IS_CLOSURE(callee)) {
-    return callClosure((ObjClosure*)callee, argCount);
+    return callClosure(AS_CLOSURE(callee), argCount);
   }
   
   if (IS_NATIVE(callee)) {
-    NativeFn native = ((ObjNative*)callee)->function;
-    Value result = native(argCount,
-                          vm.stackTop - argCount);
+    NativeFn native = AS_NATIVE(callee);
+    Value result = native(argCount, vm.stackTop - argCount);
     vm.stackTop -= argCount + 1;
     push(result);
     return true;
@@ -154,7 +154,7 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
     return false;
   }
   
-  ObjInstance* instance = (ObjInstance*)receiver;
+  ObjInstance* instance = AS_INSTANCE(receiver);
 
   // First look for a field which may shadow a method.
   Value value;
@@ -167,7 +167,7 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
   ObjClass* klass = instance->klass;
   Value method;
   if (tableGet(&klass->methods, name, &method)) {
-    return callClosure((ObjClosure*)method, argCount);
+    return callClosure(AS_CLOSURE(method), argCount);
   }
 
   runtimeError("Undefined property '%s'.", name->chars);
@@ -231,7 +231,7 @@ static void closeUpvalues(Value* last) {
 
 static void defineMethod(ObjString* name) {
   Value method = peek(0);
-  ObjClass* klass = (ObjClass*)peek(1);
+  ObjClass* klass = AS_CLASS(peek(1));
   
   // TODO: Use "==" if we intern strings.
   if (valuesEqual((Value)name, (Value)klass->name)) {
@@ -262,8 +262,8 @@ static bool popNumbers(double* a, double* b) {
     return false;
   }
 
-  *b = ((ObjNumber*)pop())->value;
-  *a = ((ObjNumber*)pop())->value;
+  *b = AS_NUMBER(pop());
+  *a = AS_NUMBER(pop());
   return true;
 }
 
@@ -273,18 +273,17 @@ static bool popNumber(double* a) {
     return false;
   }
   
-  *a = ((ObjNumber*)pop())->value;
+  *a = AS_NUMBER(pop());
   return true;
 }
 
 static bool isFalsey(Value value) {
-  return IS_NULL(value) ||
-        (IS_BOOL(value) && ((ObjBool*)value)->value == false);
+  return IS_NULL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
 
 static void concatenate() {
-  ObjString* b = (ObjString*)peek(0);
-  ObjString* a = (ObjString*)peek(1);
+  ObjString* b = AS_STRING(peek(0));
+  ObjString* a = AS_STRING(peek(1));
   
   int length = a->length + b->length;
   uint8_t* chars = REALLOCATE(NULL, uint8_t, length + 1);
@@ -304,7 +303,7 @@ static bool run() {
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->constants.values[READ_BYTE()])
-#define READ_SYMBOL() ((ObjString*)READ_CONSTANT())
+#define READ_STRING() AS_STRING(READ_CONSTANT())
   
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -346,7 +345,7 @@ static bool run() {
       }
         
       case OP_GET_GLOBAL: {
-        ObjString* name = READ_SYMBOL();
+        ObjString* name = READ_STRING();
         Value value;
         if (!tableGet(&vm.globals, name, &value)) {
           runtimeError("Undefined variable '%s'.", name->chars);
@@ -357,14 +356,14 @@ static bool run() {
       }
         
       case OP_DEFINE_GLOBAL: {
-        ObjString* name = READ_SYMBOL();
+        ObjString* name = READ_STRING();
         tableSet(&vm.globals, name, peek(0));
         pop();
         break;
       }
         
       case OP_SET_GLOBAL: {
-        ObjString* name = READ_SYMBOL();
+        ObjString* name = READ_STRING();
         if (!tableSet(&vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
@@ -390,8 +389,8 @@ static bool run() {
           return false;
         }
         
-        ObjInstance* instance = (ObjInstance*)peek(0);
-        ObjString* name = READ_SYMBOL();
+        ObjInstance* instance = AS_INSTANCE(peek(0));
+        ObjString* name = READ_STRING();
         Value value;
         if (tableGet(&instance->fields, name, &value)) {
           pop(); // Instance.
@@ -400,7 +399,7 @@ static bool run() {
         }
         
         if (tableGet(&instance->klass->methods, name, &value)) {
-          ObjBoundMethod* bound = newBoundMethod(peek(0), (ObjClosure*)value);
+          ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(value));
           pop(); // Instance.
           push((Value)bound);
           break;
@@ -417,8 +416,8 @@ static bool run() {
           return false;
         }
         
-        ObjInstance* instance = (ObjInstance*)peek(1);
-        tableSet(&instance->fields, READ_SYMBOL(), peek(0));
+        ObjInstance* instance = AS_INSTANCE(peek(1));
+        tableSet(&instance->fields, READ_STRING(), peek(0));
         Value value = pop();
         pop();
         push(value);
@@ -450,8 +449,8 @@ static bool run() {
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
         } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
-          double b = ((ObjNumber*)pop())->value;
-          double a = ((ObjNumber*)pop())->value;
+          double b = AS_NUMBER(pop());
+          double a = AS_NUMBER(pop());
           push((Value)newNumber(a + b));
         } else {
           runtimeError("Operands must be two numbers or two strings.");
@@ -534,7 +533,7 @@ static bool run() {
       case OP_INVOKE_6:
       case OP_INVOKE_7:
       case OP_INVOKE_8: {
-        ObjString* method = READ_SYMBOL();
+        ObjString* method = READ_STRING();
         int argCount = instruction - OP_INVOKE_0;
         if (!invoke(peek(argCount), method, argCount)) return false;
         frame = &vm.frames[vm.frameCount - 1];
@@ -542,7 +541,7 @@ static bool run() {
       }
         
       case OP_CLOSURE: {
-        ObjFunction* function = (ObjFunction*)READ_CONSTANT();
+        ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
         
         // Create the closure and push it on the stack before creating upvalues
         // so that it doesn't get collected.
@@ -587,7 +586,7 @@ static bool run() {
       }
         
       case OP_CLASS:
-        createClass(READ_SYMBOL(), NULL);
+        createClass(READ_STRING(), NULL);
         break;
         
       case OP_SUBCLASS: {
@@ -597,12 +596,12 @@ static bool run() {
           return false;
         }
         
-        createClass(READ_SYMBOL(), (ObjClass*)superclass);
+        createClass(READ_STRING(), AS_CLASS(superclass));
         break;
       }
         
       case OP_METHOD:
-        defineMethod(READ_SYMBOL());
+        defineMethod(READ_STRING());
         break;
     }
   }

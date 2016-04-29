@@ -170,10 +170,10 @@ bool valuesEqual(Value a, Value b) {
   switch (a->type) {
     case OBJ_BOOL:
       // TODO: Canonicalize bools?
-      return ((ObjBool*)a)->value == ((ObjBool*)b)->value;
+      return AS_BOOL(a) == AS_BOOL(b);
       
     case OBJ_NUMBER:
-      return ((ObjNumber*)a)->value == ((ObjNumber*)b)->value;
+      return AS_NUMBER(a) == AS_NUMBER(b);
       
     case OBJ_STRING:
     case OBJ_BOUND_METHOD:
