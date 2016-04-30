@@ -249,10 +249,7 @@ static void createClass(ObjString* name, ObjClass* superclass) {
   
   // Inherit methods.
   if (superclass != NULL) {
-    for (int i = 0; i < superclass->methods.count; i++) {
-      TableEntry* method = &superclass->methods.entries[i];
-      tableSet(&klass->methods, method->key, method->value);
-    }
+    tableAddAll(&superclass->methods, &klass->methods);
   }
 }
 
@@ -364,7 +361,7 @@ static bool run() {
         
       case OP_SET_GLOBAL: {
         ObjString* name = READ_STRING();
-        if (!tableSet(&vm.globals, name, peek(0))) {
+        if (tableSet(&vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
           return false;
         }

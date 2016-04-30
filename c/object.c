@@ -98,30 +98,10 @@ ObjNumber* newNumber(double value) {
   return number;
 }
 
-
-// Calculates the hash code for [string].
-static uint32_t stringHash(uint8_t* chars, int length)
-{
-  // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
-  uint32_t hash = 2166136261u;
-
-  // This is O(n) on the length of the string, but we only call this when a new
-  // string is created. Since the creation is also O(n) (to copy/initialize all
-  // the bytes), we allow this here.
-  for (int i = 0; i < length; i++)
-  {
-    hash ^= chars[i];
-    hash *= 16777619;
-  }
-
-  return hash;
-}
-
 static ObjString* allocateString(uint8_t* chars, int length) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
-  string->hash = stringHash(chars, length);
   
   push((Value)string);
   tableSet(&vm.strings, string, NULL);

@@ -91,7 +91,6 @@ typedef struct {
 struct sObjString {
   Obj obj;
   int length;
-  uint32_t hash;
   uint8_t* chars;
 };
 
