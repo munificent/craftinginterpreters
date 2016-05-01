@@ -8,6 +8,11 @@ class RuntimeError extends RuntimeException {
     line = token.line;
   }
 
+  RuntimeError(String message, int line) {
+    super(message);
+    this.line = line;
+  }
+
   @Override
   public String toString() {
     return getMessage() + "\n[line " + line + "]";

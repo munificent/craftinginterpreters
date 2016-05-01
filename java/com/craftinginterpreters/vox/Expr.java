@@ -11,6 +11,7 @@ abstract class Expr {
     R visitLiteralExpr(Literal expr, C context);
     R visitLogicalExpr(Logical expr, C context);
     R visitPropertyExpr(Property expr, C context);
+    R visitSuperExpr(Super expr, C context);
     R visitThisExpr(This expr, C context);
     R visitUnaryExpr(Unary expr, C context);
     R visitVariableExpr(Variable expr, C context);
@@ -116,6 +117,18 @@ abstract class Expr {
 
     final Expr object;
     final Token name;
+  }
+
+  static class Super extends Expr {
+    Super(Token method) {
+      this.method = method;
+    }
+
+    <R, C> R accept(Visitor<R, C> visitor, C context) {
+      return visitor.visitSuperExpr(this, context);
+    }
+
+    final Token method;
   }
 
   static class This extends Expr {

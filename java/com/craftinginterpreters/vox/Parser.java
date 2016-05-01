@@ -242,27 +242,36 @@ class Parser {
     return call();
   }
 
+  private List<Expr> argumentList() {
+    List<Expr> arguments = new ArrayList<>();
+
+    if (!check(RIGHT_PAREN)) {
+      do {
+        arguments.add(expression());
+
+        if (arguments.size() > 8) {
+          error("Cannot have more than 8 arguments.");
+        }
+      } while (match(COMMA));
+    }
+
+    return arguments;
+  }
+
+  private Expr finishCall(Expr callee) {
+    List<Expr> arguments = argumentList();
+    Token paren = consume(RIGHT_PAREN,
+        "Expect ')' after argument list.");
+
+    return new Expr.Call(callee, paren, arguments);
+  }
+
   private Expr call() {
     Expr expr = primary();
 
     while (true) {
       if (match(LEFT_PAREN)) {
-        List<Expr> arguments = new ArrayList<>();
-
-        if (!check(RIGHT_PAREN)) {
-          do {
-            arguments.add(expression());
-
-            if (arguments.size() > 8) {
-              error("Cannot have more than 8 arguments.");
-            }
-          } while (match(COMMA));
-        }
-
-        Token paren = consume(RIGHT_PAREN,
-            "Expect ')' after argument list.");
-
-        expr = new Expr.Call(expr, paren, arguments);
+        expr = finishCall(expr);
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
@@ -282,6 +291,12 @@ class Parser {
 
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous.value);
+    }
+
+    if (match(SUPER)) {
+      consume(DOT, "Expect '.' after 'super'.");
+      Token method = consume(IDENTIFIER, "Expect superclass method name.");
+      return new Expr.Super(method);
     }
 
     if (match(THIS)) return new Expr.This(previous);

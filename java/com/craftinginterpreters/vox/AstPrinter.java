@@ -142,6 +142,11 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
+  public String visitSuperExpr(Expr.Super expr, Void dummy) {
+    return join("(super", expr.method, ")");
+  }
+
+  @Override
   public String visitThisExpr(Expr.This expr, Void context) {
     return "*this";
   }

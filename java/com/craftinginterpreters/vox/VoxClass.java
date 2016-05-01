@@ -5,7 +5,7 @@ import java.util.Map;
 
 class VoxClass implements Callable {
   final String name;
-  private final VoxClass superclass;
+  final VoxClass superclass;
   private final VoxFunction constructor;
   private final Map<String, VoxFunction> methods;
 
@@ -21,7 +21,7 @@ class VoxClass implements Callable {
     VoxClass voxClass = this;
     while (voxClass != null) {
       if (voxClass.methods.containsKey(name)) {
-        return voxClass.methods.get(name).bind(instance);
+        return voxClass.methods.get(name).bind(instance, voxClass);
       }
 
       voxClass = voxClass.superclass;
@@ -47,7 +47,7 @@ class VoxClass implements Callable {
     VoxObject instance = new VoxObject(this);
 
     if (constructor != null) {
-      constructor.bind(instance).call(interpreter, arguments);
+      constructor.bind(instance, this).call(interpreter, arguments);
     }
 
     return instance;

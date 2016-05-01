@@ -11,8 +11,12 @@ class VoxFunction implements Callable {
     this.closure = closure;
   }
 
-  VoxFunction bind(VoxObject self) {
-    return new VoxFunction(declaration, new LocalEnvironment(closure, "this", self));
+  VoxFunction bind(VoxObject self, VoxClass methodClass) {
+    Environment scope = closure
+        .enterScope()
+        .define("this", self)
+        .define("class", methodClass);
+    return new VoxFunction(declaration, scope);
   }
 
   @Override

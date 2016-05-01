@@ -1,9 +1,6 @@
 package com.craftinginterpreters.vox;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // Tree-walk interpreter.
 class Interpreter implements Stmt.Visitor<Environment, Environment>,
@@ -275,6 +272,23 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
     throw new RuntimeError("Only instances have properties.",
         expr.name);
+  }
+
+  @Override
+  public Object visitSuperExpr(Expr.Super expr, Environment environment) {
+    VoxClass methodClass = (VoxClass)environment.get("class", expr.method.line);
+    VoxClass superclass = methodClass.superclass;
+    // TODO: Handle super call when no superclass.
+
+    VoxObject receiver = (VoxObject)environment.get("this", expr.method.line);
+
+    VoxFunction method = superclass.findMethod(receiver, expr.method.text);
+    if (method == null) {
+      throw new RuntimeError(superclass.name + " does not implement '" +
+          expr.method.text + "'.", expr.method);
+    }
+
+    return method;
   }
 
   @Override

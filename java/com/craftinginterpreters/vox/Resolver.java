@@ -171,8 +171,16 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   @Override
+  public Void visitSuperExpr(Expr.Super expr, Void dummy) {
+    if (enclosingClasses == 0) {
+      errorReporter.error(expr.method,
+          "Cannot use 'super' outside of a class.");
+    }
+    return null;
+  }
+
+  @Override
   public Void visitThisExpr(Expr.This expr, Void dummy) {
-    // TODO: Error if outside class?
     if (enclosingClasses == 0) {
       errorReporter.error(expr.name,
           "Cannot use 'this' outside of a class.");

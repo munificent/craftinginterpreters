@@ -7,12 +7,19 @@ class GlobalEnvironment implements Environment {
   private final Map<String, Object> values = new HashMap<>();
 
   @Override
-  public Object get(Token name) {
-    if (!values.containsKey(name.text)) {
-      throw new RuntimeError("Undefined variable '" + name.text + "'.", name);
+  public Object get(String name, int line) {
+    if (!values.containsKey(name)) {
+      throw new RuntimeError("Undefined variable '" + name + "'.", line);
     }
 
-    return values.get(name.text);
+    return values.get(name);
+
+  }
+
+  // TODO: Move into Environment?
+  @Override
+  public Object get(Token name) {
+    return get(name.text, name.line);
   }
 
   @Override

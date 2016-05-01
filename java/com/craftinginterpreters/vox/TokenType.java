@@ -26,7 +26,7 @@ enum TokenType {
   // since we don't define the bitwise forms and it's weird to
   // lex "||" without "|".
   AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NULL, OR, RETURN,
-  THIS, TRUE, VAR, WHILE,
+  SUPER, THIS, TRUE, VAR, WHILE,
 
   ERROR, EOF
 }

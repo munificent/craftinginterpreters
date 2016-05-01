@@ -11,11 +11,18 @@ class LocalEnvironment implements Environment {
     this.value = value;
   }
 
+
+  @Override
+  public Object get(String name, int line) {
+    if (this.name.equals(name)) return value;
+
+    return previous.get(name, line);
+  }
+
+  // TODO: Move into Environment?
   @Override
   public Object get(Token name) {
-    if (this.name.equals(name.text)) return value;
-
-    return previous.get(name);
+    return get(name.text, name.line);
   }
 
   @Override

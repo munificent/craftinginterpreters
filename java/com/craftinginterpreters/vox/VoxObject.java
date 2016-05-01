@@ -3,6 +3,7 @@ package com.craftinginterpreters.vox;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: Rename "VoxInstance"?
 class VoxObject {
   private VoxClass voxClass;
   final Map<String, Object> fields = new HashMap<>();
