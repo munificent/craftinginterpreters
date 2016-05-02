@@ -15,14 +15,14 @@ C_INTERPRETER = join(REPO_DIR, 'build', 'cvoxd')
 JS_INTERPRETER = join(REPO_DIR, 'js', 'vox.js')
 JAVA_INTERPRETER = join(REPO_DIR, 'jvox')
 
-EXPECT_PATTERN = re.compile(r'// expect: ?(.*)')
-EXPECT_ERROR_PATTERN = re.compile(r'// expect error(?! line)')
-EXPECT_ERROR_LINE_PATTERN = re.compile(r'// expect error line (\d+)')
-EXPECT_RUNTIME_ERROR_PATTERN = re.compile(r'// expect runtime error: (.+)')
-ERROR_PATTERN = re.compile(r'\[.*line (\d+)\] Error')
-STACK_TRACE_PATTERN = re.compile(r'\[line (\d+)\]')
-SKIP_PATTERN = re.compile(r'// skip: (.*)')
-NONTEST_PATTERN = re.compile(r'// nontest')
+OUTPUT_EXPECT = re.compile(r'// expect: ?(.*)')
+ERROR_EXPECT = re.compile(r'// (Error.*)')
+ERROR_LINE_EXPECT = re.compile(r'// \[line (\d+)\] (Error.*)')
+RUNTIME_ERROR_EXPECT = re.compile(r'// expect runtime error: (.+)')
+SYNTAX_ERROR_RE = re.compile(r'\[.*line (\d+)\] (Error.+)')
+STACK_TRACE_RE = re.compile(r'\[line (\d+)\]')
+SKIP_RE = re.compile(r'// skip: (.*)')
+NONTEST_RE = re.compile(r'// nontest')
 
 passed = 0
 failed = 0
@@ -51,28 +51,28 @@ class Test:
     line_num = 1
     with open(self.path, 'r') as file:
       for line in file:
-        match = EXPECT_PATTERN.search(line)
+        match = OUTPUT_EXPECT.search(line)
         if match:
           self.output.append((match.group(1), line_num))
           expectations += 1
 
-        match = EXPECT_ERROR_PATTERN.search(line)
+        match = ERROR_EXPECT.search(line)
         if match:
-          self.compile_errors.add(line_num)
+          self.compile_errors.add("[{0}] {1}".format(line_num, match.group(1)))
 
           # If we expect a compile error, it should exit with EX_DATAERR.
           self.exit_code = 65
           expectations += 1
 
-        match = EXPECT_ERROR_LINE_PATTERN.search(line)
+        match = ERROR_LINE_EXPECT.search(line)
         if match:
-          self.compile_errors.add(int(match.group(1)))
+          self.compile_errors.add("[{0}] {1}".format(match.group(1), match.group(2)))
 
           # If we expect a compile error, it should exit with EX_DATAERR.
           self.exit_code = 65
           expectations += 1
 
-        match = EXPECT_RUNTIME_ERROR_PATTERN.search(line)
+        match = RUNTIME_ERROR_EXPECT.search(line)
         if match:
           self.runtime_error_line = line_num
           self.runtime_error_message = match.group(1)
@@ -80,13 +80,13 @@ class Test:
           self.exit_code = 70
           expectations += 1
 
-        match = SKIP_PATTERN.search(line)
+        match = SKIP_RE.search(line)
         if match:
           num_skipped += 1
           skipped[match.group(1)] += 1
           return False
 
-        match = NONTEST_PATTERN.search(line)
+        match = NONTEST_RE.search(line)
         if match:
           # Not a test file at all, so ignore it.
           return False
@@ -143,7 +143,7 @@ class Test:
     # Skip any compile errors. This can happen if there is a compile error in
     # a module loaded by the module being tested.
     line = 0
-    while ERROR_PATTERN.search(error_lines[line]):
+    while SYNTAX_ERROR_RE.search(error_lines[line]):
       line += 1
 
     if error_lines[line] != self.runtime_error_message:
@@ -156,7 +156,7 @@ class Test:
     match = False
     stack_lines = error_lines[line + 1:]
     for stack_line in stack_lines:
-      match = STACK_TRACE_PATTERN.search(stack_line)
+      match = STACK_TRACE_RE.search(stack_line)
       if match: break
 
     if not match:
@@ -175,11 +175,11 @@ class Test:
     found_errors = set()
     num_unexpected = 0
     for line in error_lines:
-      match = ERROR_PATTERN.search(line)
+      match = SYNTAX_ERROR_RE.search(line)
       if match:
-        error_line = float(match.group(1))
-        if error_line in self.compile_errors:
-          found_errors.add(error_line)
+        error = "[{0}] {1}".format(match.group(1), match.group(2))
+        if error in self.compile_errors:
+          found_errors.add(error)
         else:
           if num_unexpected < 10:
             self.fail('Unexpected error:')
@@ -195,8 +195,8 @@ class Test:
       self.fail('(truncated ' + str(num_unexpected - 10) + ' more...)')
 
     # Validate that every expected error occurred.
-    for line in self.compile_errors - found_errors:
-      self.fail('Missing expected error on line {0}.', line)
+    for error in self.compile_errors - found_errors:
+      self.fail('Missing expected error: {0}', error)
 
 
   def validate_exit_code(self, exit_code, error_lines):

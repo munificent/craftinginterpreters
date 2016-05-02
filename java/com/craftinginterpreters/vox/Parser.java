@@ -14,9 +14,12 @@ class Parser {
   Parser(Scanner scanner, ErrorReporter errorReporter) {
     this.scanner = scanner;
     this.errorReporter = errorReporter;
+
+    // Read the first token.
+    advance();
   }
 
-  List<Stmt> parseProgram () {
+  List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
     while (!match(EOF)) {
       statements.add(statement());
@@ -36,7 +39,7 @@ class Parser {
 
     // Expression statement.
     Expr expr = expression();
-    consume(SEMICOLON, "Expect ';' after expression.");
+    synchronize(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
 
@@ -55,7 +58,7 @@ class Parser {
       methods.add(function("method"));
     }
 
-    consume(RIGHT_BRACE, "Expect '}' after class body.");
+    synchronize(RIGHT_BRACE, "Expect '}' after class body.");
 
     return new Stmt.Class(name, superclass, methods);
   }
@@ -86,7 +89,7 @@ class Parser {
 
   private Stmt varStatement() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
-    consume(EQUAL, "Expect '=' after variable name.");
+    synchronize(EQUAL, "Expect '=' after variable name.");
     Expr initializer = expression();
     consume(SEMICOLON, "Expect ';' after variable initializer.");
 
@@ -110,14 +113,14 @@ class Parser {
     List<Token> parameters = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
       do {
-        parameters.add(consume(IDENTIFIER, "Expect parameter name."));
-
-        if (parameters.size() > 8) {
-          error("Cannot have more than 8 arguments.");
+        if (parameters.size() >= 8) {
+          error("Cannot have more than 8 parameters.");
         }
+
+        parameters.add(consume(IDENTIFIER, "Expect parameter name."));
       } while (match(COMMA));
     }
-    consume(RIGHT_PAREN, "Expect ')' after parameters.");
+    synchronize(RIGHT_PAREN, "Expect ')' after parameters.");
 
     Stmt body = block();
     return new Stmt.Function(name, parameters, body);
@@ -131,7 +134,7 @@ class Parser {
       statements.add(statement());
     }
 
-    consume(RIGHT_BRACE, "Expect '}' after block.");
+    synchronize(RIGHT_BRACE, "Expect '}' after block.");
 
     return new Stmt.Block(statements);
   }
@@ -144,6 +147,7 @@ class Parser {
     Expr expr = or();
 
   if (match(EQUAL)) {
+    Token equals = previous;
     Expr value = assignment();
 
     if (expr instanceof Expr.Variable) {
@@ -154,7 +158,7 @@ class Parser {
       return new Expr.Assign(property.object, property.name, value);
     }
 
-    error("Invalid assignment target.");
+    error("Invalid assignment target.", equals);
   }
 
     return expr;
@@ -247,11 +251,11 @@ class Parser {
 
     if (!check(RIGHT_PAREN)) {
       do {
-        arguments.add(expression());
-
-        if (arguments.size() > 8) {
+        if (arguments.size() >= 8) {
           error("Cannot have more than 8 arguments.");
         }
+
+        arguments.add(expression());
       } while (match(COMMA));
     }
 
@@ -260,7 +264,7 @@ class Parser {
 
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = argumentList();
-    Token paren = consume(RIGHT_PAREN,
+    Token paren = synchronize(RIGHT_PAREN,
         "Expect ')' after argument list.");
 
     return new Expr.Call(callee, paren, arguments);
@@ -311,50 +315,65 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 
-    if (match(ERROR)) {
-      error((String)previous.value);
-      return null;
-    }
-
     error("Unexpected token '" + current.text + "'.");
     return null;
   }
 
   private boolean match(TokenType... types) {
-    boolean found = false;
     for (TokenType type : types) {
       if (check(type)) {
-        found = true;
-        break;
+        advance();
+        return true;
       }
     }
-    if (!found) return false;
 
-    previous = current;
-    current = scanner.scanToken();
-    return true;
+    return false;
   }
 
   private Token consume(TokenType type, String message) {
-    if (current.type == ERROR) {
-      error((String)current.value);
-    } else if (!check(type)) {
-      error(message);
+    if (check(type)) return advance();
+    error(message);
+    return null;
+  }
+
+  // TODO: Can we unify this with consume() by assuming certain token types
+  // (right delimiters, "=", and ";"?) are always synchronized?
+  private Token synchronize(TokenType type, String message) {
+    if (check(type)) return advance();
+    error(message);
+
+    while (current.type != type && current.type != EOF) {
+      advance();
     }
 
-    previous = current;
-    current = scanner.scanToken();
+    return advance();
+  }
+
+  private Token advance() {
+    // Report and skip any error tokens.
+    // TODO: Move this to Scanner.
+    for (;;) {
+      previous = current;
+      current = scanner.scanToken();
+
+      if (current.type != ERROR) break;
+      error((String)current.value);
+    }
+
     return previous;
   }
 
   // Returns true if the current token is of tokenType, but
   // does not consume it.
   private boolean check(TokenType tokenType) {
-    if (current == null) current = scanner.scanToken();
     return current.type == tokenType;
   }
 
   private void error(String message) {
-    errorReporter.error(current, message);
+    error(message, current);
+  }
+
+  private void error(String message, Token token) {
+    errorReporter.error(token, message);
   }
 }
