@@ -1,6 +1,8 @@
 package com.craftinginterpreters.vox;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.craftinginterpreters.vox.TokenType.*;
@@ -28,98 +30,90 @@ class Scanner {
   }
 
   private final String source;
+  private final ErrorReporter errorReporter;
+  private final List<Token> tokens = new ArrayList<>();
   private int tokenStart = 0;
   private int current = 0;
   private int line = 1;
 
-  Scanner(String source) {
+  Scanner(String source, ErrorReporter errorReporter) {
     this.source = source;
+    this.errorReporter = errorReporter;
   }
 
-  Token scanToken() {
-    skipWhitespace();
+  List<Token> scanTokens() {
+    while (!isAtEnd()) {
+      // The next token starts with the current character.
+      tokenStart = current;
 
-    // The next token starts with the current character.
-    tokenStart = current;
-
-    if (isAtEnd()) return makeToken(EOF);
-
-    char c = advance();
-
-    if (isAlpha(c)) return identifier();
-    if (isDigit(c)) return number();
-
-    switch (c) {
-      case '(': return makeToken(LEFT_PAREN);
-      case ')': return makeToken(RIGHT_PAREN);
-      case '[': return makeToken(LEFT_BRACKET);
-      case ']': return makeToken(RIGHT_BRACKET);
-      case '{': return makeToken(LEFT_BRACE);
-      case '}': return makeToken(RIGHT_BRACE);
-      case ';': return makeToken(SEMICOLON);
-      case ',': return makeToken(COMMA);
-      case '+': return makeToken(PLUS);
-      case '-': return makeToken(MINUS);
-      case '*': return makeToken(STAR);
-      case '/': return makeToken(SLASH);
-      case '!':
-        if (match('=')) return makeToken(BANG_EQUAL);
-        return makeToken(BANG);
-
-      case '.':
-        if (isDigit(peek())) return number();
-        return makeToken(DOT);
-
-      case '=':
-        if (match('=')) return makeToken(EQUAL_EQUAL);
-        return makeToken(EQUAL);
-
-      case '<':
-        if (match('=')) return makeToken(LESS_EQUAL);
-        return makeToken(LESS);
-
-      case '>':
-        if (match('=')) return makeToken(GREATER_EQUAL);
-        return makeToken(GREATER);
-
-      case '"': return string();
-    }
-
-    return makeToken(ERROR,
-        "Unexpected character '" + c + "'.");
-  }
-
-  private void skipWhitespace() {
-    while (true) {
-      char c = peek();
+      char c = advance();
       switch (c) {
+        case '(': addToken(LEFT_PAREN); break;
+        case ')': addToken(RIGHT_PAREN); break;
+        case '[': addToken(LEFT_BRACKET); break;
+        case ']': addToken(RIGHT_BRACKET); break;
+        case '{': addToken(LEFT_BRACE); break;
+        case '}': addToken(RIGHT_BRACE); break;
+        case ';': addToken(SEMICOLON); break;
+        case ',': addToken(COMMA); break;
+        case '+': addToken(PLUS); break;
+        case '-': addToken(MINUS); break;
+        case '*': addToken(STAR); break;
+        case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
+        case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
+        case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
+        case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
+
+        case '/':
+          if (match('/')) {
+            comment();
+          } else {
+            addToken(SLASH);
+          }
+          break;
+
+        case '.':
+          if (isDigit(peek())) {
+            number();
+          } else {
+            addToken(DOT);
+          }
+          break;
+
+        case '"': string(); break;
+
         case ' ':
         case '\r':
         case '\t':
-          advance();
+          // Ignore whitespace.
           break;
 
         case '\n':
           line++;
-          advance();
-          break;
-
-        case '/':
-          if (peek(1) == '/') {
-            // A comment goes until the end of the line.
-            while (peek() != '\n' && !isAtEnd()) advance();
-          } else {
-            return;
-          }
           break;
 
         default:
-          return;
+          if (isAlpha(c)) {
+            identifier();
+          } else if (isDigit(c)) {
+            number();
+          } else {
+            errorReporter.error(line, "Unexpected character '" + c + "'.");
+          }
+          break;
       }
     }
+
+    addToken(EOF);
+    return tokens;
   }
 
-  private Token identifier() {
+  private void comment() {
+    // A comment goes until the end of the line.
+    while (peek() != '\n' && !isAtEnd()) advance();
+  }
+
+  private void identifier() {
     while (isAlphaNumeric(peek())) advance();
 
     // See if the identifier is a reserved word.
@@ -128,10 +122,10 @@ class Scanner {
     TokenType type = keywords.get(text);
     if (type == null) type = IDENTIFIER;
 
-    return makeToken(type);
+    addToken(type);
   }
 
-  private Token number() {
+  private void number() {
     while (isDigit(peek())) advance();
 
     // Look for a fractional part.
@@ -144,34 +138,34 @@ class Scanner {
 
     double value = Double.parseDouble(
         source.substring(tokenStart, current));
-    return makeToken(NUMBER, value);
+    addToken(NUMBER, value);
   }
 
-  private Token string() {
+  private void string() {
     // TODO: What about newlines?
     while (peek() != '"' && !isAtEnd()) advance();
 
     // Unterminated string.
     if (isAtEnd()) {
-      return makeToken(ERROR, "Unterminated string.");
+      errorReporter.error(line, "Unterminated string.");
+      return;
     }
 
     // The closing ".
     advance();
 
     // Trim the surrounding quotes.
-    String value = source.substring(
-        tokenStart + 1, current - 1);
-    return makeToken(STRING, value);
+    String value = source.substring(tokenStart + 1, current - 1);
+    addToken(STRING, value);
   }
 
-  private Token makeToken(TokenType type) {
-    return makeToken(type, null);
+  private void addToken(TokenType type) {
+    addToken(type, null);
   }
 
-  private Token makeToken(TokenType type, Object value) {
+  private void addToken(TokenType type, Object value) {
     String text = source.substring(tokenStart, current);
-    return new Token(type, text, value, line);
+    tokens.add(new Token(type, text, value, line));
   }
 
   private boolean match(char expected) {
@@ -193,7 +187,6 @@ class Scanner {
 
   private char peek(int ahead) {
     if (current + ahead >= source.length()) return '\0';
-
     return source.charAt(current + ahead);
   }
 

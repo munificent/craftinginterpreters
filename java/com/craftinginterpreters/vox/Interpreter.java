@@ -23,8 +23,9 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   void run(String source) {
-    Scanner scanner = new Scanner(source);
-    Parser parser = new Parser(scanner, errorReporter);
+    Scanner scanner = new Scanner(source, errorReporter);
+    List<Token> tokens = scanner.scanTokens();
+    Parser parser = new Parser(tokens, errorReporter);
     List<Stmt> statements = parser.parseProgram();
 
     if (!errorReporter.hadError) {

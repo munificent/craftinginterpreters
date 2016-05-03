@@ -1,27 +1,35 @@
 package com.craftinginterpreters.vox;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.craftinginterpreters.vox.TokenType.*;
 
 class Parser {
-  private final Scanner scanner;
+  private static final Set<TokenType> synchronizing = new HashSet<>();
+
+  static {
+    synchronizing.add(RIGHT_BRACE);
+    synchronizing.add(RIGHT_BRACKET);
+    synchronizing.add(RIGHT_PAREN);
+    synchronizing.add(EQUAL);
+    synchronizing.add(SEMICOLON);
+  }
+
+  private final List<Token> tokens;
+  private int currentIndex = 0;
   private final ErrorReporter errorReporter;
-  private Token current;
-  private Token previous;
 
-  Parser(Scanner scanner, ErrorReporter errorReporter) {
-    this.scanner = scanner;
+  Parser(List<Token> tokens, ErrorReporter errorReporter) {
+    this.tokens = tokens;
     this.errorReporter = errorReporter;
-
-    // Read the first token.
-    advance();
   }
 
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
-    while (!match(EOF)) {
+    while (!isAtEnd()) {
       statements.add(statement());
     }
 
@@ -39,7 +47,7 @@ class Parser {
 
     // Expression statement.
     Expr expr = expression();
-    synchronize(SEMICOLON, "Expect ';' after expression.");
+    consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
 
@@ -54,11 +62,11 @@ class Parser {
     List<Stmt.Function> methods = new ArrayList<>();
     consume(LEFT_BRACE, "Expect '{' before class body.");
 
-    while (!check(RIGHT_BRACE) && !check(EOF)) {
+    while (!check(RIGHT_BRACE) && !isAtEnd()) {
       methods.add(function("method"));
     }
 
-    synchronize(RIGHT_BRACE, "Expect '}' after class body.");
+    consume(RIGHT_BRACE, "Expect '}' after class body.");
 
     return new Stmt.Class(name, superclass, methods);
   }
@@ -89,7 +97,7 @@ class Parser {
 
   private Stmt varStatement() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
-    synchronize(EQUAL, "Expect '=' after variable name.");
+    consume(EQUAL, "Expect '=' after variable name.");
     Expr initializer = expression();
     consume(SEMICOLON, "Expect ';' after variable initializer.");
 
@@ -120,7 +128,7 @@ class Parser {
         parameters.add(consume(IDENTIFIER, "Expect parameter name."));
       } while (match(COMMA));
     }
-    synchronize(RIGHT_PAREN, "Expect ')' after parameters.");
+    consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
     Stmt body = block();
     return new Stmt.Function(name, parameters, body);
@@ -130,11 +138,11 @@ class Parser {
     consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
 
-    while (!check(RIGHT_BRACE) && !check(EOF)) {
+    while (!check(RIGHT_BRACE) && !isAtEnd()) {
       statements.add(statement());
     }
 
-    synchronize(RIGHT_BRACE, "Expect '}' after block.");
+    consume(RIGHT_BRACE, "Expect '}' after block.");
 
     return new Stmt.Block(statements);
   }
@@ -147,7 +155,7 @@ class Parser {
     Expr expr = or();
 
   if (match(EQUAL)) {
-    Token equals = previous;
+    Token equals = previous();
     Expr value = assignment();
 
     if (expr instanceof Expr.Variable) {
@@ -168,7 +176,7 @@ class Parser {
     Expr expr = and();
 
     while (match(OR)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = and();
       expr = new Expr.Logical(expr, operator, right);
     }
@@ -180,7 +188,7 @@ class Parser {
     Expr expr = equality();
 
     while (match(AND)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = equality();
       expr = new Expr.Logical(expr, operator, right);
     }
@@ -192,7 +200,7 @@ class Parser {
     Expr expr = comparison();
 
     while (match(BANG_EQUAL, EQUAL_EQUAL)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = comparison();
       expr = new Expr.Binary(expr, operator, right);
     }
@@ -204,7 +212,7 @@ class Parser {
     Expr expr = term();
 
     while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = term();
       expr = new Expr.Binary(expr, operator, right);
     }
@@ -216,7 +224,7 @@ class Parser {
     Expr expr = factor();
 
     while (match(MINUS, PLUS)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = factor();
       expr = new Expr.Binary(expr, operator, right);
     }
@@ -228,7 +236,7 @@ class Parser {
     Expr expr = unary();
 
     while (match(SLASH, STAR)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = unary();
       expr = new Expr.Binary(expr, operator, right);
     }
@@ -238,7 +246,7 @@ class Parser {
 
   private Expr unary() {
     if (match(BANG, MINUS)) {
-      Token operator = previous;
+      Token operator = previous();
       Expr right = unary();
       return new Expr.Unary(operator, right);
     }
@@ -264,7 +272,7 @@ class Parser {
 
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = argumentList();
-    Token paren = synchronize(RIGHT_PAREN,
+    Token paren = consume(RIGHT_PAREN,
         "Expect ')' after argument list.");
 
     return new Expr.Call(callee, paren, arguments);
@@ -294,7 +302,7 @@ class Parser {
     if (match(NULL)) return new Expr.Literal(null);
 
     if (match(NUMBER, STRING)) {
-      return new Expr.Literal(previous.value);
+      return new Expr.Literal(previous().value);
     }
 
     if (match(SUPER)) {
@@ -303,10 +311,10 @@ class Parser {
       return new Expr.Super(method);
     }
 
-    if (match(THIS)) return new Expr.This(previous);
+    if (match(THIS)) return new Expr.This(previous());
 
     if (match(IDENTIFIER)) {
-      return new Expr.Variable(previous);
+      return new Expr.Variable(previous());
     }
 
     if (match(LEFT_PAREN)) {
@@ -315,7 +323,7 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 
-    error("Unexpected token '" + current.text + "'.");
+    error("Unexpected token '" + current().text + "'.");
     return null;
   }
 
@@ -333,16 +341,10 @@ class Parser {
   private Token consume(TokenType type, String message) {
     if (check(type)) return advance();
     error(message);
-    return null;
-  }
 
-  // TODO: Can we unify this with consume() by assuming certain token types
-  // (right delimiters, "=", and ";"?) are always synchronized?
-  private Token synchronize(TokenType type, String message) {
-    if (check(type)) return advance();
-    error(message);
+    if (!synchronizing.contains(type)) return null;
 
-    while (current.type != type && current.type != EOF) {
+    while (!check(type) && !isAtEnd()) {
       advance();
     }
 
@@ -350,27 +352,31 @@ class Parser {
   }
 
   private Token advance() {
-    // Report and skip any error tokens.
-    // TODO: Move this to Scanner.
-    for (;;) {
-      previous = current;
-      current = scanner.scanToken();
-
-      if (current.type != ERROR) break;
-      error((String)current.value);
-    }
-
-    return previous;
+    if (!isAtEnd()) currentIndex++;
+    return previous();
   }
 
   // Returns true if the current token is of tokenType, but
   // does not consume it.
   private boolean check(TokenType tokenType) {
-    return current.type == tokenType;
+    if (isAtEnd()) return false;
+    return current().type == tokenType;
+  }
+
+  private boolean isAtEnd() {
+    return current().type == EOF;
+  }
+
+  private Token current() {
+    return tokens.get(currentIndex);
+  }
+
+  private Token previous() {
+    return tokens.get(currentIndex - 1);
   }
 
   private void error(String message) {
-    error(message, current);
+    error(message, current());
   }
 
   private void error(String message, Token token) {
