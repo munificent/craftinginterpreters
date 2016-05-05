@@ -101,6 +101,17 @@ static Token makeToken(TokenType type) {
   return token;
 }
 
+static Token errorToken(const char* message) {
+  Token token;
+  // TODO: Use struct initializer?
+  token.type = TOKEN_ERROR;
+  token.start = message;
+  token.length = (int)strlen(message);
+  token.line = scanner.line;
+  
+  return token;
+}
+
 static void skipWhitespace() {
   for (;;) {
     char c = peek();
@@ -169,8 +180,7 @@ static Token string() {
   while (peek() != '"' && !isAtEnd()) advance();
 
   // Unterminated string.
-  // TODO: Include error message. Maybe use special type?
-  if (isAtEnd()) return makeToken(TOKEN_ERROR);
+  if (isAtEnd()) return errorToken("Unterminated string.");
 
   // The closing ".
   advance();
@@ -226,6 +236,5 @@ Token scanToken() {
     case '"': return string();
   }
 
-  // TODO: Tests for this. (Can use "|" or "&".)
-  return makeToken(TOKEN_ERROR);
+  return errorToken("Unexpected character.");
 }

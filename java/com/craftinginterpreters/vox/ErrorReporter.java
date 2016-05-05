@@ -11,7 +11,7 @@ class ErrorReporter {
     if (token.type == TokenType.EOF) {
       report(token.line, " at end", message);
     } else {
-      report(token.line, " on '" + token.text + "'", message);
+      report(token.line, " at '" + token.text + "'", message);
     }
   }
 

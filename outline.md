@@ -29,12 +29,12 @@ visible to user.
         - to get there, narrow path through space, not broad survey
         - will point to alternatives to explore on own
         - learn enough to carry conversation with professional lang person
-    - Your First Interpreter
-        - basic phases and terminology of interpreter
-        - simple stack-based language
-    - Your Second Interpreter
+    - The Vox Language
         - intro to full language we'll be implementing
         - ebnf
+    - The Pancake Language
+        - basic phases and terminology of interpreter
+        - simple stack-based language
 - Practice (Java)
     - Framework
         - repl
@@ -139,24 +139,27 @@ TODO: Still needs a lot of work:
     - Framework
     - A Virtual Machine
         - stack
-        - for now, just make Value an int?
+        - for now, Value is just a double and OP_CONSTANT uses the argument as
+          an immediate int value so we don't need a constant table
         - bytecode
-        ^ this is enough to execute arithmetic exprs
+        - hand-author and run some bytecode
     - Scanning
         - pull based lazy scanning
         - zero-alloc tokens
+        - talk about state machine for keywords?
     - Compiling Expressions
         - top-down operator precedence parsing
         - single-pass compiling
         ^ can now compile and run arithmetic exprs
-        TODO: This isn't right. Can't compile expressions until we have
-        literals, which means we need constant pools, which means functions.
     - Representing Objects
         - numbers, strings, bools, null
         - dynamic typing
         ^ now can handle "str" + "another"
     - Garbage Collection
         ^ since previous chapter needs to heap alloc stuff, need to manage it
+        - roots
+        ??? we don't have any objects that store references to other objects
+            yet, so there is no traversal happening
     - String Interning and Symbols
         - string interning
         - fast equality
@@ -176,6 +179,9 @@ TODO: Still needs a lot of work:
     - constant pools
     - functions
     - symbol tables
+    - nan tagging
+    - copy down inheritance
+
 
 principles
 

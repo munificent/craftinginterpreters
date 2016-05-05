@@ -273,7 +273,7 @@ class Parser {
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = argumentList();
     Token paren = consume(RIGHT_PAREN,
-        "Expect ')' after argument list.");
+        "Expect ')' after arguments.");
 
     return new Expr.Call(callee, paren, arguments);
   }

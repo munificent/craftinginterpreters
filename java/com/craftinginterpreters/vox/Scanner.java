@@ -98,7 +98,7 @@ class Scanner {
           } else if (isDigit(c)) {
             number();
           } else {
-            errorReporter.error(line, "Unexpected character '" + c + "'.");
+            errorReporter.error(line, "Unexpected character.");
           }
           break;
       }

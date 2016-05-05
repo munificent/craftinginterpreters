@@ -15,7 +15,6 @@
 // TODO: These are kind of pointless. Unify?
 #define MAX_LOCALS 256
 #define MAX_UPVALUES 256
-#define MAX_PARAMETERS 8
 
 typedef struct {
   bool hadError;
@@ -104,27 +103,61 @@ Compiler* current = NULL;
 // The compiler for the innermost class currently being compiled.
 ClassCompiler* currentClass = NULL;
 
-static void advance() {
-  parser.previous = parser.current;
-  parser.current = scanToken();
-}
+static void errorAt(Token* token, const char* message) {
+  fprintf(stderr, "[line %d] Error", token->line);
 
-static void error(const char* format, ...) {
-  fprintf(stderr, "[line %d] Error at '%.*s': ", parser.previous.line,
-          parser.previous.length, parser.previous.start);
+  if (token->type == TOKEN_EOF) {
+    fprintf(stderr, " at end");
+  } else if (token->type == TOKEN_ERROR) {
+    // Nothing.
+  } else {
+    fprintf(stderr, " at '%.*s'", token->length, token->start);
+  }
   
-  va_list args;
-  va_start(args, format);
-  vfprintf(stderr, format, args);
-  va_end(args);
-  
-  fprintf(stderr, "\n");
+  fprintf(stderr, ": %s\n", message);
   parser.hadError = true;
 }
 
+static void error(const char* message) {
+  errorAt(&parser.previous, message);
+}
+
+static void errorAtCurrent(const char* message) {
+  errorAt(&parser.current, message);
+}
+
+static void advance() {
+  parser.previous = parser.current;
+  
+  for (;;) {
+    parser.current = scanToken();
+    if (parser.current.type != TOKEN_ERROR) break;
+    
+    errorAtCurrent(parser.current.start);
+  }
+}
+
 static void consume(TokenType type, const char* message) {
-  if (parser.current.type != type) error(message);
-  advance();
+  if (parser.current.type == type) {
+    advance();
+    return;
+  }
+  
+  errorAtCurrent(message);
+  
+  // If we're consuming a synchronizing token, keep going until we find it.
+  if (type == TOKEN_RIGHT_BRACE ||
+      type == TOKEN_RIGHT_BRACKET ||
+      type == TOKEN_RIGHT_PAREN ||
+      type == TOKEN_EQUAL ||
+      type == TOKEN_SEMICOLON) {
+    while (parser.current.type != type &&
+           parser.current.type != TOKEN_EOF) {
+      advance();
+    }
+    
+    advance();
+  }
 }
 
 static bool check(TokenType type) {
@@ -406,8 +439,8 @@ static uint8_t argumentList() {
       expression();
       argCount++;
       
-      if (argCount > MAX_PARAMETERS) {
-        error("Cannot have more than %d arguments.", MAX_PARAMETERS);
+      if (argCount > 8) {
+        error("Cannot have more than 8 arguments.");
       }
     } while (match(TOKEN_COMMA));
   }
@@ -468,7 +501,7 @@ static void call(bool canAssign) {
 }
 
 static void dot(bool canAssign) {
-  consume(TOKEN_IDENTIFIER, "Expect property name.");
+  consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
   uint8_t name = identifierConstant();
   
   if (canAssign && match(TOKEN_EQUAL)) {
@@ -634,11 +667,18 @@ static void parsePrecedence(Precedence precedence) {
 
   bool canAssign = precedence <= PREC_ASSIGNMENT;
   prefixRule(canAssign);
-
+  
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
     infixRule(canAssign);
+  }
+  
+  if (canAssign && match(TOKEN_EQUAL)) {
+    // If we get here, we didn't parse the "=" even though we could have, so
+    // the LHS must not be a valid lvalue.
+    error("Invalid assignment target.");
+    expression();
   }
 }
 
@@ -675,8 +715,8 @@ static void function(bool isMethod, bool isConstructor) {
       defineVariable(paramConstant);
 
       current->function->arity++;
-      if (current->function->arity > MAX_PARAMETERS) {
-        error("Cannot have more than %d parameters.", MAX_PARAMETERS);
+      if (current->function->arity > 8) {
+        error("Cannot have more than 8 parameters.");
       }
     } while (match(TOKEN_COMMA));
   }
