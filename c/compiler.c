@@ -93,6 +93,9 @@ typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
   
   Token name;
+  
+  // The name of the superclass, or a zero-length token if there is none.
+  Token superclass;
 } ClassCompiler;
 
 Parser parser;
@@ -146,7 +149,8 @@ static void consume(TokenType type, const char* message) {
   errorAtCurrent(message);
   
   // If we're consuming a synchronizing token, keep going until we find it.
-  if (type == TOKEN_RIGHT_BRACE ||
+  if (type == TOKEN_LEFT_BRACE ||
+      type == TOKEN_RIGHT_BRACE ||
       type == TOKEN_RIGHT_BRACKET ||
       type == TOKEN_RIGHT_PAREN ||
       type == TOKEN_EQUAL ||
@@ -299,9 +303,9 @@ static uint8_t addConstant(Value value) {
 
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
-static uint8_t identifierConstant() {
-  return addConstant((Value)copyString((uint8_t*)parser.previous.start,
-                                       parser.previous.length));
+static uint8_t identifierConstant(Token* name) {
+  return addConstant((Value)copyString((uint8_t*)name->start,
+                                       name->length));
 }
 
 static void emitConstant(Value value) {
@@ -384,6 +388,17 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   return -1;
 }
 
+static void addLocal(Token* name) {
+  Local* local = &current->locals[current->localCount];
+  local->name = *name;
+  
+  // The local is declared but not yet defined.
+  local->depth = -1;
+  local->isUpvalue = false;
+  // TODO: Check for overflow.
+  current->localCount++;
+}
+
 // Allocates a local slot for the value currently on the stack, if we're in a
 // local scope.
 static void declareVariable() {
@@ -400,15 +415,7 @@ static void declareVariable() {
     }
   }
   
-  // Declare the local variable.
-  Local* local = &current->locals[current->localCount];
-  local->name = *name;
-  
-  // The local is declared but not yet defined.
-  local->depth = -1;
-  local->isUpvalue = false;
-  // TODO: Check for overflow.
-  current->localCount++;
+  addLocal(name);
 }
 
 static uint8_t parseVariable(const char* errorMessage) {
@@ -416,7 +423,7 @@ static uint8_t parseVariable(const char* errorMessage) {
   
   // If it's a global variable, create a string constant for it.
   if (current->scopeDepth == 0) {
-    return identifierConstant();
+    return identifierConstant(&parser.previous);
   }
   
   declareVariable();
@@ -502,7 +509,7 @@ static void call(bool canAssign) {
 
 static void dot(bool canAssign) {
   consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
-  uint8_t name = identifierConstant();
+  uint8_t name = identifierConstant(&parser.previous);
   
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
@@ -560,14 +567,73 @@ static void string(bool canAssign) {
                                  parser.previous.length - 2));
 }
 
-static void this_(bool canAssign) {
-  int arg = resolveLocal(current, &parser.previous, false);
+// Compiles a reference to a variable whose name is the given token.
+static void namedVariable(Token* name, bool canAssign) {
+  uint8_t getOp, setOp;
+  int arg = resolveLocal(current, name, false);
   if (arg != -1) {
-    emitBytes(OP_GET_LOCAL, (uint8_t)arg);
-  } else if ((arg = resolveUpvalue(current, &parser.previous)) != -1) {
-    emitBytes(OP_GET_UPVALUE, (uint8_t)arg);
+    getOp = OP_GET_LOCAL;
+    setOp = OP_SET_LOCAL;
+  } else if ((arg = resolveUpvalue(current, name)) != -1) {
+    getOp = OP_GET_UPVALUE;
+    setOp = OP_SET_UPVALUE;
   } else {
+    arg = identifierConstant(name);
+    getOp = OP_GET_GLOBAL;
+    setOp = OP_SET_GLOBAL;
+  }
+  
+  if (canAssign && match(TOKEN_EQUAL)) {
+    expression();
+    emitBytes(setOp, (uint8_t)arg);
+  } else {
+    emitBytes(getOp, (uint8_t)arg);
+  }
+}
+
+static void variable(bool canAssign) {
+  namedVariable(&parser.previous, canAssign);
+}
+
+static void super_(bool canAssign) {
+  if (currentClass == NULL) {
+    error("Cannot use 'super' outside of a class.");
+  }
+  
+  consume(TOKEN_DOT, "Expect '.' after 'super'.");
+  consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
+  uint8_t name = identifierConstant(&parser.previous);
+  
+  // Push the receiver.
+  Token thisToken;
+  thisToken.start = "this";
+  thisToken.length = 4;
+  namedVariable(&thisToken, false);
+
+  if (match(TOKEN_LEFT_PAREN)) {
+    uint8_t argCount = argumentList();
+
+    if (currentClass != NULL) {
+      // Push the superclass.
+      namedVariable(&currentClass->superclass, false);
+    }
+
+    emitBytes(OP_SUPER_0 + argCount, name);
+  } else {
+    if (currentClass != NULL) {
+      // Push the superclass.
+      namedVariable(&currentClass->superclass, false);
+    }
+
+    emitBytes(OP_GET_SUPER, name);
+  }
+}
+
+static void this_(bool canAssign) {
+  if (currentClass == NULL) {
     error("Cannot use 'this' outside of a class.");
+  } else {
+    variable(false);
   }
 }
 
@@ -583,29 +649,6 @@ static void unary(bool canAssign) {
     case TOKEN_MINUS: emitByte(OP_NEGATE); break;
     default:
       assert(false); // Unreachable.
-  }
-}
-
-static void variable(bool canAssign) {
-  uint8_t getOp, setOp;
-  int arg = resolveLocal(current, &parser.previous, false);
-  if (arg != -1) {
-    getOp = OP_GET_LOCAL;
-    setOp = OP_SET_LOCAL;
-  } else if ((arg = resolveUpvalue(current, &parser.previous)) != -1) {
-    getOp = OP_GET_UPVALUE;
-    setOp = OP_SET_UPVALUE;
-  } else {
-    arg = identifierConstant();
-    getOp = OP_GET_GLOBAL;
-    setOp = OP_SET_GLOBAL;
-  }
-
-  if (canAssign && match(TOKEN_EQUAL)) {
-    expression();
-    emitBytes(setOp, (uint8_t)arg);
-  } else {
-    emitBytes(getOp, (uint8_t)arg);
   }
 }
 
@@ -646,6 +689,7 @@ ParseRule rules[] = {
   { null_,    NULL,    PREC_NONE },       // TOKEN_NULL
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
+  { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
   { boolean,  NULL,    PREC_NONE },       // TOKEN_TRUE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
@@ -750,7 +794,7 @@ static void function(bool isMethod, bool isConstructor) {
 
 static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
-  uint8_t constant = identifierConstant();
+  uint8_t constant = identifierConstant(&parser.previous);
   
   // If the method has the same name as the class, it's a constructor.
   bool isConstructor = identifiersEqual(&parser.previous, &currentClass->name);
@@ -761,16 +805,22 @@ static void method() {
 
 static void classStatement() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
-  uint8_t nameConstant = identifierConstant();
+  uint8_t nameConstant = identifierConstant(&parser.previous);
   declareVariable();
   
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
+  classCompiler.superclass.length = 0;
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
   
   if (match(TOKEN_LESS)) {
-    parsePrecedence(PREC_CALL);
+    consume(TOKEN_IDENTIFIER, "Expect superclass name.");
+    classCompiler.superclass = parser.previous;
+    
+    // Load the superclass onto the stack.
+    variable(false);
+    
     emitBytes(OP_SUBCLASS, nameConstant);
   } else {
     // TODO: If "Object" becomes an in-scope name, use that and get rid of

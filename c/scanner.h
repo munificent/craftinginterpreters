@@ -40,7 +40,7 @@ typedef enum {
   TOKEN_NULL,
   TOKEN_OR,
   TOKEN_RETURN,
-  // TODO: "super".
+  TOKEN_SUPER,
   TOKEN_THIS,
   TOKEN_TRUE,
   TOKEN_VAR,

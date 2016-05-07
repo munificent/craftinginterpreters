@@ -148,6 +148,18 @@ static bool call(Value callee, int argCount) {
   return false;
 }
 
+static bool invokeFromClass(ObjClass* klass, ObjInstance* receiver,
+                            ObjString* name, int argCount) {
+  // Look for the method.
+  Value method;
+  if (tableGet(&klass->methods, name, &method)) {
+    return callClosure(AS_CLOSURE(method), argCount);
+  }
+  
+  runtimeError("Undefined property '%s'.", name->chars);
+  return false;
+}
+
 static bool invoke(Value receiver, ObjString* name, int argCount) {
   if (!IS_INSTANCE(receiver)) {
     runtimeError("Only instances have methods.");
@@ -162,16 +174,21 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
     vm.stackTop[-argCount] = value;
     return call(value, argCount);
   }
+  
+  return invokeFromClass(instance->klass, instance, name, argCount);
+}
 
-  // Look for a method.
-  ObjClass* klass = instance->klass;
+static bool bindMethod(ObjClass* klass, ObjString* name) {
   Value method;
-  if (tableGet(&klass->methods, name, &method)) {
-    return callClosure(AS_CLOSURE(method), argCount);
+  if (!tableGet(&klass->methods, name, &method)) {
+    runtimeError("Undefined property '%s'.", name->chars);
+    return false;
   }
-
-  runtimeError("Undefined property '%s'.", name->chars);
-  return false;
+  
+  ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(method));
+  pop(); // Instance.
+  push((Value)bound);
+  return true;
 }
 
 // Captures the local variable [local] into an [Upvalue]. If that local is
@@ -395,15 +412,7 @@ static bool run() {
           break;
         }
         
-        if (tableGet(&instance->klass->methods, name, &value)) {
-          ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(value));
-          pop(); // Instance.
-          push((Value)bound);
-          break;
-        }
-        
-        runtimeError("Undefined property '%s'.", name->chars);
-        return false;
+        if (!bindMethod(instance->klass, name)) return false;
         break;
       }
         
@@ -421,6 +430,13 @@ static bool run() {
         break;
       }
         
+      case OP_GET_SUPER: {
+        ObjString* name = READ_STRING();
+        ObjClass* superclass = AS_CLASS(pop());
+        if (!bindMethod(superclass, name)) return false;
+        break;
+      }
+
       case OP_EQUAL: {
         bool equal = valuesEqual(peek(0), peek(1));
         pop(); pop();
@@ -537,6 +553,24 @@ static bool run() {
         break;
       }
         
+      case OP_SUPER_0:
+      case OP_SUPER_1:
+      case OP_SUPER_2:
+      case OP_SUPER_3:
+      case OP_SUPER_4:
+      case OP_SUPER_5:
+      case OP_SUPER_6:
+      case OP_SUPER_7:
+      case OP_SUPER_8: {
+        ObjString* method = READ_STRING();
+        int argCount = instruction - OP_SUPER_0;
+        ObjClass* superclass = AS_CLASS(pop());
+        ObjInstance* receiver = AS_INSTANCE(peek(argCount));
+        if (!invokeFromClass(superclass, receiver, method, argCount)) return false;
+        frame = &vm.frames[vm.frameCount - 1];
+        break;
+      }
+
       case OP_CLOSURE: {
         ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
         

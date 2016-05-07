@@ -120,7 +120,8 @@ abstract class Expr {
   }
 
   static class Super extends Expr {
-    Super(Token method) {
+    Super(Token keyword, Token method) {
+      this.keyword = keyword;
       this.method = method;
     }
 
@@ -128,6 +129,7 @@ abstract class Expr {
       return visitor.visitSuperExpr(this, context);
     }
 
+    final Token keyword;
     final Token method;
   }
 

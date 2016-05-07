@@ -285,8 +285,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
     VoxFunction method = superclass.findMethod(receiver, expr.method.text);
     if (method == null) {
-      throw new RuntimeError(superclass.name + " does not implement '" +
-          expr.method.text + "'.", expr.method);
+      throw new RuntimeError("Undefined property '" + expr.method.text +
+          "'.", expr.method);
     }
 
     return method;

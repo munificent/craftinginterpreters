@@ -173,7 +173,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   @Override
   public Void visitSuperExpr(Expr.Super expr, Void dummy) {
     if (enclosingClasses == 0) {
-      errorReporter.error(expr.method,
+      errorReporter.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
     }
     return null;

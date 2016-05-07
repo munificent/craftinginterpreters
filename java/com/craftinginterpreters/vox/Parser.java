@@ -11,6 +11,7 @@ class Parser {
   private static final Set<TokenType> synchronizing = new HashSet<>();
 
   static {
+    synchronizing.add(LEFT_BRACE);
     synchronizing.add(RIGHT_BRACE);
     synchronizing.add(RIGHT_BRACKET);
     synchronizing.add(RIGHT_PAREN);
@@ -56,7 +57,8 @@ class Parser {
 
     Expr superclass = null;
     if (match(LESS)) {
-      superclass = primary();
+      consume(IDENTIFIER, "Expect superclass name.");
+      superclass = new Expr.Variable(previous());
     }
 
     List<Stmt.Function> methods = new ArrayList<>();
@@ -306,9 +308,10 @@ class Parser {
     }
 
     if (match(SUPER)) {
+      Token keyword = previous();
       consume(DOT, "Expect '.' after 'super'.");
       Token method = consume(IDENTIFIER, "Expect superclass method name.");
-      return new Expr.Super(method);
+      return new Expr.Super(keyword, method);
     }
 
     if (match(THIS)) return new Expr.This(previous());

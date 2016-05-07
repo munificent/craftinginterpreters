@@ -122,7 +122,11 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_SET_FIELD:
       i = constantInstruction(function, i, "OP_SET_FIELD");
       break;
-
+      
+    case OP_GET_SUPER:
+      i = constantInstruction(function, i, "OP_GET_SUPER");
+      break;
+      
     case OP_EQUAL: printf("OP_EQUAL\n"); break;
     case OP_GREATER: printf("OP_GREATER\n"); break;
     case OP_LESS: printf("OP_LESS\n"); break;
@@ -175,6 +179,16 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_INVOKE_6: i = constantInstruction(function, i, "OP_INVOKE_6"); break;
     case OP_INVOKE_7: i = constantInstruction(function, i, "OP_INVOKE_7"); break;
     case OP_INVOKE_8: i = constantInstruction(function, i, "OP_INVOKE_8"); break;
+      
+    case OP_SUPER_0: i = constantInstruction(function, i, "OP_SUPER_0"); break;
+    case OP_SUPER_1: i = constantInstruction(function, i, "OP_SUPER_1"); break;
+    case OP_SUPER_2: i = constantInstruction(function, i, "OP_SUPER_2"); break;
+    case OP_SUPER_3: i = constantInstruction(function, i, "OP_SUPER_3"); break;
+    case OP_SUPER_4: i = constantInstruction(function, i, "OP_SUPER_4"); break;
+    case OP_SUPER_5: i = constantInstruction(function, i, "OP_SUPER_5"); break;
+    case OP_SUPER_6: i = constantInstruction(function, i, "OP_SUPER_6"); break;
+    case OP_SUPER_7: i = constantInstruction(function, i, "OP_SUPER_7"); break;
+    case OP_SUPER_8: i = constantInstruction(function, i, "OP_SUPER_8"); break;
       
     case OP_CLOSURE: {
       uint8_t constant = function->code[i++];
