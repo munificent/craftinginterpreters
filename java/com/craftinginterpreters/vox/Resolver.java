@@ -7,7 +7,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   private final ErrorReporter errorReporter;
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
-  private int enclosingClasses = 0;
+  private final Stack<Stmt.Class> enclosingClasses = new Stack<>();
 
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
@@ -36,7 +36,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
       resolve(stmt.superclass);
     }
 
-    enclosingClasses++;
+    enclosingClasses.push(stmt);
 
     for (Stmt.Function method : stmt.methods) {
       // TODO: Note that we're in a class?
@@ -45,7 +45,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
     // TODO: Check for method collisions?
 
-    enclosingClasses--;
+    enclosingClasses.pop();
 
     return null;
   }
@@ -172,16 +172,19 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   @Override
   public Void visitSuperExpr(Expr.Super expr, Void dummy) {
-    if (enclosingClasses == 0) {
+    if (enclosingClasses.isEmpty()) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
+    } else if (enclosingClasses.peek().superclass == null) {
+      errorReporter.error(expr.keyword,
+          "Cannot use 'super' in a class with no superclass.");
     }
     return null;
   }
 
   @Override
   public Void visitThisExpr(Expr.This expr, Void dummy) {
-    if (enclosingClasses == 0) {
+    if (enclosingClasses.isEmpty()) {
       errorReporter.error(expr.name,
           "Cannot use 'this' outside of a class.");
     }

@@ -152,12 +152,12 @@ static bool invokeFromClass(ObjClass* klass, ObjInstance* receiver,
                             ObjString* name, int argCount) {
   // Look for the method.
   Value method;
-  if (tableGet(&klass->methods, name, &method)) {
-    return callClosure(AS_CLOSURE(method), argCount);
+  if (!tableGet(&klass->methods, name, &method)) {
+    runtimeError("Undefined property '%s'.", name->chars);
+    return false;
   }
   
-  runtimeError("Undefined property '%s'.", name->chars);
-  return false;
+  return callClosure(AS_CLOSURE(method), argCount);
 }
 
 static bool invoke(Value receiver, ObjString* name, int argCount) {

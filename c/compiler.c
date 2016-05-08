@@ -568,17 +568,17 @@ static void string(bool canAssign) {
 }
 
 // Compiles a reference to a variable whose name is the given token.
-static void namedVariable(Token* name, bool canAssign) {
+static void namedVariable(Token name, bool canAssign) {
   uint8_t getOp, setOp;
-  int arg = resolveLocal(current, name, false);
+  int arg = resolveLocal(current, &name, false);
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
-  } else if ((arg = resolveUpvalue(current, name)) != -1) {
+  } else if ((arg = resolveUpvalue(current, &name)) != -1) {
     getOp = OP_GET_UPVALUE;
     setOp = OP_SET_UPVALUE;
   } else {
-    arg = identifierConstant(name);
+    arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;
     setOp = OP_SET_GLOBAL;
   }
@@ -592,12 +592,19 @@ static void namedVariable(Token* name, bool canAssign) {
 }
 
 static void variable(bool canAssign) {
-  namedVariable(&parser.previous, canAssign);
+  namedVariable(parser.previous, canAssign);
+}
+
+static void pushSuperclass() {
+  if (currentClass == NULL) return;
+  namedVariable(currentClass->superclass, false);
 }
 
 static void super_(bool canAssign) {
   if (currentClass == NULL) {
     error("Cannot use 'super' outside of a class.");
+  } else if (currentClass->superclass.length == 0) {
+    error("Cannot use 'super' in a class with no superclass.");
   }
   
   consume(TOKEN_DOT, "Expect '.' after 'super'.");
@@ -608,23 +615,15 @@ static void super_(bool canAssign) {
   Token thisToken;
   thisToken.start = "this";
   thisToken.length = 4;
-  namedVariable(&thisToken, false);
+  namedVariable(thisToken, false);
 
   if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
 
-    if (currentClass != NULL) {
-      // Push the superclass.
-      namedVariable(&currentClass->superclass, false);
-    }
-
+    pushSuperclass();
     emitBytes(OP_SUPER_0 + argCount, name);
   } else {
-    if (currentClass != NULL) {
-      // Push the superclass.
-      namedVariable(&currentClass->superclass, false);
-    }
-
+    pushSuperclass();
     emitBytes(OP_GET_SUPER, name);
   }
 }
