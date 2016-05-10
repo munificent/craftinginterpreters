@@ -111,14 +111,14 @@ static ObjString* allocateString(uint8_t* chars, int length) {
 }
 
 ObjString* newString(uint8_t* chars, int length) {
-  ObjString* interned = tableFindKey(&vm.strings, chars, length);
+  ObjString* interned = tableFindString(&vm.strings, chars, length);
   if (interned != NULL) return interned;
 
   return allocateString(chars, length);
 }
 
 ObjString* copyString(const uint8_t* chars, int length) {
-  ObjString* interned = tableFindKey(&vm.strings, chars, length);
+  ObjString* interned = tableFindString(&vm.strings, chars, length);
   if (interned != NULL) return interned;
   
   // Copy the characters to the heap so the object can own it.

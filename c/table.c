@@ -35,17 +35,13 @@ static uint32_t hash(const uint8_t* key, int length) {
   return hash;
 }
 
-static bool keysMatch(ObjString* key, const uint8_t* chars, int length) {
-  return key->length == length && memcmp(key->chars, chars, length) == 0;
-}
-
-static Entry* findEntry(Table* table, const uint8_t* key, int length) {
+static Entry* findEntry(Table* table, ObjString* key) {
   // If the table is empty, we definitely won't find it.
   if (table->count == 0) return NULL;
   
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-  uint32_t index = hash(key, length) % table->capacity;
+  uint32_t index = hash(key->chars, key->length) % table->capacity;
   
   // We don't worry about an infinite loop here because resize() ensures
   // there are empty slots in the table.
@@ -55,7 +51,7 @@ static Entry* findEntry(Table* table, const uint8_t* key, int length) {
     if (entry->key == NULL) {
       // If the value is non-null, it's a tombstone and we have to keep looking.
       if (entry->value == NULL) return NULL;
-    } else if (keysMatch(entry->key, key, length)) {
+    } else if (key == entry->key) {
       // We found it.
       return entry;
     }
@@ -66,7 +62,7 @@ static Entry* findEntry(Table* table, const uint8_t* key, int length) {
 }
 
 bool tableGet(Table* table, ObjString* key, Value* value) {
-  Entry* entry = findEntry(table, key->chars, key->length);
+  Entry* entry = findEntry(table, key);
   if (entry == NULL) return false;
   
   *value = entry->value;
@@ -93,7 +89,7 @@ static bool addEntry(Entry* entries, int capacity,
       entry->key = key;
       entry->value = value;
       return true;
-    } else if (keysMatch(entry->key, key->chars, key->length)) {
+    } else if (key == entry->key) {
       // If the key already exists, just replace the value.
       entry->value = value;
       return false;
@@ -150,11 +146,33 @@ void tableAddAll(Table* from, Table* to) {
   }
 }
 
-ObjString* tableFindKey(Table* table, const uint8_t* chars, int length) {
-  Entry* entry = findEntry(table, chars, length);
-  if (entry == NULL) return NULL;
+ObjString* tableFindString(Table* table, const uint8_t* chars, int length) {
+  // If the table is empty, we definitely won't find it.
+  if (table->count == 0) return NULL;
   
-  return entry->key;
+  // Figure out where to insert it in the table. Use open addressing and
+  // basic linear probing.
+  uint32_t index = hash(chars, length) % table->capacity;
+  
+  // We don't worry about an infinite loop here because resize() ensures
+  // there are empty slots in the table.
+  for (;;) {
+    Entry* entry = &table->entries[index];
+    
+    if (entry->key == NULL) {
+      // If the value is non-null, it's a tombstone and we have to keep looking.
+      if (entry->value == NULL) return NULL;
+    } else if (entry->key->length == length &&
+               memcmp(entry->key->chars, chars, length) == 0) {
+      // We found it.
+      return entry->key;
+    }
+    
+    // Try the next slot.
+    index = (index + 1) % table->capacity;
+  }
+  
+  return NULL;
 }
 
 void tableRemoveWhite(Table* table) {
