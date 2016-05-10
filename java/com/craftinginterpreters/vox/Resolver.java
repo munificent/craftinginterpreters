@@ -109,6 +109,10 @@ class Resolver implements Stmt.Visitor<Void, Void>,
       resolve(stmt.value);
     }
 
+    if (enclosingFunctions.isEmpty()) {
+      errorReporter.error(stmt.keyword, "Cannot return from top-level code.");
+    }
+
     return null;
   }
 

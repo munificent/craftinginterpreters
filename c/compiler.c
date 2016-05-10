@@ -67,12 +67,11 @@ typedef struct {
   bool isLocal;
 } Upvalue;
 
-// TODO: Add another type for top-level code so we can report an error on
-// "return" at the top level?
 typedef enum {
   TYPE_FUNCTION,
+  TYPE_INITIALIZER,
   TYPE_METHOD,
-  TYPE_INITIALIZER
+  TYPE_TOP_LEVEL
 } FunctionType;
 
 typedef struct Compiler {
@@ -891,6 +890,10 @@ static void ifStatement() {
 }
 
 static void returnStatement() {
+  if (current->type == TYPE_TOP_LEVEL) {
+    error("Cannot return from top-level code.");
+  }
+  
   if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
@@ -964,7 +967,7 @@ ObjFunction* compile(const char* source) {
   initScanner(source);
 
   Compiler mainCompiler;
-  beginCompiler(&mainCompiler, 0, false);
+  beginCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
   
   // Prime the pump.
   parser.hadError = false;
