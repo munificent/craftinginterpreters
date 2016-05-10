@@ -10,13 +10,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   // The top level global variables.
   private final Environment globals = new GlobalEnvironment();
 
-  private final VoxClass objectClass;
-
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-
-    // TODO: Methods.
-    objectClass = new VoxClass("Object", null, null, new HashMap<>());
 
     globals.define("print", Callable.wrap(Primitives::print));
     globals.define("clock", Callable.wrap(Primitives::clock));
@@ -64,7 +59,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     environment = environment.declare(stmt.name);
 
     Map<String, VoxFunction> methods = new HashMap<>();
-    Object superclass = objectClass;
+    Object superclass = null;
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass, environment);
       if (!(superclass instanceof VoxClass)) {
@@ -72,19 +67,14 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
       }
     }
 
-    VoxFunction constructor = null;
     for (Stmt.Function method : stmt.methods) {
-      VoxFunction function = new VoxFunction(method, environment);
-
-      if (method.name.text.equals(stmt.name.text)) {
-        constructor = function;
-      } else {
+      VoxFunction function = new VoxFunction(method, environment,
+          method.name.text.equals("init"));
         methods.put(method.name.text, function);
-      }
     }
 
     VoxClass voxClass = new VoxClass(stmt.name.text,
-        (VoxClass)superclass, constructor, methods);
+        (VoxClass)superclass, methods);
 
     environment.set(stmt.name, voxClass);
     return environment;
@@ -104,7 +94,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   @Override
   public Environment visitFunctionStmt(Stmt.Function stmt, Environment environment) {
     environment = environment.declare(stmt.name);
-    VoxFunction function = new VoxFunction(stmt, environment);
+    VoxFunction function = new VoxFunction(stmt, environment, false);
     environment.set(stmt.name, function);
     return environment;
   }

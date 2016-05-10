@@ -88,13 +88,14 @@ class Parser {
   }
 
   private Stmt returnStatement() {
+    Token keyword = previous();
     Expr value = null;
     if (!check(SEMICOLON)) {
       value = expression();
     }
 
     consume(SEMICOLON, "Expect ';' after return value.");
-    return new Stmt.Return(value);
+    return new Stmt.Return(keyword, value);
   }
 
   private Stmt varStatement() {

@@ -115,18 +115,17 @@ static bool call(Value callee, int argCount) {
   if (IS_CLASS(callee)) {
     ObjClass* klass = AS_CLASS(callee);
 
-    ObjInstance* instance = newInstance(klass);
-    
-    // Swap out the class for the instance.
-    vm.stackTop[-argCount - 1] = (Value)instance;
-    
-    // Call the constructor if there is one.
-    if (klass->constructor != NULL) {
-      // TODO: Store ctor as ObjClosure*?
-      return callClosure(AS_CLOSURE(klass->constructor), argCount);
+    // Create the instance.
+    vm.stackTop[-argCount - 1] = (Value)newInstance(klass);
+
+    // Call the initializer, if there is one.
+    // TODO: Come up with a cleaner way to find the initializer.
+    ObjString* key = tableFindString(&klass->methods, (uint8_t*)"init", 4);
+    Value constructor;
+    if (key != NULL && tableGet(&klass->methods, key, &constructor)) {
+      return callClosure(AS_CLOSURE(constructor), argCount);
     } else {
       // No constructor, so just discard the arguments.
-      // TODO: Error if there are args.
       vm.stackTop -= argCount;
       return true;
     }

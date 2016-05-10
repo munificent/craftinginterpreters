@@ -8,6 +8,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private final Stack<Stmt.Class> enclosingClasses = new Stack<>();
+  private final Stack<Stmt.Function> enclosingFunctions = new Stack<>();
 
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
@@ -66,6 +67,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     declare(stmt.name);
     define(stmt.name);
 
+    enclosingFunctions.push(stmt);
     beginScope();
     for (Token param : stmt.parameters) {
       declare(param);
@@ -73,6 +75,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     }
     resolve(stmt.body);
     endScope();
+    enclosingFunctions.pop();
     return null;
   }
 
@@ -94,7 +97,18 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt, Void dummy) {
-    if (stmt.value != null) resolve(stmt.value);
+    if (stmt.value != null) {
+      if (!enclosingFunctions.isEmpty() &&
+          enclosingFunctions.peek().name.text.equals("init") &&
+          !enclosingClasses.isEmpty() &&
+          enclosingClasses.peek().methods.contains(enclosingFunctions.peek())) {
+        errorReporter.error(stmt.keyword,
+            "Cannot return a value from an initializer.");
+      }
+
+      resolve(stmt.value);
+    }
+
     return null;
   }
 

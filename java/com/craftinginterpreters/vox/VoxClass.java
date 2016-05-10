@@ -6,14 +6,11 @@ import java.util.Map;
 class VoxClass implements Callable {
   final String name;
   final VoxClass superclass;
-  private final VoxFunction constructor;
   private final Map<String, VoxFunction> methods;
 
-  VoxClass(String name, VoxClass superclass, VoxFunction constructor,
-           Map<String, VoxFunction> methods) {
+  VoxClass(String name, VoxClass superclass, Map<String, VoxFunction> methods) {
     this.name = name;
     this.superclass = superclass;
-    this.constructor = constructor;
     this.methods = methods;
   }
 
@@ -38,16 +35,18 @@ class VoxClass implements Callable {
 
   @Override
   public int requiredArguments() {
-    if (constructor == null) return 0;
-    return constructor.requiredArguments();
+    VoxFunction initializer = methods.get("init");
+    if (initializer == null) return 0;
+    return initializer.requiredArguments();
   }
 
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
     VoxObject instance = new VoxObject(this);
 
-    if (constructor != null) {
-      constructor.bind(instance, this).call(interpreter, arguments);
+    VoxFunction initializer = methods.get("init");
+    if (initializer != null) {
+      initializer.bind(instance, this).call(interpreter, arguments);
     }
 
     return instance;

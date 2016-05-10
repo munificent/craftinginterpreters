@@ -5,10 +5,13 @@ import java.util.List;
 class VoxFunction implements Callable {
   private final Stmt.Function declaration;
   private final Environment closure;
+  private final boolean isInitializer;
 
-  VoxFunction(Stmt.Function declaration, Environment closure) {
+  VoxFunction(Stmt.Function declaration, Environment closure,
+              boolean isInitializer) {
     this.declaration = declaration;
     this.closure = closure;
+    this.isInitializer = isInitializer;
   }
 
   VoxFunction bind(VoxObject self, VoxClass methodClass) {
@@ -16,7 +19,7 @@ class VoxFunction implements Callable {
         .enterScope()
         .define("this", self)
         .define("class", methodClass);
-    return new VoxFunction(declaration, scope);
+    return new VoxFunction(declaration, scope, isInitializer);
   }
 
   @Override
@@ -31,6 +34,8 @@ class VoxFunction implements Callable {
 
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
+    Object result = null;
+
     try {
       Environment environment = closure.enterScope();
       for (int i = 0; i < declaration.parameters.size(); i++) {
@@ -40,9 +45,10 @@ class VoxFunction implements Callable {
       }
 
       interpreter.execute(declaration.body, environment);
-      return null;
     } catch (Return returnValue) {
-      return returnValue.value;
+      result = returnValue.value;
     }
+
+    return isInitializer ? closure.get("this", 0) : result;
   }
 }

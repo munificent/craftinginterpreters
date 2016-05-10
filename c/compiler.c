@@ -67,12 +67,22 @@ typedef struct {
   bool isLocal;
 } Upvalue;
 
+// TODO: Add another type for top-level code so we can report an error on
+// "return" at the top level?
+typedef enum {
+  TYPE_FUNCTION,
+  TYPE_METHOD,
+  TYPE_INITIALIZER
+} FunctionType;
+
 typedef struct Compiler {
   // The compiler for the enclosing function, if any.
   struct Compiler* enclosing;
 
   // The function being compiled.
   ObjFunction* function;
+  
+  FunctionType type;
   
   // The currently in scope local variables.
   Local locals[MAX_LOCALS];
@@ -91,8 +101,6 @@ typedef struct Compiler {
 
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
-  
-  Token name;
   
   // The name of the superclass, or a zero-length token if there is none.
   Token superclass;
@@ -216,6 +224,17 @@ static int emitJump(uint8_t instruction) {
   return current->function->codeCount - 2;
 }
 
+static void emitReturn() {
+  // An initializer automatically returns "this".
+  if (current->type == TYPE_INITIALIZER) {
+    emitBytes(OP_GET_LOCAL, 0);
+  } else {
+    emitByte(OP_NULL);
+  }
+  
+  emitByte(OP_RETURN);
+}
+
 // Replaces the placeholder argument for a previous CODE_JUMP or CODE_JUMP_IF
 // instruction with an offset that jumps to the current end of bytecode.
 static void patchJump(int offset) {
@@ -229,9 +248,11 @@ static void patchJump(int offset) {
   current->function->code[offset + 1] = jump & 0xff;
 }
 
-static void beginCompiler(Compiler* compiler, int scopeDepth, bool isMethod) {
+static void beginCompiler(Compiler* compiler, int scopeDepth,
+                          FunctionType type) {
   compiler->enclosing = current;
   compiler->function = NULL;
+  compiler->type = type;
   compiler->localCount = 0;
   compiler->upvalueCount = 0;
   compiler->scopeDepth = scopeDepth;
@@ -244,7 +265,7 @@ static void beginCompiler(Compiler* compiler, int scopeDepth, bool isMethod) {
   Local* local = &current->locals[current->localCount++];
   local->depth = current->scopeDepth;
   local->isUpvalue = false;
-  if (isMethod) {
+  if (type != TYPE_FUNCTION) {
     local->name.start = "this";
     local->name.length = 4;
   } else {
@@ -254,7 +275,7 @@ static void beginCompiler(Compiler* compiler, int scopeDepth, bool isMethod) {
 }
 
 static ObjFunction* endCompiler() {
-  emitBytes(OP_NULL, OP_RETURN);
+  emitReturn();
   
   ObjFunction* function = current->function;
   current = current->enclosing;
@@ -745,9 +766,9 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 
-static void function(bool isMethod, bool isConstructor) {
+static void function(FunctionType type) {
   Compiler functionCompiler;
-  beginCompiler(&functionCompiler, 1, isMethod);
+  beginCompiler(&functionCompiler, 1, type);
   
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
@@ -769,12 +790,6 @@ static void function(bool isMethod, bool isConstructor) {
   // The body.
   block();
   
-  // If this is a constructor the body automatically returns "this".
-  if (isConstructor) {
-    emitBytes(OP_GET_LOCAL, 0);
-    emitByte(OP_RETURN);
-  }
-  
   // Create the function object.
   endScope();
   ObjFunction* function = endCompiler();
@@ -795,9 +810,14 @@ static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
   uint8_t constant = identifierConstant(&parser.previous);
   
-  // If the method has the same name as the class, it's a constructor.
-  bool isConstructor = identifiersEqual(&parser.previous, &currentClass->name);
-  function(true, isConstructor);
+  // If the method is named "init", it's an initializer.
+  FunctionType type = TYPE_METHOD;
+  if (parser.previous.length == 4 &&
+      memcmp(parser.previous.start, "init", 4) == 0) {
+    type = TYPE_INITIALIZER;
+  }
+  
+  function(type);
   
   emitBytes(OP_METHOD, constant);
 }
@@ -808,7 +828,6 @@ static void classStatement() {
   declareVariable();
   
   ClassCompiler classCompiler;
-  classCompiler.name = parser.previous;
   classCompiler.superclass.length = 0;
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
@@ -840,7 +859,7 @@ static void classStatement() {
 
 static void funStatement() {
   uint8_t global = parseVariable("Expect function name.");
-  function(false, false);
+  function(TYPE_FUNCTION);
   defineVariable(global);
 }
 
@@ -873,13 +892,16 @@ static void ifStatement() {
 
 static void returnStatement() {
   if (match(TOKEN_SEMICOLON)) {
-    emitByte(OP_NULL);
+    emitReturn();
   } else {
+    if (current->type == TYPE_INITIALIZER) {
+      error("Cannot return a value from an initializer.");
+    }
+    
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+    emitByte(OP_RETURN);
   }
-  
-  emitByte(OP_RETURN);
 }
 
 static void varStatement() {

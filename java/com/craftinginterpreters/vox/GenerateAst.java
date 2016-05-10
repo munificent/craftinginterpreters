@@ -28,7 +28,7 @@ public class GenerateAst {
         "For         : Token name, Expr iterator, Stmt body",
         "Function    : Token name, List<Token> parameters, Stmt body",
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
-        "Return      : Expr value",
+        "Return      : Token keyword, Expr value",
         "Var         : Token name, Expr initializer",
         "While       : Expr condition, Stmt body"
     ));
