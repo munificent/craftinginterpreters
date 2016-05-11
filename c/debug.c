@@ -226,8 +226,7 @@ int printInstruction(ObjFunction* function, int i) {
 }
 
 void printFunction(ObjFunction* function) {
-  // TODO: Show function name.
-  printf("----\n");
+  printf("-- %s --\n", function->name->chars);
 
   for (int i = 0; i < function->codeCount;) {
     i = printInstruction(function, i);

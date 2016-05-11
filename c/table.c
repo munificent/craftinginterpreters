@@ -20,7 +20,7 @@ void freeTable(Table* table) {
   free(table->entries);
 }
 
-static uint32_t hash(const uint8_t* key, int length) {
+static uint32_t hash(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
   uint32_t hash = 2166136261u;
   
@@ -39,6 +39,7 @@ static Entry* findEntry(Table* table, ObjString* key) {
   // If the table is empty, we definitely won't find it.
   if (table->count == 0) return NULL;
   
+  // TODO: Store hash in string so we don't have to do this every time.
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
   uint32_t index = hash(key->chars, key->length) % table->capacity;
@@ -146,7 +147,7 @@ void tableAddAll(Table* from, Table* to) {
   }
 }
 
-ObjString* tableFindString(Table* table, const uint8_t* chars, int length) {
+ObjString* tableFindString(Table* table, const char* chars, int length) {
   // If the table is empty, we definitely won't find it.
   if (table->count == 0) return NULL;
   

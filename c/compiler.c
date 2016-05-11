@@ -101,6 +101,8 @@ typedef struct Compiler {
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
   
+  Token name;
+  
   // The name of the superclass, or a zero-length token if there is none.
   Token superclass;
 } ClassCompiler;
@@ -247,8 +249,8 @@ static void patchJump(int offset) {
   current->function->code[offset + 1] = jump & 0xff;
 }
 
-static void beginCompiler(Compiler* compiler, int scopeDepth,
-                          FunctionType type) {
+static void initCompiler(Compiler* compiler, int scopeDepth,
+                         FunctionType type) {
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
@@ -257,6 +259,32 @@ static void beginCompiler(Compiler* compiler, int scopeDepth,
   compiler->scopeDepth = scopeDepth;
   compiler->function = newFunction();
   current = compiler;
+  
+  switch (type) {
+    case TYPE_FUNCTION:
+      current->function->name = copyString(parser.previous.start,
+                                           parser.previous.length);
+      break;
+      
+    case TYPE_INITIALIZER:
+    case TYPE_METHOD: {
+      int length = currentClass->name.length + parser.previous.length + 1;
+      
+      char* chars = REALLOCATE(NULL, char, length + 1);
+      memcpy(chars, currentClass->name.start, currentClass->name.length);
+      chars[currentClass->name.length] = '.';
+      memcpy(chars + currentClass->name.length + 1, parser.previous.start,
+             parser.previous.length);
+      chars[length] = '\0';
+      
+      current->function->name = takeString(chars, length);
+      break;
+    }
+      
+    case TYPE_TOP_LEVEL:
+      current->function->name = copyString("script", 6);
+      break;
+  }
   
   // The first slot is always implicitly declared. In a method, it holds the
   // receiver, "this". In a function, it holds the function, but cannot be
@@ -324,8 +352,7 @@ static uint8_t addConstant(Value value) {
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant(Token* name) {
-  return addConstant((Value)copyString((uint8_t*)name->start,
-                                       name->length));
+  return addConstant((Value)copyString(name->start, name->length));
 }
 
 static void emitConstant(Value value) {
@@ -583,7 +610,7 @@ static void or_(bool canAssign) {
 }
 
 static void string(bool canAssign) {
-  emitConstant((Value)copyString((uint8_t*)parser.previous.start + 1,
+  emitConstant((Value)copyString(parser.previous.start + 1,
                                  parser.previous.length - 2));
 }
 
@@ -767,7 +794,7 @@ static void block() {
 
 static void function(FunctionType type) {
   Compiler functionCompiler;
-  beginCompiler(&functionCompiler, 1, type);
+  initCompiler(&functionCompiler, 1, type);
   
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
@@ -827,6 +854,7 @@ static void classStatement() {
   declareVariable();
   
   ClassCompiler classCompiler;
+  classCompiler.name = parser.previous;
   classCompiler.superclass.length = 0;
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
@@ -967,7 +995,7 @@ ObjFunction* compile(const char* source) {
   initScanner(source);
 
   Compiler mainCompiler;
-  beginCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
+  initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
   
   // Prime the pump.
   parser.hadError = false;

@@ -71,10 +71,10 @@ ObjFunction* newFunction() {
   function->codeCount = 0;
   function->codeCapacity = 0;
   function->code = NULL;
-  function->codeLines = NULL;
   function->arity = 0;
   function->upvalueCount = 0;
-  
+  function->name = NULL;
+  function->codeLines = NULL;
   initArray(&function->constants);
   return function;
 }
@@ -98,7 +98,7 @@ ObjNumber* newNumber(double value) {
   return number;
 }
 
-static ObjString* allocateString(uint8_t* chars, int length) {
+static ObjString* allocateString(const char* chars, int length) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
@@ -110,19 +110,19 @@ static ObjString* allocateString(uint8_t* chars, int length) {
   return string;
 }
 
-ObjString* newString(uint8_t* chars, int length) {
+ObjString* takeString(const char* chars, int length) {
   ObjString* interned = tableFindString(&vm.strings, chars, length);
   if (interned != NULL) return interned;
 
   return allocateString(chars, length);
 }
 
-ObjString* copyString(const uint8_t* chars, int length) {
+ObjString* copyString(const char* chars, int length) {
   ObjString* interned = tableFindString(&vm.strings, chars, length);
   if (interned != NULL) return interned;
   
   // Copy the characters to the heap so the object can own it.
-  uint8_t* heapChars = REALLOCATE(NULL, uint8_t, length + 1);
+  char* heapChars = REALLOCATE(NULL, char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
   

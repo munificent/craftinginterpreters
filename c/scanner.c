@@ -90,7 +90,6 @@ static bool match(char expected) {
   return true;
 }
 
-// TODO: Take value?
 static Token makeToken(TokenType type) {
   Token token;
   // TODO: Use struct initializer?

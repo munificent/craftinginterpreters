@@ -69,11 +69,13 @@ typedef struct {
   int codeCount;
   int codeCapacity;
   uint8_t* code;
-  int* codeLines;
   int arity;
   int upvalueCount;
-  
   ValueArray constants;
+
+  // Debug information.
+  ObjString* name;
+  int* codeLines;
 } ObjFunction;
 
 typedef Value (*NativeFn)(int argCount, Value* args);
@@ -91,7 +93,7 @@ typedef struct {
 struct sObjString {
   Obj obj;
   int length;
-  uint8_t* chars;
+  const char* chars;
 };
 
 typedef struct sUpvalue {
@@ -144,8 +146,8 @@ ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
 ObjNumber* newNumber(double value);
-ObjString* newString(uint8_t* chars, int length);
-ObjString* copyString(const uint8_t* chars, int length);
+ObjString* takeString(const char* chars, int length);
+ObjString* copyString(const char* chars, int length);
 ObjUpvalue* newUpvalue(Value* slot);
 
 bool valuesEqual(Value a, Value b);

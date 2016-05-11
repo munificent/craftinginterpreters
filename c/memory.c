@@ -91,6 +91,7 @@ static void blackenObject(Obj* obj) {
       
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
+      grayValue((Value)function->name);
       grayArray(&function->constants);
       break;
     }

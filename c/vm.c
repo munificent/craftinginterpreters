@@ -32,15 +32,16 @@ static void runtimeError(const char* format, ...) {
   
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
-    size_t instruction = frame->ip - frame->closure->function->code;
-    int line = frame->closure->function->codeLines[instruction];
-    // TODO: Include function name.
-    fprintf(stderr, "[line %d]\n", line);
+    ObjFunction* function = frame->closure->function;
+    size_t instruction = frame->ip - function->code;
+    fprintf(stderr, "[line %d] in %s\n",
+            function->codeLines[instruction],
+            function->name->chars);
   }
 }
 
 static void defineNative(const char* name, NativeFn function) {
-  push((Value)copyString((uint8_t*)name, (int)strlen(name)));
+  push((Value)copyString(name, (int)strlen(name)));
   push((Value)newNative(function));
   tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
   pop();
@@ -120,7 +121,7 @@ static bool call(Value callee, int argCount) {
 
     // Call the initializer, if there is one.
     // TODO: Come up with a cleaner way to find the initializer.
-    ObjString* key = tableFindString(&klass->methods, (uint8_t*)"init", 4);
+    ObjString* key = tableFindString(&klass->methods, "init", 4);
     Value constructor;
     if (key != NULL && tableGet(&klass->methods, key, &constructor)) {
       return callClosure(AS_CLOSURE(constructor), argCount);
@@ -299,12 +300,12 @@ static void concatenate() {
   ObjString* a = AS_STRING(peek(1));
   
   int length = a->length + b->length;
-  uint8_t* chars = REALLOCATE(NULL, uint8_t, length + 1);
+  char* chars = REALLOCATE(NULL, char, length + 1);
   memcpy(chars, a->chars, a->length);
   memcpy(chars + a->length, b->chars, b->length);
   chars[length] = '\0';
   
-  ObjString* result = newString(chars, length);
+  ObjString* result = takeString(chars, length);
   pop();
   pop();
   push((Value)result);
