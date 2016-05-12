@@ -868,8 +868,6 @@ static void classStatement() {
     
     emitBytes(OP_SUBCLASS, nameConstant);
   } else {
-    // TODO: If "Object" becomes an in-scope name, use that and get rid of
-    // separate op codes for class and subclass.
     emitBytes(OP_CLASS, nameConstant);
   }
 
@@ -966,6 +964,7 @@ static void whileStatement() {
   emitLoop(loopStart);
   
   patchJump(exitJump);
+  emitByte(OP_POP); // Condition.
   endScope();
 }
 
