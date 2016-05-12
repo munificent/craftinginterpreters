@@ -20,30 +20,14 @@ void freeTable(Table* table) {
   free(table->entries);
 }
 
-static uint32_t hash(const char* key, int length) {
-  // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
-  uint32_t hash = 2166136261u;
-  
-  // This is O(n) on the length of the string, but we only call this when a new
-  // string is created. Since the creation is also O(n) (to copy/initialize all
-  // the bytes), we allow this here.
-  for (int i = 0; i < length; i++) {
-    hash ^= key[i];
-    hash *= 16777619;
-  }
-  
-  return hash;
-}
-
 static Entry* findEntry(Table* table, ObjString* key) {
   // If the table is empty, we definitely won't find it.
   if (table->count == 0) return NULL;
   
-  // TODO: Store hash in string so we don't have to do this every time.
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-  uint32_t index = hash(key->chars, key->length) % table->capacity;
-  
+  uint32_t index = key->hash % table->capacity;
+
   // We don't worry about an infinite loop here because resize() ensures
   // there are empty slots in the table.
   for (;;) {
@@ -78,7 +62,7 @@ static bool addEntry(Entry* entries, int capacity,
                      ObjString* key, Value value) {
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-  uint32_t index = hash(key->chars, key->length) % capacity;
+  uint32_t index = key->hash % capacity;
 
   // We don't worry about an infinite loop here because resizeTable() ensures
   // there are open slots in the array.
@@ -147,13 +131,14 @@ void tableAddAll(Table* from, Table* to) {
   }
 }
 
-ObjString* tableFindString(Table* table, const char* chars, int length) {
+ObjString* tableFindString(Table* table, const char* chars, int length,
+                           uint32_t hash) {
   // If the table is empty, we definitely won't find it.
   if (table->count == 0) return NULL;
   
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-  uint32_t index = hash(chars, length) % table->capacity;
+  uint32_t index = hash % table->capacity;
   
   // We don't worry about an infinite loop here because resize() ensures
   // there are empty slots in the table.

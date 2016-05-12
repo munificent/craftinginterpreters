@@ -83,6 +83,8 @@ struct sVM {
   
   Table globals;
   Table strings;
+
+  ObjString* initString;
   
   ObjUpvalue* openUpvalues;
   

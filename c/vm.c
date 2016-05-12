@@ -61,6 +61,8 @@ void initVM() {
   initTable(&vm.globals);
   initTable(&vm.strings);
   
+  vm.initString = copyString("init", 4);
+  
   defineNative("clock", clockNative);
   defineNative("print", printNative);
 }
@@ -68,6 +70,7 @@ void initVM() {
 void endVM() {
   freeTable(&vm.globals);
   freeTable(&vm.strings);
+  vm.initString = NULL;
   freeObjects();
 }
 
@@ -120,10 +123,8 @@ static bool call(Value callee, int argCount) {
     vm.stackTop[-argCount - 1] = (Value)newInstance(klass);
 
     // Call the initializer, if there is one.
-    // TODO: Come up with a cleaner way to find the initializer.
-    ObjString* key = tableFindString(&klass->methods, "init", 4);
     Value constructor;
-    if (key != NULL && tableGet(&klass->methods, key, &constructor)) {
+    if (tableGet(&klass->methods, vm.initString, &constructor)) {
       return callClosure(AS_CLOSURE(constructor), argCount);
     } else {
       // No constructor, so just discard the arguments.

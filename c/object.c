@@ -98,10 +98,11 @@ ObjNumber* newNumber(double value) {
   return number;
 }
 
-static ObjString* allocateString(const char* chars, int length) {
+static ObjString* allocateString(const char* chars, int length, uint32_t hash) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
+  string->hash = hash;
   
   push((Value)string);
   tableSet(&vm.strings, string, NULL);
@@ -110,15 +111,32 @@ static ObjString* allocateString(const char* chars, int length) {
   return string;
 }
 
+static uint32_t hashString(const char* key, int length) {
+  // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
+  uint32_t hash = 2166136261u;
+  
+  // This is O(n) on the length of the string, but we only call this when a new
+  // string is created. Since the creation is also O(n) (to copy/initialize all
+  // the bytes), we allow this here.
+  for (int i = 0; i < length; i++) {
+    hash ^= key[i];
+    hash *= 16777619;
+  }
+  
+  return hash;
+}
+
 ObjString* takeString(const char* chars, int length) {
-  ObjString* interned = tableFindString(&vm.strings, chars, length);
+  uint32_t hash = hashString(chars, length);
+  ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
 
-  return allocateString(chars, length);
+  return allocateString(chars, length, hash);
 }
 
 ObjString* copyString(const char* chars, int length) {
-  ObjString* interned = tableFindString(&vm.strings, chars, length);
+  uint32_t hash = hashString(chars, length);
+  ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
   
   // Copy the characters to the heap so the object can own it.
@@ -126,7 +144,7 @@ ObjString* copyString(const char* chars, int length) {
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
   
-  return allocateString(heapChars, length);
+  return allocateString(heapChars, length, hash);
 }
 
 ObjUpvalue* newUpvalue(Value* slot) {

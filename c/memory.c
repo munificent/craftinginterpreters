@@ -186,6 +186,7 @@ void collectGarbage() {
   // Mark the global roots.
   grayTable(&vm.globals);
   grayCompilerRoots();
+  grayValue((Value)vm.initString);
   
   // Traverse the references.
   while (vm.grayCount > 0) {
