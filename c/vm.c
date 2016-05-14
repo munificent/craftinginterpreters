@@ -622,7 +622,7 @@ static bool run() {
         break;
         
       case OP_SUBCLASS: {
-        Value superclass = pop();
+        Value superclass = peek(0);
         if (!IS_CLASS(superclass)) {
           runtimeError("Superclass must be a class.");
           return false;

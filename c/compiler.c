@@ -103,8 +103,7 @@ typedef struct ClassCompiler {
   
   Token name;
   
-  // The name of the superclass, or a zero-length token if there is none.
-  Token superclass;
+  bool hasSuperclass;
 } ClassCompiler;
 
 Parser parser;
@@ -435,9 +434,9 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   return -1;
 }
 
-static void addLocal(Token* name) {
+static void addLocal(Token name) {
   Local* local = &current->locals[current->localCount];
-  local->name = *name;
+  local->name = name;
   
   // The local is declared but not yet defined.
   local->depth = -1;
@@ -462,7 +461,7 @@ static void declareVariable() {
     }
   }
   
-  addLocal(name);
+  addLocal(*name);
 }
 
 static uint8_t parseVariable(const char* errorMessage) {
@@ -642,15 +641,22 @@ static void variable(bool canAssign) {
   namedVariable(parser.previous, canAssign);
 }
 
+static Token syntheticToken(const char* text) {
+  Token token;
+  token.start = text;
+  token.length = (int)strlen(text);
+  return token;
+}
+
 static void pushSuperclass() {
   if (currentClass == NULL) return;
-  namedVariable(currentClass->superclass, false);
+  namedVariable(syntheticToken("super"), false);
 }
 
 static void super_(bool canAssign) {
   if (currentClass == NULL) {
     error("Cannot use 'super' outside of a class.");
-  } else if (currentClass->superclass.length == 0) {
+  } else if (!currentClass->hasSuperclass) {
     error("Cannot use 'super' in a class with no superclass.");
   }
   
@@ -659,10 +665,7 @@ static void super_(bool canAssign) {
   uint8_t name = identifierConstant(&parser.previous);
   
   // Push the receiver.
-  Token thisToken;
-  thisToken.start = "this";
-  thisToken.length = 4;
-  namedVariable(thisToken, false);
+  namedVariable(syntheticToken("this"), false);
 
   if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
@@ -855,16 +858,19 @@ static void classStatement() {
   
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
-  classCompiler.superclass.length = 0;
+  classCompiler.hasSuperclass = false;
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
   
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
-    classCompiler.superclass = parser.previous;
+    classCompiler.hasSuperclass = true;
     
-    // Load the superclass onto the stack.
+    beginScope();
+    
+    // Store the superclass in a local variable named "super".
     variable(false);
+    addLocal(syntheticToken("super"));
     
     emitBytes(OP_SUBCLASS, nameConstant);
   } else {
@@ -876,6 +882,10 @@ static void classStatement() {
     method();
   }
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
+  
+  if (classCompiler.hasSuperclass) {
+    endScope();
+  }
   
   defineVariable(nameConstant);
   
