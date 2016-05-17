@@ -105,48 +105,48 @@ static bool callClosure(ObjClosure* closure, int argCount) {
 }
 
 static bool call(Value callee, int argCount) {
-  // TODO: Use switch for types?
-  
-  if (IS_BOUND_METHOD(callee)) {
-    ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
-    
-    // Replace the bound method with the receiver so it's in the right slot
-    // when the method is called.
-    vm.stackTop[-argCount - 1] = bound->receiver;
-    return callClosure(bound->method, argCount);
-  }
-  
-  if (IS_CLASS(callee)) {
-    ObjClass* klass = AS_CLASS(callee);
-
-    // Create the instance.
-    vm.stackTop[-argCount - 1] = (Value)newInstance(klass);
-
-    // Call the initializer, if there is one.
-    Value constructor;
-    if (tableGet(&klass->methods, vm.initString, &constructor)) {
-      return callClosure(AS_CLOSURE(constructor), argCount);
-    } else {
+  switch (OBJ_TYPE(callee)) {
+    case OBJ_BOUND_METHOD: {
+      ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
+      
+      // Replace the bound method with the receiver so it's in the right slot
+      // when the method is called.
+      vm.stackTop[-argCount - 1] = bound->receiver;
+      return callClosure(bound->method, argCount);
+    }
+      
+    case OBJ_CLASS: {
+      ObjClass* klass = AS_CLASS(callee);
+      
+      // Create the instance.
+      vm.stackTop[-argCount - 1] = (Value)newInstance(klass);
+      
+      // Call the initializer, if there is one.
+      Value constructor;
+      if (tableGet(&klass->methods, vm.initString, &constructor)) {
+        return callClosure(AS_CLOSURE(constructor), argCount);
+      }
+      
       // No constructor, so just discard the arguments.
       vm.stackTop -= argCount;
       return true;
     }
+      
+    case OBJ_CLOSURE:
+      return callClosure(AS_CLOSURE(callee), argCount);
+      
+    case OBJ_NATIVE: {
+      NativeFn native = AS_NATIVE(callee);
+      Value result = native(argCount, vm.stackTop - argCount);
+      vm.stackTop -= argCount + 1;
+      push(result);
+      return true;
+    }
+      
+    default:
+      runtimeError("Can only call functions and classes.");
+      return false;
   }
-  
-  if (IS_CLOSURE(callee)) {
-    return callClosure(AS_CLOSURE(callee), argCount);
-  }
-  
-  if (IS_NATIVE(callee)) {
-    NativeFn native = AS_NATIVE(callee);
-    Value result = native(argCount, vm.stackTop - argCount);
-    vm.stackTop -= argCount + 1;
-    push(result);
-    return true;
-  }
-  
-  runtimeError("Can only call functions and classes.");
-  return false;
 }
 
 static bool invokeFromClass(ObjClass* klass, ObjInstance* receiver,

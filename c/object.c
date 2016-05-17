@@ -160,12 +160,10 @@ bool valuesEqual(Value a, Value b) {
   // Identity.
   if (a == b) return true;
   
-  if (IS_NULL(a) || IS_NULL(b)) return false;
-  
   // No implicit conversions.
-  if (a->type != b->type) return false;
+  if (OBJ_TYPE(a) != OBJ_TYPE(b)) return false;
   
-  switch (a->type) {
+  switch (OBJ_TYPE(a)) {
     case OBJ_BOOL:
       // TODO: Canonicalize bools?
       return AS_BOOL(a) == AS_BOOL(b);
@@ -180,6 +178,7 @@ bool valuesEqual(Value a, Value b) {
     case OBJ_FUNCTION:
     case OBJ_INSTANCE:
     case OBJ_NATIVE:
+    case OBJ_NULL:
     case OBJ_UPVALUE:
       // These have reference equality.
       return false;

@@ -7,27 +7,29 @@
 #include "common.h"
 #include "table.h"
 
-#define IS_BOOL(value) isNonNullType((value), OBJ_BOOL)
-#define IS_BOUND_METHOD(value) isNonNullType((value), OBJ_BOUND_METHOD)
-#define IS_CLASS(value) isNonNullType((value), OBJ_CLASS)
-#define IS_CLOSURE(value) isNonNullType((value), OBJ_CLOSURE)
-#define IS_FUNCTION(value) isNonNullType((value), OBJ_FUNCTION)
-#define IS_INSTANCE(value) isNonNullType((value), OBJ_INSTANCE)
-#define IS_NUMBER(value) isNonNullType((value), OBJ_NUMBER)
-#define IS_NULL(value) ((value) == NULL)
-#define IS_NATIVE(value) isNonNullType((value), OBJ_NATIVE)
-#define IS_STRING(value) isNonNullType((value), OBJ_STRING)
+#define IS_BOOL(value)          (OBJ_TYPE(value) == OBJ_BOOL)
+#define IS_BOUND_METHOD(value)  (OBJ_TYPE(value) == OBJ_BOUND_METHOD)
+#define IS_CLASS(value)         (OBJ_TYPE(value) == OBJ_CLASS)
+#define IS_CLOSURE(value)       (OBJ_TYPE(value) == OBJ_CLOSURE)
+#define IS_FUNCTION(value)      (OBJ_TYPE(value) == OBJ_FUNCTION)
+#define IS_INSTANCE(value)      (OBJ_TYPE(value) == OBJ_INSTANCE)
+#define IS_NUMBER(value)        (OBJ_TYPE(value) == OBJ_NUMBER)
+#define IS_NULL(value)          ((value) == NULL)
+#define IS_NATIVE(value)        (OBJ_TYPE(value) == OBJ_NATIVE)
+#define IS_STRING(value)        (OBJ_TYPE(value) == OBJ_STRING)
 
-#define AS_BOOL(val) (((ObjBool*)val)->value)
-#define AS_BOUND_METHOD(value) ((ObjBoundMethod*)value)
-#define AS_CLASS(value) ((ObjClass*)value)
-#define AS_CLOSURE(value) ((ObjClosure*)value)
-#define AS_FUNCTION(value) ((ObjFunction*)value)
-#define AS_INSTANCE(value) ((ObjInstance*)value)
-#define AS_NUMBER(val) (((ObjNumber*)val)->value)
-#define AS_NATIVE(value) (((ObjNative*)value)->function)
-#define AS_STRING(value) ((ObjString*)value)
-#define AS_CSTRING(value) (((ObjString*)value)->chars)
+#define AS_BOOL(val)            (((ObjBool*)val)->value)
+#define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)value)
+#define AS_CLASS(value)         ((ObjClass*)value)
+#define AS_CLOSURE(value)       ((ObjClosure*)value)
+#define AS_FUNCTION(value)      ((ObjFunction*)value)
+#define AS_INSTANCE(value)      ((ObjInstance*)value)
+#define AS_NUMBER(val)          (((ObjNumber*)val)->value)
+#define AS_NATIVE(value)        (((ObjNative*)value)->function)
+#define AS_STRING(value)        ((ObjString*)value)
+#define AS_CSTRING(value)       (((ObjString*)value)->chars)
+
+#define OBJ_TYPE(value) (objectType(value))
 
 // TODO: Unboxed numbers?
 
@@ -40,6 +42,7 @@ typedef enum {
   OBJ_INSTANCE,
   OBJ_NATIVE,
   OBJ_NUMBER,
+  OBJ_NULL,
   OBJ_STRING,
   OBJ_UPVALUE
 } ObjType;
@@ -157,11 +160,10 @@ void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
 
-// Returns true if [value] is an object of type [type]. Do not call this
-// directly, instead use the [IS___] macro for the type in question.
-static inline bool isNonNullType(Value value, ObjType type)
-{
-  return value != NULL && value->type == type;
+// Returns the type of [value]. Do not call this directly. Instead, use the
+// `IS_X` macros or `OBJ_TYPE`.
+static inline ObjType objectType(Value value) {
+  return value == NULL ? OBJ_NULL : value->type;
 }
 
 #endif

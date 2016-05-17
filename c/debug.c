@@ -4,12 +4,7 @@
 
 // TODO: Not really for debugging. Move to object.c?
 void printValue(Value value) {
-  if (value == NULL) {
-    printf("null");
-    return;
-  }
-  
-  switch (value->type) {
+  switch (OBJ_TYPE(value)) {
     case OBJ_BOOL:
       printf(AS_BOOL(value) ? "true" : "false");
       break;
@@ -31,6 +26,10 @@ void printValue(Value value) {
     case OBJ_NATIVE:
       printf("<native %p>", AS_NATIVE(value));
       break;
+      
+    case OBJ_NULL:
+      printf("null");
+      return;
       
     case OBJ_NUMBER:
       printf("%g", AS_NUMBER(value));
