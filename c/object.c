@@ -178,7 +178,7 @@ bool valuesEqual(Value a, Value b) {
     case OBJ_FUNCTION:
     case OBJ_INSTANCE:
     case OBJ_NATIVE:
-    case OBJ_NULL:
+    case OBJ_NIL:
     case OBJ_UPVALUE:
       // These have reference equality.
       return false;

@@ -27,8 +27,8 @@ void printValue(Value value) {
       printf("<native %p>", AS_NATIVE(value));
       break;
       
-    case OBJ_NULL:
-      printf("null");
+    case OBJ_NIL:
+      printf("nil");
       return;
       
     case OBJ_NUMBER:
@@ -75,7 +75,7 @@ int printInstruction(ObjFunction* function, int i) {
       i = constantInstruction(function, i, "OP_CONSTANT");
       break;
       
-    case OP_NULL: printf("OP_NULL\n"); break;
+    case OP_NIL: printf("OP_NIL\n"); break;
     case OP_POP: printf("OP_POP\n"); break;
       
     case OP_GET_LOCAL: {

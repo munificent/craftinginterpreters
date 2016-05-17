@@ -37,7 +37,7 @@ typedef enum {
   TOKEN_FUN,
   TOKEN_FOR,
   TOKEN_IF,
-  TOKEN_NULL,
+  TOKEN_NIL,
   TOKEN_OR,
   TOKEN_RETURN,
   TOKEN_SUPER,

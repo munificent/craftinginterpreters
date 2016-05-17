@@ -146,8 +146,8 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     Entry* entry = &table->entries[index];
     
     if (entry->key == NULL) {
-      // If the value is non-null, it's a tombstone and we have to keep looking.
-      if (IS_NULL(entry->value)) return NULL;
+      // If the value is non-nil, it's a tombstone and we have to keep looking.
+      if (IS_NIL(entry->value)) return NULL;
     } else if (entry->key->length == length &&
                memcmp(entry->key->chars, chars, length) == 0) {
       // We found it.

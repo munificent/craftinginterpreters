@@ -229,7 +229,7 @@ static void emitReturn() {
   if (current->type == TYPE_INITIALIZER) {
     emitBytes(OP_GET_LOCAL, 0);
   } else {
-    emitByte(OP_NULL);
+    emitByte(OP_NIL);
   }
   
   emitByte(OP_RETURN);
@@ -573,8 +573,8 @@ static void grouping(bool canAssign) {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
-static void null_(bool canAssign) {
-  emitByte(OP_NULL);
+static void nil(bool canAssign) {
+  emitByte(OP_NIL);
 }
 
 static void number(bool canAssign) {
@@ -735,7 +735,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
-  { null_,    NULL,    PREC_NONE },       // TOKEN_NULL
+  { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
@@ -946,10 +946,14 @@ static void returnStatement() {
 static void varStatement() {
   uint8_t global = parseVariable("Expect variable name.");
 
-  // Compile the initializer.
-  consume(TOKEN_EQUAL, "Expect '=' after variable name.");
-  expression();
-  consume(TOKEN_SEMICOLON, "Expect ';' after initializer.");
+  if (match(TOKEN_EQUAL)) {
+    // Compile the initializer.
+    expression();
+  } else {
+    // Default to nil.
+    emitByte(OP_NIL);
+  }
+  consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
   
   defineVariable(global);
 }

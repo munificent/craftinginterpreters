@@ -293,7 +293,7 @@ static bool popNumber(double* a) {
 }
 
 static bool isFalsey(Value value) {
-  return IS_NULL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+  return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
 
 static void concatenate() {
@@ -339,7 +339,8 @@ static bool run() {
         break;
       }
         
-      case OP_NULL:
+      case OP_NIL:
+        // TODO: Define constant in object.h for nil.
         push(NULL);
         break;
 

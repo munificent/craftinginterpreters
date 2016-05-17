@@ -28,7 +28,8 @@ void* reallocate(void* previous, size_t size) {
 }
 
 void grayValue(Value value) {
-  if (IS_NULL(value)) return;
+  // TODO: Instead of checking for nil, should check to see if heap-allocated.
+  if (IS_NIL(value)) return;
   
   // Don't get caught in cycle.
   if (value->isDark) return;
@@ -109,7 +110,7 @@ static void blackenObject(Obj* obj) {
       
     case OBJ_BOOL:
     case OBJ_NATIVE:
-    case OBJ_NULL:
+    case OBJ_NIL:
     case OBJ_NUMBER:
     case OBJ_STRING:
       // No references.
@@ -153,7 +154,7 @@ static void freeObject(Obj* obj) {
     case OBJ_BOOL:
     case OBJ_BOUND_METHOD:
     case OBJ_NATIVE:
-    case OBJ_NULL:
+    case OBJ_NIL:
     case OBJ_NUMBER:
     case OBJ_STRING:
     case OBJ_UPVALUE:

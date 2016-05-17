@@ -13,9 +13,9 @@
 #define IS_CLOSURE(value)       (OBJ_TYPE(value) == OBJ_CLOSURE)
 #define IS_FUNCTION(value)      (OBJ_TYPE(value) == OBJ_FUNCTION)
 #define IS_INSTANCE(value)      (OBJ_TYPE(value) == OBJ_INSTANCE)
-#define IS_NUMBER(value)        (OBJ_TYPE(value) == OBJ_NUMBER)
-#define IS_NULL(value)          ((value) == NULL)
 #define IS_NATIVE(value)        (OBJ_TYPE(value) == OBJ_NATIVE)
+#define IS_NIL(value)           ((value) == NULL)
+#define IS_NUMBER(value)        (OBJ_TYPE(value) == OBJ_NUMBER)
 #define IS_STRING(value)        (OBJ_TYPE(value) == OBJ_STRING)
 
 #define AS_BOOL(val)            (((ObjBool*)val)->value)
@@ -41,8 +41,8 @@ typedef enum {
   OBJ_FUNCTION,
   OBJ_INSTANCE,
   OBJ_NATIVE,
+  OBJ_NIL,
   OBJ_NUMBER,
-  OBJ_NULL,
   OBJ_STRING,
   OBJ_UPVALUE
 } ObjType;
@@ -163,7 +163,7 @@ void freeArray(ValueArray* array);
 // Returns the type of [value]. Do not call this directly. Instead, use the
 // `IS_X` macros or `OBJ_TYPE`.
 static inline ObjType objectType(Value value) {
-  return value == NULL ? OBJ_NULL : value->type;
+  return value == NULL ? OBJ_NIL : value->type;
 }
 
 #endif

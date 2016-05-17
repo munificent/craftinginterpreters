@@ -19,7 +19,7 @@ static Keyword keywords[] = {
   {"for",     3, TOKEN_FOR},
   {"fun",     3, TOKEN_FUN},
   {"if",      2, TOKEN_IF},
-  {"null",    4, TOKEN_NULL},
+  {"nil",     3, TOKEN_NIL},
   {"or",      2, TOKEN_OR},
   {"return",  6, TOKEN_RETURN},
   {"super" ,  5, TOKEN_SUPER},
