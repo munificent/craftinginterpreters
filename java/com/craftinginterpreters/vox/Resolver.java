@@ -119,7 +119,9 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   @Override
   public Void visitVarStmt(Stmt.Var stmt, Void dummy) {
     declare(stmt.name);
-    stmt.initializer.accept(this, null);
+    if (stmt.initializer != null) {
+      stmt.initializer.accept(this, null);
+    }
     define(stmt.name);
     return null;
   }

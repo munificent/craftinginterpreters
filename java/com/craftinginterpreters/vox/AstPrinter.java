@@ -83,6 +83,10 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
 
   @Override
   public String visitVarStmt(Stmt.Var stmt, Void context) {
+    if (stmt.initializer == null) {
+      return join("(var ", stmt.name.text, ")");
+    }
+
     return join("(var ", stmt.name.text, " = ", stmt.initializer, ")");
   }
 

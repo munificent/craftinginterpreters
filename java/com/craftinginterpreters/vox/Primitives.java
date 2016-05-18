@@ -10,7 +10,7 @@ class Primitives {
   }
 
   static boolean isEqual(Object a, Object b) {
-    // null is only equal to null.
+    // nil is only equal to nil.
     if (a == null && b == null) return true;
     if (a == null) return false;
 
@@ -18,7 +18,7 @@ class Primitives {
   }
 
   static String stringify(Object object) {
-    if (object == null) return "null";
+    if (object == null) return "nil";
 
     // Hack. Work around Java adding ".0" to integer-valued doubles.
     if (object instanceof Double) {

@@ -123,7 +123,10 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
   @Override
   public Environment visitVarStmt(Stmt.Var stmt, Environment environment) {
-    Object value = evaluate(stmt.initializer, environment);
+    Object value = null;
+    if (stmt.initializer != null) {
+      value = evaluate(stmt.initializer, environment);
+    }
     return environment.define(stmt.name.text, value);
   }
 
