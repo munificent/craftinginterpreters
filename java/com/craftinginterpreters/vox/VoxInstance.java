@@ -3,13 +3,12 @@ package com.craftinginterpreters.vox;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: Rename "VoxInstance"?
-class VoxObject {
-  private VoxClass voxClass;
+class VoxInstance {
+  private VoxClass klass;
   final Map<String, Object> fields = new HashMap<>();
 
-  VoxObject(VoxClass voxClass) {
-    this.voxClass = voxClass;
+  VoxInstance(VoxClass klass) {
+    this.klass = klass;
   }
 
   Object getProperty(Token name) {
@@ -17,7 +16,7 @@ class VoxObject {
       return fields.get(name.text);
     }
 
-    VoxFunction method = voxClass.findMethod(this, name.text);
+    VoxFunction method = klass.findMethod(this, name.text);
     if (method != null) return method;
 
     throw new RuntimeError(
@@ -26,6 +25,6 @@ class VoxObject {
 
   @Override
   public String toString() {
-    return voxClass.name + " instance";
+    return klass.name + " instance";
   }
 }

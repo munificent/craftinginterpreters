@@ -142,7 +142,6 @@ class Scanner {
   }
 
   private void string() {
-    // TODO: What about newlines?
     while (peek() != '"' && !isAtEnd()) advance();
 
     // Unterminated string.

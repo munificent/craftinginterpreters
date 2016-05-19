@@ -73,10 +73,10 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
         methods.put(method.name.text, function);
     }
 
-    VoxClass voxClass = new VoxClass(stmt.name.text,
+    VoxClass klass = new VoxClass(stmt.name.text,
         (VoxClass)superclass, methods);
 
-    environment.set(stmt.name, voxClass);
+    environment.set(stmt.name, klass);
     return environment;
   }
 
@@ -148,8 +148,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
     if (expr.object != null) {
       Object object = evaluate(expr.object, environment);
-      if (object instanceof VoxObject) {
-        ((VoxObject)object).fields.put(expr.name.text, value);
+      if (object instanceof VoxInstance) {
+        ((VoxInstance)object).fields.put(expr.name.text, value);
       } else {
         throw new RuntimeError("Only instances have fields.",
             expr.name);
@@ -260,8 +260,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   @Override
   public Object visitPropertyExpr(Expr.Property expr, Environment environment) {
     Object object = evaluate(expr.object, environment);
-    if (object instanceof VoxObject) {
-      return ((VoxObject)object).getProperty(expr.name);
+    if (object instanceof VoxInstance) {
+      return ((VoxInstance)object).getProperty(expr.name);
     }
 
     throw new RuntimeError("Only instances have properties.",
@@ -273,7 +273,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     VoxClass methodClass = (VoxClass)environment.get("class", expr.keyword.line);
     VoxClass superclass = methodClass.superclass;
 
-    VoxObject receiver = (VoxObject)environment.get("this", expr.keyword.line);
+    VoxInstance receiver = (VoxInstance)environment.get("this", expr.keyword.line);
 
     VoxFunction method = superclass.findMethod(receiver, expr.method.text);
     if (method == null) {

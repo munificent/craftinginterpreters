@@ -14,7 +14,7 @@ class VoxClass implements Callable {
     this.methods = methods;
   }
 
-  VoxFunction findMethod(VoxObject instance, String name) {
+  VoxFunction findMethod(VoxInstance instance, String name) {
     VoxClass voxClass = this;
     while (voxClass != null) {
       if (voxClass.methods.containsKey(name)) {
@@ -42,7 +42,7 @@ class VoxClass implements Callable {
 
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
-    VoxObject instance = new VoxObject(this);
+    VoxInstance instance = new VoxInstance(this);
 
     VoxFunction initializer = methods.get("init");
     if (initializer != null) {

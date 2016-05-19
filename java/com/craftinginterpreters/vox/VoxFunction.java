@@ -14,7 +14,7 @@ class VoxFunction implements Callable {
     this.isInitializer = isInitializer;
   }
 
-  VoxFunction bind(VoxObject self, VoxClass methodClass) {
+  VoxFunction bind(VoxInstance self, VoxClass methodClass) {
     Environment scope = closure
         .enterScope()
         .define("this", self)
