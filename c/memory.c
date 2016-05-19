@@ -76,7 +76,6 @@ static void blackenObject(Obj* obj) {
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)obj;
       grayValue((Value)klass->name);
-      grayValue((Value)klass->constructor);
       grayTable(&klass->methods);
       break;
     }

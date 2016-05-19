@@ -122,12 +122,12 @@ static bool call(Value callee, int argCount) {
       vm.stackTop[-argCount - 1] = (Value)newInstance(klass);
       
       // Call the initializer, if there is one.
-      Value constructor;
-      if (tableGet(&klass->methods, vm.initString, &constructor)) {
-        return callClosure(AS_CLOSURE(constructor), argCount);
+      Value initializer;
+      if (tableGet(&klass->methods, vm.initString, &initializer)) {
+        return callClosure(AS_CLOSURE(initializer), argCount);
       }
       
-      // No constructor, so just discard the arguments.
+      // No initializer, so just discard the arguments.
       vm.stackTop -= argCount;
       return true;
     }
@@ -250,14 +250,7 @@ static void closeUpvalues(Value* last) {
 static void defineMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = AS_CLASS(peek(1));
-  
-  // TODO: Use "==" if we intern strings.
-  if (valuesEqual((Value)name, (Value)klass->name)) {
-    klass->constructor = method;
-  } else {
-    tableSet(&klass->methods, name, method);
-  }
-  
+  tableSet(&klass->methods, name, method);
   pop();
 }
 
