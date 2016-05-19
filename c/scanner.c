@@ -175,8 +175,6 @@ static Token number() {
 }
 
 static Token string() {
-  // TODO: Escapes.
-  // TODO: What about newlines?
   while (peek() != '"' && !isAtEnd()) advance();
 
   // Unterminated string.

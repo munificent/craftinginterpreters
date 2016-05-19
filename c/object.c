@@ -50,7 +50,6 @@ ObjClass* newClass(ObjString* name, ObjClass* superclass) {
 }
 
 ObjClosure* newClosure(ObjFunction* function) {
-  // TODO: Flex array?
   // Allocate the upvalue array first so it doesn't cause the closure to get
   // collected.
   ObjUpvalue** upvalues = REALLOCATE(NULL, ObjUpvalue*, function->upvalueCount);
