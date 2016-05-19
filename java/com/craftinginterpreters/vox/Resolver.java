@@ -40,7 +40,6 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     enclosingClasses.push(stmt);
 
     for (Stmt.Function method : stmt.methods) {
-      // TODO: Note that we're in a class?
       resolve(method);
     }
 

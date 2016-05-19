@@ -1,11 +1,15 @@
 package com.craftinginterpreters.vox;
 
-interface Environment {
-  Object get(String name, int line);
-  Object get(Token name);
-  void set(Token name, Object value);
+abstract class Environment {
+  abstract Object get(String name, int line);
 
-  Environment declare(Token name);
-  Environment define(String name, Object value);
-  Environment enterScope();
+  public Object get(Token name) {
+    return get(name.text, name.line);
+  }
+
+  abstract void set(Token name, Object value);
+
+  abstract Environment declare(Token name);
+  abstract Environment define(String name, Object value);
+  abstract Environment enterScope();
 }

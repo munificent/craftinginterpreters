@@ -3,27 +3,20 @@ package com.craftinginterpreters.vox;
 import java.util.HashMap;
 import java.util.Map;
 
-class GlobalEnvironment implements Environment {
+class GlobalEnvironment extends Environment {
   private final Map<String, Object> values = new HashMap<>();
 
   @Override
-  public Object get(String name, int line) {
+  Object get(String name, int line) {
     if (!values.containsKey(name)) {
       throw new RuntimeError("Undefined variable '" + name + "'.", line);
     }
 
     return values.get(name);
-
-  }
-
-  // TODO: Move into Environment?
-  @Override
-  public Object get(Token name) {
-    return get(name.text, name.line);
   }
 
   @Override
-  public void set(Token name, Object value) {
+  void set(Token name, Object value) {
     if (!values.containsKey(name.text)) {
       throw new RuntimeError("Undefined variable '" + name.text + "'.", name);
     }
@@ -32,7 +25,7 @@ class GlobalEnvironment implements Environment {
   }
 
   @Override
-  public Environment declare(Token name) {
+  Environment declare(Token name) {
     // Note: Can't just use define(name, null). That will
     // overwrite a previously defined global value.
     if (!values.containsKey(name.text)) {
@@ -42,13 +35,13 @@ class GlobalEnvironment implements Environment {
   }
 
   @Override
-  public Environment define(String name, Object value) {
+  Environment define(String name, Object value) {
     values.put(name, value);
     return this;
   }
 
   @Override
-  public Environment enterScope() {
+  Environment enterScope() {
     return new LocalEnvironment(this, "", null);
   }
 }

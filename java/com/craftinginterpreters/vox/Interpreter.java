@@ -272,7 +272,6 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   public Object visitSuperExpr(Expr.Super expr, Environment environment) {
     VoxClass methodClass = (VoxClass)environment.get("class", expr.keyword.line);
     VoxClass superclass = methodClass.superclass;
-    // TODO: Handle super call when no superclass.
 
     VoxObject receiver = (VoxObject)environment.get("this", expr.keyword.line);
 
