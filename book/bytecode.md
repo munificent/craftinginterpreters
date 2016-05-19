@@ -24,20 +24,56 @@ At the same time, we're expected to squeeze every drop of performance out of the
 platform. Games push hardware like nothing else, and we have to optimize
 relentlessly just to keep pace with the competition.
 
-<div class="codehilite"><pre>|---------|---------|---------|---------|---------|---------|---
-<span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span>
-</pre></div>
+<div class="source-file"><em>NumberExpr.java</em></div>
+
+```java
+@Override
+public Environment visitBlockStmt(Stmt.Block stmt, Environment env) {
+  Environment before = env;
+  env = env.enterScope();
+  for (Stmt statement : stmt.statements) {
+    env = execute(statement, env);
+  }
+  return before;
+}
+```
 
 To handle these high stability and performance requirements, we reach for
 heavyweight languages like C++ that have both low-level expressiveness to make
 the most of the hardware and rich type systems to prevent or at least corral
 bugs.
 
+<div class="codehilite"><pre>|---------|---------|---------|---------|---------|---------|---
+</pre></div>
+
 We pride ourselves on our skill at this, but it has its cost. Being a proficient
 programmer takes years of dedicated training, after which you must contend with
 the sheer scale of your codebase. Build times for large games can vary somewhere
 between "go get a coffee" and "go roast your own beans, hand-grind them, pull an
 espresso, foam some milk, and practice your latte art in the froth".
+
+<div class="source-file"><em>compiler.c</em> : <em>initCompiler()</em></div>
+
+<div class="codehilite"><pre><span class="fade">  case TYPE_INITIALIZER:
+</span>
+  <span class="k">case</span> <span class="nl">TYPE_METHOD</span><span class="p">:</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">+</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+
+    <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span> <span class="o">=</span> <span class="n">REALLOCATE</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="kt">char</span><span class="p">,</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span><span class="p">);</span>
+    <span class="n">chars</span><span class="p">[</span><span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;.&#39;</span><span class="p">;</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">chars</span> <span class="o">+</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span>
+           <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span><span class="p">);</span>
+    <span class="n">chars</span><span class="p">[</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+
+    <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">takeString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="fade">
+  case TYPE_TOP_LEVEL:
+    current-&gt;function-&gt;name = copyString(&quot;script&quot;, 6);
+    break;</span>
+</pre></div>
 
 On top of these challenges, games have one more nasty constraint: *fun*. Players
 demand a play experience that's both novel and yet carefully balanced. That

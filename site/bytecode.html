@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <link rel="stylesheet" type="text/css" href="style.css" />
 
-<link href='http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic|Droid+Sans+Mono|Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Crimson+Text:400,400italic,700,700italic|Source+Code+Pro:400|Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
 
 <script src="jquery-1.10.1.min.js"></script>
 <script src="script.js"></script>
@@ -195,19 +195,55 @@ software controlling the Mars Curiosity rover is less than half that.</p>
 <p>At the same time, we&rsquo;re expected to squeeze every drop of performance out of the
 platform. Games push hardware like nothing else, and we have to optimize
 relentlessly just to keep pace with the competition.</p>
-<div class="codehilite"><pre>|---------|---------|---------|---------|---------|---------|---
-<span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="mi">4</span><span class="p">)</span>
+<div class="source-file"><em>NumberExpr.java</em></div>
+
+<div class="codehilite"><pre><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="n">Environment</span> <span class="nf">visitBlockStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Block</span> <span class="n">stmt</span><span class="o">,</span> <span class="n">Environment</span> <span class="n">env</span><span class="o">)</span> <span class="o">{</span>
+  <span class="n">Environment</span> <span class="n">before</span> <span class="o">=</span> <span class="n">env</span><span class="o">;</span>
+  <span class="n">env</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">enterScope</span><span class="o">();</span>
+  <span class="k">for</span> <span class="o">(</span><span class="n">Stmt</span> <span class="n">statement</span> <span class="o">:</span> <span class="n">stmt</span><span class="o">.</span><span class="na">statements</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">execute</span><span class="o">(</span><span class="n">statement</span><span class="o">,</span> <span class="n">env</span><span class="o">);</span>
+  <span class="o">}</span>
+  <span class="k">return</span> <span class="n">before</span><span class="o">;</span>
+<span class="o">}</span>
 </pre></div>
+
 
 <p>To handle these high stability and performance requirements, we reach for
 heavyweight languages like C++ that have both low-level expressiveness to make
 the most of the hardware and rich type systems to prevent or at least corral
 bugs.</p>
+<div class="codehilite"><pre>|---------|---------|---------|---------|---------|---------|---
+</pre></div>
+
 <p>We pride ourselves on our skill at this, but it has its cost. Being a proficient
 programmer takes years of dedicated training, after which you must contend with
 the sheer scale of your codebase. Build times for large games can vary somewhere
 between &ldquo;go get a coffee&rdquo; and &ldquo;go roast your own beans, hand-grind them, pull an
 espresso, foam some milk, and practice your latte art in the froth&rdquo;.</p>
+<div class="source-file"><em>compiler.c</em> : <em>initCompiler()</em></div>
+
+<div class="codehilite"><pre><span class="fade">  case TYPE_INITIALIZER:
+</span>
+  <span class="k">case</span> <span class="nl">TYPE_METHOD</span><span class="p">:</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">+</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+
+    <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span> <span class="o">=</span> <span class="n">REALLOCATE</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="kt">char</span><span class="p">,</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span><span class="p">);</span>
+    <span class="n">chars</span><span class="p">[</span><span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;.&#39;</span><span class="p">;</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">chars</span> <span class="o">+</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span>
+           <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span><span class="p">);</span>
+    <span class="n">chars</span><span class="p">[</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+
+    <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">takeString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="fade">
+  case TYPE_TOP_LEVEL:
+    current-&gt;function-&gt;name = copyString(&quot;script&quot;, 6);
+    break;</span>
+</pre></div>
+
 <p>On top of these challenges, games have one more nasty constraint: <em>fun</em>. Players
 demand a play experience that&rsquo;s both novel and yet carefully balanced. That
 requires constant iteration, but if every tweak requires bugging an engineer to
@@ -1093,7 +1129,7 @@ immediately, you output the bytecode instruction to perform that later.</p>
     interpreter.</p>
 </li>
 </ul>
-<footer>&copy; 2015 Robert Nystrom</footer>
+<footer>&copy; 2016 Robert Nystrom</footer>
 </article>
 </div>
 </body>
