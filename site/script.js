@@ -4,7 +4,7 @@ $(document).ready(function() {
   });
 
   $(window).scroll(function() {
-    var nav = $("nav.column");
+    var nav = $("nav.floating");
     console.log($(window).scrollTop());
     if ($(window).scrollTop() > 112) {
       nav.addClass("pinned");
