@@ -37,7 +37,7 @@ $(document).ready(function() {
 
 function refreshAsides() {
   // Don't position them if they're inline.
-  if ($(document).width() < 800) return;
+  if ($(document).width() <= 48 * 20) return;
 
   // Vertically position the asides next to the span they annotate.
   $("aside").each(function() {

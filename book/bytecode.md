@@ -27,6 +27,7 @@ relentlessly just to keep pace with the competition.
 <div class="source-file"><em>NumberExpr.java</em></div>
 
 ```java
+---------|---------|---------|---------|---------|---------|---
 @Override
 public Environment visitBlockStmt(Stmt.Block stmt, Environment env) {
   Environment before = env;
@@ -42,9 +43,6 @@ To handle these high stability and performance requirements, we reach for
 heavyweight languages like C++ that have both low-level expressiveness to make
 the most of the hardware and rich type systems to prevent or at least corral
 bugs.
-
-<div class="codehilite"><pre>|---------|---------|---------|---------|---------|---------|---
-</pre></div>
 
 We pride ourselves on our skill at this, but it has its cost. Being a proficient
 programmer takes years of dedicated training, after which you must contend with
