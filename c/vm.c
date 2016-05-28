@@ -94,7 +94,11 @@ static bool callClosure(ObjClosure* closure, int argCount) {
     return false;
   }
   
-  // TODO: Check for overflow.
+  if (vm.frameCount == FRAME_COUNT) {
+    runtimeError("Stack overflow.");
+    return false;
+  }
+
   CallFrame* frame = &vm.frames[vm.frameCount++];
   frame->closure = closure;
   frame->ip = closure->function->code;

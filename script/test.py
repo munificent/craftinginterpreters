@@ -22,6 +22,8 @@ RUNTIME_ERROR_EXPECT = re.compile(r'// expect runtime error: (.+)')
 SYNTAX_ERROR_RE = re.compile(r'\[.*line (\d+)\] (Error.+)')
 STACK_TRACE_RE = re.compile(r'\[line (\d+)\]')
 SKIP_RE = re.compile(r'// skip: (.*)')
+SKIP_C_RE = re.compile(r'// skip c: (.*)')
+SKIP_JAVA_RE = re.compile(r'// skip java: (.*)')
 NONTEST_RE = re.compile(r'// nontest')
 
 passed = 0
@@ -82,6 +84,18 @@ class Test:
 
         match = SKIP_RE.search(line)
         if match:
+          num_skipped += 1
+          skipped[match.group(1)] += 1
+          return False
+
+        match = SKIP_C_RE.search(line)
+        if match and interpreter == C_INTERPRETER:
+          num_skipped += 1
+          skipped[match.group(1)] += 1
+          return False
+
+        match = SKIP_JAVA_RE.search(line)
+        if match and interpreter == JAVA_INTERPRETER:
           num_skipped += 1
           skipped[match.group(1)] += 1
           return False

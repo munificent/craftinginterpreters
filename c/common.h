@@ -18,4 +18,6 @@ typedef struct sObjString ObjString;
 
 typedef struct sVM VM;
 
+#define UINT8_COUNT (UINT8_MAX + 1)
+
 #endif

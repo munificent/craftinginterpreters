@@ -4,8 +4,8 @@
 #include "object.h"
 #include "table.h"
 
-#define MAX_STACK       256
-#define MAX_FRAMES      64
+#define FRAME_COUNT 64
+#define STACK_COUNT (FRAME_COUNT * UINT8_COUNT)
 
 typedef enum {
   OP_CONSTANT,
@@ -75,10 +75,10 @@ typedef struct {
 } CallFrame;
 
 struct sVM {
-  Value stack[MAX_STACK];
+  Value stack[STACK_COUNT];
   Value* stackTop;
   
-  CallFrame frames[MAX_FRAMES];
+  CallFrame frames[FRAME_COUNT];
   int frameCount;
   
   Table globals;

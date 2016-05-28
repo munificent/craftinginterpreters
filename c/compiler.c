@@ -12,10 +12,6 @@
 #include "scanner.h"
 #include "vm.h"
 
-// TODO: These are kind of pointless. Unify?
-#define MAX_LOCALS 256
-#define MAX_UPVALUES 256
-
 typedef struct {
   bool hadError;
   Token current;
@@ -84,12 +80,12 @@ typedef struct Compiler {
   FunctionType type;
   
   // The currently in scope local variables.
-  Local locals[MAX_LOCALS];
+  Local locals[UINT8_COUNT];
   
   // The number of local variables currently in scope.
   int localCount;
   
-  Upvalue upvalues[MAX_UPVALUES];
+  Upvalue upvalues[UINT8_COUNT];
   
   int upvalueCount;
   
@@ -208,8 +204,9 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
 static void emitLoop(int loopStart) {
   emitByte(OP_LOOP);
   
-  // TODO: Check for overflow.
   int offset = current->function->codeCount - loopStart + 2;
+  if (offset > UINT16_MAX) error("Loop body too large.");
+  
   emitByte((offset >> 8) & 0xff);
   emitByte(offset & 0xff);
 }
@@ -241,8 +238,9 @@ static void patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
   int jump = current->function->codeCount - offset - 2;
   
-  // TODO: Do this.
-  //if (jump > MAX_JUMP) error(compiler, "Too much code to jump over.");
+  if (jump > UINT16_MAX) {
+    error("Too much code to jump over.");
+  }
   
   current->function->code[offset] = (jump >> 8) & 0xff;
   current->function->code[offset + 1] = jump & 0xff;
@@ -338,14 +336,26 @@ static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
 static uint8_t addConstant(Value value) {
+  ObjFunction* function = current->function;
+
+  // See if we already have an equivalent constant.
+  for (int i = 0; i < function->constants.count; i++) {
+    if (valuesEqual(value, function->constants.values[i])) {
+      return (uint8_t)i;
+    }
+  }
+        
+  if (function->constants.count == UINT8_COUNT) {
+    error("Too many constants in one function.");
+    return 0;
+  }
+  
   // Make sure the value doesn't get collected when resizing the array.
   push(value);
-  ObjFunction* function = current->function;
   growArray(&function->constants);
   
   function->constants.values[function->constants.count] = pop();
   return (uint8_t)function->constants.count++;
-  // TODO: check for overflow.
 }
 
 // Creates a string constant for the previous identifier token. Returns the
@@ -355,8 +365,7 @@ static uint8_t identifierConstant(Token* name) {
 }
 
 static void emitConstant(Value value) {
-  uint8_t constant = addConstant(value);
-  emitBytes(OP_CONSTANT, constant);
+  emitBytes(OP_CONSTANT, addConstant(value));
 }
 
 static bool identifiersEqual(Token* a, Token* b) {
@@ -392,6 +401,11 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
   }
   
   // If we got here, it's a new upvalue.
+  if (compiler->function->upvalueCount == UINT8_COUNT) {
+    error("Too many closure variables in function.");
+    return 0;
+  }
+  
   compiler->upvalues[compiler->function->upvalueCount].isLocal = isLocal;
   compiler->upvalues[compiler->function->upvalueCount].index = index;
   return compiler->function->upvalueCount++;
@@ -435,13 +449,17 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
 }
 
 static void addLocal(Token name) {
+  if (current->localCount == UINT8_COUNT) {
+    error("Too many local variables in function.");
+    return;
+  }
+  
   Local* local = &current->locals[current->localCount];
   local->name = name;
   
   // The local is declared but not yet defined.
   local->depth = -1;
   local->isUpvalue = false;
-  // TODO: Check for overflow.
   current->localCount++;
 }
 
