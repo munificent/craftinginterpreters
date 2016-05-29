@@ -102,8 +102,8 @@ static ObjString* allocateString(const char* chars, int length, uint32_t hash) {
   string->chars = chars;
   string->hash = hash;
   
-  push((Value)string);
-  tableSet(&vm.strings, string, NULL);
+  push(OBJ_VAL(string));
+  tableSet(&vm.strings, string, NIL_VAL);
   pop();
   
   return string;
@@ -147,7 +147,7 @@ ObjString* copyString(const char* chars, int length) {
 
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
-  upvalue->closed = NULL;
+  upvalue->closed = NIL_VAL;
   upvalue->value = slot;
   upvalue->next = NULL;
   
@@ -155,8 +155,10 @@ ObjUpvalue* newUpvalue(Value* slot) {
 }
 
 bool valuesEqual(Value a, Value b) {
+  // TODO: Value type comparisons.
+  
   // Identity.
-  if (a == b) return true;
+  if (AS_OBJ(a) == AS_OBJ(b)) return true;
   
   // No implicit conversions.
   if (OBJ_TYPE(a) != OBJ_TYPE(b)) return false;

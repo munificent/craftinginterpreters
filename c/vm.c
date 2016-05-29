@@ -13,7 +13,7 @@
 VM vm;
 
 static Value clockNative(int argCount, Value* args) {
-  return (Value)newNumber((double)clock() / CLOCKS_PER_SEC);
+  return OBJ_VAL(newNumber((double)clock() / CLOCKS_PER_SEC));
 }
 
 static Value printNative(int argCount, Value* args) {
@@ -41,8 +41,8 @@ static void runtimeError(const char* format, ...) {
 }
 
 static void defineNative(const char* name, NativeFn function) {
-  push((Value)copyString(name, (int)strlen(name)));
-  push((Value)newNative(function));
+  push(OBJ_VAL(copyString(name, (int)strlen(name))));
+  push(OBJ_VAL(newNative(function)));
   tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
   pop();
   pop();
@@ -123,7 +123,7 @@ static bool call(Value callee, int argCount) {
       ObjClass* klass = AS_CLASS(callee);
       
       // Create the instance.
-      vm.stackTop[-argCount - 1] = (Value)newInstance(klass);
+      vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
       
       // Call the initializer, if there is one.
       Value initializer;
@@ -192,7 +192,7 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
   
   ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(method));
   pop(); // Instance.
-  push((Value)bound);
+  push(OBJ_VAL(bound));
   return true;
 }
 
@@ -260,7 +260,7 @@ static void defineMethod(ObjString* name) {
 
 static void createClass(ObjString* name, ObjClass* superclass) {
   ObjClass* klass = newClass(name, superclass);
-  push((Value)klass);
+  push(OBJ_VAL(klass));
   
   // Inherit methods.
   if (superclass != NULL) {
@@ -306,7 +306,7 @@ static void concatenate() {
   ObjString* result = takeString(chars, length);
   pop();
   pop();
-  push((Value)result);
+  push(OBJ_VAL(result));
 }
 
 static bool run() {
@@ -337,8 +337,7 @@ static bool run() {
       }
         
       case OP_NIL:
-        // TODO: Define constant in object.h for nil.
-        push(NULL);
+        push(NIL_VAL);
         break;
 
       case OP_POP:
@@ -439,21 +438,21 @@ static bool run() {
       case OP_EQUAL: {
         bool equal = valuesEqual(peek(0), peek(1));
         pop(); pop();
-        push((Value)newBool(equal));
+        push(OBJ_VAL(newBool(equal)));
         break;
       }
 
       case OP_GREATER: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push((Value)newBool(a > b));
+        push(OBJ_VAL(newBool(a > b)));
         break;
       }
         
       case OP_LESS: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push((Value)newBool(a < b));
+        push(OBJ_VAL(newBool(a < b)));
         break;
       }
 
@@ -463,7 +462,7 @@ static bool run() {
         } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
           double b = AS_NUMBER(pop());
           double a = AS_NUMBER(pop());
-          push((Value)newNumber(a + b));
+          push(OBJ_VAL(newNumber(a + b)));
         } else {
           runtimeError("Operands must be two numbers or two strings.");
           return false;
@@ -474,32 +473,32 @@ static bool run() {
       case OP_SUBTRACT: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push((Value)newNumber(a - b));
+        push(OBJ_VAL(newNumber(a - b)));
         break;
       }
         
       case OP_MULTIPLY: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push((Value)newNumber(a * b));
+        push(OBJ_VAL(newNumber(a * b)));
         break;
       }
         
       case OP_DIVIDE: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push((Value)newNumber(a / b));
+        push(OBJ_VAL(newNumber(a / b)));
         break;
       }
         
       case OP_NOT:
-        push((Value)newBool(isFalsey(pop())));
+        push(OBJ_VAL(newBool(isFalsey(pop()))));
         break;
 
       case OP_NEGATE: {
         double a;
         if (!popNumber(&a)) return false;
-        push((Value)newNumber(-a));
+        push(OBJ_VAL(newNumber(-a)));
         break;
       }
         
@@ -576,7 +575,7 @@ static bool run() {
         // Create the closure and push it on the stack before creating upvalues
         // so that it doesn't get collected.
         ObjClosure* closure = newClosure(function);
-        push((Value)closure);
+        push(OBJ_VAL(closure));
         
         // Capture upvalues.
         for (int i = 0; i < function->upvalueCount; i++) {
@@ -643,11 +642,11 @@ InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-  push((Value)function);
+  push(OBJ_VAL(function));
   ObjClosure* closure = newClosure(function);
   pop();
-  push((Value)closure);
-  call((Value)closure, 0);
+  push(OBJ_VAL(closure));
+  call(OBJ_VAL(closure), 0);
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 }

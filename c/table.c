@@ -34,8 +34,10 @@ static Entry* findEntry(Table* table, ObjString* key) {
     Entry* entry = &table->entries[index];
     
     if (entry->key == NULL) {
-      // If the value is non-null, it's a tombstone and we have to keep looking.
-      if (entry->value == NULL) return NULL;
+      // If the value is nil, it's an empty entry so we know the key isn't
+      // present. If it's non-nil, the entry is a tombstone and we have to
+      // keep looking.
+      if (IS_NIL(entry->value)) return NULL;
     } else if (key == entry->key) {
       // We found it.
       return entry;
@@ -90,7 +92,7 @@ static void resize(Table* table, int capacity) {
   Entry* entries = REALLOCATE(NULL, Entry, capacity);
   for (int i = 0; i < capacity; i++) {
     entries[i].key = NULL;
-    entries[i].value = NULL;
+    entries[i].value = NIL_VAL;
   }
 
   // Re-hash the existing entries into the new array.
@@ -166,9 +168,9 @@ void tableRemoveWhite(Table* table) {
     Entry* entry = &table->entries[i];
     if (entry->key != NULL && !entry->key->obj.isDark) {
       // Turn the entry into a tombstone, identified as having no key but a
-      // non-null value. We use the original key as the value since it's a
-      // conveniently non-null value we have in hand.
-      entry->value = (Value)entry->key;
+      // non-nil value. We use the original key as the value since it's a
+      // conveniently non-nil value we have in hand.
+      entry->value = OBJ_VAL(entry->key);
       entry->key = NULL;
       table->count--;
     }
@@ -178,7 +180,7 @@ void tableRemoveWhite(Table* table) {
 void grayTable(Table* table) {
   for (int i = 0; i < table->capacity; i++) {
     Entry* entry = &table->entries[i];
-    grayValue((Value)entry->key);
+    grayObject((Obj*)entry->key);
     grayValue(entry->value);
   }
 }

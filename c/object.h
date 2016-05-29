@@ -7,6 +7,8 @@
 #include "common.h"
 #include "table.h"
 
+#define IS_OBJ(value)           ((value).type == VAL_OBJ)
+
 #define IS_BOOL(value)          (OBJ_TYPE(value) == OBJ_BOOL)
 #define IS_BOUND_METHOD(value)  (OBJ_TYPE(value) == OBJ_BOUND_METHOD)
 #define IS_CLASS(value)         (OBJ_TYPE(value) == OBJ_CLASS)
@@ -14,22 +16,29 @@
 #define IS_FUNCTION(value)      (OBJ_TYPE(value) == OBJ_FUNCTION)
 #define IS_INSTANCE(value)      (OBJ_TYPE(value) == OBJ_INSTANCE)
 #define IS_NATIVE(value)        (OBJ_TYPE(value) == OBJ_NATIVE)
-#define IS_NIL(value)           ((value) == NULL)
+#define IS_NIL(value)           (OBJ_TYPE(value) == OBJ_NIL)
 #define IS_NUMBER(value)        (OBJ_TYPE(value) == OBJ_NUMBER)
 #define IS_STRING(value)        (OBJ_TYPE(value) == OBJ_STRING)
 
-#define AS_BOOL(val)            (((ObjBool*)val)->value)
-#define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)value)
-#define AS_CLASS(value)         ((ObjClass*)value)
-#define AS_CLOSURE(value)       ((ObjClosure*)value)
-#define AS_FUNCTION(value)      ((ObjFunction*)value)
-#define AS_INSTANCE(value)      ((ObjInstance*)value)
-#define AS_NUMBER(val)          (((ObjNumber*)val)->value)
-#define AS_NATIVE(value)        (((ObjNative*)value)->function)
-#define AS_STRING(value)        ((ObjString*)value)
-#define AS_CSTRING(value)       (((ObjString*)value)->chars)
+#define AS_OBJ(value)           ((value).as.obj)
+
+#define AS_BOOL(val)            (((ObjBool*)AS_OBJ(val))->value)
+#define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
+#define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
+#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
+#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
+#define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
+#define AS_NUMBER(val)          (((ObjNumber*)AS_OBJ(val))->value)
+#define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
+#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
+#define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 
 #define OBJ_TYPE(value) (objectType(value))
+
+// TODO: Zero-init here is weird.
+#define NIL_VAL       ((Value){ VAL_OBJ, { 0 } })
+#define OBJ_VAL(obj)  objectToValue((Obj*)(obj))
+
 
 // TODO: Unboxed numbers?
 
@@ -162,7 +171,16 @@ void freeArray(ValueArray* array);
 // Returns the type of [value]. Do not call this directly. Instead, use the
 // `IS_X` macros or `OBJ_TYPE`.
 static inline ObjType objectType(Value value) {
-  return value == NULL ? OBJ_NIL : value->type;
+  return value.as.obj == NULL ? OBJ_NIL : value.as.obj->type;
+}
+
+// Converts the raw object pointer [obj] to a [Value].
+static inline Value objectToValue(Obj* obj)
+{
+  Value value;
+  value.type = VAL_OBJ;
+  value.as.obj = obj;
+  return value;
 }
 
 #endif

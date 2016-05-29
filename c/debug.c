@@ -16,7 +16,7 @@ void printValue(Value value) {
     case OBJ_BOUND_METHOD:
     case OBJ_CLOSURE:
     case OBJ_FUNCTION:
-      printf("<fn %p>", value);
+      printf("<fn %p>", AS_FUNCTION(value));
       break;
       
     case OBJ_INSTANCE:

@@ -361,7 +361,7 @@ static uint8_t addConstant(Value value) {
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant(Token* name) {
-  return addConstant((Value)copyString(name->start, name->length));
+  return addConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
 static void emitConstant(Value value) {
@@ -563,7 +563,7 @@ static void binary(bool canAssign) {
 }
 
 static void boolean(bool canAssign) {
-  emitConstant((Value)newBool(parser.previous.type == TOKEN_TRUE));
+  emitConstant(OBJ_VAL(newBool(parser.previous.type == TOKEN_TRUE)));
 }
 
 static void call(bool canAssign) {
@@ -598,7 +598,7 @@ static void nil(bool canAssign) {
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
   // TODO: Handle error.
-  emitConstant((Value)newNumber(value));
+  emitConstant(OBJ_VAL(newNumber(value)));
 }
 
 static void or_(bool canAssign) {
@@ -627,8 +627,8 @@ static void or_(bool canAssign) {
 }
 
 static void string(bool canAssign) {
-  emitConstant((Value)copyString(parser.previous.start + 1,
-                                 parser.previous.length - 2));
+  emitConstant(OBJ_VAL(copyString(parser.previous.start + 1,
+                                  parser.previous.length - 2)));
 }
 
 // Compiles a reference to a variable whose name is the given token.
@@ -842,7 +842,7 @@ static void function(FunctionType type) {
   ObjFunction* function = endCompiler();
   
   // Capture the upvalues in the new closure object.
-  uint8_t constant = addConstant((Value)function);
+  uint8_t constant = addConstant(OBJ_VAL(function));
   emitBytes(OP_CLOSURE, constant);
   
   // Emit arguments for each upvalue to know whether to capture a local or
@@ -1048,7 +1048,7 @@ ObjFunction* compile(const char* source) {
 void grayCompilerRoots() {
   Compiler* compiler = current;
   while (compiler != NULL) {
-    grayValue((Value)compiler->function);
+    grayObject((Obj*)compiler->function);
     compiler = compiler->enclosing;
   }
 }

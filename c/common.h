@@ -12,8 +12,20 @@
 #define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC
 
+// TODO: Other unboxed types.
+typedef enum {
+  VAL_OBJ
+} ValueType;
+
 typedef struct sObj Obj;
-typedef Obj* Value;
+
+typedef struct {
+  ValueType type;
+  union {
+    Obj* obj;
+  } as;
+} Value;
+
 typedef struct sObjString ObjString;
 
 typedef struct sVM VM;

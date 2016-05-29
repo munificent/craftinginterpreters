@@ -27,12 +27,13 @@ void* reallocate(void* previous, size_t size) {
   return realloc(previous, size);
 }
 
-void grayValue(Value value) {
-  // TODO: Instead of checking for nil, should check to see if heap-allocated.
-  if (IS_NIL(value)) return;
+// TODO: "Object" or "obj"?
+void grayObject(Obj* obj) {
+  // TODO: Remove this when nil is a separate value type.
+  if (obj == NULL) return;
   
   // Don't get caught in cycle.
-  if (value->isDark) return;
+  if (obj->isDark) return;
   
 #ifdef DEBUG_TRACE_GC
   printf("%p gray ", value);
@@ -40,7 +41,7 @@ void grayValue(Value value) {
   printf("\n");
 #endif
   
-  value->isDark = true;
+  obj->isDark = true;
   
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = vm.grayCapacity == 0 ? 4 : vm.grayCapacity * 2;
@@ -49,7 +50,12 @@ void grayValue(Value value) {
     vm.grayStack = realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
   }
   
-  vm.grayStack[vm.grayCount++] = value;
+  vm.grayStack[vm.grayCount++] = obj;
+}
+
+void grayValue(Value value) {
+  if (!IS_OBJ(value)) return;
+  grayObject(AS_OBJ(value));
 }
 
 static void grayArray(ValueArray* array) {
@@ -68,37 +74,37 @@ static void blackenObject(Obj* obj) {
   switch (obj->type) {
     case OBJ_BOUND_METHOD: {
       ObjBoundMethod* bound = (ObjBoundMethod*)obj;
-      grayValue((Value)bound->receiver);
-      grayValue((Value)bound->method);
+      grayValue(bound->receiver);
+      grayObject((Obj*)bound->method);
       break;
     }
       
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)obj;
-      grayValue((Value)klass->name);
+      grayObject((Obj*)klass->name);
       grayTable(&klass->methods);
       break;
     }
       
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)obj;
-      grayValue((Value)closure->function);
+      grayObject((Obj*)closure->function);
       for (int i = 0; i < closure->function->upvalueCount; i++) {
-        grayValue((Value)closure->upvalues[i]);
+        grayObject((Obj*)closure->upvalues[i]);
       }
       break;
     }
       
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)obj;
-      grayValue((Value)function->name);
+      grayObject((Obj*)function->name);
       grayArray(&function->constants);
       break;
     }
       
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)obj;
-      grayValue((Value)instance->klass);
+      grayObject((Obj*)instance->klass);
       grayTable(&instance->fields);
       break;
     }
@@ -175,20 +181,20 @@ void collectGarbage() {
   }
   
   for (int i = 0; i < vm.frameCount; i++) {
-    grayValue((Value)vm.frames[i].closure);
+    grayObject((Obj*)vm.frames[i].closure);
   }
   
   // Mark the open upvalues.
   for (ObjUpvalue* upvalue = vm.openUpvalues;
        upvalue != NULL;
        upvalue = upvalue->next) {
-    grayValue((Value)upvalue);
+    grayObject((Obj*)upvalue);
   }
   
   // Mark the global roots.
   grayTable(&vm.globals);
   grayCompilerRoots();
-  grayValue((Value)vm.initString);
+  grayObject((Obj*)vm.initString);
   
   // Traverse the references.
   while (vm.grayCount > 0) {
