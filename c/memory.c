@@ -115,7 +115,6 @@ static void blackenObject(Obj* obj) {
       
     case OBJ_BOOL:
     case OBJ_NATIVE:
-    case OBJ_NIL:
     case OBJ_NUMBER:
     case OBJ_STRING:
       // No references.
@@ -159,7 +158,6 @@ static void freeObject(Obj* obj) {
     case OBJ_BOOL:
     case OBJ_BOUND_METHOD:
     case OBJ_NATIVE:
-    case OBJ_NIL:
     case OBJ_NUMBER:
     case OBJ_STRING:
     case OBJ_UPVALUE:

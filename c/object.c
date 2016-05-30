@@ -155,7 +155,10 @@ ObjUpvalue* newUpvalue(Value* slot) {
 }
 
 bool valuesEqual(Value a, Value b) {
-  // TODO: Value type comparisons.
+  if (a.type != b.type) return false;
+  
+  // TODO: Switch on value types.
+  if (IS_NIL(a)) return true;
   
   // Identity.
   if (AS_OBJ(a) == AS_OBJ(b)) return true;
@@ -178,7 +181,6 @@ bool valuesEqual(Value a, Value b) {
     case OBJ_FUNCTION:
     case OBJ_INSTANCE:
     case OBJ_NATIVE:
-    case OBJ_NIL:
     case OBJ_UPVALUE:
       // These have reference equality.
       return false;

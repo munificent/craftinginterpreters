@@ -14,6 +14,7 @@
 
 // TODO: Other unboxed types.
 typedef enum {
+  VAL_NIL,
   VAL_OBJ
 } ValueType;
 

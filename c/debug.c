@@ -4,43 +4,48 @@
 
 // TODO: Not really for debugging. Move to object.c?
 void printValue(Value value) {
-  switch (OBJ_TYPE(value)) {
-    case OBJ_BOOL:
-      printf(AS_BOOL(value) ? "true" : "false");
-      break;
-      
-    case OBJ_CLASS:
-      printf("%s", AS_CLASS(value)->name->chars);
-      break;
-      
-    case OBJ_BOUND_METHOD:
-    case OBJ_CLOSURE:
-    case OBJ_FUNCTION:
-      printf("<fn %p>", AS_FUNCTION(value));
-      break;
-      
-    case OBJ_INSTANCE:
-      printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
-      break;
-
-    case OBJ_NATIVE:
-      printf("<native %p>", AS_NATIVE(value));
-      break;
-      
-    case OBJ_NIL:
+  switch (value.type) {
+    case VAL_NIL:
       printf("nil");
       return;
       
-    case OBJ_NUMBER:
-      printf("%g", AS_NUMBER(value));
-      break;
-      
-    case OBJ_STRING:
-      printf("%s", AS_CSTRING(value));
-      break;
-      
-    case OBJ_UPVALUE:
-      printf("upvalue");
+    case VAL_OBJ:
+      // TODO: Nesting switch is kind of lame.
+      switch (OBJ_TYPE(value)) {
+        case OBJ_BOOL:
+          printf(AS_BOOL(value) ? "true" : "false");
+          break;
+          
+        case OBJ_CLASS:
+          printf("%s", AS_CLASS(value)->name->chars);
+          break;
+          
+        case OBJ_BOUND_METHOD:
+        case OBJ_CLOSURE:
+        case OBJ_FUNCTION:
+          printf("<fn %p>", AS_FUNCTION(value));
+          break;
+          
+        case OBJ_INSTANCE:
+          printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
+          break;
+          
+        case OBJ_NATIVE:
+          printf("<native %p>", AS_NATIVE(value));
+          break;
+          
+        case OBJ_NUMBER:
+          printf("%g", AS_NUMBER(value));
+          break;
+          
+        case OBJ_STRING:
+          printf("%s", AS_CSTRING(value));
+          break;
+          
+        case OBJ_UPVALUE:
+          printf("upvalue");
+          break;
+      }
       break;
   }
 }

@@ -9,16 +9,16 @@
 
 #define IS_OBJ(value)           ((value).type == VAL_OBJ)
 
-#define IS_BOOL(value)          (OBJ_TYPE(value) == OBJ_BOOL)
-#define IS_BOUND_METHOD(value)  (OBJ_TYPE(value) == OBJ_BOUND_METHOD)
-#define IS_CLASS(value)         (OBJ_TYPE(value) == OBJ_CLASS)
-#define IS_CLOSURE(value)       (OBJ_TYPE(value) == OBJ_CLOSURE)
-#define IS_FUNCTION(value)      (OBJ_TYPE(value) == OBJ_FUNCTION)
-#define IS_INSTANCE(value)      (OBJ_TYPE(value) == OBJ_INSTANCE)
-#define IS_NATIVE(value)        (OBJ_TYPE(value) == OBJ_NATIVE)
-#define IS_NIL(value)           (OBJ_TYPE(value) == OBJ_NIL)
-#define IS_NUMBER(value)        (OBJ_TYPE(value) == OBJ_NUMBER)
-#define IS_STRING(value)        (OBJ_TYPE(value) == OBJ_STRING)
+#define IS_BOOL(value)          isObjType(value, OBJ_BOOL)
+#define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
+#define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
+#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
+#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
+#define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
+#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
+#define IS_NIL(value)           ((value).type == VAL_NIL)
+#define IS_NUMBER(value)        isObjType(value, OBJ_NUMBER)
+#define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
 #define AS_OBJ(value)           ((value).as.obj)
 
@@ -33,10 +33,11 @@
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 
-#define OBJ_TYPE(value) (objectType(value))
+// TODO: Remove.
+#define OBJ_TYPE(value) ((value).as.obj->type)
 
 // TODO: Zero-init here is weird.
-#define NIL_VAL       ((Value){ VAL_OBJ, { 0 } })
+#define NIL_VAL       ((Value){ VAL_NIL, { 0 } })
 #define OBJ_VAL(obj)  objectToValue((Obj*)(obj))
 
 
@@ -50,7 +51,6 @@ typedef enum {
   OBJ_FUNCTION,
   OBJ_INSTANCE,
   OBJ_NATIVE,
-  OBJ_NIL,
   OBJ_NUMBER,
   OBJ_STRING,
   OBJ_UPVALUE
@@ -168,10 +168,12 @@ void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
 
-// Returns the type of [value]. Do not call this directly. Instead, use the
-// `IS_X` macros or `OBJ_TYPE`.
-static inline ObjType objectType(Value value) {
-  return value.as.obj == NULL ? OBJ_NIL : value.as.obj->type;
+// TODO: "obj" -> "object".
+// Returns true if [value] is an object of type [type]. Do not call this
+// directly, instead use the [IS___] macro for the type in question.
+static inline bool isObjType(Value value, ObjType type)
+{
+  return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 
 // Converts the raw object pointer [obj] to a [Value].
