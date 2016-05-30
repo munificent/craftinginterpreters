@@ -113,7 +113,6 @@ static void blackenObject(Obj* obj) {
       grayValue(((ObjUpvalue*)obj)->closed);
       break;
       
-    case OBJ_BOOL:
     case OBJ_NATIVE:
     case OBJ_NUMBER:
     case OBJ_STRING:
@@ -155,7 +154,6 @@ static void freeObject(Obj* obj) {
       break;
     }
       
-    case OBJ_BOOL:
     case OBJ_BOUND_METHOD:
     case OBJ_NATIVE:
     case OBJ_NUMBER:

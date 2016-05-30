@@ -14,6 +14,7 @@
 
 // TODO: Other unboxed types.
 typedef enum {
+  VAL_BOOL,
   VAL_NIL,
   VAL_OBJ
 } ValueType;
@@ -23,6 +24,7 @@ typedef struct sObj Obj;
 typedef struct {
   ValueType type;
   union {
+    bool boolean;
     Obj* obj;
   } as;
 } Value;

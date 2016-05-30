@@ -563,7 +563,7 @@ static void binary(bool canAssign) {
 }
 
 static void boolean(bool canAssign) {
-  emitConstant(OBJ_VAL(newBool(parser.previous.type == TOKEN_TRUE)));
+  emitConstant(BOOL_VAL(parser.previous.type == TOKEN_TRUE));
 }
 
 static void call(bool canAssign) {

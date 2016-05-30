@@ -5,17 +5,17 @@
 // TODO: Not really for debugging. Move to object.c?
 void printValue(Value value) {
   switch (value.type) {
+    case VAL_BOOL:
+      printf(AS_BOOL(value) ? "true" : "false");
+      break;
+      
     case VAL_NIL:
       printf("nil");
-      return;
+      break;
       
     case VAL_OBJ:
-      // TODO: Nesting switch is kind of lame.
+      // TODO: Nested switch is kind of lame.
       switch (OBJ_TYPE(value)) {
-        case OBJ_BOOL:
-          printf(AS_BOOL(value) ? "true" : "false");
-          break;
-          
         case OBJ_CLASS:
           printf("%s", AS_CLASS(value)->name->chars);
           break;

@@ -9,7 +9,7 @@
 
 #define IS_OBJ(value)           ((value).type == VAL_OBJ)
 
-#define IS_BOOL(value)          isObjType(value, OBJ_BOOL)
+#define IS_BOOL(value)          ((value).type == VAL_BOOL)
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
@@ -22,7 +22,7 @@
 
 #define AS_OBJ(value)           ((value).as.obj)
 
-#define AS_BOOL(val)            (((ObjBool*)AS_OBJ(val))->value)
+#define AS_BOOL(value)          ((value).as.boolean)
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
@@ -36,15 +36,13 @@
 // TODO: Remove.
 #define OBJ_TYPE(value) ((value).as.obj->type)
 
-// TODO: Zero-init here is weird.
-#define NIL_VAL       ((Value){ VAL_NIL, { 0 } })
+#define BOOL_VAL(val) ((Value){ VAL_BOOL, { .boolean = val } })
+#define NIL_VAL       ((Value){ VAL_NIL, { .obj = NULL } })
 #define OBJ_VAL(obj)  objectToValue((Obj*)(obj))
-
 
 // TODO: Unboxed numbers?
 
 typedef enum {
-  OBJ_BOOL,
   OBJ_BOUND_METHOD,
   OBJ_CLASS,
   OBJ_CLOSURE,
@@ -150,7 +148,6 @@ typedef struct {
   ObjClosure* method;
 } ObjBoundMethod;
 
-ObjBool* newBool(bool value);
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
 ObjClosure* newClosure(ObjFunction* function);

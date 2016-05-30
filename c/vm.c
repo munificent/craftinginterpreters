@@ -444,21 +444,21 @@ static bool run() {
       case OP_EQUAL: {
         bool equal = valuesEqual(peek(0), peek(1));
         pop(); pop();
-        push(OBJ_VAL(newBool(equal)));
+        push(BOOL_VAL(equal));
         break;
       }
 
       case OP_GREATER: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push(OBJ_VAL(newBool(a > b)));
+        push(BOOL_VAL(a > b));
         break;
       }
         
       case OP_LESS: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push(OBJ_VAL(newBool(a < b)));
+        push(BOOL_VAL(a < b));
         break;
       }
 
@@ -498,7 +498,7 @@ static bool run() {
       }
         
       case OP_NOT:
-        push(OBJ_VAL(newBool(isFalsey(pop()))));
+        push(BOOL_VAL(isFalsey(pop())));
         break;
 
       case OP_NEGATE: {

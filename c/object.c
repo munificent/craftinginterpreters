@@ -27,12 +27,6 @@ static Obj* allocateObj(size_t size, ObjType type) {
   return obj;
 }
 
-ObjBool* newBool(bool value) {
-  ObjBool* boolean = ALLOCATE_OBJ(ObjBool, OBJ_BOOL);
-  boolean->value = value;
-  return boolean;
-}
-
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
 
@@ -159,6 +153,7 @@ bool valuesEqual(Value a, Value b) {
   
   // TODO: Switch on value types.
   if (IS_NIL(a)) return true;
+  if (IS_BOOL(a)) return AS_BOOL(a) == AS_BOOL(b);
   
   // Identity.
   if (AS_OBJ(a) == AS_OBJ(b)) return true;
@@ -167,10 +162,6 @@ bool valuesEqual(Value a, Value b) {
   if (OBJ_TYPE(a) != OBJ_TYPE(b)) return false;
   
   switch (OBJ_TYPE(a)) {
-    case OBJ_BOOL:
-      // TODO: Canonicalize bools?
-      return AS_BOOL(a) == AS_BOOL(b);
-      
     case OBJ_NUMBER:
       return AS_NUMBER(a) == AS_NUMBER(b);
       
