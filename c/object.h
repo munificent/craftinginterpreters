@@ -7,6 +7,9 @@
 #include "common.h"
 #include "table.h"
 
+// TODO: Move some of these to common and make object.h/c just for
+// heap-allocated objects?
+
 #define IS_OBJ(value)           ((value).type == VAL_OBJ)
 
 #define IS_BOOL(value)          ((value).type == VAL_BOOL)
@@ -17,7 +20,7 @@
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 #define IS_NIL(value)           ((value).type == VAL_NIL)
-#define IS_NUMBER(value)        isObjType(value, OBJ_NUMBER)
+#define IS_NUMBER(value)        ((value).type == VAL_NUMBER)
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
 #define AS_OBJ(value)           ((value).as.obj)
@@ -28,7 +31,7 @@
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-#define AS_NUMBER(val)          (((ObjNumber*)AS_OBJ(val))->value)
+#define AS_NUMBER(value)        ((value).as.number)
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
@@ -36,8 +39,9 @@
 // TODO: Remove.
 #define OBJ_TYPE(value) ((value).as.obj->type)
 
-#define BOOL_VAL(val) ((Value){ VAL_BOOL, { .boolean = val } })
-#define NIL_VAL       ((Value){ VAL_NIL, { .obj = NULL } })
+#define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
+#define NIL_VAL           ((Value){ VAL_NIL, { .obj = NULL } })
+#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
 #define OBJ_VAL(obj)  objectToValue((Obj*)(obj))
 
 // TODO: Unboxed numbers?
@@ -49,7 +53,6 @@ typedef enum {
   OBJ_FUNCTION,
   OBJ_INSTANCE,
   OBJ_NATIVE,
-  OBJ_NUMBER,
   OBJ_STRING,
   OBJ_UPVALUE
 } ObjType;
@@ -67,11 +70,6 @@ typedef struct {
   int capacity;
   int count;
 } ValueArray;
-
-typedef struct {
-  Obj obj;
-  bool value;
-} ObjBool;
 
 typedef struct {
   Obj obj;
@@ -94,11 +92,6 @@ typedef struct {
   Obj obj;
   NativeFn function;
 } ObjNative;
-
-typedef struct {
-  Obj obj;
-  double value;
-} ObjNumber;
 
 struct sObjString {
   Obj obj;
@@ -154,7 +147,6 @@ ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
-ObjNumber* newNumber(double value);
 ObjString* takeString(const char* chars, int length);
 ObjString* copyString(const char* chars, int length);
 ObjUpvalue* newUpvalue(Value* slot);

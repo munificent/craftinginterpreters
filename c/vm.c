@@ -13,7 +13,7 @@
 VM vm;
 
 static Value clockNative(int argCount, Value* args) {
-  return OBJ_VAL(newNumber((double)clock() / CLOCKS_PER_SEC));
+  return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
 static Value printNative(int argCount, Value* args) {
@@ -274,6 +274,7 @@ static void createClass(ObjString* name, ObjClass* superclass) {
   }
 }
 
+// TODO: Now that numbers are unboxed, do we still need this?
 static bool popNumbers(double* a, double* b) {
   if (!IS_NUMBER(vm.stackTop[-1]) || !IS_NUMBER(vm.stackTop[-2])) {
     runtimeError("Operands must be numbers.");
@@ -468,7 +469,7 @@ static bool run() {
         } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
           double b = AS_NUMBER(pop());
           double a = AS_NUMBER(pop());
-          push(OBJ_VAL(newNumber(a + b)));
+          push(NUMBER_VAL(a + b));
         } else {
           runtimeError("Operands must be two numbers or two strings.");
           return false;
@@ -479,21 +480,21 @@ static bool run() {
       case OP_SUBTRACT: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push(OBJ_VAL(newNumber(a - b)));
+        push(NUMBER_VAL(a - b));
         break;
       }
         
       case OP_MULTIPLY: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push(OBJ_VAL(newNumber(a * b)));
+        push(NUMBER_VAL(a * b));
         break;
       }
         
       case OP_DIVIDE: {
         double a, b;
         if (!popNumbers(&a, &b)) return false;
-        push(OBJ_VAL(newNumber(a / b)));
+        push(NUMBER_VAL(a / b));
         break;
       }
         
@@ -504,7 +505,7 @@ static bool run() {
       case OP_NEGATE: {
         double a;
         if (!popNumber(&a)) return false;
-        push(OBJ_VAL(newNumber(-a)));
+        push(NUMBER_VAL(-a));
         break;
       }
         

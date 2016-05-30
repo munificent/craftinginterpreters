@@ -598,7 +598,7 @@ static void nil(bool canAssign) {
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
   // TODO: Handle error.
-  emitConstant(OBJ_VAL(newNumber(value)));
+  emitConstant(NUMBER_VAL(value));
 }
 
 static void or_(bool canAssign) {

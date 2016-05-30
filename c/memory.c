@@ -114,7 +114,6 @@ static void blackenObject(Obj* obj) {
       break;
       
     case OBJ_NATIVE:
-    case OBJ_NUMBER:
     case OBJ_STRING:
       // No references.
       break;
@@ -156,7 +155,6 @@ static void freeObject(Obj* obj) {
       
     case OBJ_BOUND_METHOD:
     case OBJ_NATIVE:
-    case OBJ_NUMBER:
     case OBJ_STRING:
     case OBJ_UPVALUE:
       // No separately allocated memory.

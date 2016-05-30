@@ -13,6 +13,10 @@ void printValue(Value value) {
       printf("nil");
       break;
       
+    case VAL_NUMBER:
+      printf("%g", AS_NUMBER(value));
+      break;
+      
     case VAL_OBJ:
       // TODO: Nested switch is kind of lame.
       switch (OBJ_TYPE(value)) {
@@ -32,10 +36,6 @@ void printValue(Value value) {
           
         case OBJ_NATIVE:
           printf("<native %p>", AS_NATIVE(value));
-          break;
-          
-        case OBJ_NUMBER:
-          printf("%g", AS_NUMBER(value));
           break;
           
         case OBJ_STRING:

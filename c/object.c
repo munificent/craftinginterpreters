@@ -84,12 +84,6 @@ ObjNative* newNative(NativeFn function) {
   return native;
 }
 
-ObjNumber* newNumber(double value) {
-  ObjNumber* number = ALLOCATE_OBJ(ObjNumber, OBJ_NUMBER);
-  number->value = value;
-  return number;
-}
-
 static ObjString* allocateString(const char* chars, int length, uint32_t hash) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
@@ -154,28 +148,10 @@ bool valuesEqual(Value a, Value b) {
   // TODO: Switch on value types.
   if (IS_NIL(a)) return true;
   if (IS_BOOL(a)) return AS_BOOL(a) == AS_BOOL(b);
+  if (IS_NUMBER(a)) return AS_NUMBER(a) == AS_NUMBER(b);
   
-  // Identity.
-  if (AS_OBJ(a) == AS_OBJ(b)) return true;
-  
-  // No implicit conversions.
-  if (OBJ_TYPE(a) != OBJ_TYPE(b)) return false;
-  
-  switch (OBJ_TYPE(a)) {
-    case OBJ_NUMBER:
-      return AS_NUMBER(a) == AS_NUMBER(b);
-      
-    case OBJ_STRING:
-    case OBJ_BOUND_METHOD:
-    case OBJ_CLASS:
-    case OBJ_CLOSURE:
-    case OBJ_FUNCTION:
-    case OBJ_INSTANCE:
-    case OBJ_NATIVE:
-    case OBJ_UPVALUE:
-      // These have reference equality.
-      return false;
-  }
+  // Objects have reference equality.
+  return AS_OBJ(a) == AS_OBJ(b);
 }
 
 void initArray(ValueArray* array) {
