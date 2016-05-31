@@ -12,7 +12,6 @@
 #define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC
 
-// TODO: Other unboxed types.
 typedef enum {
   VAL_BOOL,
   VAL_NIL,
@@ -27,7 +26,7 @@ typedef struct {
   union {
     bool boolean;
     double number;
-    Obj* obj;
+    Obj* object;
   } as;
 } Value;
 

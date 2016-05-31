@@ -10,21 +10,22 @@
 #include "object.h"
 #include "vm.h"
 
-#define ALLOCATE_OBJ(type, objType) (type*)allocateObj(sizeof(type), objType)
+#define ALLOCATE_OBJ(type, objectType) \
+    (type*)allocateObject(sizeof(type), objectType)
 
-static Obj* allocateObj(size_t size, ObjType type) {
-  Obj* obj = (Obj*)reallocate(NULL, size);
-  obj->type = type;
-  obj->isDark = false;
+static Obj* allocateObject(size_t size, ObjType type) {
+  Obj* object = (Obj*)reallocate(NULL, size);
+  object->type = type;
+  object->isDark = false;
   
-  obj->next = vm.objects;
-  vm.objects = obj;
+  object->next = vm.objects;
+  vm.objects = object;
 
 #ifdef DEBUG_TRACE_GC
-  printf("%p allocate %ld for %d\n", obj, size, type);
+  printf("%p allocate %ld for %d\n", object, size, type);
 #endif
   
-  return obj;
+  return object;
 }
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
@@ -145,13 +146,14 @@ ObjUpvalue* newUpvalue(Value* slot) {
 bool valuesEqual(Value a, Value b) {
   if (a.type != b.type) return false;
   
-  // TODO: Switch on value types.
-  if (IS_NIL(a)) return true;
-  if (IS_BOOL(a)) return AS_BOOL(a) == AS_BOOL(b);
-  if (IS_NUMBER(a)) return AS_NUMBER(a) == AS_NUMBER(b);
-  
-  // Objects have reference equality.
-  return AS_OBJ(a) == AS_OBJ(b);
+  switch (a.type) {
+    case VAL_BOOL: return AS_BOOL(a) == AS_BOOL(b);
+    case VAL_NIL: return true;
+    case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
+    case VAL_OBJ:
+      // Objects have reference equality.
+      return AS_OBJ(a) == AS_OBJ(b);
+  }
 }
 
 void initArray(ValueArray* array) {

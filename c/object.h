@@ -10,41 +10,38 @@
 // TODO: Move some of these to common and make object.h/c just for
 // heap-allocated objects?
 
+#define IS_BOOL(value)          ((value).type == VAL_BOOL)
+#define IS_NIL(value)           ((value).type == VAL_NIL)
+#define IS_NUMBER(value)        ((value).type == VAL_NUMBER)
 #define IS_OBJ(value)           ((value).type == VAL_OBJ)
 
-#define IS_BOOL(value)          ((value).type == VAL_BOOL)
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
-#define IS_NIL(value)           ((value).type == VAL_NIL)
-#define IS_NUMBER(value)        ((value).type == VAL_NUMBER)
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
-#define AS_OBJ(value)           ((value).as.obj)
-
+#define AS_OBJ(value)           ((value).as.object)
 #define AS_BOOL(value)          ((value).as.boolean)
+#define AS_NUMBER(value)        ((value).as.number)
+
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-#define AS_NUMBER(value)        ((value).as.number)
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 
-// TODO: Remove.
-#define OBJ_TYPE(value) ((value).as.obj->type)
+#define OBJ_TYPE(value)   ((value).as.object->type)
 
 #define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
-#define NIL_VAL           ((Value){ VAL_NIL, { .obj = NULL } })
+#define NIL_VAL           ((Value){ VAL_NIL, { .object = NULL } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-#define OBJ_VAL(obj)  objectToValue((Obj*)(obj))
-
-// TODO: Unboxed numbers?
+#define OBJ_VAL(object)   objectToValue((Obj*)(object))
 
 typedef enum {
   OBJ_BOUND_METHOD,
@@ -72,7 +69,7 @@ typedef struct {
 } ValueArray;
 
 typedef struct {
-  Obj obj;
+  Obj object;
 
   int codeCount;
   int codeCapacity;
@@ -89,19 +86,19 @@ typedef struct {
 typedef Value (*NativeFn)(int argCount, Value* args);
 
 typedef struct {
-  Obj obj;
+  Obj object;
   NativeFn function;
 } ObjNative;
 
 struct sObjString {
-  Obj obj;
+  Obj object;
   int length;
   const char* chars;
   uint32_t hash;
 };
 
 typedef struct sUpvalue {
-  Obj obj;
+  Obj object;
   
   // Pointer to the variable this upvalue is referencing.
   Value* value;
@@ -117,26 +114,26 @@ typedef struct sUpvalue {
 } ObjUpvalue;
 
 typedef struct {
-  Obj obj;
+  Obj object;
   ObjFunction* function;
   ObjUpvalue** upvalues;
 } ObjClosure;
 
 typedef struct sObjClass {
-  Obj obj;
+  Obj object;
   ObjString* name;
   struct sObjClass* superclass;
   Table methods;
 } ObjClass;
 
 typedef struct {
-  Obj obj;
+  Obj object;
   ObjClass* klass;
   Table fields;
 } ObjInstance;
 
 typedef struct {
-  Obj obj;
+  Obj object;
   Value receiver;
   ObjClosure* method;
 } ObjBoundMethod;
@@ -157,7 +154,6 @@ void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
 
-// TODO: "obj" -> "object".
 // Returns true if [value] is an object of type [type]. Do not call this
 // directly, instead use the [IS___] macro for the type in question.
 static inline bool isObjType(Value value, ObjType type)
@@ -165,12 +161,12 @@ static inline bool isObjType(Value value, ObjType type)
   return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 
-// Converts the raw object pointer [obj] to a [Value].
-static inline Value objectToValue(Obj* obj)
+// Converts the raw object pointer [object] to a [Value].
+static inline Value objectToValue(Obj* object)
 {
   Value value;
   value.type = VAL_OBJ;
-  value.as.obj = obj;
+  value.as.object = object;
   return value;
 }
 

@@ -8,7 +8,7 @@
 
 void* reallocate(void* previous, size_t size);
 
-void grayObject(Obj* obj);
+void grayObject(Obj* object);
 void grayValue(Value value);
 void collectGarbage();
 void freeObjects();

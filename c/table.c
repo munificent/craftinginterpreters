@@ -166,7 +166,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
 void tableRemoveWhite(Table* table) {
   for (int i = 0; i < table->capacity; i++) {
     Entry* entry = &table->entries[i];
-    if (entry->key != NULL && !entry->key->obj.isDark) {
+    if (entry->key != NULL && !entry->key->object.isDark) {
       // Turn the entry into a tombstone, identified as having no key but a
       // non-nil value. We use the original key as the value since it's a
       // conveniently non-nil value we have in hand.
