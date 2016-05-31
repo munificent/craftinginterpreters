@@ -41,7 +41,7 @@
 #define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
 #define NIL_VAL           ((Value){ VAL_NIL, { .object = NULL } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-#define OBJ_VAL(object)   objectToValue((Obj*)(object))
+#define OBJ_VAL(obj)      ((Value){ VAL_NUMBER, { .object = (Obj*)obj } })
 
 typedef enum {
   OBJ_BOUND_METHOD,
@@ -103,7 +103,7 @@ typedef struct sUpvalue {
   // Pointer to the variable this upvalue is referencing.
   Value* value;
   
-  // If the upvalue is closed (i.e. the local variable it was pointing too has
+  // If the upvalue is closed (i.e. the local variable it was pointing to has
   // been popped off the stack) then the closed-over value is hoisted out of
   // the stack into here. [value] is then be changed to point to this.
   Value closed;
@@ -159,15 +159,6 @@ void freeArray(ValueArray* array);
 static inline bool isObjType(Value value, ObjType type)
 {
   return IS_OBJ(value) && AS_OBJ(value)->type == type;
-}
-
-// Converts the raw object pointer [object] to a [Value].
-static inline Value objectToValue(Obj* object)
-{
-  Value value;
-  value.type = VAL_OBJ;
-  value.as.object = object;
-  return value;
 }
 
 #endif
