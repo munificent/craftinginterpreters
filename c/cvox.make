@@ -21,10 +21,6 @@ HEADERS := $(wildcard c/*.h)
 SOURCES := $(wildcard c/*.c)
 OBJECTS := $(addprefix $(BUILD_DIR)/c/, $(notdir $(SOURCES:.c=.o)))
 
-# Flags needed to compile source files for the CLI, including the modules and
-# API tests.
-#CLI_FLAGS := -Isrc/include -Isrc/cli -Isrc/module
-
 # Targets ---------------------------------------------------------------------
 
 cvox: build/$(CVOX)
