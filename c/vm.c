@@ -33,9 +33,9 @@ static void runtimeError(const char* format, ...) {
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
     ObjFunction* function = frame->closure->function;
-    size_t instruction = frame->ip - function->code;
+    size_t instruction = frame->ip - function->chunk.code;
     fprintf(stderr, "[line %d] in %s\n",
-            function->codeLines[instruction],
+            function->chunk.lines[instruction],
             function->name->chars);
   }
 }
@@ -101,7 +101,7 @@ static bool callClosure(ObjClosure* closure, int argCount) {
 
   CallFrame* frame = &vm.frames[vm.frameCount++];
   frame->closure = closure;
-  frame->ip = closure->function->code;
+  frame->ip = closure->function->chunk.code;
 
   // +1 to include either the called function or the receiver.
   frame->slots = vm.stackTop - (argCount + 1);
@@ -321,7 +321,7 @@ static bool run() {
   
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
-#define READ_CONSTANT() (frame->closure->function->constants.values[READ_BYTE()])
+#define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
   
   for (;;) {
@@ -332,8 +332,8 @@ static bool run() {
       printf(" ");
     }
     printf("\n");
-    printInstruction(frame->closure->function,
-                     (int)(frame->ip - frame->closure->function->code));
+    disassembleInstruction(&frame->closure->function->chunk,
+        (int)(frame->ip - frame->closure->function->chunk.code));
 #endif
     
     uint8_t instruction;

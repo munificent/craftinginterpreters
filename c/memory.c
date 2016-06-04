@@ -63,6 +63,10 @@ static void grayArray(ValueArray* array) {
   }
 }
 
+static void grayChunk(Chunk* chunk) {
+  grayArray(&chunk->constants);
+}
+
 static void blackenObject(Obj* object) {
 #ifdef DEBUG_TRACE_GC
   printf("%p blacken ", object);
@@ -97,7 +101,7 @@ static void blackenObject(Obj* object) {
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       grayObject((Obj*)function->name);
-      grayArray(&function->constants);
+      grayChunk(&function->chunk);
       break;
     }
       
@@ -141,8 +145,7 @@ static void freeObject(Obj* object) {
       
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
-      free(function->code);
-      freeArray(&function->constants);
+      freeChunk(&function->chunk);
       break;
     }
       

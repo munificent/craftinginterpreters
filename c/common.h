@@ -30,6 +30,12 @@ typedef struct {
   } as;
 } Value;
 
+typedef struct {
+  Value* values;
+  int capacity;
+  int count;
+} ValueArray;
+
 typedef struct sObjString ObjString;
 
 typedef struct sVM VM;

@@ -179,21 +179,7 @@ static bool match(TokenType type) {
 }
 
 static void emitByte(uint8_t byte) {
-  ObjFunction* function = current->function;
-  // TODO: allocateConstant() has almost the exact same code. Reuse somehow.
-  if (function->codeCapacity < function->codeCount + 1) {
-    if (function->codeCapacity == 0) {
-      function->codeCapacity = 4;
-    } else {
-      function->codeCapacity *= 2;
-    }
-
-    function->code = REALLOCATE(function->code, uint8_t, function->codeCapacity);
-    function->codeLines = REALLOCATE(function->codeLines, int, function->codeCapacity);
-  }
-
-  function->code[function->codeCount] = byte;
-  function->codeLines[function->codeCount++] = parser.previous.line;
+  writeChunk(&current->function->chunk, byte, parser.previous.line);
 }
 
 static void emitBytes(uint8_t byte1, uint8_t byte2) {
@@ -204,7 +190,7 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
 static void emitLoop(int loopStart) {
   emitByte(OP_LOOP);
   
-  int offset = current->function->codeCount - loopStart + 2;
+  int offset = current->function->chunk.count - loopStart + 2;
   if (offset > UINT16_MAX) error("Loop body too large.");
   
   emitByte((offset >> 8) & 0xff);
@@ -218,7 +204,7 @@ static int emitJump(uint8_t instruction) {
   emitByte(instruction);
   emitByte(0xff);
   emitByte(0xff);
-  return current->function->codeCount - 2;
+  return current->function->chunk.count - 2;
 }
 
 static void emitReturn() {
@@ -236,14 +222,14 @@ static void emitReturn() {
 // instruction with an offset that jumps to the current end of bytecode.
 static void patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
-  int jump = current->function->codeCount - offset - 2;
+  int jump = current->function->chunk.count - offset - 2;
   
   if (jump > UINT16_MAX) {
     error("Too much code to jump over.");
   }
   
-  current->function->code[offset] = (jump >> 8) & 0xff;
-  current->function->code[offset + 1] = jump & 0xff;
+  current->function->chunk.code[offset] = (jump >> 8) & 0xff;
+  current->function->chunk.code[offset + 1] = jump & 0xff;
 }
 
 static void initCompiler(Compiler* compiler, int scopeDepth,
@@ -305,7 +291,9 @@ static ObjFunction* endCompiler() {
   current = current->enclosing;
 
 #ifdef DEBUG_PRINT_CODE
-  if (!parser.hadError) printFunction(function);
+  if (!parser.hadError) {
+    disassembleChunk(&function->chunk, function->name->chars);
+  }
 #endif
   
   return function;
@@ -335,37 +323,24 @@ static void statement();
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
-static uint8_t addConstant(Value value) {
-  ObjFunction* function = current->function;
-
-  // See if we already have an equivalent constant.
-  for (int i = 0; i < function->constants.count; i++) {
-    if (valuesEqual(value, function->constants.values[i])) {
-      return (uint8_t)i;
-    }
-  }
-        
-  if (function->constants.count == UINT8_COUNT) {
+static uint8_t makeConstant(Value value) {
+  int constant = addConstant(&current->function->chunk, value);
+  if (constant == -1) {
     error("Too many constants in one function.");
     return 0;
   }
   
-  // Make sure the value doesn't get collected when resizing the array.
-  push(value);
-  growArray(&function->constants);
-  
-  function->constants.values[function->constants.count] = pop();
-  return (uint8_t)function->constants.count++;
+  return (uint8_t)constant;
 }
 
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant(Token* name) {
-  return addConstant(OBJ_VAL(copyString(name->start, name->length)));
+  return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 
 static void emitConstant(Value value) {
-  emitBytes(OP_CONSTANT, addConstant(value));
+  emitBytes(OP_CONSTANT, makeConstant(value));
 }
 
 static bool identifiersEqual(Token* a, Token* b) {
@@ -846,8 +821,7 @@ static void function(FunctionType type) {
   ObjFunction* function = endCompiler();
   
   // Capture the upvalues in the new closure object.
-  uint8_t constant = addConstant(OBJ_VAL(function));
-  emitBytes(OP_CLOSURE, constant);
+  emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
   
   // Emit arguments for each upvalue to know whether to capture a local or
   // an upvalue.
@@ -981,7 +955,7 @@ static void varStatement() {
 }
 
 static void whileStatement() {
-  int loopStart = current->function->codeCount;
+  int loopStart = current->function->chunk.count;
   
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();

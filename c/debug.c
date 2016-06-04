@@ -50,34 +50,28 @@ void printValue(Value value) {
   }
 }
 
-void printStack() {
-  for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
-    printf("%d: ", (int)(slot - vm.stack));
-    printValue(*slot);
-    printf("\n");
-  }
-}
-
-static int constantInstruction(ObjFunction* function, int i, const char* name) {
-  uint8_t constant = function->code[i++];
+static int constantInstruction(Chunk* chunk, int i, const char* name) {
+  uint8_t constant = chunk->code[i++];
   printf("%-16s %4d '", name, constant);
-  printValue(function->constants.values[constant]);
+  printValue(chunk->constants.values[constant]);
   printf("'\n");
   return i;
 }
 
-int printInstruction(ObjFunction* function, int i) {
+int disassembleInstruction(Chunk* chunk, int i) {
   printf("%04d ", i);
-  if (i > 0 && function->codeLines[i] == function->codeLines[i - 1]) {
+  if (i > 0 && chunk->lines[i] == chunk->lines[i - 1]) {
     printf("  | ");
   } else {
-    printf("%3d ", function->codeLines[i]);
+    printf("%3d ", chunk->lines[i]);
   }
   
-  uint8_t instruction = function->code[i++];
+  uint8_t* code = chunk->code;
+  uint8_t instruction = code[i++];
+  
   switch (instruction) {
     case OP_CONSTANT:
-      i = constantInstruction(function, i, "OP_CONSTANT");
+      i = constantInstruction(chunk, i, "OP_CONSTANT");
       break;
       
     case OP_NIL: printf("OP_NIL\n"); break;
@@ -87,51 +81,51 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_POP: printf("OP_POP\n"); break;
       
     case OP_GET_LOCAL: {
-      uint8_t slot = function->code[i++];
+      uint8_t slot = code[i++];
       printf("%-16s %4d\n", "OP_GET_LOCAL", slot);
       break;
     }
       
     case OP_SET_LOCAL: {
-      uint8_t slot = function->code[i++];
+      uint8_t slot = code[i++];
       printf("%-16s %4d\n", "OP_SET_LOCAL", slot);
       break;
     }
 
     case OP_GET_GLOBAL:
-      i = constantInstruction(function, i, "OP_GET_GLOBAL");
+      i = constantInstruction(chunk, i, "OP_GET_GLOBAL");
       break;
       
     case OP_DEFINE_GLOBAL:
-      i = constantInstruction(function, i, "OP_DEFINE_GLOBAL");
+      i = constantInstruction(chunk, i, "OP_DEFINE_GLOBAL");
       break;
       
     case OP_SET_GLOBAL:
-      i = constantInstruction(function, i, "OP_SET_GLOBAL");
+      i = constantInstruction(chunk, i, "OP_SET_GLOBAL");
       break;
       
     case OP_GET_UPVALUE: {
-      uint8_t slot = function->code[i++];
+      uint8_t slot = code[i++];
       printf("%-16s %4d\n", "OP_GET_UPVALUE", slot);
       break;
     }
       
     case OP_SET_UPVALUE: {
-      uint8_t slot = function->code[i++];
+      uint8_t slot = code[i++];
       printf("%-16s %4d\n", "OP_SET_UPVALUE", slot);
       break;
     }
       
     case OP_GET_FIELD:
-      i = constantInstruction(function, i, "OP_GET_FIELD");
+      i = constantInstruction(chunk, i, "OP_GET_FIELD");
       break;
       
     case OP_SET_FIELD:
-      i = constantInstruction(function, i, "OP_SET_FIELD");
+      i = constantInstruction(chunk, i, "OP_SET_FIELD");
       break;
       
     case OP_GET_SUPER:
-      i = constantInstruction(function, i, "OP_GET_SUPER");
+      i = constantInstruction(chunk, i, "OP_GET_SUPER");
       break;
       
     case OP_EQUAL: printf("OP_EQUAL\n"); break;
@@ -145,22 +139,22 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_NEGATE: printf("OP_NEGATE\n"); break;
       
     case OP_JUMP: {
-      uint16_t offset = (uint16_t)(function->code[i++] << 8);
-      offset |= function->code[i++];
+      uint16_t offset = (uint16_t)(code[i++] << 8);
+      offset |= code[i++];
       printf("%-16s %4d -> %d\n", "OP_JUMP", offset, i + offset);
       break;
     }
       
     case OP_JUMP_IF_FALSE: {
-      uint16_t offset = (uint16_t)(function->code[i++] << 8);
-      offset |= function->code[i++];
+      uint16_t offset = (uint16_t)(code[i++] << 8);
+      offset |= code[i++];
       printf("%-16s %4d -> %d\n", "OP_JUMP_IF_FALSE", offset, i + offset);
       break;
     }
       
     case OP_LOOP: {
-      uint16_t offset = (uint16_t)(function->code[i++] << 8);
-      offset |= function->code[i++];
+      uint16_t offset = (uint16_t)(code[i++] << 8);
+      offset |= code[i++];
       printf("%-16s %4d -> %d\n", "OP_LOOP", offset, i - offset);
       break;
     }
@@ -177,36 +171,36 @@ int printInstruction(ObjFunction* function, int i) {
       printf("OP_CALL_%d\n", instruction - OP_CALL_0);
       break;
       
-    case OP_INVOKE_0: i = constantInstruction(function, i, "OP_INVOKE_0"); break;
-    case OP_INVOKE_1: i = constantInstruction(function, i, "OP_INVOKE_1"); break;
-    case OP_INVOKE_2: i = constantInstruction(function, i, "OP_INVOKE_2"); break;
-    case OP_INVOKE_3: i = constantInstruction(function, i, "OP_INVOKE_3"); break;
-    case OP_INVOKE_4: i = constantInstruction(function, i, "OP_INVOKE_4"); break;
-    case OP_INVOKE_5: i = constantInstruction(function, i, "OP_INVOKE_5"); break;
-    case OP_INVOKE_6: i = constantInstruction(function, i, "OP_INVOKE_6"); break;
-    case OP_INVOKE_7: i = constantInstruction(function, i, "OP_INVOKE_7"); break;
-    case OP_INVOKE_8: i = constantInstruction(function, i, "OP_INVOKE_8"); break;
+    case OP_INVOKE_0: i = constantInstruction(chunk, i, "OP_INVOKE_0"); break;
+    case OP_INVOKE_1: i = constantInstruction(chunk, i, "OP_INVOKE_1"); break;
+    case OP_INVOKE_2: i = constantInstruction(chunk, i, "OP_INVOKE_2"); break;
+    case OP_INVOKE_3: i = constantInstruction(chunk, i, "OP_INVOKE_3"); break;
+    case OP_INVOKE_4: i = constantInstruction(chunk, i, "OP_INVOKE_4"); break;
+    case OP_INVOKE_5: i = constantInstruction(chunk, i, "OP_INVOKE_5"); break;
+    case OP_INVOKE_6: i = constantInstruction(chunk, i, "OP_INVOKE_6"); break;
+    case OP_INVOKE_7: i = constantInstruction(chunk, i, "OP_INVOKE_7"); break;
+    case OP_INVOKE_8: i = constantInstruction(chunk, i, "OP_INVOKE_8"); break;
       
-    case OP_SUPER_0: i = constantInstruction(function, i, "OP_SUPER_0"); break;
-    case OP_SUPER_1: i = constantInstruction(function, i, "OP_SUPER_1"); break;
-    case OP_SUPER_2: i = constantInstruction(function, i, "OP_SUPER_2"); break;
-    case OP_SUPER_3: i = constantInstruction(function, i, "OP_SUPER_3"); break;
-    case OP_SUPER_4: i = constantInstruction(function, i, "OP_SUPER_4"); break;
-    case OP_SUPER_5: i = constantInstruction(function, i, "OP_SUPER_5"); break;
-    case OP_SUPER_6: i = constantInstruction(function, i, "OP_SUPER_6"); break;
-    case OP_SUPER_7: i = constantInstruction(function, i, "OP_SUPER_7"); break;
-    case OP_SUPER_8: i = constantInstruction(function, i, "OP_SUPER_8"); break;
+    case OP_SUPER_0: i = constantInstruction(chunk, i, "OP_SUPER_0"); break;
+    case OP_SUPER_1: i = constantInstruction(chunk, i, "OP_SUPER_1"); break;
+    case OP_SUPER_2: i = constantInstruction(chunk, i, "OP_SUPER_2"); break;
+    case OP_SUPER_3: i = constantInstruction(chunk, i, "OP_SUPER_3"); break;
+    case OP_SUPER_4: i = constantInstruction(chunk, i, "OP_SUPER_4"); break;
+    case OP_SUPER_5: i = constantInstruction(chunk, i, "OP_SUPER_5"); break;
+    case OP_SUPER_6: i = constantInstruction(chunk, i, "OP_SUPER_6"); break;
+    case OP_SUPER_7: i = constantInstruction(chunk, i, "OP_SUPER_7"); break;
+    case OP_SUPER_8: i = constantInstruction(chunk, i, "OP_SUPER_8"); break;
       
     case OP_CLOSURE: {
-      uint8_t constant = function->code[i++];
+      uint8_t constant = code[i++];
       printf("%-16s %4d ", "OP_CLOSURE", constant);
-      printValue(function->constants.values[constant]);
+      printValue(chunk->constants.values[constant]);
       printf("\n");
       
-      ObjFunction* closedFunction = AS_FUNCTION(function->constants.values[constant]);
+      ObjFunction* closedFunction = AS_FUNCTION(chunk->constants.values[constant]);
       for (int j = 0; j < closedFunction->upvalueCount; j++) {
-        int isLocal = function->code[i++];
-        int index = function->code[i++];
+        int isLocal = code[i++];
+        int index = code[i++];
         printf("%04d   |                     %s %d\n",
                i - 2, isLocal ? "local" : "upvalue", index);
       }
@@ -217,25 +211,25 @@ int printInstruction(ObjFunction* function, int i) {
     case OP_RETURN: printf("OP_RETURN\n"); break;
 
     case OP_CLASS:
-      i = constantInstruction(function, i, "OP_CLASS");
+      i = constantInstruction(chunk, i, "OP_CLASS");
       break;
       
     case OP_SUBCLASS:
-      i = constantInstruction(function, i, "OP_SUBCLASS");
+      i = constantInstruction(chunk, i, "OP_SUBCLASS");
       break;
   
     case OP_METHOD:
-      i = constantInstruction(function, i, "OP_METHOD");
+      i = constantInstruction(chunk, i, "OP_METHOD");
       break;
   }
   
   return i;
 }
 
-void printFunction(ObjFunction* function) {
-  printf("-- %s --\n", function->name->chars);
+void disassembleChunk(Chunk* chunk, const char* name) {
+  printf("-- %s --\n", name);
 
-  for (int i = 0; i < function->codeCount;) {
-    i = printInstruction(function, i);
+  for (int i = 0; i < chunk->count;) {
+    i = disassembleInstruction(chunk, i);
   }
 }

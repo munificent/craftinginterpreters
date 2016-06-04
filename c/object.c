@@ -61,14 +61,10 @@ ObjClosure* newClosure(ObjFunction* function) {
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
   
-  function->codeCount = 0;
-  function->codeCapacity = 0;
-  function->code = NULL;
   function->arity = 0;
   function->upvalueCount = 0;
   function->name = NULL;
-  function->codeLines = NULL;
-  initArray(&function->constants);
+  initChunk(&function->chunk);
   return function;
 }
 

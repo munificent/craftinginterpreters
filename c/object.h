@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "common.h"
+#include "chunk.h"
 #include "table.h"
 
 // TODO: Move some of these to common and make object.h/c just for
@@ -63,24 +64,15 @@ struct sObj {
 };
 
 typedef struct {
-  Value* values;
-  int capacity;
-  int count;
-} ValueArray;
-
-typedef struct {
   Obj object;
 
-  int codeCount;
-  int codeCapacity;
-  uint8_t* code;
   int arity;
   int upvalueCount;
-  ValueArray constants;
+  
+  Chunk chunk;
 
   // Debug information.
   ObjString* name;
-  int* codeLines;
 } ObjFunction;
 
 typedef Value (*NativeFn)(int argCount, Value* args);
@@ -150,6 +142,7 @@ ObjUpvalue* newUpvalue(Value* slot);
 
 bool valuesEqual(Value a, Value b);
 
+// TODO: Move these elsewhere? ValueArray is in common.h.
 void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);

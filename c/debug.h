@@ -6,10 +6,8 @@
 
 void printValue(Value value);
 
-void printStack();
+int disassembleInstruction(Chunk* chunk, int i);
 
-int printInstruction(ObjFunction* function, int i);
-
-void printFunction(ObjFunction* function);
+void disassembleChunk(Chunk* chunk, const char* name);
 
 #endif
