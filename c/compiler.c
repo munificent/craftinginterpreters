@@ -562,10 +562,6 @@ static void binary(bool canAssign) {
   }
 }
 
-static void boolean(bool canAssign) {
-  emitConstant(BOOL_VAL(parser.previous.type == TOKEN_TRUE));
-}
-
 static void call(bool canAssign) {
   uint8_t argCount = argumentList();
   emitByte(OP_CALL_0 + argCount);
@@ -584,6 +580,10 @@ static void dot(bool canAssign) {
   } else {
     emitBytes(OP_GET_FIELD, name);
   }
+}
+
+static void false_(bool canAssign) {
+  emitByte(OP_FALSE);
 }
 
 static void grouping(bool canAssign) {
@@ -704,6 +704,10 @@ static void this_(bool canAssign) {
   }
 }
 
+static void true_(bool canAssign) {
+  emitByte(OP_TRUE);
+}
+
 static void unary(bool canAssign) {
   TokenType operatorType = parser.previous.type;
   
@@ -749,7 +753,7 @@ ParseRule rules[] = {
   { NULL,     and_,    PREC_AND },        // TOKEN_AND
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
-  { boolean,  NULL,    PREC_NONE },       // TOKEN_FALSE
+  { false_,   NULL,    PREC_NONE },       // TOKEN_FALSE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
@@ -758,7 +762,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
-  { boolean,  NULL,    PREC_NONE },       // TOKEN_TRUE
+  { true_,    NULL,    PREC_NONE },       // TOKEN_TRUE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE
 

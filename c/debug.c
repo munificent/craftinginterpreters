@@ -81,6 +81,9 @@ int printInstruction(ObjFunction* function, int i) {
       break;
       
     case OP_NIL: printf("OP_NIL\n"); break;
+    case OP_TRUE: printf("OP_TRUE\n"); break;
+    case OP_FALSE: printf("OP_FALSE\n"); break;
+      
     case OP_POP: printf("OP_POP\n"); break;
       
     case OP_GET_LOCAL: {
