@@ -41,7 +41,7 @@
 #define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
 #define NIL_VAL           ((Value){ VAL_NIL, { .object = NULL } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-#define OBJ_VAL(obj)      ((Value){ VAL_NUMBER, { .object = (Obj*)obj } })
+#define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .object = (Obj*)obj } })
 
 typedef enum {
   OBJ_BOUND_METHOD,
