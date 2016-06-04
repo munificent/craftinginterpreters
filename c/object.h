@@ -8,13 +8,7 @@
 #include "chunk.h"
 #include "table.h"
 
-// TODO: Move some of these to common and make object.h/c just for
-// heap-allocated objects?
-
-#define IS_BOOL(value)          ((value).type == VAL_BOOL)
-#define IS_NIL(value)           ((value).type == VAL_NIL)
-#define IS_NUMBER(value)        ((value).type == VAL_NUMBER)
-#define IS_OBJ(value)           ((value).type == VAL_OBJ)
+#define OBJ_TYPE(value)         ((value).as.object->type)
 
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
@@ -24,10 +18,6 @@
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
-#define AS_OBJ(value)           ((value).as.object)
-#define AS_BOOL(value)          ((value).as.boolean)
-#define AS_NUMBER(value)        ((value).as.number)
-
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
@@ -36,13 +26,6 @@
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
-
-#define OBJ_TYPE(value)   ((value).as.object->type)
-
-#define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
-#define NIL_VAL           ((Value){ VAL_NIL, { .object = NULL } })
-#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-#define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .object = (Obj*)obj } })
 
 typedef enum {
   OBJ_BOUND_METHOD,
@@ -65,13 +48,9 @@ struct sObj {
 
 typedef struct {
   Obj object;
-
   int arity;
   int upvalueCount;
-  
   Chunk chunk;
-
-  // Debug information.
   ObjString* name;
 } ObjFunction;
 
@@ -139,13 +118,6 @@ ObjNative* newNative(NativeFn function);
 ObjString* takeString(const char* chars, int length);
 ObjString* copyString(const char* chars, int length);
 ObjUpvalue* newUpvalue(Value* slot);
-
-bool valuesEqual(Value a, Value b);
-
-// TODO: Move these elsewhere? ValueArray is in common.h.
-void initArray(ValueArray* array);
-void growArray(ValueArray* array);
-void freeArray(ValueArray* array);
 
 // Returns true if [value] is an object of type [type]. Do not call this
 // directly, instead use the [IS___] macro for the type in question.

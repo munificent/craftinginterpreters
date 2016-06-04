@@ -3,7 +3,7 @@
 #include "chunk.h"
 
 #include "memory.h"
-#include "object.h" // TODO: For ValueArray fns. Move them?
+#include "value.h"
 #include "vm.h"
 
 void initChunk(Chunk* chunk) {

@@ -2,6 +2,7 @@
 #define cvox_chunk_h
 
 #include "common.h"
+#include "value.h"
 
 typedef struct {
   int count;

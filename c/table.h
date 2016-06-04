@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+typedef struct sObjString ObjString;
+
 typedef struct {
   ObjString* key;
   Value value;

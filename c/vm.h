@@ -76,7 +76,7 @@ typedef struct {
   Value* slots;
 } CallFrame;
 
-struct sVM {
+typedef struct {
   Value stack[STACK_COUNT];
   Value* stackTop;
   
@@ -98,7 +98,7 @@ struct sVM {
   int grayCount;
   int grayCapacity;
   Obj** grayStack;
-};
+} VM;
 
 typedef enum {
   INTERPRET_OK,
