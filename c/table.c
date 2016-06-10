@@ -65,7 +65,7 @@ static bool addEntry(Entry* entries, int capacity,
   // basic linear probing.
   uint32_t index = key->hash % capacity;
 
-  // We don't worry about an infinite loop here because resizeTable() ensures
+  // We don't worry about an infinite loop here because resize() ensures
   // there are open slots in the array.
   for (;;) {
     Entry* entry = &entries[index];
@@ -141,9 +141,10 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   // basic linear probing.
   uint32_t index = hash % table->capacity;
   
-  // We don't worry about an infinite loop here because resize() ensures
-  // there are empty slots in the table.
-  for (;;) {
+  // We have to check for a loop here because the table could be full of
+  // tombstones.
+  uint32_t startIndex = index;
+  do {
     Entry* entry = &table->entries[index];
     
     if (entry->key == NULL) {
@@ -157,7 +158,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     
     // Try the next slot.
     index = (index + 1) % table->capacity;
-  }
+  } while (index != startIndex);
   
   return NULL;
 }
@@ -166,10 +167,9 @@ void tableRemoveWhite(Table* table) {
   for (int i = 0; i < table->capacity; i++) {
     Entry* entry = &table->entries[i];
     if (entry->key != NULL && !entry->key->object.isDark) {
-      // Turn the entry into a tombstone, identified as having no key but a
-      // non-nil value. We use the original key as the value since it's a
-      // conveniently non-nil value we have in hand.
-      entry->value = OBJ_VAL(entry->key);
+      // Turn the entry into a tombstone, identified as having a NULL key but a
+      // non-nil value (true).
+      entry->value = BOOL_VAL(true);
       entry->key = NULL;
       table->count--;
     }
