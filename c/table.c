@@ -4,9 +4,7 @@
 #include "memory.h"
 #include "table.h"
 
-#define TABLE_MAX_LOAD        0.75
-#define TABLE_GROW_FACTOR     2
-#define TABLE_MIN_CAPACITY    8
+#define TABLE_MAX_LOAD 0.75
 
 void initTable(Table* table) {
   table->count = 0;
@@ -112,8 +110,8 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   // If the table is getting too full, make room first.
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     // Figure out the new table size.
-    int capacity = table->capacity * TABLE_GROW_FACTOR;
-    if (capacity < TABLE_MIN_CAPACITY) capacity = TABLE_MIN_CAPACITY;
+    int capacity = table->capacity * GROW_FACTOR;
+    if (capacity < MIN_CAPACITY) capacity = MIN_CAPACITY;
     
     resize(table, capacity);
   }

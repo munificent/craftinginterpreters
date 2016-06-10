@@ -186,3 +186,49 @@ void disassembleChunk(Chunk* chunk, const char* name) {
     i = disassembleInstruction(chunk, i);
   }
 }
+
+void printValue(Value value) {
+  switch (value.type) {
+    case VAL_BOOL:
+      printf(AS_BOOL(value) ? "true" : "false");
+      break;
+      
+    case VAL_NIL:
+      printf("nil");
+      break;
+      
+    case VAL_NUMBER:
+      printf("%g", AS_NUMBER(value));
+      break;
+      
+    case VAL_OBJ:
+      switch (OBJ_TYPE(value)) {
+        case OBJ_CLASS:
+          printf("%s", AS_CLASS(value)->name->chars);
+          break;
+          
+        case OBJ_BOUND_METHOD:
+        case OBJ_CLOSURE:
+        case OBJ_FUNCTION:
+          printf("<fn %p>", AS_FUNCTION(value));
+          break;
+          
+        case OBJ_INSTANCE:
+          printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
+          break;
+          
+        case OBJ_NATIVE:
+          printf("<native %p>", AS_NATIVE(value));
+          break;
+          
+        case OBJ_STRING:
+          printf("%s", AS_CSTRING(value));
+          break;
+          
+        case OBJ_UPVALUE:
+          printf("upvalue");
+          break;
+      }
+      break;
+  }
+}

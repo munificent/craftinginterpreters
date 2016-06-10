@@ -12,4 +12,7 @@
 
 #define UINT8_COUNT (UINT8_MAX + 1)
 
+#define MIN_CAPACITY 8
+#define GROW_FACTOR 2
+
 #endif

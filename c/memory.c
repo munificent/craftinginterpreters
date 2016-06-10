@@ -28,7 +28,6 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 }
 
 void grayObject(Obj* object) {
-  // TODO: Remove this when nil is a separate value type.
   if (object == NULL) return;
   
   // Don't get caught in cycle.
@@ -43,7 +42,11 @@ void grayObject(Obj* object) {
   object->isDark = true;
   
   if (vm.grayCapacity < vm.grayCount + 1) {
-    vm.grayCapacity = vm.grayCapacity == 0 ? 4 : vm.grayCapacity * 2;
+    vm.grayCapacity *= GROW_FACTOR;
+    if (vm.grayCapacity < MIN_CAPACITY) {
+      vm.grayCapacity = MIN_CAPACITY;
+    }
+
     // Not using reallocate() here because we don't want to trigger the GC
     // inside a GC!
     vm.grayStack = realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
@@ -231,11 +234,11 @@ void collectGarbage() {
   }
   
   // Adjust the heap size based on live memory.
-  vm.nextGC = vm.bytesAllocated * 2;
+  vm.nextGC = vm.bytesAllocated * GROW_FACTOR;
 
 #ifdef DEBUG_TRACE_GC
   printf("-- gc collected %ld bytes (from %ld to %ld) next at %ld\n",
-         before, vm.bytesAllocated, vm.nextGC);
+         before - vm.bytesAllocated, before, vm.bytesAllocated, vm.nextGC);
 #endif
 }
 

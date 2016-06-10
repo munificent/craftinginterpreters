@@ -43,8 +43,6 @@ typedef struct {
 
 bool valuesEqual(Value a, Value b);
 
-void printValue(Value value);
-
 void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);

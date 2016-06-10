@@ -25,10 +25,9 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
   if (chunk->capacity < chunk->count + 1) {
     int oldCapacity = chunk->capacity;
     if (chunk->capacity == 0) {
-      // TODO: Constants. Move array ones to common?
-      chunk->capacity = 4;
+      chunk->capacity = MIN_CAPACITY;
     } else {
-      chunk->capacity *= 2;
+      chunk->capacity *= GROW_FACTOR;
     }
     
     chunk->code = GROW_ARRAY(chunk->code, uint8_t, oldCapacity, chunk->capacity);

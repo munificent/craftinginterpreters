@@ -18,12 +18,6 @@ static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
-static Value printNative(int argCount, Value* args) {
-  printValue(args[0]);
-  printf("\n");
-  return args[0];
-}
-
 static Value strNative(int argCount, Value* args) {
   Value arg = args[0];
   switch (arg.type) {
@@ -57,17 +51,41 @@ static Value strNative(int argCount, Value* args) {
     }
     case VAL_OBJ: {
       switch (OBJ_TYPE(arg)) {
-        case OBJ_BOUND_METHOD: return OBJ_VAL(copyString("<method>", 8));
-        case OBJ_CLASS: return OBJ_VAL(AS_CLASS(arg)->name);
-        case OBJ_CLOSURE: return OBJ_VAL(copyString("<fn>", 4));
-        case OBJ_FUNCTION: return OBJ_VAL(copyString("<fn>", 4));
-        case OBJ_INSTANCE: return OBJ_VAL(copyString("<instance>", 10));
-        case OBJ_NATIVE: return OBJ_VAL(copyString("<native>", 8));
-        case OBJ_STRING: return arg;
-        case OBJ_UPVALUE: return OBJ_VAL(copyString("<upvalue>", 9));
+        case OBJ_CLASS:
+          return OBJ_VAL(AS_CLASS(arg)->name);
+          
+        case OBJ_BOUND_METHOD:
+        case OBJ_CLOSURE:
+        case OBJ_FUNCTION:
+          return OBJ_VAL(copyString("<fn>", 4));
+          
+        case OBJ_INSTANCE: {
+          ObjInstance* instance = AS_INSTANCE(arg);
+          ObjString* className = instance->klass->name;
+          int length = className->length + strlen(" instance");
+          char* buffer = GROW_ARRAY(NULL, char, 0, length + 1);
+          strcpy(buffer, className->chars);
+          strcpy(buffer + className->length, " instance");
+          return OBJ_VAL(takeString(buffer, length));
+        }
+          
+        case OBJ_NATIVE:
+          return OBJ_VAL(copyString("<native>", 8));
+          
+        case OBJ_STRING:
+          return arg;
+          
+        case OBJ_UPVALUE:
+          return OBJ_VAL(copyString("<upvalue>", 9));
       }
     }
   }
+}
+
+static Value printNative(int argCount, Value* args) {
+  Value string = strNative(1, args);
+  printf("%s\n", AS_STRING(string)->chars);
+  return args[0];
 }
 
 static void runtimeError(const char* format, ...) {
@@ -160,7 +178,6 @@ static bool callClosure(ObjClosure* closure, int argCount) {
 }
 
 static bool call(Value callee, int argCount) {
-  // TODO: Is there a cleaner way to do this?
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
       case OBJ_BOUND_METHOD: {
@@ -210,8 +227,7 @@ static bool call(Value callee, int argCount) {
   return false;
 }
 
-static bool invokeFromClass(ObjClass* klass, ObjInstance* receiver,
-                            ObjString* name, int argCount) {
+static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
   // Look for the method.
   Value method;
   if (!tableGet(&klass->methods, name, &method)) {
@@ -222,7 +238,9 @@ static bool invokeFromClass(ObjClass* klass, ObjInstance* receiver,
   return callClosure(AS_CLOSURE(method), argCount);
 }
 
-static bool invoke(Value receiver, ObjString* name, int argCount) {
+static bool invoke(ObjString* name, int argCount) {
+  Value receiver = peek(argCount);
+  
   if (!IS_INSTANCE(receiver)) {
     runtimeError("Only instances have methods.");
     return false;
@@ -237,7 +255,7 @@ static bool invoke(Value receiver, ObjString* name, int argCount) {
     return call(value, argCount);
   }
   
-  return invokeFromClass(instance->klass, instance, name, argCount);
+  return invokeFromClass(instance->klass, name, argCount);
 }
 
 static bool bindMethod(ObjClass* klass, ObjString* name) {
@@ -325,28 +343,6 @@ static void createClass(ObjString* name, ObjClass* superclass) {
   }
 }
 
-// TODO: Now that numbers are unboxed, do we still need this?
-static bool popNumbers(double* a, double* b) {
-  if (!IS_NUMBER(vm.stackTop[-1]) || !IS_NUMBER(vm.stackTop[-2])) {
-    runtimeError("Operands must be numbers.");
-    return false;
-  }
-
-  *b = AS_NUMBER(pop());
-  *a = AS_NUMBER(pop());
-  return true;
-}
-
-static bool popNumber(double* a) {
-  if (!IS_NUMBER(vm.stackTop[-1])) {
-    runtimeError("Operand must be a number.");
-    return false;
-  }
-  
-  *a = AS_NUMBER(pop());
-  return true;
-}
-
 static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
@@ -375,6 +371,18 @@ static bool run() {
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
   
+#define BINARY_OP(valueType, op) \
+    do { \
+      if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
+        runtimeError("Operands must be numbers."); \
+        return false; \
+      } \
+      \
+      double b = AS_NUMBER(pop()); \
+      double a = AS_NUMBER(pop()); \
+      push(valueType(a op b)); \
+    } while (false)
+
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
@@ -389,26 +397,11 @@ static bool run() {
     
     uint8_t instruction;
     switch (instruction = *frame->ip++) {
-      case OP_CONSTANT: {
-        push(READ_CONSTANT());
-        break;
-      }
-        
-      case OP_NIL:
-        push(NIL_VAL);
-        break;
-
-      case OP_TRUE:
-        push(BOOL_VAL(true));
-        break;
-
-      case OP_FALSE:
-        push(BOOL_VAL(false));
-        break;
-
-      case OP_POP:
-        pop();
-        break;
+      case OP_CONSTANT: push(READ_CONSTANT()); break;
+      case OP_NIL: push(NIL_VAL); break;
+      case OP_TRUE: push(BOOL_VAL(true)); break;
+      case OP_FALSE: push(BOOL_VAL(false)); break;
+      case OP_POP: pop(); break;
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
@@ -508,19 +501,8 @@ static bool run() {
         break;
       }
 
-      case OP_GREATER: {
-        double a, b;
-        if (!popNumbers(&a, &b)) return false;
-        push(BOOL_VAL(a > b));
-        break;
-      }
-        
-      case OP_LESS: {
-        double a, b;
-        if (!popNumbers(&a, &b)) return false;
-        push(BOOL_VAL(a < b));
-        break;
-      }
+      case OP_GREATER: BINARY_OP(BOOL_VAL, >); break;
+      case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
 
       case OP_ADD: {
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
@@ -536,37 +518,22 @@ static bool run() {
         break;
       }
         
-      case OP_SUBTRACT: {
-        double a, b;
-        if (!popNumbers(&a, &b)) return false;
-        push(NUMBER_VAL(a - b));
-        break;
-      }
-        
-      case OP_MULTIPLY: {
-        double a, b;
-        if (!popNumbers(&a, &b)) return false;
-        push(NUMBER_VAL(a * b));
-        break;
-      }
-        
-      case OP_DIVIDE: {
-        double a, b;
-        if (!popNumbers(&a, &b)) return false;
-        push(NUMBER_VAL(a / b));
-        break;
-      }
+      case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
+      case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
+      case OP_DIVIDE: BINARY_OP(NUMBER_VAL, /); break;
         
       case OP_NOT:
         push(BOOL_VAL(isFalsey(pop())));
         break;
 
-      case OP_NEGATE: {
-        double a;
-        if (!popNumber(&a)) return false;
-        push(NUMBER_VAL(-a));
+      case OP_NEGATE:
+        if (!IS_NUMBER(peek(0))) {
+          runtimeError("Operand must be a number.");
+          return false;
+        }
+        
+        push(NUMBER_VAL(-AS_NUMBER(pop())));
         break;
-      }
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
@@ -612,7 +579,7 @@ static bool run() {
       case OP_INVOKE_8: {
         ObjString* method = READ_STRING();
         int argCount = instruction - OP_INVOKE_0;
-        if (!invoke(peek(argCount), method, argCount)) return false;
+        if (!invoke(method, argCount)) return false;
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
@@ -629,8 +596,9 @@ static bool run() {
         ObjString* method = READ_STRING();
         int argCount = instruction - OP_SUPER_0;
         ObjClass* superclass = AS_CLASS(pop());
-        ObjInstance* receiver = AS_INSTANCE(peek(argCount));
-        if (!invokeFromClass(superclass, receiver, method, argCount)) return false;
+        if (!invokeFromClass(superclass, method, argCount)) {
+          return false;
+        }
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
@@ -670,12 +638,12 @@ static bool run() {
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
 
-        if (vm.frameCount == 1) return true;
+        vm.frameCount--;
+        if (vm.frameCount == 0) return true;
         
         vm.stackTop = frame->slots;
         push(result);
         
-        vm.frameCount--;
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
@@ -702,6 +670,12 @@ static bool run() {
   }
   
   return true;
+  
+#undef READ_BYTE
+#undef READ_SHORT
+#undef READ_CONSTANT
+#undef READ_STRING
+#undef BINARY_OP
 }
 
 InterpretResult interpret(const char* source) {
@@ -711,7 +685,6 @@ InterpretResult interpret(const char* source) {
   push(OBJ_VAL(function));
   ObjClosure* closure = newClosure(function);
   pop();
-  push(OBJ_VAL(closure));
   call(OBJ_VAL(closure), 0);
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
