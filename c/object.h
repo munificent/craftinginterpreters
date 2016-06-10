@@ -56,6 +56,7 @@ typedef struct {
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
+// TODO: Make a value type?
 typedef struct {
   Obj object;
   NativeFn function;
@@ -64,7 +65,7 @@ typedef struct {
 struct sObjString {
   Obj object;
   int length;
-  const char* chars;
+  char* chars;
   uint32_t hash;
 };
 
@@ -88,6 +89,7 @@ typedef struct {
   Obj object;
   ObjFunction* function;
   ObjUpvalue** upvalues;
+  int upvalueCount;
 } ObjClosure;
 
 typedef struct sObjClass {
@@ -115,7 +117,7 @@ ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
-ObjString* takeString(const char* chars, int length);
+ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
 ObjUpvalue* newUpvalue(Value* slot);
 

@@ -12,7 +12,7 @@
     (type*)allocateObject(sizeof(type), objectType)
 
 static Obj* allocateObject(size_t size, ObjType type) {
-  Obj* object = (Obj*)reallocate(NULL, size);
+  Obj* object = (Obj*)reallocate(NULL, 0, size);
   object->type = type;
   object->isDark = false;
   
@@ -45,7 +45,7 @@ ObjClass* newClass(ObjString* name, ObjClass* superclass) {
 ObjClosure* newClosure(ObjFunction* function) {
   // Allocate the upvalue array first so it doesn't cause the closure to get
   // collected.
-  ObjUpvalue** upvalues = REALLOCATE(NULL, ObjUpvalue*, function->upvalueCount);
+  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
   }
@@ -53,6 +53,7 @@ ObjClosure* newClosure(ObjFunction* function) {
   ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
   closure->function = function;
   closure->upvalues = upvalues;
+  closure->upvalueCount = function->upvalueCount;
   return closure;
 }
 
@@ -79,7 +80,7 @@ ObjNative* newNative(NativeFn function) {
   return native;
 }
 
-static ObjString* allocateString(const char* chars, int length, uint32_t hash) {
+static ObjString* allocateString(char* chars, int length, uint32_t hash) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
@@ -107,7 +108,7 @@ static uint32_t hashString(const char* key, int length) {
   return hash;
 }
 
-ObjString* takeString(const char* chars, int length) {
+ObjString* takeString(char* chars, int length) {
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
@@ -121,7 +122,7 @@ ObjString* copyString(const char* chars, int length) {
   if (interned != NULL) return interned;
   
   // Copy the characters to the heap so the object can own it.
-  char* heapChars = REALLOCATE(NULL, char, length + 1);
+  char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
   

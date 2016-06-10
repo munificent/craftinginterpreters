@@ -5,6 +5,9 @@
 #include "object.h"
 #include "value.h"
 
+#define ARRAY_MIN_CAPACITY 8
+#define ARRAY_GROW_FACTOR 2
+
 bool valuesEqual(Value a, Value b) {
   if (a.type != b.type) return false;
   
@@ -27,19 +30,23 @@ void initArray(ValueArray* array) {
 void growArray(ValueArray* array) {
   if (array->capacity > array->count) return;
   
+  int oldCapacity = array->capacity;
   if (array->capacity == 0) {
-    array->capacity = 4;
+    array->capacity = ARRAY_MIN_CAPACITY;
   } else {
-    array->capacity *= 2;
+    array->capacity *= ARRAY_GROW_FACTOR;
   }
   
-  array->values = REALLOCATE(array->values, Value, array->capacity);
+  array->values = GROW_ARRAY(array->values, Value,
+                             oldCapacity, array->capacity);
 }
 
 void freeArray(ValueArray* array) {
-  free(array->values);
+  FREE_ARRAY(Value, array->values, array->capacity);
+  initArray(array);
 }
 
+// TODO: Unify with strNative?
 void printValue(Value value) {
   switch (value.type) {
     case VAL_BOOL:

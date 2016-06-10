@@ -87,8 +87,6 @@ typedef struct Compiler {
   
   Upvalue upvalues[UINT8_COUNT];
   
-  int upvalueCount;
-  
   // The current level of block scope nesting. Zero is the outermost local
   // scope. 0 is global scope.
   int scopeDepth;
@@ -238,7 +236,6 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   compiler->function = NULL;
   compiler->type = type;
   compiler->localCount = 0;
-  compiler->upvalueCount = 0;
   compiler->scopeDepth = scopeDepth;
   compiler->function = newFunction();
   current = compiler;
@@ -253,7 +250,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     case TYPE_METHOD: {
       int length = currentClass->name.length + parser.previous.length + 1;
       
-      char* chars = REALLOCATE(NULL, char, length + 1);
+      char* chars = ALLOCATE(char, length + 1);
       memcpy(chars, currentClass->name.start, currentClass->name.length);
       chars[currentClass->name.length] = '.';
       memcpy(chars + currentClass->name.length + 1, parser.previous.start,
@@ -572,7 +569,6 @@ static void nil(bool canAssign) {
 
 static void number(bool canAssign) {
   double value = strtod(parser.previous.start, NULL);
-  // TODO: Handle error.
   emitConstant(NUMBER_VAL(value));
 }
 

@@ -4,9 +4,9 @@
 #include "memory.h"
 #include "table.h"
 
-#define TABLE_MAX_LOAD  0.75
-#define GROW_FACTOR     2
-#define MIN_CAPACITY    8
+#define TABLE_MAX_LOAD        0.75
+#define TABLE_GROW_FACTOR     2
+#define TABLE_MIN_CAPACITY    8
 
 void initTable(Table* table) {
   table->count = 0;
@@ -15,9 +15,8 @@ void initTable(Table* table) {
 }
 
 void freeTable(Table* table) {
-  table->count = 0;
-  table->capacity = 0;
-  free(table->entries);
+  FREE_ARRAY(Value, table->entries, table->capacity);
+  initTable(table);
 }
 
 static Entry* findEntry(Table* table, ObjString* key) {
@@ -89,7 +88,7 @@ static bool addEntry(Entry* entries, int capacity,
 
 static void resize(Table* table, int capacity) {
   // Create the new empty entry array.
-  Entry* entries = REALLOCATE(NULL, Entry, capacity);
+  Entry* entries = ALLOCATE(Entry, capacity);
   for (int i = 0; i < capacity; i++) {
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
@@ -104,7 +103,7 @@ static void resize(Table* table, int capacity) {
   }
 
   // Replace the array.
-  free(table->entries);
+  FREE_ARRAY(Value, table->entries, table->capacity);
   table->entries = entries;
   table->capacity = capacity;
 }
@@ -113,8 +112,8 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   // If the table is getting too full, make room first.
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     // Figure out the new table size.
-    int capacity = table->capacity * GROW_FACTOR;
-    if (capacity < MIN_CAPACITY) capacity = MIN_CAPACITY;
+    int capacity = table->capacity * TABLE_GROW_FACTOR;
+    if (capacity < TABLE_MIN_CAPACITY) capacity = TABLE_MIN_CAPACITY;
     
     resize(table, capacity);
   }

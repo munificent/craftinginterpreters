@@ -15,21 +15,24 @@ void initChunk(Chunk* chunk) {
 }
 
 void freeChunk(Chunk* chunk) {
-  free(chunk->code);
+  FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
+  FREE_ARRAY(int, chunk->lines, chunk->capacity);
   freeArray(&chunk->constants);
+  initChunk(chunk);
 }
 
 void writeChunk(Chunk* chunk, uint8_t byte, int line) {
-  // TODO: growArray() has almost the exact same code. Reuse somehow?
   if (chunk->capacity < chunk->count + 1) {
+    int oldCapacity = chunk->capacity;
     if (chunk->capacity == 0) {
+      // TODO: Constants. Move array ones to common?
       chunk->capacity = 4;
     } else {
       chunk->capacity *= 2;
     }
     
-    chunk->code = REALLOCATE(chunk->code, uint8_t, chunk->capacity);
-    chunk->lines = REALLOCATE(chunk->lines, int, chunk->capacity);
+    chunk->code = GROW_ARRAY(chunk->code, uint8_t, oldCapacity, chunk->capacity);
+    chunk->lines = GROW_ARRAY(chunk->lines, int, oldCapacity, chunk->capacity);
   }
   
   chunk->code[chunk->count] = byte;

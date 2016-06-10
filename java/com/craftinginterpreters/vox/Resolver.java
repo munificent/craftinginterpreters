@@ -43,8 +43,6 @@ class Resolver implements Stmt.Visitor<Void, Void>,
       resolve(method);
     }
 
-    // TODO: Check for method collisions?
-
     enclosingClasses.pop();
 
     return null;

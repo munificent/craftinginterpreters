@@ -7,6 +7,7 @@
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
+#include "object.h"
 #include "memory.h"
 #include "value.h"
 #include "vm.h"
@@ -21,6 +22,52 @@ static Value printNative(int argCount, Value* args) {
   printValue(args[0]);
   printf("\n");
   return args[0];
+}
+
+static Value strNative(int argCount, Value* args) {
+  Value arg = args[0];
+  switch (arg.type) {
+    case VAL_BOOL:
+      if (AS_BOOL(arg)) {
+        return OBJ_VAL(copyString("true", 4));
+      } else {
+        return OBJ_VAL(copyString("false", 5));
+      }
+    case VAL_NIL: return OBJ_VAL(copyString("nil", 3));
+    case VAL_NUMBER: {
+      // This is large enough to hold any double converted to a string using
+      // "%.14g". Example:
+      //
+      //     -1.12345678901234e-1022
+      //
+      // So we have:
+      //
+      // + 1 char for sign
+      // + 1 char for digit
+      // + 1 char for "."
+      // + 14 chars for decimal digits
+      // + 1 char for "e"
+      // + 1 char for "-" or "+"
+      // + 4 chars for exponent
+      // + 1 char for "\0"
+      // = 24
+      char buffer[24];
+      int length = sprintf(buffer, "%.14g", AS_NUMBER(arg));
+      return OBJ_VAL(copyString(buffer, length));
+    }
+    case VAL_OBJ: {
+      switch (OBJ_TYPE(arg)) {
+        case OBJ_BOUND_METHOD: return OBJ_VAL(copyString("<method>", 8));
+        case OBJ_CLASS: return OBJ_VAL(AS_CLASS(arg)->name);
+        case OBJ_CLOSURE: return OBJ_VAL(copyString("<fn>", 4));
+        case OBJ_FUNCTION: return OBJ_VAL(copyString("<fn>", 4));
+        case OBJ_INSTANCE: return OBJ_VAL(copyString("<instance>", 10));
+        case OBJ_NATIVE: return OBJ_VAL(copyString("<native>", 8));
+        case OBJ_STRING: return arg;
+        case OBJ_UPVALUE: return OBJ_VAL(copyString("<upvalue>", 9));
+      }
+    }
+  }
 }
 
 static void runtimeError(const char* format, ...) {
@@ -54,6 +101,8 @@ void initVM() {
   vm.frameCount = 0;
   vm.objects = NULL;
   vm.openUpvalues = NULL;
+  vm.bytesAllocated = 0;
+  vm.nextGC = 1024 * 1024;
   
   vm.grayCount = 0;
   vm.grayCapacity = 0;
@@ -66,6 +115,7 @@ void initVM() {
   
   defineNative("clock", clockNative);
   defineNative("print", printNative);
+  defineNative("str", strNative);
 }
 
 void endVM() {
@@ -306,7 +356,7 @@ static void concatenate() {
   ObjString* a = AS_STRING(peek(1));
   
   int length = a->length + b->length;
-  char* chars = REALLOCATE(NULL, char, length + 1);
+  char* chars = ALLOCATE(char, length + 1);
   memcpy(chars, a->chars, a->length);
   memcpy(chars + a->length, b->chars, b->length);
   chars[length] = '\0';
@@ -594,7 +644,7 @@ static bool run() {
         push(OBJ_VAL(closure));
         
         // Capture upvalues.
-        for (int i = 0; i < function->upvalueCount; i++) {
+        for (int i = 0; i < closure->upvalueCount; i++) {
           uint8_t isLocal = READ_BYTE();
           uint8_t index = READ_BYTE();
           if (isLocal) {

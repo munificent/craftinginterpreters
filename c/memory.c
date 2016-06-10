@@ -11,20 +11,20 @@
 #include "debug.h"
 #endif
 
-void* reallocate(void* previous, size_t size) {
-#ifdef DEBUG_STRESS_GC
-  collectGarbage();
-#endif
+void* reallocate(void* previous, size_t oldSize, size_t newSize) {
+  vm.bytesAllocated += newSize - oldSize;
   
-  // TODO: Tune this or come up with better algorithm.
-  // TODO: Doesn't take into account growing an existing allocation.
-  vm.bytesAllocated += size;
-  if (vm.bytesAllocated > 1024 * 1024 * 10) {
+  if (newSize > oldSize) {
+#ifdef DEBUG_STRESS_GC
     collectGarbage();
-    vm.bytesAllocated = 0;
+#endif
+    
+    if (vm.bytesAllocated > vm.nextGC) {
+      collectGarbage();
+    }
   }
   
-  return realloc(previous, size);
+  return realloc(previous, newSize);
 }
 
 void grayObject(Obj* object) {
@@ -63,10 +63,6 @@ static void grayArray(ValueArray* array) {
   }
 }
 
-static void grayChunk(Chunk* chunk) {
-  grayArray(&chunk->constants);
-}
-
 static void blackenObject(Obj* object) {
 #ifdef DEBUG_TRACE_GC
   printf("%p blacken ", object);
@@ -85,6 +81,7 @@ static void blackenObject(Obj* object) {
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       grayObject((Obj*)klass->name);
+      grayObject((Obj*)klass->superclass);
       grayTable(&klass->methods);
       break;
     }
@@ -92,7 +89,7 @@ static void blackenObject(Obj* object) {
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
       grayObject((Obj*)closure->function);
-      for (int i = 0; i < closure->function->upvalueCount; i++) {
+      for (int i = 0; i < closure->upvalueCount; i++) {
         grayObject((Obj*)closure->upvalues[i]);
       }
       break;
@@ -101,7 +98,7 @@ static void blackenObject(Obj* object) {
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       grayObject((Obj*)function->name);
-      grayChunk(&function->chunk);
+      grayArray(&function->chunk.constants);
       break;
     }
       
@@ -134,41 +131,56 @@ static void freeObject(Obj* object) {
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       freeTable(&klass->methods);
+      FREE(ObjClass, object);
       break;
     }
 
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
-      free(closure->upvalues);
+      FREE_ARRAY(Value, closure->upvalues, closure->upvalueCount);
+      FREE(ObjClosure, object);
       break;
     }
       
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       freeChunk(&function->chunk);
+      FREE(ObjFunction, object);
       break;
     }
       
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       freeTable(&instance->fields);
+      FREE(ObjInstance, object);
       break;
     }
       
     case OBJ_BOUND_METHOD:
+      FREE(ObjBoundMethod, object);
+      break;
+
     case OBJ_NATIVE:
-    case OBJ_STRING:
+      FREE(ObjNative, object);
+      break;
+      
+    case OBJ_STRING: {
+      ObjString* string = (ObjString*)object;
+      FREE_ARRAY(char, string->chars, string->length + 1);
+      FREE(ObjString, object);
+      break;
+    }
+      
     case OBJ_UPVALUE:
-      // No separately allocated memory.
+      FREE(ObjUpvalue, object);
       break;
   }
-  
-  free(object);
 }
 
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
-  printf("-- gc --\n");
+  printf("-- gc begin\n");
+  size_t before = vm.bytesAllocated;
 #endif
   
   // Mark the stack roots.
@@ -217,6 +229,14 @@ void collectGarbage() {
       object = &(*object)->next;
     }
   }
+  
+  // Adjust the heap size based on live memory.
+  vm.nextGC = vm.bytesAllocated * 2;
+
+#ifdef DEBUG_TRACE_GC
+  printf("-- gc collected %ld bytes (from %ld to %ld) next at %ld\n",
+         before, vm.bytesAllocated, vm.nextGC);
+#endif
 }
 
 void freeObjects() {
