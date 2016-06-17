@@ -8,7 +8,8 @@ class VoxClass implements Callable {
   final VoxClass superclass;
   private final Map<String, VoxFunction> methods;
 
-  VoxClass(String name, VoxClass superclass, Map<String, VoxFunction> methods) {
+  VoxClass(String name, VoxClass superclass,
+           Map<String, VoxFunction> methods) {
     this.name = name;
     this.superclass = superclass;
     this.methods = methods;

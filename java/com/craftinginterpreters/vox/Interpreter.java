@@ -45,7 +45,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitBlockStmt(Stmt.Block stmt, Environment environment) {
+  public Environment visitBlockStmt(Stmt.Block stmt,
+                                    Environment environment) {
     Environment before = environment;
     environment = environment.enterScope();
     for (Stmt statement : stmt.statements) {
@@ -55,7 +56,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitClassStmt(Stmt.Class stmt, Environment environment) {
+  public Environment visitClassStmt(Stmt.Class stmt,
+                                    Environment environment) {
     environment = environment.declare(stmt.name);
 
     Map<String, VoxFunction> methods = new HashMap<>();
@@ -81,18 +83,21 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitExpressionStmt(Stmt.Expression stmt, Environment environment) {
+  public Environment visitExpressionStmt(Stmt.Expression stmt,
+                                         Environment environment) {
     evaluate(stmt.expression, environment);
     return environment;
   }
 
   @Override
-  public Environment visitForStmt(Stmt.For stmt, Environment environment) {
+  public Environment visitForStmt(Stmt.For stmt,
+                                  Environment environment) {
     return environment;
   }
 
   @Override
-  public Environment visitFunctionStmt(Stmt.Function stmt, Environment environment) {
+  public Environment visitFunctionStmt(Stmt.Function stmt,
+                                       Environment environment) {
     environment = environment.declare(stmt.name);
     VoxFunction function = new VoxFunction(stmt, environment, false);
     environment.set(stmt.name, function);
@@ -100,7 +105,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitIfStmt(Stmt.If stmt, Environment environment) {
+  public Environment visitIfStmt(Stmt.If stmt,
+                                 Environment environment) {
     Environment before = environment;
     environment = environment.enterScope();
 
@@ -114,7 +120,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitReturnStmt(Stmt.Return stmt, Environment environment) {
+  public Environment visitReturnStmt(Stmt.Return stmt,
+                                     Environment environment) {
     Object value = null;
     if (stmt.value != null) value = evaluate(stmt.value, environment);
 
@@ -122,7 +129,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitVarStmt(Stmt.Var stmt, Environment environment) {
+  public Environment visitVarStmt(Stmt.Var stmt,
+                                  Environment environment) {
     Object value = null;
     if (stmt.initializer != null) {
       value = evaluate(stmt.initializer, environment);
@@ -131,7 +139,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitWhileStmt(Stmt.While stmt, Environment environment) {
+  public Environment visitWhileStmt(Stmt.While stmt,
+                                    Environment environment) {
     Environment before = environment;
     environment = environment.enterScope();
 
@@ -143,7 +152,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitAssignExpr(Expr.Assign expr, Environment environment) {
+  public Object visitAssignExpr(Expr.Assign expr,
+                                Environment environment) {
     Object value = evaluate(expr.value, environment);
 
     if (expr.object != null) {
@@ -162,7 +172,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitBinaryExpr(Expr.Binary expr, Environment environment) {
+  public Object visitBinaryExpr(Expr.Binary expr,
+                                Environment environment) {
     Object left = evaluate(expr.left, environment);
     Object right = evaluate(expr.right, environment);
 
@@ -238,27 +249,38 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitGroupingExpr(Expr.Grouping expr, Environment environment) {
+  public Object visitGroupingExpr(Expr.Grouping expr,
+                                  Environment environment) {
     return evaluate(expr.expression, environment);
   }
 
   @Override
-  public Object visitLiteralExpr(Expr.Literal expr, Environment environment) {
+  public Object visitLiteralExpr(Expr.Literal expr,
+                                 Environment environment) {
     return expr.value;
   }
 
   @Override
-  public Object visitLogicalExpr(Expr.Logical expr, Environment environment) {
+  public Object visitLogicalExpr(Expr.Logical expr,
+                                 Environment environment) {
     Object left = evaluate(expr.left, environment);
 
-    if (expr.operator.type == TokenType.OR && Primitives.isTrue(left)) return left;
-    if (expr.operator.type == TokenType.AND && !Primitives.isTrue(left)) return left;
+    if (expr.operator.type == TokenType.OR &&
+        Primitives.isTrue(left)) {
+      return left;
+    }
+
+    if (expr.operator.type == TokenType.AND &&
+        !Primitives.isTrue(left)) {
+      return left;
+    }
 
     return evaluate(expr.right, environment);
   }
 
   @Override
-  public Object visitPropertyExpr(Expr.Property expr, Environment environment) {
+  public Object visitPropertyExpr(Expr.Property expr,
+                                  Environment environment) {
     Object object = evaluate(expr.object, environment);
     if (object instanceof VoxInstance) {
       return ((VoxInstance)object).getProperty(expr.name);
@@ -269,13 +291,17 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitSuperExpr(Expr.Super expr, Environment environment) {
-    VoxClass methodClass = (VoxClass)environment.get("class", expr.keyword.line);
+  public Object visitSuperExpr(Expr.Super expr,
+                               Environment environment) {
+    VoxClass methodClass = (VoxClass)environment.get("class",
+        expr.keyword.line);
     VoxClass superclass = methodClass.superclass;
 
-    VoxInstance receiver = (VoxInstance)environment.get("this", expr.keyword.line);
+    VoxInstance receiver = (VoxInstance)environment.get("this",
+        expr.keyword.line);
 
-    VoxFunction method = superclass.findMethod(receiver, expr.method.text);
+    VoxFunction method = superclass.findMethod(receiver,
+        expr.method.text);
     if (method == null) {
       throw new RuntimeError("Undefined property '" + expr.method.text +
           "'.", expr.method);
@@ -290,7 +316,8 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitUnaryExpr(Expr.Unary expr, Environment environment) {
+  public Object visitUnaryExpr(Expr.Unary expr,
+                               Environment environment) {
     Object right = evaluate(expr.right, environment);
 
     switch (expr.operator.type) {
@@ -305,16 +332,13 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Object visitVariableExpr(Expr.Variable expr, Environment environment) {
+  public Object visitVariableExpr(Expr.Variable expr,
+                                  Environment environment) {
     return environment.get(expr.name);
-    // TODO: Talk about late binding:
-    //
-    //   if (false) variableThatIsNotDefined;
-    //
-    // No error in a late bound language, but error in eager.
   }
 
-  private void checkNumberOperands(Token operator, Object left, Object right) {
+  private void checkNumberOperands(Token operator,
+                                   Object left, Object right) {
     if (left instanceof Double && right instanceof Double) {
       return;
     }

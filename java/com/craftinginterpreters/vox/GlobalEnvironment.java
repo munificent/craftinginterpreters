@@ -9,7 +9,8 @@ class GlobalEnvironment extends Environment {
   @Override
   Object get(String name, int line) {
     if (!values.containsKey(name)) {
-      throw new RuntimeError("Undefined variable '" + name + "'.", line);
+      throw new RuntimeError(
+          "Undefined variable '" + name + "'.", line);
     }
 
     return values.get(name);
@@ -18,7 +19,8 @@ class GlobalEnvironment extends Environment {
   @Override
   void set(Token name, Object value) {
     if (!values.containsKey(name.text)) {
-      throw new RuntimeError("Undefined variable '" + name.text + "'.", name);
+      throw new RuntimeError(
+          "Undefined variable '" + name.text + "'.", name);
     }
 
     values.put(name.text, value);

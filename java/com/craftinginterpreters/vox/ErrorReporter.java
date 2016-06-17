@@ -16,7 +16,8 @@ class ErrorReporter {
   }
 
   private void report(int line, String location, String message) {
-    System.err.println("[line " + line + "] Error" + location + ": " + message);
+    System.err.println("[line " + line + "] Error" + location +
+        ": " + message);
     hadError = true;
   }
 }

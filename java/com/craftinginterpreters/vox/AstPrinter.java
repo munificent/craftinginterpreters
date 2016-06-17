@@ -12,7 +12,8 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitBlockStmt(Stmt.Block stmt, Void context) {
+  public String
+  visitBlockStmt(Stmt.Block stmt, Void context) {
     StringBuilder builder = new StringBuilder();
     builder.append("(block");
 
@@ -25,7 +26,8 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitClassStmt(Stmt.Class stmt, Void context) {
+  public String
+  visitClassStmt(Stmt.Class stmt, Void context) {
     StringBuilder builder = new StringBuilder();
     builder.append("(class " + stmt.name.text);
 
@@ -42,17 +44,20 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitExpressionStmt(Stmt.Expression stmt, Void context) {
+  public String
+  visitExpressionStmt(Stmt.Expression stmt, Void context) {
     return join("(; ", stmt.expression, ")");
   }
 
   @Override
-  public String visitForStmt(Stmt.For stmt, Void context) {
+  public String
+  visitForStmt(Stmt.For stmt, Void context) {
     return null;
   }
 
   @Override
-  public String visitFunctionStmt(Stmt.Function stmt, Void context) {
+  public String
+  visitFunctionStmt(Stmt.Function stmt, Void context) {
     StringBuilder builder = new StringBuilder();
     builder.append("(fun " + stmt.name.text + "(");
 
@@ -66,8 +71,10 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitIfStmt(Stmt.If stmt, Void context) {
-    String result = join("(if ", stmt.condition, " then ", stmt.thenBranch);
+  public String
+  visitIfStmt(Stmt.If stmt, Void context) {
+    String result = join("(if ", stmt.condition, " then ",
+        stmt.thenBranch);
     if (stmt.elseBranch != null) {
       result += join(" else ", stmt.elseBranch);
     }
@@ -76,13 +83,15 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitReturnStmt(Stmt.Return stmt, Void context) {
+  public String
+  visitReturnStmt(Stmt.Return stmt, Void context) {
     if (stmt.value == null) return "(return)";
     return join("(return ", stmt.value, ")");
   }
 
   @Override
-  public String visitVarStmt(Stmt.Var stmt, Void context) {
+  public String
+  visitVarStmt(Stmt.Var stmt, Void context) {
     if (stmt.initializer == null) {
       return join("(var ", stmt.name.text, ")");
     }
@@ -91,25 +100,31 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitWhileStmt(Stmt.While stmt, Void context) {
+  public String
+  visitWhileStmt(Stmt.While stmt, Void context) {
     return join("(while ", stmt.condition, " ", stmt.body, ")");
   }
 
   @Override
-  public String visitAssignExpr(Expr.Assign expr, Void context) {
+  public String
+  visitAssignExpr(Expr.Assign expr, Void context) {
     if (expr.object == null) {
       return join("(= ", expr.name.text, " ", expr.value, ")");
     }
-    return join("(= ", expr.object, " ", expr.name.text, " ", expr.value, ")");
+    return join("(= ", expr.object, " ", expr.name.text, " ",
+        expr.value, ")");
   }
 
   @Override
-  public String visitBinaryExpr(Expr.Binary expr, Void context) {
-    return join("(", expr.operator, " ", expr.left, " ", expr.right, ")");
+  public String
+  visitBinaryExpr(Expr.Binary expr, Void context) {
+    return join("(", expr.operator, " ", expr.left, " ", expr.right,
+        ")");
   }
 
   @Override
-  public String visitCallExpr(Expr.Call expr, Void context) {
+  public String
+  visitCallExpr(Expr.Call expr, Void context) {
     StringBuilder builder = new StringBuilder();
     builder.append("(call " + print(expr.callee));
 
@@ -122,50 +137,61 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
   }
 
   @Override
-  public String visitGroupingExpr(Expr.Grouping expr, Void context) {
+  public String
+  visitGroupingExpr(Expr.Grouping expr, Void context) {
     return join("(group ", expr.expression, ")");
   }
 
   @Override
-  public String visitLiteralExpr(Expr.Literal expr, Void context) {
+  public String
+  visitLiteralExpr(Expr.Literal expr, Void context) {
     if (expr.value instanceof String) {
-      return "\"" + ((String) expr.value).replace("\"", "\\\"") + "\"";
+      String escaped = ((String) expr.value).replace("\"", "\\\"");
+      return "\"" + escaped + "\"";
     }
 
     return expr.value.toString();
   }
 
   @Override
-  public String visitLogicalExpr(Expr.Logical expr, Void context) {
-    return join("(", expr.operator, " ", expr.left, " ", expr.right, ")");
+  public String
+  visitLogicalExpr(Expr.Logical expr, Void context) {
+    return join("(", expr.operator, " ", expr.left, " ",
+                expr.right, ")");
   }
 
   @Override
-  public String visitPropertyExpr(Expr.Property expr, Void context) {
+  public String
+  visitPropertyExpr(Expr.Property expr, Void context) {
     return join("(.", expr.object, " ", expr.name.text, ")");
   }
 
   @Override
-  public String visitSuperExpr(Expr.Super expr, Void dummy) {
+  public String
+  visitSuperExpr(Expr.Super expr, Void dummy) {
     return join("(super", expr.method, ")");
   }
 
   @Override
-  public String visitThisExpr(Expr.This expr, Void context) {
+  public String
+  visitThisExpr(Expr.This expr, Void context) {
     return "*this";
   }
 
   @Override
-  public String visitUnaryExpr(Expr.Unary expr, Void context) {
+  public String
+  visitUnaryExpr(Expr.Unary expr, Void context) {
     return join("(", expr.operator, " ", expr.right, ")");
   }
 
   @Override
-  public String visitVariableExpr(Expr.Variable expr, Void context) {
+  public String
+  visitVariableExpr(Expr.Variable expr, Void context) {
     return expr.name.text;
   }
 
-  private String join(Object... parts) {
+  private String
+  join(Object... parts) {
     StringBuilder builder = new StringBuilder();
 
     for (Object part : parts) {

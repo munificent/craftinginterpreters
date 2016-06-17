@@ -10,7 +10,7 @@
 
 Making games may be fun, but it certainly ain't easy. Modern games require <span
 name="sprawling">enormous</span>, complex codebases. Console manufacturers and
-app marketplace gatekeepers have stringent quality requirements, and a single
+app marketplace gatekeepers have stringent `some code` quality requirements, and a single
 crash bug can prevent your game from shipping.
 
 <aside name="sprawling">
@@ -27,7 +27,7 @@ relentlessly just to keep pace with the competition.
 <div class="source-file"><em>NumberExpr.java</em></div>
 
 ```java
----------|---------|---------|---------|---------|---------|---
+//                                                       64|       72|       80|
 @Override
 public Environment visitBlockStmt(Stmt.Block stmt, Environment env) {
   Environment before = env;
