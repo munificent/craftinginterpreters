@@ -88,6 +88,12 @@ static Value printNative(int argCount, Value* args) {
   return args[0];
 }
 
+static void resetStack() {
+  vm.stackTop = vm.stack;
+  vm.frameCount = 0;
+  vm.openUpvalues = NULL;
+}
+
 static void runtimeError(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -104,6 +110,8 @@ static void runtimeError(const char* format, ...) {
             function->chunk.lines[instruction],
             function->name->chars);
   }
+  
+  resetStack();
 }
 
 static void defineNative(const char* name, NativeFn function) {
@@ -115,10 +123,8 @@ static void defineNative(const char* name, NativeFn function) {
 }
 
 void initVM() {
-  vm.stackTop = vm.stack;
-  vm.frameCount = 0;
+  resetStack();
   vm.objects = NULL;
-  vm.openUpvalues = NULL;
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
   

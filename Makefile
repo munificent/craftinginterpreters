@@ -11,6 +11,9 @@ default: cvox jvox
 debug:
 	@ $(MAKE) -f c/cvox.make MODE=debug
 
+watch:
+	@ python script/build.py --watch
+
 # TODO: Get this working even if the first returns non-zero.
 test: test_java test_c
 	@ python script/test.py
@@ -39,4 +42,4 @@ $(BUILD_DIR)/java/$(JVOX_DIR)/%.class: java/$(JVOX_DIR)/%.java
 	@ javac -cp java -d $(BUILD_DIR)/java $(JAVA_OPTIONS) -implicit:none $<
 	@ printf "%10s %-60s %s\n" javac $< "$(JAVA_OPTIONS)"
 
-.PHONY: clean cvox debug default jvox test test_c test_java
+.PHONY: clean cvox debug default jvox test test_c test_java watch
