@@ -15,11 +15,10 @@ class VoxFunction implements Callable {
   }
 
   VoxFunction bind(VoxInstance self, VoxClass methodClass) {
-    Environment scope = closure
-        .enterScope()
-        .define("this", self)
-        .define("class", methodClass);
-    return new VoxFunction(declaration, scope, isInitializer);
+    Environment environment = closure.beginScope();
+    environment.define("this", self);
+    environment.define("class", methodClass);
+    return new VoxFunction(declaration, environment, isInitializer);
   }
 
   @Override
@@ -37,10 +36,9 @@ class VoxFunction implements Callable {
     Object result = null;
 
     try {
-      Environment environment = closure.enterScope();
+      Environment environment = closure.beginScope();
       for (int i = 0; i < declaration.parameters.size(); i++) {
-        environment = environment.define(
-            declaration.parameters.get(i).text,
+        environment.define(declaration.parameters.get(i).text,
             arguments.get(i));
       }
 

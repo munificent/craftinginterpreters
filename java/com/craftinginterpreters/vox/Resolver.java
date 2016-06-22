@@ -9,15 +9,18 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private final Stack<Stmt.Class> enclosingClasses = new Stack<>();
   private final Stack<Stmt.Function> enclosingFunctions = new Stack<>();
+  private final Map<Expr, Integer> locals = new HashMap<>();
 
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
   }
 
-  void resolve(List<Stmt> statements) {
+  Map<Expr, Integer> resolve(List<Stmt> statements) {
     for (Stmt statement : statements) {
       statement.accept(this, null);
     }
+
+    return locals;
   }
 
   @Override
@@ -40,7 +43,10 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     enclosingClasses.push(stmt);
 
     for (Stmt.Function method : stmt.methods) {
-      resolve(method);
+      // Push the implicit scope that binds "this" and "class".
+      beginScope();
+      resolveFunction(method);
+      endScope();
     }
 
     enclosingClasses.pop();
@@ -64,15 +70,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     declare(stmt.name);
     define(stmt.name);
 
-    enclosingFunctions.push(stmt);
-    beginScope();
-    for (Token param : stmt.parameters) {
-      declare(param);
-      define(param);
-    }
-    resolve(stmt.body);
-    endScope();
-    enclosingFunctions.pop();
+    resolveFunction(stmt);
     return null;
   }
 
@@ -138,9 +136,9 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
     if (expr.object != null) {
       resolve(expr.object);
+    } else {
+      resolveLocal(expr, expr.name);
     }
-    // TODO: Mark depth?
-//      environment.set(expr.name, value);
 
     return null;
   }
@@ -223,6 +221,8 @@ class Resolver implements Stmt.Visitor<Void, Void>,
           "A local variable cannot be used in its own initializer.");
     }
 
+    resolveLocal(expr, expr.name);
+
     return null;
   }
 
@@ -232,6 +232,18 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   private void resolve(Expr expr) {
     expr.accept(this, null);
+  }
+
+  private void resolveFunction(Stmt.Function function) {
+    enclosingFunctions.push(function);
+    beginScope();
+    for (Token param : function.parameters) {
+      declare(param);
+      define(param);
+    }
+    resolve(function.body);
+    endScope();
+    enclosingFunctions.pop();
   }
 
   private void beginScope() {
@@ -247,7 +259,6 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     if (scopes.isEmpty()) return;
 
     Map<String, Boolean> scope = scopes.peek();
-
     if (scope.containsKey(name.text)) {
       errorReporter.error(name,
           "Variable with this name already declared in this scope.");
@@ -261,5 +272,17 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     if (scopes.isEmpty()) return;
 
     scopes.peek().put(name.text, true);
+  }
+
+  private void resolveLocal(Expr expr, Token name) {
+    for (int i = scopes.size() - 1; i >= 0; i--) {
+      if (scopes.get(i).containsKey(name.text)) {
+
+        locals.put(expr, scopes.size() - 1 - i);
+        return;
+      }
+    }
+
+    // Not found. Assume it is global.
   }
 }

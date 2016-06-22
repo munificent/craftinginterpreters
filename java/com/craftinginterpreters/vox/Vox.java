@@ -18,12 +18,8 @@ public class Vox {
     Interpreter interpreter = new Interpreter(errorReporter);
 
     if (args.length == 1) {
-      try {
-        interpreter.run(readFile(args[0]));
-      } catch (RuntimeError error) {
-        System.err.println(error);
-        System.exit(70);
-      }
+      String source = readFile(args[0]);
+      if (!interpret(interpreter, source)) System.exit(70);
 
       if (errorReporter.hadError) System.exit(65);
       return;
@@ -37,13 +33,20 @@ public class Vox {
       System.out.print("> ");
       String source = reader.readLine();
 
-      try {
-        errorReporter.hadError = false;
-        interpreter.run(source);
-      } catch (RuntimeError error) {
-        System.err.println(error);
-      }
+      interpret(interpreter, source);
     }
+  }
+
+  private static boolean interpret(Interpreter interpreter,
+                                   String source) {
+    try {
+      interpreter.run(source);
+    } catch (RuntimeError error) {
+      System.err.println(error);
+      return false;
+    }
+
+    return true;
   }
 
   private static String readFile(String path) throws IOException {

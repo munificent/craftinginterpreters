@@ -3,12 +3,14 @@ package com.craftinginterpreters.vox;
 import java.util.*;
 
 // Tree-walk interpreter.
-class Interpreter implements Stmt.Visitor<Environment, Environment>,
+class Interpreter implements Stmt.Visitor<Void, Environment>,
     Expr.Visitor<Object, Environment> {
   private final ErrorReporter errorReporter;
 
   // The top level global variables.
-  private final Environment globals = new GlobalEnvironment();
+  private final Environment globals = new Environment(null);
+
+  private Map<Expr, Integer> locals;
 
   Interpreter(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
@@ -18,6 +20,7 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   void run(String source) {
+    errorReporter.hadError = false;
     Scanner scanner = new Scanner(source, errorReporter);
     List<Token> tokens = scanner.scanTokens();
     Parser parser = new Parser(tokens, errorReporter);
@@ -25,10 +28,10 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
 
     if (!errorReporter.hadError) {
       Resolver resolver = new Resolver(errorReporter);
-      resolver.resolve(statements);
+      locals = resolver.resolve(statements);
     }
 
-    // Don't run if there was a parse error.
+    // Don't run if there was a parse or resolution error.
     if (errorReporter.hadError) return;
 
     for (Stmt statement : statements) {
@@ -40,25 +43,24 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
     return expr.accept(this, environment);
   }
 
-  Environment execute(Stmt stmt, Environment environment) {
-    return stmt.accept(this, environment);
+  void execute(Stmt stmt, Environment environment) {
+    stmt.accept(this, environment);
   }
 
   @Override
-  public Environment visitBlockStmt(Stmt.Block stmt,
+  public Void visitBlockStmt(Stmt.Block stmt,
                                     Environment environment) {
-    Environment before = environment;
-    environment = environment.enterScope();
+    environment = environment.beginScope();
     for (Stmt statement : stmt.statements) {
-      environment = execute(statement, environment);
+      execute(statement, environment);
     }
-    return before;
+    return null;
   }
 
   @Override
-  public Environment visitClassStmt(Stmt.Class stmt,
+  public Void visitClassStmt(Stmt.Class stmt,
                                     Environment environment) {
-    environment = environment.declare(stmt.name);
+    environment.declare(stmt.name);
 
     Map<String, VoxFunction> methods = new HashMap<>();
     Object superclass = null;
@@ -79,36 +81,35 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
         (VoxClass)superclass, methods);
 
     environment.set(stmt.name, klass);
-    return environment;
+    return null;
   }
 
   @Override
-  public Environment visitExpressionStmt(Stmt.Expression stmt,
-                                         Environment environment) {
-    evaluate(stmt.expression, environment);
-    return environment;
-  }
-
-  @Override
-  public Environment visitForStmt(Stmt.For stmt,
+  public Void visitExpressionStmt(Stmt.Expression stmt,
                                   Environment environment) {
-    return environment;
+    evaluate(stmt.expression, environment);
+    return null;
   }
 
   @Override
-  public Environment visitFunctionStmt(Stmt.Function stmt,
-                                       Environment environment) {
-    environment = environment.declare(stmt.name);
+  public Void visitForStmt(Stmt.For stmt,
+                           Environment environment) {
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionStmt(Stmt.Function stmt,
+                                Environment environment) {
+    environment.declare(stmt.name);
     VoxFunction function = new VoxFunction(stmt, environment, false);
     environment.set(stmt.name, function);
-    return environment;
+    return null;
   }
 
   @Override
-  public Environment visitIfStmt(Stmt.If stmt,
-                                 Environment environment) {
-    Environment before = environment;
-    environment = environment.enterScope();
+  public Void visitIfStmt(Stmt.If stmt,
+                          Environment environment) {
+    environment = environment.beginScope();
 
     if (Primitives.isTrue(evaluate(stmt.condition, environment))) {
       execute(stmt.thenBranch, environment);
@@ -116,12 +117,12 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
       execute(stmt.elseBranch, environment);
     }
 
-    return before;
+    return null;
   }
 
   @Override
-  public Environment visitReturnStmt(Stmt.Return stmt,
-                                     Environment environment) {
+  public Void visitReturnStmt(Stmt.Return stmt,
+                              Environment environment) {
     Object value = null;
     if (stmt.value != null) value = evaluate(stmt.value, environment);
 
@@ -129,26 +130,26 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   }
 
   @Override
-  public Environment visitVarStmt(Stmt.Var stmt,
-                                  Environment environment) {
+  public Void visitVarStmt(Stmt.Var stmt,
+                           Environment environment) {
     Object value = null;
     if (stmt.initializer != null) {
       value = evaluate(stmt.initializer, environment);
     }
-    return environment.define(stmt.name.text, value);
+    environment.define(stmt.name.text, value);
+    return null;
   }
 
   @Override
-  public Environment visitWhileStmt(Stmt.While stmt,
-                                    Environment environment) {
-    Environment before = environment;
-    environment = environment.enterScope();
+  public Void visitWhileStmt(Stmt.While stmt,
+                             Environment environment) {
+    environment = environment.beginScope();
 
     while (Primitives.isTrue(evaluate(stmt.condition, environment))) {
       execute(stmt.body, environment);
     }
 
-    return before;
+    return null;
   }
 
   @Override
@@ -165,7 +166,12 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
             expr.name);
       }
     } else {
-      environment.set(expr.name, value);
+      Integer distance = locals.get(expr);
+      if (distance != null) {
+        environment.setAt(distance, expr.name, value);
+      } else {
+        globals.set(expr.name, value);
+      }
     }
 
     return value;
@@ -334,7 +340,12 @@ class Interpreter implements Stmt.Visitor<Environment, Environment>,
   @Override
   public Object visitVariableExpr(Expr.Variable expr,
                                   Environment environment) {
-    return environment.get(expr.name);
+    Integer distance = locals.get(expr);
+    if (distance != null) {
+      return environment.getAt(distance, expr.name);
+    } else {
+      return globals.get(expr.name);
+    }
   }
 
   private void checkNumberOperands(Token operator,
