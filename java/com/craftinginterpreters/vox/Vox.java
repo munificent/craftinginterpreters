@@ -7,70 +7,84 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
 
 public class Vox {
-  public static void main(String[] args) throws IOException {
-    if (args.length > 1) {
-      System.out.println("Usage: jvox [script]");
-      return;
-    }
-
-    ErrorReporter errorReporter = new ErrorReporter();
+  private final ErrorReporter reporter = new ErrorReporter();
 //>= Interpreting ASTs
-    Interpreter interpreter = new Interpreter(errorReporter);
-
-//>= Framework
-    if (args.length == 1) {
-      String source = readFile(args[0]);
-
-/*== Framework
-      // For now, just echo the source back.
-      System.out.println(source);
-*/
-//>= Interpreting ASTs
-      if (!interpret(interpreter, source)) System.exit(70);
-
+  private final Interpreter interpreter;
 //>= Framework
 
-      // Indicate a compile error in the exit code.
-      if (errorReporter.hadError) System.exit(65);
-      return;
-    }
+  private Vox() {
+//>= Interpreting ASTs
+    interpreter = new Interpreter(reporter);
+//>= Framework
+  }
 
-    // No file argument, so run the REPL.
+  private void runFile(String path) throws IOException {
+    byte[] bytes = Files.readAllBytes(Paths.get(path));
+    String source = new String(bytes, Charset.defaultCharset());
+
+    run(source);
+
+    // Indicate an error in the exit code.
+    if (reporter.hadError) System.exit(65);
+    if (reporter.hadRuntimeError) System.exit(70);
+  }
+
+  private void repl() throws IOException {
+    InputStreamReader input = new InputStreamReader(System.in);
+    BufferedReader reader = new BufferedReader(input);
+
     for (;;) {
-      InputStreamReader input = new InputStreamReader(System.in);
-      BufferedReader reader = new BufferedReader(input);
-
       System.out.print("> ");
       String source = reader.readLine();
+      run(source);
+      reporter.reset();
+    }
+  }
 
+  public static void main(String[] args) throws IOException {
+    Vox vox = new Vox();
+
+    if (args.length > 1) {
+      System.out.println("Usage: jvox [script]");
+    } else if (args.length == 1) {
+      vox.runFile(args[0]);
+    } else {
+      vox.repl();
+    }
+  }
+
+//>= Interpreting ASTs
+  void run(String source) {
 /*== Framework
-      // For now, just echo the source back.
-      System.out.println(": " + source);
+    // For now, just echo the source back.
+    System.out.println(": " + source);
 */
+//>= Scanning
+    Scanner scanner = new Scanner(source, reporter);
+    List<Token> tokens = scanner.scanTokens();
+//>= Parsing Expressions
+
+    Parser parser = new Parser(tokens, reporter);
+//>= Variables
+
+    List<Stmt> statements = parser.parseProgram();
+    if (reporter.hadError) return;
+//>= Closures
+
+    Resolver resolver = new Resolver(reporter);
+    Map<Expr, Integer> locals = resolver.resolve(statements);
 //>= Interpreting ASTs
-      interpret(interpreter, source);
-//>= Framework
-    }
-  }
 
+    // Don't run if there was a syntax error.
+    if (reporter.hadError) return;
+//>= Variables
+
+    interpreter.interpret(statements, locals);
+    // TODO: Interpret expressions for AST chapter.
 //>= Interpreting ASTs
-  private static boolean interpret(Interpreter interpreter,
-                                   String source) {
-    try {
-      interpreter.run(source);
-    } catch (RuntimeError error) {
-      System.err.println(error);
-      return false;
-    }
-
-    return true;
-  }
-
-//>= Framework
-  private static String readFile(String path) throws IOException {
-    byte[] bytes = Files.readAllBytes(Paths.get(path));
-    return new String(bytes, Charset.defaultCharset());
   }
 }

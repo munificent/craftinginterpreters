@@ -13,18 +13,18 @@ class Environment {
   }
 
   Object get(Token name) {
-    return get(name.text, name.line);
+    return get(name.text, name);
   }
 
-  Object get(String name, int line) {
+  Object get(String name, Token token) {
     if (values.containsKey(name)) {
       return values.get(name);
     }
 
-    if (enclosing != null) return enclosing.get(name, line);
+    if (enclosing != null) return enclosing.get(name, token);
 
-    throw new RuntimeError(
-        "Undefined variable '" + name + "'.", line);
+    throw new RuntimeError(token,
+        "Undefined variable '" + name + "'.");
   }
 
 //>= Closures
@@ -49,8 +49,8 @@ class Environment {
       return;
     }
 
-    throw new RuntimeError(
-        "Undefined variable '" + name.text + "'.", name);
+    throw new RuntimeError(name,
+        "Undefined variable '" + name.text + "'.");
   }
 
 //>= Closures

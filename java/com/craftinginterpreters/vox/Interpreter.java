@@ -6,7 +6,7 @@ import java.util.*;
 // Tree-walk interpreter.
 class Interpreter implements Stmt.Visitor<Void, Environment>,
     Expr.Visitor<Object, Environment> {
-  private final ErrorReporter errorReporter;
+  private final ErrorReporter reporter;
 
 //>= Variables
   // The top level global variables.
@@ -16,8 +16,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
   private Map<Expr, Integer> locals;
 
 //>= Interpreting ASTs
-  Interpreter(ErrorReporter errorReporter) {
-    this.errorReporter = errorReporter;
+  Interpreter(ErrorReporter reporter) {
+    this.reporter = reporter;
 
 //>= Functions
     globals.define("print", Callable.wrap(Primitives::print));
@@ -26,29 +26,21 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 //>= Interpreting ASTs
   }
 
-  void run(String source) {
-    errorReporter.hadError = false;
-    Scanner scanner = new Scanner(source, errorReporter);
-    List<Token> tokens = scanner.scanTokens();
-    Parser parser = new Parser(tokens, errorReporter);
-//>= Variables
-    List<Stmt> statements = parser.parseProgram();
-
+  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
 //>= Closures
-    if (!errorReporter.hadError) {
-      Resolver resolver = new Resolver(errorReporter);
-      locals = resolver.resolve(statements);
-    }
+    this.locals = locals;
 
 //>= Interpreting ASTs
-    // Don't run if there was a syntax error.
-    if (errorReporter.hadError) return;
-
+    try {
 //>= Variables
-    for (Stmt statement : statements) {
-      execute(statement, globals);
-    }
+      for (Stmt statement : statements) {
+        execute(statement, globals);
+      }
 //>= Interpreting ASTs
+      // TODO: Interpret expressions for AST chapter.
+    } catch (RuntimeError error) {
+      reporter.runtimeError(error.token.line, error.getMessage());
+    }
   }
 
   private Object evaluate(Expr expr, Environment environment) {
@@ -81,7 +73,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass, environment);
       if (!(superclass instanceof VoxClass)) {
-        throw new RuntimeError("Superclass must be a class.", stmt.name);
+        throw new RuntimeError(stmt.name,
+            "Superclass must be a class.");
       }
     }
 
@@ -184,8 +177,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       if (object instanceof VoxInstance) {
         ((VoxInstance)object).fields.put(expr.name.text, value);
       } else {
-        throw new RuntimeError("Only instances have fields.",
-            expr.name);
+        throw new RuntimeError(expr.name,
+            "Only instances have fields.");
       }
     } else {
 //>= Closures
@@ -238,13 +231,12 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
           return (double)left + (double)right;
         }
 
-        if (left instanceof String || right instanceof String) {
-          return Primitives.stringify(left) + Primitives.stringify(right);
+        if (left instanceof String && right instanceof String) {
+          return (String)left + (String)right;
         }
 
-        throw new RuntimeError(
-            "Operands must be two numbers or two strings.",
-            expr.operator);
+        throw new RuntimeError(expr.operator,
+            "Operands must be two numbers or two strings.");
 
       case SLASH:
         checkNumberOperands(expr.operator, left, right);
@@ -270,13 +262,13 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     }
 
     if (!(callee instanceof Callable)) {
-      throw new RuntimeError(
-          "Can only call functions and classes.", expr.paren);
+      throw new RuntimeError(expr.paren,
+          "Can only call functions and classes.");
     }
 
     Callable function = (Callable)callee;
     if (arguments.size() < function.requiredArguments()) {
-      throw new RuntimeError("Not enough arguments.", expr.paren);
+      throw new RuntimeError(expr.paren, "Not enough arguments.");
     }
 
     return function.call(this, arguments);
@@ -323,8 +315,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       return ((VoxInstance)object).getProperty(expr.name);
     }
 
-    throw new RuntimeError("Only instances have properties.",
-        expr.name);
+    throw new RuntimeError(expr.name,
+        "Only instances have properties.");
   }
 
 //>= Inheritance
@@ -332,17 +324,17 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
   public Object visitSuperExpr(Expr.Super expr,
                                Environment environment) {
     VoxClass methodClass = (VoxClass)environment.get("class",
-        expr.keyword.line);
+        expr.keyword);
     VoxClass superclass = methodClass.superclass;
 
     VoxInstance receiver = (VoxInstance)environment.get("this",
-        expr.keyword.line);
+        expr.keyword);
 
     VoxFunction method = superclass.findMethod(receiver,
         expr.method.text);
     if (method == null) {
-      throw new RuntimeError("Undefined property '" + expr.method.text +
-          "'.", expr.method);
+      throw new RuntimeError(expr.method,
+          "Undefined property '" + expr.method.text + "'.");
     }
 
     return method;
@@ -394,7 +386,7 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       return;
     }
 
-    throw new RuntimeError("Operands must be numbers.", operator);
+    throw new RuntimeError(operator, "Operands must be numbers.");
   }
 
   private void checkNumberOperand(Token operator, Object left) {
@@ -402,6 +394,6 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
       return;
     }
 
-    throw new RuntimeError("Operand must be a number.", operator);
+    throw new RuntimeError(operator, "Operand must be a number.");
   }
 }

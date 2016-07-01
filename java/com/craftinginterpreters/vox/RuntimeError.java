@@ -2,20 +2,10 @@
 package com.craftinginterpreters.vox;
 
 class RuntimeError extends RuntimeException {
-  private final int line;
+  final Token token;
 
-  RuntimeError(String message, Token token) {
+  RuntimeError(Token token, String message) {
     super(message);
-    line = token.line;
-  }
-
-  RuntimeError(String message, int line) {
-    super(message);
-    this.line = line;
-  }
-
-  @Override
-  public String toString() {
-    return getMessage() + "\n[line " + line + "]";
+    this.token = token;
   }
 }

@@ -3,9 +3,20 @@ package com.craftinginterpreters.vox;
 
 class ErrorReporter {
   boolean hadError = false;
+  boolean hadRuntimeError = false;
+
+  void reset() {
+    hadError = false;
+    hadRuntimeError = false;
+  }
 
   void error(int line, String message) {
     report(line, "", message);
+  }
+
+  void runtimeError(int line, String message) {
+    System.err.println(message + "\n[line " + line + "]");
+    hadRuntimeError = true;
   }
 
 //>= Scanning

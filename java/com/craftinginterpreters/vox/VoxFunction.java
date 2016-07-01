@@ -59,7 +59,7 @@ class VoxFunction implements Callable {
     }
 
 //>= Classes
-    return isInitializer ? closure.get("this", 0) : result;
+    return isInitializer ? closure.get("this", null) : result;
 //>= Classes
   }
 }

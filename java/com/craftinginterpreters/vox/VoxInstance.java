@@ -20,8 +20,8 @@ class VoxInstance {
     VoxFunction method = klass.findMethod(this, name.text);
     if (method != null) return method;
 
-    throw new RuntimeError(
-        "Undefined property '" + name.text + "'.", name);
+    throw new RuntimeError(name,
+        "Undefined property '" + name.text + "'.");
   }
 
   @Override
