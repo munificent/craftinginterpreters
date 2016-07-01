@@ -1,3 +1,4 @@
+//>= Variables
 package com.craftinginterpreters.vox;
 
 import java.util.HashMap;
@@ -26,6 +27,7 @@ class Environment {
         "Undefined variable '" + name + "'.", line);
   }
 
+//>= Closures
   Object getAt(int distance, Token name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -35,6 +37,7 @@ class Environment {
     return environment.values.get(name.text);
   }
 
+//>= Variables
   void set(Token name, Object value) {
     if (values.containsKey(name.text)) {
       values.put(name.text, value);
@@ -50,6 +53,7 @@ class Environment {
         "Undefined variable '" + name.text + "'.", name);
   }
 
+//>= Closures
   void setAt(int distance, Token name, Object value) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -59,6 +63,7 @@ class Environment {
     environment.values.put(name.text, value);
   }
 
+//>= Variables
   void declare(Token name) {
     // Note: Can't just use define(name, null). That will
     // overwrite a previously defined global value.

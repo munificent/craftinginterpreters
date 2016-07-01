@@ -1,3 +1,4 @@
+//>= Framework
 package com.craftinginterpreters.vox;
 
 class ErrorReporter {
@@ -7,6 +8,7 @@ class ErrorReporter {
     report(line, "", message);
   }
 
+//>= Scanning
   void error(Token token, String message) {
     if (token.type == TokenType.EOF) {
       report(token.line, " at end", message);
@@ -15,6 +17,7 @@ class ErrorReporter {
     }
   }
 
+//>= Framework
   private void report(int line, String location, String message) {
     System.err.println("[line " + line + "] Error" + location +
         ": " + message);

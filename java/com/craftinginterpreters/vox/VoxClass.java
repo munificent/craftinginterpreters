@@ -1,3 +1,4 @@
+//>= Classes
 package com.craftinginterpreters.vox;
 
 import java.util.List;
@@ -5,17 +6,22 @@ import java.util.Map;
 
 class VoxClass implements Callable {
   final String name;
+//>= Inheritance
   final VoxClass superclass;
+//>= Classes
   private final Map<String, VoxFunction> methods;
 
   VoxClass(String name, VoxClass superclass,
            Map<String, VoxFunction> methods) {
     this.name = name;
+//>= Inheritance
     this.superclass = superclass;
+//>= Classes
     this.methods = methods;
   }
 
   VoxFunction findMethod(VoxInstance instance, String name) {
+//>= Inheritance
     VoxClass voxClass = this;
     while (voxClass != null) {
       if (voxClass.methods.containsKey(name)) {
@@ -27,6 +33,8 @@ class VoxClass implements Callable {
 
     // Not found.
     return null;
+//>= Classes
+    // TODO: Non-inheritance version.
   }
 
   @Override

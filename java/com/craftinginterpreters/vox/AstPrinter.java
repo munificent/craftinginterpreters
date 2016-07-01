@@ -1,3 +1,4 @@
+//>= Syntax Trees
 package com.craftinginterpreters.vox;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
@@ -7,6 +8,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return expr.accept(this, null);
   }
 
+//>= Variables
   String print(Stmt stmt) {
     return stmt.accept(this, null);
   }
@@ -25,16 +27,19 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return builder.toString();
   }
 
+//>= Classes
   @Override
   public String
   visitClassStmt(Stmt.Class stmt, Void context) {
     StringBuilder builder = new StringBuilder();
     builder.append("(class " + stmt.name.text);
 
+//>= Inheritance
     if (stmt.superclass != null) {
       builder.append(" < " + print(stmt.superclass));
     }
 
+//>= Classes
     for (Stmt.Function method : stmt.methods) {
       builder.append(" " + print(method));
     }
@@ -43,18 +48,21 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return builder.toString();
   }
 
+//>= Variables
   @Override
   public String
   visitExpressionStmt(Stmt.Expression stmt, Void context) {
     return join("(; ", stmt.expression, ")");
   }
 
+//>= Uhh
   @Override
   public String
   visitForStmt(Stmt.For stmt, Void context) {
     return null;
   }
 
+//>= Functions
   @Override
   public String
   visitFunctionStmt(Stmt.Function stmt, Void context) {
@@ -70,6 +78,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return builder.toString();
   }
 
+//>= Control Flow
   @Override
   public String
   visitIfStmt(Stmt.If stmt, Void context) {
@@ -82,6 +91,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return result + ")";
   }
 
+//>= Functions
   @Override
   public String
   visitReturnStmt(Stmt.Return stmt, Void context) {
@@ -89,6 +99,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return join("(return ", stmt.value, ")");
   }
 
+//>= Variables
   @Override
   public String
   visitVarStmt(Stmt.Var stmt, Void context) {
@@ -99,12 +110,14 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return join("(var ", stmt.name.text, " = ", stmt.initializer, ")");
   }
 
+//>= Control Flow
   @Override
   public String
   visitWhileStmt(Stmt.While stmt, Void context) {
     return join("(while ", stmt.condition, " ", stmt.body, ")");
   }
 
+//>= Variables
   @Override
   public String
   visitAssignExpr(Expr.Assign expr, Void context) {
@@ -115,6 +128,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
         expr.value, ")");
   }
 
+//>= Syntax Trees
   @Override
   public String
   visitBinaryExpr(Expr.Binary expr, Void context) {
@@ -122,6 +136,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
         ")");
   }
 
+//>= Functions
   @Override
   public String
   visitCallExpr(Expr.Call expr, Void context) {
@@ -136,6 +151,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return builder.toString();
   }
 
+//>= Syntax Trees
   @Override
   public String
   visitGroupingExpr(Expr.Grouping expr, Void context) {
@@ -153,6 +169,7 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
     return expr.value.toString();
   }
 
+//>= Control Flow
   @Override
   public String
   visitLogicalExpr(Expr.Logical expr, Void context) {
@@ -160,36 +177,42 @@ class AstPrinter implements Stmt.Visitor<String, Void>,
                 expr.right, ")");
   }
 
+//>= Classes
   @Override
   public String
   visitPropertyExpr(Expr.Property expr, Void context) {
     return join("(.", expr.object, " ", expr.name.text, ")");
   }
 
+//>= Inheritance
   @Override
   public String
   visitSuperExpr(Expr.Super expr, Void dummy) {
     return join("(super", expr.method, ")");
   }
 
+//>= Classes
   @Override
   public String
   visitThisExpr(Expr.This expr, Void context) {
     return "*this";
   }
 
+//>= Syntax Trees
   @Override
   public String
   visitUnaryExpr(Expr.Unary expr, Void context) {
     return join("(", expr.operator, " ", expr.right, ")");
   }
 
+//>= Variables
   @Override
   public String
   visitVariableExpr(Expr.Variable expr, Void context) {
     return expr.name.text;
   }
 
+//>= Syntax Trees
   private String
   join(Object... parts) {
     StringBuilder builder = new StringBuilder();

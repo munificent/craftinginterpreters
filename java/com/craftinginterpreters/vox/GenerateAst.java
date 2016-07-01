@@ -1,3 +1,4 @@
+//>= Syntax Trees
 package com.craftinginterpreters.vox;
 
 import java.io.IOException;
@@ -8,30 +9,52 @@ import java.util.List;
 public class GenerateAst {
   public static void main(String[] args) throws IOException {
     defineAstType("Expr", Arrays.asList(
+//>= Variables
         "Assign   : Expr object, Token name, Expr value",
+//>= Syntax Trees
         "Binary   : Expr left, Token operator, Expr right",
+//>= Functions
         "Call     : Expr callee, Token paren, List<Expr> arguments",
+//>= Syntax Trees
         "Grouping : Expr expression",
         "Literal  : Object value",
+//>= Control Flow
         "Logical  : Expr left, Token operator, Expr right",
+//>= Classes
         "Property : Expr object, Token name",
+//>= Inheritance
         "Super    : Token keyword, Token method",
+//>= Classes
         "This     : Token name",
+//>= Syntax Trees
         "Unary    : Token operator, Expr right",
+//>= Variables
         "Variable : Token name"
+//>= Syntax Trees
     ));
 
+//>= Variables
     defineAstType("Stmt", Arrays.asList(
         "Block       : List<Stmt> statements",
+//>= Classes
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
+//>= Variables
         "Expression  : Expr expression",
+//>= Uhh
         "For         : Token name, Expr iterator, Stmt body",
+//>= Functions
         "Function    : Token name, List<Token> parameters, Stmt body",
+//>= Control Flow
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
+//>= Functions
         "Return      : Token keyword, Expr value",
+//>= Variables
         "Var         : Token name, Expr initializer",
+//>= Control Flow
         "While       : Expr condition, Stmt body"
+//>= Variables
     ));
+//>= Syntax Trees
   }
 
   private static void defineAstType(String baseName, List<String> types)

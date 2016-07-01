@@ -1,8 +1,10 @@
+//>= Functions
 package com.craftinginterpreters.vox;
 
 import java.util.List;
 
 interface Callable {
+//>= Uhh
   static Callable wrap(Primitive0 primitive) {
     return new Callable() {
       @Override
@@ -18,6 +20,7 @@ interface Callable {
     };
   }
 
+//>= Functions
   static Callable wrap(Primitive1 primitive) {
     return new Callable() {
       @Override
@@ -33,10 +36,12 @@ interface Callable {
     };
   }
 
+//>= Uhh
   interface Primitive0 {
     Object call();
   }
 
+//>= Functions
   interface Primitive1 {
     Object call(Object argument);
   }

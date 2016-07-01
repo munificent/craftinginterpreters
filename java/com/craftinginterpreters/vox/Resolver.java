@@ -1,3 +1,4 @@
+//>= Closures
 package com.craftinginterpreters.vox;
 
 import java.util.*;
@@ -7,7 +8,9 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   private final ErrorReporter errorReporter;
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
+//>= Classes
   private final Stack<Stmt.Class> enclosingClasses = new Stack<>();
+//>= Closures
   private final Stack<Stmt.Function> enclosingFunctions = new Stack<>();
   private final Map<Expr, Integer> locals = new HashMap<>();
 
@@ -31,6 +34,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Classes
   @Override
   public Void visitClassStmt(Stmt.Class stmt, Void dummy) {
     declare(stmt.name);
@@ -54,17 +58,20 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Closures
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt, Void dummy) {
     resolve(stmt.expression);
     return null;
   }
 
+//>= Uhh
   @Override
   public Void visitForStmt(Stmt.For stmt, Void dummy) {
     return null;
   }
 
+//>= Closures
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt, Void dummy) {
     declare(stmt.name);
@@ -74,6 +81,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Control Flow
   @Override
   public Void visitIfStmt(Stmt.If stmt, Void dummy) {
     beginScope();
@@ -92,6 +100,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt, Void dummy) {
+//>= Classes
     if (stmt.value != null) {
       if (!enclosingFunctions.isEmpty() &&
           enclosingFunctions.peek().name.text.equals("init") &&
@@ -103,6 +112,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
       resolve(stmt.value);
     }
+//>= Classes
 
     if (enclosingFunctions.isEmpty()) {
       errorReporter.error(stmt.keyword, "Cannot return from top-level code.");
@@ -121,6 +131,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Control Flow
   @Override
   public Void visitWhileStmt(Stmt.While stmt, Void dummy) {
     beginScope();
@@ -130,6 +141,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Closures
   @Override
   public Void visitAssignExpr(Expr.Assign expr, Void dummy) {
     resolve(expr.value);
@@ -172,6 +184,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Control Flow
   @Override
   public Void visitLogicalExpr(Expr.Logical expr, Void dummy) {
     resolve(expr.left);
@@ -179,12 +192,14 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Classes
   @Override
   public Void visitPropertyExpr(Expr.Property expr, Void dummy) {
     resolve(expr.object);
     return null;
   }
 
+//>= Inheritance
   @Override
   public Void visitSuperExpr(Expr.Super expr, Void dummy) {
     if (enclosingClasses.isEmpty()) {
@@ -197,6 +212,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Classes
   @Override
   public Void visitThisExpr(Expr.This expr, Void dummy) {
     if (enclosingClasses.isEmpty()) {
@@ -206,6 +222,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
     return null;
   }
 
+//>= Closures
   @Override
   public Void visitUnaryExpr(Expr.Unary expr, Void dummy) {
     resolve(expr.right);
@@ -214,7 +231,6 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   @Override
   public Void visitVariableExpr(Expr.Variable expr, Void dummy) {
-    // TODO: Mark name depth?
     if (!scopes.isEmpty() &&
         scopes.peek().get(expr.name.text) == Boolean.FALSE) {
       errorReporter.error(expr.name,

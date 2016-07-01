@@ -1,3 +1,4 @@
+//>= Parsing Expressions
 package com.craftinginterpreters.vox;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ class Parser {
     this.errorReporter = errorReporter;
   }
 
+//>= Variables
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
@@ -38,12 +40,19 @@ class Parser {
   }
 
   private Stmt statement() {
+//>= Classes
     if (match(CLASS)) return classStatement();
+//>= Functions
     if (match(FUN)) return function("function");
+//>= Control Flow
     if (match(IF)) return ifStatement();
+//>= Functions
     if (match(RETURN)) return returnStatement();
+//>= Variables
     if (match(VAR)) return varStatement();
+//>= Control Flow
     if (match(WHILE)) return whileStatement();
+//>= Variables
     if (check(LEFT_BRACE)) return block();
 
     // Expression statement.
@@ -52,14 +61,17 @@ class Parser {
     return new Stmt.Expression(expr);
   }
 
+//>= Classes
   private Stmt classStatement() {
     Token name = consume(IDENTIFIER, "Expect class name.");
 
+//>= Inheritance
     Expr superclass = null;
     if (match(LESS)) {
       consume(IDENTIFIER, "Expect superclass name.");
       superclass = new Expr.Variable(previous());
     }
+//>= Classes
 
     List<Stmt.Function> methods = new ArrayList<>();
     consume(LEFT_BRACE, "Expect '{' before class body.");
@@ -73,6 +85,7 @@ class Parser {
     return new Stmt.Class(name, superclass, methods);
   }
 
+//>= Control Flow
   private Stmt ifStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'if'.");
     Expr condition = expression();
@@ -87,6 +100,7 @@ class Parser {
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
 
+//>= Functions
   private Stmt returnStatement() {
     Token keyword = previous();
     Expr value = null;
@@ -98,6 +112,7 @@ class Parser {
     return new Stmt.Return(keyword, value);
   }
 
+//>= Variables
   private Stmt varStatement() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
 
@@ -111,6 +126,7 @@ class Parser {
     return new Stmt.Var(name, initializer);
   }
 
+//>= Control Flow
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
     Expr condition = expression();
@@ -120,6 +136,7 @@ class Parser {
     return new Stmt.While(condition, body);
   }
 
+//>= Functions
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER,
         "Expect " + kind + " name.");
@@ -141,6 +158,7 @@ class Parser {
     return new Stmt.Function(name, parameters, body);
   }
 
+//>= Variables
   private Stmt block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
@@ -154,10 +172,12 @@ class Parser {
     return new Stmt.Block(statements);
   }
 
+//>= Parsing Expressions
   private Expr expression() {
     return assignment();
   }
 
+//>= Variables
   private Expr assignment() {
     Expr expr = or();
 
@@ -179,6 +199,7 @@ class Parser {
     return expr;
   }
 
+//>= Control Flow
   private Expr or() {
     Expr expr = and();
 
@@ -203,6 +224,7 @@ class Parser {
     return expr;
   }
 
+//>= Parsing Expressions
   private Expr equality() {
     Expr expr = comparison();
 
@@ -261,6 +283,7 @@ class Parser {
     return call();
   }
 
+//>= Functions
   private List<Expr> argumentList() {
     List<Expr> arguments = new ArrayList<>();
 
@@ -303,6 +326,7 @@ class Parser {
     return expr;
   }
 
+//>= Parsing Expressions
   private Expr primary() {
     if (match(FALSE)) return new Expr.Literal(false);
     if (match(TRUE)) return new Expr.Literal(true);
@@ -312,6 +336,7 @@ class Parser {
       return new Expr.Literal(previous().value);
     }
 
+//>= Inheritance
     if (match(SUPER)) {
       Token keyword = previous();
       consume(DOT, "Expect '.' after 'super'.");
@@ -320,12 +345,15 @@ class Parser {
       return new Expr.Super(keyword, method);
     }
 
+//>= Classes
     if (match(THIS)) return new Expr.This(previous());
 
+//>= Variables
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous());
     }
 
+//>= Parsing Expressions
     if (match(LEFT_PAREN)) {
       Expr expr = expression();
       consume(RIGHT_PAREN, "Expect ')' after expression.");
