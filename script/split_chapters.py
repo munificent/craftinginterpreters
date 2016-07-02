@@ -37,7 +37,6 @@ def split_file(path, chapter_index):
 
   package = chapter_to_package(chapter_index)
   ensure_dir(os.path.join("gen", package, directory))
-  print "  ", relative
 
   min_chapter = 0
   max_chapter = 999
@@ -63,6 +62,11 @@ def split_file(path, chapter_index):
       elif in_block_comment and line.strip() == "*/":
         in_block_comment = False
       elif chapter_index >= min_chapter and chapter_index <= max_chapter:
+        # Hack. In generate_ast.java, we split up a parameter list among
+        # multiple chapters, which leads to hanging commas in some cases.
+        # Remove them.
+        if line.strip().startswith(")") and output.endswith(",\n"):
+          output = output[:-2] + "\n"
         output += line
 
   # Write the output.

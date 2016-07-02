@@ -32,8 +32,8 @@ public class GenerateAst {
         "Variable : Token name"
 //>= Syntax Trees
     ));
-
 //>= Variables
+
     defineAstType("Stmt", Arrays.asList(
         "Block       : List<Stmt> statements",
 //>= Classes
@@ -79,14 +79,15 @@ public class GenerateAst {
 
     // The base accept() method.
     writer.println("");
-    writer.println("  abstract <R, C> R accept(Visitor<R, C> visitor, C context);");
+    writer.println("  abstract <R, C> R accept(" +
+        "Visitor<R, C> visitor, C context);");
 
     writer.println("}");
     writer.close();
   }
 
-  private static void defineVisitor(PrintWriter writer, String baseName,
-                                    List<String> types) {
+  private static void defineVisitor(
+      PrintWriter writer, String baseName, List<String> types) {
     writer.println("  interface Visitor<R, C> {");
 
     for (String type : types) {
@@ -101,7 +102,8 @@ public class GenerateAst {
   private static void defineType(PrintWriter writer, String baseName,
                                  String className, String fieldList) {
     writer.println("");
-    writer.println("  static class " + className + " extends " + baseName + " {");
+    writer.println("  static class " + className + " extends " +
+        baseName + " {");
 
     // Constructor.
     writer.println("    " + className + "(" + fieldList + ") {");
@@ -117,8 +119,10 @@ public class GenerateAst {
 
     // Visitor pattern.
     writer.println();
-    writer.println("    <R, C> R accept(Visitor<R, C> visitor, C context) {");
-    writer.println("      return visitor.visit" + className + baseName + "(this, context);");
+    writer.println(
+        "    <R, C> R accept(Visitor<R, C> visitor, C context) {");
+    writer.println("      return visitor.visit" + className +
+        baseName + "(this, context);");
     writer.println("    }");
 
     // Fields.

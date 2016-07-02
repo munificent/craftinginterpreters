@@ -7,20 +7,23 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+//>= Scanning
 import java.util.List;
+//>= Closures
 import java.util.Map;
+//>= Framework
 
 public class Vox {
   private final ErrorReporter reporter = new ErrorReporter();
 //>= Interpreting ASTs
   private final Interpreter interpreter;
 //>= Framework
+//>= Interpreting ASTs
 
   private Vox() {
-//>= Interpreting ASTs
     interpreter = new Interpreter(reporter);
-//>= Framework
   }
+//>= Framework
 
   private void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -57,8 +60,8 @@ public class Vox {
     }
   }
 
-//>= Interpreting ASTs
-  void run(String source) {
+//>= Framework
+  private void run(String source) {
 /*== Framework
     // For now, just echo the source back.
     System.out.println(": " + source);
@@ -66,9 +69,21 @@ public class Vox {
 //>= Scanning
     Scanner scanner = new Scanner(source, reporter);
     List<Token> tokens = scanner.scanTokens();
+/*== Scanning
+    // For now, just print the tokens.
+    for (Token token : tokens) {
+      System.out.println(": " + token);
+    }
+*/
 //>= Parsing Expressions
 
     Parser parser = new Parser(tokens, reporter);
+/*== Parsing Expressions
+
+    // For now, just print the tree.
+    Expr expression = parser.parseExpression();
+    System.out.println(expression);
+*/
 //>= Variables
 
     List<Stmt> statements = parser.parseProgram();
@@ -85,6 +100,6 @@ public class Vox {
 
     interpreter.interpret(statements, locals);
     // TODO: Interpret expressions for AST chapter.
-//>= Interpreting ASTs
+//>= Framework
   }
 }
