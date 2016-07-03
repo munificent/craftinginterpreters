@@ -82,7 +82,7 @@ public class Vox {
 
     // For now, just print the tree.
     Expr expression = parser.parseExpression();
-    System.out.println(expression);
+    System.out.println(new AstPrinter().print(expression));
 */
 //>= Variables
 

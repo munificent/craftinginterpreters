@@ -1,7 +1,9 @@
 //>= Parsing Expressions
 package com.craftinginterpreters.vox;
 
+//>= Variables
 import java.util.ArrayList;
+//>= Parsing Expressions
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,8 +30,8 @@ class Parser {
     this.tokens = tokens;
     this.errorReporter = errorReporter;
   }
-
 //>= Variables
+
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
@@ -56,16 +58,16 @@ class Parser {
     if (check(LEFT_BRACE)) return block();
 
     // Expression statement.
-    Expr expr = expression();
+    Expr expr = parseExpression();
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
-
 //>= Classes
+
   private Stmt classStatement() {
     Token name = consume(IDENTIFIER, "Expect class name.");
-
 //>= Inheritance
+
     Expr superclass = null;
     if (match(LESS)) {
       consume(IDENTIFIER, "Expect superclass name.");
@@ -84,11 +86,11 @@ class Parser {
 
     return new Stmt.Class(name, superclass, methods);
   }
-
 //>= Control Flow
+
   private Stmt ifStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'if'.");
-    Expr condition = expression();
+    Expr condition = parseExpression();
     consume(RIGHT_PAREN, "Expect ')' after if condition.");
 
     Stmt thenBranch = statement();
@@ -99,44 +101,44 @@ class Parser {
 
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
-
 //>= Functions
+
   private Stmt returnStatement() {
     Token keyword = previous();
     Expr value = null;
     if (!check(SEMICOLON)) {
-      value = expression();
+      value = parseExpression();
     }
 
     consume(SEMICOLON, "Expect ';' after return value.");
     return new Stmt.Return(keyword, value);
   }
-
 //>= Variables
+
   private Stmt varStatement() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
 
     Expr initializer = null;
     if (match(EQUAL)) {
-      initializer = expression();
+      initializer = parseExpression();
     }
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
 
     return new Stmt.Var(name, initializer);
   }
-
 //>= Control Flow
+
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
-    Expr condition = expression();
+    Expr condition = parseExpression();
     consume(RIGHT_PAREN, "Expect '(' after condition.");
     Stmt body = statement();
 
     return new Stmt.While(condition, body);
   }
-
 //>= Functions
+
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER,
         "Expect " + kind + " name.");
@@ -157,8 +159,8 @@ class Parser {
     Stmt body = block();
     return new Stmt.Function(name, parameters, body);
   }
-
 //>= Variables
+
   private Stmt block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
@@ -171,13 +173,18 @@ class Parser {
 
     return new Stmt.Block(statements);
   }
-
 //>= Parsing Expressions
-  private Expr expression() {
-    return assignment();
-  }
 
+  Expr parseExpression() {
 //>= Variables
+    return assignment();
+//>= Parsing Expressions
+/*== Parsing Expressions
+    return equality();
+*/
+  }
+//>= Variables
+
   private Expr assignment() {
     Expr expr = or();
 
@@ -198,8 +205,8 @@ class Parser {
 
     return expr;
   }
-
 //>= Control Flow
+
   private Expr or() {
     Expr expr = and();
 
@@ -223,8 +230,8 @@ class Parser {
 
     return expr;
   }
-
 //>= Parsing Expressions
+
   private Expr equality() {
     Expr expr = comparison();
 
@@ -280,10 +287,15 @@ class Parser {
       return new Expr.Unary(operator, right);
     }
 
-    return call();
-  }
-
 //>= Functions
+    return call();
+//>= Parsing Expressions
+/*== Parsing Expressions
+    return primary();
+*/
+  }
+//>= Functions
+
   private List<Expr> argumentList() {
     List<Expr> arguments = new ArrayList<>();
 
@@ -293,7 +305,7 @@ class Parser {
           error("Cannot have more than 8 arguments.");
         }
 
-        arguments.add(expression());
+        arguments.add(parseExpression());
       } while (match(COMMA));
     }
 
@@ -325,8 +337,8 @@ class Parser {
 
     return expr;
   }
-
 //>= Parsing Expressions
+
   private Expr primary() {
     if (match(FALSE)) return new Expr.Literal(false);
     if (match(TRUE)) return new Expr.Literal(true);
@@ -344,18 +356,18 @@ class Parser {
           "Expect superclass method name.");
       return new Expr.Super(keyword, method);
     }
-
 //>= Classes
-    if (match(THIS)) return new Expr.This(previous());
 
+    if (match(THIS)) return new Expr.This(previous());
 //>= Variables
+
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous());
     }
-
 //>= Parsing Expressions
+
     if (match(LEFT_PAREN)) {
-      Expr expr = expression();
+      Expr expr = parseExpression();
       consume(RIGHT_PAREN, "Expect ')' after expression.");
       return new Expr.Grouping(expr);
     }

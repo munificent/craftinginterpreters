@@ -7,6 +7,9 @@ import java.util.Arrays;
 /*== Syntax Trees
 class AstPrinter implements Expr.Visitor<String, Void> {
 */
+/*== Parsing Expressions
+class AstPrinter implements Expr.Visitor<String, Void> {
+*/
 //>= Variables
 class AstPrinter implements Expr.Visitor<String, Void>,
     Stmt.Visitor<String, Void> {
@@ -224,4 +227,5 @@ class AstPrinter implements Expr.Visitor<String, Void>,
     System.out.println(new AstPrinter().print(expression));
   }
 */
+//>= Syntax Trees
 }

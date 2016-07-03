@@ -96,6 +96,6 @@ def walk(dir, extension, callback):
 
 
 for i, chapter in enumerate(CHAPTERS):
-  print i, chapter
+  print i + 1, chapter
 
   walk("java", ".java", lambda path: split_file(path, i))
