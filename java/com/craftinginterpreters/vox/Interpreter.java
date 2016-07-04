@@ -30,17 +30,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     this.reporter = reporter;
 //>= Functions
 
-    globals.define("print", Callable.wrap(Primitives::print));
+    globals.define("print", Callable.wrap(this::print));
 //>= Uhh
-    globals.define("clock", Callable.wrap(Primitives::clock));
+    globals.define("clock", Callable.wrap(this::clock));
 //>= Interpreting ASTs
   }
 /*== Interpreting ASTs
 
   void interpret(Expr expression) {
     try {
-      Object result = evaluate(expression);
-      System.out.println(Primitives.stringify(result));
+      print(evaluate(expression));
     } catch (RuntimeError error) {
       reporter.runtimeError(error.token.line, error.getMessage());
     }
@@ -152,7 +151,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
-    if (Primitives.isTrue(evaluate(stmt.condition))) {
+    if (isTrue(evaluate(stmt.condition))) {
       executeIn(stmt.thenBranch, environment.beginScope());
     } else if (stmt.elseBranch != null) {
       executeIn(stmt.elseBranch, environment.beginScope());
@@ -183,7 +182,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
-    while (Primitives.isTrue(evaluate(stmt.condition))) {
+    while (isTrue(evaluate(stmt.condition))) {
       executeIn(stmt.body, environment.beginScope());
     }
     return null;
@@ -225,8 +224,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object right = evaluate(expr.right);
 
     switch (expr.operator.type) {
-      case BANG_EQUAL: return !Primitives.isEqual(left, right);
-      case EQUAL_EQUAL: return Primitives.isEqual(left, right);
+      case BANG_EQUAL: return !isEqual(left, right);
+      case EQUAL_EQUAL: return isEqual(left, right);
 
       case GREATER:
         checkNumberOperands(expr.operator, left, right);
@@ -311,13 +310,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitLogicalExpr(Expr.Logical expr) {
     Object left = evaluate(expr.left);
 
-    if (expr.operator.type == TokenType.OR &&
-        Primitives.isTrue(left)) {
+    if (expr.operator.type == TokenType.OR && isTrue(left)) {
       return left;
     }
 
-    if (expr.operator.type == TokenType.AND &&
-        !Primitives.isTrue(left)) {
+    if (expr.operator.type == TokenType.AND && !isTrue(left)) {
       return left;
     }
 
@@ -368,7 +365,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object right = evaluate(expr.right);
 
     switch (expr.operator.type) {
-      case BANG: return !Primitives.isTrue(right);
+      case BANG:
+        return !isTrue(right);
       case MINUS:
         checkNumberOperand(expr.operator, right);
         return -(double)right;
@@ -409,5 +407,45 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     throw new RuntimeError(operator, "Operand must be a number.");
+  }
+
+  private Object print(Object argument) {
+    System.out.println(stringify(argument));
+    return argument;
+  }
+//>= Uhh
+
+  private Object clock() {
+    return (double)System.currentTimeMillis() / 1000.0;
+  }
+//>= Interpreting ASTs
+
+  boolean isTrue(Object object) {
+    if (object == null) return false;
+    if (object instanceof Boolean) return (boolean)object;
+    return true;
+  }
+
+  boolean isEqual(Object a, Object b) {
+    // nil is only equal to nil.
+    if (a == null && b == null) return true;
+    if (a == null) return false;
+
+    return a.equals(b);
+  }
+
+  private String stringify(Object object) {
+    if (object == null) return "nil";
+
+    // Hack. Work around Java adding ".0" to integer-valued doubles.
+    if (object instanceof Double) {
+      String text = object.toString();
+      if (text.endsWith(".0")) {
+        text = text.substring(0, text.length() - 2);
+      }
+      return text;
+    }
+
+    return object.toString();
   }
 }
