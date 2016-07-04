@@ -79,8 +79,7 @@ public class GenerateAst {
 
     // The base accept() method.
     writer.println("");
-    writer.println("  abstract <R, C> R accept(" +
-        "Visitor<R, C> visitor, C context);");
+    writer.println("  abstract <R> R accept(Visitor<R> visitor);");
 
     writer.println("}");
     writer.close();
@@ -88,12 +87,12 @@ public class GenerateAst {
 
   private static void defineVisitor(
       PrintWriter writer, String baseName, List<String> types) {
-    writer.println("  interface Visitor<R, C> {");
+    writer.println("  interface Visitor<R> {");
 
     for (String type : types) {
       String typeName = type.split(":")[0].trim();
       writer.println("    R visit" + typeName + baseName + "(" +
-          typeName + " " + baseName.toLowerCase() + ", C context);");
+          typeName + " " + baseName.toLowerCase() + ");");
     }
 
     writer.println("  }");
@@ -120,9 +119,9 @@ public class GenerateAst {
     // Visitor pattern.
     writer.println();
     writer.println(
-        "    <R, C> R accept(Visitor<R, C> visitor, C context) {");
+        "    <R> R accept(Visitor<R> visitor) {");
     writer.println("      return visitor.visit" + className +
-        baseName + "(this, context);");
+        baseName + "(this);");
     writer.println("    }");
 
     // Fields.

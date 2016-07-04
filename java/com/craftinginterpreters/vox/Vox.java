@@ -64,7 +64,7 @@ public class Vox {
   private void run(String source) {
 /*== Framework
     // For now, just echo the source back.
-    System.out.println(": " + source);
+    System.out.println(source);
 */
 //>= Scanning
     Scanner scanner = new Scanner(source, reporter);
@@ -72,7 +72,7 @@ public class Vox {
 /*== Scanning
     // For now, just print the tokens.
     for (Token token : tokens) {
-      System.out.println(": " + token);
+      System.out.println(token);
     }
 */
 //>= Parsing Expressions

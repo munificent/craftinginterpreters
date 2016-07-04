@@ -3,8 +3,7 @@ package com.craftinginterpreters.vox;
 
 import java.util.*;
 
-class Resolver implements Stmt.Visitor<Void, Void>,
-    Expr.Visitor<Void, Void> {
+class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final ErrorReporter errorReporter;
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
@@ -20,14 +19,14 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
   Map<Expr, Integer> resolve(List<Stmt> statements) {
     for (Stmt statement : statements) {
-      statement.accept(this, null);
+      resolve(statement);
     }
 
     return locals;
   }
 
   @Override
-  public Void visitBlockStmt(Stmt.Block stmt, Void dummy) {
+  public Void visitBlockStmt(Stmt.Block stmt) {
     beginScope();
     resolve(stmt.statements);
     endScope();
@@ -36,7 +35,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Classes
   @Override
-  public Void visitClassStmt(Stmt.Class stmt, Void dummy) {
+  public Void visitClassStmt(Stmt.Class stmt) {
     declare(stmt.name);
     define(stmt.name);
 
@@ -60,20 +59,20 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Closures
   @Override
-  public Void visitExpressionStmt(Stmt.Expression stmt, Void dummy) {
+  public Void visitExpressionStmt(Stmt.Expression stmt) {
     resolve(stmt.expression);
     return null;
   }
 
 //>= Uhh
   @Override
-  public Void visitForStmt(Stmt.For stmt, Void dummy) {
+  public Void visitForStmt(Stmt.For stmt) {
     return null;
   }
 
 //>= Closures
   @Override
-  public Void visitFunctionStmt(Stmt.Function stmt, Void dummy) {
+  public Void visitFunctionStmt(Stmt.Function stmt) {
     declare(stmt.name);
     define(stmt.name);
 
@@ -83,9 +82,9 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Control Flow
   @Override
-  public Void visitIfStmt(Stmt.If stmt, Void dummy) {
-    beginScope();
+  public Void visitIfStmt(Stmt.If stmt) {
     resolve(stmt.condition);
+    beginScope();
     resolve(stmt.thenBranch);
     endScope();
 
@@ -99,7 +98,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   @Override
-  public Void visitReturnStmt(Stmt.Return stmt, Void dummy) {
+  public Void visitReturnStmt(Stmt.Return stmt) {
 //>= Classes
     if (stmt.value != null) {
       if (!enclosingFunctions.isEmpty() &&
@@ -122,10 +121,10 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   @Override
-  public Void visitVarStmt(Stmt.Var stmt, Void dummy) {
+  public Void visitVarStmt(Stmt.Var stmt) {
     declare(stmt.name);
     if (stmt.initializer != null) {
-      stmt.initializer.accept(this, null);
+      resolve(stmt.initializer);
     }
     define(stmt.name);
     return null;
@@ -133,7 +132,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Control Flow
   @Override
-  public Void visitWhileStmt(Stmt.While stmt, Void dummy) {
+  public Void visitWhileStmt(Stmt.While stmt) {
     beginScope();
     resolve(stmt.condition);
     resolve(stmt.body);
@@ -143,7 +142,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Closures
   @Override
-  public Void visitAssignExpr(Expr.Assign expr, Void dummy) {
+  public Void visitAssignExpr(Expr.Assign expr) {
     resolve(expr.value);
 
     if (expr.object != null) {
@@ -156,14 +155,14 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   @Override
-  public Void visitBinaryExpr(Expr.Binary expr, Void dummy) {
+  public Void visitBinaryExpr(Expr.Binary expr) {
     resolve(expr.left);
     resolve(expr.right);
     return null;
   }
 
   @Override
-  public Void visitCallExpr(Expr.Call expr, Void dummy) {
+  public Void visitCallExpr(Expr.Call expr) {
     resolve(expr.callee);
 
     for (Expr argument : expr.arguments) {
@@ -174,19 +173,19 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   @Override
-  public Void visitGroupingExpr(Expr.Grouping expr, Void dummy) {
+  public Void visitGroupingExpr(Expr.Grouping expr) {
     resolve(expr.expression);
     return null;
   }
 
   @Override
-  public Void visitLiteralExpr(Expr.Literal expr, Void dummy) {
+  public Void visitLiteralExpr(Expr.Literal expr) {
     return null;
   }
 
 //>= Control Flow
   @Override
-  public Void visitLogicalExpr(Expr.Logical expr, Void dummy) {
+  public Void visitLogicalExpr(Expr.Logical expr) {
     resolve(expr.left);
     resolve(expr.right);
     return null;
@@ -194,14 +193,14 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Classes
   @Override
-  public Void visitPropertyExpr(Expr.Property expr, Void dummy) {
+  public Void visitPropertyExpr(Expr.Property expr) {
     resolve(expr.object);
     return null;
   }
 
 //>= Inheritance
   @Override
-  public Void visitSuperExpr(Expr.Super expr, Void dummy) {
+  public Void visitSuperExpr(Expr.Super expr) {
     if (enclosingClasses.isEmpty()) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
@@ -214,7 +213,7 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Classes
   @Override
-  public Void visitThisExpr(Expr.This expr, Void dummy) {
+  public Void visitThisExpr(Expr.This expr) {
     if (enclosingClasses.isEmpty()) {
       errorReporter.error(expr.name,
           "Cannot use 'this' outside of a class.");
@@ -224,13 +223,13 @@ class Resolver implements Stmt.Visitor<Void, Void>,
 
 //>= Closures
   @Override
-  public Void visitUnaryExpr(Expr.Unary expr, Void dummy) {
+  public Void visitUnaryExpr(Expr.Unary expr) {
     resolve(expr.right);
     return null;
   }
 
   @Override
-  public Void visitVariableExpr(Expr.Variable expr, Void dummy) {
+  public Void visitVariableExpr(Expr.Variable expr) {
     if (!scopes.isEmpty() &&
         scopes.peek().get(expr.name.text) == Boolean.FALSE) {
       errorReporter.error(expr.name,
@@ -243,11 +242,11 @@ class Resolver implements Stmt.Visitor<Void, Void>,
   }
 
   private void resolve(Stmt stmt) {
-    stmt.accept(this, null);
+    stmt.accept(this);
   }
 
   private void resolve(Expr expr) {
-    expr.accept(this, null);
+    expr.accept(this);
   }
 
   private void resolveFunction(Stmt.Function function) {

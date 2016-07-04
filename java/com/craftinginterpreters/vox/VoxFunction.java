@@ -53,7 +53,7 @@ class VoxFunction implements Callable {
             arguments.get(i));
       }
 
-      interpreter.execute(declaration.body, environment);
+      interpreter.executeIn(declaration.body, environment);
     } catch (Return returnValue) {
       result = returnValue.value;
     }

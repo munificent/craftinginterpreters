@@ -178,10 +178,10 @@ class Parser {
   Expr parseExpression() {
 //>= Variables
     return assignment();
-//>= Parsing Expressions
-/*== Parsing Expressions
+/*>= Parsing Expressions <= Interpreting ASTs
     return equality();
 */
+//>= Parsing Expressions
   }
 //>= Variables
 
@@ -289,10 +289,10 @@ class Parser {
 
 //>= Functions
     return call();
-//>= Parsing Expressions
-/*== Parsing Expressions
+/*>= Parsing Expressions <= Interpreting ASTs
     return primary();
 */
+//>= Parsing Expressions
   }
 //>= Functions
 

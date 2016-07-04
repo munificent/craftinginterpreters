@@ -3,18 +3,18 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 
 abstract class Expr {
-  interface Visitor<R, C> {
-    R visitAssignExpr(Assign expr, C context);
-    R visitBinaryExpr(Binary expr, C context);
-    R visitCallExpr(Call expr, C context);
-    R visitGroupingExpr(Grouping expr, C context);
-    R visitLiteralExpr(Literal expr, C context);
-    R visitLogicalExpr(Logical expr, C context);
-    R visitPropertyExpr(Property expr, C context);
-    R visitSuperExpr(Super expr, C context);
-    R visitThisExpr(This expr, C context);
-    R visitUnaryExpr(Unary expr, C context);
-    R visitVariableExpr(Variable expr, C context);
+  interface Visitor<R> {
+    R visitAssignExpr(Assign expr);
+    R visitBinaryExpr(Binary expr);
+    R visitCallExpr(Call expr);
+    R visitGroupingExpr(Grouping expr);
+    R visitLiteralExpr(Literal expr);
+    R visitLogicalExpr(Logical expr);
+    R visitPropertyExpr(Property expr);
+    R visitSuperExpr(Super expr);
+    R visitThisExpr(This expr);
+    R visitUnaryExpr(Unary expr);
+    R visitVariableExpr(Variable expr);
   }
 
   static class Assign extends Expr {
@@ -24,8 +24,8 @@ abstract class Expr {
       this.value = value;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitAssignExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitAssignExpr(this);
     }
 
     final Expr object;
@@ -40,8 +40,8 @@ abstract class Expr {
       this.right = right;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitBinaryExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBinaryExpr(this);
     }
 
     final Expr left;
@@ -56,8 +56,8 @@ abstract class Expr {
       this.arguments = arguments;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitCallExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitCallExpr(this);
     }
 
     final Expr callee;
@@ -70,8 +70,8 @@ abstract class Expr {
       this.expression = expression;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitGroupingExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitGroupingExpr(this);
     }
 
     final Expr expression;
@@ -82,8 +82,8 @@ abstract class Expr {
       this.value = value;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitLiteralExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitLiteralExpr(this);
     }
 
     final Object value;
@@ -96,8 +96,8 @@ abstract class Expr {
       this.right = right;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitLogicalExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitLogicalExpr(this);
     }
 
     final Expr left;
@@ -111,8 +111,8 @@ abstract class Expr {
       this.name = name;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitPropertyExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitPropertyExpr(this);
     }
 
     final Expr object;
@@ -125,8 +125,8 @@ abstract class Expr {
       this.method = method;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitSuperExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitSuperExpr(this);
     }
 
     final Token keyword;
@@ -138,8 +138,8 @@ abstract class Expr {
       this.name = name;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitThisExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitThisExpr(this);
     }
 
     final Token name;
@@ -151,8 +151,8 @@ abstract class Expr {
       this.right = right;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitUnaryExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitUnaryExpr(this);
     }
 
     final Token operator;
@@ -164,12 +164,12 @@ abstract class Expr {
       this.name = name;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitVariableExpr(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVariableExpr(this);
     }
 
     final Token name;
   }
 
-  abstract <R, C> R accept(Visitor<R, C> visitor, C context);
+  abstract <R> R accept(Visitor<R> visitor);
 }

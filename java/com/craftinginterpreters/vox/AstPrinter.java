@@ -5,23 +5,22 @@ import java.util.Arrays;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
 /*>= Syntax Trees <= Interpreting ASTs
-class AstPrinter implements Expr.Visitor<String, Void> {
+class AstPrinter implements Expr.Visitor<String> {
 */
 //>= Variables
-class AstPrinter implements Expr.Visitor<String, Void>,
-    Stmt.Visitor<String, Void> {
+class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 //>= Syntax Trees
   String print(Expr expr) {
-    return expr.accept(this, null);
+    return expr.accept(this);
   }
 //>= Variables
 
   String print(Stmt stmt) {
-    return stmt.accept(this, null);
+    return stmt.accept(this);
   }
 
   @Override
-  public String visitAssignExpr(Expr.Assign expr, Void context) {
+  public String visitAssignExpr(Expr.Assign expr) {
     if (expr.object == null) {
       return join("=", expr.name.text, expr.value);
     }
@@ -30,24 +29,24 @@ class AstPrinter implements Expr.Visitor<String, Void>,
 //>= Syntax Trees
 
   @Override
-  public String visitBinaryExpr(Expr.Binary expr, Void context) {
+  public String visitBinaryExpr(Expr.Binary expr) {
     return join(expr.operator, expr.left, expr.right);
   }
 //>= Functions
 
   @Override
-  public String visitCallExpr(Expr.Call expr, Void context) {
+  public String visitCallExpr(Expr.Call expr) {
     return join("call", expr.callee, expr.arguments);
   }
 //>= Syntax Trees
 
   @Override
-  public String visitGroupingExpr(Expr.Grouping expr, Void context) {
+  public String visitGroupingExpr(Expr.Grouping expr) {
     return join("group ", expr.expression);
   }
 
   @Override
-  public String visitLiteralExpr(Expr.Literal expr, Void context) {
+  public String visitLiteralExpr(Expr.Literal expr) {
     if (expr.value instanceof String) {
       String escaped = ((String) expr.value).replace("\"", "\\\"");
       return "\"" + escaped + "\"";
@@ -58,48 +57,48 @@ class AstPrinter implements Expr.Visitor<String, Void>,
 //>= Control Flow
 
   @Override
-  public String visitLogicalExpr(Expr.Logical expr, Void context) {
+  public String visitLogicalExpr(Expr.Logical expr) {
     return join(expr.operator, expr.left, expr.right);
   }
 //>= Classes
 
   @Override
-  public String visitPropertyExpr(Expr.Property expr, Void context) {
+  public String visitPropertyExpr(Expr.Property expr) {
     return join(".", expr.object, expr.name.text);
   }
 //>= Inheritance
 
   @Override
-  public String visitSuperExpr(Expr.Super expr, Void dummy) {
+  public String visitSuperExpr(Expr.Super expr) {
     return join("super", expr.method);
   }
 //>= Classes
 
   @Override
-  public String visitThisExpr(Expr.This expr, Void context) {
+  public String visitThisExpr(Expr.This expr) {
     return "this";
   }
 //>= Syntax Trees
 
   @Override
-  public String visitUnaryExpr(Expr.Unary expr, Void context) {
+  public String visitUnaryExpr(Expr.Unary expr) {
     return join(expr.operator, expr.right);
   }
 //>= Variables
 
   @Override
-  public String visitVariableExpr(Expr.Variable expr, Void context) {
+  public String visitVariableExpr(Expr.Variable expr) {
     return expr.name.text;
   }
 
   @Override
-  public String visitBlockStmt(Stmt.Block stmt, Void context) {
+  public String visitBlockStmt(Stmt.Block stmt) {
     return join("block", stmt.statements);
   }
 //>= Classes
 
   @Override
-  public String visitClassStmt(Stmt.Class stmt, Void context) {
+  public String visitClassStmt(Stmt.Class stmt) {
     StringBuilder builder = new StringBuilder();
     builder.append("(class " + stmt.name.text);
 //>= Inheritance
@@ -119,20 +118,19 @@ class AstPrinter implements Expr.Visitor<String, Void>,
 //>= Variables
 
   @Override
-  public String visitExpressionStmt(
-      Stmt.Expression stmt, Void context) {
+  public String visitExpressionStmt(Stmt.Expression stmt) {
     return join(";", stmt.expression);
   }
 //>= Uhh
 
   @Override
-  public String visitForStmt(Stmt.For stmt, Void context) {
+  public String visitForStmt(Stmt.For stmt) {
     return null;
   }
 //>= Functions
 
   @Override
-  public String visitFunctionStmt(Stmt.Function stmt, Void context) {
+  public String visitFunctionStmt(Stmt.Function stmt) {
     StringBuilder builder = new StringBuilder();
     builder.append("(fun " + stmt.name.text + "(");
 
@@ -147,7 +145,7 @@ class AstPrinter implements Expr.Visitor<String, Void>,
 //>= Control Flow
 
   @Override
-  public String visitIfStmt(Stmt.If stmt, Void context) {
+  public String visitIfStmt(Stmt.If stmt) {
     if (stmt.elseBranch == null) {
       return join("if", stmt.condition, "then", stmt.thenBranch);
     }
@@ -158,14 +156,14 @@ class AstPrinter implements Expr.Visitor<String, Void>,
 //>= Functions
 
   @Override
-  public String visitReturnStmt(Stmt.Return stmt, Void context) {
+  public String visitReturnStmt(Stmt.Return stmt) {
     if (stmt.value == null) return "(return)";
     return join("return", stmt.value);
   }
 //>= Variables
 
   @Override
-  public String visitVarStmt(Stmt.Var stmt, Void context) {
+  public String visitVarStmt(Stmt.Var stmt) {
     if (stmt.initializer == null) {
       return join("var", stmt.name.text);
     }
@@ -175,7 +173,7 @@ class AstPrinter implements Expr.Visitor<String, Void>,
 //>= Control Flow
 
   @Override
-  public String visitWhileStmt(Stmt.While stmt, Void context) {
+  public String visitWhileStmt(Stmt.While stmt) {
     return join("while", stmt.condition, stmt.body);
   }
 //>= Syntax Trees

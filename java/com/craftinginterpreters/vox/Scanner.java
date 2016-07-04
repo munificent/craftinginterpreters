@@ -105,7 +105,7 @@ class Scanner {
       }
     }
 
-    addToken(EOF);
+    tokens.add(new Token(EOF, "", null, line));
     return tokens;
   }
 

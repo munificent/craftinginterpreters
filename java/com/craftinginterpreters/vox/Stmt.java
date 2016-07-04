@@ -3,16 +3,16 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 
 abstract class Stmt {
-  interface Visitor<R, C> {
-    R visitBlockStmt(Block stmt, C context);
-    R visitClassStmt(Class stmt, C context);
-    R visitExpressionStmt(Expression stmt, C context);
-    R visitForStmt(For stmt, C context);
-    R visitFunctionStmt(Function stmt, C context);
-    R visitIfStmt(If stmt, C context);
-    R visitReturnStmt(Return stmt, C context);
-    R visitVarStmt(Var stmt, C context);
-    R visitWhileStmt(While stmt, C context);
+  interface Visitor<R> {
+    R visitBlockStmt(Block stmt);
+    R visitClassStmt(Class stmt);
+    R visitExpressionStmt(Expression stmt);
+    R visitForStmt(For stmt);
+    R visitFunctionStmt(Function stmt);
+    R visitIfStmt(If stmt);
+    R visitReturnStmt(Return stmt);
+    R visitVarStmt(Var stmt);
+    R visitWhileStmt(While stmt);
   }
 
   static class Block extends Stmt {
@@ -20,8 +20,8 @@ abstract class Stmt {
       this.statements = statements;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitBlockStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitBlockStmt(this);
     }
 
     final List<Stmt> statements;
@@ -34,8 +34,8 @@ abstract class Stmt {
       this.methods = methods;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitClassStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitClassStmt(this);
     }
 
     final Token name;
@@ -48,8 +48,8 @@ abstract class Stmt {
       this.expression = expression;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitExpressionStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitExpressionStmt(this);
     }
 
     final Expr expression;
@@ -62,8 +62,8 @@ abstract class Stmt {
       this.body = body;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitForStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitForStmt(this);
     }
 
     final Token name;
@@ -78,8 +78,8 @@ abstract class Stmt {
       this.body = body;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitFunctionStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitFunctionStmt(this);
     }
 
     final Token name;
@@ -94,8 +94,8 @@ abstract class Stmt {
       this.elseBranch = elseBranch;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitIfStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitIfStmt(this);
     }
 
     final Expr condition;
@@ -109,8 +109,8 @@ abstract class Stmt {
       this.value = value;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitReturnStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitReturnStmt(this);
     }
 
     final Token keyword;
@@ -123,8 +123,8 @@ abstract class Stmt {
       this.initializer = initializer;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitVarStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitVarStmt(this);
     }
 
     final Token name;
@@ -137,13 +137,13 @@ abstract class Stmt {
       this.body = body;
     }
 
-    <R, C> R accept(Visitor<R, C> visitor, C context) {
-      return visitor.visitWhileStmt(this, context);
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitWhileStmt(this);
     }
 
     final Expr condition;
     final Stmt body;
   }
 
-  abstract <R, C> R accept(Visitor<R, C> visitor, C context);
+  abstract <R> R accept(Visitor<R> visitor);
 }
