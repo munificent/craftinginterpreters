@@ -4,68 +4,82 @@ package com.craftinginterpreters.vox;
 import java.util.*;
 
 // Tree-walk interpreter.
+/*== Interpreting ASTs
+class Interpreter implements Expr.Visitor<String, Void> {
+*/
+//>= Variables
 class Interpreter implements Stmt.Visitor<Void, Environment>,
     Expr.Visitor<Object, Environment> {
+//>= Interpreting ASTs
   private final ErrorReporter reporter;
-
 //>= Variables
+
   // The top level global variables.
   private final Environment globals = new Environment(null);
-
 //>= Closures
-  private Map<Expr, Integer> locals;
 
+  private Map<Expr, Integer> locals;
 //>= Interpreting ASTs
+
   Interpreter(ErrorReporter reporter) {
     this.reporter = reporter;
-
 //>= Functions
+
     globals.define("print", Callable.wrap(Primitives::print));
 //>= Uhh
     globals.define("clock", Callable.wrap(Primitives::clock));
 //>= Interpreting ASTs
   }
+/*== Interpreting ASTs
 
-  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
-//>= Closures
-    this.locals = locals;
-
-//>= Interpreting ASTs
+  Object interpret(Expr expression) {
     try {
-//>= Variables
-      for (Stmt statement : statements) {
-        execute(statement, globals);
-      }
-//>= Interpreting ASTs
-      // TODO: Interpret expressions for AST chapter.
+      return evaluate(expression);
     } catch (RuntimeError error) {
       reporter.runtimeError(error.token.line, error.getMessage());
     }
   }
+*/
+//>= Variables
+
+  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
+//>= Closures
+    this.locals = locals;
+//>= Variables
+
+    try {
+      for (Stmt statement : statements) {
+        execute(statement, globals);
+      }
+    } catch (RuntimeError error) {
+      reporter.runtimeError(error.token.line, error.getMessage());
+    }
+  }
+//>= Interpreting ASTs
 
   private Object evaluate(Expr expr, Environment environment) {
     return expr.accept(this, environment);
   }
-
 //>= Variables
+
   void execute(Stmt stmt, Environment environment) {
     stmt.accept(this, environment);
   }
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt,
-                                    Environment environment) {
+                             Environment environment) {
     environment = environment.beginScope();
     for (Stmt statement : stmt.statements) {
       execute(statement, environment);
     }
     return null;
   }
-
 //>= Classes
+
   @Override
   public Void visitClassStmt(Stmt.Class stmt,
-                                    Environment environment) {
+                             Environment environment) {
     environment.declare(stmt.name);
 
     Map<String, VoxFunction> methods = new HashMap<>();
@@ -90,23 +104,23 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     environment.set(stmt.name, klass);
     return null;
   }
-
 //>= Variables
+
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt,
                                   Environment environment) {
     evaluate(stmt.expression, environment);
     return null;
   }
-
 //>= Uhh
+
   @Override
   public Void visitForStmt(Stmt.For stmt,
                            Environment environment) {
     return null;
   }
-
 //>= Functions
+
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt,
                                 Environment environment) {
@@ -115,8 +129,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     environment.set(stmt.name, function);
     return null;
   }
-
 //>= Control Flow
+
   @Override
   public Void visitIfStmt(Stmt.If stmt,
                           Environment environment) {
@@ -130,8 +144,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     return null;
   }
-
 //>= Functions
+
   @Override
   public Void visitReturnStmt(Stmt.Return stmt,
                               Environment environment) {
@@ -140,8 +154,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     throw new Return(value);
   }
-
 //>= Variables
+
   @Override
   public Void visitVarStmt(Stmt.Var stmt,
                            Environment environment) {
@@ -152,8 +166,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     environment.define(stmt.name.text, value);
     return null;
   }
-
 //>= Control Flow
+
   @Override
   public Void visitWhileStmt(Stmt.While stmt,
                              Environment environment) {
@@ -165,8 +179,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     return null;
   }
-
 //>= Variables
+
   @Override
   public Object visitAssignExpr(Expr.Assign expr,
                                 Environment environment) {
@@ -195,8 +209,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     return value;
   }
-
 //>= Interpreting ASTs
+
   @Override
   public Object visitBinaryExpr(Expr.Binary expr,
                                 Environment environment) {
@@ -250,8 +264,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     // Unreachable.
     return null;
   }
-
 //>= Functions
+
   @Override
   public Object visitCallExpr(Expr.Call expr, Environment environment) {
     Object callee = evaluate(expr.callee, environment);
@@ -273,8 +287,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     return function.call(this, arguments);
   }
-
 //>= Interpreting ASTs
+
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr,
                                   Environment environment) {
@@ -286,8 +300,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
                                  Environment environment) {
     return expr.value;
   }
-
 //>= Control Flow
+
   @Override
   public Object visitLogicalExpr(Expr.Logical expr,
                                  Environment environment) {
@@ -305,8 +319,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     return evaluate(expr.right, environment);
   }
-
 //>= Classes
+
   @Override
   public Object visitPropertyExpr(Expr.Property expr,
                                   Environment environment) {
@@ -318,8 +332,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     throw new RuntimeError(expr.name,
         "Only instances have properties.");
   }
-
 //>= Inheritance
+
   @Override
   public Object visitSuperExpr(Expr.Super expr,
                                Environment environment) {
@@ -339,14 +353,14 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
 
     return method;
   }
-
 //>= Classes
+
   @Override
   public Object visitThisExpr(Expr.This expr, Environment environment) {
     return environment.get(expr.name);
   }
-
 //>= Interpreting ASTs
+
   @Override
   public Object visitUnaryExpr(Expr.Unary expr,
                                Environment environment) {
@@ -362,8 +376,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     // Unreachable.
     return null;
   }
-
 //>= Variables
+
   @Override
   public Object visitVariableExpr(Expr.Variable expr,
                                   Environment environment) {
@@ -378,8 +392,8 @@ class Interpreter implements Stmt.Visitor<Void, Environment>,
     }
 //>= Variables
   }
-
 //>= Interpreting ASTs
+
   private void checkNumberOperands(Token operator,
                                    Object left, Object right) {
     if (left instanceof Double && right instanceof Double) {

@@ -4,6 +4,7 @@
 import codecs
 import glob
 import os
+import re
 
 CHAPTERS = [
   "Framework",
@@ -21,10 +22,37 @@ CHAPTERS = [
   "Uhh"
 ]
 
+LINE_SECTION_PATTERN = re.compile(r'//[>=]=')
+BLOCK_SECTION_PATTERN = re.compile(r'/\*[>=]=')
+
+EQUALS_PATTERN = re.compile(r'/[/*]== (.*)')
+RANGE_PATTERN = re.compile(r'/[/*]>= (.*) <= (.*)')
+MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
+
 
 def chapter_to_package(index):
   name = CHAPTERS[index].split()[0].lower()
   return "chap{0:02d}_{1}".format(index + 1, name)
+
+
+def parse_range(line):
+  match = EQUALS_PATTERN.match(line)
+  if match:
+    chapter = CHAPTERS.index(match.group(1))
+    return chapter, chapter
+
+  match = RANGE_PATTERN.match(line)
+  if match:
+    min_chapter = CHAPTERS.index(match.group(1))
+    max_chapter = CHAPTERS.index(match.group(2))
+    return min_chapter, max_chapter
+
+  match = MIN_PATTERN.match(line)
+  if match:
+    min_chapter = CHAPTERS.index(match.group(1))
+    return min_chapter, 999
+
+  raise Exception("Invalid line: '" + line + "'")
 
 
 def split_file(path, chapter_index):
@@ -50,14 +78,10 @@ def split_file(path, chapter_index):
   with open(path, 'r') as input:
     # Read each line, preprocessing the special codes.
     for line in input:
-      if line.startswith("//>= "):
-        chapter_name = line[4:].strip()
-        min_chapter = CHAPTERS.index(chapter_name)
-        max_chapter = 999
-      elif line.startswith("/*== "):
-        chapter_name = line[4:].strip()
-        min_chapter = CHAPTERS.index(chapter_name)
-        max_chapter = min_chapter
+      if LINE_SECTION_PATTERN.match(line):
+        min_chapter, max_chapter = parse_range(line)
+      elif BLOCK_SECTION_PATTERN.match(line):
+        min_chapter, max_chapter = parse_range(line)
         in_block_comment = True
       elif in_block_comment and line.strip() == "*/":
         in_block_comment = False

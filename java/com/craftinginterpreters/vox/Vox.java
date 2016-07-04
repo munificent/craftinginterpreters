@@ -78,10 +78,13 @@ public class Vox {
 //>= Parsing Expressions
 
     Parser parser = new Parser(tokens, reporter);
+/*>= Parsing Expressions <= Interpreting ASTs
+
+    Expr expression = parser.parseExpression();
+*/
 /*== Parsing Expressions
 
     // For now, just print the tree.
-    Expr expression = parser.parseExpression();
     System.out.println(new AstPrinter().print(expression));
 */
 //>= Variables
@@ -96,10 +99,13 @@ public class Vox {
 
     // Don't run if there was a syntax error.
     if (reporter.hadError) return;
+/*== Interpreting ASTs
+
+    interpreter.interpret(expression);
+*/
 //>= Variables
 
     interpreter.interpret(statements, locals);
-    // TODO: Interpret expressions for AST chapter.
 //>= Framework
   }
 }

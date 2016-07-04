@@ -4,10 +4,7 @@ package com.craftinginterpreters.vox;
 import java.util.Arrays;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-/*== Syntax Trees
-class AstPrinter implements Expr.Visitor<String, Void> {
-*/
-/*== Parsing Expressions
+/*>= Syntax Trees <= Interpreting ASTs
 class AstPrinter implements Expr.Visitor<String, Void> {
 */
 //>= Variables
