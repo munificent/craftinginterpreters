@@ -199,11 +199,11 @@ class Parser {
 
     if (expr instanceof Expr.Variable) {
       Token name = ((Expr.Variable)expr).name;
-      return new Expr.Assign(null, name, value);
+      return new Expr.Assign(name, value);
 //>= Classes
-    } else if (expr instanceof Expr.Property) {
-      Expr.Property property = (Expr.Property)expr;
-      return new Expr.Assign(property.object, property.name, value);
+    } else if (expr instanceof Expr.Get) {
+      Expr.Get get = (Expr.Get)expr;
+      return new Expr.Set(get.object, get.name, value);
 //>= Variables
     }
 
@@ -336,7 +336,7 @@ class Parser {
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
-        expr = new Expr.Property(expr, name);
+        expr = new Expr.Get(expr, name);
       } else {
         break;
       }

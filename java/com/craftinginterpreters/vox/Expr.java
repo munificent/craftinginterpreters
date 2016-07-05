@@ -10,7 +10,8 @@ abstract class Expr {
     R visitGroupingExpr(Grouping expr);
     R visitLiteralExpr(Literal expr);
     R visitLogicalExpr(Logical expr);
-    R visitPropertyExpr(Property expr);
+    R visitGetExpr(Get expr);
+    R visitSetExpr(Set expr);
     R visitSuperExpr(Super expr);
     R visitThisExpr(This expr);
     R visitUnaryExpr(Unary expr);
@@ -18,8 +19,7 @@ abstract class Expr {
   }
 
   static class Assign extends Expr {
-    Assign(Expr object, Token name, Expr value) {
-      this.object = object;
+    Assign(Token name, Expr value) {
       this.name = name;
       this.value = value;
     }
@@ -28,7 +28,6 @@ abstract class Expr {
       return visitor.visitAssignExpr(this);
     }
 
-    final Expr object;
     final Token name;
     final Expr value;
   }
@@ -105,18 +104,34 @@ abstract class Expr {
     final Expr right;
   }
 
-  static class Property extends Expr {
-    Property(Expr object, Token name) {
+  static class Get extends Expr {
+    Get(Expr object, Token name) {
       this.object = object;
       this.name = name;
     }
 
     <R> R accept(Visitor<R> visitor) {
-      return visitor.visitPropertyExpr(this);
+      return visitor.visitGetExpr(this);
     }
 
     final Expr object;
     final Token name;
+  }
+
+  static class Set extends Expr {
+    Set(Expr object, Token name, Expr value) {
+      this.object = object;
+      this.name = name;
+      this.value = value;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitSetExpr(this);
+    }
+
+    final Expr object;
+    final Token name;
+    final Expr value;
   }
 
   static class Super extends Expr {

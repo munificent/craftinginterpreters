@@ -9,20 +9,21 @@ import java.util.List;
 public class GenerateAst {
   public static void main(String[] args) throws IOException {
     defineAstType("Expr", Arrays.asList(
-        // TODO: Don't have object until Classes chapter.
 //>= Variables
-        "Assign   : Expr object, Token name, Expr value",
+        "Assign   : Token name, Expr value",
 //>= Syntax Trees
         "Binary   : Expr left, Token operator, Expr right",
 //>= Functions
         "Call     : Expr callee, Token paren, List<Expr> arguments",
+//>= Classes
+        "Get      : Expr object, Token name",
 //>= Syntax Trees
         "Grouping : Expr expression",
         "Literal  : Object value",
 //>= Control Flow
         "Logical  : Expr left, Token operator, Expr right",
 //>= Classes
-        "Property : Expr object, Token name",
+        "Set      : Expr object, Token name, Expr value",
 //>= Inheritance
         "Super    : Token keyword, Token method",
 //>= Classes

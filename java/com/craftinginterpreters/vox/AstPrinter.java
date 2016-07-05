@@ -21,10 +21,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitAssignExpr(Expr.Assign expr) {
-    if (expr.object == null) {
-      return join("=", expr.name.text, expr.value);
-    }
-    return join("=", expr.object, expr.name.text, expr.value);
+    return join("=", expr.name.text, expr.value);
   }
 //>= Syntax Trees
 
@@ -38,11 +35,17 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitCallExpr(Expr.Call expr) {
     return join("call", expr.callee, expr.arguments);
   }
+//>= Classes
+
+  @Override
+  public String visitGetExpr(Expr.Get expr) {
+    return join(".", expr.object, expr.name.text);
+  }
 //>= Syntax Trees
 
   @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
-    return join("group ", expr.expression);
+    return join("group", expr.expression);
   }
 
   @Override
@@ -63,8 +66,8 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 //>= Classes
 
   @Override
-  public String visitPropertyExpr(Expr.Property expr) {
-    return join(".", expr.object, expr.name.text);
+  public String visitSetExpr(Expr.Set expr) {
+    return join("=", expr.object, expr.name.text, expr.value);
   }
 //>= Inheritance
 

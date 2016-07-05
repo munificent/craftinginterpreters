@@ -144,13 +144,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitAssignExpr(Expr.Assign expr) {
     resolve(expr.value);
-
-    if (expr.object != null) {
-      resolve(expr.object);
-    } else {
-      resolveLocal(expr, expr.name);
-    }
-
+    resolveLocal(expr, expr.name);
     return null;
   }
 
@@ -172,6 +166,14 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
+//>= Classes
+  @Override
+  public Void visitGetExpr(Expr.Get expr) {
+    resolve(expr.object);
+    return null;
+  }
+
+//>= Closures
   @Override
   public Void visitGroupingExpr(Expr.Grouping expr) {
     resolve(expr.expression);
@@ -193,7 +195,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 //>= Classes
   @Override
-  public Void visitPropertyExpr(Expr.Property expr) {
+  public Void visitSetExpr(Expr.Set expr) {
+    resolve(expr.value);
     resolve(expr.object);
     return null;
   }

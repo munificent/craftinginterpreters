@@ -194,26 +194,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-    if (expr.object != null) {
-      Object object = evaluate(expr.object);
-      if (object instanceof VoxInstance) {
-        ((VoxInstance)object).fields.put(expr.name.text, value);
-      } else {
-        throw new RuntimeError(expr.name,
-            "Only instances have fields.");
-      }
+/*== Variables
+    // TODO: Handle late bound locals.
+    globals.set(expr.name, value);
+*/
+//>= Closures
+    Integer distance = locals.get(expr);
+    if (distance != null) {
+      environment.setAt(distance, expr.name, value);
     } else {
-//>= Closures
-      Integer distance = locals.get(expr);
-      if (distance != null) {
-        environment.setAt(distance, expr.name, value);
-      } else {
-//>= Variables
-        globals.set(expr.name, value);
-//>= Closures
-      }
-//>= Variables
+      globals.set(expr.name, value);
     }
+//>= Variables
 
     return value;
   }
@@ -294,6 +286,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return function.call(this, arguments);
   }
+//>= Classes
+
+  @Override
+  public Object visitGetExpr(Expr.Get expr) {
+    Object object = evaluate(expr.object);
+    if (object instanceof VoxInstance) {
+      return ((VoxInstance) object).getProperty(expr.name);
+    }
+
+    throw new RuntimeError(expr.name,
+        "Only instances have properties.");
+  }
 //>= Interpreting ASTs
 
   @Override
@@ -324,14 +328,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //>= Classes
 
   @Override
-  public Object visitPropertyExpr(Expr.Property expr) {
+  public Object visitSetExpr(Expr.Set expr) {
+    Object value = evaluate(expr.value);
     Object object = evaluate(expr.object);
+
     if (object instanceof VoxInstance) {
-      return ((VoxInstance)object).getProperty(expr.name);
+      ((VoxInstance)object).fields.put(expr.name.text, value);
+      return value;
     }
 
-    throw new RuntimeError(expr.name,
-        "Only instances have properties.");
+    throw new RuntimeError(expr.name, "Only instances have fields.");
   }
 //>= Inheritance
 
@@ -421,13 +427,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //>= Interpreting ASTs
 
-  boolean isTrue(Object object) {
+  private boolean isTrue(Object object) {
     if (object == null) return false;
     if (object instanceof Boolean) return (boolean)object;
     return true;
   }
 
-  boolean isEqual(Object a, Object b) {
+  private boolean isEqual(Object a, Object b) {
     // nil is only equal to nil.
     if (a == null && b == null) return true;
     if (a == null) return false;
