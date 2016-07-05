@@ -35,8 +35,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     globals.define("clock", Callable.wrap(this::clock));
 //>= Interpreting ASTs
   }
-/*== Interpreting ASTs
 
+/*== Interpreting ASTs
   void interpret(Expr expression) {
     try {
       print(evaluate(expression));
@@ -45,13 +45,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-//>= Variables
-
-  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
+/*== Variables
+  void interpret(List<Stmt> statements) {
+*/
 //>= Closures
+  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
     this.locals = locals;
-//>= Variables
 
+//>= Variables
     try {
       for (Stmt statement : statements) {
         execute(statement);

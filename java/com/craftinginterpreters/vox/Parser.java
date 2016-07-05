@@ -40,6 +40,17 @@ class Parser {
 
     return statements;
   }
+//>= Parsing Expressions
+
+  Expr parseExpression() {
+//>= Variables
+    return assignment();
+/*>= Parsing Expressions <= Interpreting ASTs
+    return equality();
+*/
+//>= Parsing Expressions
+  }
+//>= Variables
 
   private Stmt statement() {
 //>= Classes
@@ -173,20 +184,14 @@ class Parser {
 
     return new Stmt.Block(statements);
   }
-//>= Parsing Expressions
-
-  Expr parseExpression() {
-//>= Variables
-    return assignment();
-/*>= Parsing Expressions <= Interpreting ASTs
-    return equality();
-*/
-//>= Parsing Expressions
-  }
-//>= Variables
 
   private Expr assignment() {
+/*>= Variables <= Closures
+    Expr expr = equality();
+*/
+//>= Control Flow
     Expr expr = or();
+//>= Variables
 
   if (match(EQUAL)) {
     Token equals = previous();
@@ -195,9 +200,11 @@ class Parser {
     if (expr instanceof Expr.Variable) {
       Token name = ((Expr.Variable)expr).name;
       return new Expr.Assign(null, name, value);
+//>= Classes
     } else if (expr instanceof Expr.Property) {
       Expr.Property property = (Expr.Property)expr;
       return new Expr.Assign(property.object, property.name, value);
+//>= Variables
     }
 
     error("Invalid assignment target.", equals);
@@ -289,7 +296,7 @@ class Parser {
 
 //>= Functions
     return call();
-/*>= Parsing Expressions <= Interpreting ASTs
+/*>= Parsing Expressions <= Variables
     return primary();
 */
 //>= Parsing Expressions

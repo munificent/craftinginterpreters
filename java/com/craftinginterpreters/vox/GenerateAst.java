@@ -9,6 +9,7 @@ import java.util.List;
 public class GenerateAst {
   public static void main(String[] args) throws IOException {
     defineAstType("Expr", Arrays.asList(
+        // TODO: Don't have object until Classes chapter.
 //>= Variables
         "Assign   : Expr object, Token name, Expr value",
 //>= Syntax Trees

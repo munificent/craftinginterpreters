@@ -90,7 +90,6 @@ public class Vox {
 //>= Variables
 
     List<Stmt> statements = parser.parseProgram();
-    if (reporter.hadError) return;
 //>= Closures
 
     Resolver resolver = new Resolver(reporter);
@@ -99,12 +98,14 @@ public class Vox {
 
     // Don't run if there was a syntax error.
     if (reporter.hadError) return;
-/*== Interpreting ASTs
 
+/*== Interpreting ASTs
     interpreter.interpret(expression);
 */
-//>= Variables
-
+/*== Variables
+    interpreter.interpret(statements);
+*/
+//>= Closures
     interpreter.interpret(statements, locals);
 //>= Framework
   }
