@@ -1,5 +1,5 @@
 //>= Syntax Trees
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.tool;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -7,7 +7,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GenerateAst {
+  static String outputDir;
+
   public static void main(String[] args) throws IOException {
+    if (args.length != 1) {
+      System.err.println("Usage: generate_ast <output directory>");
+      System.exit(1);
+    }
+
+    outputDir = args[0];
+
     defineAstType("Expr", Arrays.asList(
 //>= Variables
         "Assign   : Token name, Expr value",
@@ -61,8 +70,8 @@ public class GenerateAst {
 
   private static void defineAstType(String baseName, List<String> types)
       throws IOException {
-    PrintWriter writer = new PrintWriter(
-        "com/craftinginterpreters/vox/" + baseName + ".java", "UTF-8");
+    String path = outputDir + "/" + baseName + ".java";
+    PrintWriter writer = new PrintWriter(path, "UTF-8");
 
     writer.println("package com.craftinginterpreters.vox;");
     writer.println("");
@@ -85,6 +94,8 @@ public class GenerateAst {
 
     writer.println("}");
     writer.close();
+
+    System.out.println("Generated " + path);
   }
 
   private static void defineVisitor(

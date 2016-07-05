@@ -63,9 +63,6 @@ def split_file(path, chapter_index):
   if relative == "com/craftinginterpreters/vox/Expr.java": return
   if relative == "com/craftinginterpreters/vox/Stmt.java": return
 
-  package = chapter_to_package(chapter_index)
-  ensure_dir(os.path.join("gen", package, directory))
-
   min_chapter = 0
   max_chapter = 999
 
@@ -93,8 +90,11 @@ def split_file(path, chapter_index):
           output = output[:-2] + "\n"
         output += line
 
-  # Write the output.
+  # Write the output (if this file exists for this chapter).
   if output:
+    package = chapter_to_package(chapter_index)
+    ensure_dir(os.path.join("gen", package, directory))
+
     output_path = os.path.join("gen", package, relative)
     with codecs.open(output_path, "w", encoding="utf-8") as out:
       out.write(output)

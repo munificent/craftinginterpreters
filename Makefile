@@ -1,10 +1,4 @@
 BUILD_DIR := build
-JVOX_DIR := com/craftinginterpreters/vox
-
-JAVA_OPTIONS := -Werror
-
-JAVA_SOURCES := $(wildcard java/$(JVOX_DIR)/*.java)
-JAVA_CLASSES := $(addprefix $(BUILD_DIR)/, $(JAVA_SOURCES:.java=.class))
 
 default: cvox jvox
 
@@ -33,13 +27,29 @@ cvox:
 	@ $(MAKE) -f c/cvox.make MODE=release
 	@ cp build/cvox cvox # For convenience, copy the interpreter to the top level.
 
-# Compile the Java interpreter .java files to .class files.
-jvox: $(JAVA_CLASSES)
+# Compile and run the AST generator.
+generate_ast:
+	@ $(MAKE) -f util/java.make DIR=java PACKAGE=tool
+	@ java -cp build/java com.craftinginterpreters.tool.GenerateAst \
+			java/com/craftinginterpreters/vox
 
-# Compile a single .java file to .class.
-$(BUILD_DIR)/java/$(JVOX_DIR)/%.class: java/$(JVOX_DIR)/%.java
-	@ mkdir -p $(BUILD_DIR)/java
-	@ javac -cp java -d $(BUILD_DIR)/java $(JAVA_OPTIONS) -implicit:none $<
-	@ printf "%10s %-60s %s\n" javac $< "$(JAVA_OPTIONS)"
+# Compile the Java interpreter .java files to .class files.
+jvox: generate_ast
+	@ $(MAKE) -f util/java.make DIR=java PACKAGE=vox
+
+run_generate_ast = 	@ java -cp build/gen/$(1) \
+			com.craftinginterpreters.tool.GenerateAst \
+			gen/$(1)/com/craftinginterpreters/vox
+
+chapters:
+	@ python script/split_chapters.py
+	@ $(MAKE) -f util/java.make DIR=gen/chap03_syntax PACKAGE=tool
+	$(call run_generate_ast,chap03_syntax)
+	@ $(MAKE) -f util/java.make DIR=gen/chap04_parsing PACKAGE=tool
+	$(call run_generate_ast,chap04_parsing)
+	@ $(MAKE) -f util/java.make DIR=gen/chap05_interpreting PACKAGE=tool
+	$(call run_generate_ast,chap05_interpreting)
+	@ $(MAKE) -f util/java.make DIR=gen/chap06_variables PACKAGE=tool
+	$(call run_generate_ast,chap06_variables)
 
 .PHONY: clean cvox debug default jvox test test_c test_java watch
