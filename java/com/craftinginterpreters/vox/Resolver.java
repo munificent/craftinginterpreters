@@ -48,6 +48,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     for (Stmt.Function method : stmt.methods) {
       // Push the implicit scope that binds "this" and "class".
       beginScope();
+      scopes.peek().put("this", true);
+      scopes.peek().put("super", true);
       resolveFunction(method);
       endScope();
     }
@@ -210,6 +212,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     } else if (enclosingClasses.peek().superclass == null) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' in a class with no superclass.");
+    } else {
+      resolveLocal(expr, expr.keyword);
     }
     return null;
   }
@@ -218,8 +222,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitThisExpr(Expr.This expr) {
     if (enclosingClasses.isEmpty()) {
-      errorReporter.error(expr.name,
+      errorReporter.error(expr.keyword,
           "Cannot use 'this' outside of a class.");
+    } else {
+      resolveLocal(expr, expr.keyword);
     }
     return null;
   }

@@ -57,6 +57,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       for (Stmt statement : statements) {
         execute(statement);
       }
+
+/*== Variables
+      System.out.println(globals);
+*/
     } catch (RuntimeError error) {
       reporter.runtimeError(error.token.line, error.getMessage());
     }
@@ -343,15 +347,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitSuperExpr(Expr.Super expr) {
-    VoxClass methodClass = (VoxClass) environment.get("class",
-        expr.keyword);
-    VoxClass superclass = methodClass.superclass;
+    int distance = locals.get(expr);
+    VoxClass superclass = (VoxClass)environment.getAt(distance, "super");
+    VoxInstance receiver = (VoxInstance)environment.getAt(distance, "this");
 
-    VoxInstance receiver = (VoxInstance) environment.get("this",
-        expr.keyword);
-
-    VoxFunction method = superclass.findMethod(receiver,
-        expr.method.text);
+    VoxFunction method = superclass.findMethod(receiver, expr.method.text);
     if (method == null) {
       throw new RuntimeError(expr.method,
           "Undefined property '" + expr.method.text + "'.");
@@ -363,7 +363,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitThisExpr(Expr.This expr) {
-    return environment.get(expr.name);
+    return lookUpVariable(expr.keyword, expr);
   }
 //>= Interpreting ASTs
 
@@ -386,18 +386,23 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
+    return lookUpVariable(expr.name, expr);
+  }
+//>= Interpreting ASTs
+
+  private Object lookUpVariable(Token name, Expr expr) {
+/*== Variables
+    return environment.get(name);
+*/
 //>= Closures
     Integer distance = locals.get(expr);
     if (distance != null) {
-      return environment.getAt(distance, expr.name);
+      return environment.getAt(distance, name.text);
     } else {
-//>= Variables
-      return globals.get(expr.name);
-//>= Closures
+      return globals.get(name);
     }
 //>= Variables
   }
-//>= Interpreting ASTs
 
   private void checkNumberOperands(Token operator,
                                    Object left, Object right) {

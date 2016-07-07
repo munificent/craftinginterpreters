@@ -13,28 +13,26 @@ class Environment {
   }
 
   Object get(Token name) {
-    return get(name.text, name);
-  }
-
-  Object get(String name, Token token) {
-    if (values.containsKey(name)) {
-      return values.get(name);
+    if (values.containsKey(name.text)) {
+      return values.get(name.text);
     }
 
+/*== Variables
     if (enclosing != null) return enclosing.get(name, token);
 
-    throw new RuntimeError(token,
-        "Undefined variable '" + name + "'.");
+*/
+    throw new RuntimeError(name,
+        "Undefined variable '" + name.text + "'.");
   }
 
 //>= Closures
-  Object getAt(int distance, Token name) {
+  Object getAt(int distance, String name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
       environment = environment.enclosing;
     }
 
-    return environment.values.get(name.text);
+    return environment.values.get(name);
   }
 
 //>= Variables
@@ -44,11 +42,13 @@ class Environment {
       return;
     }
 
+/*== Variables
     if (enclosing != null) {
       enclosing.set(name, value);
       return;
     }
 
+*/
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -78,5 +78,15 @@ class Environment {
 
   Environment beginScope() {
     return new Environment(this);
+  }
+
+  @Override
+  public String toString() {
+    String result = values.toString();
+    if (enclosing != null) {
+      result += " -> " + enclosing.toString();
+    }
+
+    return result;
   }
 }

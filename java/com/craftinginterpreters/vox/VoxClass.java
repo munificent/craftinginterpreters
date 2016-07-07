@@ -22,13 +22,13 @@ class VoxClass implements Callable {
 
   VoxFunction findMethod(VoxInstance instance, String name) {
 //>= Inheritance
-    VoxClass voxClass = this;
-    while (voxClass != null) {
-      if (voxClass.methods.containsKey(name)) {
-        return voxClass.methods.get(name).bind(instance, voxClass);
+    VoxClass klass = this;
+    while (klass != null) {
+      if (klass.methods.containsKey(name)) {
+        return klass.methods.get(name).bind(instance, klass.superclass);
       }
 
-      voxClass = voxClass.superclass;
+      klass = klass.superclass;
     }
 
     // Not found.
@@ -55,7 +55,7 @@ class VoxClass implements Callable {
 
     VoxFunction initializer = methods.get("init");
     if (initializer != null) {
-      initializer.bind(instance, this).call(interpreter, arguments);
+      initializer.bind(instance, superclass).call(interpreter, arguments);
     }
 
     return instance;

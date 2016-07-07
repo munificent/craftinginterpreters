@@ -22,10 +22,10 @@ class VoxFunction implements Callable {
   }
 
 //>= Classes
-  VoxFunction bind(VoxInstance self, VoxClass methodClass) {
+  VoxFunction bind(VoxInstance self, VoxClass superclass) {
     Environment environment = closure.beginScope();
     environment.define("this", self);
-    environment.define("class", methodClass);
+    environment.define("super", superclass);
     return new VoxFunction(declaration, environment, isInitializer);
   }
 
@@ -59,7 +59,7 @@ class VoxFunction implements Callable {
     }
 
 //>= Classes
-    return isInitializer ? closure.get("this", null) : result;
+    return isInitializer ? closure.getAt(0, "this") : result;
 //>= Classes
   }
 }

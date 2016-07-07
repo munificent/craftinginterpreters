@@ -149,15 +149,15 @@ abstract class Expr {
   }
 
   static class This extends Expr {
-    This(Token name) {
-      this.name = name;
+    This(Token keyword) {
+      this.keyword = keyword;
     }
 
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitThisExpr(this);
     }
 
-    final Token name;
+    final Token keyword;
   }
 
   static class Unary extends Expr {

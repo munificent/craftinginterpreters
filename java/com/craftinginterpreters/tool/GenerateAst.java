@@ -36,7 +36,7 @@ public class GenerateAst {
 //>= Inheritance
         "Super    : Token keyword, Token method",
 //>= Classes
-        "This     : Token name",
+        "This     : Token keyword",
 //>= Syntax Trees
         "Unary    : Token operator, Expr right",
 //>= Variables
