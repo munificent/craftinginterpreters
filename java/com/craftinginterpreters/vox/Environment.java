@@ -11,6 +11,10 @@ class Environment {
   private final Map<String, Object> values = new HashMap<>();
 
 //>= Functions
+  Environment() {
+    enclosing = null;
+  }
+
   Environment(Environment enclosing) {
     this.enclosing = enclosing;
   }
@@ -25,6 +29,7 @@ class Environment {
     if (enclosing != null) return enclosing.get(name, token);
 
 */
+//>= Variables
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -53,6 +58,7 @@ class Environment {
     }
 
 */
+//>= Variables
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -67,7 +73,7 @@ class Environment {
     environment.values.put(name.text, value);
   }
 
-//>= Variables
+//>= Closures
   void declare(Token name) {
     // Note: Can't just use define(name, null). That will
     // overwrite a previously defined global value.
@@ -76,21 +82,29 @@ class Environment {
     }
   }
 
+//>= Variables
   void define(String name, Object value) {
     values.put(name, value);
   }
 
+//>= Functions
   Environment enterScope() {
     return new Environment(this);
   }
 
+//>= Variables
   @Override
   public String toString() {
+/*== Variables
+    return values.toString();
+*/
+//>= Functions
     String result = values.toString();
     if (enclosing != null) {
       result += " -> " + enclosing.toString();
     }
 
     return result;
+//>= Variables
   }
 }

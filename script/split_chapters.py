@@ -76,6 +76,7 @@ def split_file(path, chapter_index):
   output = ""
   with open(path, 'r') as input:
     # Read each line, preprocessing the special codes.
+    line_num = 1
     for line in input:
       if LINE_SECTION_PATTERN.match(line):
         min_chapter, max_chapter = parse_range(line)
@@ -83,7 +84,13 @@ def split_file(path, chapter_index):
         min_chapter, max_chapter = parse_range(line)
         in_block_comment = True
       elif in_block_comment and line.strip() == "*/":
+        min_chapter = None
+        max_chapter = None
         in_block_comment = False
+      elif min_chapter == None:
+        print "{} {}: No section after block comment".format(relative, line_num)
+        min_chapter = 0
+        max_chapter = 999
       elif chapter_index >= min_chapter and chapter_index <= max_chapter:
         # Hack. In generate_ast.java, we split up a parameter list among
         # multiple chapters, which leads to hanging commas in some cases.
@@ -92,12 +99,21 @@ def split_file(path, chapter_index):
           output = output[:-2] + "\n"
         output += line
 
-  # Write the output (if this file exists for this chapter).
+      line_num += 1
+
+  # Write the output.
   if output:
     package = chapter_to_package(chapter_index)
-    ensure_dir(os.path.join("gen", package, directory))
-
     output_path = os.path.join("gen", package, relative)
+
+    # Don't overwrite it if it didn't change, so the makefile doesn't think it
+    # was touched.
+    if os.path.exists(output_path):
+      with open(output_path, 'r') as file:
+        previous = file.read()
+        if output == previous: return
+
+    ensure_dir(os.path.join("gen", package, directory))
     with codecs.open(output_path, "w", encoding="utf-8") as out:
       out.write(output)
 

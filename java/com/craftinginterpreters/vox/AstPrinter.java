@@ -18,81 +18,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   String print(Stmt stmt) {
     return stmt.accept(this);
   }
-
-  @Override
-  public String visitAssignExpr(Expr.Assign expr) {
-    return join("=", expr.name.text, expr.value);
-  }
-//>= Syntax Trees
-
-  @Override
-  public String visitBinaryExpr(Expr.Binary expr) {
-    return join(expr.operator, expr.left, expr.right);
-  }
-//>= Functions
-
-  @Override
-  public String visitCallExpr(Expr.Call expr) {
-    return join("call", expr.callee, expr.arguments);
-  }
-//>= Classes
-
-  @Override
-  public String visitGetExpr(Expr.Get expr) {
-    return join(".", expr.object, expr.name.text);
-  }
-//>= Syntax Trees
-
-  @Override
-  public String visitGroupingExpr(Expr.Grouping expr) {
-    return join("group", expr.expression);
-  }
-
-  @Override
-  public String visitLiteralExpr(Expr.Literal expr) {
-    if (expr.value instanceof String) {
-      String escaped = ((String) expr.value).replace("\"", "\\\"");
-      return "\"" + escaped + "\"";
-    }
-
-    return expr.value.toString();
-  }
-//>= Control Flow
-
-  @Override
-  public String visitLogicalExpr(Expr.Logical expr) {
-    return join(expr.operator, expr.left, expr.right);
-  }
-//>= Classes
-
-  @Override
-  public String visitSetExpr(Expr.Set expr) {
-    return join("=", expr.object, expr.name.text, expr.value);
-  }
-//>= Inheritance
-
-  @Override
-  public String visitSuperExpr(Expr.Super expr) {
-    return join("super", expr.method);
-  }
-//>= Classes
-
-  @Override
-  public String visitThisExpr(Expr.This expr) {
-    return "this";
-  }
-//>= Syntax Trees
-
-  @Override
-  public String visitUnaryExpr(Expr.Unary expr) {
-    return join(expr.operator, expr.right);
-  }
-//>= Variables
-
-  @Override
-  public String visitVariableExpr(Expr.Variable expr) {
-    return expr.name.text;
-  }
+//>= Closures
 
   @Override
   public String visitBlockStmt(Stmt.Block stmt) {
@@ -178,6 +104,82 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   @Override
   public String visitWhileStmt(Stmt.While stmt) {
     return join("while", stmt.condition, stmt.body);
+  }
+//>= Variables
+
+  @Override
+  public String visitAssignExpr(Expr.Assign expr) {
+    return join("=", expr.name.text, expr.value);
+  }
+//>= Syntax Trees
+
+  @Override
+  public String visitBinaryExpr(Expr.Binary expr) {
+    return join(expr.operator, expr.left, expr.right);
+  }
+//>= Functions
+
+  @Override
+  public String visitCallExpr(Expr.Call expr) {
+    return join("call", expr.callee, expr.arguments);
+  }
+//>= Classes
+
+  @Override
+  public String visitGetExpr(Expr.Get expr) {
+    return join(".", expr.object, expr.name.text);
+  }
+//>= Syntax Trees
+
+  @Override
+  public String visitGroupingExpr(Expr.Grouping expr) {
+    return join("group", expr.expression);
+  }
+
+  @Override
+  public String visitLiteralExpr(Expr.Literal expr) {
+    if (expr.value instanceof String) {
+      String escaped = ((String) expr.value).replace("\"", "\\\"");
+      return "\"" + escaped + "\"";
+    }
+
+    return expr.value.toString();
+  }
+//>= Control Flow
+
+  @Override
+  public String visitLogicalExpr(Expr.Logical expr) {
+    return join(expr.operator, expr.left, expr.right);
+  }
+//>= Classes
+
+  @Override
+  public String visitSetExpr(Expr.Set expr) {
+    return join("=", expr.object, expr.name.text, expr.value);
+  }
+//>= Inheritance
+
+  @Override
+  public String visitSuperExpr(Expr.Super expr) {
+    return join("super", expr.method);
+  }
+//>= Classes
+
+  @Override
+  public String visitThisExpr(Expr.This expr) {
+    return "this";
+  }
+//>= Syntax Trees
+
+  @Override
+  public String visitUnaryExpr(Expr.Unary expr) {
+    return join(expr.operator, expr.right);
+  }
+//>= Variables
+
+  @Override
+  public String visitVariableExpr(Expr.Variable expr) {
+    return expr.name.text;
   }
 //>= Syntax Trees
 

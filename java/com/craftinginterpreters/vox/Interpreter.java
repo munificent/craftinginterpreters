@@ -2,9 +2,13 @@
 package com.craftinginterpreters.vox;
 //>= Variables
 
+//>= Functions
 import java.util.ArrayList;
+//>= Closures
 import java.util.HashMap;
+//>= Interpreting ASTs
 import java.util.List;
+//>= Closures
 import java.util.Map;
 //>= Interpreting ASTs
 
@@ -19,7 +23,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //>= Variables
 
   // The top level global variables.
-  private final Environment globals = new Environment(null);
+  private final Environment globals = new Environment();
   private Environment environment = globals;
 //>= Closures
 
@@ -61,6 +65,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 /*== Variables
       System.out.println(globals);
 */
+//>= Variables
     } catch (RuntimeError error) {
       reporter.runtimeError(error.token.line, error.getMessage());
     }
@@ -80,7 +85,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   void executeBlock(Stmt.Block block, Environment environment) {
     Environment previous = this.environment;
     try {
-      this.environment = environment;
+      this.environment = environment.enterScope();
 
       for (Stmt statement : block.statements) {
         execute(statement);
@@ -89,11 +94,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       this.environment = previous;
     }
   }
-//>= Variables
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
-    executeBlock(stmt, environment.enterScope());
+    executeBlock(stmt, environment);
     return null;
   }
 //>= Classes
@@ -380,23 +384,24 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-    return lookUpVariable(expr.name, expr);
-  }
-//>= Interpreting ASTs
-
-  private Object lookUpVariable(Token name, Expr expr) {
 /*== Variables
-    return environment.get(name);
+    return environment.get(expr.name);
 */
 //>= Closures
+    return lookUpVariable(expr.name, expr);
+//>= Variables
+  }
+//>= Closures
+
+  private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);
     if (distance != null) {
       return environment.getAt(distance, name.text);
     } else {
       return globals.get(name);
     }
-//>= Variables
   }
+//>= Interpreting ASTs
 
   private void checkNumberOperands(Token operator,
                                    Object left, Object right) {
@@ -414,6 +419,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new RuntimeError(operator, "Operand must be a number.");
   }
+//>= Interpreting ASTs
 
   private Object print(Object argument) {
     System.out.println(stringify(argument));
@@ -439,6 +445,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return a.equals(b);
   }
+//>= Interpreting ASTs
 
   private String stringify(Object object) {
     if (object == null) return "nil";
@@ -454,4 +461,5 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return object.toString();
   }
+//>= Interpreting ASTs
 }

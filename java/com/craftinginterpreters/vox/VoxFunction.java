@@ -53,14 +53,13 @@ class VoxFunction implements Callable {
             arguments.get(i));
       }
 
-      interpreter.executeBlock(declaration.body,
-          environment.enterScope());
+      interpreter.executeBlock(declaration.body, environment);
     } catch (Return returnValue) {
       result = returnValue.value;
     }
 
 //>= Classes
     return isInitializer ? closure.getAt(0, "this") : result;
-//>= Classes
+//>= Functions
   }
 }

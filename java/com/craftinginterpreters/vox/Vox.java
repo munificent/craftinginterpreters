@@ -90,16 +90,15 @@ public class Vox {
 //>= Variables
 
     List<Stmt> statements = parser.parseProgram();
-//>= Closures
 
-    // Don't resolve if there was a syntax error.
+    // Stop if there was a syntax error.
     if (reporter.hadError) return;
+//>= Closures
 
     Resolver resolver = new Resolver(reporter);
     Map<Expr, Integer> locals = resolver.resolve(statements);
-//>= Interpreting ASTs
 
-    // Don't run if there was a resolution error.
+    // Stop if there was a resolution error.
     if (reporter.hadError) return;
 
 /*== Interpreting ASTs

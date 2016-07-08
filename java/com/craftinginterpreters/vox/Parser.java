@@ -86,6 +86,7 @@ class Parser {
 
     return new Stmt.Class(name, superclass, methods);
   }
+//>= Variables
 
   private Stmt statement() {
 //>= Control Flow
@@ -94,8 +95,9 @@ class Parser {
     if (match(RETURN)) return returnStatement();
 //>= Control Flow
     if (match(WHILE)) return whileStatement();
-//>= Variables
+//>= Closures
     if (check(LEFT_BRACE)) return block();
+//>= Variables
 
     // Expression statement.
     Expr expr = parseExpression();
@@ -173,7 +175,7 @@ class Parser {
     Stmt.Block body = block();
     return new Stmt.Function(name, parameters, body);
   }
-//>= Variables
+//>= Closures
 
   private Stmt.Block block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
@@ -187,6 +189,7 @@ class Parser {
 
     return new Stmt.Block(statements);
   }
+//>= Variables
 
   private Expr assignment() {
 /*>= Variables <= Closures

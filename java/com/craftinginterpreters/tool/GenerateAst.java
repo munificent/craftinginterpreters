@@ -46,6 +46,7 @@ public class GenerateAst {
 //>= Variables
 
     defineAstType("Stmt", Arrays.asList(
+//>= Closures
         "Block       : List<Stmt> statements",
 //>= Classes
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
