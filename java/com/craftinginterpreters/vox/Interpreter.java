@@ -77,11 +77,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //>= Closures
 
-  void executeIn(Stmt stmt, Environment environment) {
+  void executeBlock(Stmt.Block block, Environment environment) {
     Environment previous = this.environment;
     try {
       this.environment = environment;
-      execute(stmt);
+
+      for (Stmt statement : block.statements) {
+        execute(statement);
+      }
     } finally {
       this.environment = previous;
     }
@@ -90,16 +93,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
-    Environment previous = environment;
-    try {
-      environment = environment.beginScope();
-
-      for (Stmt statement : stmt.statements) {
-        execute(statement);
-      }
-    } finally {
-      environment = previous;
-    }
+    executeBlock(stmt, environment.enterScope());
     return null;
   }
 //>= Classes
@@ -157,9 +151,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
     if (isTrue(evaluate(stmt.condition))) {
-      executeIn(stmt.thenBranch, environment.beginScope());
+      execute(stmt.thenBranch);
     } else if (stmt.elseBranch != null) {
-      executeIn(stmt.elseBranch, environment.beginScope());
+      execute(stmt.elseBranch);
     }
     return null;
   }
@@ -188,7 +182,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
     while (isTrue(evaluate(stmt.condition))) {
-      executeIn(stmt.body, environment.beginScope());
+      execute(stmt.body);
     }
     return null;
   }

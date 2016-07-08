@@ -35,7 +35,7 @@ class Parser {
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
-      statements.add(statement());
+      statements.add(declaration());
     }
 
     return statements;
@@ -52,30 +52,19 @@ class Parser {
   }
 //>= Variables
 
-  private Stmt statement() {
+  private Stmt declaration() {
 //>= Classes
-    if (match(CLASS)) return classStatement();
+    if (match(CLASS)) return classDeclaration();
 //>= Functions
     if (match(FUN)) return function("function");
-//>= Control Flow
-    if (match(IF)) return ifStatement();
-//>= Functions
-    if (match(RETURN)) return returnStatement();
 //>= Variables
-    if (match(VAR)) return varStatement();
-//>= Control Flow
-    if (match(WHILE)) return whileStatement();
-//>= Variables
-    if (check(LEFT_BRACE)) return block();
+    if (match(VAR)) return varDeclaration();
 
-    // Expression statement.
-    Expr expr = parseExpression();
-    consume(SEMICOLON, "Expect ';' after expression.");
-    return new Stmt.Expression(expr);
+    return statement();
   }
 //>= Classes
 
-  private Stmt classStatement() {
+  private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
 //>= Inheritance
 
@@ -96,6 +85,22 @@ class Parser {
     consume(RIGHT_BRACE, "Expect '}' after class body.");
 
     return new Stmt.Class(name, superclass, methods);
+  }
+
+  private Stmt statement() {
+//>= Control Flow
+    if (match(IF)) return ifStatement();
+//>= Functions
+    if (match(RETURN)) return returnStatement();
+//>= Control Flow
+    if (match(WHILE)) return whileStatement();
+//>= Variables
+    if (check(LEFT_BRACE)) return block();
+
+    // Expression statement.
+    Expr expr = parseExpression();
+    consume(SEMICOLON, "Expect ';' after expression.");
+    return new Stmt.Expression(expr);
   }
 //>= Control Flow
 
@@ -126,7 +131,7 @@ class Parser {
   }
 //>= Variables
 
-  private Stmt varStatement() {
+  private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
 
     Expr initializer = null;
@@ -151,9 +156,7 @@ class Parser {
 //>= Functions
 
   private Stmt.Function function(String kind) {
-    Token name = consume(IDENTIFIER,
-        "Expect " + kind + " name.");
-
+    Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
     consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
     List<Token> parameters = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
@@ -167,17 +170,17 @@ class Parser {
     }
     consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
-    Stmt body = block();
+    Stmt.Block body = block();
     return new Stmt.Function(name, parameters, body);
   }
 //>= Variables
 
-  private Stmt block() {
+  private Stmt.Block block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
 
     while (!check(RIGHT_BRACE) && !isAtEnd()) {
-      statements.add(statement());
+      statements.add(declaration());
     }
 
     consume(RIGHT_BRACE, "Expect '}' after block.");
@@ -379,7 +382,10 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 
-    error("Unexpected token '" + current().text + "'.");
+    error("Expected expression.");
+
+    // Discard the token so we can make progress.
+    advance();
     return null;
   }
 

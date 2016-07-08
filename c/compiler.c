@@ -317,6 +317,7 @@ static void endScope() {
 // Forward declarations since the grammar is recursive.
 static void expression();
 static void statement();
+static void declaration();
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
@@ -781,7 +782,7 @@ static void block() {
 
   beginScope();
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
-    statement();
+    declaration();
   }
   endScope();
   
@@ -843,7 +844,7 @@ static void method() {
   emitBytes(OP_METHOD, constant);
 }
 
-static void classStatement() {
+static void classDeclaration() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
   uint8_t nameConstant = identifierConstant(&parser.previous);
   declareVariable();
@@ -884,7 +885,7 @@ static void classStatement() {
   currentClass = currentClass->enclosing;
 }
 
-static void funStatement() {
+static void funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
   function(TYPE_FUNCTION);
   defineVariable(global);
@@ -894,8 +895,6 @@ static void ifStatement() {
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
-  
-  beginScope();
   
   // Jump to the else branch if the condition is false.
   int elseJump = emitJump(OP_JUMP_IF_FALSE);
@@ -914,7 +913,6 @@ static void ifStatement() {
   if (match(TOKEN_ELSE)) statement();
   
   patchJump(endJump);
-  endScope();
 }
 
 static void returnStatement() {
@@ -935,7 +933,7 @@ static void returnStatement() {
   }
 }
 
-static void varStatement() {
+static void varDeclaration() {
   uint8_t global = parseVariable("Expect variable name.");
 
   if (match(TOKEN_EQUAL)) {
@@ -957,8 +955,6 @@ static void whileStatement() {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
   
-  beginScope();
-  
   // Jump out of the loop if the condition is false.
   int exitJump = emitJump(OP_JUMP_IF_FALSE);
 
@@ -971,20 +967,25 @@ static void whileStatement() {
   
   patchJump(exitJump);
   emitByte(OP_POP); // Condition.
-  endScope();
+}
+
+static void declaration() {
+  if (match(TOKEN_CLASS)) {
+    classDeclaration();
+  } else if (match(TOKEN_FUN)) {
+    funDeclaration();
+  } else if (match(TOKEN_VAR)) {
+    varDeclaration();
+  } else {
+    statement();
+  }
 }
 
 static void statement() {
-  if (match(TOKEN_CLASS)) {
-    classStatement();
-  } else if (match(TOKEN_FUN)) {
-    funStatement();
-  } else if (match(TOKEN_IF)) {
+  if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
-  } else if (match(TOKEN_VAR)) {
-    varStatement();
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
   } else if (check(TOKEN_LEFT_BRACE)) {
@@ -1008,7 +1009,7 @@ ObjFunction* compile(const char* source) {
 
   if (!match(TOKEN_EOF)) {
     do {
-      statement();
+      declaration();
     } while (!match(TOKEN_EOF));
   }
 

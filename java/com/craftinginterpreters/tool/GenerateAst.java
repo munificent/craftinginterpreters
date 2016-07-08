@@ -54,7 +54,7 @@ public class GenerateAst {
 //>= Uhh
         "For         : Token name, Expr iterator, Stmt body",
 //>= Functions
-        "Function    : Token name, List<Token> parameters, Stmt body",
+        "Function    : Token name, List<Token> parameters, Stmt.Block body",
 //>= Control Flow
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
 //>= Functions

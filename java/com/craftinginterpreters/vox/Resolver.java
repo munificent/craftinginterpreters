@@ -86,16 +86,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
     resolve(stmt.condition);
-    beginScope();
     resolve(stmt.thenBranch);
-    endScope();
-
-    if (stmt.elseBranch != null) {
-      beginScope();
-      resolve(stmt.elseBranch);
-      endScope();
-    }
-
+    if (stmt.elseBranch != null) resolve(stmt.elseBranch);
     return null;
   }
 
@@ -135,10 +127,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Control Flow
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
-    beginScope();
     resolve(stmt.condition);
     resolve(stmt.body);
-    endScope();
     return null;
   }
 

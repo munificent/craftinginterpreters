@@ -23,7 +23,7 @@ class VoxFunction implements Callable {
 
 //>= Classes
   VoxFunction bind(VoxInstance self, VoxClass superclass) {
-    Environment environment = closure.beginScope();
+    Environment environment = closure.enterScope();
     environment.define("this", self);
     environment.define("super", superclass);
     return new VoxFunction(declaration, environment, isInitializer);
@@ -46,14 +46,15 @@ class VoxFunction implements Callable {
 
     try {
 //>= Closures
-      Environment environment = closure.beginScope();
+      Environment environment = closure.enterScope();
 //>= Functions
       for (int i = 0; i < declaration.parameters.size(); i++) {
         environment.define(declaration.parameters.get(i).text,
             arguments.get(i));
       }
 
-      interpreter.executeIn(declaration.body, environment);
+      interpreter.executeBlock(declaration.body,
+          environment.enterScope());
     } catch (Return returnValue) {
       result = returnValue.value;
     }

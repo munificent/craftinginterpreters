@@ -5,19 +5,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Environment {
+//>= Functions
   private final Environment enclosing;
+//>= Variables
   private final Map<String, Object> values = new HashMap<>();
 
+//>= Functions
   Environment(Environment enclosing) {
     this.enclosing = enclosing;
   }
 
+//>= Variables
   Object get(Token name) {
     if (values.containsKey(name.text)) {
       return values.get(name.text);
     }
 
-/*== Variables
+/*== Functions
     if (enclosing != null) return enclosing.get(name, token);
 
 */
@@ -25,7 +29,7 @@ class Environment {
         "Undefined variable '" + name.text + "'.");
   }
 
-//>= Closures
+//>= Resolving Names
   Object getAt(int distance, String name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -42,7 +46,7 @@ class Environment {
       return;
     }
 
-/*== Variables
+/*== Functions
     if (enclosing != null) {
       enclosing.set(name, value);
       return;
@@ -53,7 +57,7 @@ class Environment {
         "Undefined variable '" + name.text + "'.");
   }
 
-//>= Closures
+//>= Resolving Names
   void setAt(int distance, Token name, Object value) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -76,7 +80,7 @@ class Environment {
     values.put(name, value);
   }
 
-  Environment beginScope() {
+  Environment enterScope() {
     return new Environment(this);
   }
 

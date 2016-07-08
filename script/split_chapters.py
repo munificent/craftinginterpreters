@@ -13,9 +13,11 @@ CHAPTERS = [
   "Parsing Expressions",
   "Interpreting ASTs",
   "Variables",
-  "Functions",
-  "Closures",
   "Control Flow",
+  "Functions",
+  # TODO: Merge these two:
+  "Closures",
+  "Resolving Names",
   "Classes",
   "Inheritance",
   # TODO: Figure out what to do with this stuff.
