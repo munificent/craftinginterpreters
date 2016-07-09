@@ -1,4 +1,4 @@
-//>= Variables
+//>= Statements and State
 package com.craftinginterpreters.vox;
 
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import java.util.Map;
 class Environment {
 //>= Functions
   private final Environment enclosing;
-//>= Variables
+//>= Statements and State
   private final Map<String, Object> values = new HashMap<>();
 
 //>= Functions
@@ -19,7 +19,7 @@ class Environment {
     this.enclosing = enclosing;
   }
 
-//>= Variables
+//>= Statements and State
   Object get(Token name) {
     if (values.containsKey(name.text)) {
       return values.get(name.text);
@@ -29,7 +29,7 @@ class Environment {
     if (enclosing != null) return enclosing.get(name, token);
 
 */
-//>= Variables
+//>= Statements and State
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -44,7 +44,7 @@ class Environment {
     return environment.values.get(name);
   }
 
-//>= Variables
+//>= Statements and State
   void set(Token name, Object value) {
     if (values.containsKey(name.text)) {
       values.put(name.text, value);
@@ -58,7 +58,7 @@ class Environment {
     }
 
 */
-//>= Variables
+//>= Statements and State
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -82,7 +82,7 @@ class Environment {
     }
   }
 
-//>= Variables
+//>= Statements and State
   void define(String name, Object value) {
     values.put(name, value);
   }
@@ -92,10 +92,10 @@ class Environment {
     return new Environment(this);
   }
 
-//>= Variables
+//>= Statements and State
   @Override
   public String toString() {
-/*== Variables
+/*>= Statements and State <= Control Flow
     return values.toString();
 */
 //>= Functions
@@ -105,6 +105,6 @@ class Environment {
     }
 
     return result;
-//>= Variables
+//>= Statements and State
   }
 }

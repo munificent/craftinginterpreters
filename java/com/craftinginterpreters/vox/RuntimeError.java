@@ -1,4 +1,4 @@
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 package com.craftinginterpreters.vox;
 
 class RuntimeError extends RuntimeException {

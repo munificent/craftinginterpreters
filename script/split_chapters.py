@@ -9,10 +9,10 @@ import re
 CHAPTERS = [
   "Framework",
   "Scanning",
-  "Syntax Trees",
+  "Representing Code",
   "Parsing Expressions",
-  "Interpreting ASTs",
-  "Variables",
+  "Evaluating Expressions",
+  "Statements and State",
   "Control Flow",
   "Functions",
   # TODO: Merge these two:

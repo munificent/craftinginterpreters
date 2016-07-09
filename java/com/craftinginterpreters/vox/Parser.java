@@ -1,7 +1,7 @@
 //>= Parsing Expressions
 package com.craftinginterpreters.vox;
 
-//>= Variables
+//>= Statements and State
 import java.util.ArrayList;
 //>= Parsing Expressions
 import java.util.HashSet;
@@ -14,12 +14,17 @@ class Parser {
   private static final Set<TokenType> synchronizing = new HashSet<>();
 
   static {
+//>= Functions
     synchronizing.add(LEFT_BRACE);
     synchronizing.add(RIGHT_BRACE);
+//>= Uhh
     synchronizing.add(RIGHT_BRACKET);
+//>= Parsing Expressions
     synchronizing.add(RIGHT_PAREN);
+//>= Statements and State
     synchronizing.add(EQUAL);
     synchronizing.add(SEMICOLON);
+//>= Parsing Expressions
   }
 
   private final List<Token> tokens;
@@ -30,7 +35,7 @@ class Parser {
     this.tokens = tokens;
     this.errorReporter = errorReporter;
   }
-//>= Variables
+//>= Statements and State
 
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
@@ -43,21 +48,21 @@ class Parser {
 //>= Parsing Expressions
 
   Expr parseExpression() {
-//>= Variables
+//>= Statements and State
     return assignment();
-/*>= Parsing Expressions <= Interpreting ASTs
+/*>= Parsing Expressions <= Evaluating Expressions
     return equality();
 */
 //>= Parsing Expressions
   }
-//>= Variables
+//>= Statements and State
 
   private Stmt declaration() {
 //>= Classes
     if (match(CLASS)) return classDeclaration();
 //>= Functions
     if (match(FUN)) return function("function");
-//>= Variables
+//>= Statements and State
     if (match(VAR)) return varDeclaration();
 
     return statement();
@@ -86,7 +91,7 @@ class Parser {
 
     return new Stmt.Class(name, superclass, methods);
   }
-//>= Variables
+//>= Statements and State
 
   private Stmt statement() {
 //>= Control Flow
@@ -97,7 +102,7 @@ class Parser {
     if (match(WHILE)) return whileStatement();
 //>= Closures
     if (check(LEFT_BRACE)) return block();
-//>= Variables
+//>= Statements and State
 
     // Expression statement.
     Expr expr = parseExpression();
@@ -131,7 +136,7 @@ class Parser {
     consume(SEMICOLON, "Expect ';' after return value.");
     return new Stmt.Return(keyword, value);
   }
-//>= Variables
+//>= Statements and State
 
   private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
@@ -189,32 +194,32 @@ class Parser {
 
     return new Stmt.Block(statements);
   }
-//>= Variables
+//>= Statements and State
 
   private Expr assignment() {
-/*>= Variables <= Closures
+/*== Statements and State
     Expr expr = equality();
 */
 //>= Control Flow
     Expr expr = or();
-//>= Variables
+//>= Statements and State
 
-  if (match(EQUAL)) {
-    Token equals = previous();
-    Expr value = assignment();
+    if (match(EQUAL)) {
+      Token equals = previous();
+      Expr value = assignment();
 
-    if (expr instanceof Expr.Variable) {
-      Token name = ((Expr.Variable)expr).name;
-      return new Expr.Assign(name, value);
+      if (expr instanceof Expr.Variable) {
+        Token name = ((Expr.Variable)expr).name;
+        return new Expr.Assign(name, value);
 //>= Classes
-    } else if (expr instanceof Expr.Get) {
-      Expr.Get get = (Expr.Get)expr;
-      return new Expr.Set(get.object, get.name, value);
-//>= Variables
-    }
+      } else if (expr instanceof Expr.Get) {
+        Expr.Get get = (Expr.Get)expr;
+        return new Expr.Set(get.object, get.name, value);
+//>= Statements and State
+      }
 
-    error("Invalid assignment target.", equals);
-  }
+      error("Invalid assignment target.", equals);
+    }
 
     return expr;
   }
@@ -302,7 +307,7 @@ class Parser {
 
 //>= Functions
     return call();
-/*>= Parsing Expressions <= Variables
+/*>= Parsing Expressions <= Control Flow
     return primary();
 */
 //>= Parsing Expressions
@@ -372,7 +377,7 @@ class Parser {
 //>= Classes
 
     if (match(THIS)) return new Expr.This(previous());
-//>= Variables
+//>= Statements and State
 
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous());

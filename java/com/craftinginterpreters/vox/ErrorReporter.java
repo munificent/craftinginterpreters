@@ -14,6 +14,7 @@ class ErrorReporter {
     report(line, "", message);
   }
 
+  // TODO: Stack trace.
   void runtimeError(int line, String message) {
     System.err.println(message + "\n[line " + line + "]");
     hadRuntimeError = true;

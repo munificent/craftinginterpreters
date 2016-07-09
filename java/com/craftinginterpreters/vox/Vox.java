@@ -15,10 +15,9 @@ import java.util.Map;
 
 public class Vox {
   private final ErrorReporter reporter = new ErrorReporter();
-//>= Interpreting ASTs
+//>= Evaluating Expressions
   private final Interpreter interpreter;
-//>= Framework
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   private Vox() {
     interpreter = new Interpreter(reporter);
@@ -78,8 +77,7 @@ public class Vox {
 //>= Parsing Expressions
 
     Parser parser = new Parser(tokens, reporter);
-/*>= Parsing Expressions <= Interpreting ASTs
-
+/*>= Parsing Expressions <= Evaluating Expressions
     Expr expression = parser.parseExpression();
 */
 /*== Parsing Expressions
@@ -87,8 +85,7 @@ public class Vox {
     // For now, just print the tree.
     System.out.println(new AstPrinter().print(expression));
 */
-//>= Variables
-
+//>= Statements and State
     List<Stmt> statements = parser.parseProgram();
 
     // Stop if there was a syntax error.
@@ -101,10 +98,10 @@ public class Vox {
     // Stop if there was a resolution error.
     if (reporter.hadError) return;
 
-/*== Interpreting ASTs
+/*== Evaluating Expressions
     interpreter.interpret(expression);
 */
-/*== Variables
+/*>= Statements and State <= Control Flow
     interpreter.interpret(statements);
 */
 //>= Closures

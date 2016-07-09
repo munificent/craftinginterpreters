@@ -1,4 +1,4 @@
-//>= Syntax Trees
+//>= Representing Code
 package com.craftinginterpreters.tool;
 
 import java.io.IOException;
@@ -18,15 +18,15 @@ public class GenerateAst {
     outputDir = args[0];
 
     defineAstType("Expr", Arrays.asList(
-//>= Variables
+//>= Statements and State
         "Assign   : Token name, Expr value",
-//>= Syntax Trees
+//>= Representing Code
         "Binary   : Expr left, Token operator, Expr right",
 //>= Functions
         "Call     : Expr callee, Token paren, List<Expr> arguments",
 //>= Classes
         "Get      : Expr object, Token name",
-//>= Syntax Trees
+//>= Representing Code
         "Grouping : Expr expression",
         "Literal  : Object value",
 //>= Control Flow
@@ -37,20 +37,20 @@ public class GenerateAst {
         "Super    : Token keyword, Token method",
 //>= Classes
         "This     : Token keyword",
-//>= Syntax Trees
+//>= Representing Code
         "Unary    : Token operator, Expr right",
-//>= Variables
+//>= Statements and State
         "Variable : Token name"
-//>= Syntax Trees
+//>= Representing Code
     ));
-//>= Variables
+//>= Statements and State
 
     defineAstType("Stmt", Arrays.asList(
 //>= Closures
         "Block       : List<Stmt> statements",
 //>= Classes
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
-//>= Variables
+//>= Statements and State
         "Expression  : Expr expression",
 //>= Uhh
         "For         : Token name, Expr iterator, Stmt body",
@@ -60,13 +60,13 @@ public class GenerateAst {
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
 //>= Functions
         "Return      : Token keyword, Expr value",
-//>= Variables
+//>= Statements and State
         "Var         : Token name, Expr initializer",
 //>= Control Flow
         "While       : Expr condition, Stmt body"
-//>= Variables
+//>= Statements and State
     ));
-//>= Syntax Trees
+//>= Representing Code
   }
 
   private static void defineAstType(String baseName, List<String> types)

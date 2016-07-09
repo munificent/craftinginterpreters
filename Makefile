@@ -43,13 +43,15 @@ run_generate_ast = 	@ java -cp build/gen/$(1) \
 
 chapters:
 	@ python script/split_chapters.py
-	@ $(MAKE) -f util/java.make DIR=gen/chap03_syntax PACKAGE=tool
-	$(call run_generate_ast,chap03_syntax)
+	@ $(MAKE) -f util/java.make DIR=gen/chap03_representing PACKAGE=tool
+	$(call run_generate_ast,chap03_representing)
 	@ $(MAKE) -f util/java.make DIR=gen/chap04_parsing PACKAGE=tool
 	$(call run_generate_ast,chap04_parsing)
-	@ $(MAKE) -f util/java.make DIR=gen/chap05_interpreting PACKAGE=tool
-	$(call run_generate_ast,chap05_interpreting)
-	@ $(MAKE) -f util/java.make DIR=gen/chap06_variables PACKAGE=tool
-	$(call run_generate_ast,chap06_variables)
+	@ $(MAKE) -f util/java.make DIR=gen/chap05_evaluating PACKAGE=tool
+	$(call run_generate_ast,chap05_evaluating)
+	@ $(MAKE) -f util/java.make DIR=gen/chap06_statements PACKAGE=tool
+	$(call run_generate_ast,chap06_statements)
+	@ $(MAKE) -f util/java.make DIR=gen/chap07_control PACKAGE=tool
+	$(call run_generate_ast,chap07_control)
 
 .PHONY: clean cvox debug default jvox test test_c test_java watch

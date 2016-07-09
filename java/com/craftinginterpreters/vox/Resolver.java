@@ -82,7 +82,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Control Flow
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
     resolve(stmt.condition);
@@ -124,7 +123,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Control Flow
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
     resolve(stmt.condition);
@@ -177,7 +175,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Control Flow
   @Override
   public Void visitLogicalExpr(Expr.Logical expr) {
     resolve(expr.left);

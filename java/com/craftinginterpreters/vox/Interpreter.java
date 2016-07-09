@@ -1,34 +1,37 @@
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 package com.craftinginterpreters.vox;
-//>= Variables
 
 //>= Functions
 import java.util.ArrayList;
 //>= Closures
 import java.util.HashMap;
-//>= Interpreting ASTs
+//>= Statements and State
 import java.util.List;
 //>= Closures
 import java.util.Map;
-//>= Interpreting ASTs
+//>= Statements and State
 
+//>= Evaluating Expressions
 // Tree-walk interpreter.
-/*== Interpreting ASTs
+/*== Evaluating Expressions
 class Interpreter implements Expr.Visitor<Object> {
 */
-//>= Variables
+//>= Statements and State
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-//>= Interpreting ASTs
+//>= Evaluating Expressions
   private final ErrorReporter reporter;
-//>= Variables
+/*>= Statements and State <= Control Flow
 
-  // The top level global variables.
+  private Environment environment = new Environment();
+*/
+//>= Functions
+
   private final Environment globals = new Environment();
   private Environment environment = globals;
 //>= Closures
 
   private Map<Expr, Integer> locals;
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   Interpreter(ErrorReporter reporter) {
     this.reporter = reporter;
@@ -37,10 +40,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     globals.define("print", Callable.wrap(this::print));
 //>= Uhh
     globals.define("clock", Callable.wrap(this::clock));
-//>= Interpreting ASTs
+//>= Evaluating Expressions
   }
 
-/*== Interpreting ASTs
+/*== Evaluating Expressions
   void interpret(Expr expression) {
     try {
       print(evaluate(expression));
@@ -49,33 +52,33 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/*== Variables
+/*>= Statements and State <= Control Flow
   void interpret(List<Stmt> statements) {
 */
 //>= Closures
   void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
     this.locals = locals;
 
-//>= Variables
+//>= Statements and State
     try {
       for (Stmt statement : statements) {
         execute(statement);
       }
 
-/*== Variables
-      System.out.println(globals);
+/*>= Statements and State <= Control Flow
+      System.out.println(environment);
 */
-//>= Variables
+//>= Statements and State
     } catch (RuntimeError error) {
       reporter.runtimeError(error.token.line, error.getMessage());
     }
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }
-//>= Variables
+//>= Statements and State
 
   private void execute(Stmt stmt) {
     stmt.accept(this);
@@ -128,7 +131,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     environment.set(stmt.name, klass);
     return null;
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -170,7 +173,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new Return(value);
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
@@ -190,15 +193,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return null;
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-/*== Variables
-    // TODO: Handle late bound locals.
-    globals.set(expr.name, value);
+/*>= Statements and State <= Control Flow
+    environment.set(expr.name, value);
 */
 //>= Closures
     Integer distance = locals.get(expr);
@@ -207,11 +209,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     } else {
       globals.set(expr.name, value);
     }
-//>= Variables
+//>= Statements and State
 
     return value;
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
@@ -300,7 +302,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     throw new RuntimeError(expr.name,
         "Only instances have properties.");
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
@@ -363,7 +365,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitThisExpr(Expr.This expr) {
     return lookUpVariable(expr.keyword, expr);
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   @Override
   public Object visitUnaryExpr(Expr.Unary expr) {
@@ -380,16 +382,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     // Unreachable.
     return null;
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-/*== Variables
+/*>= Statements and State <= Control Flow
     return environment.get(expr.name);
 */
 //>= Closures
     return lookUpVariable(expr.name, expr);
-//>= Variables
+//>= Statements and State
   }
 //>= Closures
 
@@ -401,7 +403,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       return globals.get(name);
     }
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   private void checkNumberOperands(Token operator,
                                    Object left, Object right) {
@@ -419,7 +421,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new RuntimeError(operator, "Operand must be a number.");
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   private Object print(Object argument) {
     System.out.println(stringify(argument));
@@ -430,7 +432,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private Object clock() {
     return (double)System.currentTimeMillis() / 1000.0;
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   private boolean isTrue(Object object) {
     if (object == null) return false;
@@ -445,7 +447,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return a.equals(b);
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 
   private String stringify(Object object) {
     if (object == null) return "nil";
@@ -461,5 +463,5 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return object.toString();
   }
-//>= Interpreting ASTs
+//>= Evaluating Expressions
 }

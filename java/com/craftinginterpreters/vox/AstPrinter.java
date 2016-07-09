@@ -1,19 +1,19 @@
-//>= Syntax Trees
+//>= Representing Code
 package com.craftinginterpreters.vox;
 
 import java.util.Arrays;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-/*>= Syntax Trees <= Interpreting ASTs
+/*>= Representing Code <= Evaluating Expressions
 class AstPrinter implements Expr.Visitor<String> {
 */
-//>= Variables
+//>= Statements and State
 class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
-//>= Syntax Trees
+//>= Representing Code
   String print(Expr expr) {
     return expr.accept(this);
   }
-//>= Variables
+//>= Statements and State
 
   String print(Stmt stmt) {
     return stmt.accept(this);
@@ -44,7 +44,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public String visitExpressionStmt(Stmt.Expression stmt) {
@@ -89,7 +89,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     if (stmt.value == null) return "(return)";
     return join("return", stmt.value);
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public String visitVarStmt(Stmt.Var stmt) {
@@ -105,13 +105,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitWhileStmt(Stmt.While stmt) {
     return join("while", stmt.condition, stmt.body);
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public String visitAssignExpr(Expr.Assign expr) {
     return join("=", expr.name.text, expr.value);
   }
-//>= Syntax Trees
+//>= Representing Code
 
   @Override
   public String visitBinaryExpr(Expr.Binary expr) {
@@ -129,7 +129,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitGetExpr(Expr.Get expr) {
     return join(".", expr.object, expr.name.text);
   }
-//>= Syntax Trees
+//>= Representing Code
 
   @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
@@ -169,19 +169,19 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitThisExpr(Expr.This expr) {
     return "this";
   }
-//>= Syntax Trees
+//>= Representing Code
 
   @Override
   public String visitUnaryExpr(Expr.Unary expr) {
     return join(expr.operator, expr.right);
   }
-//>= Variables
+//>= Statements and State
 
   @Override
   public String visitVariableExpr(Expr.Variable expr) {
     return expr.name.text;
   }
-//>= Syntax Trees
+//>= Representing Code
 
   private String join(Object... parts) {
     StringBuilder builder = new StringBuilder();
@@ -200,10 +200,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
       if (part instanceof Expr) {
         builder.append(print((Expr)part));
-//>= Variables
+//>= Statements and State
       } else if (part instanceof Stmt) {
         builder.append(print((Stmt) part));
-//>= Syntax Trees
+//>= Representing Code
       } else if (part instanceof Token) {
         builder.append(((Token) part).text);
       } else if (part instanceof Iterable) {
@@ -213,7 +213,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
       }
     }
   }
-/*== Syntax Trees
+/*== Representing Code
 
   public static void main(String[] args) {
     Expr expression = new Expr.Binary(
@@ -227,5 +227,5 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     System.out.println(new AstPrinter().print(expression));
   }
 */
-//>= Syntax Trees
+//>= Representing Code
 }
