@@ -72,7 +72,7 @@ abstract class Stmt {
   }
 
   static class Function extends Stmt {
-    Function(Token name, List<Token> parameters, Stmt.Block body) {
+    Function(Token name, List<Token> parameters, List<Stmt> body) {
       this.name = name;
       this.parameters = parameters;
       this.body = body;
@@ -84,7 +84,7 @@ abstract class Stmt {
 
     final Token name;
     final List<Token> parameters;
-    final Stmt.Block body;
+    final List<Stmt> body;
   }
 
   static class If extends Stmt {

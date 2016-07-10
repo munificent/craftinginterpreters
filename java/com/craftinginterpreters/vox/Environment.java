@@ -20,13 +20,21 @@ class Environment {
   }
 
 //>= Statements and State
+  void declare(Token name) {
+    // Note: Can't just use define(name, null). That will
+    // overwrite a previously defined global value.
+    if (!values.containsKey(name.text)) {
+      values.put(name.text, null);
+    }
+  }
+
   Object get(Token name) {
     if (values.containsKey(name.text)) {
       return values.get(name.text);
     }
 
 /*== Functions
-    if (enclosing != null) return enclosing.get(name, token);
+    if (enclosing != null) return enclosing.get(name);
 
 */
 //>= Statements and State
@@ -34,7 +42,29 @@ class Environment {
         "Undefined variable '" + name.text + "'.");
   }
 
-//>= Resolving Names
+  void assign(Token name, Object value) {
+    if (values.containsKey(name.text)) {
+      values.put(name.text, value);
+      return;
+    }
+
+/*== Functions
+    if (enclosing != null) {
+      enclosing.assign(name, value);
+      return;
+    }
+
+*/
+//>= Statements and State
+    throw new RuntimeError(name,
+        "Undefined variable '" + name.text + "'.");
+  }
+
+  void define(String name, Object value) {
+    values.put(name, value);
+  }
+
+//>= Blocks and Binding
   Object getAt(int distance, String name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -44,47 +74,13 @@ class Environment {
     return environment.values.get(name);
   }
 
-//>= Statements and State
-  void set(Token name, Object value) {
-    if (values.containsKey(name.text)) {
-      values.put(name.text, value);
-      return;
-    }
-
-/*== Functions
-    if (enclosing != null) {
-      enclosing.set(name, value);
-      return;
-    }
-
-*/
-//>= Statements and State
-    throw new RuntimeError(name,
-        "Undefined variable '" + name.text + "'.");
-  }
-
-//>= Resolving Names
-  void setAt(int distance, Token name, Object value) {
+  void assignAt(int distance, Token name, Object value) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
       environment = environment.enclosing;
     }
 
     environment.values.put(name.text, value);
-  }
-
-//>= Closures
-  void declare(Token name) {
-    // Note: Can't just use define(name, null). That will
-    // overwrite a previously defined global value.
-    if (!values.containsKey(name.text)) {
-      values.put(name.text, null);
-    }
-  }
-
-//>= Statements and State
-  void define(String name, Object value) {
-    values.put(name, value);
   }
 
 //>= Functions

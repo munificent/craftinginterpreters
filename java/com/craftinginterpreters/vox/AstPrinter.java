@@ -18,7 +18,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   String print(Stmt stmt) {
     return stmt.accept(this);
   }
-//>= Closures
+//>= Blocks and Binding
 
   @Override
   public String visitBlockStmt(Stmt.Block stmt) {
@@ -68,7 +68,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
       builder.append(param.text);
     }
 
-    builder.append(") " + print(stmt.body) + ")");
+    builder.append(") " + join(stmt.body) + ")");
     return builder.toString();
   }
 //>= Control Flow

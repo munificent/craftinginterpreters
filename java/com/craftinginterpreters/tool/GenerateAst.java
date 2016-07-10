@@ -46,7 +46,7 @@ public class GenerateAst {
 //>= Statements and State
 
     defineAstType("Stmt", Arrays.asList(
-//>= Closures
+//>= Blocks and Binding
         "Block       : List<Stmt> statements",
 //>= Classes
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
@@ -55,7 +55,7 @@ public class GenerateAst {
 //>= Uhh
         "For         : Token name, Expr iterator, Stmt body",
 //>= Functions
-        "Function    : Token name, List<Token> parameters, Stmt.Block body",
+        "Function    : Token name, List<Token> parameters, List<Stmt> body",
 //>= Control Flow
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
 //>= Functions

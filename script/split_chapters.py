@@ -15,9 +15,7 @@ CHAPTERS = [
   "Statements and State",
   "Control Flow",
   "Functions",
-  # TODO: Merge these two:
-  "Closures",
-  "Resolving Names",
+  "Blocks and Binding",
   "Classes",
   "Inheritance",
   # TODO: Figure out what to do with this stuff.

@@ -100,8 +100,8 @@ class Parser {
     if (match(RETURN)) return returnStatement();
 //>= Control Flow
     if (match(WHILE)) return whileStatement();
-//>= Closures
-    if (check(LEFT_BRACE)) return block();
+//>= Blocks and Binding
+    if (check(LEFT_BRACE)) return new Stmt.Block(block());
 //>= Statements and State
 
     // Expression statement.
@@ -177,12 +177,11 @@ class Parser {
     }
     consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
-    Stmt.Block body = block();
+    List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
   }
-//>= Closures
 
-  private Stmt.Block block() {
+  private List<Stmt> block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
 
@@ -192,7 +191,7 @@ class Parser {
 
     consume(RIGHT_BRACE, "Expect '}' after block.");
 
-    return new Stmt.Block(statements);
+    return statements;
   }
 //>= Statements and State
 
@@ -344,10 +343,12 @@ class Parser {
     while (true) {
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
+//>= Classes
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
         expr = new Expr.Get(expr, name);
+//>= Functions
       } else {
         break;
       }
@@ -365,8 +366,8 @@ class Parser {
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().value);
     }
-
 //>= Inheritance
+
     if (match(SUPER)) {
       Token keyword = previous();
       consume(DOT, "Expect '.' after 'super'.");

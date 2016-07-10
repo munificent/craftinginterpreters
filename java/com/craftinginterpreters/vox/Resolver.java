@@ -1,4 +1,4 @@
-//>= Closures
+//>= Blocks and Binding
 package com.craftinginterpreters.vox;
 
 import java.util.*;
@@ -9,7 +9,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 //>= Classes
   private final Stack<Stmt.Class> enclosingClasses = new Stack<>();
-//>= Closures
+//>= Blocks and Binding
   private final Stack<Stmt.Function> enclosingFunctions = new Stack<>();
   private final Map<Expr, Integer> locals = new HashMap<>();
 
@@ -59,7 +59,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Closures
+//>= Blocks and Binding
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     resolve(stmt.expression);
@@ -72,7 +72,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Closures
+//>= Blocks and Binding
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     declare(stmt.name);
@@ -130,7 +130,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Closures
+//>= Blocks and Binding
   @Override
   public Void visitAssignExpr(Expr.Assign expr) {
     resolve(expr.value);
@@ -163,7 +163,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Closures
+//>= Blocks and Binding
   @Override
   public Void visitGroupingExpr(Expr.Grouping expr) {
     resolve(expr.expression);
@@ -217,7 +217,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Closures
+//>= Blocks and Binding
   @Override
   public Void visitUnaryExpr(Expr.Unary expr) {
     resolve(expr.right);
@@ -233,7 +233,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     resolveLocal(expr, expr.name);
-
     return null;
   }
 

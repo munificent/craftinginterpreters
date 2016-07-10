@@ -53,5 +53,7 @@ chapters:
 	$(call run_generate_ast,chap06_statements)
 	@ $(MAKE) -f util/java.make DIR=gen/chap07_control PACKAGE=tool
 	$(call run_generate_ast,chap07_control)
+	@ $(MAKE) -f util/java.make DIR=gen/chap08_functions PACKAGE=tool
+	$(call run_generate_ast,chap08_functions)
 
 .PHONY: clean cvox debug default jvox test test_c test_java watch

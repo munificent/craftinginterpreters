@@ -3,11 +3,11 @@ package com.craftinginterpreters.vox;
 
 //>= Functions
 import java.util.ArrayList;
-//>= Closures
+//>= Classes
 import java.util.HashMap;
 //>= Statements and State
 import java.util.List;
-//>= Closures
+//>= Blocks and Binding
 import java.util.Map;
 //>= Statements and State
 
@@ -26,9 +26,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 */
 //>= Functions
 
-  private final Environment globals = new Environment();
+  final Environment globals = new Environment();
   private Environment environment = globals;
-//>= Closures
+//>= Blocks and Binding
 
   private Map<Expr, Integer> locals;
 //>= Evaluating Expressions
@@ -52,10 +52,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/*>= Statements and State <= Control Flow
+/*>= Statements and State <= Functions
   void interpret(List<Stmt> statements) {
 */
-//>= Closures
+//>= Blocks and Binding
   void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
     this.locals = locals;
 
@@ -83,24 +83,25 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private void execute(Stmt stmt) {
     stmt.accept(this);
   }
-//>= Closures
+//>= Functions
 
-  void executeBlock(Stmt.Block block, Environment environment) {
+  void executeBody(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
     try {
-      this.environment = environment.enterScope();
+      this.environment = environment;
 
-      for (Stmt statement : block.statements) {
+      for (Stmt statement : statements) {
         execute(statement);
       }
     } finally {
       this.environment = previous;
     }
   }
+//>= Blocks and Binding
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
-    executeBlock(stmt, environment);
+    executeBody(stmt.statements, environment.enterScope());
     return null;
   }
 //>= Classes
@@ -128,7 +129,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     VoxClass klass = new VoxClass(stmt.name.text,
         (VoxClass)superclass, methods);
 
-    environment.set(stmt.name, klass);
+    environment.assign(stmt.name, klass);
     return null;
   }
 //>= Statements and State
@@ -149,8 +150,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     environment.declare(stmt.name);
+/*== Functions
+    VoxFunction function = new VoxFunction(stmt);
+*/
+/*== Blocks and Binding
+    VoxFunction function = new VoxFunction(stmt, environment);
+*/
+//>= Classes
     VoxFunction function = new VoxFunction(stmt, environment, false);
-    environment.set(stmt.name, function);
+//>= Functions
+    environment.assign(stmt.name, function);
     return null;
   }
 //>= Control Flow
@@ -181,6 +190,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     if (stmt.initializer != null) {
       value = evaluate(stmt.initializer);
     }
+
     environment.define(stmt.name.text, value);
     return null;
   }
@@ -199,15 +209,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-/*>= Statements and State <= Control Flow
-    environment.set(expr.name, value);
+/*>= Statements and State <= Functions
+    environment.assign(expr.name, value);
 */
-//>= Closures
+//>= Blocks and Binding
     Integer distance = locals.get(expr);
     if (distance != null) {
-      environment.setAt(distance, expr.name, value);
+      environment.assignAt(distance, expr.name, value);
     } else {
-      globals.set(expr.name, value);
+      globals.assign(expr.name, value);
     }
 //>= Statements and State
 
@@ -386,14 +396,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-/*>= Statements and State <= Control Flow
+/*>= Statements and State <= Functions
     return environment.get(expr.name);
 */
-//>= Closures
+//>= Blocks and Binding
     return lookUpVariable(expr.name, expr);
 //>= Statements and State
   }
-//>= Closures
+//>= Blocks and Binding
 
   private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);

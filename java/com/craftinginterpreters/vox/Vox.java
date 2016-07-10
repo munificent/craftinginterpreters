@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 //>= Scanning
 import java.util.List;
-//>= Closures
+//>= Blocks and Binding
 import java.util.Map;
 //>= Framework
 
@@ -90,7 +90,7 @@ public class Vox {
 
     // Stop if there was a syntax error.
     if (reporter.hadError) return;
-//>= Closures
+//>= Blocks and Binding
 
     Resolver resolver = new Resolver(reporter);
     Map<Expr, Integer> locals = resolver.resolve(statements);
@@ -101,10 +101,10 @@ public class Vox {
 /*== Evaluating Expressions
     interpreter.interpret(expression);
 */
-/*>= Statements and State <= Control Flow
+/*>= Statements and State <= Functions
     interpreter.interpret(statements);
 */
-//>= Closures
+//>= Blocks and Binding
     interpreter.interpret(statements, locals);
 //>= Framework
   }
