@@ -11,9 +11,6 @@ import sys
 
 # Runs the tests.
 REPO_DIR = dirname(dirname(realpath(__file__)))
-C_INTERPRETER = join(REPO_DIR, 'build', 'cvoxd')
-JS_INTERPRETER = join(REPO_DIR, 'js', 'vox.js')
-JAVA_INTERPRETER = join(REPO_DIR, 'jvox')
 
 OUTPUT_EXPECT = re.compile(r'// expect: ?(.*)')
 ERROR_EXPECT = re.compile(r'// (Error.*)')
@@ -21,18 +18,77 @@ ERROR_LINE_EXPECT = re.compile(r'// \[line (\d+)\] (Error.*)')
 RUNTIME_ERROR_EXPECT = re.compile(r'// expect runtime error: (.+)')
 SYNTAX_ERROR_RE = re.compile(r'\[.*line (\d+)\] (Error.+)')
 STACK_TRACE_RE = re.compile(r'\[line (\d+)\]')
-SKIP_RE = re.compile(r'// skip: (.*)')
-SKIP_C_RE = re.compile(r'// skip c: (.*)')
-SKIP_JAVA_RE = re.compile(r'// skip java: (.*)')
 NONTEST_RE = re.compile(r'// nontest')
 
 passed = 0
 failed = 0
 num_skipped = 0
-skipped = defaultdict(int)
 expectations = 0
 
-interpreter = C_INTERPRETER
+interpreter = None
+filter_path = None
+
+INTERPRETERS = {}
+
+class Interpreter:
+  def __init__(self, name, args, tests):
+    self.name = name
+    self.args = args
+    self.tests = tests
+
+def c_interpreter(name, path, tests):
+  INTERPRETERS[name] = Interpreter(name, [path], tests)
+
+def java_interpreter(name, dir, tests):
+  INTERPRETERS[name] = Interpreter(name,
+      ['java', '-cp', dir, 'com.craftinginterpreters.vox.Vox'], tests)
+
+c_interpreter('c', 'build/cvoxd', {
+  'test': 'pass'
+})
+
+java_interpreter('java', 'build/java', {
+  'test': 'pass',
+
+  # No hardcoded limits in jvox.
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+
+  # Rely on JVM for stack overflow checking.
+  'test/limit/stack_overflow.vox': 'skip',
+})
+
+# TODO: Other chapters.
+
+java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
+  'test': 'pass',
+
+  # No hardcoded limits in jvox.
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+
+  # Rely on JVM for stack overflow checking.
+  'test/limit/stack_overflow.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/call/object.vox': 'skip',
+  'test/class': 'skip',
+  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
+})
+
 
 class Test:
   def __init__(self, path):
@@ -49,6 +105,27 @@ class Test:
     global num_skipped
     global skipped
     global expectations
+
+    # Get the path components.
+    parts = self.path.split('/')
+    subpath = ""
+    state = None
+
+    # Figure out the state of the test. We don't break out of this loop because
+    # we want lines for more specific paths to override more general ones.
+    for part in parts:
+      if subpath: subpath += '/'
+      subpath += part
+
+      if subpath in interpreter.tests:
+        state = interpreter.tests[subpath]
+
+    if not state:
+      print('Unknown test state for "{}".'.format(self.path))
+    if state == 'skip':
+      num_skipped += 1
+      return False
+    # TODO: State for tests that should be run but are expected to fail?
 
     line_num = 1
     with open(self.path, 'r') as file:
@@ -82,24 +159,6 @@ class Test:
           self.exit_code = 70
           expectations += 1
 
-        match = SKIP_RE.search(line)
-        if match:
-          num_skipped += 1
-          skipped[match.group(1)] += 1
-          return False
-
-        match = SKIP_C_RE.search(line)
-        if match and interpreter == C_INTERPRETER:
-          num_skipped += 1
-          skipped[match.group(1)] += 1
-          return False
-
-        match = SKIP_JAVA_RE.search(line)
-        if match and interpreter == JAVA_INTERPRETER:
-          num_skipped += 1
-          skipped[match.group(1)] += 1
-          return False
-
         match = NONTEST_RE.search(line)
         if match:
           # Not a test file at all, so ignore it.
@@ -112,16 +171,17 @@ class Test:
     return True
 
 
-  def run(self, app, type):
+  def run(self):
     # Invoke the interpreter and run the test.
-    test_arg = self.path
-    proc = Popen([app, test_arg], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    args = interpreter.args[:]
+    args.append(self.path)
+    proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
     out, err = proc.communicate()
-    self.validate(type == "example", proc.returncode, out, err)
+    self.validate(proc.returncode, out, err)
 
 
-  def validate(self, is_example, exit_code, out, err):
+  def validate(self, exit_code, out, err):
     if self.compile_errors and self.runtime_error_message:
       self.fail("Test error: Cannot expect both compile and runtime errors.")
       return
@@ -141,10 +201,6 @@ class Test:
       self.validate_compile_errors(error_lines)
 
     self.validate_exit_code(exit_code, error_lines)
-
-    # Ignore output from examples.
-    if is_example: return
-
     self.validate_output(out)
 
 
@@ -295,7 +351,7 @@ def print_line(line=None):
     sys.stdout.flush()
 
 
-def run_script(app, path, type):
+def run_script(path):
   if "benchmark" in path: return
 
   global passed
@@ -306,9 +362,9 @@ def run_script(app, path, type):
     return
 
   # Check if we are just running a subset of the tests.
-  if len(sys.argv) == 2:
+  if filter_path:
     this_test = relpath(path, join(REPO_DIR, 'test'))
-    if not this_test.startswith(sys.argv[1]):
+    if not this_test.startswith(filter_path):
       return
 
   # Update the status line.
@@ -329,7 +385,7 @@ def run_script(app, path, type):
     # It's a skipped or non-test file.
     return
 
-  test.run(app, type)
+  test.run()
 
   # Display the results.
   if len(test.failures) == 0:
@@ -343,28 +399,26 @@ def run_script(app, path, type):
     print('')
 
 
-def run_test(path):
-  run_script(interpreter, path, "test")
+if len(sys.argv) < 2 or len(sys.argv) > 3:
+  print('Usage: test.py <interpreter> [filter]')
+  sys.exit(1)
 
+if sys.argv[1] not in INTERPRETERS:
+  print('Unknown interpreter "{}"'.format(sys.argv[1]))
+  sys.exit(1)
+interpreter = INTERPRETERS[sys.argv[1]]
 
-if "--c" in sys.argv:
-  sys.argv.remove("--c")
-  interpreter = C_INTERPRETER
-elif "--java" in sys.argv:
-  sys.argv.remove("--java")
-  interpreter = JAVA_INTERPRETER
+if len(sys.argv) == 3:
+  filter_path = sys.argv[2]
 
-walk(join(REPO_DIR, 'test'), run_test)
-
+walk(join(REPO_DIR, 'test'), run_script)
 print_line()
+
 if failed == 0:
   print('All ' + green(passed) + ' tests passed (' + str(expectations) +
         ' expectations).')
 else:
   print(green(passed) + ' tests passed. ' + red(failed) + ' tests failed.')
-
-for key in sorted(skipped.keys()):
-  print('Skipped ' + yellow(skipped[key]) + ' tests: ' + key)
 
 if failed != 0:
   sys.exit(1)

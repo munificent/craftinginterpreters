@@ -14,7 +14,7 @@ default: $(CLASSES)
 # Compile a single .java file to .class.
 $(BUILD_DIR)/$(DIR)/%.class: $(DIR)/%.java
 	@ mkdir -p $(BUILD_DIR)/$(DIR)
-	@ javac -cp java -d $(BUILD_DIR)/$(DIR) $(JAVA_OPTIONS) -implicit:none $<
+	@ javac -cp $(DIR) -d $(BUILD_DIR)/$(DIR) $(JAVA_OPTIONS) -implicit:none $<
 	@ printf "%10s %-60s %s\n" javac $< "$(JAVA_OPTIONS)"
 
 .PHONY: default

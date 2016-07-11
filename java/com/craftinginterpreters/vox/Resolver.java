@@ -104,10 +104,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
       resolve(stmt.value);
     }
-//>= Classes
 
+//>= Blocks and Binding
     if (enclosingFunctions.isEmpty()) {
-      errorReporter.error(stmt.keyword, "Cannot return from top-level code.");
+      errorReporter.error(stmt.keyword,
+          "Cannot return from top-level code.");
     }
 
     return null;
