@@ -43,6 +43,11 @@ run_generate_ast = 	@ java -cp build/gen/$(1) \
 
 chapters:
 	@ python script/split_chapters.py
+
+	@ $(MAKE) -f util/java.make DIR=gen/chap01_framework PACKAGE=vox
+
+	@ $(MAKE) -f util/java.make DIR=gen/chap02_scanning PACKAGE=vox
+
 	@ $(MAKE) -f util/java.make DIR=gen/chap03_representing PACKAGE=tool
 	$(call run_generate_ast,chap03_representing)
 	@ $(MAKE) -f util/java.make DIR=gen/chap03_representing PACKAGE=vox

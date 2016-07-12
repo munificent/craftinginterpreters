@@ -62,8 +62,34 @@ java_interpreter('java', 'build/java', {
 
 # TODO: Other chapters.
 
+java_interpreter('chap02_scanning', 'build/gen/chap02_scanning', {
+  # No interpreter yet.
+  'test': 'skip',
+
+  'test/scanning': 'pass'
+})
+
+# No test for chapter 3. It just has a hardcoded main() in AstPrinter.
+
+java_interpreter('chap04_parsing', 'build/gen/chap04_parsing', {
+  # No real interpreter yet.
+  'test': 'skip',
+
+  'test/expressions/parse.vox': 'pass'
+})
+
+java_interpreter('chap05_evaluating', 'build/gen/chap05_evaluating', {
+  # No real interpreter yet.
+  'test': 'skip',
+
+  'test/expressions/evaluate.vox': 'pass'
+})
+
+# TODO: Other chapters.
+
 java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
   'test': 'pass',
+  'test/scanning': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
@@ -103,7 +129,6 @@ class Test:
 
   def parse(self):
     global num_skipped
-    global skipped
     global expectations
 
     # Get the path components.
