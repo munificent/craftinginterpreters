@@ -92,8 +92,13 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
-//>= Classes
+    if (enclosingFunctions.isEmpty()) {
+      errorReporter.error(stmt.keyword,
+          "Cannot return from top-level code.");
+    }
+
     if (stmt.value != null) {
+//>= Classes
       if (!enclosingFunctions.isEmpty() &&
           enclosingFunctions.peek().name.text.equals("init") &&
           !enclosingClasses.isEmpty() &&
@@ -102,13 +107,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             "Cannot return a value from an initializer.");
       }
 
-      resolve(stmt.value);
-    }
-
 //>= Blocks and Binding
-    if (enclosingFunctions.isEmpty()) {
-      errorReporter.error(stmt.keyword,
-          "Cannot return from top-level code.");
+      resolve(stmt.value);
     }
 
     return null;

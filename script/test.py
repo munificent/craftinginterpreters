@@ -50,6 +50,11 @@ c_interpreter('c', 'build/cvoxd', {
 java_interpreter('java', 'build/java', {
   'test': 'pass',
 
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+  'test/statements': 'skip',
+
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
   'test/limit/too_many_constants.vox': 'skip',
@@ -59,8 +64,6 @@ java_interpreter('java', 'build/java', {
   # Rely on JVM for stack overflow checking.
   'test/limit/stack_overflow.vox': 'skip',
 })
-
-# TODO: Other chapters.
 
 java_interpreter('chap02_scanning', 'build/gen/chap02_scanning', {
   # No interpreter yet.
@@ -85,11 +88,100 @@ java_interpreter('chap05_evaluating', 'build/gen/chap05_evaluating', {
   'test/expressions/evaluate.vox': 'pass'
 })
 
-# TODO: Other chapters.
+java_interpreter('chap06_statements', 'build/gen/chap06_statements', {
+  # No print() function, so most tests don't work.
+  'test': 'skip',
+
+  'test/statements': 'pass',
+
+  # No control flow yet.
+  'test/statements/if.vox': 'skip',
+  'test/statements/while.vox': 'skip'
+})
+
+java_interpreter('chap07_control', 'build/gen/chap07_control', {
+  # No print() function, so most tests don't work.
+  'test': 'skip',
+
+  'test/statements': 'pass'
+})
+
+java_interpreter('chap08_functions', 'build/gen/chap08_functions', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+  'test/statements': 'skip',
+
+  # No hardcoded limits in jvox.
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+
+  # Rely on JVM for stack overflow checking.
+  'test/limit/stack_overflow.vox': 'skip',
+
+  # No closures.
+  'test/closure': 'skip',
+
+  # No blocks.
+  'test/assignment/local.vox': 'skip',
+  'test/block': 'skip',
+  'test/function/local_mutual_recursion.vox': 'skip',
+  'test/function/local_recursion.vox': 'skip',
+  'test/if/else.vox': 'skip',
+  'test/if/if.vox': 'skip',
+  'test/variable/duplicate_local.vox': 'skip',
+  'test/variable/early_bound.vox': 'skip',
+  'test/variable/in_middle_of_block.vox': 'skip',
+  'test/variable/in_nested_block.vox': 'skip',
+  'test/variable/scope_reuse_in_different_blocks.vox': 'skip',
+  'test/variable/shadow_and_local.vox': 'skip',
+  'test/variable/shadow_global.vox': 'skip',
+  'test/variable/shadow_local.vox': 'skip',
+  'test/variable/undefined_local.vox': 'skip',
+  'test/variable/unreached_undefined.vox': 'skip',
+  'test/variable/use_local_in_initializer.vox': 'skip',
+  'test/while/closure_in_body.vox': 'skip',
+  'test/while/return_closure.vox': 'skip',
+  'test/while/return_inside.vox': 'skip',
+  'test/while/syntax.vox': 'skip',
+
+  # Broken because we haven't fixed it yet by detecting the error.
+  'test/return/at_top_level.vox': 'skip',
+
+  # No resolution.
+  'test/variable/collide_with_parameter.vox': 'skip',
+  'test/variable/duplicate_parameter.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/call/object.vox': 'skip',
+  'test/class': 'skip',
+  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
+})
 
 java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
   'test': 'pass',
+
+  # These are just for earlier chapters.
   'test/scanning': 'skip',
+  'test/expressions': 'skip',
+  'test/statements': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
@@ -109,6 +201,10 @@ java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/return/in_method.vox': 'skip',
