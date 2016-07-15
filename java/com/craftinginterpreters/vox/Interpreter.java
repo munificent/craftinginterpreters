@@ -111,6 +111,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     environment.declare(stmt.name);
 
     Map<String, VoxFunction> methods = new HashMap<>();
+//>= Inheritance
     Object superclass = null;
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass);
@@ -120,15 +121,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       }
     }
 
+//>= Classes
     for (Stmt.Function method : stmt.methods) {
       VoxFunction function = new VoxFunction(method, environment,
           method.name.text.equals("init"));
         methods.put(method.name.text, function);
     }
 
+/*== Classes
+    VoxClass klass = new VoxClass(stmt.name.text, methods);
+*/
+//>= Inheritance
     VoxClass klass = new VoxClass(stmt.name.text,
         (VoxClass)superclass, methods);
-
+//>= Classes
     environment.assign(stmt.name, klass);
     return null;
   }

@@ -76,4 +76,8 @@ chapters:
 	$(call run_generate_ast,chap09_blocks)
 	@ $(MAKE) -f util/java.make DIR=gen/chap09_blocks PACKAGE=vox
 
+	@ $(MAKE) -f util/java.make DIR=gen/chap10_classes PACKAGE=tool
+	$(call run_generate_ast,chap10_classes)
+	@ $(MAKE) -f util/java.make DIR=gen/chap10_classes PACKAGE=vox
+
 .PHONY: clean cvox debug default jvox test test_c test_java watch

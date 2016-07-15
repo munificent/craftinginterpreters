@@ -89,7 +89,12 @@ class Parser {
 
     consume(RIGHT_BRACE, "Expect '}' after class body.");
 
+/*== Classes
+    return new Stmt.Class(name, methods);
+*/
+//>= Inheritance
     return new Stmt.Class(name, superclass, methods);
+//>= Classes
   }
 //>= Statements and State
 

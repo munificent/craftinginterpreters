@@ -48,7 +48,10 @@ public class GenerateAst {
     defineAstType("Stmt", Arrays.asList(
 //>= Blocks and Binding
         "Block       : List<Stmt> statements",
-//>= Classes
+/*== Classes
+        "Class       : Token name, List<Stmt.Function> methods",
+*/
+//>= Inheritance
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
 //>= Statements and State
         "Expression  : Expr expression",

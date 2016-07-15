@@ -11,8 +11,13 @@ class VoxClass implements Callable {
 //>= Classes
   private final Map<String, VoxFunction> methods;
 
+/*== Classes
+  VoxClass(String name, Map<String, VoxFunction> methods) {
+*/
+//>= Inheritance
   VoxClass(String name, VoxClass superclass,
            Map<String, VoxFunction> methods) {
+//>= Classes
     this.name = name;
 //>= Inheritance
     this.superclass = superclass;
@@ -21,6 +26,14 @@ class VoxClass implements Callable {
   }
 
   VoxFunction findMethod(VoxInstance instance, String name) {
+/*== Classes
+    if (methods.containsKey(name)) {
+      return methods.get(name).bind(instance);
+    }
+
+    // Not found.
+    return null;
+*/
 //>= Inheritance
     VoxClass klass = this;
     while (klass != null) {
@@ -34,7 +47,6 @@ class VoxClass implements Callable {
     // Not found.
     return null;
 //>= Classes
-    // TODO: Non-inheritance version.
   }
 
   @Override
@@ -55,7 +67,12 @@ class VoxClass implements Callable {
 
     VoxFunction initializer = methods.get("init");
     if (initializer != null) {
+/*== Classes
+      initializer.bind(instance).call(interpreter, arguments);
+*/
+//>= Inheritance
       initializer.bind(instance, superclass).call(interpreter, arguments);
+//>= Classes
     }
 
     return instance;

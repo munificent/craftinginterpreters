@@ -211,6 +211,29 @@ java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
+java_interpreter('chap10_classes', 'build/gen/chap10_classes', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+  'test/statements': 'skip',
+
+  # No hardcoded limits in jvox.
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+
+  # Rely on JVM for stack overflow checking.
+  'test/limit/stack_overflow.vox': 'skip',
+
+  # No inheritance.
+  'test/class/inherited_method.vox': 'skip',
+  'test/inheritance': 'skip',
+  'test/super': 'skip',
+})
+
 
 class Test:
   def __init__(self, path):
