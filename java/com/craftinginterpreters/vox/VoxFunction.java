@@ -29,17 +29,10 @@ VoxFunction(Stmt.Function declaration, Environment closure) {
 //>= Functions
   }
 
-/*== Classes
-  VoxFunction bind(VoxInstance self) {
-*/
-//>= Inheritance
-  VoxFunction bind(VoxInstance self, VoxClass superclass) {
 //>= Classes
+  VoxFunction bind(VoxInstance self) {
     Environment environment = closure.enterScope();
     environment.define("this", self);
-//>= Inheritance
-    environment.define("super", superclass);
-//>= Classes
     return new VoxFunction(declaration, environment, isInitializer);
   }
 

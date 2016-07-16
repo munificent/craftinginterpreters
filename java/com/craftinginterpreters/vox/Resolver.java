@@ -42,6 +42,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     if (stmt.superclass != null) {
       resolve(stmt.superclass);
+      beginScope();
+      scopes.peek().put("super", true);
     }
 //>= Classes
 
@@ -51,12 +53,17 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       // Push the implicit scope that binds "this" and "class".
       beginScope();
       scopes.peek().put("this", true);
-      scopes.peek().put("super", true);
       resolveFunction(method);
       endScope();
     }
 
     enclosingClasses.pop();
+//>= Inheritance
+
+    if (stmt.superclass != null) {
+      endScope();
+    }
+//>= Classes
 
     return null;
   }

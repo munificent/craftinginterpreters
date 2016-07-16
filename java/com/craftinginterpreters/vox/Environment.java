@@ -6,7 +6,7 @@ import java.util.Map;
 
 class Environment {
 //>= Functions
-  private final Environment enclosing;
+  final Environment enclosing;
 //>= Statements and State
   private final Map<String, Object> values = new HashMap<>();
 

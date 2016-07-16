@@ -119,6 +119,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         throw new RuntimeError(stmt.name,
             "Superclass must be a class.");
       }
+
+      environment = environment.enterScope();
+      environment.define("super", superclass);
     }
 
 //>= Classes
@@ -134,6 +137,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //>= Inheritance
     VoxClass klass = new VoxClass(stmt.name.text,
         (VoxClass)superclass, methods);
+
+    if (superclass != null) {
+      environment = environment.enclosing;
+    }
+
 //>= Classes
     environment.assign(stmt.name, klass);
     return null;

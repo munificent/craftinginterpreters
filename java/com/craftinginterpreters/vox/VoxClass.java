@@ -38,7 +38,7 @@ class VoxClass implements Callable {
     VoxClass klass = this;
     while (klass != null) {
       if (klass.methods.containsKey(name)) {
-        return klass.methods.get(name).bind(instance, klass.superclass);
+        return klass.methods.get(name).bind(instance);
       }
 
       klass = klass.superclass;
@@ -67,12 +67,7 @@ class VoxClass implements Callable {
 
     VoxFunction initializer = methods.get("init");
     if (initializer != null) {
-/*== Classes
       initializer.bind(instance).call(interpreter, arguments);
-*/
-//>= Inheritance
-      initializer.bind(instance, superclass).call(interpreter, arguments);
-//>= Classes
     }
 
     return instance;
