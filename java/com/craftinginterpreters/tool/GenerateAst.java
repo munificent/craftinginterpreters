@@ -55,8 +55,6 @@ public class GenerateAst {
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
 //>= Statements and State
         "Expression  : Expr expression",
-//>= Uhh
-        "For         : Token name, Expr iterator, Stmt body",
 //>= Functions
         "Function    : Token name, List<Token> parameters, List<Stmt> body",
 //>= Control Flow

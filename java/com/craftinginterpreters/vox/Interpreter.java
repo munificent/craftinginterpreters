@@ -38,7 +38,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //>= Functions
 
     globals.define("print", Callable.wrap(this::print));
-//>= Uhh
+//>= Reaching the Summit
     globals.define("clock", Callable.wrap(this::clock));
 //>= Evaluating Expressions
   }
@@ -151,12 +151,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
-    return null;
-  }
-//>= Uhh
-
-  @Override
-  public Void visitForStmt(Stmt.For stmt) {
     return null;
   }
 //>= Functions
@@ -451,7 +445,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     System.out.println(stringify(argument));
     return argument;
   }
-//>= Uhh
+//>= Reaching the Summit
 
   private Object clock() {
     return (double)System.currentTimeMillis() / 1000.0;

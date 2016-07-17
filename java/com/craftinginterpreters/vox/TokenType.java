@@ -3,8 +3,6 @@ package com.craftinginterpreters.vox;
 
 enum TokenType {
   LEFT_PAREN, RIGHT_PAREN,
-  // TODO: If we don't do lists, get rid of these.
-  LEFT_BRACKET, RIGHT_BRACKET,
   LEFT_BRACE, RIGHT_BRACE,
   BANG,
   BANG_EQUAL,

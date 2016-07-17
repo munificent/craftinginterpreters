@@ -7,7 +7,6 @@ abstract class Stmt {
     R visitBlockStmt(Block stmt);
     R visitClassStmt(Class stmt);
     R visitExpressionStmt(Expression stmt);
-    R visitForStmt(For stmt);
     R visitFunctionStmt(Function stmt);
     R visitIfStmt(If stmt);
     R visitReturnStmt(Return stmt);
@@ -53,22 +52,6 @@ abstract class Stmt {
     }
 
     final Expr expression;
-  }
-
-  static class For extends Stmt {
-    For(Token name, Expr iterator, Stmt body) {
-      this.name = name;
-      this.iterator = iterator;
-      this.body = body;
-    }
-
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitForStmt(this);
-    }
-
-    final Token name;
-    final Expr iterator;
-    final Stmt body;
   }
 
   static class Function extends Stmt {

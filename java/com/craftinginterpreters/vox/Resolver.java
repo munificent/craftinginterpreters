@@ -7,12 +7,24 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final ErrorReporter errorReporter;
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
-//>= Classes
-  private final Stack<Stmt.Class> enclosingClasses = new Stack<>();
 //>= Blocks and Binding
-  private final Stack<Stmt.Function> enclosingFunctions = new Stack<>();
   private final Map<Expr, Integer> locals = new HashMap<>();
 
+//>= Classes
+  private enum FunctionType {
+    NONE,
+    FUNCTION,
+    METHOD,
+    INITIALIZER
+  }
+
+  private FunctionType currentFunction = FunctionType.NONE;
+  private int enclosingClasses = 0;
+
+//>= Inheritance
+  private boolean isInSubclass = false;
+
+//>= Blocks and Binding
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
   }
@@ -40,30 +52,38 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     define(stmt.name);
 //>= Inheritance
 
-    if (stmt.superclass != null) {
+    boolean wasInSubclass = isInSubclass;
+    isInSubclass = stmt.superclass != null;
+
+    if (isInSubclass) {
       resolve(stmt.superclass);
       beginScope();
       scopes.peek().put("super", true);
     }
+    enclosingClasses++;
 //>= Classes
-
-    enclosingClasses.push(stmt);
 
     for (Stmt.Function method : stmt.methods) {
       // Push the implicit scope that binds "this" and "class".
       beginScope();
       scopes.peek().put("this", true);
-      resolveFunction(method);
+
+      FunctionType declaration = FunctionType.METHOD;
+      if (method.name.text.equals("init")) {
+        declaration = FunctionType.INITIALIZER;
+      }
+
+      resolveFunction(method, declaration);
       endScope();
     }
 
-    enclosingClasses.pop();
 //>= Inheritance
 
-    if (stmt.superclass != null) {
-      endScope();
-    }
+    if (isInSubclass) endScope();
+    isInSubclass = wasInSubclass;
+
 //>= Classes
+    enclosingClasses--;
 
     return null;
   }
@@ -75,19 +95,13 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Uhh
-  @Override
-  public Void visitForStmt(Stmt.For stmt) {
-    return null;
-  }
-
 //>= Blocks and Binding
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     declare(stmt.name);
     define(stmt.name);
 
-    resolveFunction(stmt);
+    resolveFunction(stmt, FunctionType.FUNCTION);
     return null;
   }
 
@@ -101,17 +115,14 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
-    if (enclosingFunctions.isEmpty()) {
+    if (currentFunction == FunctionType.NONE) {
       errorReporter.error(stmt.keyword,
           "Cannot return from top-level code.");
     }
 
     if (stmt.value != null) {
 //>= Classes
-      if (!enclosingFunctions.isEmpty() &&
-          enclosingFunctions.peek().name.text.equals("init") &&
-          !enclosingClasses.isEmpty() &&
-          enclosingClasses.peek().methods.contains(enclosingFunctions.peek())) {
+      if (currentFunction == FunctionType.INITIALIZER) {
         errorReporter.error(stmt.keyword,
             "Cannot return a value from an initializer.");
       }
@@ -203,10 +214,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Inheritance
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
-    if (enclosingClasses.isEmpty()) {
+    if (enclosingClasses == 0) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
-    } else if (enclosingClasses.peek().superclass == null) {
+    } else if (!isInSubclass) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' in a class with no superclass.");
     } else {
@@ -218,7 +229,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Classes
   @Override
   public Void visitThisExpr(Expr.This expr) {
-    if (enclosingClasses.isEmpty()) {
+    if (enclosingClasses == 0) {
       errorReporter.error(expr.keyword,
           "Cannot use 'this' outside of a class.");
     } else {
@@ -254,8 +265,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     expr.accept(this);
   }
 
-  private void resolveFunction(Stmt.Function function) {
-    enclosingFunctions.push(function);
+  private void resolveFunction(Stmt.Function function, FunctionType type) {
+    FunctionType enclosingFunction = currentFunction;
+    currentFunction = type;
+
     beginScope();
     for (Token param : function.parameters) {
       declare(param);
@@ -263,7 +276,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
     resolve(function.body);
     endScope();
-    enclosingFunctions.pop();
+
+    currentFunction = enclosingFunction;
   }
 
   private void beginScope() {

@@ -50,12 +50,6 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitExpressionStmt(Stmt.Expression stmt) {
     return join(";", stmt.expression);
   }
-//>= Uhh
-
-  @Override
-  public String visitForStmt(Stmt.For stmt) {
-    return null;
-  }
 //>= Functions
 
   @Override

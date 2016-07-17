@@ -18,8 +18,7 @@ CHAPTERS = [
   "Blocks and Binding",
   "Classes",
   "Inheritance",
-  # TODO: Figure out what to do with this stuff.
-  "Uhh"
+  "Reaching the Summit"
 ]
 
 LINE_SECTION_PATTERN = re.compile(r'//[>=]=')

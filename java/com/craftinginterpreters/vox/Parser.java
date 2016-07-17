@@ -3,6 +3,7 @@ package com.craftinginterpreters.vox;
 
 //>= Statements and State
 import java.util.ArrayList;
+import java.util.Arrays;
 //>= Parsing Expressions
 import java.util.HashSet;
 import java.util.List;
@@ -17,8 +18,6 @@ class Parser {
 //>= Functions
     synchronizing.add(LEFT_BRACE);
     synchronizing.add(RIGHT_BRACE);
-//>= Uhh
-    synchronizing.add(RIGHT_BRACKET);
 //>= Parsing Expressions
     synchronizing.add(RIGHT_PAREN);
 //>= Statements and State
@@ -100,6 +99,7 @@ class Parser {
 
   private Stmt statement() {
 //>= Control Flow
+    if (match(FOR)) return forStatement();
     if (match(IF)) return ifStatement();
 //>= Functions
     if (match(RETURN)) return returnStatement();
@@ -109,12 +109,51 @@ class Parser {
     if (check(LEFT_BRACE)) return new Stmt.Block(block());
 //>= Statements and State
 
-    // Expression statement.
-    Expr expr = parseExpression();
-    consume(SEMICOLON, "Expect ';' after expression.");
-    return new Stmt.Expression(expr);
+    return expressionStatement();
   }
 //>= Control Flow
+
+  private Stmt forStatement() {
+    // Parse it.
+    consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+    Stmt initializer;
+    if (match(SEMICOLON)) {
+      initializer = null;
+    } else if (match(VAR)) {
+      initializer = varDeclaration();
+    } else {
+      initializer = expressionStatement();
+    }
+
+    Expr condition = null;
+    if (!check(SEMICOLON)) {
+      condition = parseExpression();
+    }
+    consume(SEMICOLON, "Expect ';' after loop condition.");
+
+    Stmt increment = null;
+    if (!check(RIGHT_PAREN)) {
+      increment = new Stmt.Expression(parseExpression());
+    }
+    consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    Stmt body = statement();
+
+    // Desugar to a while loop.
+    if (increment != null) {
+      body = new Stmt.Block(Arrays.asList(body, increment));
+    }
+
+    if (condition == null) condition = new Expr.Literal(true);
+    body = new Stmt.While(condition, body);
+
+    if (initializer != null) {
+      body = new Stmt.Block(Arrays.asList(initializer, body));
+    }
+
+    return body;
+  }
 
   private Stmt ifStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'if'.");
@@ -165,6 +204,14 @@ class Parser {
 
     return new Stmt.While(condition, body);
   }
+//>= Statements and State
+
+  private Stmt expressionStatement() {
+    Expr expr = parseExpression();
+    consume(SEMICOLON, "Expect ';' after expression.");
+    return new Stmt.Expression(expr);
+  }
+
 //>= Functions
 
   private Stmt.Function function(String kind) {

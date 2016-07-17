@@ -4,7 +4,7 @@ package com.craftinginterpreters.vox;
 import java.util.List;
 
 interface Callable {
-//>= Uhh
+//>= Reaching the Summit
   static Callable wrap(Primitive0 primitive) {
     return new Callable() {
       @Override
@@ -36,7 +36,7 @@ interface Callable {
     };
   }
 
-//>= Uhh
+//>= Reaching the Summit
   interface Primitive0 {
     Object call();
   }
