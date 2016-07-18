@@ -7,15 +7,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final ErrorReporter errorReporter;
 
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
-//>= Blocks and Binding
   private final Map<Expr, Integer> locals = new HashMap<>();
 
-//>= Classes
   private enum FunctionType {
     NONE,
     FUNCTION,
+//>= Classes
     METHOD,
     INITIALIZER
+//>= Blocks and Binding
   }
 
   private FunctionType currentFunction = FunctionType.NONE;
@@ -60,8 +60,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       beginScope();
       scopes.peek().put("super", true);
     }
-    enclosingClasses++;
 //>= Classes
+    enclosingClasses++;
 
     for (Stmt.Function method : stmt.methods) {
       // Push the implicit scope that binds "this" and "class".

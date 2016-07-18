@@ -5,12 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 class Environment {
-//>= Functions
   final Environment enclosing;
-//>= Statements and State
   private final Map<String, Object> values = new HashMap<>();
 
-//>= Functions
   Environment() {
     enclosing = null;
   }
@@ -19,7 +16,6 @@ class Environment {
     this.enclosing = enclosing;
   }
 
-//>= Statements and State
   void declare(Token name) {
     // Note: Can't just use define(name, null). That will
     // overwrite a previously defined global value.
@@ -33,11 +29,8 @@ class Environment {
       return values.get(name.text);
     }
 
-/*== Functions
     if (enclosing != null) return enclosing.get(name);
 
-*/
-//>= Statements and State
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -48,14 +41,11 @@ class Environment {
       return;
     }
 
-/*== Functions
     if (enclosing != null) {
       enclosing.assign(name, value);
       return;
     }
 
-*/
-//>= Statements and State
     throw new RuntimeError(name,
         "Undefined variable '" + name.text + "'.");
   }
@@ -82,25 +72,19 @@ class Environment {
 
     environment.values.put(name.text, value);
   }
+//>= Statements and State
 
-//>= Functions
   Environment enterScope() {
     return new Environment(this);
   }
 
-//>= Statements and State
   @Override
   public String toString() {
-/*>= Statements and State <= Control Flow
-    return values.toString();
-*/
-//>= Functions
     String result = values.toString();
     if (enclosing != null) {
       result += " -> " + enclosing.toString();
     }
 
     return result;
-//>= Statements and State
   }
 }

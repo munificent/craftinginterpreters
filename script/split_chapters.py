@@ -15,7 +15,7 @@ CHAPTERS = [
   "Statements and State",
   "Control Flow",
   "Functions",
-  "Blocks and Binding",
+  "Blocks and Binding", # TODO: Rename to "Resolution". Move after Inheritance?
   "Classes",
   "Inheritance",
   "Reaching the Summit"

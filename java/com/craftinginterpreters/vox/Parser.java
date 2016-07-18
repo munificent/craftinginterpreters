@@ -15,7 +15,7 @@ class Parser {
   private static final Set<TokenType> synchronizing = new HashSet<>();
 
   static {
-//>= Functions
+//>= Statements and State
     synchronizing.add(LEFT_BRACE);
     synchronizing.add(RIGHT_BRACE);
 //>= Parsing Expressions
@@ -105,9 +105,8 @@ class Parser {
     if (match(RETURN)) return returnStatement();
 //>= Control Flow
     if (match(WHILE)) return whileStatement();
-//>= Blocks and Binding
-    if (check(LEFT_BRACE)) return new Stmt.Block(block());
 //>= Statements and State
+    if (check(LEFT_BRACE)) return new Stmt.Block(block());
 
     return expressionStatement();
   }
@@ -211,7 +210,6 @@ class Parser {
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
-
 //>= Functions
 
   private Stmt.Function function(String kind) {
@@ -232,6 +230,7 @@ class Parser {
     List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
   }
+//>= Statements and State
 
   private List<Stmt> block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
@@ -245,7 +244,6 @@ class Parser {
 
     return statements;
   }
-//>= Statements and State
 
   private Expr assignment() {
 /*== Statements and State
@@ -365,9 +363,8 @@ class Parser {
   }
 //>= Functions
 
-  private List<Expr> argumentList() {
+  private Expr finishCall(Expr callee) {
     List<Expr> arguments = new ArrayList<>();
-
     if (!check(RIGHT_PAREN)) {
       do {
         if (arguments.size() >= 8) {
@@ -378,11 +375,6 @@ class Parser {
       } while (match(COMMA));
     }
 
-    return arguments;
-  }
-
-  private Expr finishCall(Expr callee) {
-    List<Expr> arguments = argumentList();
     Token paren = consume(RIGHT_PAREN,
         "Expect ')' after arguments.");
 

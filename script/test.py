@@ -123,38 +123,17 @@ java_interpreter('chap08_functions', 'build/gen/chap08_functions', {
   # Rely on JVM for stack overflow checking.
   'test/limit/stack_overflow.vox': 'skip',
 
-  # No closures.
-  'test/closure': 'skip',
-
-  # No blocks.
-  'test/assignment/local.vox': 'skip',
-  'test/block': 'skip',
-  'test/function/local_mutual_recursion.vox': 'skip',
-  'test/function/local_recursion.vox': 'skip',
-  'test/if/else.vox': 'skip',
-  'test/if/if.vox': 'skip',
-  'test/variable/duplicate_local.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
-  'test/variable/in_middle_of_block.vox': 'skip',
-  'test/variable/in_nested_block.vox': 'skip',
-  'test/variable/scope_reuse_in_different_blocks.vox': 'skip',
-  'test/variable/shadow_and_local.vox': 'skip',
-  'test/variable/shadow_global.vox': 'skip',
-  'test/variable/shadow_local.vox': 'skip',
-  'test/variable/undefined_local.vox': 'skip',
-  'test/variable/unreached_undefined.vox': 'skip',
-  'test/variable/use_local_in_initializer.vox': 'skip',
-  'test/while/closure_in_body.vox': 'skip',
-  'test/while/return_closure.vox': 'skip',
-  'test/while/return_inside.vox': 'skip',
-  'test/while/syntax.vox': 'skip',
-
   # Broken because we haven't fixed it yet by detecting the error.
   'test/return/at_top_level.vox': 'skip',
+  'test/variable/use_local_in_initializer.vox': 'skip',
 
   # No resolution.
+  'test/closure/assign_to_shadowed_later.vox': 'skip',
+  'test/function/local_mutual_recursion.vox': 'skip',
   'test/variable/collide_with_parameter.vox': 'skip',
+  'test/variable/duplicate_local.vox': 'skip',
   'test/variable/duplicate_parameter.vox': 'skip',
+  'test/variable/early_bound.vox': 'skip',
 
   # No classes.
   'test/assignment/to_this.vox': 'skip',

@@ -46,7 +46,7 @@ public class GenerateAst {
 //>= Statements and State
 
     defineAstType("Stmt", Arrays.asList(
-//>= Blocks and Binding
+//>= Statements and State
         "Block       : List<Stmt> statements",
 /*== Classes
         "Class       : Token name, List<Stmt.Function> methods",

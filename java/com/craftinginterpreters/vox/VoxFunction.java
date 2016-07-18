@@ -5,16 +5,12 @@ import java.util.List;
 
 class VoxFunction implements Callable {
   private final Stmt.Function declaration;
-//>= Blocks and Binding
   private final Environment closure;
 //>= Classes
   private final boolean isInitializer;
 //>= Functions
 
-/*== Functions
-  VoxFunction(Stmt.Function declaration) {
-*/
-/*== Blocks and Binding
+/*>= Functions <= Blocks and Binding
 VoxFunction(Stmt.Function declaration, Environment closure) {
 */
 //>= Classes
@@ -22,7 +18,6 @@ VoxFunction(Stmt.Function declaration, Environment closure) {
               boolean isInitializer) {
 //>= Functions
     this.declaration = declaration;
-//>= Blocks and Binding
     this.closure = closure;
 //>= Classes
     this.isInitializer = isInitializer;
@@ -52,12 +47,7 @@ VoxFunction(Stmt.Function declaration, Environment closure) {
     Object result = null;
 
     try {
-/*== Functions
-      Environment environment = interpreter.globals.enterScope();
-*/
-//>= Blocks and Binding
       Environment environment = closure.enterScope();
-//>= Functions
       for (int i = 0; i < declaration.parameters.size(); i++) {
         environment.define(declaration.parameters.get(i).text,
             arguments.get(i));

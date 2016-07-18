@@ -83,7 +83,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private void execute(Stmt stmt) {
     stmt.accept(this);
   }
-//>= Functions
+//>= Statements and State
 
   void executeBody(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
@@ -97,7 +97,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       this.environment = previous;
     }
   }
-//>= Blocks and Binding
+//>= Statements and State
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
@@ -158,10 +158,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     environment.declare(stmt.name);
-/*== Functions
-    VoxFunction function = new VoxFunction(stmt);
-*/
-/*== Blocks and Binding
+/*>= Functions <= Blocks and Binding
     VoxFunction function = new VoxFunction(stmt, environment);
 */
 //>= Classes
@@ -297,6 +294,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     if (!(callee instanceof Callable)) {
+      // TODO: Change error message to not mention classes explicitly
+      // since this shows up before classes are implemented.
       throw new RuntimeError(expr.paren,
           "Can only call functions and classes.");
     }

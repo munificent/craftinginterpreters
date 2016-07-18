@@ -18,7 +18,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   String print(Stmt stmt) {
     return stmt.accept(this);
   }
-//>= Blocks and Binding
+//>= Statements and State
 
   @Override
   public String visitBlockStmt(Stmt.Block stmt) {
