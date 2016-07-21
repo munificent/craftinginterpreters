@@ -890,6 +890,99 @@ static void funDeclaration() {
   defineVariable(global);
 }
 
+static void varDeclaration() {
+  uint8_t global = parseVariable("Expect variable name.");
+  
+  if (match(TOKEN_EQUAL)) {
+    // Compile the initializer.
+    expression();
+  } else {
+    // Default to nil.
+    emitByte(OP_NIL);
+  }
+  consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
+  
+  defineVariable(global);
+}
+
+static void expressionStatement() {
+  expression();
+  emitByte(OP_POP);
+  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  
+}
+
+static void forStatement() {
+  // for (var i = 0; i < 10; i = i + 1) print i;
+  //
+  //   var i = 0;
+  // start:                      <--.
+  //   if (i < 10) goto exit;  --.  |
+  //   goto body;  -----------.  |  |
+  // increment:            <--+--+--+--.
+  //   i = i + 1;             |  |  |  |
+  //   goto start;  ----------+--+--'  |
+  // body:                 <--'  |     |
+  //   print i;                  |     |
+  //   goto increment;  ---------+-----'
+  // exit:                    <--'
+  
+  // Create a scope for the loop variable.
+  beginScope();
+  
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+  
+  // The initialization clause.
+  if (match(TOKEN_VAR)) {
+    varDeclaration();
+  } else if (match(TOKEN_SEMICOLON)) {
+    // No initializer.
+  } else {
+    expressionStatement();
+  }
+  
+  int loopStart = current->function->chunk.count;
+
+  // The exit condition.
+  if (!match(TOKEN_SEMICOLON)) {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
+  } else {
+    // TODO: Instead of this, just do an unconditional jump.
+    emitByte(OP_TRUE);
+  }
+  
+  // Jump out of the loop if the condition is false.
+  int exitJump = emitJump(OP_JUMP_IF_FALSE);
+
+  emitByte(OP_POP); // Condition.
+  int bodyJump = emitJump(OP_JUMP);
+  
+  // Increment step.
+  int incrementStart = current->function->chunk.count;
+  if (!match(TOKEN_RIGHT_PAREN)) {
+    expression();
+    emitByte(OP_POP);
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+  }
+  
+  // Loop back to the start.
+  emitLoop(loopStart);
+
+  patchJump(bodyJump);
+  
+  // Compile the body.
+  statement();
+  
+  // Jump back to the increment.
+  emitLoop(incrementStart);
+
+  patchJump(exitJump);
+  emitByte(OP_POP); // Condition.
+
+  endScope(); // Loop variable.
+}
+
 static void ifStatement() {
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
@@ -939,21 +1032,6 @@ static void returnStatement() {
   }
 }
 
-static void varDeclaration() {
-  uint8_t global = parseVariable("Expect variable name.");
-
-  if (match(TOKEN_EQUAL)) {
-    // Compile the initializer.
-    expression();
-  } else {
-    // Default to nil.
-    emitByte(OP_NIL);
-  }
-  consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
-  
-  defineVariable(global);
-}
-
 static void whileStatement() {
   int loopStart = current->function->chunk.count;
   
@@ -988,7 +1066,9 @@ static void declaration() {
 }
 
 static void statement() {
-  if (match(TOKEN_IF)) {
+  if (match(TOKEN_FOR)) {
+    forStatement();
+  } else if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_PRINT)) {
     printStatement();
@@ -1001,9 +1081,7 @@ static void statement() {
     block();
     endScope();
   } else {
-    expression();
-    emitByte(OP_POP);
-    consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+    expressionStatement();
   }
 }
 
