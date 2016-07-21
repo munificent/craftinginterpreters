@@ -930,9 +930,8 @@ static void forStatement() {
   // Create a scope for the loop variable.
   beginScope();
   
-  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
-  
   // The initialization clause.
+  consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
   if (match(TOKEN_VAR)) {
     varDeclaration();
   } else if (match(TOKEN_SEMICOLON)) {
@@ -944,41 +943,46 @@ static void forStatement() {
   int loopStart = current->function->chunk.count;
 
   // The exit condition.
+  int exitJump = -1;
   if (!match(TOKEN_SEMICOLON)) {
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
-  } else {
-    // TODO: Instead of this, just do an unconditional jump.
-    emitByte(OP_TRUE);
+    
+    // Jump out of the loop if the condition is false.
+    exitJump = emitJump(OP_JUMP_IF_FALSE);
+    emitByte(OP_POP); // Condition.
   }
-  
-  // Jump out of the loop if the condition is false.
-  int exitJump = emitJump(OP_JUMP_IF_FALSE);
 
-  emitByte(OP_POP); // Condition.
-  int bodyJump = emitJump(OP_JUMP);
-  
   // Increment step.
-  int incrementStart = current->function->chunk.count;
   if (!match(TOKEN_RIGHT_PAREN)) {
+    // We don't want to execute the increment before the body, so jump over it.
+    int bodyJump = emitJump(OP_JUMP);
+
+    int incrementStart = current->function->chunk.count;
     expression();
     emitByte(OP_POP);
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
+    
+    // After the increment, start the whole loop over.
+    emitLoop(loopStart);
+    
+    // At the end of the body, we want to jump to the increment, not the top
+    // of the loop.
+    loopStart = incrementStart;
+    
+    patchJump(bodyJump);
   }
-  
-  // Loop back to the start.
-  emitLoop(loopStart);
-
-  patchJump(bodyJump);
   
   // Compile the body.
   statement();
   
-  // Jump back to the increment.
-  emitLoop(incrementStart);
+  // Jump back to the beginning (or the increment).
+  emitLoop(loopStart);
 
-  patchJump(exitJump);
-  emitByte(OP_POP); // Condition.
+  if (exitJump != -1) {
+    patchJump(exitJump);
+    emitByte(OP_POP); // Condition.
+  }
 
   endScope(); // Loop variable.
 }

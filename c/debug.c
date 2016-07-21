@@ -90,6 +90,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     case OP_NOT: printf("OP_NOT\n"); break;
     case OP_DIVIDE: printf("OP_DIVIDE\n"); break;
     case OP_NEGATE: printf("OP_NEGATE\n"); break;
+    case OP_PRINT: printf("OP_PRINT\n"); break;
       
     case OP_JUMP: {
       uint16_t offset = (uint16_t)(code[i++] << 8);
