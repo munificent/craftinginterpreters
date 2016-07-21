@@ -44,7 +44,12 @@ def java_interpreter(name, dir, tests):
       ['java', '-cp', dir, 'com.craftinginterpreters.vox.Vox'], tests)
 
 c_interpreter('c', 'build/cvoxd', {
-  'test': 'pass'
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+  'test/statements': 'skip',
 })
 
 java_interpreter('java', 'build/java', {

@@ -59,6 +59,8 @@ public class GenerateAst {
         "Function    : Token name, List<Token> parameters, List<Stmt> body",
 //>= Control Flow
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
+//>= Statements and State
+        "Print       : Expr expression",
 //>= Functions
         "Return      : Token keyword, Expr value",
 //>= Statements and State

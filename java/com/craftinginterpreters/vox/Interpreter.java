@@ -35,9 +35,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   Interpreter(ErrorReporter reporter) {
     this.reporter = reporter;
-//>= Functions
 
-    globals.define("print", Callable.wrap(this::print));
 //>= Reaching the Summit
     globals.define("clock", Callable.wrap(this::clock));
 //>= Evaluating Expressions
@@ -178,6 +176,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return null;
   }
+//>= Statements and State
+
+  @Override
+  public Void visitPrintStmt(Stmt.Print stmt) {
+    Object value = evaluate(stmt.expression);
+    System.out.println(stringify(value));
+    return null;
+  }
+
 //>= Functions
 
   @Override

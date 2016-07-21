@@ -20,7 +20,6 @@ interface Callable {
     };
   }
 
-//>= Functions
   static Callable wrap(Primitive1 primitive) {
     return new Callable() {
       @Override
@@ -36,16 +35,15 @@ interface Callable {
     };
   }
 
-//>= Reaching the Summit
   interface Primitive0 {
     Object call();
   }
 
-//>= Functions
   interface Primitive1 {
     Object call(Object argument);
   }
 
+//>= Functions
   // The number of arguments this function requires.
   int requiredArguments();
 

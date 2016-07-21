@@ -101,6 +101,8 @@ class Parser {
 //>= Control Flow
     if (match(FOR)) return forStatement();
     if (match(IF)) return ifStatement();
+//>= Statements and State
+    if (match(PRINT)) return printStatement();
 //>= Functions
     if (match(RETURN)) return returnStatement();
 //>= Control Flow
@@ -166,6 +168,13 @@ class Parser {
     }
 
     return new Stmt.If(condition, thenBranch, elseBranch);
+  }
+//>= Statements and State
+
+  private Stmt printStatement() {
+    Expr value = parseExpression();
+    consume(SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Print(value);
   }
 //>= Functions
 

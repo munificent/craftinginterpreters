@@ -731,6 +731,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
   { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
@@ -913,6 +914,13 @@ static void ifStatement() {
   patchJump(endJump);
 }
 
+static void printStatement() {
+  expression();
+  // TODO: Test:
+  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  emitByte(OP_PRINT);
+}
+
 static void returnStatement() {
   if (current->type == TYPE_TOP_LEVEL) {
     error("Cannot return from top-level code.");
@@ -982,6 +990,8 @@ static void declaration() {
 static void statement() {
   if (match(TOKEN_IF)) {
     ifStatement();
+  } else if (match(TOKEN_PRINT)) {
+    printStatement();
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
   } else if (match(TOKEN_WHILE)) {

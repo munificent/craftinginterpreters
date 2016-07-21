@@ -76,6 +76,12 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return join("if", stmt.condition, "then", stmt.thenBranch,
         "else", stmt.elseBranch);
   }
+//>= Statements and State
+
+  @Override
+  public String visitPrintStmt(Stmt.Print stmt) {
+    return join("print", stmt.expression);
+  }
 //>= Functions
 
   @Override

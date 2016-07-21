@@ -18,6 +18,7 @@ static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
+// TODO: Test.
 static Value strNative(int argCount, Value* args) {
   Value arg = args[0];
   switch (arg.type) {
@@ -82,12 +83,6 @@ static Value strNative(int argCount, Value* args) {
   }
 }
 
-static Value printNative(int argCount, Value* args) {
-  Value string = strNative(1, args);
-  printf("%s\n", AS_STRING(string)->chars);
-  return args[0];
-}
-
 static void resetStack() {
   vm.stackTop = vm.stack;
   vm.frameCount = 0;
@@ -138,7 +133,6 @@ void initVM() {
   vm.initString = copyString("init", 4);
   
   defineNative("clock", clockNative);
-  defineNative("print", printNative);
   defineNative("str", strNative);
 }
 
@@ -540,6 +534,13 @@ static bool run() {
         
         push(NUMBER_VAL(-AS_NUMBER(pop())));
         break;
+        
+      case OP_PRINT: {
+        Value string = strNative(1, &vm.stackTop[-1]);
+        printf("%s\n", AS_STRING(string)->chars);
+        pop();
+        break;
+      }
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();

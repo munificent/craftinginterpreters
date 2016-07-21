@@ -65,6 +65,8 @@ static bool addEntry(Entry* entries, int capacity,
 
   // We don't worry about an infinite loop here because resize() ensures
   // there are open slots in the array.
+  // TODO: Probably need to check for infinite loop here if table is all
+  // tombstones like we do below.
   for (;;) {
     Entry* entry = &entries[index];
 
