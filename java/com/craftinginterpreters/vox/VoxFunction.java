@@ -10,7 +10,7 @@ class VoxFunction implements Callable {
   private final boolean isInitializer;
 //>= Functions
 
-/*>= Functions <= Blocks and Binding
+/*>= Functions <= Resolving and Binding
 VoxFunction(Stmt.Function declaration, Environment closure) {
 */
 //>= Classes
@@ -58,7 +58,7 @@ VoxFunction(Stmt.Function declaration, Environment closure) {
       result = returnValue.value;
     }
 
-/*>= Functions <= Blocks and Binding
+/*>= Functions <= Resolving and Binding
     return result;
 */
 //>= Classes

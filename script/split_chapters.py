@@ -15,7 +15,7 @@ CHAPTERS = [
   "Statements and State",
   "Control Flow",
   "Functions",
-  "Blocks and Binding", # TODO: Rename to "Resolution". Move after Inheritance?
+  "Resolving and Binding",
   "Classes",
   "Inheritance",
   "Reaching the Summit"
@@ -31,7 +31,8 @@ MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
 
 def chapter_to_package(index):
   name = CHAPTERS[index].split()[0].lower()
-  return "chap{0:02d}_{1}".format(index + 1, name)
+  # +4 to be 1-based and skip past the intro chapters.
+  return "chap{0:02d}_{1}".format(index + 4, name)
 
 
 def parse_range(line):
@@ -112,6 +113,7 @@ def split_file(path, chapter_index):
 
     ensure_dir(os.path.join("gen", package, directory))
     with codecs.open(output_path, "w", encoding="utf-8") as out:
+      print chapter_index + 4, CHAPTERS[chapter_index]
       out.write(output)
 
 
@@ -135,6 +137,4 @@ def walk(dir, extension, callback):
 
 
 for i, chapter in enumerate(CHAPTERS):
-  print i + 1, chapter
-
   walk("java", ".java", lambda path: split_file(path, i))

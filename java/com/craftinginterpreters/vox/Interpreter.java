@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 //>= Statements and State
 import java.util.List;
-//>= Blocks and Binding
+//>= Resolving and Binding
 import java.util.Map;
 //>= Statements and State
 
@@ -28,7 +28,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   final Environment globals = new Environment();
   private Environment environment = globals;
-//>= Blocks and Binding
+//>= Resolving and Binding
 
   private Map<Expr, Integer> locals;
 //>= Evaluating Expressions
@@ -55,7 +55,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 /*>= Statements and State <= Functions
   void interpret(List<Stmt> statements) {
 */
-//>= Blocks and Binding
+//>= Resolving and Binding
   void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
     this.locals = locals;
 
@@ -158,7 +158,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     environment.declare(stmt.name);
-/*>= Functions <= Blocks and Binding
+/*>= Functions <= Resolving and Binding
     VoxFunction function = new VoxFunction(stmt, environment);
 */
 //>= Classes
@@ -217,7 +217,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 /*>= Statements and State <= Functions
     environment.assign(expr.name, value);
 */
-//>= Blocks and Binding
+//>= Resolving and Binding
     Integer distance = locals.get(expr);
     if (distance != null) {
       environment.assignAt(distance, expr.name, value);
@@ -406,11 +406,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 /*>= Statements and State <= Functions
     return environment.get(expr.name);
 */
-//>= Blocks and Binding
+//>= Resolving and Binding
     return lookUpVariable(expr.name, expr);
 //>= Statements and State
   }
-//>= Blocks and Binding
+//>= Resolving and Binding
 
   private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);

@@ -65,7 +65,7 @@ java_interpreter('java', 'build/java', {
   'test/limit/stack_overflow.vox': 'skip',
 })
 
-java_interpreter('chap02_scanning', 'build/gen/chap02_scanning', {
+java_interpreter('chap05_scanning', 'build/gen/chap05_scanning', {
   # No interpreter yet.
   'test': 'skip',
 
@@ -74,21 +74,21 @@ java_interpreter('chap02_scanning', 'build/gen/chap02_scanning', {
 
 # No test for chapter 3. It just has a hardcoded main() in AstPrinter.
 
-java_interpreter('chap04_parsing', 'build/gen/chap04_parsing', {
+java_interpreter('chap07_parsing', 'build/gen/chap07_parsing', {
   # No real interpreter yet.
   'test': 'skip',
 
   'test/expressions/parse.vox': 'pass'
 })
 
-java_interpreter('chap05_evaluating', 'build/gen/chap05_evaluating', {
+java_interpreter('chap08_evaluating', 'build/gen/chap08_evaluating', {
   # No real interpreter yet.
   'test': 'skip',
 
   'test/expressions/evaluate.vox': 'pass'
 })
 
-java_interpreter('chap06_statements', 'build/gen/chap06_statements', {
+java_interpreter('chap09_statements', 'build/gen/chap09_statements', {
   # No print() function, so most tests don't work.
   'test': 'skip',
 
@@ -99,14 +99,14 @@ java_interpreter('chap06_statements', 'build/gen/chap06_statements', {
   'test/statements/while.vox': 'skip'
 })
 
-java_interpreter('chap07_control', 'build/gen/chap07_control', {
+java_interpreter('chap10_control', 'build/gen/chap10_control', {
   # No print() function, so most tests don't work.
   'test': 'skip',
 
   'test/statements': 'pass'
 })
 
-java_interpreter('chap08_functions', 'build/gen/chap08_functions', {
+java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -154,7 +154,7 @@ java_interpreter('chap08_functions', 'build/gen/chap08_functions', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
-java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
+java_interpreter('chap12_resolving', 'build/gen/chap12_resolving', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -190,7 +190,7 @@ java_interpreter('chap09_blocks', 'build/gen/chap09_blocks', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
-java_interpreter('chap10_classes', 'build/gen/chap10_classes', {
+java_interpreter('chap13_classes', 'build/gen/chap13_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -213,7 +213,7 @@ java_interpreter('chap10_classes', 'build/gen/chap10_classes', {
   'test/super': 'skip',
 })
 
-java_interpreter('chap11_inheritance', 'build/gen/chap11_inheritance', {
+java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
   'test': 'pass',
 
   # These are just for earlier chapters.

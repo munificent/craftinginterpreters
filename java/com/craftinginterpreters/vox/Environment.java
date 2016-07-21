@@ -17,8 +17,8 @@ class Environment {
   }
 
   void declare(Token name) {
-    // Note: Can't just use define(name, null). That will
-    // overwrite a previously defined global value.
+    // Note: Can't just use define(name, null). That will overwrite a
+    // previously defined global value.
     if (!values.containsKey(name.text)) {
       values.put(name.text, null);
     }
@@ -54,7 +54,7 @@ class Environment {
     values.put(name, value);
   }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   Object getAt(int distance, String name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {

@@ -1,4 +1,4 @@
-//>= Blocks and Binding
+//>= Resolving and Binding
 package com.craftinginterpreters.vox;
 
 import java.util.*;
@@ -15,7 +15,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Classes
     METHOD,
     INITIALIZER
-//>= Blocks and Binding
+//>= Resolving and Binding
   }
 
   private FunctionType currentFunction = FunctionType.NONE;
@@ -24,7 +24,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Inheritance
   private boolean isInSubclass = false;
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
   }
@@ -88,14 +88,14 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     resolve(stmt.expression);
     return null;
   }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     declare(stmt.name);
@@ -127,7 +127,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             "Cannot return a value from an initializer.");
       }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
       resolve(stmt.value);
     }
 
@@ -151,7 +151,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   @Override
   public Void visitAssignExpr(Expr.Assign expr) {
     resolve(expr.value);
@@ -184,7 +184,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   @Override
   public Void visitGroupingExpr(Expr.Grouping expr) {
     resolve(expr.expression);
@@ -238,7 +238,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Blocks and Binding
+//>= Resolving and Binding
   @Override
   public Void visitUnaryExpr(Expr.Unary expr) {
     resolve(expr.right);

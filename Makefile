@@ -44,44 +44,44 @@ run_generate_ast = 	@ java -cp build/gen/$(1) \
 chapters:
 	@ python script/split_chapters.py
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap01_framework PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap04_framework PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap02_scanning PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap05_scanning PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap03_representing PACKAGE=tool
-	$(call run_generate_ast,chap03_representing)
-	@ $(MAKE) -f util/java.make DIR=gen/chap03_representing PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap06_representing PACKAGE=tool
+	$(call run_generate_ast,chap06_representing)
+	@ $(MAKE) -f util/java.make DIR=gen/chap06_representing PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap04_parsing PACKAGE=tool
-	$(call run_generate_ast,chap04_parsing)
-	@ $(MAKE) -f util/java.make DIR=gen/chap04_parsing PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap07_parsing PACKAGE=tool
+	$(call run_generate_ast,chap07_parsing)
+	@ $(MAKE) -f util/java.make DIR=gen/chap07_parsing PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap05_evaluating PACKAGE=tool
-	$(call run_generate_ast,chap05_evaluating)
-	@ $(MAKE) -f util/java.make DIR=gen/chap05_evaluating PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap08_evaluating PACKAGE=tool
+	$(call run_generate_ast,chap08_evaluating)
+	@ $(MAKE) -f util/java.make DIR=gen/chap08_evaluating PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap06_statements PACKAGE=tool
-	$(call run_generate_ast,chap06_statements)
-	@ $(MAKE) -f util/java.make DIR=gen/chap06_statements PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap09_statements PACKAGE=tool
+	$(call run_generate_ast,chap09_statements)
+	@ $(MAKE) -f util/java.make DIR=gen/chap09_statements PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap07_control PACKAGE=tool
-	$(call run_generate_ast,chap07_control)
-	@ $(MAKE) -f util/java.make DIR=gen/chap07_control PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap10_control PACKAGE=tool
+	$(call run_generate_ast,chap10_control)
+	@ $(MAKE) -f util/java.make DIR=gen/chap10_control PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap08_functions PACKAGE=tool
-	$(call run_generate_ast,chap08_functions)
-	@ $(MAKE) -f util/java.make DIR=gen/chap08_functions PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap11_functions PACKAGE=tool
+	$(call run_generate_ast,chap11_functions)
+	@ $(MAKE) -f util/java.make DIR=gen/chap11_functions PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap09_blocks PACKAGE=tool
-	$(call run_generate_ast,chap09_blocks)
-	@ $(MAKE) -f util/java.make DIR=gen/chap09_blocks PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap12_resolving PACKAGE=tool
+	$(call run_generate_ast,chap12_resolving)
+	@ $(MAKE) -f util/java.make DIR=gen/chap12_resolving PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap10_classes PACKAGE=tool
-	$(call run_generate_ast,chap10_classes)
-	@ $(MAKE) -f util/java.make DIR=gen/chap10_classes PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap13_classes PACKAGE=tool
+	$(call run_generate_ast,chap13_classes)
+	@ $(MAKE) -f util/java.make DIR=gen/chap13_classes PACKAGE=vox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap11_inheritance PACKAGE=tool
-	$(call run_generate_ast,chap11_inheritance)
-	@ $(MAKE) -f util/java.make DIR=gen/chap11_inheritance PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=tool
+	$(call run_generate_ast,chap14_inheritance)
+	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=vox
 
 .PHONY: clean cvox debug default jvox test test_c test_java watch
