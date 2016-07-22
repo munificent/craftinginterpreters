@@ -62,11 +62,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       for (Stmt statement : statements) {
         execute(statement);
       }
-
-/*>= Statements and State <= Control Flow
-      System.out.println(environment);
-*/
-//>= Statements and State
     } catch (RuntimeError error) {
       reporter.runtimeError(error.token.line, error.getMessage());
     }

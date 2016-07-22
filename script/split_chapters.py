@@ -113,7 +113,7 @@ def split_file(path, chapter_index):
 
     ensure_dir(os.path.join("gen", package, directory))
     with codecs.open(output_path, "w", encoding="utf-8") as out:
-      print chapter_index + 4, CHAPTERS[chapter_index]
+      print output_path
       out.write(output)
 
 

@@ -48,8 +48,7 @@ c_interpreter('c', 'build/cvoxd', {
 
   # These are just for earlier chapters.
   'test/scanning': 'skip',
-  'test/expressions': 'skip',
-  'test/statements': 'skip',
+  'test/expressions': 'skip'
 })
 
 java_interpreter('java', 'build/java', {
@@ -58,7 +57,6 @@ java_interpreter('java', 'build/java', {
   # These are just for earlier chapters.
   'test/scanning': 'skip',
   'test/expressions': 'skip',
-  'test/statements': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
@@ -94,21 +92,130 @@ java_interpreter('chap08_evaluating', 'build/gen/chap08_evaluating', {
 })
 
 java_interpreter('chap09_statements', 'build/gen/chap09_statements', {
-  # No print() function, so most tests don't work.
-  'test': 'skip',
+  'test': 'pass',
 
-  'test/statements': 'pass',
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
 
-  # No control flow yet.
-  'test/statements/if.vox': 'skip',
-  'test/statements/while.vox': 'skip'
+  # No hardcoded limits in jvox.
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/reuse_constants.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+
+  # Rely on JVM for stack overflow checking.
+  'test/limit/stack_overflow.vox': 'skip',
+
+  # No control flow.
+  'test/block/empty.vox': 'skip',
+  'test/for': 'skip',
+  'test/if': 'skip',
+  'test/logical_operator': 'skip',
+  'test/while': 'skip',
+  'test/variable/unreached_undefined.vox': 'skip',
+
+  # No functions.
+  'test/call': 'skip',
+  'test/closure': 'skip',
+  'test/function': 'skip',
+  'test/operator/not.vox': 'skip',
+  'test/return': 'skip',
+  'test/unexpected_character.vox': 'skip',
+
+  # Broken because we haven't fixed it yet by detecting the error.
+  'test/return/at_top_level.vox': 'skip',
+  'test/variable/use_local_in_initializer.vox': 'skip',
+
+  # No resolution.
+  'test/closure/assign_to_shadowed_later.vox': 'skip',
+  'test/function/local_mutual_recursion.vox': 'skip',
+  'test/variable/collide_with_parameter.vox': 'skip',
+  'test/variable/duplicate_local.vox': 'skip',
+  'test/variable/duplicate_parameter.vox': 'skip',
+  'test/variable/early_bound.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/call/object.vox': 'skip',
+  'test/class': 'skip',
+  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
 })
 
 java_interpreter('chap10_control', 'build/gen/chap10_control', {
-  # No print() function, so most tests don't work.
-  'test': 'skip',
+  'test': 'pass',
 
-  'test/statements': 'pass'
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No hardcoded limits in jvox.
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/reuse_constants.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+
+  # Rely on JVM for stack overflow checking.
+  'test/limit/stack_overflow.vox': 'skip',
+
+  # No functions.
+  'test/call': 'skip',
+  'test/closure': 'skip',
+  'test/for/closure_in_body.vox': 'skip',
+  'test/for/return_closure.vox': 'skip',
+  'test/for/return_inside.vox': 'skip',
+  'test/for/syntax.vox': 'skip',
+  'test/function': 'skip',
+  'test/operator/not.vox': 'skip',
+  'test/return': 'skip',
+  'test/unexpected_character.vox': 'skip',
+  'test/while/closure_in_body.vox': 'skip',
+  'test/while/return_closure.vox': 'skip',
+  'test/while/return_inside.vox': 'skip',
+
+  # Broken because we haven't fixed it yet by detecting the error.
+  'test/return/at_top_level.vox': 'skip',
+  'test/variable/use_local_in_initializer.vox': 'skip',
+
+  # No resolution.
+  'test/closure/assign_to_shadowed_later.vox': 'skip',
+  'test/function/local_mutual_recursion.vox': 'skip',
+  'test/variable/collide_with_parameter.vox': 'skip',
+  'test/variable/duplicate_local.vox': 'skip',
+  'test/variable/duplicate_parameter.vox': 'skip',
+  'test/variable/early_bound.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/call/object.vox': 'skip',
+  'test/class': 'skip',
+  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
 })
 
 java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
@@ -117,7 +224,6 @@ java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
   # These are just for earlier chapters.
   'test/scanning': 'skip',
   'test/expressions': 'skip',
-  'test/statements': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
@@ -165,7 +271,6 @@ java_interpreter('chap12_resolving', 'build/gen/chap12_resolving', {
   # These are just for earlier chapters.
   'test/scanning': 'skip',
   'test/expressions': 'skip',
-  'test/statements': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
@@ -201,7 +306,6 @@ java_interpreter('chap13_classes', 'build/gen/chap13_classes', {
   # These are just for earlier chapters.
   'test/scanning': 'skip',
   'test/expressions': 'skip',
-  'test/statements': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',
@@ -224,7 +328,6 @@ java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
   # These are just for earlier chapters.
   'test/scanning': 'skip',
   'test/expressions': 'skip',
-  'test/statements': 'skip',
 
   # No hardcoded limits in jvox.
   'test/limit/loop_too_large.vox': 'skip',

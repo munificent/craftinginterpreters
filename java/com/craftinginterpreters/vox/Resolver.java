@@ -11,18 +11,31 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   private enum FunctionType {
     NONE,
-    FUNCTION,
+/*== Resolving and Binding
+    FUNCTION
+*/
 //>= Classes
+    FUNCTION,
     METHOD,
     INITIALIZER
 //>= Resolving and Binding
   }
 
   private FunctionType currentFunction = FunctionType.NONE;
-  private int enclosingClasses = 0;
+//>= Classes
 
+  private enum ClassType {
+    NONE,
+/*== Classes
+    CLASS
+ */
 //>= Inheritance
-  private boolean isInSubclass = false;
+    CLASS,
+    SUBCLASS
+//>= Classes
+  }
+
+  private ClassType currentClass = ClassType.NONE;
 
 //>= Resolving and Binding
   Resolver(ErrorReporter errorReporter) {
@@ -50,18 +63,18 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   public Void visitClassStmt(Stmt.Class stmt) {
     declare(stmt.name);
     define(stmt.name);
+
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType.CLASS;
 //>= Inheritance
 
-    boolean wasInSubclass = isInSubclass;
-    isInSubclass = stmt.superclass != null;
-
-    if (isInSubclass) {
+    if (stmt.superclass != null) {
+      currentClass = ClassType.SUBCLASS;
       resolve(stmt.superclass);
       beginScope();
       scopes.peek().put("super", true);
     }
 //>= Classes
-    enclosingClasses++;
 
     for (Stmt.Function method : stmt.methods) {
       // Push the implicit scope that binds "this" and "class".
@@ -79,12 +92,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 //>= Inheritance
 
-    if (isInSubclass) endScope();
-    isInSubclass = wasInSubclass;
+    if (currentClass == ClassType.SUBCLASS) endScope();
 
 //>= Classes
-    enclosingClasses--;
-
+    currentClass = enclosingClass;
     return null;
   }
 
@@ -220,10 +231,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Inheritance
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
-    if (enclosingClasses == 0) {
+    if (currentClass == ClassType.NONE) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
-    } else if (!isInSubclass) {
+    } else if (currentClass != ClassType.SUBCLASS) {
       errorReporter.error(expr.keyword,
           "Cannot use 'super' in a class with no superclass.");
     } else {
@@ -235,7 +246,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //>= Classes
   @Override
   public Void visitThisExpr(Expr.This expr) {
-    if (enclosingClasses == 0) {
+    if (currentClass == ClassType.NONE) {
       errorReporter.error(expr.keyword,
           "Cannot use 'this' outside of a class.");
     } else {
@@ -256,7 +267,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (!scopes.isEmpty() &&
         scopes.peek().get(expr.name.text) == Boolean.FALSE) {
       errorReporter.error(expr.name,
-          "A local variable cannot be used in its own initializer.");
+          "Cannot read local variable before initializing it.");
     }
 
     resolveLocal(expr, expr.name);
