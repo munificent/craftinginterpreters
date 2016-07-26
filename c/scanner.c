@@ -1,7 +1,8 @@
-#include <stdbool.h>
+//>= Scanning Without Allocating
 #include <stdio.h>
 #include <string.h>
 
+#include "common.h"
 #include "scanner.h"
 
 typedef struct {

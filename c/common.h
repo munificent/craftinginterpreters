@@ -1,9 +1,10 @@
+//>= A Virtual Machine
 #ifndef cvox_common_h
 #define cvox_common_h
 
 #include <stdbool.h>
 #include <stdint.h>
-
+//>= Uhh
 //#define DEBUG_PRINT_CODE
 //#define DEBUG_TRACE_EXECUTION
 
@@ -14,5 +15,6 @@
 
 #define MIN_CAPACITY 8
 #define GROW_FACTOR 2
+//>= A Virtual Machine
 
 #endif

@@ -6,7 +6,7 @@ import glob
 import os
 import re
 
-CHAPTERS = [
+JAVA_CHAPTERS = [
   "Framework",
   "Scanning",
   "Representing Code",
@@ -21,6 +21,15 @@ CHAPTERS = [
   "Reaching the Summit"
 ]
 
+C_CHAPTERS = [
+  # TODO: Different names from Java versions.
+  "A Virtual Machine",
+  "Scanning Without Allocating",
+
+  # For stuff that hasn't been bucketed in a chapter yet.
+  "Uhh",
+]
+
 LINE_SECTION_PATTERN = re.compile(r'//[>=]=')
 BLOCK_SECTION_PATTERN = re.compile(r'/\*[>=]=')
 
@@ -29,41 +38,42 @@ RANGE_PATTERN = re.compile(r'/[/*]>= (.*) <= (.*)')
 MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
 
 
-def chapter_to_package(index):
-  name = CHAPTERS[index].split()[0].lower()
-  # +4 to be 1-based and skip past the intro chapters.
-  return "chap{0:02d}_{1}".format(index + 4, name)
+def chapter_to_package(chapters, chapter_offset, index):
+  name = chapters[index].split()[0].lower()
+  if name == "a":
+    name = chapters[index].split()[1].lower()
+  return "chap{0:02d}_{1}".format(index + chapter_offset, name)
 
 
-def parse_range(line):
+def parse_range(chapters, line):
   match = EQUALS_PATTERN.match(line)
   if match:
-    chapter = CHAPTERS.index(match.group(1))
+    chapter = chapters.index(match.group(1))
     return chapter, chapter
 
   match = RANGE_PATTERN.match(line)
   if match:
-    min_chapter = CHAPTERS.index(match.group(1))
-    max_chapter = CHAPTERS.index(match.group(2))
+    min_chapter = chapters.index(match.group(1))
+    max_chapter = chapters.index(match.group(2))
     return min_chapter, max_chapter
 
   match = MIN_PATTERN.match(line)
   if match:
-    min_chapter = CHAPTERS.index(match.group(1))
+    min_chapter = chapters.index(match.group(1))
     return min_chapter, 999
 
   raise Exception("Invalid line: '" + line + "'")
 
 
-def split_file(path, chapter_index):
-  relative = os.path.relpath(path, "java")
+def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
+  relative = os.path.relpath(path, source_dir)
   directory = os.path.dirname(relative)
 
   # Don't split the generated files.
   if relative == "com/craftinginterpreters/vox/Expr.java": return
   if relative == "com/craftinginterpreters/vox/Stmt.java": return
 
-  min_chapter = 0
+  min_chapter = 999
   max_chapter = 999
 
   # Some chunks of code are replaced in later chapters, so they are commented
@@ -77,9 +87,9 @@ def split_file(path, chapter_index):
     line_num = 1
     for line in input:
       if LINE_SECTION_PATTERN.match(line):
-        min_chapter, max_chapter = parse_range(line)
+        min_chapter, max_chapter = parse_range(chapters, line)
       elif BLOCK_SECTION_PATTERN.match(line):
-        min_chapter, max_chapter = parse_range(line)
+        min_chapter, max_chapter = parse_range(chapters, line)
         in_block_comment = True
       elif in_block_comment and line.strip() == "*/":
         min_chapter = None
@@ -101,7 +111,7 @@ def split_file(path, chapter_index):
 
   # Write the output.
   if output:
-    package = chapter_to_package(chapter_index)
+    package = chapter_to_package(chapters, chapter_offset, chapter_index)
     output_path = os.path.join("gen", package, relative)
 
     # Don't overwrite it if it didn't change, so the makefile doesn't think it
@@ -122,7 +132,7 @@ def ensure_dir(path):
       os.makedirs(path)
 
 
-def walk(dir, extension, callback):
+def walk(dir, extensions, callback):
   """
   Walks [dir], and executes [callback] on each file.
   """
@@ -131,10 +141,17 @@ def walk(dir, extension, callback):
   for path in os.listdir(dir):
     nfile = os.path.join(dir, path)
     if os.path.isdir(nfile):
-      walk(nfile, extension, callback)
-    elif os.path.splitext(path)[1] == extension:
+      walk(nfile, extensions, callback)
+    elif os.path.splitext(path)[1] in extensions:
       callback(nfile)
 
 
-for i, chapter in enumerate(CHAPTERS):
-  walk("java", ".java", lambda path: split_file(path, i))
+# The Java chapters.
+for i, chapter in enumerate(JAVA_CHAPTERS):
+  walk("java", [".java"],
+      lambda path: split_file("java", JAVA_CHAPTERS, 4, path, i))
+
+# The C chapters.
+for i, chapter in enumerate(C_CHAPTERS):
+  walk("c", [".c", ".h"],
+      lambda path: split_file("c", C_CHAPTERS, 16, path, i))

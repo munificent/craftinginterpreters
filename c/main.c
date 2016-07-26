@@ -1,8 +1,10 @@
-#include <stdbool.h>
+//>= A Virtual Machine
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "common.h"
 #include "vm.h"
+//>= Scanning Without Allocating
 
 #define MAX_LINE_LENGTH 1024
 
@@ -65,9 +67,25 @@ static void runFile(const char* path) {
   if (result == INTERPRET_COMPILE_ERROR) exit(65);
   if (result == INTERPRET_RUNTIME_ERROR) exit(70);
 }
+//>= A Virtual Machine
 
 int main(int argc, const char* argv[]) {
   initVM();
+/*== A Virtual Machine
+ 
+  uint8_t bytecode[] = {
+    OP_CONSTANT, 0,
+    OP_CONSTANT, 1,
+    OP_ADD,
+    OP_CONSTANT, 2,
+    OP_MULTIPLY,
+    OP_RETURN
+  };
+  double constants[] = {1.0, 2.0, 3.0};
+  
+  interpret(bytecode, constants);
+*/
+//>= Scanning Without Allocating
   
   if (argc == 1) {
     repl();
@@ -77,8 +95,8 @@ int main(int argc, const char* argv[]) {
     fprintf(stderr, "Usage: cvox [path]\n");
     exit(64);
   }
+//>= A Virtual Machine
   
   endVM();
-  
   return 0;
 }

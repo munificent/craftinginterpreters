@@ -1,7 +1,13 @@
+//>= A Virtual Machine
 #ifndef cvox_value_h
 #define cvox_value_h
 
 #include "common.h"
+
+/*>= A Virtual Machine <= Scanning Without Allocating
+typedef double Value;
+*/
+//>= Uhh
 
 #define IS_BOOL(value)    ((value).type == VAL_BOOL)
 #define IS_NIL(value)     ((value).type == VAL_NIL)
@@ -46,5 +52,6 @@ bool valuesEqual(Value a, Value b);
 void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
+//>= A Virtual Machine
 
 #endif

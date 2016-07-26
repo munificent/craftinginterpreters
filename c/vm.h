@@ -1,14 +1,26 @@
+//>= A Virtual Machine
 #ifndef cvox_vm_h
 #define cvox_vm_h
+//>= Uhh
 
 #include "object.h"
 #include "table.h"
+//>= A Virtual Machine
+#include "value.h"
 
-#define FRAME_COUNT 64
-#define STACK_COUNT (FRAME_COUNT * UINT8_COUNT)
+/*>= A Virtual Machine <= Scanning Without Allocating
+#define STACK_SIZE 256
+*/
+//>= Uhh
+// TODO: Don't depend on frame count for stack count since we have stack before
+// frames?
+#define FRAMES_SIZE 64
+#define STACK_SIZE (FRAMES_SIZE * UINT8_COUNT)
+//>= A Virtual Machine
 
 typedef enum {
   OP_CONSTANT,
+//>= Uhh
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
@@ -26,10 +38,12 @@ typedef enum {
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
+//>= A Virtual Machine
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
+//>= Uhh
   OP_NOT,
   OP_NEGATE,
   OP_PRINT,
@@ -65,23 +79,33 @@ typedef enum {
   OP_SUPER_8,
   OP_CLOSURE,
   OP_CLOSE_UPVALUE,
+//>= A Virtual Machine
   OP_RETURN,
+//>= Uhh
   OP_CLASS,
   OP_SUBCLASS,
   OP_METHOD
+//>= A Virtual Machine
 } OpCode;
+//>= Uhh
 
 typedef struct {
   ObjClosure* closure;
   uint8_t* ip;
   Value* slots;
 } CallFrame;
+//>= A Virtual Machine
 
 typedef struct {
-  Value stack[STACK_COUNT];
+  Value stack[STACK_SIZE];
   Value* stackTop;
+/*>= A Virtual Machine <= Scanning Without Allocating
+  uint8_t* bytecode;
+  double* constants;
+*/
+//>= Uhh
   
-  CallFrame frames[FRAME_COUNT];
+  CallFrame frames[FRAMES_SIZE];
   int frameCount;
   
   Table globals;
@@ -99,6 +123,7 @@ typedef struct {
   int grayCount;
   int grayCapacity;
   Obj** grayStack;
+//>= A Virtual Machine
 } VM;
 
 typedef enum {
@@ -111,11 +136,14 @@ typedef enum {
 extern VM vm;
 
 void initVM();
-
 void push(Value value);
 Value pop();
-
+/*== A Virtual Machine
+InterpretResult interpret(uint8_t* bytecode, double* constants);
+*/
+//>= Scanning Without Allocating
 InterpretResult interpret(const char* source);
+//>= A Virtual Machine
 void endVM();
 
 #endif

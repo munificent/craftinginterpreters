@@ -1,9 +1,6 @@
 #ifndef cvox_object_h
 #define cvox_object_h
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include "common.h"
 #include "chunk.h"
 #include "table.h"

@@ -1,18 +1,25 @@
+//>= Uhh
 #include <stdarg.h>
+//>= A Virtual Machine
 #include <stdio.h>
+//>= Uhh
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
+//>= A Virtual Machine
 #include "common.h"
+//>= Uhh
 #include "compiler.h"
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
 #include "value.h"
+//>= A Virtual Machine
 #include "vm.h"
 
 VM vm;
+//>= Uhh
 
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
@@ -82,12 +89,16 @@ static Value strNative(int argCount, Value* args) {
     }
   }
 }
+//>= A Virtual Machine
 
 static void resetStack() {
   vm.stackTop = vm.stack;
+//>= Uhh
   vm.frameCount = 0;
   vm.openUpvalues = NULL;
+//>= A Virtual Machine
 }
+//>= Uhh
 
 static void runtimeError(const char* format, ...) {
   va_list args;
@@ -116,9 +127,12 @@ static void defineNative(const char* name, NativeFn function) {
   pop();
   pop();
 }
+//>= A Virtual Machine
 
 void initVM() {
+//>= A Virtual Machine
   resetStack();
+//>= Uhh
   vm.objects = NULL;
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
@@ -134,13 +148,16 @@ void initVM() {
   
   defineNative("clock", clockNative);
   defineNative("str", strNative);
+//>= A Virtual Machine
 }
 
 void endVM() {
+//>= Uhh
   freeTable(&vm.globals);
   freeTable(&vm.strings);
   vm.initString = NULL;
   freeObjects();
+//>= A Virtual Machine
 }
 
 void push(Value value) {
@@ -152,6 +169,7 @@ Value pop() {
   vm.stackTop--;
   return *vm.stackTop;
 }
+//>= Uhh
 
 static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
@@ -163,7 +181,7 @@ static bool callClosure(ObjClosure* closure, int argCount) {
     return false;
   }
   
-  if (vm.frameCount == FRAME_COUNT) {
+  if (vm.frameCount == FRAMES_SIZE) {
     runtimeError("Stack overflow.");
     return false;
   }
@@ -362,15 +380,31 @@ static void concatenate() {
   pop();
   push(OBJ_VAL(result));
 }
+//>= A Virtual Machine
 
 static bool run() {
+//>= Uhh
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-  
+/*>= A Virtual Machine <= Scanning Without Allocating
+  uint8_t* ip = vm.bytecode;
+ 
+#define READ_BYTE() (*ip++)
+#define READ_CONSTANT() (vm.constants[READ_BYTE()])
+
+#define BINARY_OP(op) \
+    do { \
+      double b = pop(); \
+      double a = pop(); \
+      push(a op b); \
+    } while (false)
+*/
+//>= Uhh
+
 #define BINARY_OP(valueType, op) \
     do { \
       if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
@@ -382,7 +416,8 @@ static bool run() {
       double a = AS_NUMBER(pop()); \
       push(valueType(a op b)); \
     } while (false)
-
+//>= A Virtual Machine
+ 
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
@@ -396,8 +431,9 @@ static bool run() {
 #endif
     
     uint8_t instruction;
-    switch (instruction = *frame->ip++) {
+    switch (instruction = READ_BYTE()) {
       case OP_CONSTANT: push(READ_CONSTANT()); break;
+//>= Uhh
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
@@ -504,6 +540,13 @@ static bool run() {
       case OP_GREATER: BINARY_OP(BOOL_VAL, >); break;
       case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
 
+/*>= A Virtual Machine <= Scanning Without Allocating
+      case OP_ADD: BINARY_OP(+); break;
+      case OP_SUBTRACT: BINARY_OP(-); break;
+      case OP_MULTIPLY: BINARY_OP(*); break;
+      case OP_DIVIDE: BINARY_OP(/); break;
+*/
+//>= Uhh
       case OP_ADD: {
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
@@ -521,7 +564,7 @@ static bool run() {
       case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
       case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
       case OP_DIVIDE: BINARY_OP(NUMBER_VAL, /); break;
-        
+
       case OP_NOT:
         push(BOOL_VAL(isFalsey(pop())));
         break;
@@ -639,8 +682,14 @@ static bool run() {
         pop();
         break;
         
+//>= A Virtual Machine
       case OP_RETURN: {
         Value result = pop();
+/*>= A Virtual Machine <= Scanning Without Allocating
+        printf("%f\n", result);
+        return true;
+*/
+//>= Uhh
         
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
@@ -652,9 +701,10 @@ static bool run() {
         push(result);
         
         frame = &vm.frames[vm.frameCount - 1];
+//>= A Virtual Machine
         break;
       }
-        
+//>= Uhh
       case OP_CLASS:
         createClass(READ_STRING(), NULL);
         break;
@@ -673,19 +723,31 @@ static bool run() {
       case OP_METHOD:
         defineMethod(READ_STRING());
         break;
+//>= A Virtual Machine
     }
   }
   
   return true;
   
 #undef READ_BYTE
+//>= Uhh
 #undef READ_SHORT
+//>= A Virtual Machine
 #undef READ_CONSTANT
+//>= Uhh
 #undef READ_STRING
+//>= A Virtual Machine
 #undef BINARY_OP
 }
 
+/*== A Virtual Machine
+InterpretResult interpret(uint8_t* bytecode, double* constants) {
+  vm.bytecode = bytecode;
+  vm.constants = constants;
+*/
+//>= Scanning Without Allocating
 InterpretResult interpret(const char* source) {
+//>= Uhh
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
@@ -693,6 +755,7 @@ InterpretResult interpret(const char* source) {
   ObjClosure* closure = newClosure(function);
   pop();
   call(OBJ_VAL(closure), 0);
+//>= A Virtual Machine
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 }
