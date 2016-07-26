@@ -419,6 +419,7 @@ static bool run() {
 //>= A Virtual Machine
  
   for (;;) {
+//>= Uhh
 #ifdef DEBUG_TRACE_EXECUTION
     for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
       printf("| ");
@@ -430,6 +431,7 @@ static bool run() {
         (int)(frame->ip - frame->closure->function->chunk.code));
 #endif
     
+//>= A Virtual Machine
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
       case OP_CONSTANT: push(READ_CONSTANT()); break;
@@ -541,10 +543,10 @@ static bool run() {
       case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
 
 /*>= A Virtual Machine <= Scanning Without Allocating
-      case OP_ADD: BINARY_OP(+); break;
+      case OP_ADD:      BINARY_OP(+); break;
       case OP_SUBTRACT: BINARY_OP(-); break;
       case OP_MULTIPLY: BINARY_OP(*); break;
-      case OP_DIVIDE: BINARY_OP(/); break;
+      case OP_DIVIDE:   BINARY_OP(/); break;
 */
 //>= Uhh
       case OP_ADD: {
@@ -563,7 +565,7 @@ static bool run() {
         
       case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
       case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
-      case OP_DIVIDE: BINARY_OP(NUMBER_VAL, /); break;
+      case OP_DIVIDE:   BINARY_OP(NUMBER_VAL, /); break;
 
       case OP_NOT:
         push(BOOL_VAL(isFalsey(pop())));

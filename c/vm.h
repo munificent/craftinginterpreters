@@ -1,8 +1,8 @@
 //>= A Virtual Machine
 #ifndef cvox_vm_h
 #define cvox_vm_h
-//>= Uhh
 
+//>= Uhh
 #include "object.h"
 #include "table.h"
 //>= A Virtual Machine
