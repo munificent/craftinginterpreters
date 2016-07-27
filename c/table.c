@@ -112,9 +112,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   // If the table is getting too full, make room first.
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     // Figure out the new table size.
-    int capacity = table->capacity * GROW_FACTOR;
-    if (capacity < MIN_CAPACITY) capacity = MIN_CAPACITY;
-    
+    int capacity = GROW_CAPACITY(table->capacity);
     resize(table, capacity);
   }
 

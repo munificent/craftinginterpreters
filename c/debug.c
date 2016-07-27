@@ -1,3 +1,4 @@
+//>= Chunks of Bytecode
 #include <stdio.h>
 
 #include "debug.h"
@@ -13,7 +14,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
   
   uint8_t* code = chunk->code;
   uint8_t instruction = code[i++];
-  
+
+//>= Uhh
 #define INST_ZERO(name) \
     case name: printf(#name "\n"); break;
   
@@ -32,6 +34,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
       break; \
     }
   
+//>= Chunks of Bytecode
 #define INST_CONSTANT(name) \
     case name: {\
       uint8_t constant = chunk->code[i++]; \
@@ -40,9 +43,10 @@ int disassembleInstruction(Chunk* chunk, int i) {
       printf("'\n"); \
       break; \
     }
-
+  
   switch (instruction) {
     INST_CONSTANT(OP_CONSTANT)
+//>= Uhh
     INST_ZERO(OP_NIL)
     INST_ZERO(OP_TRUE)
     INST_ZERO(OP_FALSE)
@@ -60,10 +64,12 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_EQUAL)
     INST_ZERO(OP_GREATER)
     INST_ZERO(OP_LESS)
+//>= A Virtual Machine <= Scanning Without Allocating
     INST_ZERO(OP_SUBTRACT)
     INST_ZERO(OP_MULTIPLY)
     INST_ZERO(OP_NOT)
     INST_ZERO(OP_DIVIDE)
+//>= Uhh
     INST_ZERO(OP_NEGATE)
     INST_ZERO(OP_PRINT)
     INST_JUMP(OP_JUMP, +)
@@ -118,6 +124,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_CLASS)
     INST_CONSTANT(OP_SUBCLASS)
     INST_CONSTANT(OP_METHOD)
+//>= Chunks of Bytecode
   }
   
   return i;
@@ -132,6 +139,10 @@ void disassembleChunk(Chunk* chunk, const char* name) {
 }
 
 void printValue(Value value) {
+/*== Chunks of Bytecode
+  printf("%g", value);
+*/
+//>= Uhh
   switch (value.type) {
     case VAL_BOOL:
       printf(AS_BOOL(value) ? "true" : "false");
@@ -175,4 +186,5 @@ void printValue(Value value) {
       }
       break;
   }
+//>= Chunks of Bytecode
 }

@@ -1,10 +1,10 @@
-//>= A Virtual Machine
+//>= Chunks of Bytecode
 #ifndef cvox_value_h
 #define cvox_value_h
 
 #include "common.h"
 
-/*>= A Virtual Machine <= Scanning Without Allocating
+/*>= Chunks of Bytecode <= Scanning Without Allocating
 typedef double Value;
 */
 //>= Uhh
@@ -40,11 +40,12 @@ typedef struct {
     Obj* object;
   } as;
 } Value;
+//>= Chunks of Bytecode
 
 typedef struct {
-  Value* values;
   int capacity;
   int count;
+  Value* values;
 } ValueArray;
 
 bool valuesEqual(Value a, Value b);
@@ -52,6 +53,5 @@ bool valuesEqual(Value a, Value b);
 void initArray(ValueArray* array);
 void growArray(ValueArray* array);
 void freeArray(ValueArray* array);
-//>= A Virtual Machine
 
 #endif

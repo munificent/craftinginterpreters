@@ -1,10 +1,13 @@
+//>= Chunks of Bytecode
 #include <stdlib.h>
 
 #include "chunk.h"
 
 #include "memory.h"
 #include "value.h"
+//>= Uhh
 #include "vm.h"
+//>= Chunks of Bytecode
 
 void initChunk(Chunk* chunk) {
   chunk->count = 0;
@@ -24,12 +27,7 @@ void freeChunk(Chunk* chunk) {
 void writeChunk(Chunk* chunk, uint8_t byte, int line) {
   if (chunk->capacity < chunk->count + 1) {
     int oldCapacity = chunk->capacity;
-    if (chunk->capacity == 0) {
-      chunk->capacity = MIN_CAPACITY;
-    } else {
-      chunk->capacity *= GROW_FACTOR;
-    }
-    
+    chunk->capacity = GROW_CAPACITY(oldCapacity);
     chunk->code = GROW_ARRAY(chunk->code, uint8_t, oldCapacity, chunk->capacity);
     chunk->lines = GROW_ARRAY(chunk->lines, int, oldCapacity, chunk->capacity);
   }
@@ -42,16 +40,21 @@ int addConstant(Chunk* chunk, Value value) {
   // See if we already have an equivalent constant.
   for (int i = 0; i < chunk->constants.count; i++) {
     if (valuesEqual(value, chunk->constants.values[i])) {
-      return (uint8_t)i;
+      return i;
     }
   }
   
   if (chunk->constants.count == UINT8_COUNT) return -1;
+//>= Uhh
   
   // Make sure the value doesn't get collected when resizing the array.
   push(value);
-  growArray(&chunk->constants);
   
-  chunk->constants.values[chunk->constants.count] = pop();
+//>= Chunks of Bytecode
+  growArray(&chunk->constants);
+  chunk->constants.values[chunk->constants.count] = value;
+//>= Uhh
+  pop();
+//>= Chunks of Bytecode
   return chunk->constants.count++;
 }

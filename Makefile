@@ -3,7 +3,7 @@ BUILD_DIR := build
 default: cvox jvox
 
 debug:
-	@ $(MAKE) -f c/cvox.make MODE=debug
+	@ $(MAKE) -f util/c.make NAME=cvoxd MODE=debug SOURCE_DIR=c
 
 watch:
 	@ python script/build.py --watch
@@ -24,7 +24,7 @@ clean:
 
 # Compile the C interpreter.
 cvox:
-	@ $(MAKE) -f c/cvox.make MODE=release
+	@ $(MAKE) -f util/c.make NAME=cvox MODE=release SOURCE_DIR=c
 	@ cp build/cvox cvox # For convenience, copy the interpreter to the top level.
 
 # Compile and run the AST generator.
@@ -83,5 +83,10 @@ chapters:
 	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=tool
 	$(call run_generate_ast,chap14_inheritance)
 	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=vox
+
+# TODO: Unify with make chapters, and make more demand-driven.
+c_chapters:
+	@ python script/split_chapters.py
+	@ $(MAKE) -f util/c.make NAME=chap16_chunks MODE=release SOURCE_DIR=gen/chap16_chunks
 
 .PHONY: clean cvox debug default jvox test test_c test_java watch

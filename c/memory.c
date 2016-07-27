@@ -1,8 +1,12 @@
+//>= Chunks of Bytecode
 #include <stdlib.h>
 
 #include "common.h"
+//>= Uhh
 #include "compiler.h"
+//>= Chunks of Bytecode
 #include "memory.h"
+//>= Uhh
 #include "object.h"
 #include "vm.h"
 
@@ -11,7 +15,11 @@
 #include "debug.h"
 #endif
 
+#define GC_HEAP_GROW_FACTOR 2
+//>= Chunks of Bytecode
+
 void* reallocate(void* previous, size_t oldSize, size_t newSize) {
+//>= Uhh
   vm.bytesAllocated += newSize - oldSize;
   
   if (newSize > oldSize) {
@@ -24,8 +32,10 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
     }
   }
   
+//>= Chunks of Bytecode
   return realloc(previous, newSize);
 }
+//>= Uhh
 
 void grayObject(Obj* object) {
   if (object == NULL) return;
@@ -42,10 +52,7 @@ void grayObject(Obj* object) {
   object->isDark = true;
   
   if (vm.grayCapacity < vm.grayCount + 1) {
-    vm.grayCapacity *= GROW_FACTOR;
-    if (vm.grayCapacity < MIN_CAPACITY) {
-      vm.grayCapacity = MIN_CAPACITY;
-    }
+    vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
 
     // Not using reallocate() here because we don't want to trigger the GC
     // inside a GC!
@@ -234,7 +241,7 @@ void collectGarbage() {
   }
   
   // Adjust the heap size based on live memory.
-  vm.nextGC = vm.bytesAllocated * GROW_FACTOR;
+  vm.nextGC = vm.bytesAllocated * GC_HEAP_GROW_FACTOR;
 
 #ifdef DEBUG_TRACE_GC
   printf("-- gc collected %ld bytes (from %ld to %ld) next at %ld\n",

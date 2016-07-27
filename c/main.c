@@ -1,8 +1,13 @@
-//>= A Virtual Machine
+//>= Chunks of Bytecode
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "common.h"
+/*== Chunks of Bytecode
+#include "chunk.h"
+#include "debug.h"
+*/
+//>= Uhh
 #include "vm.h"
 //>= Scanning Without Allocating
 
@@ -67,9 +72,24 @@ static void runFile(const char* path) {
   if (result == INTERPRET_COMPILE_ERROR) exit(65);
   if (result == INTERPRET_RUNTIME_ERROR) exit(70);
 }
-//>= A Virtual Machine
+//>= Chunks of Bytecode
 
 int main(int argc, const char* argv[]) {
+/*== Chunks of Bytecode
+  Chunk chunk;
+  initChunk(&chunk);
+  
+  addConstant(&chunk, 12.34);
+  writeChunk(&chunk, OP_CONSTANT, 10);
+  writeChunk(&chunk, 0, 1);
+
+  addConstant(&chunk, 5.6);
+  writeChunk(&chunk, OP_CONSTANT, 11);
+  writeChunk(&chunk, 1, 1);
+
+  disassembleChunk(&chunk, "test chunk");
+*/
+//>= A Virtual Machine
   initVM();
 /*== A Virtual Machine
  
@@ -98,5 +118,6 @@ int main(int argc, const char* argv[]) {
 //>= A Virtual Machine
   
   endVM();
+//>= Chunks of Bytecode
   return 0;
 }

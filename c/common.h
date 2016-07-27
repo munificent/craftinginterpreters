@@ -1,4 +1,4 @@
-//>= A Virtual Machine
+//>= Chunks of Bytecode
 #ifndef cvox_common_h
 #define cvox_common_h
 
@@ -10,11 +10,8 @@
 
 #define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC
+//>= Chunks of Bytecode
 
 #define UINT8_COUNT (UINT8_MAX + 1)
-
-#define MIN_CAPACITY 8
-#define GROW_FACTOR 2
-//>= A Virtual Machine
 
 #endif
