@@ -22,7 +22,7 @@ JAVA_CHAPTERS = [
 ]
 
 C_CHAPTERS = [
-  # TODO: Different names from Java versions.
+  "Chunks of Bytecode",
   "A Virtual Machine",
   "Scanning Without Allocating",
 
