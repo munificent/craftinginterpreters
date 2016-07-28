@@ -18,26 +18,56 @@ DEFAULT = '\033[0m'
 PINK = '\033[91m'
 YELLOW = '\033[33m'
 
+JAVA_CHAPTERS = [
+  "Framework",
+  "Scanning",
+  "Representing Code",
+  "Parsing Expressions",
+  "Evaluating Expressions",
+  "Statements and State",
+  "Control Flow",
+  "Functions",
+  "Resolving and Binding",
+  "Classes",
+  "Inheritance",
+  "Reaching the Summit"
+]
+
+C_CHAPTERS = [
+  "Chunks of Bytecode",
+  "A Virtual Machine",
+  "Scanning Without Allocating",
+
+  # For stuff that hasn't been bucketed in a chapter yet.
+  "Uhh",
+]
+
+
 PAGES = [
   'Table of Contents',
-  'Warm Up',
+  'The Lay of the Land',
     'Introduction',
     'Your First Language',
     'Your Second Language',
     # ...
-  'Practice',
+  'The View from the Top',
     'Read, Eval, Print, Loop',
     'Scanning',
+    'Representing Code',
     'Parsing Expressions',
-    'Evaluating Trees',
-    'Variables',
+    'Evaluating Expressions',
+    'Statements and State',
     'Control Flow',
     'Functions',
+    'Resolving and Binding',
+    'Classes',
+    'Inheritance',
+    'Reaching the Summit',
+  'The Long Way Down',
+    'Chunks of Bytecode',
+    'A Virtual Machine',
+    'Scanning Without Allocating',
     # ...
-  'Performance',
-    'Bytecode',
-    # ...
-  'Encore',
   'Glossary'
 ]
 

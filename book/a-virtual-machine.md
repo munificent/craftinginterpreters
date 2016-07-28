@@ -1,5 +1,5 @@
-^title Bytecode
-^part Performance
+^title A Virtual Machine
+^part The Long Way Down
 
 > Give behavior the flexibility of data by encoding it as instructions for a
 > virtual machine.

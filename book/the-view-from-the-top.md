@@ -1,4 +1,3 @@
-^title Variables
-^part Practice
+^title The View from the Top
 
 This chapter hasn't been written yet!
