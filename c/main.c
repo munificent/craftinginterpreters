@@ -3,11 +3,13 @@
 #include <stdlib.h>
 
 #include "common.h"
-/*== Chunks of Bytecode
+/*>= Chunks of Bytecode <= A Virtual Machine
 #include "chunk.h"
+*/
+/*== Chunks of Bytecode
 #include "debug.h"
 */
-//>= Uhh
+//>= A Virtual Machine
 #include "vm.h"
 //>= Scanning Without Allocating
 
@@ -75,35 +77,40 @@ static void runFile(const char* path) {
 //>= Chunks of Bytecode
 
 int main(int argc, const char* argv[]) {
-/*== Chunks of Bytecode
+//>= A Virtual Machine
+  initVM();
+
+/*>= Chunks of Bytecode <= A Virtual Machine
   Chunk chunk;
   initChunk(&chunk);
   
-  addConstant(&chunk, 12.34);
-  writeChunk(&chunk, OP_CONSTANT, 10);
-  writeChunk(&chunk, 0, 1);
+  addConstant(&chunk, 1.2);
+  writeChunk(&chunk, OP_CONSTANT, 100);
+  writeChunk(&chunk, 0, 100);
 
-  addConstant(&chunk, 5.6);
-  writeChunk(&chunk, OP_CONSTANT, 11);
-  writeChunk(&chunk, 1, 1);
+  addConstant(&chunk, 3.4);
+  writeChunk(&chunk, OP_CONSTANT, 101);
+  writeChunk(&chunk, 1, 101);
 
+*/
+/*== A Virtual Machine
+  writeChunk(&chunk, OP_ADD, 101);
+  
+  addConstant(&chunk, 4.5);
+  writeChunk(&chunk, OP_CONSTANT, 102);
+  writeChunk(&chunk, 2, 100);
+
+  writeChunk(&chunk, OP_MULTIPLY, 102);
+ 
+  writeChunk(&chunk, OP_RETURN, 102);
+ 
+*/
+/*>= Chunks of Bytecode <= A Virtual Machine
   disassembleChunk(&chunk, "test chunk");
 */
-//>= A Virtual Machine
-  initVM();
 /*== A Virtual Machine
  
-  uint8_t bytecode[] = {
-    OP_CONSTANT, 0,
-    OP_CONSTANT, 1,
-    OP_ADD,
-    OP_CONSTANT, 2,
-    OP_MULTIPLY,
-    OP_RETURN
-  };
-  double constants[] = {1.0, 2.0, 3.0};
-  
-  interpret(bytecode, constants);
+  interpret(&chunk);
 */
 //>= Scanning Without Allocating
   

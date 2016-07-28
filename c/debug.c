@@ -15,10 +15,11 @@ int disassembleInstruction(Chunk* chunk, int i) {
   uint8_t* code = chunk->code;
   uint8_t instruction = code[i++];
 
-//>= Uhh
+//>= A Virtual Machine
 #define INST_ZERO(name) \
     case name: printf(#name "\n"); break;
   
+//>= Uhh
 #define INST_BYTE(name) \
     case name: { \
       uint8_t slot = code[i++]; \
@@ -65,11 +66,12 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_GREATER)
     INST_ZERO(OP_LESS)
 //>= A Virtual Machine <= Scanning Without Allocating
+    INST_ZERO(OP_ADD)
     INST_ZERO(OP_SUBTRACT)
     INST_ZERO(OP_MULTIPLY)
-    INST_ZERO(OP_NOT)
     INST_ZERO(OP_DIVIDE)
 //>= Uhh
+    INST_ZERO(OP_NOT)
     INST_ZERO(OP_NEGATE)
     INST_ZERO(OP_PRINT)
     INST_JUMP(OP_JUMP, +)
@@ -120,7 +122,9 @@ int disassembleInstruction(Chunk* chunk, int i) {
     }
       
     INST_ZERO(OP_CLOSE_UPVALUE)
+//>= A Virtual Machine
     INST_ZERO(OP_RETURN)
+//>= Uhh
     INST_CONSTANT(OP_CLASS)
     INST_CONSTANT(OP_SUBCLASS)
     INST_CONSTANT(OP_METHOD)
@@ -139,7 +143,7 @@ void disassembleChunk(Chunk* chunk, const char* name) {
 }
 
 void printValue(Value value) {
-/*== Chunks of Bytecode
+/*>= Chunks of Bytecode <= A Virtual Machine
   printf("%g", value);
 */
 //>= Uhh

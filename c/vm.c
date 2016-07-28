@@ -391,10 +391,10 @@ static bool run() {
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 /*>= A Virtual Machine <= Scanning Without Allocating
-  uint8_t* ip = vm.bytecode;
+  uint8_t* ip = vm.chunk->code;
  
 #define READ_BYTE() (*ip++)
-#define READ_CONSTANT() (vm.constants[READ_BYTE()])
+#define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 
 #define BINARY_OP(op) \
     do { \
@@ -743,9 +743,8 @@ static bool run() {
 }
 
 /*== A Virtual Machine
-InterpretResult interpret(uint8_t* bytecode, double* constants) {
-  vm.bytecode = bytecode;
-  vm.constants = constants;
+InterpretResult interpret(Chunk* chunk) {
+  vm.chunk = chunk;
 */
 //>= Scanning Without Allocating
 InterpretResult interpret(const char* source) {

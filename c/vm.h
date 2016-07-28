@@ -2,6 +2,9 @@
 #ifndef cvox_vm_h
 #define cvox_vm_h
 
+/*== A Virtual Machine
+#include "chunk.h"
+*/
 //>= Uhh
 #include "object.h"
 #include "table.h"
@@ -16,7 +19,6 @@
 // frames?
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_COUNT)
-//>= A Virtual Machine
 
 typedef struct {
   ObjClosure* closure;
@@ -29,8 +31,7 @@ typedef struct {
   Value stack[STACK_SIZE];
   Value* stackTop;
 /*>= A Virtual Machine <= Scanning Without Allocating
-  uint8_t* bytecode;
-  double* constants;
+  Chunk* chunk;
 */
 //>= Uhh
   
@@ -68,7 +69,7 @@ void initVM();
 void push(Value value);
 Value pop();
 /*== A Virtual Machine
-InterpretResult interpret(uint8_t* bytecode, double* constants);
+InterpretResult interpret(Chunk* chunk);
 */
 //>= Scanning Without Allocating
 InterpretResult interpret(const char* source);
