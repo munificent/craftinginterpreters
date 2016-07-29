@@ -1,4 +1,4 @@
-//>= Scanning Without Allocating
+//>= Scanning on Demand
 #ifndef cvox_scanner_h
 #define cvox_scanner_h
 
@@ -29,8 +29,6 @@ typedef enum {
   TOKEN_STRING,
   TOKEN_NUMBER,
   
-  // Using keywords for "and" and "or" instead of "||" and "&&" since we don't
-  // define the bitwise forms and it's weird to lex "||" without "|".
   TOKEN_AND,
   TOKEN_CLASS,
   TOKEN_ELSE,

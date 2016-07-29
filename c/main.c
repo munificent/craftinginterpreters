@@ -11,7 +11,7 @@
 */
 //>= A Virtual Machine
 #include "vm.h"
-//>= Scanning Without Allocating
+//>= Scanning on Demand
 
 #define MAX_LINE_LENGTH 1024
 
@@ -112,8 +112,7 @@ int main(int argc, const char* argv[]) {
  
   interpret(&chunk);
 */
-//>= Scanning Without Allocating
-  
+//>= Scanning on Demand
   if (argc == 1) {
     repl();
   } else if (argc == 2) {

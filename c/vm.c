@@ -390,7 +390,7 @@ static bool run() {
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Scanning Without Allocating
+/*>= A Virtual Machine <= Scanning on Demand
   uint8_t* ip = vm.chunk->code;
  
 #define READ_BYTE() (*ip++)
@@ -542,7 +542,7 @@ static bool run() {
       case OP_GREATER: BINARY_OP(BOOL_VAL, >); break;
       case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
 
-/*>= A Virtual Machine <= Scanning Without Allocating
+/*>= A Virtual Machine <= Scanning on Demand
       case OP_ADD:      BINARY_OP(+); break;
       case OP_SUBTRACT: BINARY_OP(-); break;
       case OP_MULTIPLY: BINARY_OP(*); break;
@@ -687,7 +687,7 @@ static bool run() {
 //>= A Virtual Machine
       case OP_RETURN: {
         Value result = pop();
-/*>= A Virtual Machine <= Scanning Without Allocating
+/*>= A Virtual Machine <= Scanning on Demand
         printf("%f\n", result);
         return true;
 */
@@ -746,8 +746,12 @@ static bool run() {
 InterpretResult interpret(Chunk* chunk) {
   vm.chunk = chunk;
 */
-//>= Scanning Without Allocating
+//>= Scanning on Demand
 InterpretResult interpret(const char* source) {
+/*== Scanning on Demand
+  compile(source);
+  return INTERPRET_OK;
+*/
 //>= Uhh
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
@@ -756,7 +760,12 @@ InterpretResult interpret(const char* source) {
   ObjClosure* closure = newClosure(function);
   pop();
   call(OBJ_VAL(closure), 0);
-//>= A Virtual Machine
+/*== A Virtual Machine
   
   return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
+*/
+//>= Uhh
+  
+  return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
+//>= A Virtual Machine
 }

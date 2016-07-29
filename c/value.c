@@ -9,7 +9,7 @@
 #include "value.h"
 
 bool valuesEqual(Value a, Value b) {
-/*>= Chunks of Bytecode <= A Virtual Machine
+/*>= Chunks of Bytecode <= Scanning on Demand
   return a == b;
 */
 //>= Uhh

@@ -24,7 +24,7 @@ JAVA_CHAPTERS = [
 C_CHAPTERS = [
   "Chunks of Bytecode",
   "A Virtual Machine",
-  "Scanning Without Allocating",
+  "Scanning on Demand",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

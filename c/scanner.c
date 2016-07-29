@@ -1,4 +1,4 @@
-//>= Scanning Without Allocating
+//>= Scanning on Demand
 #include <stdio.h>
 #include <string.h>
 

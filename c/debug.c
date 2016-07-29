@@ -65,7 +65,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_EQUAL)
     INST_ZERO(OP_GREATER)
     INST_ZERO(OP_LESS)
-//>= A Virtual Machine <= Scanning Without Allocating
+//>= A Virtual Machine <= Scanning on Demand
     INST_ZERO(OP_ADD)
     INST_ZERO(OP_SUBTRACT)
     INST_ZERO(OP_MULTIPLY)

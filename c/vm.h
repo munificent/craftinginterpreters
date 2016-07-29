@@ -2,7 +2,7 @@
 #ifndef cvox_vm_h
 #define cvox_vm_h
 
-/*== A Virtual Machine
+/*>= A Virtual Machine <= Scanning on Demand
 #include "chunk.h"
 */
 //>= Uhh
@@ -11,7 +11,7 @@
 //>= A Virtual Machine
 #include "value.h"
 
-/*>= A Virtual Machine <= Scanning Without Allocating
+/*>= A Virtual Machine <= Scanning on Demand
 #define STACK_SIZE 256
 */
 //>= Uhh
@@ -30,7 +30,7 @@ typedef struct {
 typedef struct {
   Value stack[STACK_SIZE];
   Value* stackTop;
-/*>= A Virtual Machine <= Scanning Without Allocating
+/*>= A Virtual Machine <= Scanning on Demand
   Chunk* chunk;
 */
 //>= Uhh
@@ -71,7 +71,7 @@ Value pop();
 /*== A Virtual Machine
 InterpretResult interpret(Chunk* chunk);
 */
-//>= Scanning Without Allocating
+//>= Scanning on Demand
 InterpretResult interpret(const char* source);
 //>= A Virtual Machine
 void endVM();

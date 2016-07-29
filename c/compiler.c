@@ -1,15 +1,22 @@
+//>= Uhh
 #include <assert.h>
 #include <stdarg.h>
+//>= Scanning on Demand
 #include <stdio.h>
+//>= Uhh
 #include <stdlib.h>
 #include <string.h>
 
+//>= Scanning on Demand
 #include "common.h"
 #include "compiler.h"
+//>= Uhh
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
+//>= Scanning on Demand
 #include "scanner.h"
+//>= Uhh
 #include "vm.h"
 
 typedef struct {
@@ -1088,10 +1095,32 @@ static void statement() {
     expressionStatement();
   }
 }
+/*== Scanning on Demand
+
+void compile(const char* source) {
+*/
+//>= Uhh
 
 ObjFunction* compile(const char* source) {
+//>= Scanning on Demand
   initScanner(source);
 
+/*== Scanning on Demand
+  int line = -1;
+  for (;;) {
+    Token token = scanToken();
+    if (token.line != line) {
+      printf("%4d ", token.line);
+      line = token.line;
+    } else {
+      printf("   | ");
+    }
+    printf("%2d '%.*s'\n", token.type, token.length, token.start);
+    
+    if (token.type == TOKEN_EOF) break;
+  }
+*/
+//>= Uhh
   Compiler mainCompiler;
   initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
   
@@ -1110,7 +1139,9 @@ ObjFunction* compile(const char* source) {
   // If there was a compile error, the code is not valid, so don't create a
   // function.
   return parser.hadError ? NULL : function;
+//>= Scanning on Demand
 }
+//>= Uhh
 
 void grayCompilerRoots() {
   Compiler* compiler = current;
