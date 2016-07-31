@@ -9,8 +9,9 @@
 
 //>= A Virtual Machine
 #include "common.h"
-//>= Uhh
+//>= Compiling Expressions
 #include "compiler.h"
+//>= Uhh
 #include "debug.h"
 #include "object.h"
 #include "memory.h"
@@ -390,7 +391,7 @@ static bool run() {
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Scanning on Demand
+/*>= A Virtual Machine <= Compiling Expressions
   uint8_t* ip = vm.chunk->code;
  
 #define READ_BYTE() (*ip++)
@@ -542,11 +543,12 @@ static bool run() {
       case OP_GREATER: BINARY_OP(BOOL_VAL, >); break;
       case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
 
-/*>= A Virtual Machine <= Scanning on Demand
+/*>= A Virtual Machine <= Compiling Expressions
       case OP_ADD:      BINARY_OP(+); break;
       case OP_SUBTRACT: BINARY_OP(-); break;
       case OP_MULTIPLY: BINARY_OP(*); break;
       case OP_DIVIDE:   BINARY_OP(/); break;
+      case OP_NEGATE:   push(-pop()); break;
 */
 //>= Uhh
       case OP_ADD: {
@@ -570,7 +572,7 @@ static bool run() {
       case OP_NOT:
         push(BOOL_VAL(isFalsey(pop())));
         break;
-
+        
       case OP_NEGATE:
         if (!IS_NUMBER(peek(0))) {
           runtimeError("Operand must be a number.");
@@ -687,8 +689,8 @@ static bool run() {
 //>= A Virtual Machine
       case OP_RETURN: {
         Value result = pop();
-/*>= A Virtual Machine <= Scanning on Demand
-        printf("%f\n", result);
+/*>= A Virtual Machine <= Compiling Expressions
+        printf("%g\n", result);
         return true;
 */
 //>= Uhh
@@ -752,6 +754,13 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
+/*== Compiling Expressions
+  Chunk chunk;
+  initChunk(&chunk);
+  if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
+ 
+  vm.chunk = &chunk;
+*/
 //>= Uhh
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
@@ -760,12 +769,14 @@ InterpretResult interpret(const char* source) {
   ObjClosure* closure = newClosure(function);
   pop();
   call(OBJ_VAL(closure), 0);
-/*== A Virtual Machine
   
-  return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
-*/
-//>= Uhh
-  
-  return run() ? INTERPRET_OK : INTERPRET_RUNTIME_ERROR;
 //>= A Virtual Machine
+  InterpretResult result = INTERPRET_RUNTIME_ERROR;
+  if (run()) result = INTERPRET_OK;
+/*== Compiling Expressions
+ 
+  freeChunk(&chunk);
+*/
+//>= A Virtual Machine
+  return result;
 }

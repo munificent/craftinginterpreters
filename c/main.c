@@ -96,11 +96,12 @@ int main(int argc, const char* argv[]) {
 /*== A Virtual Machine
   writeChunk(&chunk, OP_ADD, 101);
   
-  addConstant(&chunk, 4.5);
+  addConstant(&chunk, 5.6);
   writeChunk(&chunk, OP_CONSTANT, 102);
   writeChunk(&chunk, 2, 100);
 
   writeChunk(&chunk, OP_MULTIPLY, 102);
+  writeChunk(&chunk, OP_NEGATE, 102);
  
   writeChunk(&chunk, OP_RETURN, 102);
  

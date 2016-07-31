@@ -4,8 +4,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-//>= Uhh
+//>= Compiling Expressions
 //#define DEBUG_PRINT_CODE
+//>= Uhh
 //#define DEBUG_TRACE_EXECUTION
 
 #define DEBUG_STRESS_GC

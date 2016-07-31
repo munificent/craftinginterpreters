@@ -65,14 +65,16 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_EQUAL)
     INST_ZERO(OP_GREATER)
     INST_ZERO(OP_LESS)
-//>= A Virtual Machine <= Scanning on Demand
+//>= A Virtual Machine <= Compiling Expressions
     INST_ZERO(OP_ADD)
     INST_ZERO(OP_SUBTRACT)
     INST_ZERO(OP_MULTIPLY)
     INST_ZERO(OP_DIVIDE)
 //>= Uhh
     INST_ZERO(OP_NOT)
+//>= A Virtual Machine <= Compiling Expressions
     INST_ZERO(OP_NEGATE)
+//>= Uhh
     INST_ZERO(OP_PRINT)
     INST_JUMP(OP_JUMP, +)
     INST_JUMP(OP_JUMP_IF_FALSE, +)
@@ -143,7 +145,7 @@ void disassembleChunk(Chunk* chunk, const char* name) {
 }
 
 void printValue(Value value) {
-/*>= Chunks of Bytecode <= A Virtual Machine
+/*>= Chunks of Bytecode <= Compiling Expressions
   printf("%g", value);
 */
 //>= Uhh

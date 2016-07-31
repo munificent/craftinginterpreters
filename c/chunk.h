@@ -32,7 +32,9 @@ typedef enum {
   OP_DIVIDE,
 //>= Uhh
   OP_NOT,
+//>= A Virtual Machine
   OP_NEGATE,
+//>= Uhh
   OP_PRINT,
   OP_JUMP,
   OP_JUMP_IF_FALSE,

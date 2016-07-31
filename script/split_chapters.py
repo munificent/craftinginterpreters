@@ -25,6 +25,7 @@ C_CHAPTERS = [
   "Chunks of Bytecode",
   "A Virtual Machine",
   "Scanning on Demand",
+  "Compiling Expressions",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-/*>= Chunks of Bytecode <= Scanning on Demand
+/*>= Chunks of Bytecode <= Compiling Expressions
 typedef double Value;
 */
 //>= Uhh

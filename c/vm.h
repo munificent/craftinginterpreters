@@ -2,7 +2,7 @@
 #ifndef cvox_vm_h
 #define cvox_vm_h
 
-/*>= A Virtual Machine <= Scanning on Demand
+/*>= A Virtual Machine <= Compiling Expressions
 #include "chunk.h"
 */
 //>= Uhh
@@ -11,7 +11,7 @@
 //>= A Virtual Machine
 #include "value.h"
 
-/*>= A Virtual Machine <= Scanning on Demand
+/*>= A Virtual Machine <= Compiling Expressions
 #define STACK_SIZE 256
 */
 //>= Uhh
@@ -30,7 +30,7 @@ typedef struct {
 typedef struct {
   Value stack[STACK_SIZE];
   Value* stackTop;
-/*>= A Virtual Machine <= Scanning on Demand
+/*>= A Virtual Machine <= Compiling Expressions
   Chunk* chunk;
 */
 //>= Uhh

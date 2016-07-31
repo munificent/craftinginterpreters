@@ -1,13 +1,15 @@
-//>= Uhh
+//>= Compiling Expressions
 #include <assert.h>
+//>= Uhh
 #include <stdarg.h>
 //>= Scanning on Demand
 #include <stdio.h>
-//>= Uhh
+//>= Compiling Expressions
 #include <stdlib.h>
+//>= Uhh
 #include <string.h>
-
 //>= Scanning on Demand
+
 #include "common.h"
 #include "compiler.h"
 //>= Uhh
@@ -18,6 +20,7 @@
 #include "scanner.h"
 //>= Uhh
 #include "vm.h"
+//>= Compiling Expressions
 
 typedef struct {
   bool hadError;
@@ -39,13 +42,19 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
+/*== Compiling Expressions
+typedef void (*ParseFn)();
+*/
+//>= Uhh
 typedef void (*ParseFn)(bool canAssign);
+//>= Compiling Expressions
 
 typedef struct {
   ParseFn prefix;
   ParseFn infix;
   Precedence precedence;
 } ParseRule;
+//>= Uhh
 
 typedef struct {
   // The name of the local variable.
@@ -106,14 +115,29 @@ typedef struct ClassCompiler {
   
   bool hasSuperclass;
 } ClassCompiler;
+//>= Compiling Expressions
 
 Parser parser;
+/*== Compiling Expressions
+
+Chunk* compilingChunk;
+ 
+static Chunk* currentChunk() {
+  return compilingChunk;
+}
+*/
+//>= Uhh
 
 // The compiler for the innermost function currently being compiled.
 Compiler* current = NULL;
 
 // The compiler for the innermost class currently being compiled.
 ClassCompiler* currentClass = NULL;
+
+static Chunk* currentChunk() {
+  return &current->function->chunk;
+}
+//>= Compiling Expressions
 
 static void errorAt(Token* token, const char* message) {
   fprintf(stderr, "[line %d] Error", token->line);
@@ -158,12 +182,17 @@ static void consume(TokenType type, const char* message) {
   errorAtCurrent(message);
   
   // If we're consuming a synchronizing token, keep going until we find it.
+/*== Compiling Expressions
+  if (type == TOKEN_RIGHT_PAREN) {
+*/
+//>= Uhh
   if (type == TOKEN_LEFT_BRACE ||
       type == TOKEN_RIGHT_BRACE ||
       type == TOKEN_RIGHT_BRACKET ||
       type == TOKEN_RIGHT_PAREN ||
       type == TOKEN_EQUAL ||
       type == TOKEN_SEMICOLON) {
+//>= Compiling Expressions
     while (parser.current.type != type &&
            parser.current.type != TOKEN_EOF) {
       advance();
@@ -172,6 +201,7 @@ static void consume(TokenType type, const char* message) {
     advance();
   }
 }
+//>= Uhh
 
 static bool check(TokenType type) {
   return parser.current.type == type;
@@ -182,20 +212,22 @@ static bool match(TokenType type) {
   advance();
   return true;
 }
+//>= Compiling Expressions
 
 static void emitByte(uint8_t byte) {
-  writeChunk(&current->function->chunk, byte, parser.previous.line);
+  writeChunk(currentChunk(), byte, parser.previous.line);
 }
 
 static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte1);
   emitByte(byte2);
 }
+//>= Uhh
 
 static void emitLoop(int loopStart) {
   emitByte(OP_LOOP);
   
-  int offset = current->function->chunk.count - loopStart + 2;
+  int offset = currentChunk()->count - loopStart + 2;
   if (offset > UINT16_MAX) error("Loop body too large.");
   
   emitByte((offset >> 8) & 0xff);
@@ -209,10 +241,12 @@ static int emitJump(uint8_t instruction) {
   emitByte(instruction);
   emitByte(0xff);
   emitByte(0xff);
-  return current->function->chunk.count - 2;
+  return currentChunk()->count - 2;
 }
+//>= Compiling Expressions
 
 static void emitReturn() {
+//>= Uhh
   // An initializer automatically returns "this".
   if (current->type == TYPE_INITIALIZER) {
     emitBytes(OP_GET_LOCAL, 0);
@@ -220,21 +254,23 @@ static void emitReturn() {
     emitByte(OP_NIL);
   }
   
+//>= Compiling Expressions
   emitByte(OP_RETURN);
 }
+//>= Uhh
 
 // Replaces the placeholder argument for a previous CODE_JUMP or CODE_JUMP_IF
 // instruction with an offset that jumps to the current end of bytecode.
 static void patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
-  int jump = current->function->chunk.count - offset - 2;
+  int jump = currentChunk()->count - offset - 2;
   
   if (jump > UINT16_MAX) {
     error("Too much code to jump over.");
   }
   
-  current->function->chunk.code[offset] = (jump >> 8) & 0xff;
-  current->function->chunk.code[offset + 1] = jump & 0xff;
+  currentChunk()->code[offset] = (jump >> 8) & 0xff;
+  currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void initCompiler(Compiler* compiler, int scopeDepth,
@@ -287,21 +323,31 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.length = 0;
   }
 }
+/*== Compiling Expressions
+
+static void endCompiler() {
+*/
+//>= Uhh
 
 static ObjFunction* endCompiler() {
+//>= Compiling Expressions
   emitReturn();
+//>= Uhh
   
   ObjFunction* function = current->function;
   current = current->enclosing;
-
+//>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-    disassembleChunk(&function->chunk, function->name->chars);
+    disassembleChunk(currentChunk(), function->name->chars);
   }
 #endif
+//>= Uhh
   
   return function;
+//>= Compiling Expressions
 }
+//>= Uhh
 
 static void beginScope() {
   current->scopeDepth++;
@@ -320,33 +366,40 @@ static void endScope() {
     current->localCount--;
   }
 }
+//>= Compiling Expressions
 
 // Forward declarations since the grammar is recursive.
 static void expression();
+//>= Uhh
 static void statement();
 static void declaration();
+//>= Compiling Expressions
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
+//>= Compiling Expressions
 
 static uint8_t makeConstant(Value value) {
-  int constant = addConstant(&current->function->chunk, value);
+  int constant = addConstant(currentChunk(), value);
   if (constant == -1) {
-    error("Too many constants in one function.");
+    error("Too many constants in one chunk.");
     return 0;
   }
   
   return (uint8_t)constant;
 }
+//>= Uhh
 
 // Creates a string constant for the previous identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
+//>= Compiling Expressions
 
 static void emitConstant(Value value) {
   emitBytes(OP_CONSTANT, makeConstant(value));
 }
+//>= Uhh
 
 static bool identifiersEqual(Token* a, Token* b) {
   if (a->length != b->length) return false;
@@ -517,8 +570,14 @@ static void and_(bool canAssign) {
   
   patchJump(endJump);
 }
+/*== Compiling Expressions
+
+static void binary() {
+*/
+//>= Uhh
 
 static void binary(bool canAssign) {
+//>= Compiling Expressions
   TokenType operatorType = parser.previous.type;
   ParseRule* rule = getRule(operatorType);
 
@@ -527,12 +586,14 @@ static void binary(bool canAssign) {
 
   // Emit the operator instruction.
   switch (operatorType) {
+//>= Uhh
     case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
     case TOKEN_EQUAL_EQUAL:   emitByte(OP_EQUAL); break;
     case TOKEN_GREATER:       emitByte(OP_GREATER); break;
     case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
     case TOKEN_LESS:          emitByte(OP_LESS); break;
     case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
+//>= Compiling Expressions
     case TOKEN_PLUS:          emitByte(OP_ADD); break;
     case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
     case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
@@ -541,6 +602,7 @@ static void binary(bool canAssign) {
       assert(false); // Unreachable.
   }
 }
+//>= Uhh
 
 static void call(bool canAssign) {
   uint8_t argCount = argumentList();
@@ -565,20 +627,39 @@ static void dot(bool canAssign) {
 static void false_(bool canAssign) {
   emitByte(OP_FALSE);
 }
+/*== Compiling Expressions
+ 
+static void grouping() {
+*/
+//>= Uhh
 
 static void grouping(bool canAssign) {
+//>= Compiling Expressions
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
+//>= Uhh
 
 static void nil(bool canAssign) {
   emitByte(OP_NIL);
 }
+/*== Compiling Expressions
+ 
+static void number() {
+*/
+//>= Uhh
 
 static void number(bool canAssign) {
+//>= Compiling Expressions
   double value = strtod(parser.previous.start, NULL);
+/*== Compiling Expressions
+  emitConstant(value);
+*/
+//>= Uhh
   emitConstant(NUMBER_VAL(value));
+//>= Compiling Expressions
 }
+//>= Uhh
 
 static void or_(bool canAssign) {
   // left operand...
@@ -686,8 +767,14 @@ static void this_(bool canAssign) {
 static void true_(bool canAssign) {
   emitByte(OP_TRUE);
 }
+/*== Compiling Expressions
+ 
+static void unary() {
+*/
+//>= Uhh
 
 static void unary(bool canAssign) {
+//>= Compiling Expressions
   TokenType operatorType = parser.previous.type;
   
   // Compile the operand.
@@ -695,7 +782,9 @@ static void unary(bool canAssign) {
   
   // Emit the operator instruction.
   switch (operatorType) {
+//>= Uhh
     case TOKEN_BANG: emitByte(OP_NOT); break;
+//>= Compiling Expressions
     case TOKEN_MINUS: emitByte(OP_NEGATE); break;
     default:
       assert(false); // Unreachable.
@@ -703,49 +792,100 @@ static void unary(bool canAssign) {
 }
 
 ParseRule rules[] = {
+/*== Compiling Expressions
+  { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
+*/
+//>= Uhh
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACKET
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACKET
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG
+  { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_BANG_EQUAL
+*/
+//>= Uhh
   { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
+*/
+//>= Uhh
   { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
+  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_GREATER
+  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
+  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_LESS
+  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_LESS_EQUAL
+*/
+//>= Uhh
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS_EQUAL
+//>= Compiling Expressions
   { unary,    binary,  PREC_TERM },       // TOKEN_MINUS
   { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
-
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING
+*/
+//>= Uhh
   { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
+//>= Compiling Expressions
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
-
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_AND },        // TOKEN_AND
+*/
+//>= Uhh
   { NULL,     and_,    PREC_AND },        // TOKEN_AND
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FALSE
+*/
+//>= Uhh
   { false_,   NULL,    PREC_NONE },       // TOKEN_FALSE
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_NIL
+  { NULL,     NULL,    PREC_OR },         // TOKEN_OR
+*/
+//>= Uhh
   { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
+/*== Compiling Expressions
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_TRUE
+*/
+//>= Uhh
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
   { true_,    NULL,    PREC_NONE },       // TOKEN_TRUE
+//>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE
-
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ERROR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EOF
 };
@@ -759,15 +899,26 @@ static void parsePrecedence(Precedence precedence) {
     error("Expected expression.");
     return;
   }
-
+  
+//>= Uhh
   bool canAssign = precedence <= PREC_ASSIGNMENT;
   prefixRule(canAssign);
-  
+/*== Compiling Expressions
+  prefixRule();
+*/
+//>= Compiling Expressions
+
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
+/*== Compiling Expressions
+    infixRule();
+*/
+//>= Uhh
     infixRule(canAssign);
+//>= Compiling Expressions
   }
+//>= Uhh
   
   if (canAssign && match(TOKEN_EQUAL)) {
     // If we get here, we didn't parse the "=" even though we could have, so
@@ -775,6 +926,7 @@ static void parsePrecedence(Precedence precedence) {
     error("Invalid assignment target.");
     expression();
   }
+//>= Compiling Expressions
 }
 
 static ParseRule* getRule(TokenType type) {
@@ -784,6 +936,7 @@ static ParseRule* getRule(TokenType type) {
 void expression() {
   parsePrecedence(PREC_ASSIGNMENT);
 }
+//>= Uhh
 
 static void block() {
   consume(TOKEN_LEFT_BRACE, "Expect '{' before block.");
@@ -947,7 +1100,7 @@ static void forStatement() {
     expressionStatement();
   }
   
-  int loopStart = current->function->chunk.count;
+  int loopStart = currentChunk()->count;
 
   // The exit condition.
   int exitJump = -1;
@@ -965,7 +1118,7 @@ static void forStatement() {
     // We don't want to execute the increment before the body, so jump over it.
     int bodyJump = emitJump(OP_JUMP);
 
-    int incrementStart = current->function->chunk.count;
+    int incrementStart = currentChunk()->count;
     expression();
     emitByte(OP_POP);
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
@@ -1044,7 +1197,7 @@ static void returnStatement() {
 }
 
 static void whileStatement() {
-  int loopStart = current->function->chunk.count;
+  int loopStart = currentChunk()->count;
   
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
@@ -1099,6 +1252,10 @@ static void statement() {
 
 void compile(const char* source) {
 */
+/*== Compiling Expressions
+ 
+bool compile(const char* source, Chunk* chunk) {
+*/
 //>= Uhh
 
 ObjFunction* compile(const char* source) {
@@ -1120,20 +1277,36 @@ ObjFunction* compile(const char* source) {
     if (token.type == TOKEN_EOF) break;
   }
 */
+/*== Compiling Expressions
+  compilingChunk = chunk;
+*/
 //>= Uhh
   Compiler mainCompiler;
   initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
+//>= Compiling Expressions
   
   // Prime the pump.
   parser.hadError = false;
   advance();
 
+/*== Compiling Expressions
+  expression();
+  consume(TOKEN_EOF, "Expect end of expression.");
+*/
+//>= Uhh
   if (!match(TOKEN_EOF)) {
     do {
       declaration();
     } while (!match(TOKEN_EOF));
   }
 
+/*== Compiling Expressions
+  endCompiler();
+ 
+  // If there was a compile error, the code is not valid.
+  return !parser.hadError;
+*/
+//>= Uhh
   ObjFunction* function = endCompiler();
   
   // If there was a compile error, the code is not valid, so don't create a

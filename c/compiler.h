@@ -10,6 +10,9 @@
 /*== Scanning on Demand
 void compile(const char* source);
 */
+/*== Compiling Expressions
+bool compile(const char* source, Chunk* chunk);
+*/
 //>= Uhh
 ObjFunction* compile(const char* source);
 void grayCompilerRoots();
