@@ -47,10 +47,11 @@ int disassembleInstruction(Chunk* chunk, int i) {
   
   switch (instruction) {
     INST_CONSTANT(OP_CONSTANT)
-//>= Uhh
+//>= Types of Values
     INST_ZERO(OP_NIL)
     INST_ZERO(OP_TRUE)
     INST_ZERO(OP_FALSE)
+//>= Uhh
     INST_ZERO(OP_POP)
     INST_BYTE(OP_GET_LOCAL)
     INST_BYTE(OP_SET_LOCAL)
@@ -62,17 +63,18 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_GET_FIELD)
     INST_CONSTANT(OP_SET_FIELD)
     INST_CONSTANT(OP_GET_SUPER)
+//>= Types of Values
     INST_ZERO(OP_EQUAL)
     INST_ZERO(OP_GREATER)
     INST_ZERO(OP_LESS)
-//>= A Virtual Machine <= Compiling Expressions
+//>= A Virtual Machine
     INST_ZERO(OP_ADD)
     INST_ZERO(OP_SUBTRACT)
     INST_ZERO(OP_MULTIPLY)
     INST_ZERO(OP_DIVIDE)
-//>= Uhh
+//>= Types of Values
     INST_ZERO(OP_NOT)
-//>= A Virtual Machine <= Compiling Expressions
+//>= A Virtual Machine
     INST_ZERO(OP_NEGATE)
 //>= Uhh
     INST_ZERO(OP_PRINT)
@@ -148,20 +150,12 @@ void printValue(Value value) {
 /*>= Chunks of Bytecode <= Compiling Expressions
   printf("%g", value);
 */
-//>= Uhh
+//>= Types of Values
   switch (value.type) {
-    case VAL_BOOL:
-      printf(AS_BOOL(value) ? "true" : "false");
-      break;
-      
-    case VAL_NIL:
-      printf("nil");
-      break;
-      
-    case VAL_NUMBER:
-      printf("%g", AS_NUMBER(value));
-      break;
-      
+    case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
+    case VAL_NIL:    printf("nil"); break;
+    case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
+//>= Uhh
     case VAL_OBJ:
       switch (OBJ_TYPE(value)) {
         case OBJ_CLASS:
@@ -191,6 +185,7 @@ void printValue(Value value) {
           break;
       }
       break;
+//>= Types of Values
   }
 //>= Chunks of Bytecode
 }

@@ -26,6 +26,7 @@ C_CHAPTERS = [
   "A Virtual Machine",
   "Scanning on Demand",
   "Compiling Expressions",
+  "Types of Values",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

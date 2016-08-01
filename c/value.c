@@ -12,16 +12,18 @@ bool valuesEqual(Value a, Value b) {
 /*>= Chunks of Bytecode <= Compiling Expressions
   return a == b;
 */
-//>= Uhh
+//>= Types of Values
   if (a.type != b.type) return false;
   
   switch (a.type) {
-    case VAL_BOOL: return AS_BOOL(a) == AS_BOOL(b);
-    case VAL_NIL: return true;
+    case VAL_BOOL:   return AS_BOOL(a) == AS_BOOL(b);
+    case VAL_NIL:    return true;
     case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
+//>= Uhh
     case VAL_OBJ:
       // Objects have reference equality.
       return AS_OBJ(a) == AS_OBJ(b);
+//>= Types of Values
   }
 //>= Chunks of Bytecode
 }

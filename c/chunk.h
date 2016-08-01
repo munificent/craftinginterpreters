@@ -7,10 +7,11 @@
 
 typedef enum {
   OP_CONSTANT,
-//>= Uhh
+//>= Types of Values
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
+//>= Uhh
   OP_POP,
   OP_GET_LOCAL,
   OP_SET_LOCAL,
@@ -22,6 +23,7 @@ typedef enum {
   OP_GET_FIELD,
   OP_SET_FIELD,
   OP_GET_SUPER,
+//>= Types of Values
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
@@ -30,7 +32,7 @@ typedef enum {
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
-//>= Uhh
+//>= Types of Values
   OP_NOT,
 //>= A Virtual Machine
   OP_NEGATE,

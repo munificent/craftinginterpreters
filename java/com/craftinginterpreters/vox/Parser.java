@@ -444,7 +444,7 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 
-    error("Expected expression.");
+    error("Expect expression.");
 
     // Discard the token so we can make progress.
     advance();

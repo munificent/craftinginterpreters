@@ -10,7 +10,7 @@
 /*== Scanning on Demand
 void compile(const char* source);
 */
-/*== Compiling Expressions
+/*>= Compiling Expressions <= Types of Values
 bool compile(const char* source, Chunk* chunk);
 */
 //>= Uhh

@@ -1,4 +1,4 @@
-//>= Uhh
+//>= Types of Values
 #include <stdarg.h>
 //>= A Virtual Machine
 #include <stdio.h>
@@ -9,10 +9,11 @@
 
 //>= A Virtual Machine
 #include "common.h"
-//>= Compiling Expressions
+//>= Scanning on Demand
 #include "compiler.h"
-//>= Uhh
+//>= A Virtual Machine
 #include "debug.h"
+//>= Uhh
 #include "object.h"
 #include "memory.h"
 #include "value.h"
@@ -99,15 +100,15 @@ static void resetStack() {
   vm.openUpvalues = NULL;
 //>= A Virtual Machine
 }
-//>= Uhh
+//>= Types of Values
 
 static void runtimeError(const char* format, ...) {
   va_list args;
   va_start(args, format);
   vfprintf(stderr, format, args);
   va_end(args);
-  
   fputs("\n", stderr);
+//>= Uhh
   
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
@@ -117,9 +118,11 @@ static void runtimeError(const char* format, ...) {
             function->chunk.lines[instruction],
             function->name->chars);
   }
+//>= Types of Values
   
   resetStack();
 }
+//>= Uhh
 
 static void defineNative(const char* name, NativeFn function) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
@@ -170,11 +173,12 @@ Value pop() {
   vm.stackTop--;
   return *vm.stackTop;
 }
-//>= Uhh
+//>= Types of Values
 
 static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
+//>= Uhh
 
 static bool callClosure(ObjClosure* closure, int argCount) {
   if (argCount < closure->function->arity) {
@@ -361,10 +365,12 @@ static void createClass(ObjString* name, ObjClass* superclass) {
     tableAddAll(&superclass->methods, &klass->methods);
   }
 }
+//>= Types of Values
 
 static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
+//>= Uhh
 
 static void concatenate() {
   ObjString* b = AS_STRING(peek(0));
@@ -391,12 +397,14 @@ static bool run() {
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Compiling Expressions
+/*>= A Virtual Machine <= Types of Values
   uint8_t* ip = vm.chunk->code;
  
 #define READ_BYTE() (*ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 
+*/
+/*>= A Virtual Machine <= Compiling Expressions
 #define BINARY_OP(op) \
     do { \
       double b = pop(); \
@@ -404,8 +412,7 @@ static bool run() {
       push(a op b); \
     } while (false)
 */
-//>= Uhh
-
+//>= Types of Values
 #define BINARY_OP(valueType, op) \
     do { \
       if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
@@ -436,10 +443,11 @@ static bool run() {
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
       case OP_CONSTANT: push(READ_CONSTANT()); break;
-//>= Uhh
+//>= Types of Values
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
+//>= Uhh
       case OP_POP: pop(); break;
         
       case OP_GET_LOCAL: {
@@ -532,17 +540,17 @@ static bool run() {
         if (!bindMethod(superclass, name)) return false;
         break;
       }
-
+//>= Types of Values
+        
       case OP_EQUAL: {
-        bool equal = valuesEqual(peek(0), peek(1));
-        pop(); pop();
-        push(BOOL_VAL(equal));
+        Value b = pop();
+        Value a = pop();
+        push(BOOL_VAL(valuesEqual(a, b)));
         break;
       }
 
-      case OP_GREATER: BINARY_OP(BOOL_VAL, >); break;
-      case OP_LESS: BINARY_OP(BOOL_VAL, <); break;
-
+      case OP_GREATER:  BINARY_OP(BOOL_VAL, >); break;
+      case OP_LESS:     BINARY_OP(BOOL_VAL, <); break;
 /*>= A Virtual Machine <= Compiling Expressions
       case OP_ADD:      BINARY_OP(+); break;
       case OP_SUBTRACT: BINARY_OP(-); break;
@@ -550,7 +558,11 @@ static bool run() {
       case OP_DIVIDE:   BINARY_OP(/); break;
       case OP_NEGATE:   push(-pop()); break;
 */
+/*== Types of Values
+      case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
+*/
 //>= Uhh
+        
       case OP_ADD: {
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
@@ -565,10 +577,12 @@ static bool run() {
         break;
       }
         
+//>= Types of Values
       case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
       case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
       case OP_DIVIDE:   BINARY_OP(NUMBER_VAL, /); break;
-
+//>= Types of Values
+        
       case OP_NOT:
         push(BOOL_VAL(isFalsey(pop())));
         break;
@@ -581,6 +595,7 @@ static bool run() {
         
         push(NUMBER_VAL(-AS_NUMBER(pop())));
         break;
+//>= Uhh
         
       case OP_PRINT: {
         Value string = strNative(1, &vm.stackTop[-1]);
@@ -689,8 +704,9 @@ static bool run() {
 //>= A Virtual Machine
       case OP_RETURN: {
         Value result = pop();
-/*>= A Virtual Machine <= Compiling Expressions
-        printf("%g\n", result);
+/*>= A Virtual Machine <= Types of Values
+        printValue(result);
+        printf("\n");
         return true;
 */
 //>= Uhh
@@ -754,7 +770,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*== Compiling Expressions
+/*>= Compiling Expressions <= Types of Values
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
@@ -773,7 +789,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*== Compiling Expressions
+/*>= Compiling Expressions <= Types of Values
  
   freeChunk(&chunk);
 */
