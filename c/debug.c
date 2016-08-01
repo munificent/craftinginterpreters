@@ -2,6 +2,9 @@
 #include <stdio.h>
 
 #include "debug.h"
+//>= Strings
+#include "object.h"
+//>= Chunks of Bytecode
 #include "value.h"
 
 int disassembleInstruction(Chunk* chunk, int i) {
@@ -155,9 +158,10 @@ void printValue(Value value) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
     case VAL_NIL:    printf("nil"); break;
     case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
-//>= Uhh
+//>= Strings
     case VAL_OBJ:
       switch (OBJ_TYPE(value)) {
+//>= Uhh
         case OBJ_CLASS:
           printf("%s", AS_CLASS(value)->name->chars);
           break;
@@ -175,14 +179,15 @@ void printValue(Value value) {
         case OBJ_NATIVE:
           printf("<native %p>", AS_NATIVE(value));
           break;
-          
+//>= Strings
         case OBJ_STRING:
           printf("%s", AS_CSTRING(value));
           break;
-          
+//>= Uhh
         case OBJ_UPVALUE:
           printf("upvalue");
           break;
+//>= Strings
       }
       break;
 //>= Types of Values

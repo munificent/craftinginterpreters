@@ -4,7 +4,9 @@
 #include <stdio.h>
 //>= Uhh
 #include <stdlib.h>
+//>= Strings
 #include <string.h>
+//>= Uhh
 #include <time.h>
 
 //>= A Virtual Machine
@@ -13,9 +15,10 @@
 #include "compiler.h"
 //>= A Virtual Machine
 #include "debug.h"
-//>= Uhh
+//>= Strings
 #include "object.h"
 #include "memory.h"
+//>= Uhh
 #include "value.h"
 //>= A Virtual Machine
 #include "vm.h"
@@ -370,7 +373,7 @@ static void createClass(ObjString* name, ObjClass* superclass) {
 static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
-//>= Uhh
+//>= Strings
 
 static void concatenate() {
   ObjString* b = AS_STRING(peek(0));
@@ -397,7 +400,7 @@ static bool run() {
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Types of Values
+/*>= A Virtual Machine <= Hash Tables
   uint8_t* ip = vm.chunk->code;
  
 #define READ_BYTE() (*ip++)
@@ -561,7 +564,7 @@ static bool run() {
 /*== Types of Values
       case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 */
-//>= Uhh
+//>= Strings
         
       case OP_ADD: {
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
@@ -704,7 +707,7 @@ static bool run() {
 //>= A Virtual Machine
       case OP_RETURN: {
         Value result = pop();
-/*>= A Virtual Machine <= Types of Values
+/*>= A Virtual Machine <= Hash Tables
         printValue(result);
         printf("\n");
         return true;
@@ -770,7 +773,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*>= Compiling Expressions <= Types of Values
+/*>= Compiling Expressions <= Hash Tables
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
@@ -789,7 +792,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*>= Compiling Expressions <= Types of Values
+/*>= Compiling Expressions <= Hash Tables
  
   freeChunk(&chunk);
 */

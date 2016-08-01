@@ -1,12 +1,19 @@
+//>= Uhh
 #include <stdio.h>
 #include <stdlib.h>
+//>= Strings
 #include <string.h>
+//>= Uhh
 
 #include "compiler.h"
 #include "debug.h"
+//>= Strings
 #include "memory.h"
 #include "object.h"
+#include "value.h"
+//>= Uhh
 #include "vm.h"
+//>= Strings
 
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)allocateObject(sizeof(type), objectType)
@@ -14,6 +21,7 @@
 static Obj* allocateObject(size_t size, ObjType type) {
   Obj* object = (Obj*)reallocate(NULL, 0, size);
   object->type = type;
+//>= Uhh
   object->isDark = false;
   
   object->next = vm.objects;
@@ -23,8 +31,10 @@ static Obj* allocateObject(size_t size, ObjType type) {
   printf("%p allocate %ld for %d\n", object, size, type);
 #endif
   
+//>= Strings
   return object;
 }
+//>= Uhh
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
@@ -79,19 +89,28 @@ ObjNative* newNative(NativeFn function) {
   native->function = function;
   return native;
 }
+/*== Strings
+
+static ObjString* allocateString(char* chars, int length) {
+*/
+//>= Uhh
 
 static ObjString* allocateString(char* chars, int length, uint32_t hash) {
+//>= Strings
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
+//>= Uhh
   string->hash = hash;
   
   push(OBJ_VAL(string));
   tableSet(&vm.strings, string, NIL_VAL);
   pop();
-  
+//>= Strings
+
   return string;
 }
+//>= Uhh
 
 static uint32_t hashString(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
@@ -107,27 +126,41 @@ static uint32_t hashString(const char* key, int length) {
   
   return hash;
 }
+//>= Strings
 
 ObjString* takeString(char* chars, int length) {
+/*== Strings
+  return allocateString(chars, length);
+*/
+//>= Uhh
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
 
   return allocateString(chars, length, hash);
+//>= Strings
 }
 
 ObjString* copyString(const char* chars, int length) {
+//>= Uhh
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
   
+//>= Strings
   // Copy the characters to the heap so the object can own it.
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
-  
+
+/*== Strings
+  return allocateString(heapChars, length);
+*/
+//>= Uhh
   return allocateString(heapChars, length, hash);
+//>= Strings
 }
+//>= Uhh
 
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);

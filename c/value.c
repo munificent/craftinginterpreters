@@ -19,8 +19,9 @@ bool valuesEqual(Value a, Value b) {
     case VAL_BOOL:   return AS_BOOL(a) == AS_BOOL(b);
     case VAL_NIL:    return true;
     case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
-//>= Uhh
+//>= Strings
     case VAL_OBJ:
+      // TODO: Need to compare string chars until we intern them.
       // Objects have reference equality.
       return AS_OBJ(a) == AS_OBJ(b);
 //>= Types of Values

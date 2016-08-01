@@ -1,9 +1,9 @@
+//>= Hash Tables
 #ifndef cvox_table_h
 #define cvox_table_h
 
 #include "common.h"
-
-typedef struct sObjString ObjString;
+#include "value.h"
 
 typedef struct {
   ObjString* key;

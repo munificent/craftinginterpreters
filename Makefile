@@ -92,5 +92,7 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap18_scanning MODE=release SOURCE_DIR=gen/chap18_scanning
 	@ $(MAKE) -f util/c.make NAME=chap19_compiling MODE=release SOURCE_DIR=gen/chap19_compiling
 	@ $(MAKE) -f util/c.make NAME=chap20_types MODE=release SOURCE_DIR=gen/chap20_types
+	@ $(MAKE) -f util/c.make NAME=chap21_strings MODE=release SOURCE_DIR=gen/chap21_strings
+	@ $(MAKE) -f util/c.make NAME=chap22_hash MODE=release SOURCE_DIR=gen/chap22_hash
 
 .PHONY: clean cvox debug default jvox test test_c test_java watch

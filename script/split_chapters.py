@@ -27,6 +27,8 @@ C_CHAPTERS = [
   "Scanning on Demand",
   "Compiling Expressions",
   "Types of Values",
+  "Strings",
+  "Hash Tables",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",
