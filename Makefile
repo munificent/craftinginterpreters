@@ -95,4 +95,19 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap21_strings MODE=release SOURCE_DIR=gen/chap21_strings
 	@ $(MAKE) -f util/c.make NAME=chap22_hash MODE=release SOURCE_DIR=gen/chap22_hash
 
-.PHONY: clean cvox debug default jvox test test_c test_java watch
+diffs:
+	@ mkdir -p build/diffs
+	@ -diff --recursive --new-file gen/chap04_framework/com/craftinginterpreters/ gen/chap05_scanning/com/craftinginterpreters/ > build/diffs/chap05_scanning.diff
+	@ -diff --recursive --new-file gen/chap05_scanning/com/craftinginterpreters/ gen/chap06_representing/com/craftinginterpreters/ > build/diffs/chap06_representing.diff
+	@ -diff --recursive --new-file gen/chap06_representing/com/craftinginterpreters/ gen/chap07_parsing/com/craftinginterpreters/ > build/diffs/chap07_parsing.diff
+	@ -diff --recursive --new-file gen/chap07_parsing/com/craftinginterpreters/ gen/chap08_evaluating/com/craftinginterpreters/ > build/diffs/chap08_evaluating.diff
+	@ -diff --recursive --new-file gen/chap08_evaluating/com/craftinginterpreters/ gen/chap09_statements/com/craftinginterpreters/ > build/diffs/chap09_statements.diff
+	@ -diff --recursive --new-file gen/chap09_statements/com/craftinginterpreters/ gen/chap10_control/com/craftinginterpreters/ > build/diffs/chap10_control.diff
+	@ -diff --recursive --new-file gen/chap10_control/com/craftinginterpreters/ gen/chap11_functions/com/craftinginterpreters/ > build/diffs/chap11_functions.diff
+	@ -diff --recursive --new-file gen/chap11_functions/com/craftinginterpreters/ gen/chap12_resolving/com/craftinginterpreters/ > build/diffs/chap12_resolving.diff
+	@ -diff --recursive --new-file gen/chap12_resolving/com/craftinginterpreters/ gen/chap13_classes/com/craftinginterpreters/ > build/diffs/chap13_classes.diff
+	@ -diff --recursive --new-file gen/chap13_classes/com/craftinginterpreters/ gen/chap14_inheritance/com/craftinginterpreters/ > build/diffs/chap14_inheritance.diff
+	@ -diff --recursive --new-file gen/chap14_inheritance/com/craftinginterpreters/ gen/chap15_reaching/com/craftinginterpreters/ > build/diffs/chap15_reaching.diff
+	# TODO: C chapters.
+
+.PHONY: clean cvox debug default diffs jvox test test_c test_java watch
