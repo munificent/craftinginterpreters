@@ -97,6 +97,7 @@ c_chapters:
 
 diffs:
 	@ mkdir -p build/diffs
+	@ -diff --recursive --new-file nonexistent/ gen/chap04_framework/com/craftinginterpreters/ > build/diffs/chap04_framework.diff
 	@ -diff --recursive --new-file gen/chap04_framework/com/craftinginterpreters/ gen/chap05_scanning/com/craftinginterpreters/ > build/diffs/chap05_scanning.diff
 	@ -diff --recursive --new-file gen/chap05_scanning/com/craftinginterpreters/ gen/chap06_representing/com/craftinginterpreters/ > build/diffs/chap06_representing.diff
 	@ -diff --recursive --new-file gen/chap06_representing/com/craftinginterpreters/ gen/chap07_parsing/com/craftinginterpreters/ > build/diffs/chap07_parsing.diff
@@ -108,6 +109,13 @@ diffs:
 	@ -diff --recursive --new-file gen/chap12_resolving/com/craftinginterpreters/ gen/chap13_classes/com/craftinginterpreters/ > build/diffs/chap13_classes.diff
 	@ -diff --recursive --new-file gen/chap13_classes/com/craftinginterpreters/ gen/chap14_inheritance/com/craftinginterpreters/ > build/diffs/chap14_inheritance.diff
 	@ -diff --recursive --new-file gen/chap14_inheritance/com/craftinginterpreters/ gen/chap15_reaching/com/craftinginterpreters/ > build/diffs/chap15_reaching.diff
-	# TODO: C chapters.
+
+	@ -diff --new-file nonexistent/ gen/chap16_chunks/ > build/diffs/chap16_chunks.diff
+	@ -diff --new-file gen/chap16_chunks/ gen/chap17_virtual/ > build/diffs/chap17_virtual.diff
+	@ -diff --new-file gen/chap17_virtual/ gen/chap18_scanning/ > build/diffs/chap18_scanning.diff
+	@ -diff --new-file gen/chap18_scanning/ gen/chap19_compiling/ > build/diffs/chap19_compiling.diff
+	@ -diff --new-file gen/chap19_compiling/ gen/chap20_types/ > build/diffs/chap20_types.diff
+	@ -diff --new-file gen/chap20_types/ gen/chap21_strings/ > build/diffs/chap21_strings.diff
+	@ -diff --new-file gen/chap21_strings/ gen/chap22_hash/ > build/diffs/chap22_hash.diff
 
 .PHONY: clean cvox debug default diffs jvox test test_c test_java watch
