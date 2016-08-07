@@ -1,6 +1,10 @@
 //>= Chunks of Bytecode
 #include <stdio.h>
 #include <stdlib.h>
+/*== Strings
+#include <string.h>
+*/
+//>= Chunks of Bytecode
 
 #include "memory.h"
 //>= Uhh
@@ -21,7 +25,15 @@ bool valuesEqual(Value a, Value b) {
     case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
 //>= Strings
     case VAL_OBJ:
-      // TODO: Need to compare string chars until we intern them.
+/*== Strings
+    {
+      ObjString* aString = AS_STRING(a);
+      ObjString* bString = AS_STRING(b);
+      return aString->length == bString->length &&
+          memcmp(aString->chars, bString->chars, aString->length) == 0;
+    }
+ */
+//>= Hash Tables
       // Objects have reference equality.
       return AS_OBJ(a) == AS_OBJ(b);
 //>= Types of Values

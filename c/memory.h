@@ -2,7 +2,7 @@
 #ifndef cvox_memory_h
 #define cvox_memory_h
 
-//>= Uhh
+//>= Strings
 #include "object.h"
 
 //>= Chunks of Bytecode
@@ -22,6 +22,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize);
 void grayObject(Obj* object);
 void grayValue(Value value);
 void collectGarbage();
+//>= Strings
 void freeObjects();
 //>= Chunks of Bytecode
 

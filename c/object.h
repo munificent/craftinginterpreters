@@ -51,9 +51,8 @@ struct sObj {
 //>= Uhh
   // TODO: Stuff into low bit of next?
   bool isDark;
-  
-  struct sObj* next;
 //>= Strings
+  struct sObj* next;
 };
 //>= Uhh
 
@@ -78,7 +77,7 @@ struct sObjString {
   Obj object;
   int length;
   char* chars;
-//>= Uhh
+//>= Hash Tables
   uint32_t hash;
 //>= Strings
 };

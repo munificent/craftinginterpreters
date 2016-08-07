@@ -8,6 +8,7 @@
 #include "memory.h"
 //>= Uhh
 #include "object.h"
+//>= Strings
 #include "vm.h"
 
 #ifdef DEBUG_TRACE_GC
@@ -129,15 +130,19 @@ static void blackenObject(Obj* object) {
       break;
   }
 }
+//>= Strings
 
 static void freeObject(Obj* object) {
+//>= Uhh
 #ifdef DEBUG_TRACE_GC
   printf("%p free ", object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
   
+//>= Strings
   switch (object->type) {
+//>= Uhh
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       freeTable(&klass->methods);
@@ -174,18 +179,22 @@ static void freeObject(Obj* object) {
       FREE(ObjNative, object);
       break;
       
+//>= Strings
     case OBJ_STRING: {
       ObjString* string = (ObjString*)object;
       FREE_ARRAY(char, string->chars, string->length + 1);
       FREE(ObjString, object);
       break;
     }
+//>= Uhh
       
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;
+//>= Strings
   }
 }
+//>= Uhh
 
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
@@ -248,6 +257,7 @@ void collectGarbage() {
          before - vm.bytesAllocated, before, vm.bytesAllocated, vm.nextGC);
 #endif
 }
+//>= Strings
 
 void freeObjects() {
   // Free all objects.
@@ -257,6 +267,8 @@ void freeObjects() {
     freeObject(object);
     object = next;
   }
+//>= Uhh
   
   free(vm.grayStack);
+//>= Strings
 }

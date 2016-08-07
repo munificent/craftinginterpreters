@@ -3,7 +3,9 @@
 #include <string.h>
 
 #include "memory.h"
+#include "object.h"
 #include "table.h"
+#include "value.h"
 
 #define TABLE_MAX_LOAD 0.75
 
@@ -18,73 +20,43 @@ void freeTable(Table* table) {
   initTable(table);
 }
 
-static Entry* findEntry(Table* table, ObjString* key) {
-  // If the table is empty, we definitely won't find it.
-  if (table->count == 0) return NULL;
-  
+// Finds the entry where [key] should be. If the key is not already present in
+// the table, this will be an unused entry. Otherwise, it will be the existing
+// entry for that key.
+static Entry* findEntry(Entry* entries, int capacity, ObjString* key,
+                        bool stopAtTombstone) {
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-  uint32_t index = key->hash % table->capacity;
-
+  uint32_t index = key->hash % capacity;
+  
   // We don't worry about an infinite loop here because resize() ensures
-  // there are empty slots in the table.
+  // there are empty slots in the array.
   for (;;) {
-    Entry* entry = &table->entries[index];
+    Entry* entry = &entries[index];
     
     if (entry->key == NULL) {
-      // If the value is nil, it's an empty entry so we know the key isn't
-      // present. If it's non-nil, the entry is a tombstone and we have to
-      // keep looking.
-      if (IS_NIL(entry->value)) return NULL;
+      // Stop on either an empty entry (the value is nil) or a tombstone (the
+      // value is non-nil) if we are supposed to.
+      if (IS_NIL(entry->value) || stopAtTombstone) return entry;
     } else if (key == entry->key) {
       // We found it.
       return entry;
     }
     
     // Try the next slot.
-    index = (index + 1) % table->capacity;
+    index = (index + 1) % capacity;
   }
 }
 
 bool tableGet(Table* table, ObjString* key, Value* value) {
-  Entry* entry = findEntry(table, key);
-  if (entry == NULL) return false;
+  // If the table is empty, we definitely won't find it.
+  if (table->entries == NULL) return false;
+  
+  Entry* entry = findEntry(table->entries, table->capacity, key, false);
+  if (entry->key == NULL) return false;
   
   *value = entry->value;
   return true;
-}
-
-// Inserts [key] and [value] in the array of [entries] with the given
-// [capacity].
-//
-// Returns `true` if this is the first time [key] was added to the map.
-static bool addEntry(Entry* entries, int capacity,
-                     ObjString* key, Value value) {
-  // Figure out where to insert it in the table. Use open addressing and
-  // basic linear probing.
-  uint32_t index = key->hash % capacity;
-
-  // We don't worry about an infinite loop here because resize() ensures
-  // there are open slots in the array.
-  // TODO: Probably need to check for infinite loop here if table is all
-  // tombstones like we do below.
-  for (;;) {
-    Entry* entry = &entries[index];
-
-    // If we found an open slot, the key is not in the table.
-    if (entry->key == NULL) {
-      entry->key = key;
-      entry->value = value;
-      return true;
-    } else if (key == entry->key) {
-      // If the key already exists, just replace the value.
-      entry->value = value;
-      return false;
-    }
-
-    // Try the next slot.
-    index = (index + 1) % capacity;
-  }
 }
 
 static void resize(Table* table, int capacity) {
@@ -96,11 +68,15 @@ static void resize(Table* table, int capacity) {
   }
 
   // Re-hash the existing entries into the new array.
+  table->count = 0;
   for (int i = 0; i < table->capacity; i++) {
     Entry* entry = &table->entries[i];
     if (entry->key == NULL) continue;
 
-    addEntry(entries, capacity, entry->key, entry->value);
+    Entry* dest = findEntry(entries, capacity, entry->key, false);
+    dest->key = entry->key;
+    dest->value = entry->value;
+    table->count++;
   }
 
   // Replace the array.
@@ -117,9 +93,25 @@ bool tableSet(Table* table, ObjString* key, Value value) {
     resize(table, capacity);
   }
 
-  bool isNewKey = addEntry(table->entries, table->capacity, key, value);
+  Entry* entry = findEntry(table->entries, table->capacity, key, false);
+  bool isNewKey = entry->key == NULL;
+  entry->key = key;
+  entry->value = value;
+
   if (isNewKey) table->count++;
   return isNewKey;
+}
+
+// TODO: This isn't actually used by anything. It's here just to show a more
+// complete hash table implementation. Can we use it?
+bool tableDelete(Table* table, ObjString* key) {
+  Entry* entry = findEntry(table->entries, table->capacity, key, false);
+  if (entry->key == NULL) return false;
+  
+  // Leave a tombstone.
+  entry->key = NULL;
+  entry->value = BOOL_VAL(true);
+  return true;
 }
 
 void tableAddAll(Table* from, Table* to) {
@@ -134,16 +126,13 @@ void tableAddAll(Table* from, Table* to) {
 ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash) {
   // If the table is empty, we definitely won't find it.
-  if (table->count == 0) return NULL;
+  if (table->entries == NULL) return NULL;
   
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
   uint32_t index = hash % table->capacity;
   
-  // We have to check for a loop here because the table could be full of
-  // tombstones.
-  uint32_t startIndex = index;
-  do {
+  for (;;) {
     Entry* entry = &table->entries[index];
     
     if (entry->key == NULL) {
@@ -157,20 +146,22 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     
     // Try the next slot.
     index = (index + 1) % table->capacity;
-  } while (index != startIndex);
+  }
   
   return NULL;
 }
+//>= Uhh
 
 void tableRemoveWhite(Table* table) {
   for (int i = 0; i < table->capacity; i++) {
     Entry* entry = &table->entries[i];
     if (entry->key != NULL && !entry->key->object.isDark) {
       // Turn the entry into a tombstone, identified as having a NULL key but a
-      // non-nil value (true).
-      entry->value = BOOL_VAL(true);
+      // non-nil value (true). Don't adjust the count. We want to treat
+      // tombstone entries as used so that we don't end up with an array full
+      // of tombstones.
       entry->key = NULL;
-      table->count--;
+      entry->value = BOOL_VAL(true);
     }
   }
 }

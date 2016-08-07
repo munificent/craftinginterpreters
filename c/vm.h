@@ -7,6 +7,7 @@
 */
 //>= Uhh
 #include "object.h"
+//>= Hash Tables
 #include "table.h"
 //>= A Virtual Machine
 #include "value.h"
@@ -39,17 +40,20 @@ typedef struct {
   int frameCount;
   
   Table globals;
+//>= Hash Tables
   Table strings;
 
+//>= Uhh
   ObjString* initString;
   
   ObjUpvalue* openUpvalues;
   
   size_t bytesAllocated;
   size_t nextGC;
+//>= Strings
   
   Obj* objects;
-  
+//>= Uhh
   int grayCount;
   int grayCapacity;
   Obj** grayStack;

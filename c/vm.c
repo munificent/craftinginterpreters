@@ -139,8 +139,9 @@ static void defineNative(const char* name, NativeFn function) {
 void initVM() {
 //>= A Virtual Machine
   resetStack();
-//>= Uhh
+//>= Strings
   vm.objects = NULL;
+//>= Uhh
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
   
@@ -149,7 +150,9 @@ void initVM() {
   vm.grayStack = NULL;
 
   initTable(&vm.globals);
+//>= Hash Tables
   initTable(&vm.strings);
+//>= Uhh
   
   vm.initString = copyString("init", 4);
   
@@ -161,8 +164,11 @@ void initVM() {
 void endVM() {
 //>= Uhh
   freeTable(&vm.globals);
+//>= Hash Tables
   freeTable(&vm.strings);
+//>= Uhh
   vm.initString = NULL;
+//>= Strings
   freeObjects();
 //>= A Virtual Machine
 }

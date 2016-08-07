@@ -10,10 +10,11 @@
 //>= Strings
 #include "memory.h"
 #include "object.h"
-#include "value.h"
-//>= Uhh
-#include "vm.h"
+//>= Hash Tables
+#include "table.h"
 //>= Strings
+#include "value.h"
+#include "vm.h"
 
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)allocateObject(sizeof(type), objectType)
@@ -23,10 +24,12 @@ static Obj* allocateObject(size_t size, ObjType type) {
   object->type = type;
 //>= Uhh
   object->isDark = false;
+//>= Strings
   
   object->next = vm.objects;
   vm.objects = object;
-
+//>= Uhh
+  
 #ifdef DEBUG_TRACE_GC
   printf("%p allocate %ld for %d\n", object, size, type);
 #endif
@@ -93,24 +96,27 @@ ObjNative* newNative(NativeFn function) {
 
 static ObjString* allocateString(char* chars, int length) {
 */
-//>= Uhh
+//>= Hash Tables
 
 static ObjString* allocateString(char* chars, int length, uint32_t hash) {
 //>= Strings
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
-//>= Uhh
+//>= Hash Tables
   string->hash = hash;
-  
+
+//>= Uhh
   push(OBJ_VAL(string));
+//>= Hash Tables
   tableSet(&vm.strings, string, NIL_VAL);
+//>= Uhh
   pop();
 //>= Strings
 
   return string;
 }
-//>= Uhh
+//>= Hash Tables
 
 static uint32_t hashString(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
@@ -132,7 +138,7 @@ ObjString* takeString(char* chars, int length) {
 /*== Strings
   return allocateString(chars, length);
 */
-//>= Uhh
+//>= Hash Tables
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
@@ -142,7 +148,7 @@ ObjString* takeString(char* chars, int length) {
 }
 
 ObjString* copyString(const char* chars, int length) {
-//>= Uhh
+//>= Hash Tables
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
@@ -156,7 +162,7 @@ ObjString* copyString(const char* chars, int length) {
 /*== Strings
   return allocateString(heapChars, length);
 */
-//>= Uhh
+//>= Hash Tables
   return allocateString(heapChars, length, hash);
 //>= Strings
 }
