@@ -37,7 +37,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     this.reporter = reporter;
 
 //>= Reaching the Summit
-    globals.define("clock", Callable.wrap(this::clock));
+    globals.define("clock", new NativeFunction(0, this::clock));
 //>= Evaluating Expressions
   }
 
@@ -448,7 +448,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //>= Reaching the Summit
 
-  private Object clock() {
+  private Object clock(List<Object> arguments) {
     return (double)System.currentTimeMillis() / 1000.0;
   }
 //>= Evaluating Expressions
