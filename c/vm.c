@@ -406,7 +406,7 @@ static bool run() {
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Hash Tables
+/*>= A Virtual Machine <= Statements
   uint8_t* ip = vm.chunk->code;
  
 #define READ_BYTE() (*ip++)
@@ -456,8 +456,9 @@ static bool run() {
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
-//>= Uhh
+//>= Statements
       case OP_POP: pop(); break;
+//>= Uhh
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
@@ -604,7 +605,7 @@ static bool run() {
         
         push(NUMBER_VAL(-AS_NUMBER(pop())));
         break;
-//>= Uhh
+//>= Statements
         
       case OP_PRINT: {
         Value string = strNative(1, &vm.stackTop[-1]);
@@ -612,6 +613,7 @@ static bool run() {
         pop();
         break;
       }
+//>= Uhh
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
@@ -718,6 +720,7 @@ static bool run() {
         printf("\n");
         return true;
 */
+        // TODO: Wat do with result?
 //>= Uhh
         
         // Close any upvalues still in scope.
@@ -779,7 +782,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
@@ -798,7 +801,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
  
   freeChunk(&chunk);
 */

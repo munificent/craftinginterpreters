@@ -29,6 +29,8 @@ C_CHAPTERS = [
   "Types of Values",
   "Strings",
   "Hash Tables",
+  # TODO: Give unique name.
+  "Statements",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

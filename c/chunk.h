@@ -11,8 +11,9 @@ typedef enum {
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
-//>= Uhh
+//>= Statements
   OP_POP,
+//>= Uhh
   OP_GET_LOCAL,
   OP_SET_LOCAL,
   OP_GET_GLOBAL,
@@ -36,8 +37,9 @@ typedef enum {
   OP_NOT,
 //>= A Virtual Machine
   OP_NEGATE,
-//>= Uhh
+//>= Statements
   OP_PRINT,
+//>= Uhh
   OP_JUMP,
   OP_JUMP_IF_FALSE,
   OP_LOOP,

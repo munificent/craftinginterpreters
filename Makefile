@@ -21,6 +21,7 @@ test_java: jvox
 # Remove all build outputs and intermediate files.
 clean:
 	@ rm -rf $(BUILD_DIR)
+	@ rm -rf gen
 
 # Compile the C interpreter.
 cvox:
@@ -94,6 +95,7 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap20_types MODE=release SOURCE_DIR=gen/chap20_types
 	@ $(MAKE) -f util/c.make NAME=chap21_strings MODE=release SOURCE_DIR=gen/chap21_strings
 	@ $(MAKE) -f util/c.make NAME=chap22_hash MODE=release SOURCE_DIR=gen/chap22_hash
+	@ $(MAKE) -f util/c.make NAME=chap23_statements MODE=release SOURCE_DIR=gen/chap23_statements
 
 diffs:
 	@ mkdir -p build/diffs
@@ -117,5 +119,6 @@ diffs:
 	@ -diff --new-file gen/chap19_compiling/ gen/chap20_types/ > build/diffs/chap20_types.diff
 	@ -diff --new-file gen/chap20_types/ gen/chap21_strings/ > build/diffs/chap21_strings.diff
 	@ -diff --new-file gen/chap21_strings/ gen/chap22_hash/ > build/diffs/chap22_hash.diff
+	@ -diff --new-file gen/chap22_hash/ gen/chap23_statements/ > build/diffs/chap23_statements.diff
 
 .PHONY: clean cvox debug default diffs jvox test test_c test_java watch

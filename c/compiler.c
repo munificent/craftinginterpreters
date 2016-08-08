@@ -45,7 +45,7 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
 typedef void (*ParseFn)();
 */
 //>= Uhh
@@ -121,7 +121,7 @@ typedef struct ClassCompiler {
 //>= Compiling Expressions
 
 Parser parser;
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
 
 Chunk* compilingChunk;
  
@@ -188,12 +188,13 @@ static void consume(TokenType type, const char* message) {
 /*>= Compiling Expressions <= Hash Tables
   if (type == TOKEN_RIGHT_PAREN) {
 */
-//>= Uhh
+//>= Statements
   if (type == TOKEN_LEFT_BRACE ||
       type == TOKEN_RIGHT_BRACE ||
-      type == TOKEN_RIGHT_BRACKET ||
       type == TOKEN_RIGHT_PAREN ||
+//>= Uhh
       type == TOKEN_EQUAL ||
+//>= Statements
       type == TOKEN_SEMICOLON) {
 //>= Compiling Expressions
     while (parser.current.type != type &&
@@ -204,7 +205,7 @@ static void consume(TokenType type, const char* message) {
     advance();
   }
 }
-//>= Uhh
+//>= Statements
 
 static bool check(TokenType type) {
   return parser.current.type == type;
@@ -326,7 +327,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.length = 0;
   }
 }
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
 
 static void endCompiler() {
 */
@@ -378,7 +379,7 @@ static void endScope() {
 
 // Forward declarations since the grammar is recursive.
 static void expression();
-//>= Uhh
+//>= Statements
 static void statement();
 static void declaration();
 //>= Compiling Expressions
@@ -578,7 +579,7 @@ static void and_(bool canAssign) {
   
   patchJump(endJump);
 }
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
 
 static void binary() {
 */
@@ -631,7 +632,7 @@ static void dot(bool canAssign) {
     emitBytes(OP_GET_FIELD, name);
   }
 }
-/*>= Types of Values <= Hash Tables
+/*>= Types of Values <= Statements
  
 static void false_() {
 */
@@ -641,7 +642,7 @@ static void false_(bool canAssign) {
 //>= Types of Values
   emitByte(OP_FALSE);
 }
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
  
 static void grouping() {
 */
@@ -652,7 +653,7 @@ static void grouping(bool canAssign) {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
-/*>= Types of Values <= Hash Tables
+/*>= Types of Values <= Statements
  
 static void nil() {
 */
@@ -662,7 +663,7 @@ static void nil(bool canAssign) {
 //>= Types of Values
   emitByte(OP_NIL);
 }
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
  
 static void number() {
 */
@@ -704,7 +705,7 @@ static void or_(bool canAssign) {
   parsePrecedence(PREC_OR);
   patchJump(endJump);
 }
-/*>= Strings <= Hash Tables
+/*>= Strings <= Statements
  
 static void string() {
 */
@@ -789,7 +790,7 @@ static void this_(bool canAssign) {
     variable(false);
   }
 }
-/*>= Types of Values <= Hash Tables
+/*>= Types of Values <= Statements
  
 static void true_() {
 */
@@ -799,7 +800,7 @@ static void true_(bool canAssign) {
 //>= Types of Values
   emitByte(OP_TRUE);
 }
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
  
 static void unary() {
 */
@@ -824,15 +825,13 @@ static void unary(bool canAssign) {
 }
 
 ParseRule rules[] = {
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
 //>= Uhh
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACKET
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACKET
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
 /*== Compiling Expressions
@@ -844,7 +843,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -870,7 +869,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 */
 //>= Uhh
@@ -882,7 +881,7 @@ ParseRule rules[] = {
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
 //>= Compiling Expressions
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
 */
 //>= Uhh
@@ -904,7 +903,7 @@ ParseRule rules[] = {
 */
 //>= Types of Values
   { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
 //>= Uhh
@@ -912,7 +911,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -944,7 +943,7 @@ static void parsePrecedence(Precedence precedence) {
 //>= Uhh
   bool canAssign = precedence <= PREC_ASSIGNMENT;
   prefixRule(canAssign);
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   prefixRule();
 */
 //>= Compiling Expressions
@@ -952,7 +951,7 @@ static void parsePrecedence(Precedence precedence) {
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
     infixRule();
 */
 //>= Uhh
@@ -977,7 +976,7 @@ static ParseRule* getRule(TokenType type) {
 void expression() {
   parsePrecedence(PREC_ASSIGNMENT);
 }
-//>= Uhh
+//>= Statements
 
 static void block() {
   consume(TOKEN_LEFT_BRACE, "Expect '{' before block.");
@@ -988,6 +987,7 @@ static void block() {
   
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
+//>= Uhh
 
 static void function(FunctionType type) {
   Compiler functionCompiler;
@@ -1105,6 +1105,7 @@ static void varDeclaration() {
   
   defineVariable(global);
 }
+//>= Statements
 
 static void expressionStatement() {
   expression();
@@ -1112,6 +1113,7 @@ static void expressionStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
   
 }
+//>= Uhh
 
 static void forStatement() {
   // for (var i = 0; i < 10; i = i + 1) print i;
@@ -1211,6 +1213,7 @@ static void ifStatement() {
   
   patchJump(endJump);
 }
+//>= Statements
 
 static void printStatement() {
   expression();
@@ -1218,6 +1221,7 @@ static void printStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
   emitByte(OP_PRINT);
 }
+//>= Uhh
 
 static void returnStatement() {
   if (current->type == TYPE_TOP_LEVEL) {
@@ -1257,8 +1261,10 @@ static void whileStatement() {
   patchJump(exitJump);
   emitByte(OP_POP); // Condition.
 }
+//>= Statements
 
 static void declaration() {
+//>= Uhh
   if (match(TOKEN_CLASS)) {
     classDeclaration();
   } else if (match(TOKEN_FUN)) {
@@ -1268,23 +1274,38 @@ static void declaration() {
   } else {
     statement();
   }
+/*== Statements
+  statement();
+*/
+//>= Statements
 }
 
 static void statement() {
+//>= Uhh
   if (match(TOKEN_FOR)) {
     forStatement();
   } else if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_PRINT)) {
+/*== Statements
+  if (match(TOKEN_PRINT)) {
+*/
+//>= Statements
     printStatement();
+//>= Uhh
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
+//>= Statements
   } else if (check(TOKEN_LEFT_BRACE)) {
+//>= Uhh
     beginScope();
+//>= Statements
     block();
+//>= Uhh
     endScope();
+//>= Statements
   } else {
     expressionStatement();
   }
@@ -1293,7 +1314,7 @@ static void statement() {
 
 void compile(const char* source) {
 */
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
  
 bool compile(const char* source, Chunk* chunk) {
 */
@@ -1318,7 +1339,7 @@ ObjFunction* compile(const char* source) {
     if (token.type == TOKEN_EOF) break;
   }
 */
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   compilingChunk = chunk;
 */
 //>= Uhh
@@ -1334,14 +1355,14 @@ ObjFunction* compile(const char* source) {
   expression();
   consume(TOKEN_EOF, "Expect end of expression.");
 */
-//>= Uhh
+//>= Statements
   if (!match(TOKEN_EOF)) {
     do {
       declaration();
     } while (!match(TOKEN_EOF));
   }
 
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions <= Statements
   endCompiler();
  
   // If there was a compile error, the code is not valid.

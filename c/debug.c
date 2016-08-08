@@ -54,8 +54,9 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_NIL)
     INST_ZERO(OP_TRUE)
     INST_ZERO(OP_FALSE)
-//>= Uhh
+//>= Statements
     INST_ZERO(OP_POP)
+//>= Uhh
     INST_BYTE(OP_GET_LOCAL)
     INST_BYTE(OP_SET_LOCAL)
     INST_CONSTANT(OP_GET_GLOBAL)
@@ -79,8 +80,9 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_NOT)
 //>= A Virtual Machine
     INST_ZERO(OP_NEGATE)
-//>= Uhh
+//>= Statements
     INST_ZERO(OP_PRINT)
+//>= Uhh
     INST_JUMP(OP_JUMP, +)
     INST_JUMP(OP_JUMP_IF_FALSE, +)
     INST_JUMP(OP_LOOP, -)
