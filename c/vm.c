@@ -29,71 +29,6 @@ VM vm;
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
-
-// TODO: Test.
-static Value strNative(int argCount, Value* args) {
-  Value arg = args[0];
-  switch (arg.type) {
-    case VAL_BOOL:
-      if (AS_BOOL(arg)) {
-        return OBJ_VAL(copyString("true", 4));
-      } else {
-        return OBJ_VAL(copyString("false", 5));
-      }
-    case VAL_NIL: return OBJ_VAL(copyString("nil", 3));
-    case VAL_NUMBER: {
-      // This is large enough to hold any double converted to a string using
-      // "%.14g". Example:
-      //
-      //     -1.12345678901234e-1022
-      //
-      // So we have:
-      //
-      // + 1 char for sign
-      // + 1 char for digit
-      // + 1 char for "."
-      // + 14 chars for decimal digits
-      // + 1 char for "e"
-      // + 1 char for "-" or "+"
-      // + 4 chars for exponent
-      // + 1 char for "\0"
-      // = 24
-      char buffer[24];
-      int length = sprintf(buffer, "%.14g", AS_NUMBER(arg));
-      return OBJ_VAL(copyString(buffer, length));
-    }
-    case VAL_OBJ: {
-      switch (OBJ_TYPE(arg)) {
-        case OBJ_CLASS:
-          return OBJ_VAL(AS_CLASS(arg)->name);
-          
-        case OBJ_BOUND_METHOD:
-        case OBJ_CLOSURE:
-        case OBJ_FUNCTION:
-          return OBJ_VAL(copyString("<fn>", 4));
-          
-        case OBJ_INSTANCE: {
-          ObjInstance* instance = AS_INSTANCE(arg);
-          ObjString* className = instance->klass->name;
-          int length = className->length + strlen(" instance");
-          char* buffer = GROW_ARRAY(NULL, char, 0, length + 1);
-          strcpy(buffer, className->chars);
-          strcpy(buffer + className->length, " instance");
-          return OBJ_VAL(takeString(buffer, length));
-        }
-          
-        case OBJ_NATIVE:
-          return OBJ_VAL(copyString("<native>", 8));
-          
-        case OBJ_STRING:
-          return arg;
-          
-        case OBJ_UPVALUE:
-          return OBJ_VAL(copyString("<upvalue>", 9));
-      }
-    }
-  }
-}
 //>= A Virtual Machine
 
 static void resetStack() {
@@ -157,7 +92,6 @@ void initVM() {
   vm.initString = copyString("init", 4);
   
   defineNative("clock", clockNative);
-  defineNative("str", strNative);
 //>= A Virtual Machine
 }
 
@@ -608,9 +542,8 @@ static bool run() {
 //>= Statements
         
       case OP_PRINT: {
-        Value string = strNative(1, &vm.stackTop[-1]);
-        printf("%s\n", AS_STRING(string)->chars);
-        pop();
+        printValue(pop());
+        printf("\n");
         break;
       }
 //>= Uhh
@@ -714,14 +647,15 @@ static bool run() {
         
 //>= A Virtual Machine
       case OP_RETURN: {
-        Value result = pop();
 /*>= A Virtual Machine <= Hash Tables
-        printValue(result);
+        printValue(pop());
         printf("\n");
+*/
+/*>= A Virtual Machine <= Statements
         return true;
 */
-        // TODO: Wat do with result?
 //>= Uhh
+        Value result = pop();
         
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);

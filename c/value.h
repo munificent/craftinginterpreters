@@ -60,6 +60,8 @@ typedef struct {
   Value* values;
 } ValueArray;
 
+void printValue(Value value);
+
 bool valuesEqual(Value a, Value b);
 
 void initArray(ValueArray* array);

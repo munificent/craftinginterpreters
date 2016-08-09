@@ -343,8 +343,8 @@ static ObjFunction* endCompiler() {
 //>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-/*>= Compiling Expressions <= Hash Tables
-    disassembleChunk(currentChunk(), "expression");
+/*>= Compiling Expressions <= Statements
+    disassembleChunk(currentChunk(), "code");
 */
 //>= Uhh
     disassembleChunk(currentChunk(), function->name->chars);
@@ -398,7 +398,7 @@ static uint8_t makeConstant(Value value) {
 }
 //>= Uhh
 
-// Creates a string constant for the previous identifier token. Returns the
+// Creates a string constant for the given identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
