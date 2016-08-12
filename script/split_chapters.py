@@ -31,6 +31,8 @@ C_CHAPTERS = [
   "Hash Tables",
   # TODO: Give unique name.
   "Statements",
+  "Global Variables",
+  "Jumping Forward and Back",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

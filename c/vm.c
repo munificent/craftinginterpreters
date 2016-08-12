@@ -46,8 +46,12 @@ static void runtimeError(const char* format, ...) {
   vfprintf(stderr, format, args);
   va_end(args);
   fputs("\n", stderr);
+
+/*>= Types of Values <= Global Variables
+  size_t instruction = vm.ip - vm.chunk->code;
+  fprintf(stderr, "[line %d] in script\n", vm.chunk->lines[instruction]);
+*/
 //>= Uhh
-  
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
     ObjFunction* function = frame->closure->function;
@@ -83,7 +87,8 @@ void initVM() {
   vm.grayCount = 0;
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
-
+//>= Global Variables
+  
   initTable(&vm.globals);
 //>= Hash Tables
   initTable(&vm.strings);
@@ -96,7 +101,7 @@ void initVM() {
 }
 
 void endVM() {
-//>= Uhh
+//>= Global Variables
   freeTable(&vm.globals);
 //>= Hash Tables
   freeTable(&vm.strings);
@@ -336,18 +341,18 @@ static bool run() {
 //>= Uhh
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   
+/*>= A Virtual Machine <= Global Variables
+#define READ_BYTE() (*vm.ip++)
+#define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+*/
+//>= Uhh
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
+//>= Global Variables
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Statements
-  uint8_t* ip = vm.chunk->code;
- 
-#define READ_BYTE() (*ip++)
-#define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
-
-*/
 /*>= A Virtual Machine <= Compiling Expressions
+
 #define BINARY_OP(op) \
     do { \
       double b = pop(); \
@@ -356,6 +361,7 @@ static bool run() {
     } while (false)
 */
 //>= Types of Values
+  
 #define BINARY_OP(valueType, op) \
     do { \
       if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
@@ -405,6 +411,7 @@ static bool run() {
         frame->slots[slot] = peek(0);
         break;
       }
+//>= Global Variables
         
       case OP_GET_GLOBAL: {
         ObjString* name = READ_STRING();
@@ -432,6 +439,7 @@ static bool run() {
         }
         break;
       }
+//>= Uhh
         
       case OP_GET_UPVALUE: {
         uint8_t slot = READ_BYTE();
@@ -651,7 +659,7 @@ static bool run() {
         printValue(pop());
         printf("\n");
 */
-/*>= A Virtual Machine <= Statements
+/*>= A Virtual Machine <= Global Variables
         return true;
 */
 //>= Uhh
@@ -716,12 +724,13 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
  
   vm.chunk = &chunk;
+  vm.ip = vm.chunk->code;
 */
 //>= Uhh
   ObjFunction* function = compile(source);
@@ -735,7 +744,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
  
   freeChunk(&chunk);
 */

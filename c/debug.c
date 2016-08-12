@@ -59,9 +59,11 @@ int disassembleInstruction(Chunk* chunk, int i) {
 //>= Uhh
     INST_BYTE(OP_GET_LOCAL)
     INST_BYTE(OP_SET_LOCAL)
+//>= Global Variables
     INST_CONSTANT(OP_GET_GLOBAL)
     INST_CONSTANT(OP_DEFINE_GLOBAL)
     INST_CONSTANT(OP_SET_GLOBAL)
+//>= Uhh
     INST_BYTE(OP_GET_UPVALUE)
     INST_BYTE(OP_SET_UPVALUE)
     INST_CONSTANT(OP_GET_FIELD)

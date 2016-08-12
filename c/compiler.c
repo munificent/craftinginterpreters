@@ -48,7 +48,7 @@ typedef enum {
 /*>= Compiling Expressions <= Statements
 typedef void (*ParseFn)();
 */
-//>= Uhh
+//>= Global Variables
 typedef void (*ParseFn)(bool canAssign);
 //>= Compiling Expressions
 
@@ -121,7 +121,7 @@ typedef struct ClassCompiler {
 //>= Compiling Expressions
 
 Parser parser;
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
 
 Chunk* compilingChunk;
  
@@ -327,7 +327,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.length = 0;
   }
 }
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
 
 static void endCompiler() {
 */
@@ -343,7 +343,7 @@ static ObjFunction* endCompiler() {
 //>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
     disassembleChunk(currentChunk(), "code");
 */
 //>= Uhh
@@ -396,7 +396,7 @@ static uint8_t makeConstant(Value value) {
   
   return (uint8_t)constant;
 }
-//>= Uhh
+//>= Global Variables
 
 // Creates a string constant for the given identifier token. Returns the
 // index of the constant.
@@ -523,9 +523,14 @@ static void declareVariable() {
   
   addLocal(*name);
 }
+//>= Global Variables
 
 static uint8_t parseVariable(const char* errorMessage) {
   consume(TOKEN_IDENTIFIER, errorMessage);
+/*== Global Variables
+  return identifierConstant(&parser.previous);
+*/
+//>= Uhh
   
   // If it's a global variable, create a string constant for it.
   if (current->scopeDepth == 0) {
@@ -534,16 +539,23 @@ static uint8_t parseVariable(const char* errorMessage) {
   
   declareVariable();
   return 0;
+//>= Global Variables
 }
 
 static void defineVariable(uint8_t global) {
+/*== Global Variables
+  emitBytes(OP_DEFINE_GLOBAL, global);
+*/
+//>= Uhh
   if (current->scopeDepth == 0) {
     emitBytes(OP_DEFINE_GLOBAL, global);
   } else {
     // Mark the local as defined now.
     current->locals[current->localCount - 1].depth = current->scopeDepth;
   }
+//>= Global Variables
 }
+//>= Uhh
 
 static uint8_t argumentList() {
   uint8_t argCount = 0;
@@ -583,7 +595,7 @@ static void and_(bool canAssign) {
 
 static void binary() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void binary(bool canAssign) {
 //>= Compiling Expressions
@@ -636,7 +648,7 @@ static void dot(bool canAssign) {
  
 static void false_() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void false_(bool canAssign) {
 //>= Types of Values
@@ -646,7 +658,7 @@ static void false_(bool canAssign) {
  
 static void grouping() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void grouping(bool canAssign) {
 //>= Compiling Expressions
@@ -657,7 +669,7 @@ static void grouping(bool canAssign) {
  
 static void nil() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void nil(bool canAssign) {
 //>= Types of Values
@@ -667,7 +679,7 @@ static void nil(bool canAssign) {
  
 static void number() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void number(bool canAssign) {
 //>= Compiling Expressions
@@ -709,17 +721,21 @@ static void or_(bool canAssign) {
  
 static void string() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void string(bool canAssign) {
 //>= Strings
   emitConstant(OBJ_VAL(copyString(parser.previous.start + 1,
                                   parser.previous.length - 2)));
 }
-//>= Uhh
+//>= Global Variables
 
 // Compiles a reference to a variable whose name is the given token.
 static void namedVariable(Token name, bool canAssign) {
+/*== Global Variables
+  int arg = identifierConstant(&name);
+*/
+//>= Uhh
   uint8_t getOp, setOp;
   int arg = resolveLocal(current, &name, false);
   if (arg != -1) {
@@ -734,17 +750,29 @@ static void namedVariable(Token name, bool canAssign) {
     setOp = OP_SET_GLOBAL;
   }
   
+//>= Global Variables
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
+/*== Global Variables
+    emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+*/
+//>= Uhh
     emitBytes(setOp, (uint8_t)arg);
+//>= Global Variables
   } else {
+/*== Global Variables
+    emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+*/
+//>= Uhh
     emitBytes(getOp, (uint8_t)arg);
+//>= Global Variables
   }
 }
 
 static void variable(bool canAssign) {
   namedVariable(parser.previous, canAssign);
 }
+//>= Uhh
 
 static Token syntheticToken(const char* text) {
   Token token;
@@ -794,7 +822,7 @@ static void this_(bool canAssign) {
  
 static void true_() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void true_(bool canAssign) {
 //>= Types of Values
@@ -804,7 +832,7 @@ static void true_(bool canAssign) {
  
 static void unary() {
 */
-//>= Uhh
+//>= Global Variables
 
 static void unary(bool canAssign) {
 //>= Compiling Expressions
@@ -825,7 +853,7 @@ static void unary(bool canAssign) {
 }
 
 ParseRule rules[] = {
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
 //>= Uhh
@@ -843,7 +871,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -872,7 +900,7 @@ ParseRule rules[] = {
 /*>= Compiling Expressions <= Statements
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 */
-//>= Uhh
+//>= Global Variables
   { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 /*>= Compiling Expressions <= Types of Values
   { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING
@@ -881,7 +909,7 @@ ParseRule rules[] = {
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
 //>= Compiling Expressions
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
 */
 //>= Uhh
@@ -903,7 +931,7 @@ ParseRule rules[] = {
 */
 //>= Types of Values
   { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
 //>= Uhh
@@ -911,7 +939,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -940,12 +968,12 @@ static void parsePrecedence(Precedence precedence) {
     return;
   }
   
-//>= Uhh
-  bool canAssign = precedence <= PREC_ASSIGNMENT;
-  prefixRule(canAssign);
 /*>= Compiling Expressions <= Statements
   prefixRule();
 */
+//>= Global Variables
+  bool canAssign = precedence <= PREC_ASSIGNMENT;
+  prefixRule(canAssign);
 //>= Compiling Expressions
 
   while (precedence <= getRule(parser.current.type)->precedence) {
@@ -954,11 +982,11 @@ static void parsePrecedence(Precedence precedence) {
 /*>= Compiling Expressions <= Statements
     infixRule();
 */
-//>= Uhh
+//>= Global Variables
     infixRule(canAssign);
 //>= Compiling Expressions
   }
-//>= Uhh
+//>= Global Variables
   
   if (canAssign && match(TOKEN_EQUAL)) {
     // If we get here, we didn't parse the "=" even though we could have, so
@@ -1090,6 +1118,7 @@ static void funDeclaration() {
   function(TYPE_FUNCTION);
   defineVariable(global);
 }
+//>= Global Variables
 
 static void varDeclaration() {
   uint8_t global = parseVariable("Expect variable name.");
@@ -1217,8 +1246,7 @@ static void ifStatement() {
 
 static void printStatement() {
   expression();
-  // TODO: Test:
-  consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  consume(TOKEN_SEMICOLON, "Expect ';' after value.");
   emitByte(OP_PRINT);
 }
 //>= Uhh
@@ -1269,7 +1297,12 @@ static void declaration() {
     classDeclaration();
   } else if (match(TOKEN_FUN)) {
     funDeclaration();
+/*== Global Variables
+  if (match(TOKEN_VAR)) {
+*/
+//>= Uhh
   } else if (match(TOKEN_VAR)) {
+//>= Global Variables
     varDeclaration();
   } else {
     statement();
@@ -1287,7 +1320,7 @@ static void statement() {
   } else if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_PRINT)) {
-/*== Statements
+/*>= Statements <= Global Variables
   if (match(TOKEN_PRINT)) {
 */
 //>= Statements
@@ -1314,7 +1347,7 @@ static void statement() {
 
 void compile(const char* source) {
 */
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
  
 bool compile(const char* source, Chunk* chunk) {
 */
@@ -1323,7 +1356,6 @@ bool compile(const char* source, Chunk* chunk) {
 ObjFunction* compile(const char* source) {
 //>= Scanning on Demand
   initScanner(source);
-
 /*== Scanning on Demand
   int line = -1;
   for (;;) {
@@ -1339,7 +1371,7 @@ ObjFunction* compile(const char* source) {
     if (token.type == TOKEN_EOF) break;
   }
 */
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   compilingChunk = chunk;
 */
 //>= Uhh
@@ -1362,7 +1394,7 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions <= Global Variables
   endCompiler();
  
   // If there was a compile error, the code is not valid.

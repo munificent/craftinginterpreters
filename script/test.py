@@ -43,14 +43,6 @@ def java_interpreter(name, dir, tests):
   INTERPRETERS[name] = Interpreter(name,
       ['java', '-cp', dir, 'com.craftinginterpreters.vox.Vox'], tests)
 
-c_interpreter('c', 'build/cvoxd', {
-  'test': 'pass',
-
-  # These are just for earlier chapters.
-  'test/scanning': 'skip',
-  'test/expressions': 'skip'
-})
-
 java_interpreter('java', 'build/java', {
   'test': 'pass',
 
@@ -337,6 +329,71 @@ java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
 
   # Rely on JVM for stack overflow checking.
   'test/limit/stack_overflow.vox': 'skip',
+})
+
+c_interpreter('c', 'build/cvoxd', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip'
+})
+
+# TODO: Other chapters.
+
+c_interpreter('chap24_global', 'build/chap24_global', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No control flow.
+  'test/block/empty.vox': 'skip',
+  'test/for': 'skip',
+  'test/if': 'skip',
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/logical_operator': 'skip',
+  'test/variable/unreached_undefined.vox': 'skip',
+  'test/while': 'skip',
+
+  # No local variables.
+  'test/block/scope.vox': 'skip',
+  'test/variable/duplicate_local.vox': 'skip',
+  'test/variable/shadow_global.vox': 'skip',
+  'test/variable/shadow_local.vox': 'skip',
+  'test/variable/use_local_in_initializer.vox': 'skip',
+
+  # No functions.
+  'test/call': 'skip',
+  'test/closure': 'skip',
+  'test/function': 'skip',
+  'test/limit/reuse_constants.vox': 'skip',
+  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+  'test/return': 'skip',
+  'test/unexpected_character.vox': 'skip',
+  'test/variable/collide_with_parameter.vox': 'skip',
+  'test/variable/duplicate_parameter.vox': 'skip',
+  'test/variable/early_bound.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/class': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
 })
 
 class Test:
@@ -647,26 +704,55 @@ def run_script(path):
     print('')
 
 
+def run_suite(name):
+  global interpreter
+  global passed
+  global failed
+  global num_skipped
+  global expectations
+
+  interpreter = INTERPRETERS[name]
+
+  passed = 0
+  failed = 0
+  num_skipped = 0
+  expectations = 0
+
+  walk(join(REPO_DIR, 'test'), run_script)
+  print_line()
+
+  if failed == 0:
+    print('All ' + green(passed) + ' tests passed (' + str(expectations) +
+          ' expectations).')
+  else:
+    print(green(passed) + ' tests passed. ' + red(failed) + ' tests failed.')
+
+  return failed == 0
+
+
 if len(sys.argv) < 2 or len(sys.argv) > 3:
   print('Usage: test.py <interpreter> [filter]')
   sys.exit(1)
 
-if sys.argv[1] not in INTERPRETERS:
-  print('Unknown interpreter "{}"'.format(sys.argv[1]))
-  sys.exit(1)
-interpreter = INTERPRETERS[sys.argv[1]]
-
 if len(sys.argv) == 3:
   filter_path = sys.argv[2]
 
-walk(join(REPO_DIR, 'test'), run_script)
-print_line()
+if sys.argv[1] == 'all':
+  names = sorted(INTERPRETERS.keys())
 
-if failed == 0:
-  print('All ' + green(passed) + ' tests passed (' + str(expectations) +
-        ' expectations).')
-else:
-  print(green(passed) + ' tests passed. ' + red(failed) + ' tests failed.')
+  any_failed = False
+  for name in names:
+    print('=== {} ==='.format(name))
+    if not run_suite(name):
+      any_failed = True
 
-if failed != 0:
+  if any_failed:
+    sys.exit(1)
+
+elif sys.argv[1] not in INTERPRETERS:
+  print('Unknown interpreter "{}"'.format(sys.argv[1]))
   sys.exit(1)
+
+else:
+  if not run_suite(sys.argv[1]):
+    sys.exit(1)

@@ -16,9 +16,11 @@ typedef enum {
 //>= Uhh
   OP_GET_LOCAL,
   OP_SET_LOCAL,
+//>= Global Variables
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
+//>= Uhh
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
   OP_GET_FIELD,
