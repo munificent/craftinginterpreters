@@ -2,7 +2,7 @@
 #ifndef cvox_vm_h
 #define cvox_vm_h
 
-/*>= A Virtual Machine <= Global Variables
+/*>= A Virtual Machine <= Local Variables
 #include "chunk.h"
 */
 //>= Uhh
@@ -12,7 +12,7 @@
 //>= A Virtual Machine
 #include "value.h"
 
-/*>= A Virtual Machine <= Global Variables
+/*>= A Virtual Machine <= Local Variables
 #define STACK_SIZE 256
 */
 //>= Uhh
@@ -31,7 +31,7 @@ typedef struct {
 typedef struct {
   Value stack[STACK_SIZE];
   Value* stackTop;
-/*>= A Virtual Machine <= Global Variables
+/*>= A Virtual Machine <= Local Variables
   Chunk* chunk;
   uint8_t* ip;
 */

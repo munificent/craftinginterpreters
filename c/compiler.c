@@ -6,7 +6,7 @@
 #include <stdio.h>
 //>= Compiling Expressions
 #include <stdlib.h>
-//>= Uhh
+//>= Local Variables
 #include <string.h>
 //>= Scanning on Demand
 
@@ -57,7 +57,7 @@ typedef struct {
   ParseFn infix;
   Precedence precedence;
 } ParseRule;
-//>= Uhh
+//>= Local Variables
 
 typedef struct {
   // The name of the local variable.
@@ -67,10 +67,13 @@ typedef struct {
   // the outermost scope--parameters for a method, or the first local block in
   // top level code. One is the scope within that, etc.
   int depth;
+//>= Uhh
   
   // True if this local variable is captured as an upvalue by a function.
   bool isUpvalue;
+//>= Local Variables
 } Local;
+//>= Uhh
 
 typedef struct {
   // The index of the local variable or upvalue being captured from the
@@ -88,8 +91,10 @@ typedef enum {
   TYPE_METHOD,
   TYPE_TOP_LEVEL
 } FunctionType;
+//>= Local Variables
 
 typedef struct Compiler {
+//>= Uhh
   // The compiler for the enclosing function, if any.
   struct Compiler* enclosing;
 
@@ -98,18 +103,21 @@ typedef struct Compiler {
   
   FunctionType type;
   
+//>= Local Variables
   // The currently in scope local variables.
   Local locals[UINT8_COUNT];
   
   // The number of local variables currently in scope.
   int localCount;
-  
+//>= Uhh
   Upvalue upvalues[UINT8_COUNT];
+//>= Local Variables
   
   // The current level of block scope nesting. Zero is the outermost local
   // scope. 0 is global scope.
   int scopeDepth;
 } Compiler;
+//>= Uhh
 
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
@@ -121,7 +129,7 @@ typedef struct ClassCompiler {
 //>= Compiling Expressions
 
 Parser parser;
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
 
 Chunk* compilingChunk;
  
@@ -129,10 +137,11 @@ static Chunk* currentChunk() {
   return compilingChunk;
 }
 */
-//>= Uhh
+//>= Local Variables
 
 // The compiler for the innermost function currently being compiled.
 Compiler* current = NULL;
+//>= Uhh
 
 // The compiler for the innermost class currently being compiled.
 ClassCompiler* currentClass = NULL;
@@ -276,16 +285,29 @@ static void patchJump(int offset) {
   currentChunk()->code[offset] = (jump >> 8) & 0xff;
   currentChunk()->code[offset + 1] = jump & 0xff;
 }
+/*== Local Variables
+ 
+static void initCompiler(Compiler* compiler) {
+*/
+//>= Uhh
 
 static void initCompiler(Compiler* compiler, int scopeDepth,
                          FunctionType type) {
+//>= Uhh
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
+//>= Local Variables
   compiler->localCount = 0;
+/*== Local Variables
+  compiler->scopeDepth = 0;
+*/
+//>= Uhh
   compiler->scopeDepth = scopeDepth;
   compiler->function = newFunction();
+//>= Local Variables
   current = compiler;
+//>= Uhh
   
   switch (type) {
     case TYPE_FUNCTION:
@@ -312,6 +334,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
       current->function->name = copyString("script", 6);
       break;
   }
+//>= Uhh
   
   // The first slot is always implicitly declared. In a method, it holds the
   // receiver, "this". In a function, it holds the function, but cannot be
@@ -326,8 +349,9 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.start = "";
     local->name.length = 0;
   }
+//>= Local Variables
 }
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
 
 static void endCompiler() {
 */
@@ -343,7 +367,7 @@ static ObjFunction* endCompiler() {
 //>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
     disassembleChunk(currentChunk(), "code");
 */
 //>= Uhh
@@ -356,7 +380,7 @@ static ObjFunction* endCompiler() {
   return function;
 //>= Compiling Expressions
 }
-//>= Uhh
+//>= Local Variables
 
 static void beginScope() {
   current->scopeDepth++;
@@ -367,11 +391,16 @@ static void endScope() {
   
   while (current->localCount > 0 &&
          current->locals[current->localCount - 1].depth > current->scopeDepth) {
+/*== Local Variables
+    emitByte(OP_POP);
+*/
+//>= Uhh
     if (current->locals[current->localCount - 1].isUpvalue) {
       emitByte(OP_CLOSE_UPVALUE);
     } else {
       emitByte(OP_POP);
     }
+//>= Local Variables
     current->localCount--;
   }
 }
@@ -408,12 +437,13 @@ static uint8_t identifierConstant(Token* name) {
 static void emitConstant(Value value) {
   emitBytes(OP_CONSTANT, makeConstant(value));
 }
-//>= Uhh
+//>= Local Variables
 
 static bool identifiersEqual(Token* a, Token* b) {
   if (a->length != b->length) return false;
   return memcmp(a->start, b->start, a->length) == 0;
 }
+//>= Local Variables
 
 static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
   // Look it up in the local scopes. Look in reverse order so that the most
@@ -431,6 +461,7 @@ static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
   
   return -1;
 }
+//>= Uhh
 
 // Adds an upvalue to [compiler]'s function with the given properties. Does not
 // add one if an upvalue for that variable is already in the list. Returns the
@@ -489,6 +520,7 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   // find it.
   return -1;
 }
+//>= Local Variables
 
 static void addLocal(Token name) {
   if (current->localCount == UINT8_COUNT) {
@@ -501,7 +533,9 @@ static void addLocal(Token name) {
   
   // The local is declared but not yet defined.
   local->depth = -1;
+//>= Uhh
   local->isUpvalue = false;
+//>= Local Variables
   current->localCount++;
 }
 
@@ -530,7 +564,7 @@ static uint8_t parseVariable(const char* errorMessage) {
 /*== Global Variables
   return identifierConstant(&parser.previous);
 */
-//>= Uhh
+//>= Local Variables
   
   // If it's a global variable, create a string constant for it.
   if (current->scopeDepth == 0) {
@@ -546,7 +580,7 @@ static void defineVariable(uint8_t global) {
 /*== Global Variables
   emitBytes(OP_DEFINE_GLOBAL, global);
 */
-//>= Uhh
+//>= Local Variables
   if (current->scopeDepth == 0) {
     emitBytes(OP_DEFINE_GLOBAL, global);
   } else {
@@ -735,15 +769,17 @@ static void namedVariable(Token name, bool canAssign) {
 /*== Global Variables
   int arg = identifierConstant(&name);
 */
-//>= Uhh
+//>= Local Variables
   uint8_t getOp, setOp;
   int arg = resolveLocal(current, &name, false);
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
+//>= Uhh
   } else if ((arg = resolveUpvalue(current, &name)) != -1) {
     getOp = OP_GET_UPVALUE;
     setOp = OP_SET_UPVALUE;
+//>= Local Variables
   } else {
     arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;
@@ -756,14 +792,14 @@ static void namedVariable(Token name, bool canAssign) {
 /*== Global Variables
     emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
 */
-//>= Uhh
+//>= Local Variables
     emitBytes(setOp, (uint8_t)arg);
 //>= Global Variables
   } else {
 /*== Global Variables
     emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
 */
-//>= Uhh
+//>= Local Variables
     emitBytes(getOp, (uint8_t)arg);
 //>= Global Variables
   }
@@ -853,7 +889,7 @@ static void unary(bool canAssign) {
 }
 
 ParseRule rules[] = {
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
 //>= Uhh
@@ -871,7 +907,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -909,7 +945,7 @@ ParseRule rules[] = {
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
 //>= Compiling Expressions
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
 */
 //>= Uhh
@@ -931,7 +967,7 @@ ParseRule rules[] = {
 */
 //>= Types of Values
   { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
 //>= Uhh
@@ -939,7 +975,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1018,8 +1054,8 @@ static void block() {
 //>= Uhh
 
 static void function(FunctionType type) {
-  Compiler functionCompiler;
-  initCompiler(&functionCompiler, 1, type);
+  Compiler compiler;
+  initCompiler(&compiler, 1, type);
   
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
@@ -1051,8 +1087,8 @@ static void function(FunctionType type) {
   // Emit arguments for each upvalue to know whether to capture a local or
   // an upvalue.
   for (int i = 0; i < function->upvalueCount; i++) {
-    emitByte(functionCompiler.upvalues[i].isLocal ? 1 : 0);
-    emitByte(functionCompiler.upvalues[i].index);
+    emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
+    emitByte(compiler.upvalues[i].index);
   }
 }
 
@@ -1297,7 +1333,7 @@ static void declaration() {
     classDeclaration();
   } else if (match(TOKEN_FUN)) {
     funDeclaration();
-/*== Global Variables
+/*>= Global Variables <= Local Variables
   if (match(TOKEN_VAR)) {
 */
 //>= Uhh
@@ -1320,7 +1356,7 @@ static void statement() {
   } else if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_PRINT)) {
-/*>= Statements <= Global Variables
+/*>= Statements <= Local Variables
   if (match(TOKEN_PRINT)) {
 */
 //>= Statements
@@ -1332,11 +1368,11 @@ static void statement() {
     whileStatement();
 //>= Statements
   } else if (check(TOKEN_LEFT_BRACE)) {
-//>= Uhh
+//>= Local Variables
     beginScope();
 //>= Statements
     block();
-//>= Uhh
+//>= Local Variables
     endScope();
 //>= Statements
   } else {
@@ -1347,7 +1383,7 @@ static void statement() {
 
 void compile(const char* source) {
 */
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
  
 bool compile(const char* source, Chunk* chunk) {
 */
@@ -1371,11 +1407,15 @@ ObjFunction* compile(const char* source) {
     if (token.type == TOKEN_EOF) break;
   }
 */
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   compilingChunk = chunk;
 */
-//>= Uhh
+//>= Local Variables
   Compiler mainCompiler;
+/*== Local Variables
+  initCompiler(&mainCompiler);
+*/
+//>= Uhh
   initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
 //>= Compiling Expressions
   
@@ -1394,7 +1434,7 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   endCompiler();
  
   // If there was a compile error, the code is not valid.

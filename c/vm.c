@@ -47,7 +47,7 @@ static void runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-/*>= Types of Values <= Global Variables
+/*>= Types of Values <= Local Variables
   size_t instruction = vm.ip - vm.chunk->code;
   fprintf(stderr, "[line %d] in script\n", vm.chunk->lines[instruction]);
 */
@@ -341,7 +341,7 @@ static bool run() {
 //>= Uhh
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   
-/*>= A Virtual Machine <= Global Variables
+/*>= A Virtual Machine <= Local Variables
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
@@ -398,17 +398,27 @@ static bool run() {
       case OP_FALSE: push(BOOL_VAL(false)); break;
 //>= Statements
       case OP_POP: pop(); break;
-//>= Uhh
+//>= Local Variables
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
+/*== Local Variables
+        push(vm.stack[slot]);
+*/
+//>= Uhh
         push(frame->slots[slot]);
+//>= Local Variables
         break;
       }
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
+/*== Local Variables
+        vm.stack[slot] = peek(0);
+*/
+//>= Uhh
         frame->slots[slot] = peek(0);
+//>= Local Variables
         break;
       }
 //>= Global Variables
@@ -659,7 +669,7 @@ static bool run() {
         printValue(pop());
         printf("\n");
 */
-/*>= A Virtual Machine <= Global Variables
+/*>= A Virtual Machine <= Local Variables
         return true;
 */
 //>= Uhh
@@ -724,7 +734,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
@@ -744,7 +754,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*>= Compiling Expressions <= Global Variables
+/*>= Compiling Expressions <= Local Variables
  
   freeChunk(&chunk);
 */

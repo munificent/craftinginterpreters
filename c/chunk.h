@@ -13,7 +13,7 @@ typedef enum {
   OP_FALSE,
 //>= Statements
   OP_POP,
-//>= Uhh
+//>= Local Variables
   OP_GET_LOCAL,
   OP_SET_LOCAL,
 //>= Global Variables

@@ -396,6 +396,54 @@ c_interpreter('chap24_global', 'build/chap24_global', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
+c_interpreter('chap25_local', 'build/chap25_local', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No control flow.
+  'test/block/empty.vox': 'skip',
+  'test/for': 'skip',
+  'test/if': 'skip',
+  'test/limit/loop_too_large.vox': 'skip',
+  'test/logical_operator': 'skip',
+  'test/variable/unreached_undefined.vox': 'skip',
+  'test/while': 'skip',
+
+  # No functions.
+  'test/call': 'skip',
+  'test/closure': 'skip',
+  'test/function': 'skip',
+  'test/limit/reuse_constants.vox': 'skip',
+  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/too_many_constants.vox': 'skip',
+  'test/limit/too_many_locals.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+  'test/return': 'skip',
+  'test/unexpected_character.vox': 'skip',
+  'test/variable/collide_with_parameter.vox': 'skip',
+  'test/variable/duplicate_parameter.vox': 'skip',
+  'test/variable/early_bound.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/class': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path

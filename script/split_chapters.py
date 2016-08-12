@@ -32,6 +32,7 @@ C_CHAPTERS = [
   # TODO: Give unique name.
   "Statements",
   "Global Variables",
+  "Local Variables",
   "Jumping Forward and Back",
 
   # For stuff that hasn't been bucketed in a chapter yet.

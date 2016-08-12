@@ -22,14 +22,15 @@ int disassembleInstruction(Chunk* chunk, int i) {
 #define INST_ZERO(name) \
     case name: printf(#name "\n"); break;
   
-//>= Uhh
+//>= Local Variables
 #define INST_BYTE(name) \
     case name: { \
       uint8_t slot = code[i++]; \
       printf("%-16s %4d\n", #name, slot); \
       break; \
     }
-  
+
+//>= Uhh
 #define INST_JUMP(name, sign) \
     case name: { \
       uint16_t offset = (uint16_t)(code[i++] << 8); \
@@ -56,7 +57,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_FALSE)
 //>= Statements
     INST_ZERO(OP_POP)
-//>= Uhh
+//>= Local Variables
     INST_BYTE(OP_GET_LOCAL)
     INST_BYTE(OP_SET_LOCAL)
 //>= Global Variables
