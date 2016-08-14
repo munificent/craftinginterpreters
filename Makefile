@@ -98,6 +98,7 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap23_statements MODE=release SOURCE_DIR=gen/chap23_statements
 	@ $(MAKE) -f util/c.make NAME=chap24_global MODE=release SOURCE_DIR=gen/chap24_global
 	@ $(MAKE) -f util/c.make NAME=chap25_local MODE=release SOURCE_DIR=gen/chap25_local
+	@ $(MAKE) -f util/c.make NAME=chap26_jumping MODE=release SOURCE_DIR=gen/chap26_jumping
 
 diffs:
 	@ mkdir -p build/diffs
@@ -124,5 +125,6 @@ diffs:
 	@ -diff --new-file gen/chap22_hash/ gen/chap23_statements/ > build/diffs/chap23_statements.diff
 	@ -diff --new-file gen/chap23_statements/ gen/chap24_global/ > build/diffs/chap24_global.diff
 	@ -diff --new-file gen/chap24_global/ gen/chap25_local/ > build/diffs/chap25_local.diff
+	@ -diff --new-file gen/chap25_local/ gen/chap26_jumping/ > build/diffs/chap26_jumping.diff
 
 .PHONY: clean cvox debug default diffs jvox test test_c test_java watch

@@ -47,7 +47,7 @@ static void runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-/*>= Types of Values <= Local Variables
+/*>= Types of Values <= Jumping Forward and Back
   size_t instruction = vm.ip - vm.chunk->code;
   fprintf(stderr, "[line %d] in script\n", vm.chunk->lines[instruction]);
 */
@@ -341,9 +341,12 @@ static bool run() {
 //>= Uhh
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   
-/*>= A Virtual Machine <= Local Variables
+/*>= A Virtual Machine <= Jumping Forward and Back
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
+*/
+/*== Jumping Forward and Back
+#define READ_SHORT() (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
 //>= Uhh
 #define READ_BYTE() (*frame->ip++)
@@ -402,7 +405,7 @@ static bool run() {
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/*== Local Variables
+/*>= Local Variables <= Jumping Forward and Back
         push(vm.stack[slot]);
 */
 //>= Uhh
@@ -413,7 +416,7 @@ static bool run() {
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/*== Local Variables
+/*>= Local Variables <= Jumping Forward and Back
         vm.stack[slot] = peek(0);
 */
 //>= Uhh
@@ -564,25 +567,41 @@ static bool run() {
         printf("\n");
         break;
       }
-//>= Uhh
+//>= Jumping Forward and Back
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
+/*== Jumping Forward and Back
+        vm.ip += offset;
+*/
+//>= Uhh
         frame->ip += offset;
+//>= Jumping Forward and Back
         break;
       }
         
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
+/*== Jumping Forward and Back
+        if (isFalsey(peek(0))) vm.ip += offset;
+*/
+//>= Uhh
         if (isFalsey(peek(0))) frame->ip += offset;
+//>= Jumping Forward and Back
         break;
       }
         
       case OP_LOOP: {
         uint16_t offset = READ_SHORT();
+/*== Jumping Forward and Back
+        vm.ip -= offset;
+*/
+//>= Uhh
         frame->ip -= offset;
+//>= Jumping Forward and Back
         break;
       }
+//>= Uhh
         
       case OP_CALL_0:
       case OP_CALL_1:
@@ -669,7 +688,7 @@ static bool run() {
         printValue(pop());
         printf("\n");
 */
-/*>= A Virtual Machine <= Local Variables
+/*>= A Virtual Machine <= Jumping Forward and Back
         return true;
 */
 //>= Uhh
@@ -714,11 +733,11 @@ static bool run() {
   return true;
   
 #undef READ_BYTE
-//>= Uhh
+//>= Jumping Forward and Back
 #undef READ_SHORT
 //>= A Virtual Machine
 #undef READ_CONSTANT
-//>= Uhh
+//>= Global Variables
 #undef READ_STRING
 //>= A Virtual Machine
 #undef BINARY_OP
@@ -734,7 +753,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
@@ -754,7 +773,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
  
   freeChunk(&chunk);
 */

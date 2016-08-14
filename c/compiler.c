@@ -129,7 +129,7 @@ typedef struct ClassCompiler {
 //>= Compiling Expressions
 
 Parser parser;
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
 
 Chunk* compilingChunk;
  
@@ -201,7 +201,7 @@ static void consume(TokenType type, const char* message) {
   if (type == TOKEN_LEFT_BRACE ||
       type == TOKEN_RIGHT_BRACE ||
       type == TOKEN_RIGHT_PAREN ||
-//>= Uhh
+//>= Global Variables
       type == TOKEN_EQUAL ||
 //>= Statements
       type == TOKEN_SEMICOLON) {
@@ -235,7 +235,7 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte1);
   emitByte(byte2);
 }
-//>= Uhh
+//>= Jumping Forward and Back
 
 static void emitLoop(int loopStart) {
   emitByte(OP_LOOP);
@@ -270,7 +270,7 @@ static void emitReturn() {
 //>= Compiling Expressions
   emitByte(OP_RETURN);
 }
-//>= Uhh
+//>= Jumping Forward and Back
 
 // Replaces the placeholder argument for a previous CODE_JUMP or CODE_JUMP_IF
 // instruction with an offset that jumps to the current end of bytecode.
@@ -285,7 +285,7 @@ static void patchJump(int offset) {
   currentChunk()->code[offset] = (jump >> 8) & 0xff;
   currentChunk()->code[offset + 1] = jump & 0xff;
 }
-/*== Local Variables
+/*>= Local Variables <= Jumping Forward and Back
  
 static void initCompiler(Compiler* compiler) {
 */
@@ -299,7 +299,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   compiler->type = type;
 //>= Local Variables
   compiler->localCount = 0;
-/*== Local Variables
+/*>= Local Variables <= Jumping Forward and Back
   compiler->scopeDepth = 0;
 */
 //>= Uhh
@@ -351,7 +351,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   }
 //>= Local Variables
 }
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
 
 static void endCompiler() {
 */
@@ -367,7 +367,7 @@ static ObjFunction* endCompiler() {
 //>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
     disassembleChunk(currentChunk(), "code");
 */
 //>= Uhh
@@ -391,7 +391,7 @@ static void endScope() {
   
   while (current->localCount > 0 &&
          current->locals[current->localCount - 1].depth > current->scopeDepth) {
-/*== Local Variables
+/*>= Local Variables <= Jumping Forward and Back
     emitByte(OP_POP);
 */
 //>= Uhh
@@ -607,6 +607,7 @@ static uint8_t argumentList() {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
   return argCount;
 }
+//>= Jumping Forward and Back
 
 static void and_(bool canAssign) {
   // left operand...
@@ -725,7 +726,7 @@ static void number(bool canAssign) {
   emitConstant(NUMBER_VAL(value));
 //>= Compiling Expressions
 }
-//>= Uhh
+//>= Jumping Forward and Back
 
 static void or_(bool canAssign) {
   // left operand...
@@ -889,7 +890,7 @@ static void unary(bool canAssign) {
 }
 
 ParseRule rules[] = {
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
 //>= Uhh
@@ -907,7 +908,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -948,7 +949,7 @@ ParseRule rules[] = {
 /*>= Compiling Expressions <= Local Variables
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
 */
-//>= Uhh
+//>= Jumping Forward and Back
   { NULL,     and_,    PREC_AND },        // TOKEN_AND
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
@@ -970,12 +971,12 @@ ParseRule rules[] = {
 /*>= Compiling Expressions <= Local Variables
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
-//>= Uhh
+//>= Jumping Forward and Back
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1178,7 +1179,7 @@ static void expressionStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
   
 }
-//>= Uhh
+//>= Jumping Forward and Back
 
 static void forStatement() {
   // for (var i = 0; i < 10; i = i + 1) print i;
@@ -1304,6 +1305,7 @@ static void returnStatement() {
     emitByte(OP_RETURN);
   }
 }
+//>= Jumping Forward and Back
 
 static void whileStatement() {
   int loopStart = currentChunk()->count;
@@ -1333,7 +1335,7 @@ static void declaration() {
     classDeclaration();
   } else if (match(TOKEN_FUN)) {
     funDeclaration();
-/*>= Global Variables <= Local Variables
+/*>= Global Variables <= Jumping Forward and Back
   if (match(TOKEN_VAR)) {
 */
 //>= Uhh
@@ -1350,7 +1352,7 @@ static void declaration() {
 }
 
 static void statement() {
-//>= Uhh
+//>= Jumping Forward and Back
   if (match(TOKEN_FOR)) {
     forStatement();
   } else if (match(TOKEN_IF)) {
@@ -1364,6 +1366,7 @@ static void statement() {
 //>= Uhh
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
+//>= Jumping Forward and Back
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
 //>= Statements
@@ -1383,7 +1386,7 @@ static void statement() {
 
 void compile(const char* source) {
 */
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
  
 bool compile(const char* source, Chunk* chunk) {
 */
@@ -1407,12 +1410,12 @@ ObjFunction* compile(const char* source) {
     if (token.type == TOKEN_EOF) break;
   }
 */
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
   compilingChunk = chunk;
 */
 //>= Local Variables
   Compiler mainCompiler;
-/*== Local Variables
+/*>= Local Variables <= Jumping Forward and Back
   initCompiler(&mainCompiler);
 */
 //>= Uhh
@@ -1434,7 +1437,7 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions <= Jumping Forward and Back
   endCompiler();
  
   // If there was a compile error, the code is not valid.

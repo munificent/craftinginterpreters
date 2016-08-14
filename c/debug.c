@@ -30,7 +30,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
       break; \
     }
 
-//>= Uhh
+//>= Jumping Forward and Back
 #define INST_JUMP(name, sign) \
     case name: { \
       uint16_t offset = (uint16_t)(code[i++] << 8); \
@@ -85,10 +85,11 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_NEGATE)
 //>= Statements
     INST_ZERO(OP_PRINT)
-//>= Uhh
+//>= Jumping Forward and Back
     INST_JUMP(OP_JUMP, +)
     INST_JUMP(OP_JUMP_IF_FALSE, +)
     INST_JUMP(OP_LOOP, -)
+//>= Uhh
     INST_ZERO(OP_CALL_0)
     INST_ZERO(OP_CALL_1)
     INST_ZERO(OP_CALL_2)
