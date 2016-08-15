@@ -14,7 +14,9 @@
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
+//>= Functions
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
+//>= Uhh
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 //>= Strings
@@ -24,7 +26,9 @@
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
+//>= Functions
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
+//>= Uhh
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 //>= Strings
@@ -36,7 +40,9 @@ typedef enum {
   OBJ_BOUND_METHOD,
   OBJ_CLASS,
   OBJ_CLOSURE,
+//>= Functions
   OBJ_FUNCTION,
+//>= Uhh
   OBJ_INSTANCE,
   OBJ_NATIVE,
 //>= Strings
@@ -54,15 +60,18 @@ struct sObj {
 //>= Strings
   struct sObj* next;
 };
-//>= Uhh
+//>= Functions
 
 typedef struct {
   Obj object;
   int arity;
+//>= Uhh
   int upvalueCount;
+//>= Functions
   Chunk chunk;
   ObjString* name;
 } ObjFunction;
+//>= Uhh
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
@@ -128,7 +137,9 @@ typedef struct {
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
 ObjClosure* newClosure(ObjFunction* function);
+//>= Functions
 ObjFunction* newFunction();
+//>= Uhh
 ObjInstance* newInstance(ObjClass* klass);
 ObjNative* newNative(NativeFn function);
 //>= Strings

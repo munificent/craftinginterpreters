@@ -490,6 +490,41 @@ c_interpreter('chap26_jumping', 'build/chap26_jumping', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
+c_interpreter('chap27_functions', 'build/chap27_functions', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No closures.
+  'test/closure': 'skip',
+  'test/for/closure_in_body.vox': 'skip',
+  'test/for/return_closure.vox': 'skip',
+  'test/function/local_recursion.vox': 'skip',
+  'test/limit/too_many_upvalues.vox': 'skip',
+  'test/while/closure_in_body.vox': 'skip',
+  'test/while/return_closure.vox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/call/object.vox': 'skip',
+  'test/class': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path

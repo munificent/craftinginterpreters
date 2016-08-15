@@ -69,16 +69,20 @@ ObjClosure* newClosure(ObjFunction* function) {
   closure->upvalueCount = function->upvalueCount;
   return closure;
 }
+//>= Functions
 
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
   
   function->arity = 0;
+//>= Uhh
   function->upvalueCount = 0;
+//>= Functions
   function->name = NULL;
   initChunk(&function->chunk);
   return function;
 }
+//>= Uhh
 
 ObjInstance* newInstance(ObjClass* klass) {
   ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);

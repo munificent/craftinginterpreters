@@ -89,7 +89,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_JUMP(OP_JUMP, +)
     INST_JUMP(OP_JUMP_IF_FALSE, +)
     INST_JUMP(OP_LOOP, -)
-//>= Uhh
+//>= Functions
     INST_ZERO(OP_CALL_0)
     INST_ZERO(OP_CALL_1)
     INST_ZERO(OP_CALL_2)
@@ -99,6 +99,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_CALL_6)
     INST_ZERO(OP_CALL_7)
     INST_ZERO(OP_CALL_8)
+//>= Uhh
     INST_CONSTANT(OP_INVOKE_0)
     INST_CONSTANT(OP_INVOKE_1)
     INST_CONSTANT(OP_INVOKE_2)

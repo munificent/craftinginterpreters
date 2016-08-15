@@ -34,6 +34,7 @@ C_CHAPTERS = [
   "Global Variables",
   "Local Variables",
   "Jumping Forward and Back",
+  "Functions",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

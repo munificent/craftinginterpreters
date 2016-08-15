@@ -51,10 +51,15 @@ static void runtimeError(const char* format, ...) {
   size_t instruction = vm.ip - vm.chunk->code;
   fprintf(stderr, "[line %d] in script\n", vm.chunk->lines[instruction]);
 */
-//>= Uhh
+//>= Functions
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
+/*== Functions
+    ObjFunction* function = frame->function;
+*/
+//>= Uhh
     ObjFunction* function = frame->closure->function;
+//>= Functions
     size_t instruction = frame->ip - function->chunk.code;
     fprintf(stderr, "[line %d] in %s\n",
             function->chunk.lines[instruction],
@@ -126,10 +131,16 @@ Value pop() {
 static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
+/*== Functions
+ 
+  static bool call(ObjFunction* function, int argCount) {
+  if (argCount < function->arity) {
+*/
 //>= Uhh
 
-static bool callClosure(ObjClosure* closure, int argCount) {
+static bool call(ObjClosure* closure, int argCount) {
   if (argCount < closure->function->arity) {
+//>= Functions
     runtimeError("Not enough arguments.");
     return false;
   }
@@ -140,15 +151,22 @@ static bool callClosure(ObjClosure* closure, int argCount) {
   }
 
   CallFrame* frame = &vm.frames[vm.frameCount++];
+/*== Functions
+  frame->function = function;
+  frame->ip = function->chunk.code;
+*/
+//>= Uhh
   frame->closure = closure;
   frame->ip = closure->function->chunk.code;
-
+//>= Functions
+  
   // +1 to include either the called function or the receiver.
   frame->slots = vm.stackTop - (argCount + 1);
   return true;
 }
 
-static bool call(Value callee, int argCount) {
+static bool callValue(Value callee, int argCount) {
+//>= Uhh
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
       case OBJ_BOUND_METHOD: {
@@ -157,7 +175,7 @@ static bool call(Value callee, int argCount) {
         // Replace the bound method with the receiver so it's in the right slot
         // when the method is called.
         vm.stackTop[-argCount - 1] = bound->receiver;
-        return callClosure(bound->method, argCount);
+        return call(bound->method, argCount);
       }
         
       case OBJ_CLASS: {
@@ -169,7 +187,7 @@ static bool call(Value callee, int argCount) {
         // Call the initializer, if there is one.
         Value initializer;
         if (tableGet(&klass->methods, vm.initString, &initializer)) {
-          return callClosure(AS_CLOSURE(initializer), argCount);
+          return call(AS_CLOSURE(initializer), argCount);
         }
         
         // No initializer, so just discard the arguments.
@@ -178,7 +196,7 @@ static bool call(Value callee, int argCount) {
       }
         
       case OBJ_CLOSURE:
-        return callClosure(AS_CLOSURE(callee), argCount);
+        return call(AS_CLOSURE(callee), argCount);
         
       case OBJ_NATIVE: {
         NativeFn native = AS_NATIVE(callee);
@@ -193,10 +211,17 @@ static bool call(Value callee, int argCount) {
         break;
     }
   }
+/*== Functions
+  if (IS_FUNCTION(callee)) {
+    return call(AS_FUNCTION(callee), argCount);
+  }
+*/
+//>= Functions
   
   runtimeError("Can only call functions and classes.");
   return false;
 }
+//>= Uhh
 
 static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
   // Look for the method.
@@ -206,7 +231,7 @@ static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
     return false;
   }
   
-  return callClosure(AS_CLOSURE(method), argCount);
+  return call(AS_CLOSURE(method), argCount);
 }
 
 static bool invoke(ObjString* name, int argCount) {
@@ -223,7 +248,7 @@ static bool invoke(ObjString* name, int argCount) {
   Value value;
   if (tableGet(&instance->fields, name, &value)) {
     vm.stackTop[-argCount] = value;
-    return call(value, argCount);
+    return callValue(value, argCount);
   }
   
   return invokeFromClass(instance->klass, name, argCount);
@@ -338,7 +363,7 @@ static void concatenate() {
 //>= A Virtual Machine
 
 static bool run() {
-//>= Uhh
+//>= Functions
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   
 /*>= A Virtual Machine <= Jumping Forward and Back
@@ -348,9 +373,13 @@ static bool run() {
 /*== Jumping Forward and Back
 #define READ_SHORT() (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
-//>= Uhh
+//>= Functions
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
+/*== Functions
+#define READ_CONSTANT() (frame->function->chunk.constants.values[READ_BYTE()])
+*/
+//>= Uhh
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //>= Global Variables
 #define READ_STRING() AS_STRING(READ_CONSTANT())
@@ -408,7 +437,7 @@ static bool run() {
 /*>= Local Variables <= Jumping Forward and Back
         push(vm.stack[slot]);
 */
-//>= Uhh
+//>= Functions
         push(frame->slots[slot]);
 //>= Local Variables
         break;
@@ -419,7 +448,7 @@ static bool run() {
 /*>= Local Variables <= Jumping Forward and Back
         vm.stack[slot] = peek(0);
 */
-//>= Uhh
+//>= Functions
         frame->slots[slot] = peek(0);
 //>= Local Variables
         break;
@@ -574,7 +603,7 @@ static bool run() {
 /*== Jumping Forward and Back
         vm.ip += offset;
 */
-//>= Uhh
+//>= Functions
         frame->ip += offset;
 //>= Jumping Forward and Back
         break;
@@ -585,7 +614,7 @@ static bool run() {
 /*== Jumping Forward and Back
         if (isFalsey(peek(0))) vm.ip += offset;
 */
-//>= Uhh
+//>= Functions
         if (isFalsey(peek(0))) frame->ip += offset;
 //>= Jumping Forward and Back
         break;
@@ -596,12 +625,12 @@ static bool run() {
 /*== Jumping Forward and Back
         vm.ip -= offset;
 */
-//>= Uhh
+//>= Functions
         frame->ip -= offset;
 //>= Jumping Forward and Back
         break;
       }
-//>= Uhh
+//>= Functions
         
       case OP_CALL_0:
       case OP_CALL_1:
@@ -613,10 +642,11 @@ static bool run() {
       case OP_CALL_7:
       case OP_CALL_8: {
         int argCount = instruction - OP_CALL_0;
-        if (!call(peek(argCount), argCount)) return false;
+        if (!callValue(peek(argCount), argCount)) return false;
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
+//>= Uhh
         
       case OP_INVOKE_0:
       case OP_INVOKE_1:
@@ -691,12 +721,14 @@ static bool run() {
 /*>= A Virtual Machine <= Jumping Forward and Back
         return true;
 */
-//>= Uhh
+//>= Functions
         Value result = pop();
+//>= Uhh
         
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
-
+//>= Functions
+        
         vm.frameCount--;
         if (vm.frameCount == 0) return true;
         
@@ -708,6 +740,7 @@ static bool run() {
         break;
       }
 //>= Uhh
+        
       case OP_CLASS:
         createClass(READ_STRING(), NULL);
         break;
@@ -761,14 +794,18 @@ InterpretResult interpret(const char* source) {
   vm.chunk = &chunk;
   vm.ip = vm.chunk->code;
 */
-//>= Uhh
+//>= Functions
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
-
+  
+/*== Functions
+  callValue(OBJ_VAL(function), 0);
+*/
+//>= Uhh
   push(OBJ_VAL(function));
   ObjClosure* closure = newClosure(function);
   pop();
-  call(OBJ_VAL(closure), 0);
+  callValue(OBJ_VAL(closure), 0);
   
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;

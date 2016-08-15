@@ -157,6 +157,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
+//>= Functions
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       freeChunk(&function->chunk);
@@ -164,6 +165,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
+//>= Uhh
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       freeTable(&instance->fields);

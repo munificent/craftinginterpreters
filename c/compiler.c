@@ -84,23 +84,26 @@ typedef struct {
   // function.
   bool isLocal;
 } Upvalue;
+//>= Functions
 
 typedef enum {
   TYPE_FUNCTION,
+//>= Uhh
   TYPE_INITIALIZER,
   TYPE_METHOD,
+//>= Functions
   TYPE_TOP_LEVEL
 } FunctionType;
 //>= Local Variables
 
 typedef struct Compiler {
-//>= Uhh
+//>= Functions
   // The compiler for the enclosing function, if any.
   struct Compiler* enclosing;
 
   // The function being compiled.
   ObjFunction* function;
-  
+
   FunctionType type;
   
 //>= Local Variables
@@ -145,6 +148,7 @@ Compiler* current = NULL;
 
 // The compiler for the innermost class currently being compiled.
 ClassCompiler* currentClass = NULL;
+//>= Functions
 
 static Chunk* currentChunk() {
   return &current->function->chunk;
@@ -259,6 +263,9 @@ static int emitJump(uint8_t instruction) {
 //>= Compiling Expressions
 
 static void emitReturn() {
+/*== Functions
+  emitByte(OP_NIL);
+*/
 //>= Uhh
   // An initializer automatically returns "this".
   if (current->type == TYPE_INITIALIZER) {
@@ -289,11 +296,11 @@ static void patchJump(int offset) {
  
 static void initCompiler(Compiler* compiler) {
 */
-//>= Uhh
+//>= Functions
 
 static void initCompiler(Compiler* compiler, int scopeDepth,
                          FunctionType type) {
-//>= Uhh
+//>= Functions
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
@@ -302,12 +309,12 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
 /*>= Local Variables <= Jumping Forward and Back
   compiler->scopeDepth = 0;
 */
-//>= Uhh
+//>= Functions
   compiler->scopeDepth = scopeDepth;
   compiler->function = newFunction();
 //>= Local Variables
   current = compiler;
-//>= Uhh
+//>= Functions
   
   switch (type) {
     case TYPE_FUNCTION:
@@ -315,6 +322,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
                                            parser.previous.length);
       break;
       
+//>= Uhh
     case TYPE_INITIALIZER:
     case TYPE_METHOD: {
       int length = currentClass->name.length + parser.previous.length + 1;
@@ -329,23 +337,29 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
       current->function->name = takeString(chars, length);
       break;
     }
-      
+//>= Functions
     case TYPE_TOP_LEVEL:
       current->function->name = copyString("script", 6);
       break;
   }
-//>= Uhh
   
-  // The first slot is always implicitly declared. In a method, it holds the
-  // receiver, "this". In a function, it holds the function, but cannot be
-  // referenced, so has no name.
+  // The first slot is always implicitly declared.
   Local* local = &current->locals[current->localCount++];
   local->depth = current->scopeDepth;
+//>= Uhh
   local->isUpvalue = false;
+/*== Functions
+  local->name.start = "";
+  local->name.length = 0;
+*/
+//>= Uhh
   if (type != TYPE_FUNCTION) {
+    // In a method, it holds the receiver, "this".
     local->name.start = "this";
     local->name.length = 4;
   } else {
+    // In a function, it holds the function, but cannot be referenced, so has
+    // no name.
     local->name.start = "";
     local->name.length = 0;
   }
@@ -355,27 +369,27 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
 
 static void endCompiler() {
 */
-//>= Uhh
+//>= Functions
 
 static ObjFunction* endCompiler() {
 //>= Compiling Expressions
   emitReturn();
-//>= Uhh
+//>= Functions
   
   ObjFunction* function = current->function;
-  current = current->enclosing;
 //>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
 /*>= Compiling Expressions <= Jumping Forward and Back
     disassembleChunk(currentChunk(), "code");
 */
-//>= Uhh
+//>= Functions
     disassembleChunk(currentChunk(), function->name->chars);
 //>= Compiling Expressions
   }
 #endif
-//>= Uhh
+//>= Functions
+  current = current->enclosing;
   
   return function;
 //>= Compiling Expressions
@@ -391,7 +405,7 @@ static void endScope() {
   
   while (current->localCount > 0 &&
          current->locals[current->localCount - 1].depth > current->scopeDepth) {
-/*>= Local Variables <= Jumping Forward and Back
+/*>= Local Variables <= Functions
     emitByte(OP_POP);
 */
 //>= Uhh
@@ -589,7 +603,7 @@ static void defineVariable(uint8_t global) {
   }
 //>= Global Variables
 }
-//>= Uhh
+//>= Functions
 
 static uint8_t argumentList() {
   uint8_t argCount = 0;
@@ -658,12 +672,13 @@ static void binary(bool canAssign) {
       assert(false); // Unreachable.
   }
 }
-//>= Uhh
+//>= Functions
 
 static void call(bool canAssign) {
   uint8_t argCount = argumentList();
   emitByte(OP_CALL_0 + argCount);
 }
+//>= Uhh
 
 static void dot(bool canAssign) {
   consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
@@ -893,7 +908,7 @@ ParseRule rules[] = {
 /*>= Compiling Expressions <= Jumping Forward and Back
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
-//>= Uhh
+//>= Functions
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
@@ -908,7 +923,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Jumping Forward and Back
+/*>= Compiling Expressions <= Functions
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -976,7 +991,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Jumping Forward and Back
+/*>= Compiling Expressions <= Functions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1052,7 +1067,7 @@ static void block() {
   
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
-//>= Uhh
+//>= Functions
 
 static void function(FunctionType type) {
   Compiler compiler;
@@ -1081,6 +1096,10 @@ static void function(FunctionType type) {
   // Create the function object.
   endScope();
   ObjFunction* function = endCompiler();
+/*== Functions
+  emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
+*/
+//>= Uhh
   
   // Capture the upvalues in the new closure object.
   emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
@@ -1091,7 +1110,9 @@ static void function(FunctionType type) {
     emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(compiler.upvalues[i].index);
   }
+//>= Functions
 }
+//>= Uhh
 
 static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
@@ -1149,6 +1170,7 @@ static void classDeclaration() {
   
   currentClass = currentClass->enclosing;
 }
+//>= Functions
 
 static void funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
@@ -1286,7 +1308,7 @@ static void printStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after value.");
   emitByte(OP_PRINT);
 }
-//>= Uhh
+//>= Functions
 
 static void returnStatement() {
   if (current->type == TYPE_TOP_LEVEL) {
@@ -1296,10 +1318,12 @@ static void returnStatement() {
   if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
+//>= Uhh
     if (current->type == TYPE_INITIALIZER) {
       error("Cannot return a value from an initializer.");
     }
     
+//>= Functions
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
     emitByte(OP_RETURN);
@@ -1333,12 +1357,17 @@ static void declaration() {
 //>= Uhh
   if (match(TOKEN_CLASS)) {
     classDeclaration();
+/*>= Functions <= Functions
+  if (match(TOKEN_FUN)) {
+*/
+//>= Uhh
   } else if (match(TOKEN_FUN)) {
+//>= Functions
     funDeclaration();
 /*>= Global Variables <= Jumping Forward and Back
   if (match(TOKEN_VAR)) {
 */
-//>= Uhh
+//>= Functions
   } else if (match(TOKEN_VAR)) {
 //>= Global Variables
     varDeclaration();
@@ -1363,7 +1392,7 @@ static void statement() {
 */
 //>= Statements
     printStatement();
-//>= Uhh
+//>= Functions
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
 //>= Jumping Forward and Back
@@ -1390,7 +1419,7 @@ void compile(const char* source) {
  
 bool compile(const char* source, Chunk* chunk) {
 */
-//>= Uhh
+//>= Functions
 
 ObjFunction* compile(const char* source) {
 //>= Scanning on Demand
@@ -1418,7 +1447,7 @@ ObjFunction* compile(const char* source) {
 /*>= Local Variables <= Jumping Forward and Back
   initCompiler(&mainCompiler);
 */
-//>= Uhh
+//>= Functions
   initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
 //>= Compiling Expressions
   
@@ -1443,7 +1472,7 @@ ObjFunction* compile(const char* source) {
   // If there was a compile error, the code is not valid.
   return !parser.hadError;
 */
-//>= Uhh
+//>= Functions
   ObjFunction* function = endCompiler();
   
   // If there was a compile error, the code is not valid, so don't create a

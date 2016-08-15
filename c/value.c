@@ -31,9 +31,11 @@ void printValue(Value value) {
           
         case OBJ_BOUND_METHOD:
         case OBJ_CLOSURE:
+//>= Functions
         case OBJ_FUNCTION:
           printf("<fn %p>", AS_FUNCTION(value));
           break;
+//>= Uhh
           
         case OBJ_INSTANCE:
           printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
