@@ -14,6 +14,7 @@
 #include "compiler.h"
 //>= Uhh
 #include "object.h"
+//>= Garbage Collection
 #include "memory.h"
 //>= Scanning on Demand
 #include "scanner.h"
@@ -263,7 +264,7 @@ static int emitJump(uint8_t instruction) {
 //>= Compiling Expressions
 
 static void emitReturn() {
-/*>= Functions <= Closures
+/*>= Functions <= Garbage Collection
   emitByte(OP_NIL);
 */
 //>= Uhh
@@ -923,7 +924,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Closures
+/*>= Compiling Expressions <= Garbage Collection
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -991,7 +992,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Closures
+/*>= Compiling Expressions <= Garbage Collection
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1357,7 +1358,7 @@ static void declaration() {
 //>= Uhh
   if (match(TOKEN_CLASS)) {
     classDeclaration();
-/*>= Functions <= Closures
+/*>= Functions <= Garbage Collection
   if (match(TOKEN_FUN)) {
 */
 //>= Uhh
@@ -1480,7 +1481,7 @@ ObjFunction* compile(const char* source) {
   return parser.hadError ? NULL : function;
 //>= Scanning on Demand
 }
-//>= Uhh
+//>= Garbage Collection
 
 void grayCompilerRoots() {
   Compiler* compiler = current;

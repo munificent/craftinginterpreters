@@ -15,7 +15,7 @@ bool compile(const char* source, Chunk* chunk);
 */
 //>= Functions
 ObjFunction* compile(const char* source);
-//>= Uhh
+//>= Garbage Collection
 void grayCompilerRoots();
 //>= Scanning on Demand
 

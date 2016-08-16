@@ -9,6 +9,7 @@
 //#define DEBUG_PRINT_CODE
 //>= Uhh
 //#define DEBUG_TRACE_EXECUTION
+//>= Garbage Collection
 
 #define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC

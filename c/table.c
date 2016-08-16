@@ -150,7 +150,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   
   return NULL;
 }
-//>= Uhh
+//>= Garbage Collection
 
 void tableRemoveWhite(Table* table) {
   for (int i = 0; i < table->capacity; i++) {

@@ -33,8 +33,9 @@ static Value clockNative(int argCount, Value* args) {
 
 static void resetStack() {
   vm.stackTop = vm.stack;
-//>= Uhh
+//>= Functions
   vm.frameCount = 0;
+//>= Closures
   vm.openUpvalues = NULL;
 //>= A Virtual Machine
 }
@@ -85,7 +86,7 @@ void initVM() {
   resetStack();
 //>= Strings
   vm.objects = NULL;
-//>= Uhh
+//>= Garbage Collection
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
   
@@ -352,8 +353,14 @@ static bool isFalsey(Value value) {
 //>= Strings
 
 static void concatenate() {
+/*>= Strings <= Closures
+  ObjString* b = AS_STRING(pop());
+  ObjString* a = AS_STRING(pop());
+*/
+//>= Garbage Collection
   ObjString* b = AS_STRING(peek(0));
   ObjString* a = AS_STRING(peek(1));
+//>= Strings
   
   int length = a->length + b->length;
   char* chars = ALLOCATE(char, length + 1);
@@ -362,8 +369,10 @@ static void concatenate() {
   chars[length] = '\0';
   
   ObjString* result = takeString(chars, length);
+//>= Garbage Collection
   pop();
   pop();
+//>= Strings
   push(OBJ_VAL(result));
 }
 //>= A Virtual Machine
@@ -809,11 +818,11 @@ InterpretResult interpret(const char* source) {
 /*== Functions
   callValue(OBJ_VAL(function), 0);
 */
-//>= Uhh
+//>= Garbage Collection
   push(OBJ_VAL(function));
 //>= Closures
   ObjClosure* closure = newClosure(function);
-//>= Uhh
+//>= Garbage Collection
   pop();
 //>= Closures
   callValue(OBJ_VAL(closure), 0);

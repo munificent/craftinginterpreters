@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "common.h"
-//>= Uhh
+//>= Garbage Collection
 #include "compiler.h"
 //>= Chunks of Bytecode
 #include "memory.h"
@@ -20,7 +20,7 @@
 //>= Chunks of Bytecode
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize) {
-//>= Uhh
+//>= Garbage Collection
   vm.bytesAllocated += newSize - oldSize;
   
   if (newSize > oldSize) {
@@ -36,7 +36,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 //>= Chunks of Bytecode
   return realloc(previous, newSize);
 }
-//>= Uhh
+//>= Garbage Collection
 
 void grayObject(Obj* object) {
   if (object == NULL) return;
@@ -82,6 +82,7 @@ static void blackenObject(Obj* object) {
 #endif
   
   switch (object->type) {
+//>= Uhh
     case OBJ_BOUND_METHOD: {
       ObjBoundMethod* bound = (ObjBoundMethod*)object;
       grayValue(bound->receiver);
@@ -96,7 +97,8 @@ static void blackenObject(Obj* object) {
       grayTable(&klass->methods);
       break;
     }
-      
+    
+//>= Garbage Collection
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
       grayObject((Obj*)closure->function);
@@ -113,6 +115,7 @@ static void blackenObject(Obj* object) {
       break;
     }
       
+//>= Uhh
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       grayObject((Obj*)instance->klass);
@@ -120,11 +123,14 @@ static void blackenObject(Obj* object) {
       break;
     }
       
+//>= Garbage Collection
     case OBJ_UPVALUE:
       grayValue(((ObjUpvalue*)object)->closed);
       break;
       
+//>= Uhh
     case OBJ_NATIVE:
+//>= Garbage Collection
     case OBJ_STRING:
       // No references.
       break;
@@ -133,7 +139,7 @@ static void blackenObject(Obj* object) {
 //>= Strings
 
 static void freeObject(Obj* object) {
-//>= Uhh
+//>= Garbage Collection
 #ifdef DEBUG_TRACE_GC
   printf("%p free ", object);
   printValue(OBJ_VAL(object));
@@ -197,7 +203,7 @@ static void freeObject(Obj* object) {
 //>= Strings
   }
 }
-//>= Uhh
+//>= Garbage Collection
 
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
@@ -224,7 +230,9 @@ void collectGarbage() {
   // Mark the global roots.
   grayTable(&vm.globals);
   grayCompilerRoots();
+//>= Uhh
   grayObject((Obj*)vm.initString);
+//>= Garbage Collection
   
   // Traverse the references.
   while (vm.grayCount > 0) {
@@ -270,7 +278,7 @@ void freeObjects() {
     freeObject(object);
     object = next;
   }
-//>= Uhh
+//>= Garbage Collection
   
   free(vm.grayStack);
 //>= Strings

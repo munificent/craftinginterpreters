@@ -36,6 +36,7 @@ C_CHAPTERS = [
   "Jumping Forward and Back",
   "Functions",
   "Closures",
+  "Garbage Collection",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

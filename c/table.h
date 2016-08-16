@@ -26,7 +26,7 @@ void tableAddAll(Table* from, Table* to);
 
 ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash);
-//>= Uhh
+//>= Garbage Collection
 
 void tableRemoveWhite(Table* table);
 void grayTable(Table* table);

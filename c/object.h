@@ -57,7 +57,7 @@ typedef enum {
 
 struct sObj {
   ObjType type;
-//>= Uhh
+//>= Garbage Collection
   // TODO: Stuff into low bit of next?
   bool isDark;
 //>= Strings

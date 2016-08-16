@@ -54,14 +54,14 @@ typedef struct {
   ObjString* initString;
 //>= Closures
   ObjUpvalue* openUpvalues;
-//>= Uhh
+//>= Garbage Collection
   
   size_t bytesAllocated;
   size_t nextGC;
 //>= Strings
   
   Obj* objects;
-//>= Uhh
+//>= Garbage Collection
   int grayCount;
   int grayCapacity;
   Obj** grayStack;
