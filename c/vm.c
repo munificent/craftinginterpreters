@@ -57,7 +57,7 @@ static void runtimeError(const char* format, ...) {
 /*== Functions
     ObjFunction* function = frame->function;
 */
-//>= Uhh
+//>= Closures
     ObjFunction* function = frame->closure->function;
 //>= Functions
     size_t instruction = frame->ip - function->chunk.code;
@@ -133,10 +133,10 @@ static Value peek(int distance) {
 }
 /*== Functions
  
-  static bool call(ObjFunction* function, int argCount) {
+static bool call(ObjFunction* function, int argCount) {
   if (argCount < function->arity) {
 */
-//>= Uhh
+//>= Closures
 
 static bool call(ObjClosure* closure, int argCount) {
   if (argCount < closure->function->arity) {
@@ -155,7 +155,7 @@ static bool call(ObjClosure* closure, int argCount) {
   frame->function = function;
   frame->ip = function->chunk.code;
 */
-//>= Uhh
+//>= Closures
   frame->closure = closure;
   frame->ip = closure->function->chunk.code;
 //>= Functions
@@ -166,9 +166,10 @@ static bool call(ObjClosure* closure, int argCount) {
 }
 
 static bool callValue(Value callee, int argCount) {
-//>= Uhh
+//>= Closures
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
+//>= Uhh
       case OBJ_BOUND_METHOD: {
         ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
         
@@ -194,9 +195,11 @@ static bool callValue(Value callee, int argCount) {
         vm.stackTop -= argCount;
         return true;
       }
+//>= Closures
         
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
+//>= Uhh
         
       case OBJ_NATIVE: {
         NativeFn native = AS_NATIVE(callee);
@@ -205,6 +208,7 @@ static bool callValue(Value callee, int argCount) {
         push(result);
         return true;
       }
+//>= Closures
         
       default:
         // Do nothing.
@@ -266,6 +270,7 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
   push(OBJ_VAL(bound));
   return true;
 }
+//>= Closures
 
 // Captures the local variable [local] into an [Upvalue]. If that local is
 // already in an upvalue, the existing one is used. (This is important to
@@ -321,6 +326,7 @@ static void closeUpvalues(Value* last) {
     vm.openUpvalues = upvalue->next;
   }
 }
+//>= Uhh
 
 static void defineMethod(ObjString* name) {
   Value method = peek(0);
@@ -379,7 +385,7 @@ static bool run() {
 /*== Functions
 #define READ_CONSTANT() (frame->function->chunk.constants.values[READ_BYTE()])
 */
-//>= Uhh
+//>= Closures
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //>= Global Variables
 #define READ_STRING() AS_STRING(READ_CONSTANT())
@@ -481,7 +487,7 @@ static bool run() {
         }
         break;
       }
-//>= Uhh
+//>= Closures
         
       case OP_GET_UPVALUE: {
         uint8_t slot = READ_BYTE();
@@ -494,6 +500,7 @@ static bool run() {
         *frame->closure->upvalues[slot]->value = pop();
         break;
       }
+//>= Uhh
         
       case OP_GET_FIELD: {
         if (!IS_INSTANCE(peek(0))) {
@@ -682,7 +689,8 @@ static bool run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
-
+//>= Closures
+        
       case OP_CLOSURE: {
         ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
         
@@ -723,7 +731,7 @@ static bool run() {
 */
 //>= Functions
         Value result = pop();
-//>= Uhh
+//>= Closures
         
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
@@ -803,8 +811,11 @@ InterpretResult interpret(const char* source) {
 */
 //>= Uhh
   push(OBJ_VAL(function));
+//>= Closures
   ObjClosure* closure = newClosure(function);
+//>= Uhh
   pop();
+//>= Closures
   callValue(OBJ_VAL(closure), 0);
   
 //>= A Virtual Machine

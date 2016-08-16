@@ -25,7 +25,7 @@ typedef struct {
 /*== Functions
   ObjFunction* function;
 */
-//>= Uhh
+//>= Closures
   ObjClosure* closure;
 //>= Functions
   uint8_t* ip;
@@ -52,8 +52,9 @@ typedef struct {
 
 //>= Uhh
   ObjString* initString;
-  
+//>= Closures
   ObjUpvalue* openUpvalues;
+//>= Uhh
   
   size_t bytesAllocated;
   size_t nextGC;

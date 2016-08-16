@@ -20,9 +20,10 @@ typedef enum {
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
-//>= Uhh
+//>= Closures
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
+//>= Uhh
   OP_GET_FIELD,
   OP_SET_FIELD,
   OP_GET_SUPER,
@@ -74,6 +75,7 @@ typedef enum {
   OP_SUPER_6,
   OP_SUPER_7,
   OP_SUPER_8,
+//>= Closures
   OP_CLOSURE,
   OP_CLOSE_UPVALUE,
 //>= A Virtual Machine

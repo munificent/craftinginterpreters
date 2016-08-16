@@ -525,6 +525,33 @@ c_interpreter('chap27_functions', 'build/chap27_functions', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
+c_interpreter('chap28_closures', 'build/chap28_closures', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.vox': 'skip',
+  'test/call/object.vox': 'skip',
+  'test/class': 'skip',
+  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.vox': 'skip',
+  'test/number/trailing_dot.vox': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/operator/not.vox': 'skip',
+  'test/operator/not_class.vox': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path

@@ -149,7 +149,8 @@ static void freeObject(Obj* object) {
       FREE(ObjClass, object);
       break;
     }
-
+      
+//>= Closures
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
       FREE_ARRAY(Value, closure->upvalues, closure->upvalueCount);
@@ -188,8 +189,8 @@ static void freeObject(Obj* object) {
       FREE(ObjString, object);
       break;
     }
-//>= Uhh
       
+//>= Closures
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;

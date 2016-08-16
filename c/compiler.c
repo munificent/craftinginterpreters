@@ -67,13 +67,13 @@ typedef struct {
   // the outermost scope--parameters for a method, or the first local block in
   // top level code. One is the scope within that, etc.
   int depth;
-//>= Uhh
+//>= Closures
   
   // True if this local variable is captured as an upvalue by a function.
   bool isUpvalue;
 //>= Local Variables
 } Local;
-//>= Uhh
+//>= Closures
 
 typedef struct {
   // The index of the local variable or upvalue being captured from the
@@ -112,7 +112,7 @@ typedef struct Compiler {
   
   // The number of local variables currently in scope.
   int localCount;
-//>= Uhh
+//>= Closures
   Upvalue upvalues[UINT8_COUNT];
 //>= Local Variables
   
@@ -263,7 +263,7 @@ static int emitJump(uint8_t instruction) {
 //>= Compiling Expressions
 
 static void emitReturn() {
-/*== Functions
+/*>= Functions <= Closures
   emitByte(OP_NIL);
 */
 //>= Uhh
@@ -346,7 +346,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   // The first slot is always implicitly declared.
   Local* local = &current->locals[current->localCount++];
   local->depth = current->scopeDepth;
-//>= Uhh
+//>= Closures
   local->isUpvalue = false;
 /*== Functions
   local->name.start = "";
@@ -408,7 +408,7 @@ static void endScope() {
 /*>= Local Variables <= Functions
     emitByte(OP_POP);
 */
-//>= Uhh
+//>= Closures
     if (current->locals[current->localCount - 1].isUpvalue) {
       emitByte(OP_CLOSE_UPVALUE);
     } else {
@@ -475,7 +475,7 @@ static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
   
   return -1;
 }
-//>= Uhh
+//>= Closures
 
 // Adds an upvalue to [compiler]'s function with the given properties. Does not
 // add one if an upvalue for that variable is already in the list. Returns the
@@ -547,7 +547,7 @@ static void addLocal(Token name) {
   
   // The local is declared but not yet defined.
   local->depth = -1;
-//>= Uhh
+//>= Closures
   local->isUpvalue = false;
 //>= Local Variables
   current->localCount++;
@@ -791,7 +791,7 @@ static void namedVariable(Token name, bool canAssign) {
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
-//>= Uhh
+//>= Closures
   } else if ((arg = resolveUpvalue(current, &name)) != -1) {
     getOp = OP_GET_UPVALUE;
     setOp = OP_SET_UPVALUE;
@@ -923,7 +923,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Functions
+/*>= Compiling Expressions <= Closures
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Uhh
@@ -991,7 +991,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Functions
+/*>= Compiling Expressions <= Closures
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1099,7 +1099,7 @@ static void function(FunctionType type) {
 /*== Functions
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
 */
-//>= Uhh
+//>= Closures
   
   // Capture the upvalues in the new closure object.
   emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
@@ -1357,7 +1357,7 @@ static void declaration() {
 //>= Uhh
   if (match(TOKEN_CLASS)) {
     classDeclaration();
-/*>= Functions <= Functions
+/*>= Functions <= Closures
   if (match(TOKEN_FUN)) {
 */
 //>= Uhh

@@ -13,6 +13,7 @@
 //>= Uhh
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
+//>= Closures
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 //>= Functions
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
@@ -25,6 +26,7 @@
 //>= Uhh
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
+//>= Closures
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 //>= Functions
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
@@ -39,6 +41,7 @@ typedef enum {
 //>= Uhh
   OBJ_BOUND_METHOD,
   OBJ_CLASS,
+//>= Closures
   OBJ_CLOSURE,
 //>= Functions
   OBJ_FUNCTION,
@@ -47,7 +50,7 @@ typedef enum {
   OBJ_NATIVE,
 //>= Strings
   OBJ_STRING,
-//>= Uhh
+//>= Closures
   OBJ_UPVALUE
 //>= Strings
 } ObjType;
@@ -65,7 +68,7 @@ struct sObj {
 typedef struct {
   Obj object;
   int arity;
-//>= Uhh
+//>= Closures
   int upvalueCount;
 //>= Functions
   Chunk chunk;
@@ -90,7 +93,7 @@ struct sObjString {
   uint32_t hash;
 //>= Strings
 };
-//>= Uhh
+//>= Closures
 
 typedef struct sUpvalue {
   Obj object;
@@ -114,6 +117,7 @@ typedef struct {
   ObjUpvalue** upvalues;
   int upvalueCount;
 } ObjClosure;
+//>= Uhh
 
 typedef struct sObjClass {
   Obj object;
@@ -136,6 +140,7 @@ typedef struct {
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
+//>= Closures
 ObjClosure* newClosure(ObjFunction* function);
 //>= Functions
 ObjFunction* newFunction();
@@ -145,7 +150,7 @@ ObjNative* newNative(NativeFn function);
 //>= Strings
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
-//>= Uhh
+//>= Closures
 ObjUpvalue* newUpvalue(Value* slot);
 //>= Strings
 

@@ -64,9 +64,10 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_GET_GLOBAL)
     INST_CONSTANT(OP_DEFINE_GLOBAL)
     INST_CONSTANT(OP_SET_GLOBAL)
-//>= Uhh
+//>= Closures
     INST_BYTE(OP_GET_UPVALUE)
     INST_BYTE(OP_SET_UPVALUE)
+//>= Uhh
     INST_CONSTANT(OP_GET_FIELD)
     INST_CONSTANT(OP_SET_FIELD)
     INST_CONSTANT(OP_GET_SUPER)
@@ -118,6 +119,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_SUPER_6)
     INST_CONSTANT(OP_SUPER_7)
     INST_CONSTANT(OP_SUPER_8)
+//>= Closures
       
     case OP_CLOSURE: {
       uint8_t constant = code[i++];

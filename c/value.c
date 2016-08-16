@@ -28,15 +28,14 @@ void printValue(Value value) {
         case OBJ_CLASS:
           printf("%s", AS_CLASS(value)->name->chars);
           break;
-          
         case OBJ_BOUND_METHOD:
+//>= Closures
         case OBJ_CLOSURE:
 //>= Functions
         case OBJ_FUNCTION:
           printf("<fn %p>", AS_FUNCTION(value));
           break;
 //>= Uhh
-          
         case OBJ_INSTANCE:
           printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
           break;
@@ -48,7 +47,7 @@ void printValue(Value value) {
         case OBJ_STRING:
           printf("%s", AS_CSTRING(value));
           break;
-//>= Uhh
+//>= Closures
         case OBJ_UPVALUE:
           printf("upvalue");
           break;

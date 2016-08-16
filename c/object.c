@@ -54,6 +54,7 @@ ObjClass* newClass(ObjString* name, ObjClass* superclass) {
   initTable(&klass->methods);
   return klass;
 }
+//>= Closures
 
 ObjClosure* newClosure(ObjFunction* function) {
   // Allocate the upvalue array first so it doesn't cause the closure to get
@@ -75,7 +76,7 @@ ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
   
   function->arity = 0;
-//>= Uhh
+//>= Closures
   function->upvalueCount = 0;
 //>= Functions
   function->name = NULL;
@@ -170,7 +171,7 @@ ObjString* copyString(const char* chars, int length) {
   return allocateString(heapChars, length, hash);
 //>= Strings
 }
-//>= Uhh
+//>= Closures
 
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
