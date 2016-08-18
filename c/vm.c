@@ -180,19 +180,22 @@ static bool callValue(Value callee, int argCount) {
         return call(bound->method, argCount);
       }
         
+//>= Classes and Instances
       case OBJ_CLASS: {
         ObjClass* klass = AS_CLASS(callee);
         
         // Create the instance.
         vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
-        
+//>= Uhh
         // Call the initializer, if there is one.
         Value initializer;
         if (tableGet(&klass->methods, vm.initString, &initializer)) {
           return call(AS_CLOSURE(initializer), argCount);
         }
         
-        // No initializer, so just discard the arguments.
+//>= Classes and Instances
+        // Discard the arguments.
+        // TODO: Make this an error?
         vm.stackTop -= argCount;
         return true;
       }
@@ -335,15 +338,24 @@ static void defineMethod(ObjString* name) {
   tableSet(&klass->methods, name, method);
   pop();
 }
+/*== Classes and Instances
+
+static void createClass(ObjString* name) {
+  ObjClass* klass = newClass(name);
+*/
+//>= Uhh
 
 static void createClass(ObjString* name, ObjClass* superclass) {
   ObjClass* klass = newClass(name, superclass);
+//>= Classes and Instances
   push(OBJ_VAL(klass));
+//>= Uhh
   
   // Inherit methods.
   if (superclass != NULL) {
     tableAddAll(&superclass->methods, &klass->methods);
   }
+//>= Classes and Instances
 }
 //>= Types of Values
 
@@ -509,7 +521,7 @@ static bool run() {
         *frame->closure->upvalues[slot]->value = pop();
         break;
       }
-//>= Uhh
+//>= Classes and Instances
         
       case OP_GET_FIELD: {
         if (!IS_INSTANCE(peek(0))) {
@@ -526,8 +538,14 @@ static bool run() {
           break;
         }
         
+/*== Classes and Instances
+        runtimeError("Undefined property '%s'.", name->chars);
+        return false;
+*/
+//>= Uhh
         if (!bindMethod(instance->klass, name)) return false;
         break;
+//>= Classes and Instances
       }
         
       case OP_SET_FIELD: {
@@ -543,6 +561,7 @@ static bool run() {
         push(value);
         break;
       }
+//>= Uhh
         
       case OP_GET_SUPER: {
         ObjString* name = READ_STRING();
@@ -756,11 +775,17 @@ static bool run() {
 //>= A Virtual Machine
         break;
       }
-//>= Uhh
+//>= Classes and Instances
         
       case OP_CLASS:
+/*== Classes and Instances
+        createClass(READ_STRING());
+*/
+//>= Uhh
         createClass(READ_STRING(), NULL);
+//>= Classes and Instances
         break;
+//>= Uhh
         
       case OP_SUBCLASS: {
         Value superclass = peek(0);

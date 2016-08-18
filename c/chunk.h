@@ -23,9 +23,10 @@ typedef enum {
 //>= Closures
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
-//>= Uhh
+//>= Classes and Instances
   OP_GET_FIELD,
   OP_SET_FIELD,
+//>= Uhh
   OP_GET_SUPER,
 //>= Types of Values
   OP_EQUAL,
@@ -80,8 +81,9 @@ typedef enum {
   OP_CLOSE_UPVALUE,
 //>= A Virtual Machine
   OP_RETURN,
-//>= Uhh
+//>= Classes and Instances
   OP_CLASS,
+//>= Uhh
   OP_SUBCLASS,
   OP_METHOD
 //>= Chunks of Bytecode

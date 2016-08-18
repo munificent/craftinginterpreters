@@ -37,6 +37,7 @@ C_CHAPTERS = [
   "Functions",
   "Closures",
   "Garbage Collection",
+  "Classes and Instances",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

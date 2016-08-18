@@ -4,7 +4,7 @@
 
 #include "common.h"
 #include "chunk.h"
-//>= Uhh
+//>= Classes and Instances
 #include "table.h"
 //>= Strings
 
@@ -12,26 +12,30 @@
 
 //>= Uhh
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
+//>= Classes and Instances
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 //>= Closures
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 //>= Functions
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
-//>= Uhh
+//>= Classes and Instances
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
+//>= Uhh
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 //>= Strings
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
 //>= Uhh
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
+//>= Classes and Instances
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 //>= Closures
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 //>= Functions
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
-//>= Uhh
+//>= Classes and Instances
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
+//>= Uhh
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 //>= Strings
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
@@ -40,13 +44,15 @@
 typedef enum {
 //>= Uhh
   OBJ_BOUND_METHOD,
+//>= Classes and Instances
   OBJ_CLASS,
 //>= Closures
   OBJ_CLOSURE,
 //>= Functions
   OBJ_FUNCTION,
-//>= Uhh
+//>= Classes and Instances
   OBJ_INSTANCE,
+//>= Uhh
   OBJ_NATIVE,
 //>= Strings
   OBJ_STRING,
@@ -117,13 +123,15 @@ typedef struct {
   ObjUpvalue** upvalues;
   int upvalueCount;
 } ObjClosure;
-//>= Uhh
+//>= Classes and Instances
 
 typedef struct sObjClass {
   Obj object;
   ObjString* name;
+//>= Uhh
   struct sObjClass* superclass;
   Table methods;
+//>= Classes and Instances
 } ObjClass;
 
 typedef struct {
@@ -131,6 +139,7 @@ typedef struct {
   ObjClass* klass;
   Table fields;
 } ObjInstance;
+//>= Uhh
 
 typedef struct {
   Obj object;
@@ -139,13 +148,18 @@ typedef struct {
 } ObjBoundMethod;
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
+/*== Classes and Instances
+ObjClass* newClass(ObjString* name);
+*/
+//>= Uhh
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
 //>= Closures
 ObjClosure* newClosure(ObjFunction* function);
 //>= Functions
 ObjFunction* newFunction();
-//>= Uhh
+//>= Classes and Instances
 ObjInstance* newInstance(ObjClass* klass);
+//>= Uhh
 ObjNative* newNative(NativeFn function);
 //>= Strings
 ObjString* takeString(char* chars, int length);

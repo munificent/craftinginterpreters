@@ -89,12 +89,15 @@ static void blackenObject(Obj* object) {
       grayObject((Obj*)bound->method);
       break;
     }
+//>= Classes and Instances
       
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       grayObject((Obj*)klass->name);
+//>= Uhh
       grayObject((Obj*)klass->superclass);
       grayTable(&klass->methods);
+//>= Classes and Instances
       break;
     }
     
@@ -115,7 +118,7 @@ static void blackenObject(Obj* object) {
       break;
     }
       
-//>= Uhh
+//>= Classes and Instances
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       grayObject((Obj*)instance->klass);
@@ -148,13 +151,19 @@ static void freeObject(Obj* object) {
   
 //>= Strings
   switch (object->type) {
+/*== Classes and Instances
+    case OBJ_CLASS:
+*/
 //>= Uhh
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       freeTable(&klass->methods);
+//>= Classes and Instances
       FREE(ObjClass, object);
       break;
+//>= Uhh
     }
+//>= Classes and Instances
       
 //>= Closures
     case OBJ_CLOSURE: {
@@ -172,13 +181,14 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= Uhh
+//>= Classes and Instances
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       freeTable(&instance->fields);
       FREE(ObjInstance, object);
       break;
     }
+//>= Uhh
       
     case OBJ_BOUND_METHOD:
       FREE(ObjBoundMethod, object);

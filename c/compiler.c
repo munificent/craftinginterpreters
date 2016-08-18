@@ -264,7 +264,7 @@ static int emitJump(uint8_t instruction) {
 //>= Compiling Expressions
 
 static void emitReturn() {
-/*>= Functions <= Garbage Collection
+/*>= Functions <= Classes and Instances
   emitByte(OP_NIL);
 */
 //>= Uhh
@@ -349,7 +349,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   local->depth = current->scopeDepth;
 //>= Closures
   local->isUpvalue = false;
-/*== Functions
+/*>= Functions <= Classes and Instances
   local->name.start = "";
   local->name.length = 0;
 */
@@ -679,7 +679,7 @@ static void call(bool canAssign) {
   uint8_t argCount = argumentList();
   emitByte(OP_CALL_0 + argCount);
 }
-//>= Uhh
+//>= Classes and Instances
 
 static void dot(bool canAssign) {
   consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
@@ -688,9 +688,11 @@ static void dot(bool canAssign) {
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
     emitBytes(OP_SET_FIELD, name);
+//>= Uhh
   } else if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
     emitBytes(OP_INVOKE_0 + argCount, name);
+//>= Classes and Instances
   } else {
     emitBytes(OP_GET_FIELD, name);
   }
@@ -927,7 +929,7 @@ ParseRule rules[] = {
 /*>= Compiling Expressions <= Garbage Collection
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
-//>= Uhh
+//>= Classes and Instances
   { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
@@ -992,7 +994,7 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Garbage Collection
+/*>= Compiling Expressions <= Classes and Instances
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1130,12 +1132,14 @@ static void method() {
   
   emitBytes(OP_METHOD, constant);
 }
+//>= Classes and Instances
 
 static void classDeclaration() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
   uint8_t nameConstant = identifierConstant(&parser.previous);
   declareVariable();
   
+//>= Uhh
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
   classCompiler.hasSuperclass = false;
@@ -1156,20 +1160,29 @@ static void classDeclaration() {
   } else {
     emitBytes(OP_CLASS, nameConstant);
   }
+/*== Classes and Instances
+  emitBytes(OP_CLASS, nameConstant);
+*/
+//>= Classes and Instances
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
+//>= Uhh
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     method();
   }
+//>= Classes and Instances
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
+//>= Uhh
   
   if (classCompiler.hasSuperclass) {
     endScope();
   }
-  
+//>= Classes and Instances
   defineVariable(nameConstant);
+//>= Uhh
   
   currentClass = currentClass->enclosing;
+//>= Classes and Instances
 }
 //>= Functions
 
@@ -1355,13 +1368,13 @@ static void whileStatement() {
 //>= Statements
 
 static void declaration() {
-//>= Uhh
+//>= Classes and Instances
   if (match(TOKEN_CLASS)) {
     classDeclaration();
 /*>= Functions <= Garbage Collection
   if (match(TOKEN_FUN)) {
 */
-//>= Uhh
+//>= Classes and Instances
   } else if (match(TOKEN_FUN)) {
 //>= Functions
     funDeclaration();

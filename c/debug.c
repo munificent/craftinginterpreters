@@ -67,9 +67,10 @@ int disassembleInstruction(Chunk* chunk, int i) {
 //>= Closures
     INST_BYTE(OP_GET_UPVALUE)
     INST_BYTE(OP_SET_UPVALUE)
-//>= Uhh
+//>= Classes and Instances
     INST_CONSTANT(OP_GET_FIELD)
     INST_CONSTANT(OP_SET_FIELD)
+//>= Uhh
     INST_CONSTANT(OP_GET_SUPER)
 //>= Types of Values
     INST_ZERO(OP_EQUAL)
@@ -140,8 +141,9 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_CLOSE_UPVALUE)
 //>= A Virtual Machine
     INST_ZERO(OP_RETURN)
-//>= Uhh
+//>= Classes and Instances
     INST_CONSTANT(OP_CLASS)
+//>= Uhh
     INST_CONSTANT(OP_SUBCLASS)
     INST_CONSTANT(OP_METHOD)
 //>= Chunks of Bytecode

@@ -46,12 +46,20 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   bound->method = method;
   return bound;
 }
+//>= Classes and Instances
 
+/*== Classes and Instances
+ObjClass* newClass(ObjString* name) {
+*/
+//>= Uhh
 ObjClass* newClass(ObjString* name, ObjClass* superclass) {
+//>= Classes and Instances
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
+//>= Uhh
   klass->superclass = superclass;
   initTable(&klass->methods);
+//>= Classes and Instances
   return klass;
 }
 //>= Closures
@@ -83,7 +91,7 @@ ObjFunction* newFunction() {
   initChunk(&function->chunk);
   return function;
 }
-//>= Uhh
+//>= Classes and Instances
 
 ObjInstance* newInstance(ObjClass* klass) {
   ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
@@ -91,6 +99,7 @@ ObjInstance* newInstance(ObjClass* klass) {
   initTable(&instance->fields);
   return instance;
 }
+//>= Uhh
 
 ObjNative* newNative(NativeFn function) {
   ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);

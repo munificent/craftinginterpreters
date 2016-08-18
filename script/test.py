@@ -579,6 +579,33 @@ c_interpreter('chap29_garbage', 'build/chap29_garbage', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
+c_interpreter('chap30_classes', 'build/chap30_classes', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No inheritance.
+  'test/class/inherited_method.vox': 'skip',
+  'test/inheritance': 'skip',
+  'test/super': 'skip',
+
+  # No methods.
+  'test/assignment/to_this.vox': 'skip',
+  'test/class/local_reference_self.vox': 'skip',
+  'test/class/reference_self.vox': 'skip',
+  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/constructor': 'skip',
+  'test/field/method.vox': 'skip',
+  'test/field/method_binds_this.vox': 'skip',
+  'test/method': 'skip',
+  'test/operator/equals_class.vox': 'skip',
+  'test/return/in_method.vox': 'skip',
+  'test/this': 'skip',
+  'test/variable/local_from_method.vox': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path
