@@ -98,9 +98,10 @@ void initVM() {
   initTable(&vm.globals);
 //>= Hash Tables
   initTable(&vm.strings);
-//>= Uhh
+//>= Methods and Initializers
   
   vm.initString = copyString("init", 4);
+//>= Uhh
   
   defineNative("clock", clockNative);
 //>= A Virtual Machine
@@ -111,7 +112,7 @@ void endVM() {
   freeTable(&vm.globals);
 //>= Hash Tables
   freeTable(&vm.strings);
-//>= Uhh
+//>= Methods and Initializers
   vm.initString = NULL;
 //>= Strings
   freeObjects();
@@ -170,7 +171,7 @@ static bool callValue(Value callee, int argCount) {
 //>= Closures
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
-//>= Uhh
+//>= Methods and Initializers
       case OBJ_BOUND_METHOD: {
         ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
         
@@ -186,7 +187,7 @@ static bool callValue(Value callee, int argCount) {
         
         // Create the instance.
         vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
-//>= Uhh
+//>= Methods and Initializers
         // Call the initializer, if there is one.
         Value initializer;
         if (tableGet(&klass->methods, vm.initString, &initializer)) {
@@ -229,7 +230,7 @@ static bool callValue(Value callee, int argCount) {
   runtimeError("Can only call functions and classes.");
   return false;
 }
-//>= Uhh
+//>= Methods and Initializers
 
 static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
   // Look for the method.
@@ -330,7 +331,7 @@ static void closeUpvalues(Value* last) {
     vm.openUpvalues = upvalue->next;
   }
 }
-//>= Uhh
+//>= Methods and Initializers
 
 static void defineMethod(ObjString* name) {
   Value method = peek(0);
@@ -338,7 +339,7 @@ static void defineMethod(ObjString* name) {
   tableSet(&klass->methods, name, method);
   pop();
 }
-/*== Classes and Instances
+/*>= Classes and Instances <= Methods and Initializers
 
 static void createClass(ObjString* name) {
   ObjClass* klass = newClass(name);
@@ -542,7 +543,7 @@ static bool run() {
         runtimeError("Undefined property '%s'.", name->chars);
         return false;
 */
-//>= Uhh
+//>= Methods and Initializers
         if (!bindMethod(instance->klass, name)) return false;
         break;
 //>= Classes and Instances
@@ -681,7 +682,7 @@ static bool run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
-//>= Uhh
+//>= Methods and Initializers
         
       case OP_INVOKE_0:
       case OP_INVOKE_1:
@@ -698,6 +699,7 @@ static bool run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
+//>= Uhh
         
       case OP_SUPER_0:
       case OP_SUPER_1:
@@ -778,7 +780,7 @@ static bool run() {
 //>= Classes and Instances
         
       case OP_CLASS:
-/*== Classes and Instances
+/*>= Classes and Instances <= Methods and Initializers
         createClass(READ_STRING());
 */
 //>= Uhh
@@ -797,6 +799,7 @@ static bool run() {
         createClass(READ_STRING(), AS_CLASS(superclass));
         break;
       }
+//>= Methods and Initializers
         
       case OP_METHOD:
         defineMethod(READ_STRING());

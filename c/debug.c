@@ -101,7 +101,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_CALL_6)
     INST_ZERO(OP_CALL_7)
     INST_ZERO(OP_CALL_8)
-//>= Uhh
+//>= Methods and Initializers
     INST_CONSTANT(OP_INVOKE_0)
     INST_CONSTANT(OP_INVOKE_1)
     INST_CONSTANT(OP_INVOKE_2)
@@ -111,6 +111,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_INVOKE_6)
     INST_CONSTANT(OP_INVOKE_7)
     INST_CONSTANT(OP_INVOKE_8)
+//>= Uhh
     INST_CONSTANT(OP_SUPER_0)
     INST_CONSTANT(OP_SUPER_1)
     INST_CONSTANT(OP_SUPER_2)
@@ -145,6 +146,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_CLASS)
 //>= Uhh
     INST_CONSTANT(OP_SUBCLASS)
+//>= Methods and Initializers
     INST_CONSTANT(OP_METHOD)
 //>= Chunks of Bytecode
   }

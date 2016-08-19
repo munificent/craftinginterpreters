@@ -89,7 +89,7 @@ typedef struct {
 
 typedef enum {
   TYPE_FUNCTION,
-//>= Uhh
+//>= Methods and Initializers
   TYPE_INITIALIZER,
   TYPE_METHOD,
 //>= Functions
@@ -104,10 +104,12 @@ typedef struct Compiler {
 
   // The function being compiled.
   ObjFunction* function;
-
+//>= Functions
+  
   FunctionType type;
   
 //>= Local Variables
+  
   // The currently in scope local variables.
   Local locals[UINT8_COUNT];
   
@@ -121,14 +123,15 @@ typedef struct Compiler {
   // scope. 0 is global scope.
   int scopeDepth;
 } Compiler;
-//>= Uhh
+//>= Methods and Initializers
 
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
   
   Token name;
-  
+//>= Uhh
   bool hasSuperclass;
+//>= Methods and Initializers
 } ClassCompiler;
 //>= Compiling Expressions
 
@@ -145,7 +148,7 @@ static Chunk* currentChunk() {
 
 // The compiler for the innermost function currently being compiled.
 Compiler* current = NULL;
-//>= Uhh
+//>= Methods and Initializers
 
 // The compiler for the innermost class currently being compiled.
 ClassCompiler* currentClass = NULL;
@@ -267,7 +270,7 @@ static void emitReturn() {
 /*>= Functions <= Classes and Instances
   emitByte(OP_NIL);
 */
-//>= Uhh
+//>= Methods and Initializers
   // An initializer automatically returns "this".
   if (current->type == TYPE_INITIALIZER) {
     emitBytes(OP_GET_LOCAL, 0);
@@ -323,7 +326,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
                                            parser.previous.length);
       break;
       
-//>= Uhh
+//>= Methods and Initializers
     case TYPE_INITIALIZER:
     case TYPE_METHOD: {
       int length = currentClass->name.length + parser.previous.length + 1;
@@ -353,7 +356,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   local->name.start = "";
   local->name.length = 0;
 */
-//>= Uhh
+//>= Methods and Initializers
   if (type != TYPE_FUNCTION) {
     // In a method, it holds the receiver, "this".
     local->name.start = "this";
@@ -688,7 +691,7 @@ static void dot(bool canAssign) {
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
     emitBytes(OP_SET_FIELD, name);
-//>= Uhh
+//>= Methods and Initializers
   } else if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
     emitBytes(OP_INVOKE_0 + argCount, name);
@@ -865,6 +868,7 @@ static void super_(bool canAssign) {
     emitBytes(OP_GET_SUPER, name);
   }
 }
+//>= Methods and Initializers
 
 static void this_(bool canAssign) {
   if (currentClass == NULL) {
@@ -994,12 +998,15 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Classes and Instances
+/*>= Compiling Expressions <= Methods and Initializers
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
 //>= Uhh
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
+/*>= Compiling Expressions <= Classes and Instances
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
+*/
+//>= Methods and Initializers
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
 /*== Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_TRUE
@@ -1115,7 +1122,7 @@ static void function(FunctionType type) {
   }
 //>= Functions
 }
-//>= Uhh
+//>= Methods and Initializers
 
 static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
@@ -1139,13 +1146,16 @@ static void classDeclaration() {
   uint8_t nameConstant = identifierConstant(&parser.previous);
   declareVariable();
   
-//>= Uhh
+//>= Methods and Initializers
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
+//>= Uhh
   classCompiler.hasSuperclass = false;
+//>= Methods and Initializers
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
   
+//>= Uhh
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
     classCompiler.hasSuperclass = true;
@@ -1160,13 +1170,13 @@ static void classDeclaration() {
   } else {
     emitBytes(OP_CLASS, nameConstant);
   }
-/*== Classes and Instances
+/*>= Classes and Instances <= Methods and Initializers
   emitBytes(OP_CLASS, nameConstant);
 */
 //>= Classes and Instances
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
-//>= Uhh
+//>= Methods and Initializers
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     method();
   }
@@ -1179,7 +1189,7 @@ static void classDeclaration() {
   }
 //>= Classes and Instances
   defineVariable(nameConstant);
-//>= Uhh
+//>= Methods and Initializers
   
   currentClass = currentClass->enclosing;
 //>= Classes and Instances
@@ -1332,7 +1342,7 @@ static void returnStatement() {
   if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
-//>= Uhh
+//>= Methods and Initializers
     if (current->type == TYPE_INITIALIZER) {
       error("Cannot return a value from an initializer.");
     }

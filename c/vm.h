@@ -50,7 +50,7 @@ typedef struct {
 //>= Hash Tables
   Table strings;
 
-//>= Uhh
+//>= Methods and Initializers
   ObjString* initString;
 //>= Closures
   ObjUpvalue* openUpvalues;

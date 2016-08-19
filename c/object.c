@@ -37,7 +37,7 @@ static Obj* allocateObject(size_t size, ObjType type) {
 //>= Strings
   return object;
 }
-//>= Uhh
+//>= Methods and Initializers
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
@@ -48,7 +48,7 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
 }
 //>= Classes and Instances
 
-/*== Classes and Instances
+/*>= Classes and Instances <= Methods and Initializers
 ObjClass* newClass(ObjString* name) {
 */
 //>= Uhh
@@ -58,6 +58,7 @@ ObjClass* newClass(ObjString* name, ObjClass* superclass) {
   klass->name = name;
 //>= Uhh
   klass->superclass = superclass;
+//>= Methods and Initializers
   initTable(&klass->methods);
 //>= Classes and Instances
   return klass;

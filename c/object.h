@@ -10,7 +10,7 @@
 
 #define OBJ_TYPE(value)         ((value).as.object->type)
 
-//>= Uhh
+//>= Methods and Initializers
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 //>= Classes and Instances
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
@@ -25,7 +25,7 @@
 //>= Strings
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
-//>= Uhh
+//>= Methods and Initializers
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 //>= Classes and Instances
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
@@ -42,7 +42,7 @@
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 
 typedef enum {
-//>= Uhh
+//>= Methods and Initializers
   OBJ_BOUND_METHOD,
 //>= Classes and Instances
   OBJ_CLASS,
@@ -130,6 +130,7 @@ typedef struct sObjClass {
   ObjString* name;
 //>= Uhh
   struct sObjClass* superclass;
+//>= Methods and Initializers
   Table methods;
 //>= Classes and Instances
 } ObjClass;
@@ -139,7 +140,7 @@ typedef struct {
   ObjClass* klass;
   Table fields;
 } ObjInstance;
-//>= Uhh
+//>= Methods and Initializers
 
 typedef struct {
   Obj object;
@@ -148,7 +149,7 @@ typedef struct {
 } ObjBoundMethod;
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
-/*== Classes and Instances
+/*>= Classes and Instances <= Methods and Initializers
 ObjClass* newClass(ObjString* name);
 */
 //>= Uhh

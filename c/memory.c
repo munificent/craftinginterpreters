@@ -82,7 +82,7 @@ static void blackenObject(Obj* object) {
 #endif
   
   switch (object->type) {
-//>= Uhh
+//>= Methods and Initializers
     case OBJ_BOUND_METHOD: {
       ObjBoundMethod* bound = (ObjBoundMethod*)object;
       grayValue(bound->receiver);
@@ -96,6 +96,7 @@ static void blackenObject(Obj* object) {
       grayObject((Obj*)klass->name);
 //>= Uhh
       grayObject((Obj*)klass->superclass);
+//>= Methods and Initializers
       grayTable(&klass->methods);
 //>= Classes and Instances
       break;
@@ -151,17 +152,22 @@ static void freeObject(Obj* object) {
   
 //>= Strings
   switch (object->type) {
+//>= Methods and Initializers
+    case OBJ_BOUND_METHOD:
+      FREE(ObjBoundMethod, object);
+      break;
+      
 /*== Classes and Instances
     case OBJ_CLASS:
 */
-//>= Uhh
+//>= Methods and Initializers
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       freeTable(&klass->methods);
 //>= Classes and Instances
       FREE(ObjClass, object);
       break;
-//>= Uhh
+//>= Methods and Initializers
     }
 //>= Classes and Instances
       
@@ -190,10 +196,6 @@ static void freeObject(Obj* object) {
     }
 //>= Uhh
       
-    case OBJ_BOUND_METHOD:
-      FREE(ObjBoundMethod, object);
-      break;
-
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
@@ -240,7 +242,7 @@ void collectGarbage() {
   // Mark the global roots.
   grayTable(&vm.globals);
   grayCompilerRoots();
-//>= Uhh
+//>= Methods and Initializers
   grayObject((Obj*)vm.initString);
 //>= Garbage Collection
   

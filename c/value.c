@@ -28,7 +28,7 @@ void printValue(Value value) {
         case OBJ_CLASS:
           printf("%s", AS_CLASS(value)->name->chars);
           break;
-//>= Uhh
+//>= Methods and Initializers
         case OBJ_BOUND_METHOD:
 //>= Closures
         case OBJ_CLOSURE:

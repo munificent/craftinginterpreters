@@ -38,6 +38,7 @@ C_CHAPTERS = [
   "Closures",
   "Garbage Collection",
   "Classes and Instances",
+  "Methods and Initializers",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

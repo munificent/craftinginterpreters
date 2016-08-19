@@ -57,7 +57,7 @@ typedef enum {
   OP_CALL_6,
   OP_CALL_7,
   OP_CALL_8,
-//>= Uhh
+//>= Methods and Initializers
   OP_INVOKE_0,
   OP_INVOKE_1,
   OP_INVOKE_2,
@@ -67,6 +67,7 @@ typedef enum {
   OP_INVOKE_6,
   OP_INVOKE_7,
   OP_INVOKE_8,
+//>= Uhh
   OP_SUPER_0,
   OP_SUPER_1,
   OP_SUPER_2,
@@ -85,6 +86,7 @@ typedef enum {
   OP_CLASS,
 //>= Uhh
   OP_SUBCLASS,
+//>= Methods and Initializers
   OP_METHOD
 //>= Chunks of Bytecode
 } OpCode;

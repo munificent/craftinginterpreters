@@ -606,6 +606,19 @@ c_interpreter('chap30_classes', 'build/chap30_classes', {
   'test/variable/local_from_method.vox': 'skip',
 })
 
+c_interpreter('chap31_methods', 'build/chap31_methods', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No inheritance.
+  'test/class/inherited_method.vox': 'skip',
+  'test/inheritance': 'skip',
+  'test/super': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path
