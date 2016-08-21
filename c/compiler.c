@@ -129,7 +129,7 @@ typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
   
   Token name;
-//>= Uhh
+//>= Inheritance
   bool hasSuperclass;
 //>= Methods and Initializers
 } ClassCompiler;
@@ -830,7 +830,7 @@ static void namedVariable(Token name, bool canAssign) {
 static void variable(bool canAssign) {
   namedVariable(parser.previous, canAssign);
 }
-//>= Uhh
+//>= Inheritance
 
 static Token syntheticToken(const char* text) {
   Token token;
@@ -1001,7 +1001,7 @@ ParseRule rules[] = {
 /*>= Compiling Expressions <= Methods and Initializers
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
 */
-//>= Uhh
+//>= Inheritance
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
 /*>= Compiling Expressions <= Classes and Instances
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
@@ -1149,13 +1149,13 @@ static void classDeclaration() {
 //>= Methods and Initializers
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
-//>= Uhh
+//>= Inheritance
   classCompiler.hasSuperclass = false;
 //>= Methods and Initializers
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
   
-//>= Uhh
+//>= Inheritance
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
     classCompiler.hasSuperclass = true;
@@ -1182,7 +1182,7 @@ static void classDeclaration() {
   }
 //>= Classes and Instances
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
-//>= Uhh
+//>= Inheritance
   
   if (classCompiler.hasSuperclass) {
     endScope();

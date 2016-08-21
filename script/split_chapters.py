@@ -39,6 +39,8 @@ C_CHAPTERS = [
   "Garbage Collection",
   "Classes and Instances",
   "Methods and Initializers",
+  # TODO: Unique name?
+  "Inheritance",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

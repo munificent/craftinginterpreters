@@ -128,7 +128,7 @@ typedef struct {
 typedef struct sObjClass {
   Obj object;
   ObjString* name;
-//>= Uhh
+//>= Inheritance
   struct sObjClass* superclass;
 //>= Methods and Initializers
   Table methods;
@@ -152,7 +152,7 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 /*>= Classes and Instances <= Methods and Initializers
 ObjClass* newClass(ObjString* name);
 */
-//>= Uhh
+//>= Inheritance
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
 //>= Closures
 ObjClosure* newClosure(ObjFunction* function);

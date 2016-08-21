@@ -26,7 +26,7 @@ typedef enum {
 //>= Classes and Instances
   OP_GET_FIELD,
   OP_SET_FIELD,
-//>= Uhh
+//>= Inheritance
   OP_GET_SUPER,
 //>= Types of Values
   OP_EQUAL,
@@ -67,7 +67,7 @@ typedef enum {
   OP_INVOKE_6,
   OP_INVOKE_7,
   OP_INVOKE_8,
-//>= Uhh
+//>= Inheritance
   OP_SUPER_0,
   OP_SUPER_1,
   OP_SUPER_2,
@@ -84,7 +84,7 @@ typedef enum {
   OP_RETURN,
 //>= Classes and Instances
   OP_CLASS,
-//>= Uhh
+//>= Inheritance
   OP_SUBCLASS,
 //>= Methods and Initializers
   OP_METHOD

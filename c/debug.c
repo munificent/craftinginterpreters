@@ -70,7 +70,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
 //>= Classes and Instances
     INST_CONSTANT(OP_GET_FIELD)
     INST_CONSTANT(OP_SET_FIELD)
-//>= Uhh
+//>= Inheritance
     INST_CONSTANT(OP_GET_SUPER)
 //>= Types of Values
     INST_ZERO(OP_EQUAL)
@@ -111,7 +111,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_INVOKE_6)
     INST_CONSTANT(OP_INVOKE_7)
     INST_CONSTANT(OP_INVOKE_8)
-//>= Uhh
+//>= Inheritance
     INST_CONSTANT(OP_SUPER_0)
     INST_CONSTANT(OP_SUPER_1)
     INST_CONSTANT(OP_SUPER_2)
@@ -144,7 +144,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_RETURN)
 //>= Classes and Instances
     INST_CONSTANT(OP_CLASS)
-//>= Uhh
+//>= Inheritance
     INST_CONSTANT(OP_SUBCLASS)
 //>= Methods and Initializers
     INST_CONSTANT(OP_METHOD)

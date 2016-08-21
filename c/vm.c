@@ -344,13 +344,13 @@ static void defineMethod(ObjString* name) {
 static void createClass(ObjString* name) {
   ObjClass* klass = newClass(name);
 */
-//>= Uhh
+//>= Inheritance
 
 static void createClass(ObjString* name, ObjClass* superclass) {
   ObjClass* klass = newClass(name, superclass);
 //>= Classes and Instances
   push(OBJ_VAL(klass));
-//>= Uhh
+//>= Inheritance
   
   // Inherit methods.
   if (superclass != NULL) {
@@ -562,7 +562,7 @@ static bool run() {
         push(value);
         break;
       }
-//>= Uhh
+//>= Inheritance
         
       case OP_GET_SUPER: {
         ObjString* name = READ_STRING();
@@ -699,7 +699,7 @@ static bool run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
-//>= Uhh
+//>= Inheritance
         
       case OP_SUPER_0:
       case OP_SUPER_1:
@@ -783,11 +783,11 @@ static bool run() {
 /*>= Classes and Instances <= Methods and Initializers
         createClass(READ_STRING());
 */
-//>= Uhh
+//>= Inheritance
         createClass(READ_STRING(), NULL);
 //>= Classes and Instances
         break;
-//>= Uhh
+//>= Inheritance
         
       case OP_SUBCLASS: {
         Value superclass = peek(0);

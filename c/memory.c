@@ -94,7 +94,7 @@ static void blackenObject(Obj* object) {
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       grayObject((Obj*)klass->name);
-//>= Uhh
+//>= Inheritance
       grayObject((Obj*)klass->superclass);
 //>= Methods and Initializers
       grayTable(&klass->methods);
