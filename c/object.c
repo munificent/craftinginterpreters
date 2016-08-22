@@ -1,13 +1,6 @@
-//>= Uhh
-#include <stdio.h>
-#include <stdlib.h>
 //>= Strings
 #include <string.h>
-//>= Uhh
 
-#include "compiler.h"
-#include "debug.h"
-//>= Strings
 #include "memory.h"
 #include "object.h"
 //>= Hash Tables
@@ -100,7 +93,7 @@ ObjInstance* newInstance(ObjClass* klass) {
   initTable(&instance->fields);
   return instance;
 }
-//>= Uhh
+//>= Native Functions
 
 ObjNative* newNative(NativeFn function) {
   ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);

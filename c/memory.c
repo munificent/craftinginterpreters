@@ -6,8 +6,6 @@
 #include "compiler.h"
 //>= Chunks of Bytecode
 #include "memory.h"
-//>= Uhh
-#include "object.h"
 //>= Strings
 #include "vm.h"
 
@@ -132,7 +130,7 @@ static void blackenObject(Obj* object) {
       grayValue(((ObjUpvalue*)object)->closed);
       break;
       
-//>= Uhh
+//>= Native Functions
     case OBJ_NATIVE:
 //>= Garbage Collection
     case OBJ_STRING:
@@ -194,7 +192,7 @@ static void freeObject(Obj* object) {
       FREE(ObjInstance, object);
       break;
     }
-//>= Uhh
+//>= Native Functions
       
     case OBJ_NATIVE:
       FREE(ObjNative, object);

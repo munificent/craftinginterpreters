@@ -20,7 +20,7 @@
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 //>= Classes and Instances
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
-//>= Uhh
+//>= Native Functions
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 //>= Strings
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
@@ -35,7 +35,7 @@
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 //>= Classes and Instances
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-//>= Uhh
+//>= Native Functions
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 //>= Strings
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
@@ -52,7 +52,7 @@ typedef enum {
   OBJ_FUNCTION,
 //>= Classes and Instances
   OBJ_INSTANCE,
-//>= Uhh
+//>= Native Functions
   OBJ_NATIVE,
 //>= Strings
   OBJ_STRING,
@@ -80,7 +80,7 @@ typedef struct {
   Chunk chunk;
   ObjString* name;
 } ObjFunction;
-//>= Uhh
+//>= Native Functions
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
@@ -160,7 +160,7 @@ ObjClosure* newClosure(ObjFunction* function);
 ObjFunction* newFunction();
 //>= Classes and Instances
 ObjInstance* newInstance(ObjClass* klass);
-//>= Uhh
+//>= Native Functions
 ObjNative* newNative(NativeFn function);
 //>= Strings
 ObjString* takeString(char* chars, int length);

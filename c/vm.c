@@ -2,11 +2,9 @@
 #include <stdarg.h>
 //>= A Virtual Machine
 #include <stdio.h>
-//>= Uhh
-#include <stdlib.h>
 //>= Strings
 #include <string.h>
-//>= Uhh
+//>= Native Functions
 #include <time.h>
 
 //>= A Virtual Machine
@@ -18,13 +16,11 @@
 //>= Strings
 #include "object.h"
 #include "memory.h"
-//>= Uhh
-#include "value.h"
 //>= A Virtual Machine
 #include "vm.h"
 
 VM vm;
-//>= Uhh
+//>= Native Functions
 
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
@@ -70,7 +66,7 @@ static void runtimeError(const char* format, ...) {
   
   resetStack();
 }
-//>= Uhh
+//>= Native Functions
 
 static void defineNative(const char* name, NativeFn function) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
@@ -101,7 +97,7 @@ void initVM() {
 //>= Methods and Initializers
   
   vm.initString = copyString("init", 4);
-//>= Uhh
+//>= Native Functions
   
   defineNative("clock", clockNative);
 //>= A Virtual Machine
@@ -204,7 +200,7 @@ static bool callValue(Value callee, int argCount) {
         
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
-//>= Uhh
+//>= Native Functions
         
       case OBJ_NATIVE: {
         NativeFn native = AS_NATIVE(callee);

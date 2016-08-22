@@ -41,6 +41,7 @@ C_CHAPTERS = [
   "Methods and Initializers",
   # TODO: Unique name?
   "Inheritance",
+  "Native Functions",
 
   # For stuff that hasn't been bucketed in a chapter yet.
   "Uhh",

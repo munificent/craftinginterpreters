@@ -105,6 +105,7 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap30_classes MODE=release SOURCE_DIR=gen/chap30_classes
 	@ $(MAKE) -f util/c.make NAME=chap31_methods MODE=release SOURCE_DIR=gen/chap31_methods
 	@ $(MAKE) -f util/c.make NAME=chap32_inheritance MODE=release SOURCE_DIR=gen/chap32_inheritance
+	@ $(MAKE) -f util/c.make NAME=chap33_native MODE=release SOURCE_DIR=gen/chap33_native
 
 diffs:
 	@ mkdir -p build/diffs
@@ -138,5 +139,6 @@ diffs:
 	@ -diff --new-file gen/chap29_garbage/ gen/chap30_classes/ > build/diffs/chap30_classes.diff
 	@ -diff --new-file gen/chap30_classes/ gen/chap31_methods/ > build/diffs/chap31_methods.diff
 	@ -diff --new-file gen/chap31_methods/ gen/chap32_inheritance/ > build/diffs/chap32_inheritance.diff
+	@ -diff --new-file gen/chap32_inheritance/ gen/chap33_native/ > build/diffs/chap33_native.diff
 
 .PHONY: clean cvox debug default diffs jvox test test_c test_java watch

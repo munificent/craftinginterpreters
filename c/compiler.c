@@ -1,7 +1,5 @@
 //>= Compiling Expressions
 #include <assert.h>
-//>= Uhh
-#include <stdarg.h>
 //>= Scanning on Demand
 #include <stdio.h>
 //>= Compiling Expressions
@@ -12,14 +10,10 @@
 
 #include "common.h"
 #include "compiler.h"
-//>= Uhh
-#include "object.h"
 //>= Garbage Collection
 #include "memory.h"
 //>= Scanning on Demand
 #include "scanner.h"
-//>= Uhh
-#include "vm.h"
 //>= Compiling Expressions
 
 #ifdef DEBUG_PRINT_CODE

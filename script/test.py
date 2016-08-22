@@ -627,6 +627,14 @@ c_interpreter('chap32_inheritance', 'build/chap32_inheritance', {
   'test/expressions': 'skip',
 })
 
+c_interpreter('chap33_native', 'build/chap33_native', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path

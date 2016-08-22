@@ -7,8 +7,6 @@
 //>= Chunks of Bytecode
 
 #include "memory.h"
-//>= Uhh
-#include "object.h"
 //>= Chunks of Bytecode
 #include "value.h"
 
@@ -40,7 +38,7 @@ void printValue(Value value) {
         case OBJ_INSTANCE:
           printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
           break;
-//>= Uhh
+//>= Native Functions
         case OBJ_NATIVE:
           printf("<native %p>", AS_NATIVE(value));
           break;
