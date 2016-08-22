@@ -434,21 +434,29 @@ static bool run() {
       push(valueType(a op b)); \
     } while (false)
 //>= A Virtual Machine
- 
+
   for (;;) {
-//>= Uhh
 #ifdef DEBUG_TRACE_EXECUTION
+    printf("          ");
     for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
-      printf("| ");
+      printf("[ ");
       printValue(*slot);
-      printf(" ");
+      printf(" ]");
     }
     printf("\n");
+/*>= A Virtual Machine <= Jumping Forward and Back
+    disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+*/
+/*== Functions
+    disassembleInstruction(&frame->function->chunk,
+        (int)(frame->ip - frame->function->chunk.code));
+*/
+//>= Closures
     disassembleInstruction(&frame->closure->function->chunk,
         (int)(frame->ip - frame->closure->function->chunk.code));
+//>= A Virtual Machine
 #endif
     
-//>= A Virtual Machine
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
       case OP_CONSTANT: push(READ_CONSTANT()); break;
@@ -824,6 +832,7 @@ static bool run() {
 /*== A Virtual Machine
 InterpretResult interpret(Chunk* chunk) {
   vm.chunk = chunk;
+  vm.ip = vm.chunk->code;
 */
 //>= Scanning on Demand
 InterpretResult interpret(const char* source) {

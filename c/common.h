@@ -7,8 +7,7 @@
 
 //>= Compiling Expressions
 //#define DEBUG_PRINT_CODE
-// TODO: Figure out when to introduce this.
-//>= Uhh
+//>= A Virtual Machine
 //#define DEBUG_TRACE_EXECUTION
 //>= Garbage Collection
 
