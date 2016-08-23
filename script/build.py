@@ -36,10 +36,22 @@ JAVA_CHAPTERS = [
 C_CHAPTERS = [
   "Chunks of Bytecode",
   "A Virtual Machine",
-  "Scanning Without Allocating",
-
-  # For stuff that hasn't been bucketed in a chapter yet.
-  "Uhh",
+  "Scanning on Demand",
+  "Compiling Expressions",
+  "Types of Values",
+  "Strings",
+  "Hash Tables",
+  "Statements",
+  "Global Variables",
+  "Local Variables",
+  "Jumping Forward and Back",
+  "Functions",
+  "Closures",
+  "Garbage Collection",
+  "Classes and Instances",
+  "Methods and Initializers",
+  "Inheritance",
+  "Native Functions",
 ]
 
 
@@ -66,8 +78,22 @@ PAGES = [
   'The Long Way Down',
     'Chunks of Bytecode',
     'A Virtual Machine',
-    'Scanning Without Allocating',
-    # ...
+    'Scanning on Demand',
+    'Compiling Expressions',
+    'Types of Values',
+    'Strings',
+    'Hash Tables',
+    'Statements',
+    'Global Variables',
+    'Local Variables',
+    'Jumping Forward and Back',
+    'Functions',
+    'Closures',
+    'Garbage Collection',
+    'Classes and Instances',
+    'Methods and Initializers',
+    'Inheritance',
+    'Native Functions',
   'Glossary'
 ]
 
