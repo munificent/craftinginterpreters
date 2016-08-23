@@ -45,6 +45,8 @@ run_generate_ast = 	@ java -cp build/gen/$(1) \
 chapters:
 	@ python script/split_chapters.py
 
+	@ $(MAKE) -f util/java.make DIR=gen/chap03_pancake PACKAGE=pancake
+
 	@ $(MAKE) -f util/java.make DIR=gen/chap04_framework PACKAGE=vox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap05_scanning PACKAGE=vox
@@ -109,6 +111,7 @@ c_chapters:
 
 diffs:
 	@ mkdir -p build/diffs
+	@ -diff --recursive --new-file nonexistent/ gen/chap03_pancake/com/craftinginterpreters/ > build/diffs/chap03_pancake.diff
 	@ -diff --recursive --new-file nonexistent/ gen/chap04_framework/com/craftinginterpreters/ > build/diffs/chap04_framework.diff
 	@ -diff --recursive --new-file gen/chap04_framework/com/craftinginterpreters/ gen/chap05_scanning/com/craftinginterpreters/ > build/diffs/chap05_scanning.diff
 	@ -diff --recursive --new-file gen/chap05_scanning/com/craftinginterpreters/ gen/chap06_representing/com/craftinginterpreters/ > build/diffs/chap06_representing.diff

@@ -7,6 +7,7 @@ import os
 import re
 
 JAVA_CHAPTERS = [
+  "The Pancake Language",
   "Framework",
   "Scanning",
   "Representing Code",
@@ -29,7 +30,6 @@ C_CHAPTERS = [
   "Types of Values",
   "Strings",
   "Hash Tables",
-  # TODO: Give unique name.
   "Statements",
   "Global Variables",
   "Local Variables",
@@ -41,10 +41,7 @@ C_CHAPTERS = [
   "Methods and Initializers",
   # TODO: Unique name?
   "Inheritance",
-  "Native Functions",
-
-  # For stuff that hasn't been bucketed in a chapter yet.
-  "Uhh",
+  "Native Functions"
 ]
 
 LINE_SECTION_PATTERN = re.compile(r'//[>=]=')
@@ -57,7 +54,7 @@ MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
 
 def chapter_to_package(chapters, chapter_offset, index):
   name = chapters[index].split()[0].lower()
-  if name == "a":
+  if name == "a" or name == "the":
     name = chapters[index].split()[1].lower()
   return "chap{0:02d}_{1}".format(index + chapter_offset, name)
 
@@ -166,7 +163,7 @@ def walk(dir, extensions, callback):
 # The Java chapters.
 for i, chapter in enumerate(JAVA_CHAPTERS):
   walk("java", [".java"],
-      lambda path: split_file("java", JAVA_CHAPTERS, 4, path, i))
+      lambda path: split_file("java", JAVA_CHAPTERS, 3, path, i))
 
 # The C chapters.
 for i, chapter in enumerate(C_CHAPTERS):
