@@ -1,6 +1,6 @@
 //>= Scanning on Demand
-#ifndef cvox_scanner_h
-#define cvox_scanner_h
+#ifndef clox_scanner_h
+#define clox_scanner_h
 
 typedef enum {
   TOKEN_LEFT_PAREN,
@@ -22,11 +22,11 @@ typedef enum {
   TOKEN_SEMICOLON,
   TOKEN_SLASH,
   TOKEN_STAR,
-  
+
   TOKEN_IDENTIFIER,
   TOKEN_STRING,
   TOKEN_NUMBER,
-  
+
   TOKEN_AND,
   TOKEN_CLASS,
   TOKEN_ELSE,
@@ -43,7 +43,7 @@ typedef enum {
   TOKEN_TRUE,
   TOKEN_VAR,
   TOKEN_WHILE,
-  
+
   TOKEN_ERROR,
   TOKEN_EOF
 } TokenType;

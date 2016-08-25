@@ -1,6 +1,6 @@
 //>= A Virtual Machine
-#ifndef cvox_vm_h
-#define cvox_vm_h
+#ifndef clox_vm_h
+#define clox_vm_h
 
 /*>= A Virtual Machine <= Jumping Forward and Back
 #include "chunk.h"
@@ -41,10 +41,10 @@ typedef struct {
   uint8_t* ip;
 */
 //>= Functions
-  
+
   CallFrame frames[FRAMES_SIZE];
   int frameCount;
-  
+
 //>= Global Variables
   Table globals;
 //>= Hash Tables
@@ -55,11 +55,11 @@ typedef struct {
 //>= Closures
   ObjUpvalue* openUpvalues;
 //>= Garbage Collection
-  
+
   size_t bytesAllocated;
   size_t nextGC;
 //>= Strings
-  
+
   Obj* objects;
 //>= Garbage Collection
   int grayCount;

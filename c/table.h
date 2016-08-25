@@ -1,6 +1,6 @@
 //>= Hash Tables
-#ifndef cvox_table_h
-#define cvox_table_h
+#ifndef clox_table_h
+#define clox_table_h
 
 #include "common.h"
 #include "value.h"

@@ -331,7 +331,7 @@ java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
   'test/limit/stack_overflow.lox': 'skip',
 })
 
-c_interpreter('c', 'build/cvoxd', {
+c_interpreter('c', 'build/cloxd', {
   'test': 'pass',
 
   # These are just for earlier chapters.

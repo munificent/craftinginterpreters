@@ -1,9 +1,9 @@
 BUILD_DIR := build
 
-default: cvox jlox
+default: clox jlox
 
 debug:
-	@ $(MAKE) -f util/c.make NAME=cvoxd MODE=debug SOURCE_DIR=c
+	@ $(MAKE) -f util/c.make NAME=cloxd MODE=debug SOURCE_DIR=c
 
 watch:
 	@ python util/build.py --watch
@@ -24,9 +24,9 @@ clean:
 	@ rm -rf gen
 
 # Compile the C interpreter.
-cvox:
-	@ $(MAKE) -f util/c.make NAME=cvox MODE=release SOURCE_DIR=c
-	@ cp build/cvox cvox # For convenience, copy the interpreter to the top level.
+clox:
+	@ $(MAKE) -f util/c.make NAME=clox MODE=release SOURCE_DIR=c
+	@ cp build/clox clox # For convenience, copy the interpreter to the top level.
 
 # Compile and run the AST generator.
 generate_ast:
@@ -144,4 +144,4 @@ diffs:
 	@ -diff --new-file gen/chap31_methods/ gen/chap32_inheritance/ > build/diffs/chap32_inheritance.diff
 	@ -diff --new-file gen/chap32_inheritance/ gen/chap33_native/ > build/diffs/chap33_native.diff
 
-.PHONY: clean cvox debug default diffs jlox test test_c test_java watch
+.PHONY: clean clox debug default diffs jlox test test_c test_java watch

@@ -1,6 +1,6 @@
 //>= Scanning on Demand
-#ifndef cvox_compiler_h
-#define cvox_compiler_h
+#ifndef clox_compiler_h
+#define clox_compiler_h
 
 //>= Strings
 #include "object.h"

@@ -1,6 +1,6 @@
 //>= Chunks of Bytecode
-#ifndef cvox_memory_h
-#define cvox_memory_h
+#ifndef clox_memory_h
+#define clox_memory_h
 
 //>= Strings
 #include "object.h"

@@ -1,6 +1,6 @@
 //>= Chunks of Bytecode
-#ifndef cvox_value_h
-#define cvox_value_h
+#ifndef clox_value_h
+#define clox_value_h
 
 #include "common.h"
 
