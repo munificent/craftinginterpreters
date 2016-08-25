@@ -1,5 +1,5 @@
 //>= Resolving and Binding
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 import java.util.*;
 

@@ -1,5 +1,5 @@
 //>= Parsing Expressions
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 //>= Statements and State
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.craftinginterpreters.vox.TokenType.*;
+import static com.craftinginterpreters.lox.TokenType.*;
 
 class Parser {
   private static final Set<TokenType> synchronizing = new HashSet<>();

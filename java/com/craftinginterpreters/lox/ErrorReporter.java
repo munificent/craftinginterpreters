@@ -1,5 +1,5 @@
 //>= Framework
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 class ErrorReporter {
   boolean hadError = false;

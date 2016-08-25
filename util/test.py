@@ -41,7 +41,7 @@ def c_interpreter(name, path, tests):
 
 def java_interpreter(name, dir, tests):
   INTERPRETERS[name] = Interpreter(name,
-      ['java', '-cp', dir, 'com.craftinginterpreters.vox.Vox'], tests)
+      ['java', '-cp', dir, 'com.craftinginterpreters.lox.Lox'], tests)
 
 java_interpreter('java', 'build/java', {
   'test': 'pass',
@@ -50,14 +50,14 @@ java_interpreter('java', 'build/java', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 })
 
 java_interpreter('chap05_scanning', 'build/gen/chap05_scanning', {
@@ -73,14 +73,14 @@ java_interpreter('chap07_parsing', 'build/gen/chap07_parsing', {
   # No real interpreter yet.
   'test': 'skip',
 
-  'test/expressions/parse.vox': 'pass'
+  'test/expressions/parse.lox': 'pass'
 })
 
 java_interpreter('chap08_evaluating', 'build/gen/chap08_evaluating', {
   # No real interpreter yet.
   'test': 'skip',
 
-  'test/expressions/evaluate.vox': 'pass'
+  'test/expressions/evaluate.lox': 'pass'
 })
 
 java_interpreter('chap09_statements', 'build/gen/chap09_statements', {
@@ -90,61 +90,61 @@ java_interpreter('chap09_statements', 'build/gen/chap09_statements', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/reuse_constants.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 
   # No control flow.
-  'test/block/empty.vox': 'skip',
+  'test/block/empty.lox': 'skip',
   'test/for': 'skip',
   'test/if': 'skip',
   'test/logical_operator': 'skip',
   'test/while': 'skip',
-  'test/variable/unreached_undefined.vox': 'skip',
+  'test/variable/unreached_undefined.lox': 'skip',
 
   # No functions.
   'test/call': 'skip',
   'test/closure': 'skip',
   'test/function': 'skip',
-  'test/operator/not.vox': 'skip',
+  'test/operator/not.lox': 'skip',
   'test/return': 'skip',
-  'test/unexpected_character.vox': 'skip',
+  'test/unexpected_character.lox': 'skip',
 
   # Broken because we haven't fixed it yet by detecting the error.
-  'test/return/at_top_level.vox': 'skip',
-  'test/variable/use_local_in_initializer.vox': 'skip',
+  'test/return/at_top_level.lox': 'skip',
+  'test/variable/use_local_in_initializer.lox': 'skip',
 
   # No resolution.
-  'test/closure/assign_to_shadowed_later.vox': 'skip',
-  'test/function/local_mutual_recursion.vox': 'skip',
-  'test/variable/collide_with_parameter.vox': 'skip',
-  'test/variable/duplicate_local.vox': 'skip',
-  'test/variable/duplicate_parameter.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
+  'test/closure/assign_to_shadowed_later.lox': 'skip',
+  'test/function/local_mutual_recursion.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_local.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/return/in_method.vox': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/return/in_method.lox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 java_interpreter('chap10_control', 'build/gen/chap10_control', {
@@ -154,60 +154,60 @@ java_interpreter('chap10_control', 'build/gen/chap10_control', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/reuse_constants.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 
   # No functions.
   'test/call': 'skip',
   'test/closure': 'skip',
-  'test/for/closure_in_body.vox': 'skip',
-  'test/for/return_closure.vox': 'skip',
-  'test/for/return_inside.vox': 'skip',
-  'test/for/syntax.vox': 'skip',
+  'test/for/closure_in_body.lox': 'skip',
+  'test/for/return_closure.lox': 'skip',
+  'test/for/return_inside.lox': 'skip',
+  'test/for/syntax.lox': 'skip',
   'test/function': 'skip',
-  'test/operator/not.vox': 'skip',
+  'test/operator/not.lox': 'skip',
   'test/return': 'skip',
-  'test/unexpected_character.vox': 'skip',
-  'test/while/closure_in_body.vox': 'skip',
-  'test/while/return_closure.vox': 'skip',
-  'test/while/return_inside.vox': 'skip',
+  'test/unexpected_character.lox': 'skip',
+  'test/while/closure_in_body.lox': 'skip',
+  'test/while/return_closure.lox': 'skip',
+  'test/while/return_inside.lox': 'skip',
 
   # Broken because we haven't fixed it yet by detecting the error.
-  'test/return/at_top_level.vox': 'skip',
-  'test/variable/use_local_in_initializer.vox': 'skip',
+  'test/return/at_top_level.lox': 'skip',
+  'test/variable/use_local_in_initializer.lox': 'skip',
 
   # No resolution.
-  'test/closure/assign_to_shadowed_later.vox': 'skip',
-  'test/function/local_mutual_recursion.vox': 'skip',
-  'test/variable/collide_with_parameter.vox': 'skip',
-  'test/variable/duplicate_local.vox': 'skip',
-  'test/variable/duplicate_parameter.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
+  'test/closure/assign_to_shadowed_later.lox': 'skip',
+  'test/function/local_mutual_recursion.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_local.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/return/in_method.vox': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/return/in_method.lox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
@@ -217,44 +217,44 @@ java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 
   # Broken because we haven't fixed it yet by detecting the error.
-  'test/return/at_top_level.vox': 'skip',
-  'test/variable/use_local_in_initializer.vox': 'skip',
+  'test/return/at_top_level.lox': 'skip',
+  'test/variable/use_local_in_initializer.lox': 'skip',
 
   # No resolution.
-  'test/closure/assign_to_shadowed_later.vox': 'skip',
-  'test/function/local_mutual_recursion.vox': 'skip',
-  'test/variable/collide_with_parameter.vox': 'skip',
-  'test/variable/duplicate_local.vox': 'skip',
-  'test/variable/duplicate_parameter.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
+  'test/closure/assign_to_shadowed_later.lox': 'skip',
+  'test/function/local_mutual_recursion.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_local.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/return/in_method.vox': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/return/in_method.lox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 java_interpreter('chap12_resolving', 'build/gen/chap12_resolving', {
@@ -264,32 +264,32 @@ java_interpreter('chap12_resolving', 'build/gen/chap12_resolving', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/return/in_method.vox': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/return/in_method.lox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 java_interpreter('chap13_classes', 'build/gen/chap13_classes', {
@@ -299,17 +299,17 @@ java_interpreter('chap13_classes', 'build/gen/chap13_classes', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 
   # No inheritance.
-  'test/class/inherited_method.vox': 'skip',
+  'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
   'test/super': 'skip',
 })
@@ -321,14 +321,14 @@ java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
   'test/scanning': 'skip',
   'test/expressions': 'skip',
 
-  # No hardcoded limits in jvox.
-  'test/limit/loop_too_large.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  # No hardcoded limits in jlox.
+  'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
 
   # Rely on JVM for stack overflow checking.
-  'test/limit/stack_overflow.vox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
 })
 
 c_interpreter('c', 'build/cvoxd', {
@@ -349,51 +349,51 @@ c_interpreter('chap24_global', 'build/chap24_global', {
   'test/expressions': 'skip',
 
   # No control flow.
-  'test/block/empty.vox': 'skip',
+  'test/block/empty.lox': 'skip',
   'test/for': 'skip',
   'test/if': 'skip',
-  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/loop_too_large.lox': 'skip',
   'test/logical_operator': 'skip',
-  'test/variable/unreached_undefined.vox': 'skip',
+  'test/variable/unreached_undefined.lox': 'skip',
   'test/while': 'skip',
 
   # No local variables.
-  'test/block/scope.vox': 'skip',
-  'test/variable/duplicate_local.vox': 'skip',
-  'test/variable/shadow_global.vox': 'skip',
-  'test/variable/shadow_local.vox': 'skip',
-  'test/variable/use_local_in_initializer.vox': 'skip',
+  'test/block/scope.lox': 'skip',
+  'test/variable/duplicate_local.lox': 'skip',
+  'test/variable/shadow_global.lox': 'skip',
+  'test/variable/shadow_local.lox': 'skip',
+  'test/variable/use_local_in_initializer.lox': 'skip',
 
   # No functions.
   'test/call': 'skip',
   'test/closure': 'skip',
   'test/function': 'skip',
-  'test/limit/reuse_constants.vox': 'skip',
-  'test/limit/stack_overflow.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
   'test/return': 'skip',
-  'test/unexpected_character.vox': 'skip',
-  'test/variable/collide_with_parameter.vox': 'skip',
-  'test/variable/duplicate_parameter.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
+  'test/unexpected_character.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
   'test/class': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap25_local', 'build/chap25_local', {
@@ -404,44 +404,44 @@ c_interpreter('chap25_local', 'build/chap25_local', {
   'test/expressions': 'skip',
 
   # No control flow.
-  'test/block/empty.vox': 'skip',
+  'test/block/empty.lox': 'skip',
   'test/for': 'skip',
   'test/if': 'skip',
-  'test/limit/loop_too_large.vox': 'skip',
+  'test/limit/loop_too_large.lox': 'skip',
   'test/logical_operator': 'skip',
-  'test/variable/unreached_undefined.vox': 'skip',
+  'test/variable/unreached_undefined.lox': 'skip',
   'test/while': 'skip',
 
   # No functions.
   'test/call': 'skip',
   'test/closure': 'skip',
   'test/function': 'skip',
-  'test/limit/reuse_constants.vox': 'skip',
-  'test/limit/stack_overflow.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
   'test/return': 'skip',
-  'test/unexpected_character.vox': 'skip',
-  'test/variable/collide_with_parameter.vox': 'skip',
-  'test/variable/duplicate_parameter.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
+  'test/unexpected_character.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
   'test/class': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap26_jumping', 'build/chap26_jumping', {
@@ -454,40 +454,40 @@ c_interpreter('chap26_jumping', 'build/chap26_jumping', {
   # No functions.
   'test/call': 'skip',
   'test/closure': 'skip',
-  'test/for/closure_in_body.vox': 'skip',
-  'test/for/return_closure.vox': 'skip',
-  'test/for/return_inside.vox': 'skip',
-  'test/for/syntax.vox': 'skip',
+  'test/for/closure_in_body.lox': 'skip',
+  'test/for/return_closure.lox': 'skip',
+  'test/for/return_inside.lox': 'skip',
+  'test/for/syntax.lox': 'skip',
   'test/function': 'skip',
-  'test/limit/reuse_constants.vox': 'skip',
-  'test/limit/stack_overflow.vox': 'skip',
-  'test/limit/too_many_constants.vox': 'skip',
-  'test/limit/too_many_locals.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
+  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
   'test/return': 'skip',
-  'test/unexpected_character.vox': 'skip',
-  'test/variable/collide_with_parameter.vox': 'skip',
-  'test/variable/duplicate_parameter.vox': 'skip',
-  'test/variable/early_bound.vox': 'skip',
-  'test/while/closure_in_body.vox': 'skip',
-  'test/while/return_closure.vox': 'skip',
-  'test/while/return_inside.vox': 'skip',
+  'test/unexpected_character.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
+  'test/while/closure_in_body.lox': 'skip',
+  'test/while/return_closure.lox': 'skip',
+  'test/while/return_inside.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
   'test/class': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap27_functions', 'build/chap27_functions', {
@@ -499,30 +499,30 @@ c_interpreter('chap27_functions', 'build/chap27_functions', {
 
   # No closures.
   'test/closure': 'skip',
-  'test/for/closure_in_body.vox': 'skip',
-  'test/for/return_closure.vox': 'skip',
-  'test/function/local_recursion.vox': 'skip',
-  'test/limit/too_many_upvalues.vox': 'skip',
-  'test/while/closure_in_body.vox': 'skip',
-  'test/while/return_closure.vox': 'skip',
+  'test/for/closure_in_body.lox': 'skip',
+  'test/for/return_closure.lox': 'skip',
+  'test/function/local_recursion.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
+  'test/while/closure_in_body.lox': 'skip',
+  'test/while/return_closure.lox': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
-  'test/return/in_method.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
+  'test/return/in_method.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap28_closures', 'build/chap28_closures', {
@@ -533,23 +533,23 @@ c_interpreter('chap28_closures', 'build/chap28_closures', {
   'test/expressions': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
-  'test/return/in_method.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
+  'test/return/in_method.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap29_garbage', 'build/chap29_garbage', {
@@ -560,23 +560,23 @@ c_interpreter('chap29_garbage', 'build/chap29_garbage', {
   'test/expressions': 'skip',
 
   # No classes.
-  'test/assignment/to_this.vox': 'skip',
-  'test/call/object.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/call/object.lox': 'skip',
   'test/class': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
   'test/field': 'skip',
   'test/inheritance': 'skip',
   'test/method': 'skip',
-  'test/number/decimal_point_at_eof.vox': 'skip',
-  'test/number/trailing_dot.vox': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/operator/not.vox': 'skip',
-  'test/operator/not_class.vox': 'skip',
-  'test/return/in_method.vox': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
+  'test/return/in_method.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap30_classes', 'build/chap30_classes', {
@@ -587,23 +587,23 @@ c_interpreter('chap30_classes', 'build/chap30_classes', {
   'test/expressions': 'skip',
 
   # No inheritance.
-  'test/class/inherited_method.vox': 'skip',
+  'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
   'test/super': 'skip',
 
   # No methods.
-  'test/assignment/to_this.vox': 'skip',
-  'test/class/local_reference_self.vox': 'skip',
-  'test/class/reference_self.vox': 'skip',
-  'test/closure/close_over_method_parameter.vox': 'skip',
+  'test/assignment/to_this.lox': 'skip',
+  'test/class/local_reference_self.lox': 'skip',
+  'test/class/reference_self.lox': 'skip',
+  'test/closure/close_over_method_parameter.lox': 'skip',
   'test/constructor': 'skip',
-  'test/field/method.vox': 'skip',
-  'test/field/method_binds_this.vox': 'skip',
+  'test/field/method.lox': 'skip',
+  'test/field/method_binds_this.lox': 'skip',
   'test/method': 'skip',
-  'test/operator/equals_class.vox': 'skip',
-  'test/return/in_method.vox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/return/in_method.lox': 'skip',
   'test/this': 'skip',
-  'test/variable/local_from_method.vox': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
 })
 
 c_interpreter('chap31_methods', 'build/chap31_methods', {
@@ -614,7 +614,7 @@ c_interpreter('chap31_methods', 'build/chap31_methods', {
   'test/expressions': 'skip',
 
   # No inheritance.
-  'test/class/inherited_method.vox': 'skip',
+  'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
   'test/super': 'skip',
 })
@@ -902,7 +902,7 @@ def run_script(path):
   global failed
   global num_skipped
 
-  if (splitext(path)[1] != '.vox'):
+  if (splitext(path)[1] != '.lox'):
     return
 
   # Check if we are just running a subset of the tests.

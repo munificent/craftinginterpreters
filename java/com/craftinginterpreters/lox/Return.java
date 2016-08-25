@@ -1,5 +1,5 @@
 //>= Functions
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 class Return extends RuntimeException {
   final Object value;

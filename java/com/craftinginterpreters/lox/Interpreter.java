@@ -1,5 +1,5 @@
 //>= Evaluating Expressions
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 //>= Functions
 import java.util.ArrayList;
@@ -103,12 +103,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Void visitClassStmt(Stmt.Class stmt) {
     environment.declare(stmt.name);
 
-    Map<String, VoxFunction> methods = new HashMap<>();
+    Map<String, LoxFunction> methods = new HashMap<>();
 //>= Inheritance
     Object superclass = null;
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass);
-      if (!(superclass instanceof VoxClass)) {
+      if (!(superclass instanceof LoxClass)) {
         throw new RuntimeError(stmt.name,
             "Superclass must be a class.");
       }
@@ -119,17 +119,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 //>= Classes
     for (Stmt.Function method : stmt.methods) {
-      VoxFunction function = new VoxFunction(method, environment,
+      LoxFunction function = new LoxFunction(method, environment,
           method.name.text.equals("init"));
         methods.put(method.name.text, function);
     }
 
 /*== Classes
-    VoxClass klass = new VoxClass(stmt.name.text, methods);
+    LoxClass klass = new LoxClass(stmt.name.text, methods);
 */
 //>= Inheritance
-    VoxClass klass = new VoxClass(stmt.name.text,
-        (VoxClass)superclass, methods);
+    LoxClass klass = new LoxClass(stmt.name.text,
+        (LoxClass)superclass, methods);
 
     if (superclass != null) {
       environment = environment.enclosing;
@@ -152,10 +152,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Void visitFunctionStmt(Stmt.Function stmt) {
     environment.declare(stmt.name);
 /*>= Functions <= Resolving and Binding
-    VoxFunction function = new VoxFunction(stmt, environment);
+    LoxFunction function = new LoxFunction(stmt, environment);
 */
 //>= Classes
-    VoxFunction function = new VoxFunction(stmt, environment, false);
+    LoxFunction function = new LoxFunction(stmt, environment, false);
 //>= Functions
     environment.assign(stmt.name, function);
     return null;
@@ -314,8 +314,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitGetExpr(Expr.Get expr) {
     Object object = evaluate(expr.object);
-    if (object instanceof VoxInstance) {
-      return ((VoxInstance) object).getProperty(expr.name);
+    if (object instanceof LoxInstance) {
+      return ((LoxInstance) object).getProperty(expr.name);
     }
 
     throw new RuntimeError(expr.name,
@@ -355,8 +355,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object value = evaluate(expr.value);
     Object object = evaluate(expr.object);
 
-    if (object instanceof VoxInstance) {
-      ((VoxInstance)object).fields.put(expr.name.text, value);
+    if (object instanceof LoxInstance) {
+      ((LoxInstance)object).fields.put(expr.name.text, value);
       return value;
     }
 
@@ -367,10 +367,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitSuperExpr(Expr.Super expr) {
     int distance = locals.get(expr);
-    VoxClass superclass = (VoxClass)environment.getAt(distance, "super");
-    VoxInstance receiver = (VoxInstance)environment.getAt(distance, "this");
+    LoxClass superclass = (LoxClass)environment.getAt(distance, "super");
+    LoxInstance receiver = (LoxInstance)environment.getAt(distance, "this");
 
-    VoxFunction method = superclass.findMethod(receiver, expr.method.text);
+    LoxFunction method = superclass.findMethod(receiver, expr.method.text);
     if (method == null) {
       throw new RuntimeError(expr.method,
           "Undefined property '" + expr.method.text + "'.");

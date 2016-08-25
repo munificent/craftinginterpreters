@@ -1,22 +1,22 @@
 //>= Classes
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 import java.util.List;
 import java.util.Map;
 
-class VoxClass implements Callable {
+class LoxClass implements Callable {
   final String name;
 //>= Inheritance
-  final VoxClass superclass;
+  final LoxClass superclass;
 //>= Classes
-  private final Map<String, VoxFunction> methods;
+  private final Map<String, LoxFunction> methods;
 
 /*== Classes
-  VoxClass(String name, Map<String, VoxFunction> methods) {
+  LoxClass(String name, Map<String, LoxFunction> methods) {
 */
 //>= Inheritance
-  VoxClass(String name, VoxClass superclass,
-           Map<String, VoxFunction> methods) {
+  LoxClass(String name, LoxClass superclass,
+           Map<String, LoxFunction> methods) {
 //>= Classes
     this.name = name;
 //>= Inheritance
@@ -25,7 +25,7 @@ class VoxClass implements Callable {
     this.methods = methods;
   }
 
-  VoxFunction findMethod(VoxInstance instance, String name) {
+  LoxFunction findMethod(LoxInstance instance, String name) {
 /*== Classes
     if (methods.containsKey(name)) {
       return methods.get(name).bind(instance);
@@ -35,7 +35,7 @@ class VoxClass implements Callable {
     return null;
 */
 //>= Inheritance
-    VoxClass klass = this;
+    LoxClass klass = this;
     while (klass != null) {
       if (klass.methods.containsKey(name)) {
         return klass.methods.get(name).bind(instance);
@@ -56,16 +56,16 @@ class VoxClass implements Callable {
 
   @Override
   public int requiredArguments() {
-    VoxFunction initializer = methods.get("init");
+    LoxFunction initializer = methods.get("init");
     if (initializer == null) return 0;
     return initializer.requiredArguments();
   }
 
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
-    VoxInstance instance = new VoxInstance(this);
+    LoxInstance instance = new LoxInstance(this);
 
-    VoxFunction initializer = methods.get("init");
+    LoxFunction initializer = methods.get("init");
     if (initializer != null) {
       initializer.bind(instance).call(interpreter, arguments);
     }

@@ -1,5 +1,5 @@
 //>= Framework
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Map;
 //>= Framework
 
-public class Vox {
+public class Lox {
   private final ErrorReporter reporter = new ErrorReporter();
 //>= Evaluating Expressions
   private final Interpreter interpreter;
 //>= Evaluating Expressions
 
-  private Vox() {
+  private Lox() {
     interpreter = new Interpreter(reporter);
   }
 //>= Framework
@@ -48,14 +48,14 @@ public class Vox {
   }
 
   public static void main(String[] args) throws IOException {
-    Vox vox = new Vox();
+    Lox lox = new Lox();
 
     if (args.length > 1) {
-      System.out.println("Usage: jvox [script]");
+      System.out.println("Usage: jlox [script]");
     } else if (args.length == 1) {
-      vox.runFile(args[0]);
+      lox.runFile(args[0]);
     } else {
-      vox.repl();
+      lox.repl();
     }
   }
 

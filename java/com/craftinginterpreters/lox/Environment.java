@@ -1,5 +1,5 @@
 //>= Statements and State
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 import java.util.HashMap;
 import java.util.Map;

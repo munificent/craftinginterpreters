@@ -1,14 +1,14 @@
 //>= Classes
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 import java.util.HashMap;
 import java.util.Map;
 
-class VoxInstance {
-  private VoxClass klass;
+class LoxInstance {
+  private LoxClass klass;
   final Map<String, Object> fields = new HashMap<>();
 
-  VoxInstance(VoxClass klass) {
+  LoxInstance(LoxClass klass) {
     this.klass = klass;
   }
 
@@ -17,7 +17,7 @@ class VoxInstance {
       return fields.get(name.text);
     }
 
-    VoxFunction method = klass.findMethod(this, name.text);
+    LoxFunction method = klass.findMethod(this, name.text);
     if (method != null) return method;
 
     throw new RuntimeError(name,

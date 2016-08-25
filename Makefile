@@ -1,6 +1,6 @@
 BUILD_DIR := build
 
-default: cvox jvox
+default: cvox jlox
 
 debug:
 	@ $(MAKE) -f util/c.make NAME=cvoxd MODE=debug SOURCE_DIR=c
@@ -15,7 +15,7 @@ test: test_java test_c
 test_c: debug
 	@ python util/test.py c
 
-test_java: jvox
+test_java: jlox
 	@ python util/test.py java
 
 # Remove all build outputs and intermediate files.
@@ -32,60 +32,60 @@ cvox:
 generate_ast:
 	@ $(MAKE) -f util/java.make DIR=java PACKAGE=tool
 	@ java -cp build/java com.craftinginterpreters.tool.GenerateAst \
-			java/com/craftinginterpreters/vox
+			java/com/craftinginterpreters/lox
 
 # Compile the Java interpreter .java files to .class files.
-jvox: generate_ast
-	@ $(MAKE) -f util/java.make DIR=java PACKAGE=vox
+jlox: generate_ast
+	@ $(MAKE) -f util/java.make DIR=java PACKAGE=lox
 
 run_generate_ast = 	@ java -cp build/gen/$(1) \
 			com.craftinginterpreters.tool.GenerateAst \
-			gen/$(1)/com/craftinginterpreters/vox
+			gen/$(1)/com/craftinginterpreters/lox
 
 chapters:
 	@ python util/split_chapters.py
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap03_pancake PACKAGE=pancake
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap04_framework PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap04_framework PACKAGE=lox
 
-	@ $(MAKE) -f util/java.make DIR=gen/chap05_scanning PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap05_scanning PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap06_representing PACKAGE=tool
 	$(call run_generate_ast,chap06_representing)
-	@ $(MAKE) -f util/java.make DIR=gen/chap06_representing PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap06_representing PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap07_parsing PACKAGE=tool
 	$(call run_generate_ast,chap07_parsing)
-	@ $(MAKE) -f util/java.make DIR=gen/chap07_parsing PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap07_parsing PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap08_evaluating PACKAGE=tool
 	$(call run_generate_ast,chap08_evaluating)
-	@ $(MAKE) -f util/java.make DIR=gen/chap08_evaluating PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap08_evaluating PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap09_statements PACKAGE=tool
 	$(call run_generate_ast,chap09_statements)
-	@ $(MAKE) -f util/java.make DIR=gen/chap09_statements PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap09_statements PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap10_control PACKAGE=tool
 	$(call run_generate_ast,chap10_control)
-	@ $(MAKE) -f util/java.make DIR=gen/chap10_control PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap10_control PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap11_functions PACKAGE=tool
 	$(call run_generate_ast,chap11_functions)
-	@ $(MAKE) -f util/java.make DIR=gen/chap11_functions PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap11_functions PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap12_resolving PACKAGE=tool
 	$(call run_generate_ast,chap12_resolving)
-	@ $(MAKE) -f util/java.make DIR=gen/chap12_resolving PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap12_resolving PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap13_classes PACKAGE=tool
 	$(call run_generate_ast,chap13_classes)
-	@ $(MAKE) -f util/java.make DIR=gen/chap13_classes PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap13_classes PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=tool
 	$(call run_generate_ast,chap14_inheritance)
-	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=vox
+	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=lox
 
 # TODO: Unify with make chapters, and make more demand-driven.
 c_chapters:
@@ -144,4 +144,4 @@ diffs:
 	@ -diff --new-file gen/chap31_methods/ gen/chap32_inheritance/ > build/diffs/chap32_inheritance.diff
 	@ -diff --new-file gen/chap32_inheritance/ gen/chap33_native/ > build/diffs/chap33_native.diff
 
-.PHONY: clean cvox debug default diffs jvox test test_c test_java watch
+.PHONY: clean cvox debug default diffs jlox test test_c test_java watch

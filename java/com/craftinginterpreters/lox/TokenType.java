@@ -1,5 +1,5 @@
 //>= Scanning
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 enum TokenType {
   LEFT_PAREN, RIGHT_PAREN,

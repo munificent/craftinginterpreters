@@ -1,9 +1,9 @@
 //>= Functions
-package com.craftinginterpreters.vox;
+package com.craftinginterpreters.lox;
 
 import java.util.List;
 
-class VoxFunction implements Callable {
+class LoxFunction implements Callable {
   private final Stmt.Function declaration;
   private final Environment closure;
 //>= Classes
@@ -11,10 +11,10 @@ class VoxFunction implements Callable {
 //>= Functions
 
 /*>= Functions <= Resolving and Binding
-VoxFunction(Stmt.Function declaration, Environment closure) {
+LoxFunction(Stmt.Function declaration, Environment closure) {
 */
 //>= Classes
-  VoxFunction(Stmt.Function declaration, Environment closure,
+  LoxFunction(Stmt.Function declaration, Environment closure,
               boolean isInitializer) {
 //>= Functions
     this.declaration = declaration;
@@ -25,10 +25,10 @@ VoxFunction(Stmt.Function declaration, Environment closure) {
   }
 
 //>= Classes
-  VoxFunction bind(VoxInstance self) {
+  LoxFunction bind(LoxInstance self) {
     Environment environment = closure.enterScope();
     environment.define("this", self);
-    return new VoxFunction(declaration, environment, isInitializer);
+    return new LoxFunction(declaration, environment, isInitializer);
   }
 
 //>= Functions

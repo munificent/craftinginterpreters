@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GenerateAst {
-  static String outputDir;
+  private static String outputDir;
 
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
@@ -77,7 +77,7 @@ public class GenerateAst {
     String path = outputDir + "/" + baseName + ".java";
     PrintWriter writer = new PrintWriter(path, "UTF-8");
 
-    writer.println("package com.craftinginterpreters.vox;");
+    writer.println("package com.craftinginterpreters.lox;");
     writer.println("");
     writer.println("import java.util.List;");
     writer.println("");
