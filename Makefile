@@ -6,17 +6,17 @@ debug:
 	@ $(MAKE) -f util/c.make NAME=cvoxd MODE=debug SOURCE_DIR=c
 
 watch:
-	@ python script/build.py --watch
+	@ python util/build.py --watch
 
 # TODO: Get this working even if the first returns non-zero.
 test: test_java test_c
-	@ python script/test.py
+	@ python util/test.py
 
 test_c: debug
-	@ python script/test.py c
+	@ python util/test.py c
 
 test_java: jvox
-	@ python script/test.py java
+	@ python util/test.py java
 
 # Remove all build outputs and intermediate files.
 clean:
@@ -43,7 +43,7 @@ run_generate_ast = 	@ java -cp build/gen/$(1) \
 			gen/$(1)/com/craftinginterpreters/vox
 
 chapters:
-	@ python script/split_chapters.py
+	@ python util/split_chapters.py
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap03_pancake PACKAGE=pancake
 
@@ -89,7 +89,7 @@ chapters:
 
 # TODO: Unify with make chapters, and make more demand-driven.
 c_chapters:
-	@ python script/split_chapters.py
+	@ python util/split_chapters.py
 	@ $(MAKE) -f util/c.make NAME=chap16_chunks MODE=release SOURCE_DIR=gen/chap16_chunks
 	@ $(MAKE) -f util/c.make NAME=chap17_virtual MODE=release SOURCE_DIR=gen/chap17_virtual
 	@ $(MAKE) -f util/c.make NAME=chap18_scanning MODE=release SOURCE_DIR=gen/chap18_scanning
