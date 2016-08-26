@@ -337,7 +337,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     }
 //>= Functions
     case TYPE_TOP_LEVEL:
-      current->function->name = copyString("script", 6);
+      current->function->name = NULL;
       break;
   }
   

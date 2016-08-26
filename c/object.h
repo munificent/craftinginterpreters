@@ -64,7 +64,6 @@ typedef enum {
 struct sObj {
   ObjType type;
 //>= Garbage Collection
-  // TODO: Stuff into low bit of next?
   bool isDark;
 //>= Strings
   struct sObj* next;
@@ -84,7 +83,6 @@ typedef struct {
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
-// TODO: Make a value type?
 typedef struct {
   Obj object;
   NativeFn function;

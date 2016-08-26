@@ -58,9 +58,12 @@ static void runtimeError(const char* format, ...) {
     ObjFunction* function = frame->closure->function;
 //>= Functions
     size_t instruction = frame->ip - function->chunk.code;
-    fprintf(stderr, "[line %d] in %s\n",
-            function->chunk.lines[instruction],
-            function->name->chars);
+    fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
+    if (function->name == NULL) {
+      fprintf(stderr, "script\n");
+    } else {
+      fprintf(stderr, "%s()\n", function->name->chars);
+    }
   }
 //>= Types of Values
   
