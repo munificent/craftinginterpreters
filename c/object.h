@@ -8,7 +8,7 @@
 #include "table.h"
 //>= Strings
 
-#define OBJ_TYPE(value)         ((value).as.object->type)
+#define OBJ_TYPE(value)         (AS_OBJ(value)->type)
 
 //>= Methods and Initializers
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)

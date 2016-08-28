@@ -635,6 +635,14 @@ c_interpreter('chap33_native', 'build/chap33_native', {
   'test/expressions': 'skip',
 })
 
+c_interpreter('chap34_optimization', 'build/chap34_optimization', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+})
+
 class Test:
   def __init__(self, path):
     self.path = path

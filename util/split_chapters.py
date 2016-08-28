@@ -41,7 +41,8 @@ C_CHAPTERS = [
   "Methods and Initializers",
   # TODO: Unique name?
   "Inheritance",
-  "Native Functions"
+  "Native Functions",
+  "Optimization"
 ]
 
 LINE_SECTION_PATTERN = re.compile(r'//[>=]=')

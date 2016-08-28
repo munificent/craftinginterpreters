@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+//>= Optimization
+#define NAN_TAGGING
+
 //>= Compiling Expressions
 //#define DEBUG_PRINT_CODE
 //>= A Virtual Machine

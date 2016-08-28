@@ -10,55 +10,77 @@
 //>= Chunks of Bytecode
 #include "value.h"
 
+//>= Strings
+static void printObject(Value value) {
+  switch (OBJ_TYPE(value)) {
+//>= Classes and Instances
+    case OBJ_CLASS:
+      printf("%s", AS_CLASS(value)->name->chars);
+      break;
+//>= Methods and Initializers
+    case OBJ_BOUND_METHOD:
+//>= Closures
+    case OBJ_CLOSURE:
+//>= Functions
+    case OBJ_FUNCTION:
+      printf("<fn %p>", AS_FUNCTION(value));
+      break;
+//>= Classes and Instances
+    case OBJ_INSTANCE:
+      printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
+      break;
+//>= Native Functions
+    case OBJ_NATIVE:
+      printf("<native %p>", AS_NATIVE(value));
+      break;
+//>= Strings
+    case OBJ_STRING:
+      printf("%s", AS_CSTRING(value));
+      break;
+//>= Closures
+    case OBJ_UPVALUE:
+      printf("upvalue");
+      break;
+//>= Strings
+  }
+}
+//>= Chunks of Bytecode
+
 void printValue(Value value) {
 /*>= Chunks of Bytecode <= Compiling Expressions
   printf("%g", value);
 */
+//>= Optimization
+#ifdef NAN_TAGGING
+  if (IS_BOOL(value)) {
+    printf(AS_BOOL(value) ? "true" : "false");
+  } else if (IS_NIL(value)) {
+    printf("nil");
+  } else if (IS_NUMBER(value)) {
+    printf("%g", AS_NUMBER(value));
+  } else if (IS_OBJ(value)) {
+    printObject(value);
+  }
+#else
 //>= Types of Values
   switch (value.type) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
     case VAL_NIL:    printf("nil"); break;
     case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
 //>= Strings
-    case VAL_OBJ:
-      switch (OBJ_TYPE(value)) {
-//>= Classes and Instances
-        case OBJ_CLASS:
-          printf("%s", AS_CLASS(value)->name->chars);
-          break;
-//>= Methods and Initializers
-        case OBJ_BOUND_METHOD:
-//>= Closures
-        case OBJ_CLOSURE:
-//>= Functions
-        case OBJ_FUNCTION:
-          printf("<fn %p>", AS_FUNCTION(value));
-          break;
-//>= Classes and Instances
-        case OBJ_INSTANCE:
-          printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
-          break;
-//>= Native Functions
-        case OBJ_NATIVE:
-          printf("<native %p>", AS_NATIVE(value));
-          break;
-//>= Strings
-        case OBJ_STRING:
-          printf("%s", AS_CSTRING(value));
-          break;
-//>= Closures
-        case OBJ_UPVALUE:
-          printf("upvalue");
-          break;
-//>= Strings
-      }
-      break;
+    case VAL_OBJ:    printObject(value); break;
 //>= Types of Values
   }
+//>= Optimization
+#endif
 //>= Chunks of Bytecode
 }
 
 bool valuesEqual(Value a, Value b) {
+//>= Optimization
+#ifdef NAN_TAGGING
+  return a == b;
+#else
 /*>= Chunks of Bytecode <= Compiling Expressions
   return a == b;
 */
@@ -84,6 +106,8 @@ bool valuesEqual(Value a, Value b) {
       return AS_OBJ(a) == AS_OBJ(b);
 //>= Types of Values
   }
+//>= Optimization
+#endif
 //>= Chunks of Bytecode
 }
 

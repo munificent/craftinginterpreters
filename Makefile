@@ -108,6 +108,7 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap31_methods MODE=release SOURCE_DIR=gen/chap31_methods
 	@ $(MAKE) -f util/c.make NAME=chap32_inheritance MODE=release SOURCE_DIR=gen/chap32_inheritance
 	@ $(MAKE) -f util/c.make NAME=chap33_native MODE=release SOURCE_DIR=gen/chap33_native
+	@ $(MAKE) -f util/c.make NAME=chap34_optimization MODE=release SOURCE_DIR=gen/chap34_optimization
 
 diffs:
 	@ mkdir -p build/diffs
@@ -143,5 +144,6 @@ diffs:
 	@ -diff --new-file gen/chap30_classes/ gen/chap31_methods/ > build/diffs/chap31_methods.diff
 	@ -diff --new-file gen/chap31_methods/ gen/chap32_inheritance/ > build/diffs/chap32_inheritance.diff
 	@ -diff --new-file gen/chap32_inheritance/ gen/chap33_native/ > build/diffs/chap33_native.diff
+	@ -diff --new-file gen/chap33_native/ gen/chap34_optimization/ > build/diffs/chap34_optimization.diff
 
 .PHONY: clean clox debug default diffs jlox test test_c test_java watch
