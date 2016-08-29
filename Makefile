@@ -101,13 +101,13 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap24_global MODE=release SOURCE_DIR=gen/chap24_global
 	@ $(MAKE) -f util/c.make NAME=chap25_local MODE=release SOURCE_DIR=gen/chap25_local
 	@ $(MAKE) -f util/c.make NAME=chap26_jumping MODE=release SOURCE_DIR=gen/chap26_jumping
-	@ $(MAKE) -f util/c.make NAME=chap27_functions MODE=release SOURCE_DIR=gen/chap27_functions
-	@ $(MAKE) -f util/c.make NAME=chap28_closures MODE=release SOURCE_DIR=gen/chap28_closures
-	@ $(MAKE) -f util/c.make NAME=chap29_garbage MODE=release SOURCE_DIR=gen/chap29_garbage
-	@ $(MAKE) -f util/c.make NAME=chap30_classes MODE=release SOURCE_DIR=gen/chap30_classes
-	@ $(MAKE) -f util/c.make NAME=chap31_methods MODE=release SOURCE_DIR=gen/chap31_methods
-	@ $(MAKE) -f util/c.make NAME=chap32_inheritance MODE=release SOURCE_DIR=gen/chap32_inheritance
-	@ $(MAKE) -f util/c.make NAME=chap33_native MODE=release SOURCE_DIR=gen/chap33_native
+	@ $(MAKE) -f util/c.make NAME=chap27_function MODE=release SOURCE_DIR=gen/chap27_function
+	@ $(MAKE) -f util/c.make NAME=chap28_user MODE=release SOURCE_DIR=gen/chap28_user
+	@ $(MAKE) -f util/c.make NAME=chap29_closures MODE=release SOURCE_DIR=gen/chap29_closures
+	@ $(MAKE) -f util/c.make NAME=chap30_garbage MODE=release SOURCE_DIR=gen/chap30_garbage
+	@ $(MAKE) -f util/c.make NAME=chap31_classes MODE=release SOURCE_DIR=gen/chap31_classes
+	@ $(MAKE) -f util/c.make NAME=chap32_methods MODE=release SOURCE_DIR=gen/chap32_methods
+	@ $(MAKE) -f util/c.make NAME=chap33_inheritance MODE=release SOURCE_DIR=gen/chap33_inheritance
 	@ $(MAKE) -f util/c.make NAME=chap34_optimization MODE=release SOURCE_DIR=gen/chap34_optimization
 
 diffs:
@@ -137,13 +137,13 @@ diffs:
 	@ -diff --new-file gen/chap23_statements/ gen/chap24_global/ > build/diffs/chap24_global.diff
 	@ -diff --new-file gen/chap24_global/ gen/chap25_local/ > build/diffs/chap25_local.diff
 	@ -diff --new-file gen/chap25_local/ gen/chap26_jumping/ > build/diffs/chap26_jumping.diff
-	@ -diff --new-file gen/chap26_jumping/ gen/chap27_functions/ > build/diffs/chap27_functions.diff
-	@ -diff --new-file gen/chap27_functions/ gen/chap28_closures/ > build/diffs/chap28_closures.diff
-	@ -diff --new-file gen/chap28_closures/ gen/chap29_garbage/ > build/diffs/chap29_garbage.diff
-	@ -diff --new-file gen/chap29_garbage/ gen/chap30_classes/ > build/diffs/chap30_classes.diff
-	@ -diff --new-file gen/chap30_classes/ gen/chap31_methods/ > build/diffs/chap31_methods.diff
-	@ -diff --new-file gen/chap31_methods/ gen/chap32_inheritance/ > build/diffs/chap32_inheritance.diff
-	@ -diff --new-file gen/chap32_inheritance/ gen/chap33_native/ > build/diffs/chap33_native.diff
-	@ -diff --new-file gen/chap33_native/ gen/chap34_optimization/ > build/diffs/chap34_optimization.diff
+	@ -diff --new-file gen/chap26_jumping/ gen/chap27_function/ > build/diffs/chap27_function.diff
+	@ -diff --new-file gen/chap27_function/ gen/chap28_user/ > build/diffs/chap28_user.diff
+	@ -diff --new-file gen/chap28_user/ gen/chap29_closures/ > build/diffs/chap29_closures.diff
+	@ -diff --new-file gen/chap29_closures/ gen/chap30_garbage/ > build/diffs/chap30_garbage.diff
+	@ -diff --new-file gen/chap30_garbage/ gen/chap31_classes/ > build/diffs/chap31_classes.diff
+	@ -diff --new-file gen/chap31_classes/ gen/chap32_methods/ > build/diffs/chap32_methods.diff
+	@ -diff --new-file gen/chap32_methods/ gen/chap33_inheritance/ > build/diffs/chap33_inheritance.diff
+	@ -diff --new-file gen/chap33_inheritance/ gen/chap34_optimization/ > build/diffs/chap34_optimization.diff
 
 .PHONY: clean clox debug default diffs jlox test test_c test_java watch

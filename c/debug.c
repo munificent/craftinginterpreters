@@ -91,7 +91,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_JUMP(OP_JUMP, +)
     INST_JUMP(OP_JUMP_IF_FALSE, +)
     INST_JUMP(OP_LOOP, -)
-//>= Functions
+//>= Function Calls
     INST_ZERO(OP_CALL_0)
     INST_ZERO(OP_CALL_1)
     INST_ZERO(OP_CALL_2)

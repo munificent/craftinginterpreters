@@ -4,7 +4,7 @@
 #include <stdio.h>
 //>= Strings
 #include <string.h>
-//>= Native Functions
+//>= Function Calls
 #include <time.h>
 
 //>= A Virtual Machine
@@ -20,7 +20,7 @@
 #include "vm.h"
 
 VM vm;
-//>= Native Functions
+//>= Function Calls
 
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
@@ -29,7 +29,7 @@ static Value clockNative(int argCount, Value* args) {
 
 static void resetStack() {
   vm.stackTop = vm.stack;
-//>= Functions
+//>= User-Defined Functions
   vm.frameCount = 0;
 //>= Closures
   vm.openUpvalues = NULL;
@@ -44,19 +44,19 @@ static void runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-/*>= Types of Values <= Jumping Forward and Back
+/*>= Types of Values < User-Defined Functions
   size_t instruction = vm.ip - vm.chunk->code;
   fprintf(stderr, "[line %d] in script\n", vm.chunk->lines[instruction]);
 */
-//>= Functions
+//>= User-Defined Functions
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
-/*== Functions
+/*== User-Defined Functions
     ObjFunction* function = frame->function;
 */
 //>= Closures
     ObjFunction* function = frame->closure->function;
-//>= Functions
+//>= User-Defined Functions
     size_t instruction = frame->ip - function->chunk.code;
     fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
     if (function->name == NULL) {
@@ -69,7 +69,7 @@ static void runtimeError(const char* format, ...) {
   
   resetStack();
 }
-//>= Native Functions
+//>= Function Calls
 
 static void defineNative(const char* name, NativeFn function) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
@@ -100,7 +100,7 @@ void initVM() {
 //>= Methods and Initializers
   
   vm.initString = copyString("init", 4);
-//>= Native Functions
+//>= Function Calls
   
   defineNative("clock", clockNative);
 //>= A Virtual Machine
@@ -132,7 +132,7 @@ Value pop() {
 static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
-/*== Functions
+/*== User-Defined Functions
  
 static bool call(ObjFunction* function, int argCount) {
   if (argCount < function->arity) {
@@ -141,7 +141,7 @@ static bool call(ObjFunction* function, int argCount) {
 
 static bool call(ObjClosure* closure, int argCount) {
   if (argCount < closure->function->arity) {
-//>= Functions
+//>= User-Defined Functions
     runtimeError("Not enough arguments.");
     return false;
   }
@@ -152,22 +152,22 @@ static bool call(ObjClosure* closure, int argCount) {
   }
 
   CallFrame* frame = &vm.frames[vm.frameCount++];
-/*== Functions
+/*== User-Defined Functions
   frame->function = function;
   frame->ip = function->chunk.code;
 */
 //>= Closures
   frame->closure = closure;
   frame->ip = closure->function->chunk.code;
-//>= Functions
+//>= User-Defined Functions
   
   // +1 to include either the called function or the receiver.
   frame->slots = vm.stackTop - (argCount + 1);
   return true;
 }
+//>= Function Calls
 
 static bool callValue(Value callee, int argCount) {
-//>= Closures
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
 //>= Methods and Initializers
@@ -203,8 +203,13 @@ static bool callValue(Value callee, int argCount) {
         
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
-//>= Native Functions
-        
+
+/*== User-Defined Functions
+      case OBJ_FUNCTION:
+        return call(AS_FUNCTION(callee), argCount);
+
+*/
+//>= Function Calls
       case OBJ_NATIVE: {
         NativeFn native = AS_NATIVE(callee);
         Value result = native(argCount, vm.stackTop - argCount);
@@ -212,19 +217,12 @@ static bool callValue(Value callee, int argCount) {
         push(result);
         return true;
       }
-//>= Closures
         
       default:
         // Do nothing.
         break;
     }
   }
-/*== Functions
-  if (IS_FUNCTION(callee)) {
-    return call(AS_FUNCTION(callee), argCount);
-  }
-*/
-//>= Functions
   
   runtimeError("Can only call functions and classes.");
   return false;
@@ -390,20 +388,20 @@ static void concatenate() {
 //>= A Virtual Machine
 
 static bool run() {
-//>= Functions
+//>= User-Defined Functions
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
   
-/*>= A Virtual Machine <= Jumping Forward and Back
+/*>= A Virtual Machine < User-Defined Functions
 #define READ_BYTE() (*vm.ip++)
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
-/*== Jumping Forward and Back
+/*>= Jumping Forward and Back < User-Defined Functions
 #define READ_SHORT() (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
-//>= Functions
+//>= User-Defined Functions
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
-/*== Functions
+/*== User-Defined Functions
 #define READ_CONSTANT() (frame->function->chunk.constants.values[READ_BYTE()])
 */
 //>= Closures
@@ -443,10 +441,10 @@ static bool run() {
       printf(" ]");
     }
     printf("\n");
-/*>= A Virtual Machine <= Jumping Forward and Back
+/*>= A Virtual Machine < User-Defined Functions
     disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 */
-/*== Functions
+/*== User-Defined Functions
     disassembleInstruction(&frame->function->chunk,
         (int)(frame->ip - frame->function->chunk.code));
 */
@@ -469,10 +467,10 @@ static bool run() {
         
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/*>= Local Variables <= Jumping Forward and Back
+/*>= Local Variables < User-Defined Functions
         push(vm.stack[slot]);
 */
-//>= Functions
+//>= User-Defined Functions
         push(frame->slots[slot]);
 //>= Local Variables
         break;
@@ -480,10 +478,10 @@ static bool run() {
         
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/*>= Local Variables <= Jumping Forward and Back
+/*>= Local Variables < User-Defined Functions
         vm.stack[slot] = peek(0);
 */
-//>= Functions
+//>= User-Defined Functions
         frame->slots[slot] = peek(0);
 //>= Local Variables
         break;
@@ -643,10 +641,10 @@ static bool run() {
         
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
-/*== Jumping Forward and Back
+/*>= Jumping Forward and Back < User-Defined Functions
         vm.ip += offset;
 */
-//>= Functions
+//>= User-Defined Functions
         frame->ip += offset;
 //>= Jumping Forward and Back
         break;
@@ -654,10 +652,10 @@ static bool run() {
         
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-/*== Jumping Forward and Back
+/*>= Jumping Forward and Back < User-Defined Functions
         if (isFalsey(peek(0))) vm.ip += offset;
 */
-//>= Functions
+//>= User-Defined Functions
         if (isFalsey(peek(0))) frame->ip += offset;
 //>= Jumping Forward and Back
         break;
@@ -665,15 +663,15 @@ static bool run() {
         
       case OP_LOOP: {
         uint16_t offset = READ_SHORT();
-/*== Jumping Forward and Back
+/*>= Jumping Forward and Back < User-Defined Functions
         vm.ip -= offset;
 */
-//>= Functions
+//>= User-Defined Functions
         frame->ip -= offset;
 //>= Jumping Forward and Back
         break;
       }
-//>= Functions
+//>= Function Calls
         
       case OP_CALL_0:
       case OP_CALL_1:
@@ -686,7 +684,9 @@ static bool run() {
       case OP_CALL_8: {
         int argCount = instruction - OP_CALL_0;
         if (!callValue(peek(argCount), argCount)) return false;
+//>= User-Defined Functions
         frame = &vm.frames[vm.frameCount - 1];
+//>= Function Calls
         break;
       }
 //>= Methods and Initializers
@@ -763,16 +763,16 @@ static bool run() {
         printValue(pop());
         printf("\n");
 */
-/*>= A Virtual Machine <= Jumping Forward and Back
+/*>= A Virtual Machine < User-Defined Functions
         return true;
 */
-//>= Functions
+//>= User-Defined Functions
         Value result = pop();
 //>= Closures
         
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
-//>= Functions
+//>= User-Defined Functions
         
         vm.frameCount--;
         if (vm.frameCount == 0) return true;
@@ -839,7 +839,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/*>= Compiling Expressions <= Jumping Forward and Back
+/*>= Compiling Expressions < User-Defined Functions
   Chunk chunk;
   initChunk(&chunk);
   if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
@@ -847,11 +847,11 @@ InterpretResult interpret(const char* source) {
   vm.chunk = &chunk;
   vm.ip = vm.chunk->code;
 */
-//>= Functions
+//>= User-Defined Functions
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
   
-/*== Functions
+/*== User-Defined Functions
   callValue(OBJ_VAL(function), 0);
 */
 //>= Garbage Collection
@@ -866,7 +866,7 @@ InterpretResult interpret(const char* source) {
 //>= A Virtual Machine
   InterpretResult result = INTERPRET_RUNTIME_ERROR;
   if (run()) result = INTERPRET_OK;
-/*>= Compiling Expressions <= Jumping Forward and Back
+/*>= Compiling Expressions < User-Defined Functions
  
   freeChunk(&chunk);
 */

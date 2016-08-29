@@ -11,7 +11,7 @@
 
 void initTable(Table* table) {
   table->count = 0;
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   table->capacity = 0;
 */
 //>= Optimization
@@ -21,7 +21,7 @@ void initTable(Table* table) {
 }
 
 void freeTable(Table* table) {
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   FREE_ARRAY(Value, table->entries, table->capacity);
 */
 //>= Optimization
@@ -33,7 +33,7 @@ void freeTable(Table* table) {
 // Finds the entry where [key] should be. If the key is not already present in
 // the table, this will be an unused entry. Otherwise, it will be the existing
 // entry for that key.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
 static Entry* findEntry(Entry* entries, int capacity, ObjString* key,
 */
 //>= Optimization
@@ -42,7 +42,7 @@ static Entry* findEntry(Entry* entries, int capacityMask, ObjString* key,
                         bool stopAtTombstone) {
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   uint32_t index = key->hash % capacity;
 */
 //>= Optimization
@@ -64,7 +64,7 @@ static Entry* findEntry(Entry* entries, int capacityMask, ObjString* key,
     }
     
     // Try the next slot.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
     index = (index + 1) % capacity;
 */
 //>= Optimization
@@ -77,7 +77,7 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   // If the table is empty, we definitely won't find it.
   if (table->entries == NULL) return false;
   
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   Entry* entry = findEntry(table->entries, table->capacity, key, false);
 */
 //>= Optimization
@@ -91,14 +91,14 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
 
 #include <stdio.h>
 
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
 static void resize(Table* table, int capacity) {
 */
 //>= Optimization
 static void resize(Table* table, int capacityMask) {
 //>= Hash Tables
   // Create the new empty entry array.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   Entry* entries = ALLOCATE(Entry, capacity);
   for (int i = 0; i < capacity; i++) {
 */
@@ -112,7 +112,7 @@ static void resize(Table* table, int capacityMask) {
 
   // Re-hash the existing entries into the new array.
   table->count = 0;
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   for (int i = 0; i < table->capacity; i++) {
 */
 //>= Optimization
@@ -121,7 +121,7 @@ static void resize(Table* table, int capacityMask) {
     Entry* entry = &table->entries[i];
     if (entry->key == NULL) continue;
 
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
     Entry* dest = findEntry(entries, capacity, entry->key, false);
 */
 //>= Optimization
@@ -133,14 +133,14 @@ static void resize(Table* table, int capacityMask) {
   }
 
   // Replace the array.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   FREE_ARRAY(Value, table->entries, table->capacity);
 */
 //>= Optimization
   FREE_ARRAY(Value, table->entries, table->capacityMask + 1);
 //>= Hash Tables
   table->entries = entries;
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   table->capacity = capacity;
 */
 //>= Optimization
@@ -150,7 +150,7 @@ static void resize(Table* table, int capacityMask) {
 
 bool tableSet(Table* table, ObjString* key, Value value) {
   // If the table is getting too full, make room first.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     // Figure out the new table size.
     int capacity = GROW_CAPACITY(table->capacity);
@@ -164,7 +164,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 //>= Hash Tables
   }
 
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   Entry* entry = findEntry(table->entries, table->capacity, key, false);
 */
 //>= Optimization
@@ -181,7 +181,7 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 // TODO: This isn't actually used by anything. It's here just to show a more
 // complete hash table implementation. Can we use it?
 bool tableDelete(Table* table, ObjString* key) {
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   Entry* entry = findEntry(table->entries, table->capacity, key, false);
 */
 //>= Optimization
@@ -196,7 +196,7 @@ bool tableDelete(Table* table, ObjString* key) {
 }
 
 void tableAddAll(Table* from, Table* to) {
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   for (int i = 0; i < from->capacity; i++) {
 */
 //>= Optimization
@@ -216,7 +216,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   uint32_t index = hash % table->capacity;
 */
 //>= Optimization
@@ -236,7 +236,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     }
     
     // Try the next slot.
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
     index = (index + 1) % table->capacity;
 */
 //>= Optimization
@@ -249,7 +249,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
 //>= Garbage Collection
 
 void tableRemoveWhite(Table* table) {
-/*>= Garbage Collection <= Native Functions
+/*>= Garbage Collection < Optimization
   for (int i = 0; i < table->capacity; i++) {
 */
 //>= Optimization
@@ -268,7 +268,7 @@ void tableRemoveWhite(Table* table) {
 }
 
 void grayTable(Table* table) {
-/*>= Garbage Collection <= Native Functions
+/*>= Garbage Collection < Optimization
   for (int i = 0; i < table->capacity; i++) {
 */
 //>= Optimization

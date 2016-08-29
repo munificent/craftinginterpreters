@@ -34,14 +34,14 @@ C_CHAPTERS = [
   "Global Variables",
   "Local Variables",
   "Jumping Forward and Back",
-  "Functions",
+  "Function Calls",
+  "User-Defined Functions",
   "Closures",
   "Garbage Collection",
   "Classes and Instances",
   "Methods and Initializers",
   # TODO: Unique name?
   "Inheritance",
-  "Native Functions",
   "Optimization"
 ]
 
@@ -49,7 +49,7 @@ LINE_SECTION_PATTERN = re.compile(r'//[>=]=')
 BLOCK_SECTION_PATTERN = re.compile(r'/\*[>=]=')
 
 EQUALS_PATTERN = re.compile(r'/[/*]== (.*)')
-RANGE_PATTERN = re.compile(r'/[/*]>= (.*) <= (.*)')
+RANGE_PATTERN = re.compile(r'/[/*]>= (.*) (<=?) (.*)')
 MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
 
 
@@ -57,6 +57,8 @@ def chapter_to_package(chapters, chapter_offset, index):
   name = chapters[index].split()[0].lower()
   if name == "a" or name == "the":
     name = chapters[index].split()[1].lower()
+  if name == "user-defined":
+    name = "user"
   return "chap{0:02d}_{1}".format(index + chapter_offset, name)
 
 
@@ -69,7 +71,9 @@ def parse_range(chapters, line):
   match = RANGE_PATTERN.match(line)
   if match:
     min_chapter = chapters.index(match.group(1))
-    max_chapter = chapters.index(match.group(2))
+    operator = match.group(2)
+    max_chapter = chapters.index(match.group(3))
+    if operator == '<': max_chapter -= 1
     return min_chapter, max_chapter
 
   match = MIN_PATTERN.match(line)

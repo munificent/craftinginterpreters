@@ -12,7 +12,7 @@ typedef struct {
 
 typedef struct {
   int count;
-/*>= Hash Tables <= Native Functions
+/*>= Hash Tables < Optimization
   int capacity;
 */
 //>= Optimization

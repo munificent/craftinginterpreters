@@ -10,10 +10,10 @@
 /*== Scanning on Demand
 void compile(const char* source);
 */
-/*>= Compiling Expressions <= Jumping Forward and Back
+/*>= Compiling Expressions < User-Defined Functions
 bool compile(const char* source, Chunk* chunk);
 */
-//>= Functions
+//>= User-Defined Functions
 ObjFunction* compile(const char* source);
 //>= Garbage Collection
 void grayCompilerRoots();

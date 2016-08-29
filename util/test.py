@@ -29,6 +29,9 @@ interpreter = None
 filter_path = None
 
 INTERPRETERS = {}
+C_SUITES = []
+JAVA_SUITES = []
+
 
 class Interpreter:
   def __init__(self, name, args, tests):
@@ -36,14 +39,19 @@ class Interpreter:
     self.args = args
     self.tests = tests
 
+
 def c_interpreter(name, path, tests):
   INTERPRETERS[name] = Interpreter(name, [path], tests)
+  C_SUITES.append(name)
+
 
 def java_interpreter(name, dir, tests):
   INTERPRETERS[name] = Interpreter(name,
       ['java', '-cp', dir, 'com.craftinginterpreters.lox.Lox'], tests)
+  JAVA_SUITES.append(name)
 
-java_interpreter('java', 'build/java', {
+
+java_interpreter('jlox', 'build/java', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -331,7 +339,7 @@ java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
   'test/limit/stack_overflow.lox': 'skip',
 })
 
-c_interpreter('c', 'build/cloxd', {
+c_interpreter('clox', 'build/cloxd', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -490,7 +498,53 @@ c_interpreter('chap26_jumping', 'build/chap26_jumping', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap27_functions', 'build/chap27_functions', {
+c_interpreter('chap27_function', 'build/chap27_function', {
+  'test': 'pass',
+
+  # These are just for earlier chapters.
+  'test/scanning': 'skip',
+  'test/expressions': 'skip',
+
+  # No functions.
+  'test/call': 'skip',
+  'test/closure': 'skip',
+  'test/for/closure_in_body.lox': 'skip',
+  'test/for/return_closure.lox': 'skip',
+  'test/for/return_inside.lox': 'skip',
+  'test/for/syntax.lox': 'skip',
+  'test/function': 'skip',
+  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/stack_overflow.lox': 'skip',
+  'test/limit/too_many_constants.lox': 'skip',
+  'test/limit/too_many_locals.lox': 'skip',
+  'test/limit/too_many_upvalues.lox': 'skip',
+  'test/return': 'skip',
+  'test/unexpected_character.lox': 'skip',
+  'test/variable/collide_with_parameter.lox': 'skip',
+  'test/variable/duplicate_parameter.lox': 'skip',
+  'test/variable/early_bound.lox': 'skip',
+  'test/while/closure_in_body.lox': 'skip',
+  'test/while/return_closure.lox': 'skip',
+  'test/while/return_inside.lox': 'skip',
+
+  # No classes.
+  'test/assignment/to_this.lox': 'skip',
+  'test/class': 'skip',
+  'test/constructor': 'skip',
+  'test/field': 'skip',
+  'test/inheritance': 'skip',
+  'test/method': 'skip',
+  'test/number/decimal_point_at_eof.lox': 'skip',
+  'test/number/trailing_dot.lox': 'skip',
+  'test/operator/equals_class.lox': 'skip',
+  'test/operator/not.lox': 'skip',
+  'test/operator/not_class.lox': 'skip',
+  'test/super': 'skip',
+  'test/this': 'skip',
+  'test/variable/local_from_method.lox': 'skip',
+})
+
+c_interpreter('chap28_user', 'build/chap28_user', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -525,7 +579,7 @@ c_interpreter('chap27_functions', 'build/chap27_functions', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap28_closures', 'build/chap28_closures', {
+c_interpreter('chap29_closures', 'build/chap29_closures', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -552,7 +606,7 @@ c_interpreter('chap28_closures', 'build/chap28_closures', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap29_garbage', 'build/chap29_garbage', {
+c_interpreter('chap30_garbage', 'build/chap30_garbage', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -579,7 +633,7 @@ c_interpreter('chap29_garbage', 'build/chap29_garbage', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap30_classes', 'build/chap30_classes', {
+c_interpreter('chap31_classes', 'build/chap31_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -606,7 +660,7 @@ c_interpreter('chap30_classes', 'build/chap30_classes', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap31_methods', 'build/chap31_methods', {
+c_interpreter('chap32_methods', 'build/chap32_methods', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -619,15 +673,7 @@ c_interpreter('chap31_methods', 'build/chap31_methods', {
   'test/super': 'skip',
 })
 
-c_interpreter('chap32_inheritance', 'build/chap32_inheritance', {
-  'test': 'pass',
-
-  # These are just for earlier chapters.
-  'test/scanning': 'skip',
-  'test/expressions': 'skip',
-})
-
-c_interpreter('chap33_native', 'build/chap33_native', {
+c_interpreter('chap33_inheritance', 'build/chap33_inheritance', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -977,16 +1023,7 @@ def run_suite(name):
   return failed == 0
 
 
-if len(sys.argv) < 2 or len(sys.argv) > 3:
-  print('Usage: test.py <interpreter> [filter]')
-  sys.exit(1)
-
-if len(sys.argv) == 3:
-  filter_path = sys.argv[2]
-
-if sys.argv[1] == 'all':
-  names = sorted(INTERPRETERS.keys())
-
+def run_suites(names):
   any_failed = False
   for name in names:
     print('=== {} ==='.format(name))
@@ -996,6 +1033,20 @@ if sys.argv[1] == 'all':
   if any_failed:
     sys.exit(1)
 
+
+if len(sys.argv) < 2 or len(sys.argv) > 3:
+  print('Usage: test.py <interpreter> [filter]')
+  sys.exit(1)
+
+if len(sys.argv) == 3:
+  filter_path = sys.argv[2]
+
+if sys.argv[1] == 'all':
+  run_suites(sorted(INTERPRETERS.keys()))
+elif sys.argv[1] == 'c':
+  run_suites(C_SUITES)
+elif sys.argv[1] == 'java':
+  run_suites(JAVA_SUITES)
 elif sys.argv[1] not in INTERPRETERS:
   print('Unknown interpreter "{}"'.format(sys.argv[1]))
   sys.exit(1)

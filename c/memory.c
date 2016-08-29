@@ -8,6 +8,7 @@
 #include "memory.h"
 //>= Strings
 #include "vm.h"
+//>= Garbage Collection
 
 #ifdef DEBUG_TRACE_GC
 #include <stdio.h>
@@ -130,9 +131,8 @@ static void blackenObject(Obj* object) {
       grayValue(((ObjUpvalue*)object)->closed);
       break;
       
-//>= Native Functions
-    case OBJ_NATIVE:
 //>= Garbage Collection
+    case OBJ_NATIVE:
     case OBJ_STRING:
       // No references.
       break;
@@ -177,7 +177,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= Functions
+//>= User-Defined Functions
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       freeChunk(&function->chunk);
@@ -192,8 +192,8 @@ static void freeObject(Obj* object) {
       FREE(ObjInstance, object);
       break;
     }
-//>= Native Functions
       
+//>= Function Calls
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
@@ -205,8 +205,8 @@ static void freeObject(Obj* object) {
       FREE(ObjString, object);
       break;
     }
-      
 //>= Closures
+      
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;

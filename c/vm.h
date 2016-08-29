@@ -2,32 +2,32 @@
 #ifndef clox_vm_h
 #define clox_vm_h
 
-/*>= A Virtual Machine <= Jumping Forward and Back
+/*>= A Virtual Machine < User-Defined Functions
 #include "chunk.h"
 */
-//>= Functions
+//>= User-Defined Functions
 #include "object.h"
 //>= Hash Tables
 #include "table.h"
 //>= A Virtual Machine
 #include "value.h"
 
-/*>= A Virtual Machine <= Jumping Forward and Back
+/*>= A Virtual Machine < User-Defined Functions
 #define STACK_SIZE 256
 */
-//>= Functions
+//>= User-Defined Functions
 // TODO: Don't depend on frame count for stack count since we have stack before
 // frames?
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_COUNT)
 
 typedef struct {
-/*== Functions
+/*== User-Defined Functions
   ObjFunction* function;
 */
 //>= Closures
   ObjClosure* closure;
-//>= Functions
+//>= User-Defined Functions
   uint8_t* ip;
   Value* slots;
 } CallFrame;
@@ -36,11 +36,11 @@ typedef struct {
 typedef struct {
   Value stack[STACK_SIZE];
   Value* stackTop;
-/*>= A Virtual Machine <= Jumping Forward and Back
+/*>= A Virtual Machine < User-Defined Functions
   Chunk* chunk;
   uint8_t* ip;
 */
-//>= Functions
+//>= User-Defined Functions
 
   CallFrame frames[FRAMES_SIZE];
   int frameCount;
