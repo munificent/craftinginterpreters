@@ -20,7 +20,7 @@ class Interpreter implements Expr.Visitor<Object> {
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //>= Evaluating Expressions
   private final ErrorReporter reporter;
-/*>= Statements and State <= Control Flow
+/*>= Statements and State < Functions
 
   private Environment environment = new Environment();
 */
@@ -50,7 +50,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/*>= Statements and State <= Functions
+/*>= Statements and State < Resolving and Binding
   void interpret(List<Stmt> statements) {
 */
 //>= Resolving and Binding
@@ -151,7 +151,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     environment.declare(stmt.name);
-/*>= Functions <= Resolving and Binding
+/*>= Functions < Classes
     LoxFunction function = new LoxFunction(stmt, environment);
 */
 //>= Classes
@@ -216,7 +216,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-/*>= Statements and State <= Functions
+/*>= Statements and State < Resolving and Binding
     environment.assign(expr.name, value);
 */
 //>= Resolving and Binding

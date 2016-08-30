@@ -49,7 +49,7 @@ class Parser {
   Expr parseExpression() {
 //>= Statements and State
     return assignment();
-/*>= Parsing Expressions <= Evaluating Expressions
+/*>= Parsing Expressions < Statements and State
     return equality();
 */
 //>= Parsing Expressions
@@ -363,11 +363,11 @@ class Parser {
       return new Expr.Unary(operator, right);
     }
 
-//>= Functions
-    return call();
-/*>= Parsing Expressions <= Control Flow
+/*>= Parsing Expressions < Functions
     return primary();
 */
+//>= Functions
+    return call();
 //>= Parsing Expressions
   }
 //>= Functions

@@ -10,7 +10,7 @@ class LoxFunction implements Callable {
   private final boolean isInitializer;
 //>= Functions
 
-/*>= Functions <= Resolving and Binding
+/*>= Functions < Classes
 LoxFunction(Stmt.Function declaration, Environment closure) {
 */
 //>= Classes
@@ -58,7 +58,7 @@ LoxFunction(Stmt.Function declaration, Environment closure) {
       result = returnValue.value;
     }
 
-/*>= Functions <= Resolving and Binding
+/*>= Functions < Classes
     return result;
 */
 //>= Classes

@@ -77,7 +77,7 @@ public class Lox {
 //>= Parsing Expressions
 
     Parser parser = new Parser(tokens, reporter);
-/*>= Parsing Expressions <= Evaluating Expressions
+/*>= Parsing Expressions < Statements and State
     Expr expression = parser.parseExpression();
 */
 /*== Parsing Expressions
@@ -101,7 +101,7 @@ public class Lox {
 /*== Evaluating Expressions
     interpreter.interpret(expression);
 */
-/*>= Statements and State <= Functions
+/*>= Statements and State < Resolving and Binding
     interpreter.interpret(statements);
 */
 //>= Resolving and Binding

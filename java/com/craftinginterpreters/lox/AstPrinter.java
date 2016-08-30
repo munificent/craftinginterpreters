@@ -4,7 +4,7 @@ package com.craftinginterpreters.lox;
 import java.util.Arrays;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-/*>= Representing Code <= Evaluating Expressions
+/*>= Representing Code < Statements and State
 class AstPrinter implements Expr.Visitor<String> {
 */
 //>= Statements and State
