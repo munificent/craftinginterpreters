@@ -254,7 +254,7 @@ static int emitJump(uint8_t instruction) {
 //>= Compiling Expressions
 
 static void emitReturn() {
-/*>= User-Defined Functions <= Classes and Instances
+/*>= User-Defined Functions < Methods and Initializers
   emitByte(OP_NIL);
 */
 //>= Methods and Initializers
@@ -339,7 +339,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   local->depth = current->scopeDepth;
 //>= Closures
   local->isUpvalue = false;
-/*>= User-Defined Functions <= Classes and Instances
+/*>= User-Defined Functions < Methods and Initializers
   local->name.start = "";
   local->name.length = 0;
 */
@@ -917,7 +917,7 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/*>= Compiling Expressions <= Garbage Collection
+/*>= Compiling Expressions < Classes and Instances
   { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
 */
 //>= Classes and Instances
@@ -948,14 +948,14 @@ ParseRule rules[] = {
 */
 //>= Global Variables
   { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
-/*>= Compiling Expressions <= Types of Values
+/*>= Compiling Expressions < Strings
   { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING
 */
 //>= Strings
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
 //>= Compiling Expressions
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions < Jumping Forward and Back
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
 */
 //>= Jumping Forward and Back
@@ -977,7 +977,7 @@ ParseRule rules[] = {
 */
 //>= Types of Values
   { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
-/*>= Compiling Expressions <= Local Variables
+/*>= Compiling Expressions < Jumping Forward and Back
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
 //>= Jumping Forward and Back
@@ -985,12 +985,12 @@ ParseRule rules[] = {
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/*>= Compiling Expressions <= Methods and Initializers
+/*>= Compiling Expressions < Inheritance
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
 */
 //>= Inheritance
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
-/*>= Compiling Expressions <= Classes and Instances
+/*>= Compiling Expressions < Methods and Initializers
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
 //>= Methods and Initializers
@@ -1142,6 +1142,9 @@ static void classDeclaration() {
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
   
+/*>= Classes and Instances < Inheritance
+  emitBytes(OP_CLASS, nameConstant);
+*/
 //>= Inheritance
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
@@ -1157,9 +1160,6 @@ static void classDeclaration() {
   } else {
     emitBytes(OP_CLASS, nameConstant);
   }
-/*>= Classes and Instances <= Methods and Initializers
-  emitBytes(OP_CLASS, nameConstant);
-*/
 //>= Classes and Instances
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
@@ -1368,7 +1368,7 @@ static void declaration() {
 //>= Classes and Instances
   if (match(TOKEN_CLASS)) {
     classDeclaration();
-/*>= User-Defined Functions <= Garbage Collection
+/*>= User-Defined Functions < Classes and Instances
   if (match(TOKEN_FUN)) {
 */
 //>= Classes and Instances
@@ -1459,7 +1459,7 @@ ObjFunction* compile(const char* source) {
   parser.hadError = false;
   advance();
 
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions < Global Variables
   expression();
   consume(TOKEN_EOF, "Expect end of expression.");
 */

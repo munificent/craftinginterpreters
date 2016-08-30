@@ -47,9 +47,6 @@ static void printObject(Value value) {
 //>= Chunks of Bytecode
 
 void printValue(Value value) {
-/*>= Chunks of Bytecode <= Compiling Expressions
-  printf("%g", value);
-*/
 //>= Optimization
 #ifdef NAN_TAGGING
   if (IS_BOOL(value)) {
@@ -62,6 +59,9 @@ void printValue(Value value) {
     printObject(value);
   }
 #else
+/*>= Chunks of Bytecode < Types of Values
+  printf("%g", value);
+*/
 //>= Types of Values
   switch (value.type) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
@@ -81,7 +81,7 @@ bool valuesEqual(Value a, Value b) {
 #ifdef NAN_TAGGING
   return a == b;
 #else
-/*>= Chunks of Bytecode <= Compiling Expressions
+/*>= Chunks of Bytecode < Types of Values
   return a == b;
 */
 //>= Types of Values

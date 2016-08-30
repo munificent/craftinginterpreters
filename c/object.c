@@ -41,7 +41,7 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
 }
 //>= Classes and Instances
 
-/*>= Classes and Instances <= Methods and Initializers
+/*>= Classes and Instances < Inheritance
 ObjClass* newClass(ObjString* name) {
 */
 //>= Inheritance

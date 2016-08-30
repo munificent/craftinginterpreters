@@ -72,7 +72,7 @@ static inline Value numToValue(double num)
 
 #else
 
-/*>= Chunks of Bytecode <= Compiling Expressions
+/*>= Chunks of Bytecode < Types of Values
 typedef double Value;
 */
 //>= Types of Values

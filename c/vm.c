@@ -336,7 +336,7 @@ static void defineMethod(ObjString* name) {
   tableSet(&klass->methods, name, method);
   pop();
 }
-/*>= Classes and Instances <= Methods and Initializers
+/*>= Classes and Instances < Inheritance
 
 static void createClass(ObjString* name) {
   ObjClass* klass = newClass(name);
@@ -363,7 +363,7 @@ static bool isFalsey(Value value) {
 //>= Strings
 
 static void concatenate() {
-/*>= Strings <= Closures
+/*>= Strings < Garbage Collection
   ObjString* b = AS_STRING(pop());
   ObjString* a = AS_STRING(pop());
 */
@@ -408,7 +408,7 @@ static bool run() {
 #define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //>= Global Variables
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-/*>= A Virtual Machine <= Compiling Expressions
+/*>= A Virtual Machine < Types of Values
 
 #define BINARY_OP(op) \
     do { \
@@ -586,7 +586,7 @@ static bool run() {
 
       case OP_GREATER:  BINARY_OP(BOOL_VAL, >); break;
       case OP_LESS:     BINARY_OP(BOOL_VAL, <); break;
-/*>= A Virtual Machine <= Compiling Expressions
+/*>= A Virtual Machine < Types of Values
       case OP_ADD:      BINARY_OP(+); break;
       case OP_SUBTRACT: BINARY_OP(-); break;
       case OP_MULTIPLY: BINARY_OP(*); break;
@@ -787,7 +787,7 @@ static bool run() {
 //>= Classes and Instances
         
       case OP_CLASS:
-/*>= Classes and Instances <= Methods and Initializers
+/*>= Classes and Instances < Inheritance
         createClass(READ_STRING());
 */
 //>= Inheritance

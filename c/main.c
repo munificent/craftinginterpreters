@@ -5,8 +5,6 @@
 #include "common.h"
 /*>= Chunks of Bytecode <= A Virtual Machine
 #include "chunk.h"
-*/
-/*>= Chunks of Bytecode <= A Virtual Machine
 #include "debug.h"
 */
 //>= A Virtual Machine
