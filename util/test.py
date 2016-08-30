@@ -349,7 +349,7 @@ c_interpreter('clox', 'build/cloxd', {
 
 # TODO: Other chapters.
 
-c_interpreter('chap24_global', 'build/chap24_global', {
+c_interpreter('chap23_global', 'build/chap23_global', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -364,6 +364,14 @@ c_interpreter('chap24_global', 'build/chap24_global', {
   'test/logical_operator': 'skip',
   'test/variable/unreached_undefined.lox': 'skip',
   'test/while': 'skip',
+
+  # No blocks.
+  'test/assignment/local.lox': 'skip',
+  'test/variable/in_middle_of_block.lox': 'skip',
+  'test/variable/in_nested_block.lox': 'skip',
+  'test/variable/scope_reuse_in_different_blocks.lox': 'skip',
+  'test/variable/shadow_and_local.lox': 'skip',
+  'test/variable/undefined_local.lox': 'skip',
 
   # No local variables.
   'test/block/scope.lox': 'skip',
@@ -404,7 +412,7 @@ c_interpreter('chap24_global', 'build/chap24_global', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap25_local', 'build/chap25_local', {
+c_interpreter('chap24_local', 'build/chap24_local', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -452,7 +460,7 @@ c_interpreter('chap25_local', 'build/chap25_local', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap26_jumping', 'build/chap26_jumping', {
+c_interpreter('chap25_jumping', 'build/chap25_jumping', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -498,7 +506,7 @@ c_interpreter('chap26_jumping', 'build/chap26_jumping', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap27_function', 'build/chap27_function', {
+c_interpreter('chap26_function', 'build/chap26_function', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -544,7 +552,7 @@ c_interpreter('chap27_function', 'build/chap27_function', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap28_user', 'build/chap28_user', {
+c_interpreter('chap27_user', 'build/chap27_user', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -579,7 +587,7 @@ c_interpreter('chap28_user', 'build/chap28_user', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap29_closures', 'build/chap29_closures', {
+c_interpreter('chap28_closures', 'build/chap28_closures', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -606,7 +614,7 @@ c_interpreter('chap29_closures', 'build/chap29_closures', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap30_garbage', 'build/chap30_garbage', {
+c_interpreter('chap29_garbage', 'build/chap29_garbage', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -633,7 +641,7 @@ c_interpreter('chap30_garbage', 'build/chap30_garbage', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap31_classes', 'build/chap31_classes', {
+c_interpreter('chap30_classes', 'build/chap30_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -660,7 +668,7 @@ c_interpreter('chap31_classes', 'build/chap31_classes', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap32_methods', 'build/chap32_methods', {
+c_interpreter('chap31_methods', 'build/chap31_methods', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -673,7 +681,7 @@ c_interpreter('chap32_methods', 'build/chap32_methods', {
   'test/super': 'skip',
 })
 
-c_interpreter('chap33_inheritance', 'build/chap33_inheritance', {
+c_interpreter('chap32_inheritance', 'build/chap32_inheritance', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -681,7 +689,7 @@ c_interpreter('chap33_inheritance', 'build/chap33_inheritance', {
   'test/expressions': 'skip',
 })
 
-c_interpreter('chap34_optimization', 'build/chap34_optimization', {
+c_interpreter('chap33_optimization', 'build/chap33_optimization', {
   'test': 'pass',
 
   # These are just for earlier chapters.

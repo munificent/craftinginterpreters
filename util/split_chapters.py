@@ -30,7 +30,6 @@ C_CHAPTERS = [
   "Types of Values",
   "Strings",
   "Hash Tables",
-  "Statements",
   "Global Variables",
   "Local Variables",
   "Jumping Forward and Back",

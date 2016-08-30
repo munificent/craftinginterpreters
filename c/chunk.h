@@ -11,7 +11,7 @@ typedef enum {
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
-//>= Statements
+//>= Global Variables
   OP_POP,
 //>= Local Variables
   OP_GET_LOCAL,
@@ -41,7 +41,7 @@ typedef enum {
   OP_NOT,
 //>= A Virtual Machine
   OP_NEGATE,
-//>= Statements
+//>= Global Variables
   OP_PRINT,
 //>= Jumping Forward and Back
   OP_JUMP,

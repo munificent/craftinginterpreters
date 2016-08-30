@@ -55,7 +55,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_NIL)
     INST_ZERO(OP_TRUE)
     INST_ZERO(OP_FALSE)
-//>= Statements
+//>= Global Variables
     INST_ZERO(OP_POP)
 //>= Local Variables
     INST_BYTE(OP_GET_LOCAL)
@@ -85,7 +85,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_NOT)
 //>= A Virtual Machine
     INST_ZERO(OP_NEGATE)
-//>= Statements
+//>= Global Variables
     INST_ZERO(OP_PRINT)
 //>= Jumping Forward and Back
     INST_JUMP(OP_JUMP, +)

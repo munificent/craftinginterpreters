@@ -40,7 +40,7 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
 typedef void (*ParseFn)();
 */
 //>= Global Variables
@@ -191,16 +191,14 @@ static void consume(TokenType type, const char* message) {
   errorAtCurrent(message);
   
   // If we're consuming a synchronizing token, keep going until we find it.
-/*>= Compiling Expressions <= Hash Tables
+/*>= Compiling Expressions < Global Variables
   if (type == TOKEN_RIGHT_PAREN) {
 */
-//>= Statements
+//>= Global Variables
   if (type == TOKEN_LEFT_BRACE ||
       type == TOKEN_RIGHT_BRACE ||
       type == TOKEN_RIGHT_PAREN ||
-//>= Global Variables
       type == TOKEN_EQUAL ||
-//>= Statements
       type == TOKEN_SEMICOLON) {
 //>= Compiling Expressions
     while (parser.current.type != type &&
@@ -211,7 +209,7 @@ static void consume(TokenType type, const char* message) {
     advance();
   }
 }
-//>= Statements
+//>= Global Variables
 
 static bool check(TokenType type) {
   return parser.current.type == type;
@@ -415,7 +413,7 @@ static void endScope() {
 
 // Forward declarations since the grammar is recursive.
 static void expression();
-//>= Statements
+//>= Global Variables
 static void statement();
 static void declaration();
 //>= Compiling Expressions
@@ -633,7 +631,7 @@ static void and_(bool canAssign) {
   
   patchJump(endJump);
 }
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
 
 static void binary() {
 */
@@ -689,7 +687,7 @@ static void dot(bool canAssign) {
     emitBytes(OP_GET_FIELD, name);
   }
 }
-/*>= Types of Values <= Statements
+/*>= Types of Values < Global Variables
  
 static void false_() {
 */
@@ -699,7 +697,7 @@ static void false_(bool canAssign) {
 //>= Types of Values
   emitByte(OP_FALSE);
 }
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
  
 static void grouping() {
 */
@@ -710,7 +708,7 @@ static void grouping(bool canAssign) {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
-/*>= Types of Values <= Statements
+/*>= Types of Values < Global Variables
  
 static void nil() {
 */
@@ -720,7 +718,7 @@ static void nil(bool canAssign) {
 //>= Types of Values
   emitByte(OP_NIL);
 }
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
  
 static void number() {
 */
@@ -762,7 +760,7 @@ static void or_(bool canAssign) {
   parsePrecedence(PREC_OR);
   patchJump(endJump);
 }
-/*>= Strings <= Statements
+/*>= Strings < Global Variables
  
 static void string() {
 */
@@ -866,7 +864,7 @@ static void this_(bool canAssign) {
     variable(false);
   }
 }
-/*>= Types of Values <= Statements
+/*>= Types of Values < Global Variables
  
 static void true_() {
 */
@@ -876,7 +874,7 @@ static void true_(bool canAssign) {
 //>= Types of Values
   emitByte(OP_TRUE);
 }
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
  
 static void unary() {
 */
@@ -945,7 +943,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 */
 //>= Global Variables
@@ -1019,7 +1017,7 @@ static void parsePrecedence(Precedence precedence) {
     return;
   }
   
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
   prefixRule();
 */
 //>= Global Variables
@@ -1030,7 +1028,7 @@ static void parsePrecedence(Precedence precedence) {
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
-/*>= Compiling Expressions <= Statements
+/*>= Compiling Expressions < Global Variables
     infixRule();
 */
 //>= Global Variables
@@ -1055,7 +1053,7 @@ static ParseRule* getRule(TokenType type) {
 void expression() {
   parsePrecedence(PREC_ASSIGNMENT);
 }
-//>= Statements
+//>= Local Variables
 
 static void block() {
   consume(TOKEN_LEFT_BRACE, "Expect '{' before block.");
@@ -1206,7 +1204,7 @@ static void varDeclaration() {
   
   defineVariable(global);
 }
-//>= Statements
+//>= Global Variables
 
 static void expressionStatement() {
   expression();
@@ -1314,7 +1312,7 @@ static void ifStatement() {
   
   patchJump(endJump);
 }
-//>= Statements
+//>= Global Variables
 
 static void printStatement() {
   expression();
@@ -1364,7 +1362,7 @@ static void whileStatement() {
   patchJump(exitJump);
   emitByte(OP_POP); // Condition.
 }
-//>= Statements
+//>= Global Variables
 
 static void declaration() {
 //>= Classes and Instances
@@ -1387,23 +1385,19 @@ static void declaration() {
   } else {
     statement();
   }
-/*== Statements
-  statement();
-*/
-//>= Statements
 }
 
 static void statement() {
+/*>= Global Variables < Jumping Forward and Back
+  if (match(TOKEN_PRINT)) {
+*/
 //>= Jumping Forward and Back
   if (match(TOKEN_FOR)) {
     forStatement();
   } else if (match(TOKEN_IF)) {
     ifStatement();
   } else if (match(TOKEN_PRINT)) {
-/*>= Statements <= Local Variables
-  if (match(TOKEN_PRINT)) {
-*/
-//>= Statements
+//>= Global Variables
     printStatement();
 //>= User-Defined Functions
   } else if (match(TOKEN_RETURN)) {
@@ -1411,15 +1405,12 @@ static void statement() {
 //>= Jumping Forward and Back
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
-//>= Statements
+//>= Local Variables
   } else if (check(TOKEN_LEFT_BRACE)) {
-//>= Local Variables
     beginScope();
-//>= Statements
     block();
-//>= Local Variables
     endScope();
-//>= Statements
+//>= Global Variables
   } else {
     expressionStatement();
   }
@@ -1472,7 +1463,7 @@ ObjFunction* compile(const char* source) {
   expression();
   consume(TOKEN_EOF, "Expect end of expression.");
 */
-//>= Statements
+//>= Global Variables
   if (!match(TOKEN_EOF)) {
     do {
       declaration();
