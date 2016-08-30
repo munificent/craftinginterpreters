@@ -336,18 +336,18 @@ static void defineMethod(ObjString* name) {
   tableSet(&klass->methods, name, method);
   pop();
 }
-/*>= Classes and Instances < Inheritance
+/*>= Classes and Instances < Superclasses
 
 static void createClass(ObjString* name) {
   ObjClass* klass = newClass(name);
 */
-//>= Inheritance
+//>= Superclasses
 
 static void createClass(ObjString* name, ObjClass* superclass) {
   ObjClass* klass = newClass(name, superclass);
 //>= Classes and Instances
   push(OBJ_VAL(klass));
-//>= Inheritance
+//>= Superclasses
   
   // Inherit methods.
   if (superclass != NULL) {
@@ -567,7 +567,7 @@ static bool run() {
         push(value);
         break;
       }
-//>= Inheritance
+//>= Superclasses
         
       case OP_GET_SUPER: {
         ObjString* name = READ_STRING();
@@ -706,7 +706,7 @@ static bool run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
-//>= Inheritance
+//>= Superclasses
         
       case OP_SUPER_0:
       case OP_SUPER_1:
@@ -787,14 +787,14 @@ static bool run() {
 //>= Classes and Instances
         
       case OP_CLASS:
-/*>= Classes and Instances < Inheritance
+/*>= Classes and Instances < Superclasses
         createClass(READ_STRING());
 */
-//>= Inheritance
+//>= Superclasses
         createClass(READ_STRING(), NULL);
 //>= Classes and Instances
         break;
-//>= Inheritance
+//>= Superclasses
         
       case OP_SUBCLASS: {
         Value superclass = peek(0);

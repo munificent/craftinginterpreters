@@ -39,8 +39,7 @@ C_CHAPTERS = [
   "Garbage Collection",
   "Classes and Instances",
   "Methods and Initializers",
-  # TODO: Unique name?
-  "Inheritance",
+  "Superclasses",
   "Optimization"
 ]
 

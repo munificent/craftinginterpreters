@@ -681,7 +681,7 @@ c_interpreter('chap31_methods', 'build/chap31_methods', {
   'test/super': 'skip',
 })
 
-c_interpreter('chap32_inheritance', 'build/chap32_inheritance', {
+c_interpreter('chap32_superclasses', 'build/chap32_superclasses', {
   'test': 'pass',
 
   # These are just for earlier chapters.

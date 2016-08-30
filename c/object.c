@@ -41,15 +41,15 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
 }
 //>= Classes and Instances
 
-/*>= Classes and Instances < Inheritance
+/*>= Classes and Instances < Superclasses
 ObjClass* newClass(ObjString* name) {
 */
-//>= Inheritance
+//>= Superclasses
 ObjClass* newClass(ObjString* name, ObjClass* superclass) {
 //>= Classes and Instances
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
-//>= Inheritance
+//>= Superclasses
   klass->superclass = superclass;
 //>= Methods and Initializers
   initTable(&klass->methods);
