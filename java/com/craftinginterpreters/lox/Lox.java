@@ -1,4 +1,4 @@
-//>= Framework
+//>= Read, Evaluate, Print, Loop
 package com.craftinginterpreters.lox;
 
 import java.io.BufferedReader;
@@ -11,7 +11,7 @@ import java.nio.file.Paths;
 import java.util.List;
 //>= Resolving and Binding
 import java.util.Map;
-//>= Framework
+//>= Read, Evaluate, Print, Loop
 
 public class Lox {
   private final ErrorReporter reporter = new ErrorReporter();
@@ -22,7 +22,7 @@ public class Lox {
   private Lox() {
     interpreter = new Interpreter(reporter);
   }
-//>= Framework
+//>= Read, Evaluate, Print, Loop
 
   private void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -59,9 +59,9 @@ public class Lox {
     }
   }
 
-//>= Framework
+//>= Read, Evaluate, Print, Loop
   private void run(String source) {
-/*== Framework
+/*== Read, Evaluate, Print, Loop
     // For now, just echo the source back.
     System.out.println(source);
 */
@@ -106,6 +106,6 @@ public class Lox {
 */
 //>= Resolving and Binding
     interpreter.interpret(statements, locals);
-//>= Framework
+//>= Read, Evaluate, Print, Loop
   }
 }

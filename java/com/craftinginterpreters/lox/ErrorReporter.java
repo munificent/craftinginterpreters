@@ -1,4 +1,4 @@
-//>= Framework
+//>= Read, Evaluate, Print, Loop
 package com.craftinginterpreters.lox;
 
 class ErrorReporter {
@@ -29,7 +29,7 @@ class ErrorReporter {
     }
   }
 
-//>= Framework
+//>= Read, Evaluate, Print, Loop
   private void report(int line, String location, String message) {
     System.err.println("[line " + line + "] Error" + location +
         ": " + message);

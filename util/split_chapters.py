@@ -8,7 +8,7 @@ import re
 
 JAVA_CHAPTERS = [
   "The Pancake Language",
-  "Framework",
+  "Read, Evaluate, Print, Loop",
   "Scanning",
   "Representing Code",
   "Parsing Expressions",
@@ -52,7 +52,7 @@ MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
 
 
 def chapter_to_package(chapters, chapter_offset, index):
-  name = chapters[index].split()[0].lower()
+  name = chapters[index].split()[0].lower().replace(',', '')
   if name == "a" or name == "the":
     name = chapters[index].split()[1].lower()
   if name == "user-defined":
