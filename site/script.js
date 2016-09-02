@@ -36,12 +36,14 @@ $(document).ready(function() {
 });
 
 function refreshAsides() {
-  // Don't position them if they're inline.
-  if ($(document).width() <= 48 * 20) return;
-
-  // Vertically position the asides next to the span they annotate.
   $("aside").each(function() {
     var aside = $(this);
+
+    // If the asides are inline, clear their position.
+    if ($(document).width() <= 48 * 20) {
+      aside.css('top', 'auto');
+      return;
+    }
 
     // Find the span the aside should be anchored next to.
     var name = aside.attr("name");
@@ -51,6 +53,7 @@ function refreshAsides() {
       return;
     }
 
+    // Vertically position the aside next to the span it annotates.
     aside.offset({top: span.position().top - 1});
   });
 }

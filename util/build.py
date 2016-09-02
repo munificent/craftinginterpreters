@@ -4,9 +4,13 @@
 import codecs
 import glob
 import os
+import posixpath
 import subprocess
 import sys
 import time
+import urllib
+from BaseHTTPServer import HTTPServer
+from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 import jinja2
 import markdown
@@ -18,52 +22,19 @@ DEFAULT = '\033[0m'
 PINK = '\033[91m'
 YELLOW = '\033[33m'
 
-JAVA_CHAPTERS = [
-  "Framework",
-  "Scanning",
-  "Representing Code",
-  "Parsing Expressions",
-  "Evaluating Expressions",
-  "Statements and State",
-  "Control Flow",
-  "Functions",
-  "Resolving and Binding",
-  "Classes",
-  "Inheritance",
-  "Reaching the Summit"
-]
 
-C_CHAPTERS = [
-  "Chunks of Bytecode",
-  "A Virtual Machine",
-  "Scanning on Demand",
-  "Compiling Expressions",
-  "Types of Values",
-  "Strings",
-  "Hash Tables",
-  "Statements",
-  "Global Variables",
-  "Local Variables",
-  "Jumping Forward and Back",
-  "Functions",
-  "Closures",
-  "Garbage Collection",
-  "Classes and Instances",
-  "Methods and Initializers",
-  "Inheritance",
-  "Native Functions",
-]
-
-
-PAGES = [
-  'Table of Contents',
-  'The Lay of the Land',
+PARTS = [
+  '', [
+    'Table of Contents',
+  ],
+  'The Lay of the Land', [
     'Introduction',
-    'Your First Language',
-    'Your Second Language',
+    'The Pancake Language',
+    'The Lox Language',
     # ...
-  'The View from the Top',
-    'Read, Eval, Print, Loop',
+  ],
+  'The View from the Top', [
+    'Read, Evaluate, Print, Loop',
     'Scanning',
     'Representing Code',
     'Parsing Expressions',
@@ -75,7 +46,8 @@ PAGES = [
     'Classes',
     'Inheritance',
     'Reaching the Summit',
-  'The Long Way Down',
+  ],
+  'The Long Way Down', [
     'Chunks of Bytecode',
     'A Virtual Machine',
     'Scanning on Demand',
@@ -83,33 +55,120 @@ PAGES = [
     'Types of Values',
     'Strings',
     'Hash Tables',
-    'Statements',
     'Global Variables',
     'Local Variables',
     'Jumping Forward and Back',
-    'Functions',
+    'Function Calls',
+    'User-Defined Functions',
     'Closures',
     'Garbage Collection',
     'Classes and Instances',
     'Methods and Initializers',
-    'Inheritance',
-    'Native Functions',
-  'Glossary'
+    'Superclasses',
+    'Optimization',
+  ],
+  '', [
+    'Glossary'
+  ]
 ]
+
+
+def flatten_pages():
+  """Flatten the list of parts and chapters to a single linear list of pages."""
+  pages = []
+  for part in PARTS:
+    if part == '':
+      # Empty names are for the front- and backmatter "parts".
+      pass
+    elif isinstance(part, str):
+      pages.append(part)
+    else:
+      pages.extend(part)
+
+  return pages
+
+PAGES = flatten_pages()
+
+def roman(n):
+  """Convert n to roman numerals."""
+  if n <= 3:
+    return "I" * n
+  elif n == 4:
+    return "IV"
+  elif n < 10:
+    return "V" + "I" * (n - 5)
+  else:
+    raise "Can't convert " + str(n) + " to Roman."
+
+def number_chapters():
+  """Determine the part or chapter numbers for each part or chapter."""
+  numbers = {}
+  part_num = 1
+  in_matter = False
+  chapter_num = 1
+  for part in PARTS:
+    if part == '':
+      # Empty names are for the front- and backmatter "parts".
+      in_matter = True
+      pass
+    elif isinstance(part, str):
+      numbers[part] = roman(part_num)
+      part_num += 1
+      in_matter = False
+    else:
+      for chapter in part:
+        if in_matter:
+          # Front and backmatter content is not numbered.
+          numbers[chapter] = "-"
+        else:
+          numbers[chapter] = chapter_num
+          chapter_num += 1
+
+  return numbers
+
+NUMBERS = number_chapters()
 
 num_chapters = 0
 empty_chapters = 0
 total_words = 0
 
 
-def make_toc(title):
-  '''Generate the HTML for a table of contents for the given page.'''
-  return "OMG TOC"
+class RootedHTTPServer(HTTPServer):
+  """Simple server that resolves paths relative to a given directory.
+
+  From: http://louistiao.me/posts/python-simplehttpserver-recipe-serve-specific-directory/
+  """
+  def __init__(self, base_path, *args, **kwargs):
+    HTTPServer.__init__(self, *args, **kwargs)
+    self.RequestHandlerClass.base_path = base_path
+
+
+class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
+  """Simple handler that resolves paths relative to a given directory.
+
+  From: http://louistiao.me/posts/python-simplehttpserver-recipe-serve-specific-directory/
+  """
+  def translate_path(self, path):
+    # Refresh on request.
+    format_files(True)
+    build_sass(True)
+
+    path = posixpath.normpath(urllib.unquote(path))
+    words = path.split('/')
+    words = filter(None, words)
+    path = self.base_path
+    for word in words:
+      drive, word = os.path.splitdrive(word)
+      head, word = os.path.split(word)
+      if word in (os.curdir, os.pardir):
+        continue
+      path = os.path.join(path, word)
+    return path
 
 
 def title_to_file(title):
-  '''Given a title like "Event Queue", converts it to the corresponding file
-  name like "event-queue".'''
+  '''Given a title like "Hash Tables", converts it to the corresponding file
+  name like "hash-tables".'''
   if title == "Table of Contents":
     return "contents"
 
@@ -144,7 +203,8 @@ def format_file(path, skip_up_to_date):
   if skip_up_to_date:
     source_mod = max(
         os.path.getmtime(path),
-        os.path.getmtime('asset/template/page.html'))
+        os.path.getmtime('asset/template/page.html'),
+        os.path.getmtime('asset/template/toc.html'))
     # if os.path.exists(cpp_path(basename)):
     #   source_mod = max(source_mod, os.path.getmtime(cpp_path(basename)))
 
@@ -206,6 +266,12 @@ def format_file(path, skip_up_to_date):
       else:
         contents += pretty(line)
 
+  chapters = []
+  first_chapter = 0
+  if title in PARTS:
+    chapters = PARTS[PARTS.index(title) + 1]
+    first_chapter = NUMBERS[chapters[0]]
+
   # title_text = title
   # section_header = ""
 
@@ -225,6 +291,9 @@ def format_file(path, skip_up_to_date):
     'part': part,
     'body': body,
     'sections': sections,
+    'chapters': chapters,
+    'first_chapter': first_chapter,
+    'number': NUMBERS[title],
     'prev': adjacent_page(title, -1),
     'next': adjacent_page(title, 1)
   }
@@ -281,16 +350,28 @@ def build_sass(skip_up_to_date):
     print "{}✓{} {}".format(GREEN, DEFAULT, dest)
 
 
+def run_server():
+  port = 8000
+  handler = RootedHTTPRequestHandler
+  server = RootedHTTPServer("site", ('', port), handler)
+
+  print 'Serving at port', port
+  server.serve_forever()
+
+
 environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader('asset/template'))
 
 environment.filters['file'] = title_to_file
 
 if len(sys.argv) == 2 and sys.argv[1] == "--watch":
+  run_server()
   while True:
     format_files(True)
     build_sass(True)
     time.sleep(0.3)
+if len(sys.argv) == 2 and sys.argv[1] == "--serve":
+  run_server()
 else:
   format_files(False)
   build_sass(False)

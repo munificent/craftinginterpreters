@@ -1,4 +1,4 @@
-^title A Virtual Machine
+^title Global Variables
 ^part The Long Way Down
 
 This chapter hasn't been written yet!
