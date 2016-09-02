@@ -56,21 +56,41 @@ body {
   background: url('rows.png');
 }
 
+a {
+  color: $primary;
+  text-decoration: none;
+  outline: none;
+
+  border-bottom: solid 1px transparentize($light, 1.0);
+
+  transition: color 0.2s ease,
+              border-color 0.4s ease;
+}
+
+a:hover {
+  color: $primary;
+  border-bottom: solid 1px opacify($light, 1.0);
+}
+
 nav {
-  font: 300 14px/24px $nav;
+  font: 300 15px/24px $nav;
   background: $dark;
   color: $gray-40;
 
   a, h2 a {
     color: $gray-60;
+    text-decoration: none;
+    border-bottom: none;
   }
 
   a:hover {
     color: $light;
+    text-decoration: none;
+    border-bottom: none;
   }
 
   h1 {
-    padding: 125px 0 0 0;
+    padding: 125px 0 1px 0;
     font: 300 21px/24px $nav;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -78,31 +98,47 @@ nav {
   }
 
   h2 {
-    margin: 0 0 6px 0;
-    padding: 28px 0 0 0;
-    font: 400 13px/18px $nav;
+    font: 400 16px/24px $nav;
     text-transform: uppercase;
-    text-align: center;
     letter-spacing: 1px;
+    color: $gray-60;
+  }
+
+  h3 {
+    font: 400 18px/24px $nav;
+    color: $gray-60;
+  }
+
+  h2 small, h3 small {
+    display: inline-block;
+    width: 20px;
+    font-size: 13px;
+    color: $gray-40;
+    text-align: right;
   }
 
   ol, ul {
-    padding-left: 24px;
-  }
-
-  ul {
-    list-style-type: disc;
-  }
-
-  ol.toc {
-    margin: 0 0 7px;
+    margin: 3px 0 0 0;
     padding: 7px 0 4px 24px;
     border-top: solid 1px $gray-30;
     border-bottom: solid 1px $gray-30;
   }
 
-  ol > li > a {
-    font-weight: 400;
+  ul {
+    list-style-type: none;
+  }
+
+  ul > li:before {
+    float: left;
+    margin-left: -13px;
+    content: "\000A7";
+  }
+
+  .prev-next {
+    padding-top: 7px;
+    font: 400 12px/18px $nav;
+    text-transform: uppercase;
+    letter-spacing: 1px;
   }
 }
 
@@ -112,16 +148,7 @@ nav.wide {
   height: 100%;
 
   .contents {
-    position: absolute;
-    top: 175px;
-    bottom: 0;
-    right: $col;
-    left: $col;
-    overflow: hidden;
-  }
-
-  a:hover {
-    border-bottom: solid 1px $gray-40;
+    margin: 24px $col;
   }
 }
 
@@ -147,7 +174,7 @@ nav.floating {
   border-bottom-right-radius: 3px;
 
   #expand-nav {
-    padding: 13px 0 6px 0;
+    padding: 0 0 4px 0;
     display: block;
     font-size: 20px;
     text-align: center;
@@ -182,13 +209,11 @@ nav.floating {
   .expandable.shown {
     // This should be as small as possible while still being large enough for
     // the worst case chapter.
-    max-height: 600px;
+    max-height: 550px;
   }
 
-  ol.toc {
-    margin-top: 42px;
-
-    transition: margin 0.2s ease;
+  h2, h3 {
+    margin-top: 24px;
   }
 }
 
@@ -202,10 +227,6 @@ nav.floating.pinned {
   #expand-nav {
     margin-top: -12px;
     padding: 7px 0 0 0;
-  }
-
-  ol.toc {
-    margin-top: 12px;
   }
 }
 
@@ -246,11 +267,31 @@ nav.narrow {
 }
 
 article {
+  position: relative;
   width: $col * 12;
 
   h1 {
+    position: relative;
     font: 300 48px/48px $serif;
     padding: 103px 0 23px 0;
+    z-index: 2;
+  }
+
+  h1.part {
+    font: 600 36px/48px $nav;
+    padding: 108px 0 18px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .number {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    z-index: 1;
+
+    font: normal 96px $serif;
+    color: $light;
   }
 
   h2 {
@@ -275,14 +316,17 @@ article {
     color: inherit;
   }
 
-  h2 a::after, h3 a::after {
-    content: "#";
+  h2 a::before, h3 a::before {
+    position: absolute;
+    left: -($col - 12px);
+    width: $col - 12px;
+    content: "\000A7";
     color: #fff;
     transition: color 0.2s ease;
     padding-left: 8px;
   }
 
-  h2 a:hover::after, h3 a:hover::after {
+  h2 a:hover::before, h3 a:hover::before {
     color: #ddd;
   }
 
@@ -295,9 +339,35 @@ article {
   }
 }
 
+.toc {
+  display: table;
+  width: 100%;
+  margin-top: 24px;
+}
+
+.column {
+  display: table-cell;
+  vertical-align: top;
+
+  li {
+    font: normal 14px/24px $nav;
+    color: $gray-60;
+  }
+
+  a {
+    font: normal 18px/24px $serif;
+  }
+
+  > ol > li > a {
+    font: 600 normal 16px/24px $nav;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}
+
 aside {
   position: absolute;
-  right: 0;
+  right: -$col * 7;
 
   width: $col * 6;
 
@@ -316,22 +386,6 @@ aside {
   p:last-child {
     margin-bottom: 4px;
   }
-}
-
-a {
-  color: $primary;
-  text-decoration: none;
-  outline: none;
-
-  border-bottom: solid 1px transparentize($light, 1.0);
-
-  transition: color 0.2s ease,
-              border-color 0.4s ease;
-}
-
-a:hover {
-  color: $primary;
-  border-bottom: solid 1px opacify($light, 1.0);
 }
 
 blockquote {
@@ -391,10 +445,9 @@ img {
 
 .source-file {
   position: absolute;
-  right: 0;
-  padding: 3px 0 0 0;
-
+  right: -$col * 7;
   width: $col * 6;
+  padding: 3px 0 0 0;
 
   font: normal 11px $mono;
   color: $warm-80;
@@ -517,8 +570,9 @@ pre {
   }
 
   .source-file {
-    width: inherit;
     position: relative;
+    left: 0;
+    width: inherit;
     text-align: right;
     margin-top: -10px;
     padding: 0 0 14px 0;
@@ -536,6 +590,14 @@ pre {
     margin: 0 ($col / 2);
     width: inherit;
   }
+
+  article {
+    h2 a::before, h3 a::before {
+      left: -($col / 2);
+      width: $col / 2;
+      padding-left: 6px;
+    }
+  }
 }
 
 @media only screen and (max-width: 580px) {
@@ -545,8 +607,13 @@ pre {
 
   article {
     h1 {
-      font: 300 48px/48px $serif;
-      padding: 55px 0 23px 0;
+      font: 300 36px/48px $serif;
+      padding: 59px 0 23px 0;
+    }
+
+    .number {
+      top: 21px;
+      font: normal 72px $serif;
     }
 
     h2 {

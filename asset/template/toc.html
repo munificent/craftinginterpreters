@@ -1,89 +1,34 @@
-{% macro part_link(part_title) %}
-{% if part_title == title %}
-  <a href="#top"><strong>{{ part_title }}</strong></a>
-{% else %}
-  <a href="{{ part_title|file }}.html">
-    {{ part_title }}
-  </a>
-{% endif %}
-{% endmacro %}
+{% if part %}
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top"><small>{{ number }}.</small> {{ title }}</a></h3>
 
-{% macro chapter(chapter_title) %}
-<li>
-  {% if chapter_title == title %}
-    <a href="#top"><strong>{{ chapter_title }}</strong></a>
-    {% if sections %}
-    <ul>
-      {% for section in sections %}
-        <li><a href="#{{ section|file }}">{{ section }}</a></li>
-      {% endfor %}
-    </ul>
-    {% endif %}
+<ul>
+  {% if sections %}
+  {% for section in sections %}
+    <li><a href="#{{ section|file }}">{{ section }}</a></li>
+  {% endfor %}
   {% else %}
-    <a href="{{ chapter_title|file }}.html">
-      {{ chapter_title }}
-    </a>
+    <em>No sections yet&hellip;</em>
   {% endif %}
-</li>
-{% endmacro %}
+</ul>
 
-<ol type="I" class="toc">
-  <li>{{ part_link('The Lay of the Land') }}
-    {% if part == 'The Lay of the Land' or title == 'The Lay of the Land' %}
-      <ol start="1">
-        {{ chapter('Introduction') }}
-        {{ chapter('Your First Language') }}
-        {{ chapter('Your Second Language') }}
-      </ol>
-    {% endif %}
-  </li>
-  <li>{{ part_link('The View from the Top') }}
-    {% if part == 'The View from the Top' or title == 'The View from the Top' %}
-      <ol start="4">
-        {{ chapter('Read, Eval, Print, Loop') }}
-        {{ chapter('Scanning') }}
-        {{ chapter('Representing Code') }}
-        {{ chapter('Parsing Expressions') }}
-        {{ chapter('Evaluating Expressions') }}
-        {{ chapter('Statements and State') }}
-        {{ chapter('Control Flow') }}
-        {{ chapter('Functions') }}
-        {{ chapter('Resolving and Binding') }}
-        {{ chapter('Classes') }}
-        {{ chapter('Inheritance') }}
-        {{ chapter('Reaching the Summit') }}
-      </ol>
-    {% endif %}
-  </li>
-  <li>{{ part_link('The Long Way Down') }}
-    {% if part == 'The Long Way Down' or title == 'The Long Way Down' %}
-      <ol start="16">
-        {{ chapter('Chunks of Bytecode') }}
-        {{ chapter('A Virtual Machine') }}
-        {{ chapter('Scanning on Demand') }}
-        {{ chapter('Compiling Expressions') }}
-        {{ chapter('Types of Values') }}
-        {{ chapter('Strings') }}
-        {{ chapter('Hash Tables') }}
-        {{ chapter('Statements') }}
-        {{ chapter('Global Variables') }}
-        {{ chapter('Local Variables') }}
-        {{ chapter('Jumping Forward and Back') }}
-        {{ chapter('Functions') }}
-        {{ chapter('Closures') }}
-        {{ chapter('Garbage Collection') }}
-        {{ chapter('Classes and Instances') }}
-        {{ chapter('Methods and Initializers') }}
-        {{ chapter('Inheritance') }}
-        {{ chapter('Native Functions') }}
-      </ol>
-    {% endif %}
-  </li>
+{% elif title %}
+<!-- A title with no part means it's a part chapter. -->
+<h2><small>{{ number }}.</small> {{ title }}</h2>
+
+<ol start="{{ first_chapter }}">
+  {% for chapter in chapters %}
+    <li><a href="{{ chapter|file }}.html">{{ chapter }}</a></li>
+  {% endfor %}
 </ol>
 
-{% if prev %}
-<a href="{{ prev|file }}.html" title="{{ prev }}">←&nbsp;Previous</a>
 {% endif %}
-{% if next %}
-<a href="{{ next|file }}.html" title="{{ next }}" class="right">Next&nbsp;→</a>
-{% endif %}
+
+<div class="prev-next">
+  {% if prev %}
+    <a href="{{ prev|file }}.html" title="{{ prev }}">←&nbsp;Previous</a>
+  {% endif %}
+  {% if next %}
+    <a href="{{ next|file }}.html" title="{{ next }}" class="right">Next&nbsp;→</a>
+  {% endif %}
+</div>
