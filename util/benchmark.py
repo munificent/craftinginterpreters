@@ -53,13 +53,15 @@ def run_trial(benchmark):
 
 
 def run_benchmark(benchmark):
+  trial = 1
   best = 9999
 
-  for i in range(1, 100):
+  while True:
     elapsed = run_trial(benchmark)
     if elapsed < best:
       best = elapsed
-      print("{}/{} : {}s".format(i, 10, best))
+    print_line("trial {0}   time {1:.4}s   best {2:.4}s".format(trial, elapsed, best))
+    trial += 1
 
 
 if len(sys.argv) != 2:

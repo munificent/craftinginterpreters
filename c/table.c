@@ -34,12 +34,11 @@ void freeTable(Table* table) {
 // the table, this will be an unused entry. Otherwise, it will be the existing
 // entry for that key.
 /*>= Hash Tables < Optimization
-static Entry* findEntry(Entry* entries, int capacity, ObjString* key,
+static uint32_t findEntry(Entry* entries, int capacity, ObjString* key) {
 */
 //>= Optimization
-static Entry* findEntry(Entry* entries, int capacityMask, ObjString* key,
+static uint32_t findEntry(Entry* entries, int capacityMask, ObjString* key) {
 //>= Hash Tables
-                        bool stopAtTombstone) {
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
 /*>= Hash Tables < Optimization
@@ -54,14 +53,7 @@ static Entry* findEntry(Entry* entries, int capacityMask, ObjString* key,
   for (;;) {
     Entry* entry = &entries[index];
     
-    if (entry->key == NULL) {
-      // Stop on either an empty entry (the value is nil) or a tombstone (the
-      // value is non-nil) if we are supposed to.
-      if (IS_NIL(entry->value) || stopAtTombstone) return entry;
-    } else if (key == entry->key) {
-      // We found it.
-      return entry;
-    }
+    if (entry->key == NULL || entry->key == key) return index;
     
     // Try the next slot.
 /*>= Hash Tables < Optimization
@@ -78,11 +70,12 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   if (table->entries == NULL) return false;
   
 /*>= Hash Tables < Optimization
-  Entry* entry = findEntry(table->entries, table->capacity, key, false);
+  uint32_t index = findEntry(table->entries, table->capacity, key);
 */
 //>= Optimization
-  Entry* entry = findEntry(table->entries, table->capacityMask, key, false);
+  uint32_t index = findEntry(table->entries, table->capacityMask, key);
 //>= Hash Tables
+  Entry* entry = &table->entries[index];
   if (entry->key == NULL) return false;
   
   *value = entry->value;
@@ -122,11 +115,12 @@ static void resize(Table* table, int capacityMask) {
     if (entry->key == NULL) continue;
 
 /*>= Hash Tables < Optimization
-    Entry* dest = findEntry(entries, capacity, entry->key, false);
+    uint32_t index = findEntry(entries, capacity, entry->key);
 */
 //>= Optimization
-    Entry* dest = findEntry(entries, capacityMask, entry->key, false);
+    uint32_t index = findEntry(entries, capacityMask, entry->key);
 //>= Hash Tables
+    Entry* dest = &entries[index];
     dest->key = entry->key;
     dest->value = entry->value;
     table->count++;
@@ -165,11 +159,12 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   }
 
 /*>= Hash Tables < Optimization
-  Entry* entry = findEntry(table->entries, table->capacity, key, false);
+  uint32_t index = findEntry(table->entries, table->capacity, key);
 */
 //>= Optimization
-  Entry* entry = findEntry(table->entries, table->capacityMask, key, false);
+  uint32_t index = findEntry(table->entries, table->capacityMask, key);
 //>= Hash Tables
+  Entry* entry = &table->entries[index];
   bool isNewKey = entry->key == NULL;
   entry->key = key;
   entry->value = value;
@@ -178,20 +173,47 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   return isNewKey;
 }
 
-// TODO: This isn't actually used by anything. It's here just to show a more
-// complete hash table implementation. Can we use it?
 bool tableDelete(Table* table, ObjString* key) {
+  if (table->count == 0) return false;
+  
+  // Find the entry.
 /*>= Hash Tables < Optimization
-  Entry* entry = findEntry(table->entries, table->capacity, key, false);
+  uint32_t index = findEntry(table->entries, table->capacity, key);
 */
 //>= Optimization
-  Entry* entry = findEntry(table->entries, table->capacityMask, key, false);
+  uint32_t index = findEntry(table->entries, table->capacityMask, key);
 //>= Hash Tables
+  Entry* entry = &table->entries[index];
   if (entry->key == NULL) return false;
-  
-  // Leave a tombstone.
+
+  // Remove the entry.
   entry->key = NULL;
-  entry->value = BOOL_VAL(true);
+  entry->value = NIL_VAL;
+  table->count--;
+
+  // Later entries may have been pushed past this one and may need to be pushed
+  // up to fill the hole. The simplest way to handle that is to just re-add
+  // them all until we hit an empty entry.
+  for (;;) {
+/*>= Hash Tables < Optimization
+    index = (index + 1) % table->capacity;
+*/
+//>= Optimization
+    index = (index + 1) & table->capacityMask;
+//>= Hash Tables
+    entry = &table->entries[index];
+
+    if (entry->key == NULL) break;
+
+    ObjString* tempKey = entry->key;
+    Value tempValue = entry->value;
+    entry->key = NULL;
+    entry->value = NIL_VAL;
+    table->count--;
+    
+    tableSet(table, tempKey, tempValue);
+  }
+
   return true;
 }
 
@@ -226,11 +248,9 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   for (;;) {
     Entry* entry = &table->entries[index];
     
-    if (entry->key == NULL) {
-      // If the value is non-nil, it's a tombstone and we have to keep looking.
-      if (IS_NIL(entry->value)) return NULL;
-    } else if (entry->key->length == length &&
-               memcmp(entry->key->chars, chars, length) == 0) {
+    if (entry->key == NULL) return NULL;
+    if (entry->key->length == length &&
+        memcmp(entry->key->chars, chars, length) == 0) {
       // We found it.
       return entry->key;
     }
@@ -257,12 +277,7 @@ void tableRemoveWhite(Table* table) {
 //>= Garbage Collection
     Entry* entry = &table->entries[i];
     if (entry->key != NULL && !entry->key->object.isDark) {
-      // Turn the entry into a tombstone, identified as having a NULL key but a
-      // non-nil value (true). Don't adjust the count. We want to treat
-      // tombstone entries as used so that we don't end up with an array full
-      // of tombstones.
-      entry->key = NULL;
-      entry->value = BOOL_VAL(true);
+      tableDelete(table, entry->key);
     }
   }
 }
