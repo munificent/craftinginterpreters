@@ -1,0 +1,77 @@
+{% include 'header.html' %}
+
+{% macro part_section(part, part_number, chapter_start) -%}
+  <h2><span class="num">{{ part_number }}.</span><a href="{{ part.name | file }}.html" name="{{ part.name | file }}">{{ part.name }}</a></h2>
+  <ol start="{{ chapter_start }}">
+  {% for chapter in part.chapters %}
+    <li><a href="{{ chapter.name | file }}.html">{{ chapter.name }}</a>
+    {% if not chapter.done != False %}
+      <a class="not-written" href="#not-written" title="This chapter hasn't been written yet">💤</a>
+    {% endif %}
+    <p>
+    {% for topic in chapter.topics %}
+    <span class="topic">{{ topic }}</span>
+    {% endfor %}
+    </p>
+    </li>
+  {% endfor %}
+  </ol>
+{%- endmacro %}
+
+{% macro navigation() -%}
+  <h2><a href="#top"><small>&nbsp;</small> Table of Contents</a></h2>
+  <ol type="I">
+    <li><a href="#the-lay-of-the-land">The Lay of the Land</a></li>
+    <li><a href="#the-view-from-the-top">The View from the Top</a></li>
+    <li><a href="#the-long-way-down">The Long Way Down</a></li>
+  </ol>
+  {% include 'prev-next.html' %}
+{%- endmacro %}
+
+<nav class="wide">
+  <h1><a href="/">Crafting Interpreters</a></h1>
+  <div class="contents">
+    {{ navigation() }}
+  </div>
+</nav>
+
+<nav class="narrow">
+<h1><a href="/">Crafting Interpreters</a></h1>
+{% if prev %}
+<a href="{{ prev|file }}.html" title="{{ prev }}" class="prev">←</a>
+{% endif %}
+{% if next %}
+<a href="{{ next|file }}.html" title="{{ next }}" class="next">→</a>
+{% endif %}
+</nav>
+
+<div class="page">
+<div class="nav-wrapper">
+<nav class="floating">
+  <h1><a href="/">Crafting Interpreters</a></h1>
+  <div class="expandable">
+    {{ navigation() }}
+  </div>
+  <a id="expand-nav">≡</a>
+</nav>
+</div>
+
+<article class="contents">
+
+<h1 class="part">{{title}}</h1>
+
+<p><a name="not-written"></a>TODO: Blurb about book being in-progress.</p>
+
+{{ part_section(toc[1], "I", 1) }}
+{{ part_section(toc[2], "II", 4) }}
+{{ part_section(toc[3], "III", 16) }}
+
+<h2><span class="num">&nbsp;</span>Backmatter</h2>
+<ul>
+<li><a href="glossary.html">Glossary</a></li>
+</ul>
+
+<footer>&copy; 2016 Robert Nystrom</footer>
+</article>
+
+{% include 'footer.html' %}

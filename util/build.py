@@ -16,78 +16,232 @@ import jinja2
 import markdown
 
 
+GRAY = '\033[1;30m'
 GREEN = '\033[32m'
 RED = '\033[31m'
 DEFAULT = '\033[0m'
 PINK = '\033[91m'
 YELLOW = '\033[33m'
 
-
-PARTS = [
-  '', [
-    'Table of Contents',
-  ],
-  'The Lay of the Land', [
-    'Introduction',
-    'The Pancake Language',
-    'The Lox Language',
-    # ...
-  ],
-  'The View from the Top', [
-    'Read, Evaluate, Print, Loop',
-    'Scanning',
-    'Representing Code',
-    'Parsing Expressions',
-    'Evaluating Expressions',
-    'Statements and State',
-    'Control Flow',
-    'Functions',
-    'Resolving and Binding',
-    'Classes',
-    'Inheritance',
-    'Reaching the Summit',
-  ],
-  'The Long Way Down', [
-    'Chunks of Bytecode',
-    'A Virtual Machine',
-    'Scanning on Demand',
-    'Compiling Expressions',
-    'Types of Values',
-    'Strings',
-    'Hash Tables',
-    'Global Variables',
-    'Local Variables',
-    'Jumping Forward and Back',
-    'Function Calls',
-    'User-Defined Functions',
-    'Closures',
-    'Garbage Collection',
-    'Classes and Instances',
-    'Methods and Initializers',
-    'Superclasses',
-    'Optimization',
-  ],
-  '', [
-    'Glossary'
-  ]
+TOC = [
+  {
+    'name': '',
+    'chapters': [
+      {
+        'name': 'Welcome',
+        'topics': [],
+      },
+      {
+        'name': 'Table of Contents',
+        'topics': [],
+      }
+    ],
+  },
+  {
+    'name': 'The Lay of the Land',
+    'chapters': [
+      {
+        'name': 'Introduction',
+        'topics': ['Why learn programming languages?', 'Interpreters and compilers', 'Phases of a compiler'],
+      },
+      {
+        'name': 'The Pancake Language',
+        'topics': ['Splitting into tokens', 'Kinds of errors', 'Reading files', 'Validating code', 'Running programs'],
+      },
+      {
+        'name': 'The Lox Language',
+        'topics': ['Lexical grammars', 'Grammars', 'Extended Backus-Naur Form'],
+      }
+    ]
+  },
+  {
+    'name': 'The View from the Top',
+    'chapters': [
+      {
+        'name': 'Read, Evaluate, Print, Loop',
+        'topics': ['Reading files', 'Interactive programming', 'Reporting errors'],
+        'done': False,
+      },
+      {
+        'name': 'Scanning',
+        'topics': ['Tokens', 'Token types', 'Lexical analysis', 'Regular languages', 'Lookahead', 'Reserved words'],
+        'done': False,
+      },
+      {
+        'name': 'Representing Code',
+        'topics': ['Abstract syntax trees', 'Expression trees', 'Generating AST classes', 'The Visitor pattern', 'Pretty printing'],
+        'done': False,
+      },
+      {
+        'name': 'Parsing Expressions',
+        'topics': ['Recursive descent', 'Precedence', 'Associativity', 'Primary expressions', 'Syntax errors'],
+        'done': False,
+      },
+      {
+        'name': 'Evaluating Expressions',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Statements and State',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Control Flow',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Functions',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Resolving and Binding',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Classes',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Inheritance',
+        'topics': ['Superclasses', 'Overriding', 'Calling superclass methods'],
+        'done': False,
+      },
+      {
+        'name': 'Reaching the Summit',
+        'topics': [],
+        'done': False,
+      }
+    ]
+  },
+  {
+    'name': 'The Long Way Down',
+    'chapters': [
+      {
+        'name': 'Chunks of Bytecode',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'A Virtual Machine',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Scanning on Demand',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Compiling Expressions',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Types of Values',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Strings',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Hash Tables',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Global Variables',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Local Variables',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Jumping Forward and Back',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Function Calls',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'User-Defined Functions',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Closures',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Garbage Collection',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Classes and Instances',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Methods and Initializers',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Superclasses',
+        'topics': [],
+        'done': False,
+      },
+      {
+        'name': 'Optimization',
+        'topics': [],
+        'done': False,
+      }
+    ]
+  },
+  {
+    'name': '',
+    'chapters': [
+      {
+        'name': 'Glossary',
+        'topics': [],
+        'done': False,
+      }
+    ]
+  }
 ]
 
 
 def flatten_pages():
-  """Flatten the list of parts and chapters to a single linear list of pages."""
+  """Flatten the tree of parts and chapters to a single linear list of pages."""
   pages = []
-  for part in PARTS:
-    if part == '':
-      # Empty names are for the front- and backmatter "parts".
-      pass
-    elif isinstance(part, str):
-      pages.append(part)
-    else:
-      pages.extend(part)
+  for part in TOC:
+    # There are no part pages for the front- and backmatter.
+    if part['name']:
+      pages.append(part['name'])
+
+    for chapter in part['chapters']:
+      pages.append(chapter['name'])
 
   return pages
 
 PAGES = flatten_pages()
+
 
 def roman(n):
   """Convert n to roman numerals."""
@@ -104,29 +258,27 @@ def number_chapters():
   """Determine the part or chapter numbers for each part or chapter."""
   numbers = {}
   part_num = 1
-  in_matter = False
   chapter_num = 1
-  for part in PARTS:
-    if part == '':
-      # Empty names are for the front- and backmatter "parts".
-      in_matter = True
-      pass
-    elif isinstance(part, str):
-      numbers[part] = roman(part_num)
+  in_matter = False
+  for part in TOC:
+    # Front- and backmatter have no names, pages, or numbers.
+    in_matter = part['name'] == ''
+    if not in_matter:
+      numbers[part['name']] = roman(part_num)
       part_num += 1
-      in_matter = False
-    else:
-      for chapter in part:
-        if in_matter:
-          # Front and backmatter content is not numbered.
-          numbers[chapter] = "-"
-        else:
-          numbers[chapter] = chapter_num
-          chapter_num += 1
+
+    for chapter in part['chapters']:
+      if in_matter:
+        # Front- and backmatter chapters are not numbered.
+        numbers[chapter['name']] = ''
+      else:
+        numbers[chapter['name']] = str(chapter_num)
+        chapter_num += 1
 
   return numbers
 
 NUMBERS = number_chapters()
+
 
 num_chapters = 0
 empty_chapters = 0
@@ -169,6 +321,8 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
 def title_to_file(title):
   '''Given a title like "Hash Tables", converts it to the corresponding file
   name like "hash-tables".'''
+  if title == "Welcome":
+    return "index"
   if title == "Table of Contents":
     return "contents"
 
@@ -193,7 +347,22 @@ def pretty(text):
   return text
 
 
-def format_file(path, skip_up_to_date):
+def look_up_chapters(title):
+  """If [title] is the title of a part, returns the number of the first
+     chapter in the part, and the list of chapter names."""
+  first_chapter = 0
+  chapters = []
+  for part in TOC:
+    if title == part['name']:
+      first_chapter = NUMBERS[part['chapters'][0]['name']]
+      for chapter in part['chapters']:
+        chapters.append(chapter['name'])
+      break
+
+  return first_chapter, chapters
+
+
+def format_file(path, skip_up_to_date, templates_mod):
   basename = os.path.basename(path)
   basename = basename.split('.')[0]
 
@@ -201,10 +370,7 @@ def format_file(path, skip_up_to_date):
 
   # See if the HTML is up to date.
   if skip_up_to_date:
-    source_mod = max(
-        os.path.getmtime(path),
-        os.path.getmtime('asset/template/page.html'),
-        os.path.getmtime('asset/template/toc.html'))
+    source_mod = max(os.path.getmtime(path), templates_mod)
     # if os.path.exists(cpp_path(basename)):
     #   source_mod = max(source_mod, os.path.getmtime(cpp_path(basename)))
 
@@ -216,6 +382,7 @@ def format_file(path, skip_up_to_date):
   title = ''
   title_html = ''
   part = None
+  template_file = 'page'
   # isoutline = False
 
   sections = []
@@ -240,6 +407,8 @@ def format_file(path, skip_up_to_date):
           title = title.replace('&shy;', '')
         elif command == 'part':
           part = args
+        elif command == 'template':
+          template_file = args
         # elif command == 'code':
         #   contents = contents + include_code(basename, args, indentation)
         # elif command == 'outline':
@@ -266,11 +435,7 @@ def format_file(path, skip_up_to_date):
       else:
         contents += pretty(line)
 
-  chapters = []
-  first_chapter = 0
-  if title in PARTS:
-    chapters = PARTS[PARTS.index(title) + 1]
-    first_chapter = NUMBERS[chapters[0]]
+  first_chapter, chapters = look_up_chapters(title)
 
   # title_text = title
   # section_header = ""
@@ -295,10 +460,11 @@ def format_file(path, skip_up_to_date):
     'first_chapter': first_chapter,
     'number': NUMBERS[title],
     'prev': adjacent_page(title, -1),
-    'next': adjacent_page(title, 1)
+    'next': adjacent_page(title, 1),
+    'toc': TOC
   }
 
-  template = environment.get_template('page.html')
+  template = environment.get_template(template_file + '.html')
   output = template.render(data)
 
   # Write the output.
@@ -310,29 +476,48 @@ def format_file(path, skip_up_to_date):
   global empty_chapters
 
   word_count = len(contents.split(None))
+  num = NUMBERS[title]
+  if num:
+    num += '. '
+
   # Non-chapter pages aren't counted like regular chapters.
   if part:
     num_chapters += 1
     if word_count < 50:
       empty_chapters += 1
-      print "  {}".format(basename)
+      print "    {}{}{}{}".format(GRAY, num, title, DEFAULT)
     elif word_count < 2000:
       empty_chapters += 1
-      print "{}-{} {} ({} words)".format(
-        YELLOW, DEFAULT, basename, word_count)
+      print "  {}-{} {}{} ({} words)".format(
+        YELLOW, DEFAULT, num, title, word_count)
     else:
       total_words += word_count
-      print "{}✓{} {} ({} words)".format(
-        GREEN, DEFAULT, basename, word_count)
+      print "  {}✓{} {}{} ({} words)".format(
+        GREEN, DEFAULT, num, title, word_count)
+  elif title in ["Welcome", "Table of Contents", "Glossary"]:
+    print "{}•{} {}{}".format(
+      GREEN, DEFAULT, num, title)
   else:
-    print "{}•{} {} ({} words)".format(
-      GREEN, DEFAULT, basename, word_count)
+    if word_count < 50:
+      print "  {}{}{}{}".format(GRAY, num, title, DEFAULT)
+    else:
+      print "{}✓{} {}{} ({} words)".format(
+        GREEN, DEFAULT, num, title, word_count)
 
 
 def format_files(skip_up_to_date):
   '''Process each markdown file.'''
-  for file in glob.iglob("book/*.md"):
-    format_file(file, skip_up_to_date)
+
+  # See if any of the templates were modified. If so, all pages will be rebuilt.
+  templates_mod = None
+  for template in glob.iglob("asset/template/*.html"):
+    template_mod = os.path.getmtime(template)
+    if not templates_mod: templates_mod = template_mod
+    templates_mod = max(templates_mod, template_mod)
+
+  for page in PAGES:
+    file = os.path.join('book', title_to_file(page) + '.md')
+    format_file(file, skip_up_to_date, templates_mod)
 
 
 def build_sass(skip_up_to_date):
@@ -347,7 +532,7 @@ def build_sass(skip_up_to_date):
         continue
 
     subprocess.call(['sass', source, dest])
-    print "{}✓{} {}".format(GREEN, DEFAULT, dest)
+    print "{}•{} Stylesheet".format(GREEN, DEFAULT)
 
 
 def run_server():
