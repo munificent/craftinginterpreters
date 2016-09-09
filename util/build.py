@@ -1,16 +1,16 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import codecs
 import glob
 import os
 import posixpath
+import re
 import subprocess
 import sys
 import time
 import urllib
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 import jinja2
 import markdown
@@ -320,13 +320,15 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 def title_to_file(title):
   '''Given a title like "Hash Tables", converts it to the corresponding file
-  name like "hash-tables".'''
+     name like "hash-tables".'''
   if title == "Welcome":
     return "index"
   if title == "Table of Contents":
     return "contents"
 
-  return title.lower().replace(" ", "-").translate(None, ',.?!:/"')
+  title = title.lower().replace(" ", "-")
+  title = re.sub(r'[,.?!:/"]', '', title)
+  return title
 
 
 def adjacent_page(title, offset):
@@ -422,7 +424,7 @@ def format_file(path, skip_up_to_date, templates_mod):
         header_type = stripped[:index]
         header = pretty(stripped[index:].strip())
         anchor = title_to_file(header)
-        anchor = anchor.translate(None, '.?!:/"')
+        anchor = re.sub(r'[.?!:/"]', '', anchor)
 
         # Add an anchor to the header.
         contents += indentation + header_type
@@ -485,24 +487,24 @@ def format_file(path, skip_up_to_date, templates_mod):
     num_chapters += 1
     if word_count < 50:
       empty_chapters += 1
-      print "    {}{}{}{}".format(GRAY, num, title, DEFAULT)
+      print("    {}{}{}{}".format(GRAY, num, title, DEFAULT))
     elif word_count < 2000:
       empty_chapters += 1
-      print "  {}-{} {}{} ({} words)".format(
-        YELLOW, DEFAULT, num, title, word_count)
+      print("  {}-{} {}{} ({} words)".format(
+        YELLOW, DEFAULT, num, title, word_count))
     else:
       total_words += word_count
-      print "  {}✓{} {}{} ({} words)".format(
-        GREEN, DEFAULT, num, title, word_count)
+      print("  {}✓{} {}{} ({} words)".format(
+        GREEN, DEFAULT, num, title, word_count))
   elif title in ["Welcome", "Table of Contents", "Glossary"]:
-    print "{}•{} {}{}".format(
-      GREEN, DEFAULT, num, title)
+    print("{}•{} {}{}".format(
+      GREEN, DEFAULT, num, title))
   else:
     if word_count < 50:
-      print "  {}{}{}{}".format(GRAY, num, title, DEFAULT)
+      print("  {}{}{}{}".format(GRAY, num, title, DEFAULT))
     else:
-      print "{}✓{} {}{} ({} words)".format(
-        GREEN, DEFAULT, num, title, word_count)
+      print("{}✓{} {}{} ({} words)".format(
+        GREEN, DEFAULT, num, title, word_count))
 
 
 def format_files(skip_up_to_date):
@@ -532,7 +534,7 @@ def build_sass(skip_up_to_date):
         continue
 
     subprocess.call(['sass', source, dest])
-    print "{}•{} Stylesheet".format(GREEN, DEFAULT)
+    print("{}•{} Stylesheet".format(GREEN, DEFAULT))
 
 
 def run_server():
@@ -540,7 +542,7 @@ def run_server():
   handler = RootedHTTPRequestHandler
   server = RootedHTTPServer("site", ('', port), handler)
 
-  print 'Serving at port', port
+  print('Serving at port', port)
   server.serve_forever()
 
 
@@ -561,9 +563,9 @@ else:
   format_files(False)
   build_sass(False)
 
-  average_word_count = total_words / (num_chapters - empty_chapters)
+  average_word_count = total_words // (num_chapters - empty_chapters)
   estimated_word_count = total_words + (empty_chapters * average_word_count)
-  percent_finished = total_words * 100 / estimated_word_count
+  percent_finished = total_words * 100 // estimated_word_count
 
-  print "{}/~{} words ({}%)".format(
-    total_words, estimated_word_count, percent_finished)
+  print("{}/~{} words ({}%)".format(
+    total_words, estimated_word_count, percent_finished))

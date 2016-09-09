@@ -90,6 +90,10 @@ chapters:
 	$(call run_generate_ast,chap14_inheritance)
 	@ $(MAKE) -f util/java.make DIR=gen/chap14_inheritance PACKAGE=lox
 
+	@ $(MAKE) -f util/java.make DIR=gen/chap15_reaching PACKAGE=tool
+	$(call run_generate_ast,chap15_reaching)
+	@ $(MAKE) -f util/java.make DIR=gen/chap15_reaching PACKAGE=lox
+
 # TODO: Unify with make chapters, and make more demand-driven.
 c_chapters:
 	@ python util/split_chapters.py
