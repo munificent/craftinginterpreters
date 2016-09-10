@@ -305,7 +305,7 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
     format_files(True)
     build_sass(True)
 
-    path = posixpath.normpath(urllib.unquote(path))
+    path = posixpath.normpath(urllib.parse.unquote(path))
     words = path.split('/')
     words = filter(None, words)
     path = self.base_path
