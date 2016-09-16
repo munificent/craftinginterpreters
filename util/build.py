@@ -46,7 +46,7 @@ TOC = [
       },
       {
         'name': 'The Pancake Language',
-        'topics': ['Splitting into tokens', 'Kinds of errors', 'Reading files', 'Validating code', 'Running programs'],
+        'topics': ['Splitting into tokens', 'Kinds of errors', 'REPL', 'Reading files', 'Validating code', 'Running programs'],
       },
       {
         'name': 'The Lox Language',
@@ -58,13 +58,8 @@ TOC = [
     'name': 'The View from the Top',
     'chapters': [
       {
-        'name': 'Read, Evaluate, Print, Loop',
-        'topics': ['Reading files', 'Interactive programming', 'Reporting errors'],
-        'done': False,
-      },
-      {
         'name': 'Scanning',
-        'topics': ['Tokens', 'Token types', 'Lexical analysis', 'Regular languages', 'Lookahead', 'Reserved words'],
+        'topics': ['Tokens', 'Token types', 'Lexical analysis', 'Regular languages', 'Lookahead', 'Reserved words', 'Error reporting'],
         'done': False,
       },
       {
@@ -534,7 +529,7 @@ def build_sass(skip_up_to_date):
         continue
 
     subprocess.call(['sass', source, dest])
-    print("{}•{} Stylesheet".format(GREEN, DEFAULT))
+    print("{}•{} {}".format(GREEN, DEFAULT, source))
 
 
 def run_server():

@@ -40,18 +40,28 @@ class Interpreter:
     self.tests = tests
 
 
-def c_interpreter(name, path, tests):
+def c_interpreter(name, tests):
+  if name == 'clox':
+    path = 'build/cloxd'
+  else:
+    path = 'build/' + name
+
   INTERPRETERS[name] = Interpreter(name, [path], tests)
   C_SUITES.append(name)
 
 
-def java_interpreter(name, dir, tests):
+def java_interpreter(name, tests):
+  if name == 'jlox':
+    dir = 'build/java'
+  else:
+    dir = 'build/gen/' + name
+
   INTERPRETERS[name] = Interpreter(name,
       ['java', '-cp', dir, 'com.craftinginterpreters.lox.Lox'], tests)
   JAVA_SUITES.append(name)
 
 
-java_interpreter('jlox', 'build/java', {
+java_interpreter('jlox', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -68,30 +78,30 @@ java_interpreter('jlox', 'build/java', {
   'test/limit/stack_overflow.lox': 'skip',
 })
 
-java_interpreter('chap05_scanning', 'build/gen/chap05_scanning', {
+java_interpreter('chap04_scanning', {
   # No interpreter yet.
   'test': 'skip',
 
   'test/scanning': 'pass'
 })
 
-# No test for chapter 3. It just has a hardcoded main() in AstPrinter.
+# No test for chapter 5. It just has a hardcoded main() in AstPrinter.
 
-java_interpreter('chap07_parsing', 'build/gen/chap07_parsing', {
+java_interpreter('chap06_parsing', {
   # No real interpreter yet.
   'test': 'skip',
 
   'test/expressions/parse.lox': 'pass'
 })
 
-java_interpreter('chap08_evaluating', 'build/gen/chap08_evaluating', {
+java_interpreter('chap07_evaluating', {
   # No real interpreter yet.
   'test': 'skip',
 
   'test/expressions/evaluate.lox': 'pass'
 })
 
-java_interpreter('chap09_statements', 'build/gen/chap09_statements', {
+java_interpreter('chap08_statements', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -155,7 +165,7 @@ java_interpreter('chap09_statements', 'build/gen/chap09_statements', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-java_interpreter('chap10_control', 'build/gen/chap10_control', {
+java_interpreter('chap09_control', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -218,7 +228,7 @@ java_interpreter('chap10_control', 'build/gen/chap10_control', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
+java_interpreter('chap10_functions', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -265,7 +275,7 @@ java_interpreter('chap11_functions', 'build/gen/chap11_functions', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-java_interpreter('chap12_resolving', 'build/gen/chap12_resolving', {
+java_interpreter('chap11_resolving', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -300,7 +310,7 @@ java_interpreter('chap12_resolving', 'build/gen/chap12_resolving', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-java_interpreter('chap13_classes', 'build/gen/chap13_classes', {
+java_interpreter('chap12_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -322,7 +332,7 @@ java_interpreter('chap13_classes', 'build/gen/chap13_classes', {
   'test/super': 'skip',
 })
 
-java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
+java_interpreter('chap13_inheritance', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -339,7 +349,7 @@ java_interpreter('chap14_inheritance', 'build/gen/chap14_inheritance', {
   'test/limit/stack_overflow.lox': 'skip',
 })
 
-c_interpreter('clox', 'build/cloxd', {
+c_interpreter('clox', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -349,7 +359,7 @@ c_interpreter('clox', 'build/cloxd', {
 
 # TODO: Other chapters.
 
-c_interpreter('chap23_global', 'build/chap23_global', {
+c_interpreter('chap22_global', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -412,7 +422,7 @@ c_interpreter('chap23_global', 'build/chap23_global', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap24_local', 'build/chap24_local', {
+c_interpreter('chap23_local', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -460,7 +470,7 @@ c_interpreter('chap24_local', 'build/chap24_local', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap25_jumping', 'build/chap25_jumping', {
+c_interpreter('chap24_jumping', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -506,7 +516,7 @@ c_interpreter('chap25_jumping', 'build/chap25_jumping', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap26_function', 'build/chap26_function', {
+c_interpreter('chap25_function', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -552,7 +562,7 @@ c_interpreter('chap26_function', 'build/chap26_function', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap27_user', 'build/chap27_user', {
+c_interpreter('chap26_user', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -587,7 +597,7 @@ c_interpreter('chap27_user', 'build/chap27_user', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap28_closures', 'build/chap28_closures', {
+c_interpreter('chap27_closures', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -614,7 +624,7 @@ c_interpreter('chap28_closures', 'build/chap28_closures', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap29_garbage', 'build/chap29_garbage', {
+c_interpreter('chap28_garbage', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -641,7 +651,7 @@ c_interpreter('chap29_garbage', 'build/chap29_garbage', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap30_classes', 'build/chap30_classes', {
+c_interpreter('chap29_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -668,7 +678,7 @@ c_interpreter('chap30_classes', 'build/chap30_classes', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap31_methods', 'build/chap31_methods', {
+c_interpreter('chap30_methods', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -681,7 +691,7 @@ c_interpreter('chap31_methods', 'build/chap31_methods', {
   'test/super': 'skip',
 })
 
-c_interpreter('chap32_superclasses', 'build/chap32_superclasses', {
+c_interpreter('chap31_superclasses', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -689,7 +699,7 @@ c_interpreter('chap32_superclasses', 'build/chap32_superclasses', {
   'test/expressions': 'skip',
 })
 
-c_interpreter('chap33_optimization', 'build/chap33_optimization', {
+c_interpreter('chap32_optimization', {
   'test': 'pass',
 
   # These are just for earlier chapters.

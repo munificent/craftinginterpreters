@@ -1,4 +1,4 @@
-//>= Read, Evaluate, Print, Loop
+//>= Scanning
 package com.craftinginterpreters.lox;
 
 class ErrorReporter {
@@ -20,7 +20,6 @@ class ErrorReporter {
     hadRuntimeError = true;
   }
 
-//>= Scanning
   void error(Token token, String message) {
     if (token.type == TokenType.EOF) {
       report(token.line, " at end", message);
@@ -29,7 +28,6 @@ class ErrorReporter {
     }
   }
 
-//>= Read, Evaluate, Print, Loop
   private void report(int line, String location, String message) {
     System.err.println("[line " + line + "] Error" + location +
         ": " + message);

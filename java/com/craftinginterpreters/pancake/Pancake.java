@@ -1,4 +1,4 @@
-//>= The Pancake Language
+//== The Pancake Language
 package com.craftinginterpreters.pancake;
 
 import java.io.BufferedReader;

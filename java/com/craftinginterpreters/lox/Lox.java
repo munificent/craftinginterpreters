@@ -1,4 +1,4 @@
-//>= Read, Evaluate, Print, Loop
+//>= Scanning
 package com.craftinginterpreters.lox;
 
 import java.io.BufferedReader;
@@ -7,11 +7,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-//>= Scanning
 import java.util.List;
 //>= Resolving and Binding
 import java.util.Map;
-//>= Read, Evaluate, Print, Loop
+//>= Scanning
 
 public class Lox {
   private final ErrorReporter reporter = new ErrorReporter();
@@ -22,7 +21,7 @@ public class Lox {
   private Lox() {
     interpreter = new Interpreter(reporter);
   }
-//>= Read, Evaluate, Print, Loop
+//>= Scanning
 
   private void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -59,13 +58,8 @@ public class Lox {
     }
   }
 
-//>= Read, Evaluate, Print, Loop
-  private void run(String source) {
-/*== Read, Evaluate, Print, Loop
-    // For now, just echo the source back.
-    System.out.println(source);
-*/
 //>= Scanning
+  private void run(String source) {
     Scanner scanner = new Scanner(source, reporter);
     List<Token> tokens = scanner.scanTokens();
 /*== Scanning
@@ -106,6 +100,6 @@ public class Lox {
 */
 //>= Resolving and Binding
     interpreter.interpret(statements, locals);
-//>= Read, Evaluate, Print, Loop
+//>= Scanning
   }
 }
