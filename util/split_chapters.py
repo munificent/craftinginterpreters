@@ -17,8 +17,7 @@ JAVA_CHAPTERS = [
   "Functions",
   "Resolving and Binding",
   "Classes",
-  "Inheritance",
-  "Reaching the Summit"
+  "Inheritance"
 ]
 
 C_CHAPTERS = [
@@ -170,4 +169,4 @@ for i, chapter in enumerate(JAVA_CHAPTERS):
 # The C chapters.
 for i, chapter in enumerate(C_CHAPTERS):
   walk("c", [".c", ".h"],
-      lambda path: split_file("c", C_CHAPTERS, 15, path, i))
+      lambda path: split_file("c", C_CHAPTERS, 14, path, i))

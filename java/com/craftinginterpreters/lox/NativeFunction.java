@@ -1,4 +1,4 @@
-//>= Reaching the Summit
+//>= Functions
 package com.craftinginterpreters.lox;
 
 import java.util.List;

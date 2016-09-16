@@ -359,7 +359,7 @@ c_interpreter('clox', {
 
 # TODO: Other chapters.
 
-c_interpreter('chap22_global', {
+c_interpreter('chap21_global', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -422,7 +422,7 @@ c_interpreter('chap22_global', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap23_local', {
+c_interpreter('chap22_local', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -470,7 +470,7 @@ c_interpreter('chap23_local', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap24_jumping', {
+c_interpreter('chap23_jumping', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -516,7 +516,7 @@ c_interpreter('chap24_jumping', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap25_function', {
+c_interpreter('chap24_function', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -562,7 +562,7 @@ c_interpreter('chap25_function', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap26_user', {
+c_interpreter('chap25_user', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -597,7 +597,7 @@ c_interpreter('chap26_user', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap27_closures', {
+c_interpreter('chap26_closures', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -624,7 +624,7 @@ c_interpreter('chap27_closures', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap28_garbage', {
+c_interpreter('chap27_garbage', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -651,7 +651,7 @@ c_interpreter('chap28_garbage', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap29_classes', {
+c_interpreter('chap28_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -678,7 +678,7 @@ c_interpreter('chap29_classes', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap30_methods', {
+c_interpreter('chap29_methods', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -691,7 +691,7 @@ c_interpreter('chap30_methods', {
   'test/super': 'skip',
 })
 
-c_interpreter('chap31_superclasses', {
+c_interpreter('chap30_superclasses', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -699,7 +699,7 @@ c_interpreter('chap31_superclasses', {
   'test/expressions': 'skip',
 })
 
-c_interpreter('chap32_optimization', {
+c_interpreter('chap31_optimization', {
   'test': 'pass',
 
   # These are just for earlier chapters.

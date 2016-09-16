@@ -267,7 +267,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (!scopes.isEmpty() &&
         scopes.peek().get(expr.name.text) == Boolean.FALSE) {
       errorReporter.error(expr.name,
-          "Cannot read local variable before initializing it.");
+          "Cannot read local variable in its own initializer.");
     }
 
     resolveLocal(expr, expr.name);

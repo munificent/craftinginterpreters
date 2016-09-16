@@ -69,47 +69,42 @@ TOC = [
       },
       {
         'name': 'Parsing Expressions',
-        'topics': ['Recursive descent', 'Precedence', 'Associativity', 'Primary expressions', 'Syntax errors'],
+        'topics': ['Expression nodes', 'Recursive descent', 'Precedence', 'Associativity', 'Primary expressions', 'Syntax errors'],
         'done': False,
       },
       {
         'name': 'Evaluating Expressions',
-        'topics': [],
+        'topics': ['The Interpreter pattern', 'Tree-walk interpretation', 'Subexpressions', 'Runtime errors', 'Type checking', 'Truthiness'],
         'done': False,
       },
       {
         'name': 'Statements and State',
-        'topics': [],
+        'topics': ['Statement nodes', 'Blocks', 'Expression statements', 'Variables', 'Assignment', 'Lexical scope', 'Environments'],
         'done': False,
       },
       {
         'name': 'Control Flow',
-        'topics': [],
+        'topics': ['If statements', 'While statements', 'For statements', 'Desugaring', 'Logical operators', 'Short-circuit evaluation'],
         'done': False,
       },
       {
         'name': 'Functions',
-        'topics': [],
+        'topics': ['Function declarations', 'Formal parameters', 'Call expressions', 'Arguments', 'Return statements', 'Function objects', 'Closures', 'Arity', 'Native functions'],
         'done': False,
       },
       {
         'name': 'Resolving and Binding',
-        'topics': [],
+        'topics': ['Name resolution', 'Early binding', 'Static errors'],
         'done': False,
       },
       {
         'name': 'Classes',
-        'topics': [],
+        'topics': ['Class declarations', 'Fields', 'Properties', 'Get and set expressions', 'Constructors', 'Initializers', 'this', 'Method references'],
         'done': False,
       },
       {
         'name': 'Inheritance',
         'topics': ['Superclasses', 'Overriding', 'Calling superclass methods'],
-        'done': False,
-      },
-      {
-        'name': 'Reaching the Summit',
-        'topics': [],
         'done': False,
       }
     ]
