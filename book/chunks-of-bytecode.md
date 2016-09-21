@@ -1,12 +1,20 @@
 ^title Chunks of Bytecode
 ^part The Long Way Down
 
+Paragraph.
+
 > Give behavior the flexibility of data by encoding it as instructions for a
 > virtual machine.
 >
 > <cite>Leonard Nimoy</cite>
 
+Following.
+
 ## Motivation
+
+Para.
+
+### Subheader
 
 Making games may be fun, but it certainly ain't easy. Modern games require <span
 name="sprawling">enormous</span>, complex codebases. Console manufacturers and

@@ -6,7 +6,7 @@ $(document).ready(function() {
   $(window).scroll(function() {
     var nav = $("nav.floating");
     console.log($(window).scrollTop());
-    if ($(window).scrollTop() > 112) {
+    if ($(window).scrollTop() > 84) {
       nav.addClass("pinned");
     } else {
       nav.removeClass("pinned");
@@ -54,6 +54,6 @@ function refreshAsides() {
     }
 
     // Vertically position the aside next to the span it annotates.
-    aside.offset({top: span.position().top - 1});
+    aside.offset({top: span.position().top - 6});
   });
 }

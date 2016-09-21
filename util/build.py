@@ -514,11 +514,17 @@ def format_files(skip_up_to_date):
 
 def build_sass(skip_up_to_date):
   '''Process each SASS file.'''
+  imports_mod = None
+  for source in glob.iglob("asset/sass/*.scss"):
+    import_mod = os.path.getmtime(source)
+    if not imports_mod: imports_mod = import_mod
+    imports_mod = max(imports_mod, import_mod)
+
   for source in glob.iglob("asset/*.scss"):
     dest = "site/" + os.path.basename(source).split(".")[0] + ".css"
 
     if skip_up_to_date:
-      source_mod = os.path.getmtime(source)
+      source_mod = max(os.path.getmtime(source), imports_mod)
       dest_mod = os.path.getmtime(dest)
       if source_mod < dest_mod:
         continue
