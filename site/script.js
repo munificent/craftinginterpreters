@@ -1,4 +1,8 @@
 $(document).ready(function() {
+  $(".dismiss").click(function() {
+    $(".sign-up").hide();
+  });
+
   $("#expand-nav").click(function() {
     $(".expandable").toggleClass("shown");
   });
