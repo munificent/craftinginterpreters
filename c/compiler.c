@@ -458,7 +458,7 @@ static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
     if (identifiersEqual(name, &local->name))
     {
       if (!inFunction && local->depth == -1) {
-        error("Cannot read local variable before initializing it.");
+        error("Cannot read local variable in its own initializer.");
       }
       return i;
     }

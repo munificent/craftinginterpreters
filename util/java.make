@@ -1,6 +1,5 @@
 # Makefile for building a single directory of Java source files. It requires
 # a DIR variable to be set.
-# TODO: Document both variables.
 
 BUILD_DIR := build
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import codecs
@@ -111,7 +111,7 @@ def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
         max_chapter = None
         in_block_comment = False
       elif min_chapter == None:
-        print "{} {}: No section after block comment".format(relative, line_num)
+        print("{} {}: No section after block comment".format(relative, line_num))
         min_chapter = 0
         max_chapter = 999
       elif chapter_index >= min_chapter and chapter_index <= max_chapter:
@@ -138,7 +138,7 @@ def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
 
     ensure_dir(os.path.join("gen", package, directory))
     with codecs.open(output_path, "w", encoding="utf-8") as out:
-      print output_path
+      print(output_path)
       out.write(output)
 
 
