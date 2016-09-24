@@ -194,8 +194,7 @@ static bool callValue(Value callee, int argCount) {
         }
         
 //>= Classes and Instances
-        // Discard the arguments.
-        // TODO: Make this an error?
+        // Ignore the arguments.
         vm.stackTop -= argCount;
         return true;
       }
