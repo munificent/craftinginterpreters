@@ -82,8 +82,6 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   return true;
 }
 
-#include <stdio.h>
-
 /*>= Hash Tables < Optimization
 static void resize(Table* table, int capacity) {
 */

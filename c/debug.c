@@ -68,8 +68,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_BYTE(OP_GET_UPVALUE)
     INST_BYTE(OP_SET_UPVALUE)
 //>= Classes and Instances
-    INST_CONSTANT(OP_GET_FIELD)
-    INST_CONSTANT(OP_SET_FIELD)
+    INST_CONSTANT(OP_GET_PROPERTY)
+    INST_CONSTANT(OP_SET_PROPERTY)
 //>= Superclasses
     INST_CONSTANT(OP_GET_SUPER)
 //>= Types of Values

@@ -528,7 +528,7 @@ static bool run() {
       }
 //>= Classes and Instances
         
-      case OP_GET_FIELD: {
+      case OP_GET_PROPERTY: {
         if (!IS_INSTANCE(peek(0))) {
           runtimeError("Only instances have properties.");
           return false;
@@ -553,7 +553,7 @@ static bool run() {
 //>= Classes and Instances
       }
         
-      case OP_SET_FIELD: {
+      case OP_SET_PROPERTY: {
         if (!IS_INSTANCE(peek(1))) {
           runtimeError("Only instances have fields.");
           return false;

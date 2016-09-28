@@ -677,14 +677,14 @@ static void dot(bool canAssign) {
   
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
-    emitBytes(OP_SET_FIELD, name);
+    emitBytes(OP_SET_PROPERTY, name);
 //>= Methods and Initializers
   } else if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
     emitBytes(OP_INVOKE_0 + argCount, name);
 //>= Classes and Instances
   } else {
-    emitBytes(OP_GET_FIELD, name);
+    emitBytes(OP_GET_PROPERTY, name);
   }
 }
 /*>= Types of Values < Global Variables

@@ -24,8 +24,8 @@ typedef enum {
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
 //>= Classes and Instances
-  OP_GET_FIELD,
-  OP_SET_FIELD,
+  OP_GET_PROPERTY,
+  OP_SET_PROPERTY,
 //>= Superclasses
   OP_GET_SUPER,
 //>= Types of Values
