@@ -28,7 +28,7 @@ TOC = [
     'name': '',
     'chapters': [
       {
-        'name': 'Welcome',
+        'name': 'Crafting Interpreters',
         'topics': [],
       },
       {
@@ -114,92 +114,92 @@ TOC = [
     'chapters': [
       {
         'name': 'Chunks of Bytecode',
-        'topics': [],
+        'topics': ['Allocation', 'Dynamic arrays', 'Code chunks', 'Constant tables', 'Instruction arguments', 'Disassembly'],
         'done': False,
       },
       {
         'name': 'A Virtual Machine',
-        'topics': [],
+        'topics': ['Bytecode instructions', 'The stack', 'Instruction pointer', 'Loading constants', 'Arithmetic instructions', 'Interpreter loop', 'Instruction dispatch'],
         'done': False,
       },
       {
         'name': 'Scanning on Demand',
-        'topics': [],
+        'topics': ['Reading files', 'Token values', 'Source pointers', 'LL(k) grammars'],
         'done': False,
       },
       {
         'name': 'Compiling Expressions',
-        'topics': [],
+        'topics': ['Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence', 'Single-pass compilation', 'Code generation'],
         'done': False,
       },
       {
         'name': 'Types of Values',
-        'topics': [],
+        'topics': ['Tagged unions', 'Boolean values', 'nil', 'Comparison and equality operators', 'Not operator', 'Runtime errors'],
         'done': False,
       },
       {
         'name': 'Strings',
-        'topics': [],
+        'topics': ['Objects', 'Reference types', 'Heap tracing', 'Concatenation', 'Polymorphism'],
         'done': False,
       },
       {
         'name': 'Hash Tables',
-        'topics': [],
+        'topics': ['Hash functions', 'FNV-1a string hashing', 'Linear probing', 'Rehashing', 'Reference equality', 'String interning'],
         'done': False,
       },
       {
         'name': 'Global Variables',
-        'topics': [],
+        'topics': ['Statements', 'Variable declaration', 'Assignment', 'Global variables table'],
         'done': False,
       },
       {
         'name': 'Local Variables',
-        'topics': [],
+        'topics': ['Blocks', 'Scope depth', 'Stack variables', 'Name resolution', 'Byte argument instructions'],
         'done': False,
       },
       {
         'name': 'Jumping Forward and Back',
-        'topics': [],
+        'topics': ['Jump instructions', 'Conditional jumps', 'Control flow statements', 'Short-circuiting', 'Backpatching'],
         'done': False,
       },
       {
         'name': 'Function Calls',
-        'topics': [],
+        'topics': ['Calling convention', 'Arguments', 'Call instructions', 'Native functions'],
         'done': False,
       },
       {
         'name': 'User-Defined Functions',
-        'topics': [],
+        'topics': ['Function declarations', 'Parameters', 'Return statements', 'Function objects', 'Call frames', 'Stack overflow'],
         'done': False,
       },
       {
         'name': 'Closures',
-        'topics': [],
+        'topics': ['Upvalues', 'Resolving enclosing locals', 'Closure flattening', 'Capturing variables', 'Closing upvalues'],
         'done': False,
       },
       {
         'name': 'Garbage Collection',
-        'topics': [],
+        'topics': ['Roots', 'Stress testing', 'Mark-sweep collection', 'Tracing', 'Tri-color marking', 'Weak references', 'Heap growth'],
         'done': False,
       },
       {
         'name': 'Classes and Instances',
-        'topics': [],
+        'topics': ['Property expressions', 'Class declarations', 'Instances', 'Fields', 'Undefined fields'],
         'done': False,
       },
       {
         'name': 'Methods and Initializers',
-        'topics': [],
+        'topics': ['Invocation expressions', 'This', 'Method declarations', 'Initializers', 'Bound methods'],
         'done': False,
       },
       {
         'name': 'Superclasses',
-        'topics': [],
+        'topics': ['Method inheritance', 'Super invocations'],
         'done': False,
       },
       {
         'name': 'Optimization',
-        'topics': [],
+        'topics': ['Benchmarking', 'Hash code masking', 'NaN tagging'],
         'done': False,
       }
     ]
@@ -311,7 +311,7 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
 def title_to_file(title):
   '''Given a title like "Hash Tables", converts it to the corresponding file
      name like "hash-tables".'''
-  if title == "Welcome":
+  if title == "Crafting Interpreters":
     return "index"
   if title == "Table of Contents":
     return "contents"
@@ -486,7 +486,7 @@ def format_file(path, skip_up_to_date, templates_mod):
       total_words += word_count
       print("  {}✓{} {}{} ({} words)".format(
         GREEN, DEFAULT, num, title, word_count))
-  elif title in ["Welcome", "Table of Contents", "Glossary"]:
+  elif title in ["Crafting Interpreters", "Table of Contents", "Glossary"]:
     print("{}•{} {}{}".format(
       GREEN, DEFAULT, num, title))
   else:
@@ -543,7 +543,9 @@ def run_server():
 
 
 environment = jinja2.Environment(
-    loader=jinja2.FileSystemLoader('asset/template'))
+    loader=jinja2.FileSystemLoader('asset/template'),
+    lstrip_blocks=True,
+    trim_blocks=True)
 
 environment.filters['file'] = title_to_file
 
