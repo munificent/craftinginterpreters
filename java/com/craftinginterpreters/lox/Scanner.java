@@ -48,6 +48,7 @@ class Scanner {
       // The next token starts with the current character.
       tokenStart = current;
 
+      // TODO: Maybe rewrite to be more explicitly automata based?
       char c = advance();
       switch (c) {
         case '(': addToken(LEFT_PAREN); break;
