@@ -516,53 +516,7 @@ c_interpreter('chap23_jumping', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap24_function', {
-  'test': 'pass',
-
-  # These are just for earlier chapters.
-  'test/scanning': 'skip',
-  'test/expressions': 'skip',
-
-  # No functions.
-  'test/call': 'skip',
-  'test/closure': 'skip',
-  'test/for/closure_in_body.lox': 'skip',
-  'test/for/return_closure.lox': 'skip',
-  'test/for/return_inside.lox': 'skip',
-  'test/for/syntax.lox': 'skip',
-  'test/function': 'skip',
-  'test/limit/reuse_constants.lox': 'skip',
-  'test/limit/stack_overflow.lox': 'skip',
-  'test/limit/too_many_constants.lox': 'skip',
-  'test/limit/too_many_locals.lox': 'skip',
-  'test/limit/too_many_upvalues.lox': 'skip',
-  'test/return': 'skip',
-  'test/unexpected_character.lox': 'skip',
-  'test/variable/collide_with_parameter.lox': 'skip',
-  'test/variable/duplicate_parameter.lox': 'skip',
-  'test/variable/early_bound.lox': 'skip',
-  'test/while/closure_in_body.lox': 'skip',
-  'test/while/return_closure.lox': 'skip',
-  'test/while/return_inside.lox': 'skip',
-
-  # No classes.
-  'test/assignment/to_this.lox': 'skip',
-  'test/class': 'skip',
-  'test/constructor': 'skip',
-  'test/field': 'skip',
-  'test/inheritance': 'skip',
-  'test/method': 'skip',
-  'test/number/decimal_point_at_eof.lox': 'skip',
-  'test/number/trailing_dot.lox': 'skip',
-  'test/operator/equals_class.lox': 'skip',
-  'test/operator/not.lox': 'skip',
-  'test/operator/not_class.lox': 'skip',
-  'test/super': 'skip',
-  'test/this': 'skip',
-  'test/variable/local_from_method.lox': 'skip',
-})
-
-c_interpreter('chap25_user', {
+c_interpreter('chap24_calls', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -597,7 +551,7 @@ c_interpreter('chap25_user', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap26_closures', {
+c_interpreter('chap25_closures', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -624,7 +578,7 @@ c_interpreter('chap26_closures', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap27_garbage', {
+c_interpreter('chap26_garbage', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -651,7 +605,7 @@ c_interpreter('chap27_garbage', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap28_classes', {
+c_interpreter('chap27_classes', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -678,7 +632,7 @@ c_interpreter('chap28_classes', {
   'test/variable/local_from_method.lox': 'skip',
 })
 
-c_interpreter('chap29_methods', {
+c_interpreter('chap28_methods', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -691,7 +645,7 @@ c_interpreter('chap29_methods', {
   'test/super': 'skip',
 })
 
-c_interpreter('chap30_superclasses', {
+c_interpreter('chap29_superclasses', {
   'test': 'pass',
 
   # These are just for earlier chapters.
@@ -699,7 +653,7 @@ c_interpreter('chap30_superclasses', {
   'test/expressions': 'skip',
 })
 
-c_interpreter('chap31_optimization', {
+c_interpreter('chap30_optimization', {
   'test': 'pass',
 
   # These are just for earlier chapters.

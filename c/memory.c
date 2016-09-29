@@ -177,7 +177,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= User-Defined Functions
+//>= Calls and Functions
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       freeChunk(&function->chunk);
@@ -193,7 +193,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= Function Calls
+//>= Calls and Functions
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;

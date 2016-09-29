@@ -79,20 +79,20 @@ typedef struct {
   // function.
   bool isLocal;
 } Upvalue;
-//>= User-Defined Functions
+//>= Calls and Functions
 
 typedef enum {
   TYPE_FUNCTION,
 //>= Methods and Initializers
   TYPE_INITIALIZER,
   TYPE_METHOD,
-//>= User-Defined Functions
+//>= Calls and Functions
   TYPE_TOP_LEVEL
 } FunctionType;
 //>= Local Variables
 
 typedef struct Compiler {
-//>= User-Defined Functions
+//>= Calls and Functions
   // The compiler for the enclosing function, if any.
   struct Compiler* enclosing;
 
@@ -133,7 +133,7 @@ Compiler* current = NULL;
 //>= Methods and Initializers
 
 ClassCompiler* currentClass = NULL;
-/*>= Compiling Expressions < User-Defined Functions
+/*>= Compiling Expressions < Calls and Functions
 
 Chunk* compilingChunk;
  
@@ -141,7 +141,7 @@ static Chunk* currentChunk() {
   return compilingChunk;
 }
 */
-//>= User-Defined Functions
+//>= Calls and Functions
 
 static Chunk* currentChunk() {
   return &current->function->chunk;
@@ -254,7 +254,7 @@ static int emitJump(uint8_t instruction) {
 //>= Compiling Expressions
 
 static void emitReturn() {
-/*>= User-Defined Functions < Methods and Initializers
+/*>= Calls and Functions < Methods and Initializers
   emitByte(OP_NIL);
 */
 //>= Methods and Initializers
@@ -283,29 +283,29 @@ static void patchJump(int offset) {
   currentChunk()->code[offset] = (jump >> 8) & 0xff;
   currentChunk()->code[offset + 1] = jump & 0xff;
 }
-/*>= Local Variables < User-Defined Functions
+/*>= Local Variables < Calls and Functions
  
 static void initCompiler(Compiler* compiler) {
 */
-//>= User-Defined Functions
+//>= Calls and Functions
 
 static void initCompiler(Compiler* compiler, int scopeDepth,
                          FunctionType type) {
-//>= User-Defined Functions
+//>= Calls and Functions
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
 //>= Local Variables
   compiler->localCount = 0;
-/*>= Local Variables < User-Defined Functions
+/*>= Local Variables < Calls and Functions
   compiler->scopeDepth = 0;
 */
-//>= User-Defined Functions
+//>= Calls and Functions
   compiler->scopeDepth = scopeDepth;
   compiler->function = newFunction();
 //>= Local Variables
   current = compiler;
-//>= User-Defined Functions
+//>= Calls and Functions
   
   switch (type) {
     case TYPE_FUNCTION:
@@ -328,7 +328,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
       current->function->name = takeString(chars, length);
       break;
     }
-//>= User-Defined Functions
+//>= Calls and Functions
     case TYPE_TOP_LEVEL:
       current->function->name = NULL;
       break;
@@ -339,7 +339,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   local->depth = current->scopeDepth;
 //>= Closures
   local->isUpvalue = false;
-/*>= User-Defined Functions < Methods and Initializers
+/*>= Calls and Functions < Methods and Initializers
   local->name.start = "";
   local->name.length = 0;
 */
@@ -356,30 +356,30 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   }
 //>= Local Variables
 }
-/*>= Compiling Expressions < User-Defined Functions
+/*>= Compiling Expressions < Calls and Functions
 
 static void endCompiler() {
 */
-//>= User-Defined Functions
+//>= Calls and Functions
 
 static ObjFunction* endCompiler() {
 //>= Compiling Expressions
   emitReturn();
-//>= User-Defined Functions
+//>= Calls and Functions
   
   ObjFunction* function = current->function;
 //>= Compiling Expressions
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-/*>= Compiling Expressions < User-Defined Functions
+/*>= Compiling Expressions < Calls and Functions
     disassembleChunk(currentChunk(), "code");
 */
-//>= User-Defined Functions
+//>= Calls and Functions
     disassembleChunk(currentChunk(), function->name->chars);
 //>= Compiling Expressions
   }
 #endif
-//>= User-Defined Functions
+//>= Calls and Functions
   current = current->enclosing;
   
   return function;
@@ -594,7 +594,7 @@ static void defineVariable(uint8_t global) {
   }
 //>= Global Variables
 }
-//>= Function Calls
+//>= Calls and Functions
 
 static uint8_t argumentList() {
   uint8_t argCount = 0;
@@ -663,7 +663,7 @@ static void binary(bool canAssign) {
       assert(false); // Unreachable.
   }
 }
-//>= Function Calls
+//>= Calls and Functions
 
 static void call(bool canAssign) {
   uint8_t argCount = argumentList();
@@ -899,10 +899,10 @@ static void unary(bool canAssign) {
 }
 
 ParseRule rules[] = {
-/*>= Compiling Expressions < Function Calls
+/*>= Compiling Expressions < Calls and Functions
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
-//>= Function Calls
+//>= Calls and Functions
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
 //>= Compiling Expressions
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
@@ -1064,7 +1064,7 @@ static void block() {
   
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
-//>= User-Defined Functions
+//>= Calls and Functions
 
 static void function(FunctionType type) {
   Compiler compiler;
@@ -1093,7 +1093,7 @@ static void function(FunctionType type) {
   // Create the function object.
   endScope();
   ObjFunction* function = endCompiler();
-/*== User-Defined Functions
+/*== Calls and Functions
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
 */
 //>= Closures
@@ -1107,7 +1107,7 @@ static void function(FunctionType type) {
     emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(compiler.upvalues[i].index);
   }
-//>= User-Defined Functions
+//>= Calls and Functions
 }
 //>= Methods and Initializers
 
@@ -1181,7 +1181,7 @@ static void classDeclaration() {
   currentClass = currentClass->enclosing;
 //>= Classes and Instances
 }
-//>= User-Defined Functions
+//>= Calls and Functions
 
 static void funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
@@ -1319,7 +1319,7 @@ static void printStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after value.");
   emitByte(OP_PRINT);
 }
-//>= User-Defined Functions
+//>= Calls and Functions
 
 static void returnStatement() {
   if (current->type == TYPE_TOP_LEVEL) {
@@ -1334,7 +1334,7 @@ static void returnStatement() {
       error("Cannot return a value from an initializer.");
     }
     
-//>= User-Defined Functions
+//>= Calls and Functions
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
     emitByte(OP_RETURN);
@@ -1368,17 +1368,17 @@ static void declaration() {
 //>= Classes and Instances
   if (match(TOKEN_CLASS)) {
     classDeclaration();
-/*>= User-Defined Functions < Classes and Instances
+/*>= Calls and Functions < Classes and Instances
   if (match(TOKEN_FUN)) {
 */
 //>= Classes and Instances
   } else if (match(TOKEN_FUN)) {
-//>= User-Defined Functions
+//>= Calls and Functions
     funDeclaration();
-/*>= Global Variables < User-Defined Functions
+/*>= Global Variables < Calls and Functions
   if (match(TOKEN_VAR)) {
 */
-//>= User-Defined Functions
+//>= Calls and Functions
   } else if (match(TOKEN_VAR)) {
 //>= Global Variables
     varDeclaration();
@@ -1399,7 +1399,7 @@ static void statement() {
   } else if (match(TOKEN_PRINT)) {
 //>= Global Variables
     printStatement();
-//>= User-Defined Functions
+//>= Calls and Functions
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
 //>= Jumping Forward and Back
@@ -1419,11 +1419,11 @@ static void statement() {
 
 void compile(const char* source) {
 */
-/*>= Compiling Expressions < User-Defined Functions
+/*>= Compiling Expressions < Calls and Functions
  
 bool compile(const char* source, Chunk* chunk) {
 */
-//>= User-Defined Functions
+//>= Calls and Functions
 
 ObjFunction* compile(const char* source) {
 //>= Scanning on Demand
@@ -1445,12 +1445,12 @@ ObjFunction* compile(const char* source) {
 */
 //>= Local Variables
   Compiler mainCompiler;
-/*>= Local Variables < User-Defined Functions
+/*>= Local Variables < Calls and Functions
   initCompiler(&mainCompiler);
 */
-//>= User-Defined Functions
+//>= Calls and Functions
   initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
-/*>= Compiling Expressions < User-Defined Functions
+/*>= Compiling Expressions < Calls and Functions
   compilingChunk = chunk;
 */
 //>= Compiling Expressions
@@ -1470,13 +1470,13 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-/*>= Compiling Expressions < User-Defined Functions
+/*>= Compiling Expressions < Calls and Functions
   endCompiler();
  
   // If there was a compile error, the code is not valid.
   return !parser.hadError;
 */
-//>= User-Defined Functions
+//>= Calls and Functions
   ObjFunction* function = endCompiler();
   
   // If there was a compile error, the code is not valid, so don't create a

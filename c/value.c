@@ -21,7 +21,7 @@ static void printObject(Value value) {
     case OBJ_BOUND_METHOD:
 //>= Closures
     case OBJ_CLOSURE:
-//>= User-Defined Functions
+//>= Calls and Functions
     case OBJ_FUNCTION:
       printf("<fn %p>", AS_FUNCTION(value));
       break;
@@ -29,7 +29,7 @@ static void printObject(Value value) {
     case OBJ_INSTANCE:
       printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
       break;
-//>= Function Calls
+//>= Calls and Functions
     case OBJ_NATIVE:
       printf("<native %p>", AS_NATIVE(value));
       break;

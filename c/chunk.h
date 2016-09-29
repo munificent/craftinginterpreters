@@ -47,7 +47,7 @@ typedef enum {
   OP_JUMP,
   OP_JUMP_IF_FALSE,
   OP_LOOP,
-//>= Function Calls
+//>= Calls and Functions
   OP_CALL_0,
   OP_CALL_1,
   OP_CALL_2,

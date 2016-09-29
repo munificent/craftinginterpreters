@@ -72,7 +72,7 @@ ObjClosure* newClosure(ObjFunction* function) {
   closure->upvalueCount = function->upvalueCount;
   return closure;
 }
-//>= User-Defined Functions
+//>= Calls and Functions
 
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
@@ -80,7 +80,7 @@ ObjFunction* newFunction() {
   function->arity = 0;
 //>= Closures
   function->upvalueCount = 0;
-//>= User-Defined Functions
+//>= Calls and Functions
   function->name = NULL;
   initChunk(&function->chunk);
   return function;
@@ -93,7 +93,7 @@ ObjInstance* newInstance(ObjClass* klass) {
   initTable(&instance->fields);
   return instance;
 }
-//>= Function Calls
+//>= Calls and Functions
 
 ObjNative* newNative(NativeFn function) {
   ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);

@@ -163,13 +163,8 @@ TOC = [
         'done': False,
       },
       {
-        'name': 'Function Calls',
-        'topics': ['Calling convention', 'Arguments', 'Call instructions', 'Native functions'],
-        'done': False,
-      },
-      {
-        'name': 'User-Defined Functions',
-        'topics': ['Function declarations', 'Parameters', 'Return statements', 'Function objects', 'Call frames', 'Stack overflow'],
+        'name': 'Calls and Functions',
+        'topics': ['Calling convention', 'Arguments', 'Call instructions', 'Native functions', 'Function declarations', 'Parameters', 'Return statements', 'Function objects', 'Call frames', 'Stack overflow'],
         'done': False,
       },
       {

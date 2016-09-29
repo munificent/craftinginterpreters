@@ -16,11 +16,11 @@
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 //>= Closures
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
-//>= User-Defined Functions
+//>= Calls and Functions
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 //>= Classes and Instances
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
-//>= Function Calls
+//>= Calls and Functions
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 //>= Strings
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
@@ -31,11 +31,11 @@
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 //>= Closures
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
-//>= User-Defined Functions
+//>= Calls and Functions
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 //>= Classes and Instances
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-//>= Function Calls
+//>= Calls and Functions
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 //>= Strings
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
@@ -48,11 +48,11 @@ typedef enum {
   OBJ_CLASS,
 //>= Closures
   OBJ_CLOSURE,
-//>= User-Defined Functions
+//>= Calls and Functions
   OBJ_FUNCTION,
 //>= Classes and Instances
   OBJ_INSTANCE,
-//>= Function Calls
+//>= Calls and Functions
   OBJ_NATIVE,
 //>= Strings
   OBJ_STRING,
@@ -68,18 +68,17 @@ struct sObj {
 //>= Strings
   struct sObj* next;
 };
-//>= User-Defined Functions
+//>= Calls and Functions
 
 typedef struct {
   Obj object;
   int arity;
 //>= Closures
   int upvalueCount;
-//>= User-Defined Functions
+//>= Calls and Functions
   Chunk chunk;
   ObjString* name;
 } ObjFunction;
-//>= Function Calls
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
@@ -154,11 +153,11 @@ ObjClass* newClass(ObjString* name);
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
 //>= Closures
 ObjClosure* newClosure(ObjFunction* function);
-//>= User-Defined Functions
+//>= Calls and Functions
 ObjFunction* newFunction();
 //>= Classes and Instances
 ObjInstance* newInstance(ObjClass* klass);
-//>= Function Calls
+//>= Calls and Functions
 ObjNative* newNative(NativeFn function);
 //>= Strings
 ObjString* takeString(char* chars, int length);
