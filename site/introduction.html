@@ -23,19 +23,25 @@
 <h3><a href="#top"><small>1.</small> Introduction</a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#why">why</a></li>
+    <li><a href="#prereqs">prereqs</a></li>
+    <li><a href="#how-to-read-book">how to read book</a></li>
+    <li><a href="#where-we-are-going">where we are going</a></li>
+    <li><a href="#when-phases-run">when phases run</a></li>
+    <li><a href="#so-what-is-compiler-and-interpreter">so what is "compiler" and "interpreter"</a></li>
+    <li><a href="#recap">recap</a></li>
 </ul>
 
 
 <div class="prev-next">
-    <a href="the-lay-of-the-land.html" title="The Lay of the Land">←&nbsp;Previous</a>
+    <a href="welcome.html" title="Welcome">←&nbsp;Previous</a>
     <a href="the-pancake-language.html" title="The Pancake Language" class="right">Next&nbsp;→</a>
 </div>  </div>
 </nav>
 
 <nav class="narrow">
 <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
-<a href="the-lay-of-the-land.html" title="The Lay of the Land" class="prev">←</a>
+<a href="welcome.html" title="Welcome" class="prev">←</a>
 <a href="the-pancake-language.html" title="The Pancake Language" class="next">→</a>
 </nav>
 
@@ -48,12 +54,18 @@
 <h3><a href="#top"><small>1.</small> Introduction</a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#why">why</a></li>
+    <li><a href="#prereqs">prereqs</a></li>
+    <li><a href="#how-to-read-book">how to read book</a></li>
+    <li><a href="#where-we-are-going">where we are going</a></li>
+    <li><a href="#when-phases-run">when phases run</a></li>
+    <li><a href="#so-what-is-compiler-and-interpreter">so what is "compiler" and "interpreter"</a></li>
+    <li><a href="#recap">recap</a></li>
 </ul>
 
 
 <div class="prev-next">
-    <a href="the-lay-of-the-land.html" title="The Lay of the Land">←&nbsp;Previous</a>
+    <a href="welcome.html" title="Welcome">←&nbsp;Previous</a>
     <a href="the-pancake-language.html" title="The Pancake Language" class="right">Next&nbsp;→</a>
 </div>  </div>
   <a id="expand-nav">≡</a>
@@ -66,9 +78,9 @@
   <h1>Introduction</h1>
 
 <div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
+    <h1>This book is a work in progress!</h1>
   <span class="dismiss">&times;</span>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/crafting-interpreters/issues" target="_blank">file a ticket</a>. To know when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -83,7 +95,609 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
-    <p>This chapter hasn't been written yet! :(</p>
+  <p><strong>TODO: transpilers, compare this book to others &ldquo;start of journey&rdquo;, single
+path through language space, not broad survey. hang out with lang folks at
+cocktail party.</strong></p>
+<p><strong>TODO: write &lsquo;welcome&rsquo; section page.</strong></p>
+<ul>
+<li>really excited going on adventure together</li>
+<li>book about implementing programming language interpreters</li>
+<li>also about designing languages</li>
+<li>
+<p>wanted to write book for years</p>
+</li>
+<li>
+<p>walk step by step through implementating language</p>
+</li>
+<li>language is minimal, but not a toy</li>
+<li>to be useful for real code, want to add some stuff like collections and
+  core library so you can do things like read and write files</li>
+<li>but language itself is full-featured</li>
+<li>dynamically typed, imperative</li>
+<li>complete syntax similar to see, all operators and control flow you expect</li>
+<li>global and local block scope</li>
+<li>as we&rsquo;ll see, implementing variables correctly and efficiently will take a
+  lot of our attention</li>
+<li>has functions</li>
+<li>first class, and closures</li>
+<li>classes, methods, fields, and inheritance</li>
+</ul>
+<h3><a href="#two-impls" name="two-impls">two impls</a></h3>
+<ul>
+<li>actually walk through two implementations</li>
+<li>first focuses on concepts</li>
+<li>get you familiar with the phases and pieces of interpreter</li>
+<li>give us chance to introduce techniques use in other language related tools
+  around static analysis, etc.</li>
+<li>also get you to think more deeply about corners of language semantic</li>
+<li>by end have a good picture of all of the things implementation needs to do</li>
+<li>but lean on implementation language, java, for many of them: gc, object
+  representation, etc.</li>
+<li>
+<p>end result is a simple, minimal, readable impl, but not a fast one</p>
+</li>
+<li>
+<p>then implement it again, in c</p>
+</li>
+<li>now learn how language really works, from bits up</li>
+<li>write compiler to bytecode</li>
+<li>same technique used by lua, python, ruby, others</li>
+<li>learn how dynamically typed langs represent objects in memory</li>
+<li>write our own memory manager and mark sweep gc</li>
+<li>implement strings and hash table from scratch</li>
+<li>see how all of the state interpreter needs, globals, locals, callstack are
+  maintained</li>
+<li>do some benchmarking and optimize hot spots</li>
+<li>by end, we&rsquo;ll have robust, accurate, fast interpreter</li>
+</ul>
+<h3><a href="#blue-collar" name="blue-collar">blue collar</a></h3>
+<ul>
+<li>focus of book is on how real-world interpreters implement real langs</li>
+<li>less about theory of pl</li>
+<li>will talk about history of pl concepts, and formal stuff</li>
+<li>also introduce terms used in pl academia</li>
+<li>if find self at cocktail party with pl researchers, should be able to keep up</li>
+<li>but mostly focus on understanding how to actually code lang</li>
+<li>name is deliberate</li>
+<li>
+<p>not to say theory isn&rsquo;t imporant, but covered well by other books</p>
+</li>
+<li>
+<p>personally, learn better by doing</p>
+</li>
+<li>hard for me to read pages of abstract concepts and reall get it</li>
+<li>but if i&rsquo;ve written code for something, debugged it, ran it, can watch it
+  work, then i get it</li>
+<li>if like me, this book should be good first intro to pl</li>
+<li>then when read later more academic texts, hopefully will seem familiar and
+  click more easily</li>
+<li>also just thinking actually writing code lot more fun</li>
+</ul>
+<h2><a href="#why" name="why">why</a></h2>
+<ul>
+<li>odds of creating successful general purpose language are slim</li>
+<li>all of them in the world could fit on one bus</li>
+<li>ok, lots of other reasons to learn languages</li>
+</ul>
+<h3><a href="#little-language" name="little-language">little language</a></h3>
+<ul>
+<li>for every successful general language, hundred successful &ldquo;little
+  languages&rdquo; or &ldquo;dsls&rdquo;</li>
+<li>embedding script, template languages, markup formats, configuration
+  languages, etc.</li>
+<li>often good to reuse one when you can, creating new one from scratch can
+  be lot of work around tooling, error handling, etc.</li>
+<li>but may find yourself needing to whip up a parser or something when there
+  isn&rsquo;t one out there that does what you need</li>
+<li>or occasionally may find imperative bytecode is good way to model some
+  kind of problem</li>
+</ul>
+<h3><a href="#good-exercise" name="good-exercise">good exercise</a></h3>
+<ul>
+<li>langs are complex and often perf critical</li>
+<li>good environment to learn about fundamental data structures and algorithms</li>
+<li>heavy use of trees and recursion</li>
+<li>will be totally comfortable with recursive data structures and algo by end</li>
+<li>
+<p>when presented with problem, easier to see when recursion will help</p>
+</li>
+<li>
+<p>implement dynamic array, hash table, even string from scratch</p>
+</li>
+<li>rarely implement them in day-to-day programming, but use them all the time</li>
+<li>
+<p>will understand them in and out, which help you use them well and understand
+  how and why they work and limitations later</p>
+</li>
+<li>
+<p>also just kind of hard</p>
+</li>
+<li>not as hard as you might fear, but good workout</li>
+<li>like runner practicing with weight</li>
+<li>will come away a stronger programmer</li>
+</ul>
+<h3><a href="#change-life" name="change-life">change life</a></h3>
+<ul>
+<li>embarrassing to admit</li>
+<li>secret goal of book</li>
+<li>remember being a kid learning to program and not being able to imagine
+  how languages worked at all</li>
+<li>always felt like programming languages were &ldquo;magic&rdquo;</li>
+<li>dragon and sicp covers don&rsquo;t help</li>
+<li>problem with &ldquo;magic&rdquo; is that inherently elitist</li>
+<li>only special other people, wizards, can do it</li>
+<li>that&rsquo;s what makes it magic</li>
+<li>sufficiently well-understood magic indistinguishable from technology</li>
+<li>to a wizard, it&rsquo;s just craft</li>
+<li>makes it unapproachable, bounds you</li>
+<li>people who hack on langs aren&rsquo;t special</li>
+<li>it&rsquo;s just some crafts and techniques and programmer can pick up</li>
+<li>some are little hard, but harder in way that running 500 meters is harder
+  than 100</li>
+<li>hope that by learning them yourself, also learn that those divisions you
+  see between you and other kinds of people who have special skills are
+  imaginary, and you can push through them just by learning</li>
+<li>
+<p>you can learn anything</p>
+</li>
+<li>
+<p>who knows, maybe you will create the world&rsquo;s next great language</p>
+</li>
+<li>someone has to</li>
+</ul>
+<h2><a href="#prereqs" name="prereqs">prereqs</a></h2>
+<ul>
+<li>can&rsquo;t teach you everything, book would be too long</li>
+<li>assume you already know how to code</li>
+<li>should know how to create project, organize code and compile and run it</li>
+<li>should know basic imperative programming constructs, oop, and terminology</li>
+<li>
+<p>if you can write a basic app on your own, probably fine</p>
+</li>
+<li>
+<p>use two languages in book, java and c</p>
+</li>
+<li>java is for first part</li>
+<li>good language for teaching concepts</li>
+<li>high level enough don&rsquo;t have to worry about memory management, etc.</li>
+<li>has nice built in collections</li>
+<li>at same time, explicit about what&rsquo;s going on</li>
+<li>less magic under the hood so if you write it in java, feel you really do
+    understand it</li>
+<li>also, oop</li>
+<li>paradigm is familiar to millions of working programmers, so lets us
+    start from familiar place to you</li>
+<li>many people working in langs are implementing tools in oo
+    languages, so good to know how lang patterns and techniques map to oo.</li>
+<li>(lots also using functional languages, but plenty of books for that.)</li>
+<li>hugely popular, so good chance you know it or similar lang</li>
+<li>try not to use too much of it</li>
+<li>use diamond operator in java 8, not much else</li>
+<li>
+<p>if know other oop language, can probably muddle through ok</p>
+</li>
+<li>
+<p>c</p>
+</li>
+<li>second half is c</li>
+<li>great for understanding what&rsquo;s really going on in implementation down
+    to cpu and memory</li>
+<li>teaches us stuff java gives us for free: gc, object representation</li>
+<li>big reason using c is to do things c specifically expresses well</li>
+<li>require more c expertise</li>
+<li>use preprocessor</li>
+<li>don&rsquo;t have to be c wizard, but should be comfortable with pointers</li>
+<li>will learn a lot of c from book itself</li>
+<li>
+<p>many/most real language interpreters implemented in c: lua, python,
+    ruby</p>
+</li>
+<li>
+<p>hands-on book</p>
+</li>
+</ul>
+<h2><a href="#how-to-read-book" name="how-to-read-book">how to read book</a></h2>
+<h3><a href="#parts" name="parts">parts</a></h3>
+<ul>
+<li>organized in three parts</li>
+<li>first is one reading now</li>
+<li>get you up and running and give you sense of how things organized and where
+  we&rsquo;re going, and lang we&rsquo;re going to focus on</li>
+<li>second implements lang in java, piece at a time</li>
+<li>first starts over again in c</li>
+</ul>
+<h3><a href="#each-impl" name="each-impl">each impl</a></h3>
+<ul>
+<li>each impl is built one chapter at a time</li>
+<li>took a lot of trial and error on my part, but managed to break interps into
+  chapter-sized chunks such that by the end of each chapter, have something
+  you can run</li>
+<li>grow interpreter</li>
+<li>side effect of this is order that concepts are introduced might be a little
+  odd</li>
+<li>have to break dependency cycles sometimes by splitting concept into two
+  chapters</li>
+<li>for example, in java interp, will add variables, then functions, then circle
+  back to variables once we see how closures complicate how we handle scope</li>
+<li>likewise, in c version, need to start allocating memory very early on, but
+  don&rsquo;t talk about garbage collecting it until much later when we have a complex
+  enough web of objects in heap to make gc interesting</li>
+<li>but tried to order things as naturally as i could, and mostly worked out ok</li>
+</ul>
+<h3><a href="#each-chapter" name="each-chapter">each chapter</a></h3>
+<ul>
+<li>each chapter is hands on explaining concepts but also each line of code
+  needed to write it</li>
+<li>every single line of code needed for both interpreters is in book</li>
+<li>
+<p>if you type them all in, you&rsquo;ll get the whole thing and it will run and pass
+  the tests</p>
+</li>
+<li>
+<p>tried to keep code as simple and clean as possible</p>
+</li>
+<li>gets back to goal of &ldquo;no magic&rdquo;</li>
+<li>if you understand every line of code, and there is nothing missing, you have
+  totally mastered it</li>
+<li>
+<p>[aside about not using compiler-compiler too]</p>
+</li>
+<li>
+<p>style of code little different from &ldquo;real&rdquo; code</p>
+</li>
+<li>needs of a book at a little different</li>
+<li>in java, ditch some of the modifiers like public and tend to make fields
+  public to keep things terse</li>
+<li>page isn&rsquo;t as wide as ide window</li>
+<li>in both langs, code is not super commented</li>
+<li>that&rsquo;s because each line of code here also has a few paragraphs of code
+  explaining it!</li>
+<li>if you write a book for each of your programs, you can omit the comments too</li>
+<li>
+<p>otherwise, should use &ldquo;//&rdquo; more than i do here</p>
+</li>
+<li>
+<p>chapters have a few other sections</p>
+</li>
+<li>
+<p>asides like this one are dumb jokes, historical notes, references to related
+  topics, etc. can skip if you want</p>
+</li>
+<li>
+<p>exercises are to help you learn more</p>
+</li>
+<li>not just review of what&rsquo;s in the chapter, you don&rsquo;t need me to do that</li>
+<li>encourage you to step off the guided tour of this book and try to figure out
+  something on your own, or do your own research</li>
+<li>some may be easy, barely more than rhetorical question. others may ask you to
+  add major feature to language</li>
+<li>often ask you to learn how other languages solve problem</li>
+<li>when designing language, encyclopedic knowledge of other languages is big
+  asset</li>
+</ul>
+<h3><a href="#design-breaks" name="design-breaks">design breaks</a></h3>
+<ul>
+<li>many chapters also end with design break</li>
+<li>most other books assume lang is given and just trying to implement it</li>
+<li>this book sort of does that too, i already designed lang we&rsquo;re going to impl</li>
+<li>but will also talk about lots of issues come up when designing language</li>
+<li>how to balance features, grow ecosystem, think about usability</li>
+<li>softer side of pl, but may be more important</li>
+<li>nice-to-use langs with crappy impls successful (php), but converse rarely
+  true. world doesn&rsquo;t need great impl of bad lang.</li>
+<li>alas, expertise in this rare</li>
+<li>few people designed successful lang, and most haven&rsquo;t written much down</li>
+<li>may not even know how they do it</li>
+<li>what i know i&rsquo;ve learned from studying successful langs, trying out my own
+  and seeing how people respond, talking to lang designers</li>
+<li>try to give good advice, but take with grain of salt</li>
+<li>not something many people know much about</li>
+<li>if just want to hack lang, feel free to skip design parts</li>
+</ul>
+<h3><a href="#how-to-read" name="how-to-read">how to read</a></h3>
+<ul>
+<li>that&rsquo;s what book is, but not how to <em>use</em> it</li>
+<li>up to you</li>
+<li>one of most important skills you can learn is how <em>you</em> learn</li>
+<li>if you want to really understand the code, type it all in and run it</li>
+<li>if you&rsquo;re &ldquo;what if&rdquo; person, try tweaking the code to change the language or
+  how it works. experiment and see what happens</li>
+<li>if you just want concepts, you can read the prose and skip the code</li>
+<li>maybe you like a challenge and want to read the prose but try to implement it
+  yourself from scratch without looking at the code</li>
+<li>maybe want to follow what piques your interest and read chapters out of order
+  based on what gets you excited next</li>
+<li>all are fine. it&rsquo;s your book, and your job to find out how to make the most
+  of it</li>
+</ul>
+<h2><a href="#where-we-are-going" name="where-we-are-going">where we are going</a></h2>
+<ul>
+<li>before dive into our language, good to talk about basic terminology and how
+  most impls are organized</li>
+<li>tricky because, especially in pl, words change in meaning over time, or were
+  named in a way that made sense 40 years ago but seems strange today now that
+  computers are very different</li>
+<li>even simple question like &ldquo;what is difference between compiler and
+  interpreter&rdquo; get very fuzzy</li>
+<li>don&rsquo;t even ask about &ldquo;strong&rdquo; versus &ldquo;weak&rdquo; typing</li>
+</ul>
+<p><strong>TODO: talk about difference between lang and lang impl</strong></p>
+<ul>
+<li>use metaphor of climbing over a mountain</li>
+<li>every impl starts off with program as bare source text, literally just string
+  of characters</li>
+<li>analyzes that syntax, understanding it at a higher and higher level,</li>
+<li>eventually reaches peak where we think of it as understanding semantics of
+  language, what programmer intends it to do</li>
+<li>then it goes back down mountain, lowering those semantics into something it
+  can make the underlying cpu actually execute</li>
+<li>impls differ primarily in how and when they accomplish those steps</li>
+</ul>
+<p><strong>TODO: mountain picture</strong></p>
+<h3><a href="#scanning" name="scanning">scanning</a></h3>
+<ul>
+<li>first step up mountain is scanning, lexing, or lexical analysis. all mean
+  same thing (as far as i can tell)</li>
+<li>take in source code as sequence of individual characters, and chunk into
+  &ldquo;words&rdquo; called &ldquo;tokens&rdquo;. some tokens, like &ldquo;(&rdquo; or &ldquo;,&rdquo; are single character.
+  others, like identifiers and keywords, are multiple. scanner&rsquo;s job is to get
+  those multi-char chunks and make single token out of them.</li>
+</ul>
+<p><strong>TODO: pipeline picture</strong></p>
+<h3><a href="#parsing" name="parsing">parsing</a></h3>
+<ul>
+<li>[aside about programmers drawing trees upside down]</li>
+<li>next step is parsing. where syntax gets a grammar. if ever diagrammed sentences in english class, have already done this</li>
+<li>(note, some impls combine lexing and parsing)</li>
+<li>take linear series of tokens and organize them hierarchically into tree</li>
+<li>parsing is where we take a + b * c and figure out that b * c is evaluated
+  before it is added to a</li>
+<li>also where most &ldquo;syntax errors&rdquo; get reported</li>
+</ul>
+<p><strong>TODO: tokens to tree picture</strong></p>
+<h3><a href="#static-analysis" name="static-analysis">static analysis</a></h3>
+<ul>
+<li>first two stages pretty similar for almost all langs, now start to vary</li>
+<li>at this point, know syntax&#8202;&mdash;&#8202;expressions, operator precedence, etc.</li>
+<li>but know little about meaning</li>
+<li>now start doing deeper analysis</li>
+<li>most langs do &ldquo;binding&rdquo; or &ldquo;resolution&rdquo;</li>
+<li>for each identifier, figure out what it refers to</li>
+<li>where scope comes into play&#8202;&mdash;&#8202;region of code where identifier can be used</li>
+<li>before, just knew &ldquo;a + b&rdquo; was addition, now know adding two variables
+  declared here and here</li>
+<li>often involves creating symbol table, that maps names to what name refers to</li>
+<li>
+<p>can report errors here too, use undefined variable, use variable after out
+  of scope, etc.</p>
+</li>
+<li>
+<p>if language is statically typed, type checking happens here too</p>
+</li>
+<li>determine type of each var and expression</li>
+<li>check that operands are valid for arith, function calls, method calls, etc.</li>
+<li>lots of error reporting</li>
+<li>our lang is dynamic, so type checking happens later, while running</li>
+<li>
+<p>[even static langs push some checking to runtime, covariant arrays, casts, etc.]</p>
+</li>
+<li>
+<p>peak of mountain</p>
+</li>
+<li>
+<p>now really understand everything we can about code without actually running
+  it</p>
+</li>
+<li>
+<p>now going down mountain to get closer and closer to something we can execute</p>
+</li>
+<li>phases up to here called &ldquo;front end&rdquo;</li>
+<li>everything past this point generally referred to as &ldquo;compilation&rdquo; or &ldquo;back end&rdquo;</li>
+</ul>
+<h3><a href="#intermediate-representation" name="intermediate-representation">intermediate representation</a></h3>
+<ul>
+<li>along the way, may translate code into one or more intermediate representations</li>
+<li>often just take tree object produced by parsing and add bits of info to it</li>
+<li>here is variable referred to, here is type</li>
+<li>but may convert tree entirely to different data structure more useful for
+  what later phases want to do with it</li>
+<li>goal of each phase is to produce data organized in way to make next phase
+  easier</li>
+<li>especially important for compiler optimizations</li>
+<li>for those, want simple intermediate representation so don&rsquo;t have to optimize
+  lots of different code shapes</li>
+<li>so often &ldquo;desugar&rdquo; or &ldquo;lower&rdquo; to simpler, smaller language</li>
+<li>also often want to encode invariants so it&rsquo;s easier to tell when opt is safe
+  to perform</li>
+<li>ssa and cps</li>
+<li>not doing in this book, many interpreters skip this</li>
+</ul>
+<h3><a href="#optimization" name="optimization">optimization</a></h3>
+<ul>
+<li>advanced compilers do many phases of optimizations</li>
+<li>now that understand semantics of program, can freely transform it in ways
+  that are more efficient as long as preserve semantics</li>
+<li>efficient hard to define these days: faster, less code, less energy</li>
+<li>many many opts, dead code elimination, constant folding, strength reduction,
+  etc.</li>
+<li>many profession lang hackers spend almost entire career here</li>
+</ul>
+<h3><a href="#code-generation" name="code-generation">code generation</a></h3>
+<ul>
+<li>applied optimizations, have code that does right thing and does it efficient</li>
+<li>last step is converting it to form can execute</li>
+<li>traditional compiler generates native assembly or machine code, language cpu
+  itself executes</li>
+<li>gives you an executable os can directly run</li>
+<li>
+<p>specific to cpu architecture</p>
+</li>
+<li>
+<p>other languages generate code for artificial cpu, virtual machine. machine is
+  then emulated in software</p>
+</li>
+<li>this code for fake cpu usually called &ldquo;bytecode&rdquo;</li>
+<li>historically &ldquo;p-code&rdquo;</li>
+<li>bytecode is simpler to implement—machine code pretty complex, easier to debug</li>
+<li>also portable</li>
+<li>
+<p>but loses some speed in emulation</p>
+</li>
+<li>
+<p>some langs do both, translate to bytecode, then later translate that to
+  machine code</p>
+</li>
+</ul>
+<h3><a href="#runtime" name="runtime">runtime</a></h3>
+<ul>
+<li>finally have turned user&rsquo;s program into something can run</li>
+<li>last step is running it</li>
+<li>if compiled to machine code, can just tell os to run it and off you go</li>
+<li>if compiled to bytecode, need to load it inside vm and tell vm to run</li>
+<li>in both cases, for all but really low level languages, also need some services
+  that language defines are available at runtime</li>
+<li>for example, if language automatically manages mem, need gc</li>
+<li>if can do dynamic dispatch or type tests at runtime, need rep to track types
+  of objects at runtime</li>
+<li>extra baggage is called &ldquo;runtime&rdquo;</li>
+<li>in fully compiled language, gets compiled into executable. each compile prog
+  carries runtime with it. go, haskell</li>
+<li>if lang is run in vm, vm usually contains it. java, python, etc.</li>
+</ul>
+<h2><a href="#when-phases-run" name="when-phases-run">when phases run</a></h2>
+<ul>
+<li>those are different parts likely to see in any lang</li>
+<li>not every lang has every part</li>
+<li>not every lang runs part at same time</li>
+<li>important distinction is &ldquo;compile time&rdquo; versus &ldquo;runtime&rdquo;</li>
+<li>maybe more accurate &ldquo;dev time&rdquo; versus &ldquo;user time&rdquo;</li>
+<li>
+<p>which phase runs on developer&rsquo;s machine when creating prog versus on end
+  user&rsquo;s machine each time prog is run</p>
+</li>
+<li>
+<p>in traditional &ldquo;compiled&rdquo; language like c or go, every phase runs on dev&rsquo;s
+  machine</p>
+</li>
+<li>end user gets fully compiled app that just executes</li>
+<li>end user may not even have access to source</li>
+<li>
+<p>called &ldquo;ahead-of-time&rdquo;</p>
+</li>
+<li>
+<p>in &ldquo;scripting&rdquo; language like js, python, ruby, every phase runs on user&rsquo;s
+  machine</p>
+</li>
+<li>
+<p>they have raw source code sitting on disc (or pulled off web) and lang impls
+  runs through whole process above each time program is loaded</p>
+</li>
+<li>
+<p>languages in the middle. on dev&rsquo;s machine, compiler compiles to compact
+  bytecode rep, which is shipped to user</p>
+</li>
+<li>user runs that bytecode in vm</li>
+<li>
+<p>java, c#</p>
+</li>
+<li>
+<p>some langs that compile all the way to machine code, still defer some of that
+  until point that it runs on user&rsquo;s machine</p>
+</li>
+<li>may ship user source or bytecode, but then at very end, translate that to
+  (usually opt) machine code for end user&rsquo;s cpu</li>
+<li>called &ldquo;jit&rdquo;</li>
+<li>often do this multiple times with different opt</li>
+</ul>
+<h2><a href="#so-what-is-compiler-and-interpreter" name="so-what-is-compiler-and-interpreter">so what is &ldquo;compiler&rdquo; and &ldquo;interpreter&rdquo;</a></h2>
+<ul>
+<li>so lots of langs have different subsets of phases, and divide them differently across dev&rsquo;s and user&rsquo;s box?</li>
+<li>how to map to two simple terms?</li>
+<li>first thing, realize term refers to lang <em>impl</em>, not <em>lang itself</em></li>
+<li>scheme is not a compiled lang or interpreted lang</li>
+<li>
+<p>some scheme impls compile, some interpret (most do both)</p>
+</li>
+<li>
+<p>second, &ldquo;compile&rdquo; refers to two concepts</p>
+</li>
+<li>
+<p>if lang impl has any of back-end phases, it&rsquo;s doing &ldquo;compilation&rdquo;</p>
+</li>
+<li>if there is dev tool that takes source and translates to separate
+  form, and that later form is what end user runs, that first tool is a
+  &ldquo;compiler&rdquo;</li>
+<li>[what about go run?]</li>
+<li>
+<p>conversely, if there is tool that take source and can execute it directly
+  usually called &ldquo;interpreter&rdquo;</p>
+</li>
+<li>
+<p>in some cases, two are combined and term is obvious</p>
+</li>
+<li>in go and c, you run separate tool to translate source to machine code</li>
+<li>
+<p>tool is compiler and does compilation, easy</p>
+</li>
+<li>
+<p>likewise, if tool takes source and runs it without any translation, obviously
+  interpreter</p>
+</li>
+<li>no compilation anywhere</li>
+<li>ruby used to work this way</li>
+<li>our first lang impl will</li>
+<li>&ldquo;tree walk interpreter&rdquo;</li>
+<li>
+<p>[old basics didn&rsquo;t even parse before running, they would parse each line on
+  the fly every time it executed]</p>
+</li>
+<li>
+<p>where it gets fuzzy is many lang impls run from source but have a back end
+  that compiles on the fly</p>
+</li>
+<li>cpython, ruby, lua all compile to bytecode and execute</li>
+<li>
+<p>most js engines in browsers compile to bytecode then later machine code and
+  execute</p>
+</li>
+<li>
+<p>for these, say <em>is</em> interpreter, because that&rsquo;s how user uses it</p>
+</li>
+<li>
+<p>but say it <em>has</em> a compiler internally, because important implementation
+  detail</p>
+</li>
+<li>
+<p>our second impl works this way</p>
+</li>
+<li>so is book on interpreters, but we&rsquo;ll also learn compilation too</li>
+</ul>
+<p><strong>TODO: illustration showing various lang impls and which phases they have and which run on user&rsquo;s machine</strong></p>
+<h2><a href="#recap" name="recap">recap</a></h2>
+<ul>
+<li>same phases appear across almost all lang impls, though some omit some phases</li>
+<li>scanning, parsing, analysis all form front end</li>
+<li>ir, opt, code gen, all back end</li>
+<li>if impl has any back end phases, it is or has a compiler</li>
+<li>if lang impl runs from source, user probably thinks of it as &ldquo;interpreted&rdquo;</li>
+<li>
+<p>most interpreters have compilers internally</p>
+</li>
+<li>
+<p>remarkably stable across years and langs</p>
+</li>
+<li>stumble onto any codebase for lang impl from fortran to swift can probably
+  find file called &ldquo;parser&rdquo;, etc.</li>
+<li>you have your map now, let&rsquo;s explore</li>
+</ul>
+<!--
+
+--
+
+Mention in intro that code is lightly documented because prose itself is docs.
+Real code should have more docs.
+
+-->
 
 <footer>&copy; 2016 Robert Nystrom</footer>
 </article>

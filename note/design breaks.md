@@ -41,3 +41,5 @@
   user-defined truthiness.
 
   Trade off is power versus concrete readability.
+
+- Something about evolving a language after it's released.

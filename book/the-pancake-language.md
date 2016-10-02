@@ -1,2 +1,2 @@
 ^title The Pancake Language
-^part The Lay of the Land
+^part Welcome

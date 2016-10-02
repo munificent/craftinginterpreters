@@ -38,7 +38,7 @@ TOC = [
     ],
   },
   {
-    'name': 'The Lay of the Land',
+    'name': 'Welcome',
     'chapters': [
       {
         'name': 'Introduction',
@@ -55,7 +55,7 @@ TOC = [
     ]
   },
   {
-    'name': 'The View from the Top',
+    'name': 'A Tree-Walk Interpreter in Java',
     'chapters': [
       {
         'name': 'Scanning',
@@ -110,7 +110,7 @@ TOC = [
     ]
   },
   {
-    'name': 'The Long Way Down',
+    'name': 'A Bytecode Interpreter in C',
     'chapters': [
       {
         'name': 'Chunks of Bytecode',

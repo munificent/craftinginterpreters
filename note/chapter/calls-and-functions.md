@@ -17,3 +17,7 @@ https://en.wikipedia.org/wiki/Function_prologue
 
 When explaining call frames, talk about how in early Fortran, without recursion,
 the ip for each function could be stored as static data with the function.
+
+--
+
+Talk about combining the CallFrame stack with the value stack.
