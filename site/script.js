@@ -9,7 +9,6 @@ $(document).ready(function() {
 
   $(window).scroll(function() {
     var nav = $("nav.floating");
-    console.log($(window).scrollTop());
     if ($(window).scrollTop() > 84) {
       nav.addClass("pinned");
     } else {
@@ -51,6 +50,12 @@ function refreshAsides() {
 
     // Find the span the aside should be anchored next to.
     var name = aside.attr("name");
+    if (name == null) {
+      window.console.log("No name for aside:");
+      window.console.log(aside.context);
+      return;
+    }
+
     var span = $("span[name='" + name + "']");
     if (span == null) {
       window.console.log("Could not find span for '" + name + "'");
