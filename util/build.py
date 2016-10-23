@@ -203,17 +203,16 @@ TOC = [
       }
     ]
   },
-  {
-    'name': '',
-    'chapters': [
-      {
-        'name': 'Glossary',
-        'topics': [],
-        'done': False,
-      }
-    ]
-    # TODO: Answers to exercises.
-  }
+  # {
+  #   'name': '',
+  #   'chapters': [
+  #     {
+  #       'name': 'Glossary',
+  #       'topics': [],
+  #       'done': False,
+  #     }
+  #   ]
+  # }
 ]
 
 
@@ -438,10 +437,11 @@ def format_file(path, skip_up_to_date, templates_mod):
   #   section_header = '<span class="section"><a href="{}.html">{}</a></span>'.format(
   #     section_href, section)
 
-  # Allow processing markdown inside asides.
+  # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
+  contents = contents.replace('<div class="exercises">', '<div class="exercises" markdown="1">')
   body = markdown.markdown(contents, ['extra', 'codehilite', 'smarty'])
-  body = body.replace('<aside markdown="1"', '<aside')
+  body = body.replace(' markdown="1"', '')
 
   data = {
     'title': title,
@@ -486,7 +486,7 @@ def format_file(path, skip_up_to_date, templates_mod):
       total_words += word_count
       print("  {}✓{} {}{} ({} words)".format(
         GREEN, DEFAULT, num, title, word_count))
-  elif title in ["Crafting Interpreters", "Table of Contents", "Glossary"]:
+  elif title in ["Crafting Interpreters", "Table of Contents"]:
     print("{}•{} {}{}".format(
       GREEN, DEFAULT, num, title))
   else:

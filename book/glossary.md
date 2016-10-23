@@ -1,2 +1,0 @@
-^title Glossary
-^part Backmatter
