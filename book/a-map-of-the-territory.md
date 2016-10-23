@@ -615,7 +615,11 @@ But, for now, it's time for our own journey to begin. Tighten your bootlaces,
 cinch up your pack, and come along. From here on out, all you need to focus on
 is the path in front of you.
 
+<div class="exercises">
+
 ## Exercises
+
+**TODO: More.**
 
 1. Pick an open source implementation of a language you like. Download the
    source code and poke around in it. Try to find the code that implements the
@@ -625,4 +629,4 @@ is the path in front of you.
 1. Most Lisp implementations that compile to C also contain an interpreter that
    lets them execute Lisp code on the fly as well. Why?
 
-   **TODO: More.**
+</div>

@@ -13,7 +13,7 @@ name="head">head</span> for nearly a decade.
 
 <aside name="head">
 
-To my friends and family, sorry I seemed so distracted!
+To my friends and family, sorry I've been so absent-minded!
 
 </aside>
 
@@ -397,9 +397,21 @@ professional caliber language implementations out there.
 
 **TODO: Conclusion.**
 
+<div class="exercises">
+
 ## Exercises
 
 1. There are least six domain-specific languages used in the little system I
    cobbled together for myself to write and publish this book. What are they?
 
-   **TODO: More.**
+1. Get a "Hello, world!" program written and running in Java. Set up whatever
+   Makefiles or IDE projects you need to get it working. If you have a debugger,
+   get comfortable with it and step your program as it runs.
+
+1. Do the same thing for C. To get some practice with pointers, define a
+   [doubly-linked list][] of heap-allocated strings. Write functions to insert,
+   find, and delete items from it. Test them.
+
+[doubly-linked list]: https://en.wikipedia.org/wiki/Doubly_linked_list
+
+</div>
