@@ -1,2 +1,2 @@
 ^title Local Variables
-^part The Long Way Down
+^part A Bytecode Interpreter in C

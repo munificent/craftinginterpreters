@@ -1,2 +1,2 @@
 ^title Classes and Instances
-^part The Long Way Down
+^part A Bytecode Interpreter in C

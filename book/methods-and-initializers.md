@@ -1,2 +1,2 @@
 ^title Methods and Initializers
-^part The Long Way Down
+^part A Bytecode Interpreter in C

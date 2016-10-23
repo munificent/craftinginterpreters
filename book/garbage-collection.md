@@ -1,2 +1,2 @@
 ^title Garbage Collection
-^part The Long Way Down
+^part A Bytecode Interpreter in C

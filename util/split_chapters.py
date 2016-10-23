@@ -163,9 +163,9 @@ def walk(dir, extensions, callback):
 # The Java chapters.
 for i, chapter in enumerate(JAVA_CHAPTERS):
   walk("java", [".java"],
-      lambda path: split_file("java", JAVA_CHAPTERS, 3, path, i))
+      lambda path: split_file("java", JAVA_CHAPTERS, 4, path, i))
 
 # The C chapters.
 for i, chapter in enumerate(C_CHAPTERS):
   walk("c", [".c", ".h"],
-      lambda path: split_file("c", C_CHAPTERS, 14, path, i))
+      lambda path: split_file("c", C_CHAPTERS, 15, path, i))

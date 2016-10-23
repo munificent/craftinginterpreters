@@ -1,2 +1,2 @@
 ^title Scanning
-^part The View from the Top
+^part A Tree-Walk Interpreter in Java

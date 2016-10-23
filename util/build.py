@@ -42,7 +42,11 @@ TOC = [
     'chapters': [
       {
         'name': 'Introduction',
-        'topics': ['Why learn programming languages?', 'Interpreters and compilers', 'Phases of a compiler'],
+        'topics': ['Why learn programming languages?', 'How this book is organized'],
+      },
+      {
+        'name': 'A Map of the Territory',
+        'topics': ['Interpreters and compilers', 'Phases of a compiler', 'Transpilers', 'Just-in-time compilation'],
       },
       {
         'name': 'The Pancake Language',
@@ -208,6 +212,7 @@ TOC = [
         'done': False,
       }
     ]
+    # TODO: Answers to exercises.
   }
 ]
 

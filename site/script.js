@@ -1,6 +1,7 @@
 $(document).ready(function() {
   $(".dismiss").click(function() {
     $(".sign-up").hide();
+    refreshAsides();
   });
 
   $("#expand-nav").click(function() {
