@@ -1,6 +1,8 @@
 ^title A Map of the Territory
 ^part Welcome
 
+**TODO: Make sure we cover distinction between language an language impl.**
+
 > Believable fairy-stories must be intensely practical. You must have a map, no matter how rough. Otherwise you wander all over the place. In The Lord of the Rings I never made anyone go farther than he could on a given day.
 >
 > <cite>J.R.R. Tolkien</cite>
@@ -42,8 +44,8 @@ Variable names?
 </aside>
 
 Each phase analyzes the program and transforms it to some higher-level
-representation where the semantics—what the author wants the computer to
-do—becomes more obvious. Eventually we reach the peak, the point where our
+representation where the semantics -- what the author wants the computer to
+do -- becomes more obvious. Eventually we reach the peak, the point where our
 implementation understands all it needs to about the user's program and knows
 what it needs to do to be able to execute it.
 
@@ -88,18 +90,19 @@ Scanning is the step where these usually get discarded.
 
 ### Parsing
 
-The next step is **parsing**. This is where our syntax gets a **grammar**—the
-ability to compose larger phrases, expressions, and statements out of smaller
-parts. Did you ever diagram sentences in English class? If so, you've basically
-already done this. Except that English has thousands and thousands of "keywords"
-and imperial tonnes of ambiguity. Programming languages are much simpler.
+The next step is **parsing**. This is where our syntax gets a **grammar** ---
+the ability to compose larger phrases, expressions, and statements out of
+smaller parts. Did you ever diagram sentences in English class? If so, you've
+basically already done this. Except that English has thousands and thousands of
+"keywords" and imperial tonnes of ambiguity. Programming languages are much
+simpler.
 
 A **parser** takes a series of tokens and builds a tree structure that
 explicitly encodes the nested nature of the grammar. These trees have a couple
-of different names—**parse tree** or **abstract syntax tree**—depending on how
-close to the grammatical structure to the language they are. In practice, most
-language hackers just call them **"syntax trees"**, **"ASTs"** or often just
-**"trees"**.
+of different names -- **parse tree** or **abstract syntax tree** -- depending
+on how close to the grammatical structure to the language they are. In practice,
+most language hackers just call them **"syntax trees"**, **"ASTs"** or often
+just **"trees"**.
 
 During parsing, we handle things like operator <span
 name="precedence">precedence</span> so in `a + b * c`, the parser's job is to
@@ -163,8 +166,8 @@ to. Are they local variables? Global? Where are they defined?
 The first bit of analysis that most languages do is called **binding** or
 **resolution**. For each **identifier** (variable name) we find out where that
 name is defined and wire the two together. This is where **scope** comes into
-play—the region of source code where a certain name can be used to refer to a
-certain declaration.
+play -- the region of source code where a certain name can be used to refer to
+a certain declaration.
 
 If the language is <span name="type">statically typed</span>, this is when we
 type check. Once we know where `a` and `b` are declared, we can also figure out
@@ -182,13 +185,13 @@ Now we have summitted the peak of the mountain. We have figured out everything
 we can about the user's program without actually running it. All this data that
 we've figured out through analysis needs to be stored somewhere. There are a
 variety of places we can squirrel it away. Often, it gets stored right back as
-**attributes** on the syntax tree itself—little extra fields that aren't
+**attributes** on the syntax tree itself -- little extra fields that aren't
 populated during parsing but get filled in later.
 
 Other times, we may store it in a look-up table stored off to the side. For
 example, we may use one to store the types of expressions. Give it an
 expression, and it will return the previously calculated static type of it. More
-often, the keys to this table are identifiers—names of variables and
+often, the keys to this table are identifiers -- names of variables and
 declarations. In that case, we call it a **symbol table** and the values it maps
 to names will help us understand what that name refers to.
 
@@ -399,8 +402,8 @@ Python, and JavaScript work.
 
 ### Transpilers
 
-Most languages that "compile"—transform the user's code—translate it into
-another language at a lower level of abstraction than the input. Typically,
+Most languages that "compile" -- transform the user's code -- translate it
+into another language at a lower level of abstraction than the input. Typically,
 you're taking some high-level human-friendly language and lowering it to machine
 code or bytecode.
 
@@ -443,10 +446,10 @@ specifically designed to be targeted by compilers.
 
 </aside>
 
-The front end—scanner and parser—of a transpiler looks like other compilers. If
-the source language is just a simple syntactic skin over the target language, it
-may skip analysis entirely and go from the syntax tree straight to outputting
-the analogous syntax in the destination language.
+The front end -- scanner and parser -- of a transpiler looks like other
+compilers. If the source language is just a simple syntactic skin over the
+target language, it may skip analysis entirely and go from the syntax tree
+straight to outputting the analogous syntax in the destination language.
 
 If the two languages are more semantically different, then you'll see more of
 the typical phases of a full compiler including analysis and possibly even
@@ -547,11 +550,11 @@ vegetables (apples), vegetables that are not fruits (lettuce), but also things
 that are *both* fruits and vegetables (tomatoes).
 
 * **Compilation** is an *implementation technique* where you translate a source
-  language to some other—usually lower-level—form. When you generate bytecode or
-  machine code, you are compiling. When you transpile to another high-level
-  language you are compiling too. If users run a tool that takes a source
-  language and outputs some target language and then stops, we call that tool a
-  **compiler**.
+  language to some other -- usually lower-level -- form. When you generate
+  bytecode or machine code, you are compiling. When you transpile to another
+  high-level language you are compiling too. If users run a tool that takes a
+  source language and outputs some target language and then stops, we call that
+  tool a **compiler**.
 
 * **Interpretation** describes the *user experience of executing a language*. If
   end users run a program from source without having to first go through a
@@ -574,7 +577,7 @@ syntax tree. No other translation occurred. So this was definitely an
 
 But what of CPython? When you run your Python program using it, it is parsed and
 converted to an internal bytecode format, which is then executed inside the VM.
-From the user's perspective, this is clearly an interpreter—they run their
+From the user's perspective, this is clearly an interpreter -- they run their
 program from source. But if you look under CPython's scaly skin, you'll see that
 there is clearly some compiling going on.
 
@@ -615,9 +618,9 @@ But, for now, it's time for our own journey to begin. Tighten your bootlaces,
 cinch up your pack, and come along. From here on out, all you need to focus on
 is the path in front of you.
 
-<div class="exercises">
+<div class="challenges">
 
-## Exercises
+## Challenges
 
 **TODO: More.**
 

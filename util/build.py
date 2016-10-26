@@ -439,7 +439,7 @@ def format_file(path, skip_up_to_date, templates_mod):
 
   # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
-  contents = contents.replace('<div class="exercises">', '<div class="exercises" markdown="1">')
+  contents = contents.replace('<div class="challenges">', '<div class="challenges" markdown="1">')
   body = markdown.markdown(contents, ['extra', 'codehilite', 'smarty'])
   body = body.replace(' markdown="1"', '')
 
