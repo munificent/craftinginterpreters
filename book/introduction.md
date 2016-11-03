@@ -57,13 +57,16 @@ Curry-Howard isomorphism][].
 </aside>
 
 That's my goal for you. I want you to come away with a solid intuition of how a
-real language lives and breathes. My hope is that you read other, more theoretical books later, they will more easily stick in your mind, adhered to this tangible foundation.
+real language lives and breathes. My hope is that you read other, more
+theoretical books later, they will more easily stick in your mind, adhered to
+this tangible foundation.
 
 ## Why learn this stuff?
 
 Every introduction to every language book seems to have this section. I don't
-know what it is about programming languages that causes this existential doubt.
-I don't think ornithology books worry about justifying their existence. They assume the reader loves birds and get moving.
+know what it is about programming languages that causes this existential doubt. I
+don't think ornithology books worry about justifying their existence. They assume
+the reader loves birds and get moving.
 
 But programming languages are a little different. I suppose it's true that the
 odds of any of us creating a broadly successful general purpose programming
@@ -157,7 +160,8 @@ couple of chapters to get you oriented, teach you some of the lingo language
 hackers use, and introduce you to Lox, the language we'll be implementing.
 
 Each of the other two parts builds one complete Lox interpreter. Within these
-parts, each chapter is structured the same. Every one takes a single language feature teaches you the concepts behind it and how to implement it.
+parts, each chapter is structured the same. Every one takes a single language
+feature teaches you the concepts behind it and how to implement it.
 
 It took a good bit of trial and error on my part, but I managed to carve up the
 two interpreters into chapter-sized chunks so that each builds on the previous
@@ -165,7 +169,8 @@ ones. From the very first chapter, you'll have a program you can run and play
 with. With each passing chapter, it grows increasingly full-featured until you
 eventually have a complete language.
 
-Aside from copious, scintillating English prose, chapters have a few other delightful facets:
+Aside from copious, scintillating English prose, chapters have a few other
+delightful facets:
 
 ### The code
 
@@ -213,8 +218,8 @@ your eyes. The pages here aren't as wide as your IDE and every character counts.
 
 Also, the code here doesn't have many comments. That's because each handful of
 lines is surrounded by several paragraphs of honest-to-God prose explaining it.
-If you write a book to accompany each of your programs, you are welcome to omit comments too. Otherwise, you should probably use `//` a little more than I
-do.
+If you write a book to accompany each of your programs, you are welcome to omit
+comments too. Otherwise, you should probably use `//` a little more than I do.
 
 (What this book *doesn't* contain is the machinery needed to compile and run the
 code. I assume you can slap together a makefile or a project in your IDE of
@@ -255,19 +260,32 @@ language being implemented. This book is half guilty of that. I already did the
 work to design Lox so you don't have to.
 
 Focusing on implementation is fun because it is so <span
-name="benchmark">crisply-defined</span>. We programmers seem to have an affinity for things that are black and white. Taking an existing language's test suite and cranking out a new implementation that makes all the tests pass is the ultimate idealized software engineering project, and deeply satisfying. Especially when it runs faster than the previous implementation.
+name="benchmark">crisply-defined</span>. We programmers seem to have an affinity
+for things that are black and white. Taking an existing language's test suite and
+cranking out a new implementation that makes all the tests pass is the ultimate
+idealized software engineering project, and deeply satisfying. Especially when it
+runs faster than the previous implementation.
 
 <aside name="benchmark">
 
-I know a lot of language hackers who whose careers are based on this. You slide a language spec under their door, wait a few months, and code and benchmark results come out.
+I know a lot of language hackers who whose careers are based on this. You slide a
+language spec under their door, wait a few months, and code and benchmark results
+come out.
 
 </aside>
 
 I don't know about you, but I think the world only needs so many implementations
-of FORTRAN 77. At some point, you end up designing a new language. And once you
-start playing *that* game, then the softer, human side of the equation becomes
-paramount. Things like what features are easy to learn, how to balance
-innovation and familiarity, which syntaxes are easier to read.
+of <span name="fortran">FORTRAN 77</span>. At some point, you end up designing a
+new language. And once you start playing *that* game, then the softer, human side
+of the equation becomes paramount. Things like what features are easy to learn,
+how to balance innovation and familiarity, which syntaxes are easier to read.
+
+<aside name="fortran">
+
+Hopefully a language that doesn't hardcode assumptions about the width of a
+punched card into its grammar.
+
+</aside>
 
 All of that stuff profoundly affects the success of your new language. But most
 books don't talk much about it, I think in large because it is fuzzier. Many
@@ -276,7 +294,9 @@ anything that can't be proven like a theorem.
 
 <aside name="science">
 
-There's an age-old joke that any discipline that feels the need to put "science" in its name is just a pretender. "Chemistry"? Real science. "Biology"? Yup. "Polical science"? Umm. "Computer science"? Well, drat.
+There's an age-old joke that any discipline that feels the need to put "science"
+in its name is just a pretender. "Chemistry"? Real science. "Biology"? Yup.
+"Polical science"? Umm. "Computer science"? Well, drat.
 
 </aside>
 
