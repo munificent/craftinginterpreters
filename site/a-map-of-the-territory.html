@@ -160,29 +160,30 @@ closer to something we know how to make the CPU actually execute.</p>
 the other side of the mountain, but this structure is remarkably similar across
 almost the world&rsquo;s programming languages.</p>
 <p>Here&rsquo;s the whole picture:</p>
-<p><img src="image/introduction/mountain.png" alt="The branching paths a language may take over the mountain." class="wide" /></p>
+<p><img src="image/a-map-of-the-territory/mountain.png" alt="The branching paths a language may take over the mountain." class="wide" /></p>
 <p>Place your finger on the map, and we&rsquo;ll trace through each of those trails and
 stopping points. Our journey begins on the left with the bare text of the user&rsquo;s
-source code.</p>
+source code:</p>
+<p><img src="image/a-map-of-the-territory/string.png" alt="var average = (min + max) / 2;" /></p>
 <h3><a href="#scanning" name="scanning">Scanning</a></h3>
 <p>The first step is <strong>scanning</strong>, also known as <strong>lexing</strong>, or (if you&rsquo;re trying
 to impress someone) <strong>lexical analysis</strong>. They all mean the pretty much same
 thing. I like &ldquo;lexing&rdquo; because it sounds like something an evil supervillain
 would do, but I&rsquo;ll use &ldquo;scanning&rdquo; here because it seems to be marginally more
 common in usage.</p>
-<p>A <strong>scanner</strong> (or <strong>&ldquo;lexer&rdquo;</strong>) takes in the linear stream of <em>characters</em> and
+<p>A <strong>scanner</strong> (or <strong>&ldquo;lexer&rdquo;</strong>) takes in the linear stream of characters and
 chunks them together into a series of something more akin to &ldquo;words&rdquo;. &ldquo;Lexical&rdquo;
 comes from the Greek root &ldquo;lex&rdquo;, meaning &ldquo;word&rdquo;.</p>
 <p>In programming languages, each of these words is called a <strong>token</strong>. Some tokens
 are single characters, like <code>(</code> and <code>,</code>. Others may be several characters long,
-like numbers (<code>123</code>), string literals (<code>"hi!"</code>), and identifiers (<code>name</code>).</p>
+like numbers (<code>123</code>), string literals (<code>"hi!"</code>), and identifiers (<code>min</code>).</p>
 <p>Some characters in a source file don&rsquo;t actually mean anything. Whitespace is
 often insignificant and comments, by definition, are ignored by the language.
 The scanner usually discards these, leaving a clean sequence of meaningful
 tokens.</p>
-<p><strong>TODO: pipeline picture</strong></p>
+<p><img src="image/a-map-of-the-territory/tokens.png" alt="[var] [average] [=] [(] [min] [+] [max] [)] [/] [2] [;]" /></p>
 <h3><a href="#parsing" name="parsing">Parsing</a></h3>
-<p>The next step is <strong>parsing</strong>. This is where our syntax gets a <strong>grammar</strong> &mdash;
+<p>The next step is <strong>parsing</strong>. This is where our syntax gets a <strong>grammar</strong> &ndash;
 the ability to compose larger phrases, expressions, and statements out of
 smaller parts. Did you ever diagram sentences in English class? If so, you&rsquo;ve
 done what a parser does, except that English has thousands and thousands of
@@ -194,6 +195,7 @@ of different names&#8202;&mdash;&#8202;<strong>&ldquo;parse tree&rdquo;</strong>
 depending on how close to the grammatical structure to the language they are. In
 practice, most language hackers just call them <strong>&ldquo;syntax trees&rdquo;</strong>, <strong>&ldquo;ASTs&rdquo;</strong>,
 <strong>&ldquo;AST nodes&rdquo;</strong> or often just <strong>&ldquo;trees&rdquo;</strong>.</p>
+<p><img src="image/a-map-of-the-territory/ast.png" alt="An abstract syntax tree." /></p>
 <p>The parser handles things like operator <span
 name="precedence">precedence</span> so in, say, <code>a + b * c</code>, it builds a tree
 that reflects that <code>b * c</code> is evaluated before adding it to <code>a</code>. Parsing is also
@@ -211,7 +213,6 @@ researchers who were trying to get computers to talk to us.</p>
 <p>It turns out human languages are too messy for the rigid grammars those parsers
 could handle, but they were a perfect fit for the simpler artificial grammars of
 programming languages.</p>
-<p><strong>TODO: tokens to tree picture</strong></p>
 <h3><a href="#static-analysis" name="static-analysis">Static analysis</a></h3>
 <p>The first two stages are pretty similar among almost all implementations and
 forms the <strong>front end</strong> of the pipeline. Now, the individual characteristics of
@@ -297,13 +298,11 @@ more efficiently.</p>
 always evaluates to the exact same value, we can do the evaluation at compile
 time and replace the code for the expression with its result. If the user typed
 in:</p>
-<div class="codehilite"><pre><span></span><span class="n">pennyArea</span> <span class="o">=</span> <span class="mf">3.15159</span> <span class="o">*</span> <span class="o">(</span><span class="mf">0.75</span> <span class="o">/</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="mf">0.75</span> <span class="o">/</span> <span class="mi">2</span><span class="o">);</span>
-</pre></div>
+<pre class="codehilite"><code class="language-java">pennyArea = 3.15159 * (0.75 / 2) * (0.75 / 2);</code></pre>
 
 
 <p>We can do all of that arithmetic in the compiler and change the code to:</p>
-<div class="codehilite"><pre><span></span><span class="n">pennyArea</span> <span class="o">=</span> <span class="mf">0.44319234375</span><span class="o">;</span>
-</pre></div>
+<pre class="codehilite"><code class="language-java">pennyArea = 0.44319234375;</code></pre>
 
 
 <p>Optimization is a huge part of language academia as well as industry. Many
@@ -333,25 +332,23 @@ features.</p>
 how some of the nice expression syntaxes supported by languages like ALGOL were
 a sugaring over the more fundamental, yet presumably less palatable lambda
 calculus underneath.</p>
-<p><strong>TODO: picture?</strong></p>
+<p><img alt="Slightly more than a spoonful of sugar." src="image/a-map-of-the-territory/sugar.png" /></p>
 </aside>
 <p>For example, in C, loops are mere syntactic sugar for labels and jumps. Take
 this code:</p>
-<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="n">a</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
+<pre class="codehilite"><code class="language-c">for (a = 0; a &lt; 10; a++) {
+  printf(&quot;%d\n&quot;, a);
+}</code></pre>
 
 
 <p>The compiler can <strong>desugar</strong> it to:</p>
-<div class="codehilite"><pre><span></span>  <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="nl">for_start</span><span class="p">:</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">))</span> <span class="k">goto</span> <span class="n">for_end</span><span class="p">;</span>
-  <span class="n">a</span><span class="o">++</span><span class="p">;</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
-  <span class="k">goto</span> <span class="n">for_start</span><span class="p">;</span>
-<span class="nl">for_end</span><span class="p">:</span>
-</pre></div>
+<pre class="codehilite"><code class="language-c">  a = 0;
+for_start:
+  if (!(a &lt; 10)) goto for_end;
+  a++;
+  printf(&quot;%d\n&quot;, a);
+  goto for_start;
+for_end:</code></pre>
 
 
 <p>(Even that little <code>++</code> can be desugared to an explicit addition and assignment.)
@@ -576,16 +573,18 @@ program are performance <span name="hot">hot spots</span>.</p>
 <p>This is, of course, exactly where the HotSpot JVM gets its name.</p>
 </aside>
 <h2><a href="#compilers-versus-interpreters" name="compilers-versus-interpreters">&ldquo;Compilers&rdquo; versus &ldquo;interpreters&rdquo;</a></h2>
-<p>A perennial question in languages is, &ldquo;What&rsquo;s the difference between a compiler and an interpreter?&rdquo; Now we know enough to answer that with some fidelity.</p>
+<p>A perennial question in languages is, &ldquo;What&rsquo;s the difference between a compiler
+and an interpreter?&rdquo; Now we know enough to answer that with some fidelity.</p>
 <p>This is sort of like asking what&rsquo;s the difference between a fruit and a
 vegetable. That <em>sounds</em> like a single binary either-or choice, but actually
 &ldquo;fruit&rdquo; is a botanical term and &ldquo;vegetable&rdquo; is culinary. One does not imply the
 negation of the other. There are fruits that aren&rsquo;t vegetables (apples) and
-vegetables that are not fruits (lettuce), but also plants that are <span
-name="veg"><em>both</em></span> fruits and vegetables (tomatoes).</p>
-<p><strong>TODO: Venn diagram illustration of plants.</strong></p>
+vegetables that are not fruits (carrots), but also plants that are <em>both</em>
+fruits and vegetables (tomatoes).</p>
+<p><span name="veg"></span></span></p>
+<p><img src="image/a-map-of-the-territory/plants.png" alt="A Venn diagram of edible plants" /></p>
 <aside name="veg">
-<p>There are even plant-based foods that are <em>neither</em> like nuts and cereals.</p>
+<p>There are even plant-based foods that are <em>neither</em>, like nuts and cereals.</p>
 </aside>
 <ul>
 <li>
@@ -630,17 +629,10 @@ build</code>, it compiles your Go source code to machine code and stops. If you 
 <code>go run</code>, it does that then immediately executes the generated executable.</p>
 <p>So <code>go</code> <em>has</em> a compiler, <em>is</em> an interpreter, and <em>is</em> also a compiler.</p>
 </aside>
-<p>This is how the second interpreter we&rsquo;ll build works. So while this book is
-nominally about &ldquo;interpreters&rdquo;, we&rsquo;ll also learn compilation too.</p>
-<!--
-
-First off, recall that neither compilation nor interpretation is a property of a
-*language*. There are Scheme implementations that compile to C or machine code,
-and others that interpret directly from source.
-
--->
-
-<p><strong>TODO: Venn diagram illustration of various language impls that have interps, compilers, etc.</strong></p>
+<p><img src="image/a-map-of-the-territory/venn.png" alt="A Venn diagram of compilers and interpreters" /></p>
+<p>That overlapping region in the center is where our second interpreter lives too,
+since it internally compiles to bytecode. So while this book is nominally about
+interpreters, you&rsquo;ll learn compilation too.</p>
 <h2><a href="#our-own-journey" name="our-own-journey">Our own journey</a></h2>
 <p>That&rsquo;s a lot to take in all at once. Don&rsquo;t worry. This isn&rsquo;t the chapter where
 you&rsquo;re expected to <em>understand</em> all of these pieces and parts. I just want you

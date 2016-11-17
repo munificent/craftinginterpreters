@@ -26,7 +26,7 @@ In order to cram two full implementations inside one book without it turning
 into a doorstop, this book is lighter on theory than others. As we build each
 piece of the system, I will introduce the history and concepts behind it. I'll
 try to get you familiar with the lingo so that if you ever find yourself in a
-cocktail <span name="party">party</span> full of PL (programming language)
+<span name="party">cocktail party</span> full of PL (programming language)
 researchers, you'll fit in.
 
 <aside name="party">
@@ -36,13 +36,13 @@ wouldn't believe how much some of them can drink.
 
 </aside>
 
-But we're mostly going to spend our brain juice getting our language up and
+But we're mostly going to spend our brain juice getting the language up and
 running. This is not to say theory isn't important. Being able to reason
 precisely and <span name="formal">formally</span> about syntax and semantics is
 a vital skill when working on a language. But, personally, I learn best by
 doing. It's hard for me to wade through paragraphs full of abstract concepts and
-really absorb them. But if I've implemented a concept, debugged it,
-ran it, and poked at it, then I *get* it.
+really absorb them. But if I've coded something, debugged it, ran it, and poked
+at it, then I *get* it.
 
 <aside name="formal">
 
@@ -59,16 +59,16 @@ Curry-Howard isomorphism][].
 That's my goal for you. I want you to come away with a solid intuition of how a
 real language lives and breathes. My hope is that you read other, more
 theoretical books later, they will more easily stick in your mind, adhered to
-this tangible foundation.
+this tangible substrate.
 
 ## Why learn this stuff?
 
 Every introduction to every language book seems to have this section. I don't
-know what it is about programming languages that causes this existential doubt. I
-don't think ornithology books worry about justifying their existence. They assume
-the reader loves birds and get moving.
+know what it is about programming languages that causes such existential doubt.
+I don't think ornithology books worry about justifying their existence. They
+assume the reader loves birds and get moving.
 
-But programming languages are a little different. I suppose it's true that the
+But programming languages are a little different. I suppose it is true that the
 odds of any of us creating a broadly successful general purpose programming
 language are slim. The designers of the world's widely-used languages could fit
 in a Volkswagen bus, even without putting the pop top camper up. If joining that
@@ -78,47 +78,53 @@ justify. Fortunately, it isn't.
 ### Little languages are everywhere
 
 For every successful *general purpose* language out there, there are a thousand
-successful niche ones. We used to call them "little languages", but
-inflation in the jargon economy lead today to the name "domain-specific
-languages". These are pidgins tailor-built to a specific task. Things like
-application-specific scripting languages, template engines, markup formats, and
-configuration files.
+successful niche ones. We used to call them "little languages", but inflation in
+the jargon economy lead today to the name "domain-specific languages". These are
+pidgins tailor-built to a specific task. Things like application scripting
+languages, template engines, markup formats, and configuration files.
+
+<span name="little"></span>
+<img src="image/introduction/little-languages.png" alt="A random selection of little languages." />
+
+<aside name="little">
+
+A random selection of some little languages you might run into.
+
+</aside>
 
 Almost every large software project needs a handful of these. When you can, it's
-good to reuse an existing one instead of rolling your own. When you take into
-account the need for documentation, debuggers, editor support, syntax
-highlighting, and all of the other accoutrements, doing it yourself becomes a
-tall order.
+good to reuse an existing one instead of rolling your own. Once you take into
+account documentation, debuggers, editor support, syntax highlighting, and all
+of the other trappings, doing it yourself becomes a tall order.
 
 But there's still a good chance you'll find yourself needing to whip up a parser
 or something when there isn't an existing library that fits your needs. Even
-when there *is* one you can reuse, you'll inevitably end up needing to debug and
+when there *is* one to reuse, you'll inevitably end up needing to debug and
 maintain it and poke around in its guts.
 
 ### Languages are great exercise
 
 Long distance runners sometimes train with weights strapped to their ankles or
-at high altitudes where the air is thin. When they later unburden themselves,
-the new relative ease of light limbs and oxygen-rich air enables them to run
-farther and faster.
+at high altitudes where the atmosphere is thin. When they later unburden
+themselves, the new relative ease of light limbs and oxygen-rich air enables
+them to run farther and faster.
 
 Implementing a language is a real test of programming skill. The code is complex
 and performance critical. You must master recursion and recursive algorithms.
-You need to completely understand dynamic arrays, trees, graphs, and hash
-tables.
+You need to fully comprehend dynamic arrays, trees, graphs, and hash tables.
 
-You probably use stuff like hash tables in your day-to-day programming, but how
-well do you *really* understand them? Well, after we've crafted our own from
-scratch, I promise you will.
+You probably use hash tables in your day-to-day programming, but how well do you
+*really* understand them? Well, after we've crafted our own from scratch, I
+guarantee you will.
 
-While I hope to show you that a programming language isn't as daunting as you
+While I intend to show you that a programming language isn't as daunting as you
 might believe, it is still a challenge. Rise to it, and you'll come away a
 stronger programmer, and smarter about how you use data structures and
 algorithms in your day job.
 
 ### One more reason
 
-This last reason it hard for me to admit, because it's close to my heart. Ever
+This last reason is hard for me to admit, because it's close to my heart. Ever
 since I learned to program as a kid, I felt there as something magical about
 languages. When I first tapped out BASIC programs one key at a time I couldn't
 conceive how BASIC *itself* was made.
@@ -127,17 +133,20 @@ Later, the mixture of awe and terror my college friends used to refer to their
 compilers class was enough to convince me language hackers were a different
 breed of human. Some sort of wizards granted priveleged access to arcane arts.
 
-It's a charming <span name="image">image</span>, but it has a darker side. I
-know *I'm* not a wizard, so I was left feeling like I lacked some in-born
-quality necessary to join the cabal. Though I've been fascinated by languages
-ever since I doodled made up keywords in my school notebook, it took me decades
-to muster the courage to try to really learn them. That "magical" quality, that
-sense of exclusivity, excluded *me*.
+It's a charming <span name="image">image</span>, but it has a darker side. *I*
+didn't feel like a wizard, so I was left thinking I lacked some in-born quality
+necessary to join the cabal. Though I've been fascinated by languages ever since
+I doodled made up keywords in my school notebook, it took me decades to muster
+the courage to try to really learn them. That "magical" quality, that sense of
+exclusivity, excluded *me*.
 
 <aside name="image">
 
 And one its practitioners don't hesitate to play up. Two of the seminal texts on
-programming languages feature a dragon and a wizard on their cover.
+programming languages feature a [dragon][] and a [wizard][] on their cover.
+
+[dragon]: https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
+[wizard]: https://mitpress.mit.edu/sicp/full-text/book/book.html
 
 </aside>
 
@@ -159,9 +168,10 @@ This book is broken into three parts. You're reading the first one now. It's a
 couple of chapters to get you oriented, teach you some of the lingo language
 hackers use, and introduce you to Lox, the language we'll be implementing.
 
-Each of the other two parts builds one complete Lox interpreter. Within these
+Each of the other two parts builds one complete Lox interpreter. Within those
 parts, each chapter is structured the same. Every one takes a single language
-feature teaches you the concepts behind it and how to implement it.
+feature, teaches you the concepts behind it, and walks through an implementation
+of it.
 
 It took a good bit of trial and error on my part, but I managed to carve up the
 two interpreters into chapter-sized chunks so that each builds on the previous
@@ -187,12 +197,14 @@ opinions -- some might say religious convictions -- on both sides.
 <aside name="yacc">
 
 Yacc is a tool that takes in a grammar file and produces a source file for a
-compiler, so it's sort of like a "compiler" that outputs a compiler. Hence the
-name, "compiler-compiler".
+compiler, so it's sort of like a "compiler" that outputs a compiler, which is
+where we get the term "compiler-compiler".
 
-It wasn't the first of its ilk, which is why it's named "Yacc" -- Yet Another
-Compiler-Compiler. A later similar tool is [Bison][], named as a pun on the
-pronunciation of Yacc like "yak".
+Yacc wasn't the first of its ilk, which is why it's named "Yacc" -- *Yet
+Another* Compiler-Compiler. A later similar tool is [Bison][], named as a pun on
+the pronunciation of Yacc like "yak".
+
+![A yak.](image/introduction/yak.png)
 
 [bison]: https://en.wikipedia.org/wiki/GNU_bison
 
@@ -227,16 +239,16 @@ choice in order to get the code to run.)
 
 ### Asides
 
-<span name="aside">Asides</span> contain biographical sketches, historical
+<span name="joke">Asides</span> contain biographical sketches, historical
 background, references to related topics, and suggestions of other areas to
 explore. There's nothing that you *need* to know in them to understand later
 parts of the book, so you can skip them if you want. I won't judge you, but I
 might be a little sad.
 
-<aside name="aside">
+<aside name="joke">
 
-Well, some do, at least. Most of them are just dumb jokes and amateurish
-drawings. Sorry.
+Well, some asides do, at least. Most of them are just dumb jokes and amateurish
+drawings.
 
 </aside>
 
@@ -345,23 +357,18 @@ are often written *in* the <span name="host">same language</span>.
 
 <aside name="host">
 
-A compiler is a program that reads in files in one language and translates them
-to files in another language. You can implement one in any language, including
-the same language it uses for its input, a process called **"self-hosting".**
+A compiler reads in files in one language and translates them to files in
+another language. You can implement a compiler in any language, including the
+same language it compiles, a process called **"self-hosting".**
 
-Of course, you can't compiler your compiler using your compiler if you've never
-compiled it. So, first, you need an existing compiler for your language that's
-written in some other language you *can* compile already. But once you've used
-that other compiler once, you now have a compiled version of your compiler that
-was produced by itself. Now you can throw away the version you compiled with the
-other compiler.
+You can't compile it using itself yet, but if you have another compiler for your
+language written in some other language, you use *that* one to compile your
+compiler once. Now you can use the compiled version of your own compiler to
+compile future versions of itself and you can discard the original one compiled
+from the other compiler. This is called **"bootstrapping"** from the image of
+pulling yourself up by your own bootstraps.
 
-Henceforth, you can keep using previous versions of your own compiler to compile
-the next version of it. This is called **"bootstrapping"** from the image of
-pulling yourself up by your own bootstraps. (This is also where we get the term
-**"booting"** for starting up a computer.)
-
-**TODO: Illustration.**
+![Fact: This is the primary mode of transportation of the American cowboy.](image/introduction/bootstrap.png)
 
 A language ecosystem needs lots of different tools beyond just the core
 compiler. You'll need editors, debuggers, formatters, etc. Most language

@@ -441,7 +441,6 @@ def format_file(path, skip_up_to_date, templates_mod):
   contents = contents.replace('<aside', '<aside markdown="1"')
   contents = contents.replace('<div class="challenges">', '<div class="challenges" markdown="1">')
   body = markdown.markdown(contents, ['extra', 'codehilite', 'smarty'])
-  body = body.replace(' markdown="1"', '')
 
   data = {
     'title': title,

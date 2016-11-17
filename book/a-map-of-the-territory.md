@@ -91,11 +91,13 @@ almost the world's programming languages.
 
 Here's the whole picture:
 
-<img src="image/introduction/mountain.png" alt="The branching paths a language may take over the mountain." class="wide" />
+<img src="image/a-map-of-the-territory/mountain.png" alt="The branching paths a language may take over the mountain." class="wide" />
 
 Place your finger on the map, and we'll trace through each of those trails and
 stopping points. Our journey begins on the left with the bare text of the user's
-source code.
+source code:
+
+<img src="image/a-map-of-the-territory/string.png" alt="var average = (min + max) / 2;" />
 
 ### Scanning
 
@@ -105,24 +107,24 @@ thing. I like "lexing" because it sounds like something an evil supervillain
 would do, but I'll use "scanning" here because it seems to be marginally more
 common in usage.
 
-A **scanner** (or **"lexer"**) takes in the linear stream of *characters* and
+A **scanner** (or **"lexer"**) takes in the linear stream of characters and
 chunks them together into a series of something more akin to "words". "Lexical"
 comes from the Greek root "lex", meaning "word".
 
 In programming languages, each of these words is called a **token**. Some tokens
 are single characters, like `(` and `,`. Others may be several characters long,
-like numbers (`123`), string literals (`"hi!"`), and identifiers (`name`).
+like numbers (`123`), string literals (`"hi!"`), and identifiers (`min`).
 
 Some characters in a source file don't actually mean anything. Whitespace is
 often insignificant and comments, by definition, are ignored by the language.
 The scanner usually discards these, leaving a clean sequence of meaningful
 tokens.
 
-**TODO: pipeline picture**
+<img src="image/a-map-of-the-territory/tokens.png" alt="[var] [average] [=] [(] [min] [+] [max] [)] [/] [2] [;]" />
 
 ### Parsing
 
-The next step is **parsing**. This is where our syntax gets a **grammar** ---
+The next step is **parsing**. This is where our syntax gets a **grammar** --
 the ability to compose larger phrases, expressions, and statements out of
 smaller parts. Did you ever diagram sentences in English class? If so, you've
 done what a parser does, except that English has thousands and thousands of
@@ -135,6 +137,8 @@ of different names -- **"parse tree"** or **"abstract syntax tree"** --
 depending on how close to the grammatical structure to the language they are. In
 practice, most language hackers just call them **"syntax trees"**, **"ASTs"**,
 **"AST nodes"** or often just **"trees"**.
+
+<img src="image/a-map-of-the-territory/ast.png" alt="An abstract syntax tree." />
 
 The parser handles things like operator <span
 name="precedence">precedence</span> so in, say, `a + b * c`, it builds a tree
@@ -158,8 +162,6 @@ researchers who were trying to get computers to talk to us.
 It turns out human languages are too messy for the rigid grammars those parsers
 could handle, but they were a perfect fit for the simpler artificial grammars of
 programming languages.
-
-**TODO: tokens to tree picture**
 
 ### Static analysis
 
@@ -311,7 +313,7 @@ how some of the nice expression syntaxes supported by languages like ALGOL were
 a sugaring over the more fundamental, yet presumably less palatable lambda
 calculus underneath.
 
-**TODO: picture?**
+![Slightly more than a spoonful of sugar.](image/a-map-of-the-territory/sugar.png)
 
 </aside>
 
@@ -650,14 +652,16 @@ This is sort of like asking what's the difference between a fruit and a
 vegetable. That *sounds* like a single binary either-or choice, but actually
 "fruit" is a botanical term and "vegetable" is culinary. One does not imply the
 negation of the other. There are fruits that aren't vegetables (apples) and
-vegetables that are not fruits (lettuce), but also plants that are <span
-name="veg">*both*</span> fruits and vegetables (tomatoes).
+vegetables that are not fruits (carrots), but also plants that are *both*
+fruits and vegetables (tomatoes).
 
-**TODO: Venn diagram illustration of plants.**
+<span name="veg"></span></span>
+
+<img src="image/a-map-of-the-territory/plants.png" alt="A Venn diagram of edible plants" />
 
 <aside name="veg">
 
-There are even plant-based foods that are *neither* like nuts and cereals.
+There are even plant-based foods that are *neither*, like nuts and cereals.
 
 </aside>
 
@@ -711,10 +715,11 @@ So `go` *has* a compiler, *is* an interpreter, and *is* also a compiler.
 
 </aside>
 
-This is how the second interpreter we'll build works. So while this book is
-nominally about "interpreters", we'll also learn compilation too.
+<img src="image/a-map-of-the-territory/venn.png" alt="A Venn diagram of compilers and interpreters" />
 
-**TODO: Venn diagram illustration of various language impls that have interps, compilers, etc.**
+That overlapping region in the center is where our second interpreter lives too,
+since it internally compiles to bytecode. So while this book is nominally about
+interpreters, you'll learn compilation too.
 
 ## Our own journey
 
