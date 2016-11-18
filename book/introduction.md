@@ -23,7 +23,7 @@ I'll cover each concept and line of code you need to build a complete, usable,
 fast language implementation.
 
 In order to cram two full implementations inside one book without it turning
-into a doorstop, this book is lighter on theory than others. As we build each
+into a doorstop, this text is lighter on theory than others. As we build each
 piece of the system, I will introduce the history and concepts behind it. I'll
 try to get you familiar with the lingo so that if you ever find yourself in a
 <span name="party">cocktail party</span> full of PL (programming language)
@@ -41,25 +41,26 @@ running. This is not to say theory isn't important. Being able to reason
 precisely and <span name="formal">formally</span> about syntax and semantics is
 a vital skill when working on a language. But, personally, I learn best by
 doing. It's hard for me to wade through paragraphs full of abstract concepts and
-really absorb them. But if I've coded something, debugged it, ran it, and poked
-at it, then I *get* it.
+really absorb them. But if I've coded something, ran it, and debugged it, then I
+*get* it.
 
 <aside name="formal">
 
 Static type systems in particular require rigorous formal reasoning. Hacking on
-a type system has the same feel as proving a theorem in mathematics. It turns
-out this is no coincidence. In the early half of last century, Haskell Curry
-and William Alvin Howard showed that they are two sides of the same coin: [the
-Curry-Howard isomorphism][].
+a type system has the same feel as proving a theorem in mathematics.
+
+It turns out this is no coincidence. In the early half of last century, Haskell
+Curry and William Alvin Howard showed that they are two sides of the same coin:
+[the Curry-Howard isomorphism][].
 
 [the curry-howard isomorphism]: https://en.wikipedia.org/wiki/Curry%E2%80%93Howard_correspondence
 
 </aside>
 
 That's my goal for you. I want you to come away with a solid intuition of how a
-real language lives and breathes. My hope is that you read other, more
-theoretical books later, they will more easily stick in your mind, adhered to
-this tangible substrate.
+real language lives and breathes. My hope is that when you read other, more
+theoretical books later, the concepts there will firmly stick in your mind,
+adhered to this tangible substrate.
 
 ## Why learn this stuff?
 
@@ -69,7 +70,7 @@ I don't think ornithology books worry about justifying their existence. They
 assume the reader loves birds and get moving.
 
 But programming languages are a little different. I suppose it is true that the
-odds of any of us creating a broadly successful general purpose programming
+odds of any of us creating a broadly successful general-purpose programming
 language are slim. The designers of the world's widely-used languages could fit
 in a Volkswagen bus, even without putting the pop top camper up. If joining that
 elite group was the *only* reason to learn languages, it would be hard to
@@ -77,7 +78,7 @@ justify. Fortunately, it isn't.
 
 ### Little languages are everywhere
 
-For every successful *general purpose* language out there, there are a thousand
+For every successful general-purpose language out there, there are a thousand
 successful niche ones. We used to call them "little languages", but inflation in
 the jargon economy lead today to the name "domain-specific languages". These are
 pidgins tailor-built to a specific task. Things like application scripting
@@ -93,9 +94,9 @@ A random selection of some little languages you might run into.
 </aside>
 
 Almost every large software project needs a handful of these. When you can, it's
-good to reuse an existing one instead of rolling your own. Once you take into
-account documentation, debuggers, editor support, syntax highlighting, and all
-of the other trappings, doing it yourself becomes a tall order.
+good to reuse an existing one instead of rolling your own. Once you factor in
+documentation, debuggers, editor support, syntax highlighting, and all of the
+other trappings, doing it yourself becomes a tall order.
 
 But there's still a good chance you'll find yourself needing to whip up a parser
 or something when there isn't an existing library that fits your needs. Even
@@ -110,12 +111,10 @@ themselves, the new relative ease of light limbs and oxygen-rich air enables
 them to run farther and faster.
 
 Implementing a language is a real test of programming skill. The code is complex
-and performance critical. You must master recursion and recursive algorithms.
-You need to fully comprehend dynamic arrays, trees, graphs, and hash tables.
-
-You probably use hash tables in your day-to-day programming, but how well do you
-*really* understand them? Well, after we've crafted our own from scratch, I
-guarantee you will.
+and performance critical. You must master recursion, dynamic arrays, trees,
+graphs, and hash tables. You probably use hash tables at least in your
+day-to-day programming, but how well do you *really* understand them? Well,
+after we've crafted our own from scratch, I guarantee you will.
 
 While I intend to show you that a programming language isn't as daunting as you
 might believe, it is still a challenge. Rise to it, and you'll come away a
@@ -124,10 +123,10 @@ algorithms in your day job.
 
 ### One more reason
 
-This last reason is hard for me to admit, because it's close to my heart. Ever
-since I learned to program as a kid, I felt there as something magical about
-languages. When I first tapped out BASIC programs one key at a time I couldn't
-conceive how BASIC *itself* was made.
+This last reason is hard for me to admit, because it's so close to my heart.
+Ever since I learned to program as a kid, I felt there was something magical
+about languages. When I first tapped out BASIC programs one key at a time I
+couldn't conceive how BASIC *itself* was made.
 
 Later, the mixture of awe and terror my college friends used to refer to their
 compilers class was enough to convince me language hackers were a different
@@ -222,20 +221,20 @@ line of code and how both interpreters work.
 [lex]: https://en.wikipedia.org/wiki/Lex_(software)
 [yacc]: https://en.wikipedia.org/wiki/Yacc
 
-A book has different constraints from "real world" code and so the style of the
-code here might not always reflect the best way to write maintainable code in a
-production codebase. If I seem a little cavalier about, say, omitting `private`
-or declaring a global variable, understand I do so to keep the code easier on
-your eyes. The pages here aren't as wide as your IDE and every character counts.
+A book has different constraints from the "real world" and so the coding style
+here might not always reflect the best way to write maintainable production
+software. If I seem a little cavalier about, say, omitting `private` or
+declaring a global variable, understand I do so to keep the code easier on your
+eyes. The pages here aren't as wide as your IDE and every character counts.
 
-Also, the code here doesn't have many comments. That's because each handful of
-lines is surrounded by several paragraphs of honest-to-God prose explaining it.
-If you write a book to accompany each of your programs, you are welcome to omit
-comments too. Otherwise, you should probably use `//` a little more than I do.
+Also, the code doesn't have many comments. That's because each handful of lines
+is surrounded by several paragraphs of honest-to-God prose explaining it. When
+you write a book to accompany your program, you are welcome to omit comments
+too. Otherwise, you should probably use `//` a little more than I do.
 
-(What this book *doesn't* contain is the machinery needed to compile and run the
+What this book *doesn't* contain is the machinery needed to compile and run the
 code. I assume you can slap together a makefile or a project in your IDE of
-choice in order to get the code to run.)
+choice in order to get the code to run.
 
 ### Asides
 
@@ -260,37 +259,32 @@ what's in the chapter. They force you to step off the guided path and explore on
 your own. They will make you research other languages, figure out how to
 implement features or otherwise get you to strike out on your own.
 
-Boldly attack them and you'll come away with a broader understanding and
-possibly a few bumps and scrapes. Or skip them if you just want to stay inside
-the comfy confines of the tour bus. It's your book.
+Vanquish them and you'll come away with a broader understanding and possibly a
+few bumps and scrapes. Or skip them if you want to stay inside the comfy
+confines of the tour bus. It's your book.
 
 ### Design notes
 
 Most "programming language" books are strictly programming language
 *implementation* books. They rarely discuss how one might happen to *design* the
-language being implemented. This book is half guilty of that. I already did the
-work to design Lox so you don't have to.
-
-Focusing on implementation is fun because it is so <span
-name="benchmark">crisply-defined</span>. We programmers seem to have an affinity
-for things that are black and white. Taking an existing language's test suite and
-cranking out a new implementation that makes all the tests pass is the ultimate
-idealized software engineering project, and deeply satisfying. Especially when it
-runs faster than the previous implementation.
+language being implemented. Implementation is fun because it is so <span
+name="benchmark">precisely defined</span>. We programmers seem to have an
+affinity for things that are black and white, ones and zeroes.
 
 <aside name="benchmark">
 
-I know a lot of language hackers who whose careers are based on this. You slide a
-language spec under their door, wait a few months, and code and benchmark results
-come out.
+I know a lot of language hackers who whose careers are based on this. You slide
+a language spec under their door, wait a few months, and code and benchmark
+results come out.
 
 </aside>
 
-I don't know about you, but I think the world only needs so many implementations
-of <span name="fortran">FORTRAN 77</span>. At some point, you end up designing a
-new language. And once you start playing *that* game, then the softer, human side
+Personally, I think the world only needs so many implementations of <span
+name="fortran">FORTRAN 77</span>. At some point, you find yourself designing a
+*new* language. Once you start playing *that* game, then the softer, human side
 of the equation becomes paramount. Things like what features are easy to learn,
-how to balance innovation and familiarity, which syntaxes are easier to read.
+how to balance innovation and familiarity, what syntax is more readable and to
+whom.
 
 <aside name="fortran">
 
@@ -299,49 +293,25 @@ punched card into its grammar.
 
 </aside>
 
-All of that stuff profoundly affects the success of your new language. But most
-books don't talk much about it, I think in large because it is fuzzier. Many
-<span name="science">computer scientists</span> feel uncomfortable talking about
-anything that can't be proven like a theorem.
-
-<aside name="science">
-
-There's an age-old joke that any discipline that feels the need to put "science"
-in its name is just a pretender. "Chemistry"? Real science. "Biology"? Yup.
-"Polical science"? Umm. "Computer science"? Well, drat.
-
-</aside>
-
-I consider a programming language to be, in large part, a user interface. It is
-a tool you use to communicate how a machine should behave to the computer, to
-other maintainers of the code, and even yourself. You can't design a good
-language if you don't think about the people using it, even though we Homo
-sapiens don't have the pleasant crispness of discrete mathematics.
-
-To that end, many chapters also contain a "design note". Each is little essay on
-some corner of the human aspect of programming languages. I don't claim to be an
-expert on any of this -- I don't know if anyone really can
--- so take these with a large pinch of salt. That should make them tastier food
-for thought, which is my main aim. If you come away disagreeing with me on all
-accounts, but still *caring* about the user side of languages, that's enough for
-me.
-
-On the other hand, if you just want to pump out some code for an interpreter and
-get it running, feel free to skip these sections.
+All of that stuff profoundly affects the success of your new language. I want
+your language to succeed, so in some chapters I end with a "design note", a
+little essay on some corner of the human aspect of programming languages. I'm no
+expert on this -- I don't know if anyone really is -- so take these with a large
+pinch of salt. That should make them tastier food for thought, which is my main
+aim.
 
 ## The first interpreter
 
-We'll write our first interpreter, jlox, in Java. We'll focus on *concepts*.
+We'll write our first interpreter, jlox, in Java. The focus is on *concepts*.
 We'll write the simplest, cleanest code we can to correctly implement the
 semantics of the language. This will get us comfortable with the basic
 techniques and also hone our understanding of exactly how the language is
 supposed to behave.
 
-ava is a great language for this. It's high level enough that we don't get
+Java is a great language for this. It's high level enough that we don't get
 overhwelmed by fiddly implementation details, but it's still pretty explicit.
 Unlike scripting languages, there tends to be less magic under the hood, and
-you've got static types to see exactly what kinds of objects you're working
-with.
+you've got static types to see what data structures you're working with.
 
 I also chose it specifically because it is an *object-oriented* language. That
 paradigm swept the programming world in the 90s and is now the dominant way of
@@ -350,10 +320,10 @@ organizing things into classes and methods, so we'll keep you in that comfort
 zone.
 
 While academic language folks sometimes look down on object-oriented languages,
-the reality is that they are widely used even for language work today as well.
-GCC and LLVM are written in C++, as are most JavaScript virtual machines. Object
-oriented languages are ubiquitous and the tools and compilers *for* a language
-are often written *in* the <span name="host">same language</span>.
+the reality is that they are widely used even for language work. GCC and LLVM
+are written in C++, as are most JavaScript virtual machines. Object-oriented
+languages are ubiquitous and the tools and compilers *for* a language are often
+written *in* the <span name="host">same language</span>.
 
 <aside name="host">
 
@@ -370,13 +340,6 @@ pulling yourself up by your own bootstraps.
 
 ![Fact: This is the primary mode of transportation of the American cowboy.](image/introduction/bootstrap.png)
 
-A language ecosystem needs lots of different tools beyond just the core
-compiler. You'll need editors, debuggers, formatters, etc. Most language
-designers prefer to write those tools in their own language so they can get some
-first-hand experience with their language, and so they aren't as dependent on
-other languages. They call this "eating your own dogfood" or just
-**"dogfooding"**.
-
 </aside>
 
 And, finally, Java is hugely popular. That means there's a good chance you
@@ -388,17 +351,14 @@ know another object-oriented language like C# or C++, you can probably muddle
 through fine.
 
 By the end of part II, we'll have a simple, readable implementation. What we
-won't have is a *fast* one. It also leans on Java for managing memory and
-representing objects. But we want to learn how the Java virtual machine *itself*
-implements those things.
+won't have is a *fast* one. It also leans on the Java virtual machine's runtime
+facilities, but we want to learn how Java *itself* implements those things.
 
 ## The second interpreter
 
 So in the next part, we'll start all over again, but this time in C. C is the
 perfect language for understanding how an implementation *really* works, all the
-way down to the bytes in memory and the code flowing through the CPU. It makes
-explicit the few things Java doesn't: how memory is managed, and how objects are
-represented.
+way down to the bytes in memory and the code flowing through the CPU.
 
 A big reason that we're using C is so I can show you things C is particularly
 good at, but that *does* mean you'll need to be pretty handy with it. You don't
@@ -410,8 +370,8 @@ then come back here when you're done. In return, you'll come away from this book
 an even stronger C programmer. That's useful given how many language
 implementations are written in C: Lua, CPython, and Ruby's MRI, to name a few.
 
-Our C interpreter, <span name="clox">clox</span>, forces us to implement
-ourselves all the things Java gave us for free. We'll write our own dynamic
+In our C interpreter, <span name="clox">clox</span>, we are forced to implement
+for ourselves all the things Java gave us for free. We'll write our own dynamic
 array and hash table. We'll decide how objects are represented in memory, and
 build a garbage collector to reclaim it.
 
@@ -438,8 +398,8 @@ Two for the price of one!
 
 We'll even try our hand at benchmarking and optimization. By the end we'll have
 a robust, accurate, fast interpreter for our language, able to keep up with
-other professional caliber language implementations out there. Not bad for one
-book and a few thousand lines of code.
+other professional caliber implementations out there. Not bad for one book and a
+few thousand lines of code.
 
 <div class="challenges">
 
