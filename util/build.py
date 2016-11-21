@@ -377,6 +377,8 @@ def format_file(path, skip_up_to_date, templates_mod):
   # isoutline = False
 
   sections = []
+  header_index = 0
+  subheader_index = 0
 
   # Read the markdown file and preprocess it.
   contents = ''
@@ -417,7 +419,17 @@ def format_file(path, skip_up_to_date, templates_mod):
 
         # Add an anchor to the header.
         contents += indentation + header_type
-        contents += '<a href="#' + anchor + '" name="' + anchor + '">' + header + '</a>\n'
+
+        if len(header_type) == 2:
+          header_index += 1
+          subheader_index = 0
+          number = '{0}&#8202;.&#8202;{1}'.format(NUMBERS[title], header_index)
+        elif len(header_type) == 3:
+          subheader_index += 1
+          number = '{0}&#8202;.&#8202;{1}&#8202;.&#8202;{2}'.format(NUMBERS[title], header_index, subheader_index)
+
+        header_line = '<a href="#{0}" name="{0}"><small>{1}</small> {2}</a>\n'.format(anchor, number, header)
+        contents += header_line
 
         # Build the section navigation.
         if len(header_type) == 2:
