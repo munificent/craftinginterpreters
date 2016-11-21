@@ -403,7 +403,7 @@ few thousand lines of code.
 
 <div class="challenges">
 
-## Challenges
+<h2>Challenges</h2>
 
 1. There are least six domain-specific languages used in the [little system I
    cobbled together][repo] to write and publish this book. What are they?
