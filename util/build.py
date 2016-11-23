@@ -331,6 +331,7 @@ def adjacent_page(title, offset):
 def pretty(text):
   '''Use nicer HTML entities and special characters.'''
   text = text.replace(" -- ", "&#8202;&mdash;&#8202;")
+  text = text.replace(" --\n", "&#8202;&mdash;&#8202;")
   text = text.replace("à", "&agrave;")
   text = text.replace("ï", "&iuml;")
   text = text.replace("ø", "&oslash;")

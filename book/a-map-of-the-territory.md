@@ -1,37 +1,31 @@
 ^title A Map of the Territory
 ^part Welcome
 
-> Believable fairy-stories must be intensely practical. You must have a map, no
-> matter how rough. Otherwise you wander all over the place. In The Lord of the
-> Rings I never made anyone go farther than he could on a given day.
+> You must have a map, no matter how rough. Otherwise you wander all over the
+> place. In The Lord of the Rings I never made anyone go farther than he could
+> on a given day.
 >
 > <cite>J.R.R. Tolkien</cite>
 
-We aren't going to wander all over the place, but it's worth looking at the
-territory previous language implementers have diligently charted. It will help
-us understand where we are going and alternate routes others take.
+We don't want to wander all over the place, so before we set off, let's scan
+the territory charted by previous language implementers. It will help us
+understand where we are going and alternate routes others take.
 
-First, let's establish a little shorthand. The opening paragraph stuffs
-"implementation" in each of its sentences for good reason. We really are talking
-about a language *implementation*, not the language *itself* in some sort of
-Platonic ideal form. A *language* has things like syntax, semantics, a grammar,
-and (if you're lucky) even a written specification.
-
-That specification doesn't usually contain words like "compiler", "bytecode",
-"recursive descent", "stack", "heap", etc. Those are just nuts and bolts one
-particular implementation of the language might use. From the user's
+First, let me establish a shorthand. Much of this book is about a language's
+*implementation*, which is distinct from the *language itself* in some sort of
+Platonic ideal form. Things like "stack", "bytecode", and "recursive descent",
+are nuts and bolts one particular implementation might use. From the user's
 perspective, as long as the resulting contraption faithfully follows the
-language's semantics, it's all implementation detail.
+language's specification, it's all implementation detail.
 
-Since this book is mostly *about* implementation, if I have to keep writing that
-handful of a word, I'll wear my fingers off before I reach the last chapter.
-Instead, from here on out, I'll use "language" to refer to either a language
-implementation, or a language itself, or both, unless the distinction matters
-and isn't obvious.
+We're going to spend a lot of time on those details, so if I have write
+"language *implementation*" every single time I mention them, I'll wear my
+fingers off. Instead, I'll use "language" to refer to either a language or an
+implementation of it, or both, unless the distinction isn't obvious.
 
 ## The parts of a language
 
-Engineers have been building programming languages since the dark ages of
+Engineers have been building programming languages since the Dark Ages of
 computing. As soon as we could talk to computers, we discovered doing so was too
 hard, and we enlisted their help. I find it fascinating that even though today's
 machines are literally a million times faster and have orders of magnitude more
@@ -60,15 +54,15 @@ transforms it to some higher-level representation where the semantics -- what
 the author wants the computer to do -- becomes more apparent.
 
 Eventually we reach the peak. We have a bird's-eye view of the users's program
-and can see what their code *means*. Now, we descend the other side of the
+and can see what their code *means*. Next, we descend the other side of the
 mountain. We transform from this highest-level representation down to
 successively lower-level forms to get closer and closer to something we know how
 to make the CPU actually execute.
 
 <img src="image/a-map-of-the-territory/mountain.png" alt="The branching paths a language may take over the mountain." class="wide" />
 
-Let's trace through each of those trails and stopping points. Our journey begins
-on the left with the bare text of the user's source code:
+Let's trace through each of those trails and points of interest. Our journey
+begins on the left with the bare text of the user's source code:
 
 <img src="image/a-map-of-the-territory/string.png" alt="var average = (min + max) / 2;" />
 
@@ -77,7 +71,7 @@ on the left with the bare text of the user's source code:
 The first step is **scanning**, also known as **lexing**, or (if you're trying
 to impress someone) **lexical analysis**. They all mean the pretty much same
 thing. I like "lexing" because it sounds like something an evil supervillain
-would do, but I'll prefer "scanning" because it seems to be marginally more
+would do, but I'll use "scanning" because it seems to be marginally more
 commonplace.
 
 A **scanner** (or **"lexer"**) takes in the linear stream of characters and
@@ -102,19 +96,18 @@ tokens.
 
 ### Parsing
 
-The next step is **parsing**. This is where our syntax gets a **grammar** --
-the ability to compose larger phrases, expressions, and statements out of
-smaller parts. Did you ever diagram sentences in English class? If so, you've
-done what a parser does, except that English has thousands and thousands of
-"keywords" and an overflowing cornucopia of ambiguity. Programming languages are
-much simpler.
+The next step is **parsing**. This is where our syntax gets a **grammar** -- the
+ability to compose larger expressions and statements out of smaller parts. Did
+you ever diagram sentences in English class? If so, you've done what a parser
+does, except that English has thousands and thousands of "keywords" and an
+overflowing cornucopia of ambiguity. Programming languages are much simpler.
 
 A **parser** takes the flat sequence of tokens and builds a tree structure that
-explicitly encodes the nested nature of the grammar. These trees have a couple
-of different names -- **"parse tree"** or **"abstract syntax tree"** --
-depending on how close to the bare syntactic structure to the language they are.
-In practice, language hackers usually call them **"syntax trees"**, **"ASTs"**,
-or often just **"trees"**.
+mirrors the nested nature of the grammar. These trees have a couple of different
+names -- **"parse tree"** or **"abstract syntax tree"** -- depending on how
+close to the bare syntactic structure of the source language they are. In
+practice, language hackers usually call them **"syntax trees"**, **"ASTs"**, or
+often just **"trees"**.
 
 <img src="image/a-map-of-the-territory/ast.png" alt="An abstract syntax tree." />
 
@@ -125,17 +118,16 @@ researchers who were trying to get computers to talk to us.
 
 It turns out human languages are too messy for the rigid grammars those parsers
 could handle, but they were a perfect fit for the simpler artificial grammars of
-programming languages. When we flawed humans still fail to uphold the laws of
-the language's grammar, the parser is happy to tell us by reporting **syntax
-errors**.
+programming languages. Alas, we flawed humans still manage to fail to use those
+simple grammars correctly, so the parser's job also includes telling us by
+reporting **syntax errors**.
 
 ### Static analysis
 
 The first two stages are pretty similar across all implementations. Now, the
 individual characteristics of each language start coming into play. At this
-point, we know the syntactic structure of the code -- operator precedence, when
-an identifier declares a new variable versus accessing an existing one, etc. --
-but we don't know much more than that.
+point, we know the syntactic structure of the code -- things like operator
+precedence and expression nesting -- but we don't know much more than that.
 
 In an expression like `a + b`, we know we are adding `a` and `b`, but we don't
 know what those names refer to. Are they local variables? Global? Where are they
@@ -159,10 +151,10 @@ type checking later, at runtime.
 
 </aside>
 
-Take a deep breath. We have attained the summit of the mountain and a bird's-eye
+Take a deep breath. We have attained the summit of the mountain and a sweeping
 view of the user's program. All this semantic insight that is visible to us from
-analysis needs to be stored somewhere. There are a variety of places we can
-squirrel it away:
+analysis needs to be stored somewhere. There are a few places we can squirrel it
+away:
 
 * Often, it gets stored right back as **attributes** on the syntax tree
   itself -- extra fields in the nodes that aren't initialized during parsing
@@ -178,20 +170,20 @@ squirrel it away:
   That's the next section.
 
 Everything up to this point is considered the **front end** of the
-implementation. You might guess everything after this is the **back end** now,
-but no. Back in the days of yore when "front end" and "back end" were coined,
-compilers were much simpler. As they stuffed more phases in the pipeline, a gap
-appeared between the two halves. Rather than discard the old terms, William Wulf
-and company lumped into the charming but spatially paradoxical name **"middle
+implementation. You might guess everything after this is the **back end**, but
+no. Back in the days of yore when "front end" and "back end" were coined,
+compilers were much simpler. Later researchers invented new phases to stuff
+between the two halves. Rather than discard the old terms, William Wulf and
+company lumped them into the charming but spatially paradoxical name **"middle
 end"**.
 
 ### Intermediate representations
 
 You can think of the compiler as a pipeline where each stage's job is to
-transform the code into a structure that makes the next stage simpler to
-implement. The front end of the pipeline is specific to the source language the
-user is programming in. The back end is concerned with the final architecture
-that the code will run on.
+organize the code in a way that makes the next stage simpler to implement. The
+front end of the pipeline is specific to the source language the user is
+programming in. The back end is concerned with the final architecture that the
+code will run on.
 
 In the middle, the code may be stored in some <span name="ir">**intermediate
 representation**</span> (or **"IR"**) that isn't tightly tied to either the
@@ -234,9 +226,9 @@ makes the semantics more apparent...
 
 ### Optimization
 
-Once we understand the semantics of the user's program, we are free to transform
-it into a different program that has the *same semantics* but implements them
-more efficiently -- we can **optimize** it.
+Once we understand what the user's program means, we are free to swap it out
+with a different program that has the *same semantics* but implements them more
+efficiently -- we can **optimize** it.
 
 A simple example is **constant folding**: if some expression always evaluates to
 the exact same value, we can do the evaluation at compile time and replace the
@@ -252,10 +244,10 @@ We can do all of that arithmetic in the compiler and change the code to:
 pennyArea = 0.44319234375;
 ```
 
-Optimization is a huge part of language academia as well as industry. Many
-language hackers spend their entire careers here, squeezing every drop of
-performance they can out of their compilers to get their benchmarks a fraction
-of a percent faster. It can become a sort of obsession.
+Optimization is a huge part of the programming language business. Many language
+hackers spend their entire careers here, squeezing every drop of performance
+they can out of their compilers to get their benchmarks a fraction of a percent
+faster. It can become a sort of obsession.
 
 We're going to <span name="rathole">hop over that rathole</span> in this book.
 Many successful languages have surprisingly few compile-time optimizations. For
@@ -264,7 +256,7 @@ their performance effort on the runtime.
 
 <aside name="rathole">
 
-If you can't resist poking around in the dark there, some keywords to get you
+If you can't resist poking your foot into that hole, some keywords to get you
 started are "constant propagation", "common subexpression elimination", "loop
 invariant code motion", "global value numbering", "strength reduction", "scalar
 replacement of aggregates", "dead code elimination", and "loop unrolling".
@@ -282,26 +274,26 @@ might want to read.
 Finally, we are in the **back end**, descending the other side of the mountain.
 From here on out, our representation of the code becomes more and more
 primitive, like evolution run in reverse, as we get closer to something our
-simple-minded CPU can understand.
+simple-minded machine can understand.
 
 We have a decision to make. Do we generate instructions for a real CPU or a
-virtual one? In a traditional "compiler", the answer to generate native machine
-code. This produces an executable that the OS can load directly onto the chip.
+virtual one? If we generate real machine code, we get an executable that the OS
+can load directly onto the chip. Native code is lightning fast, but generating
+it is a lot of work. Today's architectures have piles of instructions, complex
+pipelines, and enough <span name="aad">historical baggage</span> to fill a 747.
 
-Native code is lightning fast, but generating it is a lot of work. Today's CPU
-architectures have piles of instructions, complex pipelines, and enough <span
-name="aad">historical baggage</span> to fill a 747. Speaking the chip's language
-also means your compiler is tied to a specific architecture. If your compiler
-targets [x86][] machine code, it's not going to run on an [ARM][] device. All
-the way back in the 60s, during the Cambrian explosion of computer
-architectures, that lack of portability was a real obstacle.
+Speaking the chip's language also means your compiler is tied to a specific
+architecture. If your compiler targets [x86][] machine code, it's not going to
+run on an [ARM][] device. All the way back in the 60s, during the Cambrian
+explosion of computer architectures, that lack of portability was a real
+obstacle.
 
 <aside name="aad">
 
 For example, the [AAD][] ("ASCII Adjust AX Before Division") instruction lets
-you perform division, which sounds useful. Except that instruction works on two
-binary-coded decimal digits that are packed into a single 16-bit register. When
-was the last time *you* used BCD on a 16-bit machine?
+you perform division, which sounds useful. Except that instruction takes as
+operands two binary-coded decimal digits packed into a single 16-bit register.
+When was the last time *you* needed BCD on a 16-bit machine?
 
 [aad]: http://www.felixcloutier.com/x86/AAD.html
 
@@ -312,43 +304,44 @@ was the last time *you* used BCD on a 16-bit machine?
 
 To get around that, hackers like Martin Richards and Niklaus Wirth, of BCPL and
 Pascal fame, respectively, made their compilers produce *virtual* machine code.
-Instead of instructions for some real chip, they'd produce code for a
+Instead of instructions for some real chip, they produced code for a
 hypothetical, idealized machine. Wirth called this **"p-code"** for "portable",
 but today, we generally call it **bytecode** because each instruction is often a
 single byte long.
 
-Each synthetic instruction set was designed to map a little more closely to the
+These synthetic instructions are designed to map a little more closely to the
 language's semantics, and not be so tied to the peculiarities of any one
 computer architecture and its accumulated historical cruft. You can think of it
-like a dense, binary encoding of the language's low-level semantics.
+like a dense, binary encoding of the language's low-level operations.
 
 ### Virtual machine
 
 If your compiler produces bytecode, your work isn't over once that's done. Since
-there is no chip that speaks your bytecode, it's your job to translate. Again,
+there is no chip that speaks that bytecode, it's your job to translate. Again,
 you have two options. You can write a little mini-compiler for each target
 architecture that converts the bytecode to native code for that machine. You
 still have to do work for <span name="shared">each</span> chip you support, but
 this last stage is pretty simple and you get to reuse the rest of the compiler
-pipeline across all of the machines you support.
+pipeline across all of the machines you support. You're basically using your
+bytecode as an intermediate representation.
 
 <aside name="shared">
 
 The basic principle here is that the farther down the pipeline you can push the
 architecture-specific work, the more of the earlier phases you can share across
-architectures. There is a tension, though. Many optimizations, like register
-allocation and instruction selection, work best when they know the strengths and
-capabilities of a specific chip.
+architectures.
 
-Figuring out which parts of your compiler can be shared and which should be
-target-specific is an art.
+There is a tension, though. Many optimizations, like register allocation and
+instruction selection, work best when they know the strengths and capabilities
+of a specific chip. Figuring out which parts of your compiler can be shared and
+which should be target-specific is an art.
 
 </aside>
 
 Or you can write a **virtual machine** (**"VM"**), a program that emulates a
 hypothetical chip supporting your virtual architecture at runtime. Running
 bytecode in a VM is slower than translating it to native code ahead of time
-because every instruction must be simulated at runtime as it executes. In
+because every instruction must be simulated at runtime each time it executes. In
 return, you get simplicity and portability. Implement your VM in, say, C, and
 you can run your language on any platform that has a C compiler. This is what
 our second interpreter does.
@@ -356,62 +349,61 @@ our second interpreter does.
 ### Runtime
 
 We have finally hammered the user's program into a form that we can execute. The
-last step is actually running it. If we compiled it to machine code, we can just
-tell the operating system to load the executable and off it goes. If we compiled
-it to bytecode, we need to start up the VM and load the program into that.
+last step is running it. If we compiled it to machine code, we simply tell the
+operating system to load the executable and off it goes. If we compiled it to
+bytecode, we need to start up the VM and load the program into that.
 
 In both cases, for all but the basest of low-level of languages, we usually need
 some services that our language provides while the program is running. For
 example, if the language automatically manages memory, we need a garbage
 collector going in order to reclaim unused bits. If our language supports
-"instance of" tests so you can see what type an object has, then we need some
-representation to keep track of the type of each object during execution.
+"instance of" tests so you can see what kind of object you have, then we need
+some representation to keep track of the type of each object during execution.
 
 All of this stuff is going at runtime, so it's called, well, the **"runtime"**.
-In a fully compiled language, the code implementing the runtime gets compiled
+In a fully compiled language, the code implementing the runtime gets inserted
 directly into the resulting executable. In, say, [Go][], each compiled
 application has its own copy of Go's runtime directly embedded in it. If the
-language is run inside an interpreter or VM, then the runtime lives in there.
-This is how most implementations of languages like Java, Python, and JavaScript
-work.
+language is run inside an interpreter or VM, then the runtime lives there. This
+is how most implementations of languages like Java, Python, and JavaScript work.
 
 [go]: https://golang.org/
 
 ## Shortcuts and alternate routes
 
 That's the long path covering every possible phase you might implement. Many
-languages do walk every step along this route, but there are a few shortcuts and
-alternate paths.
+languages do walk the entire route, but there are a few shortcuts and alternate
+paths.
 
 ### Single-pass compilers
 
-Some simple compilers <span name="sdt">interleave</span> parsing, analysis, and
-code generation so that they produce output code directly in the parser, without
-ever creating any explicit syntax trees or other IRs. These **single-pass
-compilers** restrict the design of the language. You have no intermediate data
-structures to store global information about the program, and you don't revisit
-any previously parsed part of the code. That means as soon as you see some
-expression, you need to know enough to correctly compile it.
+Some simple compilers interleave parsing, analysis, and code generation so that
+they produce output code directly in the parser, without ever allocating any
+syntax trees or other IRs. These <span name="sdt">**single-pass
+compilers**</span> restrict the design of the language. You have no intermediate
+data structures to store global information about the program, and you don't
+revisit any previously parsed part of the code. That means as soon as you see
+some expression, you need to know enough to correctly compile it.
 
 <aside name="sdt">
 
-[**Syntax-directed translation**][pass] is a structured technique to help build
-these all-at-once compilers. You associate an *action* with each grammar rule,
-usually one that generates output code. Then, whenever the parser matches that
-piece of the grammar, it executes that action, building up the target code one
-rule at a time.
+[**Syntax-directed translation**][pass] is a structured technique for building
+these all-at-once compilers. You associate an *action* with each piece of the
+grammar, usually one that generates output code. Then, whenever the parser
+matches that chunk of syntax, it executes the action, building up the target
+code one rule at a time.
 
 [pass]: https://en.wikipedia.org/wiki/Syntax-directed_translation
 
 </aside>
 
 Pascal and C were designed around this limitation. At the time, memory was so
-precious that a compiler might not even be able to hold an entire source file in
-RAM, much less the whole program. This is why Pascal's grammar requires type
-declarations to appear first in a block. It's why in C you can't call a function
-until after the code that defines it unless you have an explicit *forward
-declaration* for it—that declaration tells the compiler what it needs to know to
-generate code for a call to the function.
+precious that a compiler might not even be able to hold an entire *source file*
+in memory, much less the whole program. This is why Pascal's grammar requires
+type declarations to appear first in a block. It's why in C you can't call a
+function above the code that defines it unless you have an explicit *forward
+declaration* that tells the compiler what it needs to know to generate code for
+a call to the later function.
 
 ### Tree-walk interpreters
 
@@ -419,16 +411,16 @@ Some programming languages begin executing code right after parsing it to an AST
 (with maybe a bit of static analysis applied). To run the program, it traverses
 the syntax tree one branch and leaf at a time, evaluating each node as it goes.
 
-This style of interpretation is common for student projects and simple
+This style of interpretation is common for student projects and little
 languages, but is not widely used for general-purpose languages since it tends
 to be slow. A notable exception is the original implementation of <span
-name="ruby">Ruby</span> which worked this way before version 1.9.
+name="ruby">Ruby</span> which was a tree walker prior to version 1.9.
 
 <aside name="ruby">
 
 At 1.9, the canonical implementation of Ruby switched from the original MRI
 ("Matz' Ruby Interpreter") to Koichi Sasada's YARV ("Yet Another Ruby VM"). YARV
-is a bytecode virtual machine, which we'll get to in a bit.
+is a bytecode virtual machine.
 
 </aside>
 
@@ -445,17 +437,17 @@ front end onto that. Otherwise, it seems like you're stuck. But what if you
 treated some other *source language* as if it were an intermediate
 representation?
 
-We could write a front end for our language. Then, in the back end, instead of
-doing all the work to *lower* the semantics to some primitive target language,
-we simply produce a string of valid source code for some other language that's
-about as high level as ours. Then, we use the existing compilation tools for
-*that* language as our escape route off the mountain and down to something we
-can execute.
+We write a front end for our language. Then, in the back end, instead of doing
+all the work to *lower* the semantics to some primitive target language, we
+produce a string of valid source code for some other language that's about as
+high level as ours. Then, we use the existing compilation tools for *that*
+language as our escape route off the mountain and down to something we can
+execute.
 
-An implementation that did this used to be called a **"source-to-source
-compiler"** or a **"transcompiler"**. After the rise of languages that compile
-to JavaScript in order to run in the browser, they've affected the hipster
-sobriquet **"transpiler"**.
+They used to call this a **"source-to-source compiler"** or a
+**"transcompiler"**. After the rise of languages that compile to JavaScript in
+order to run in the browser, they've affected the hipster sobriquet
+**"transpiler"**.
 
 <aside name="gary">
 
@@ -513,7 +505,7 @@ optimization. Then, when it comes to code generation, instead of outputting some
 binary language like machine code, you produce a string of grammatically correct
 source (well, destination) code in the target language.
 
-Either way, you then run that resulting code through the target language's
+Either way, you then run that resulting code through the output language's
 existing compilation pipeline and you're good to go.
 
 ### Just-in-time compilation
@@ -531,9 +523,9 @@ Naturally enough, this is called **just-in-time compilation.** Most hackers just
 say "JIT", pronounced like it rhymes with "fit".
 
 The most sophisticated JITs insert profiling hooks into the generated code to
-see which portions of are most performance critical and what kind of data is
-flowing through it. Then, over time, they will automatically recompile these
-<span name="hot">hot spots</span> with increasing amounts of optimization.
+see which regions are most performance critical and what kind of data is flowing
+through them. Then, over time, they will automatically recompile those <span
+name="hot">hot spots</span> with more advanced optimizations.
 
 <aside name="hot">
 
@@ -543,16 +535,16 @@ This is, of course, exactly where the HotSpot JVM gets its name.
 
 ## Compilers and interpreters
 
-Now that I've stuffed your head with dictionary's worth of programming language
-jargon, we can finally address a question that's plagued programmers since time
-immemorial: "What's the difference between a compiler and an interpreter?"
+Now that I've stuffed your head with a dictionary's worth of programming
+language jargon, we can finally address a question that's plagued coders since
+time immemorial: "What's the difference between a compiler and an interpreter?"
 
-It turns out that this like asking the difference between a fruit and a
-vegetable. That *sounds* like a single binary either-or choice, but actually
-"fruit" is a *botanical* term and "vegetable" is *culinary*. One does not imply
-the negation of the other. There are fruits that aren't vegetables (apples) and
-vegetables that are not fruits (carrots), but also edible plants that are both
-fruits *and* vegetables (tomatoes).
+It turns out this is like asking the difference between a fruit and a vegetable.
+That seems like a binary either-or choice, but actually "fruit" is a *botanical*
+term and "vegetable" is *culinary*. One does not imply the negation of the
+other. There are fruits that aren't vegetables (apples) and vegetables that are
+not fruits (carrots), but also edible plants that are both fruits *and*
+vegetables, like tomatoes.
 
 <span name="veg"></span></span>
 
@@ -565,6 +557,8 @@ peanuts aren't even nuts!)
 
 </aside>
 
+So, back to languages:
+
 * **Compilation** is an *implementation technique* that involves translating a
   source language to some other -- usually lower-level -- form. When you
   generate bytecode or machine code, you are compiling. When you transpile to
@@ -575,11 +569,6 @@ peanuts aren't even nuts!)
 * **Interpretation** describes the *user experience of executing a language*. If
   the end user has a single tool that takes in source code and is able to then
   execute it immediately, that tool is an **interpreter**.
-
-And, of course, remember that these terms apply to language *implementations*,
-not languages themselves. There are interpreters for C, and compilers for
-Python. There are Scheme implementations that compile to machine code, and
-others that interpret directly from source.
 
 Like apples and oranges, some implementations are clearly compilers and *not*
 interpreters. GCC and Clang take your C code and compile it to machine code. An
@@ -595,13 +584,11 @@ But what of CPython? When you run your Python program using it, the code is
 parsed and converted to an internal bytecode format, which is then executed
 inside the VM. From the user's perspective, this is clearly an interpreter --
 they run their program from source. But if you look under CPython's scaly skin,
-you'll see that there is clearly some compiling going on.
+you'll see that there is definitely some compiling going on.
 
 The answer is that it is <span name="go">both</span>. CPython *is* an
 interpreter, and it *has* a compiler. In practice, most scripting languages work
-this way. Interpreting straight from the parsed syntax tree is usually too slow
-to be practical, so almost all widely-used interpreters contain an internal
-compiler.
+this way, as you can see:
 
 <aside name="go">
 
@@ -621,7 +608,7 @@ That overlapping region in the center is where our second interpreter lives too,
 since it internally compiles to bytecode. So while this book is nominally about
 interpreters, we'll cover some compilation too.
 
-## Our own journey
+## Our journey
 
 That's a lot to take in all at once. Don't worry. This isn't the chapter where
 you're expected to *understand* all of these pieces and parts. I just want you
@@ -637,7 +624,7 @@ all you need to focus on is the path in front of you.
 
 <aside name="here">
 
-Also, I promise tone down the whole mountain metaphor thing.
+Henceforth, I promise to tone down the whole mountain metaphor thing.
 
 </aside>
 
@@ -648,7 +635,7 @@ Also, I promise tone down the whole mountain metaphor thing.
 1. Pick an open source implementation of a language you like. Download the
    source code and poke around in it. Try to find the code that implements the
    scanner and parser. Are they hand-written, or generated using tools like
-   Lex and Yacc? (`.l` or `.y` files tend to imply the latter.)
+   Lex and Yacc? (`.l` or `.y` files usually imply the latter.)
 
 1. Just-in-time compilation tends to be the fastest way to implement a
    dynamically-typed language, but not all of them use it. What reasons are
