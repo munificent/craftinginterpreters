@@ -23,7 +23,15 @@
 <h3><a href="#top"><small>4.</small> The Lox Language</a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#hello-lox">Hello, Lox</a></li>
+    <li><a href="#data-types">Data types</a></li>
+    <li><a href="#expressions">Expressions</a></li>
+    <li><a href="#statements">Statements</a></li>
+    <li><a href="#variables">Variables</a></li>
+    <li><a href="#control-flow">Control Flow</a></li>
+    <li><a href="#functions">Functions</a></li>
+    <li><a href="#classes">Classes</a></li>
+    <li><a href="#standard-library">Standard library</a></li>
 </ul>
 
 
@@ -48,7 +56,15 @@
 <h3><a href="#top"><small>4.</small> The Lox Language</a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#hello-lox">Hello, Lox</a></li>
+    <li><a href="#data-types">Data types</a></li>
+    <li><a href="#expressions">Expressions</a></li>
+    <li><a href="#statements">Statements</a></li>
+    <li><a href="#variables">Variables</a></li>
+    <li><a href="#control-flow">Control Flow</a></li>
+    <li><a href="#functions">Functions</a></li>
+    <li><a href="#classes">Classes</a></li>
+    <li><a href="#standard-library">Standard library</a></li>
 </ul>
 
 
@@ -66,9 +82,9 @@
   <h1>The Lox Language</h1>
 
 <div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
+    <h1>This book is a work in progress!</h1>
   <span class="dismiss">&times;</span>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/crafting-interpreters/issues" target="_blank">file a ticket</a>. To know when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -83,7 +99,333 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<p><strong>TODO: Appendix with full grammar.</strong></p>
+<ul>
+<li>going to spend rest of book implementing lox</li>
+<li>each chapter will drill down and really explain how corner of lang works</li>
+<li>don&rsquo;t want to do that all up front</li>
+<li>but do want you to be familiar with lang overall</li>
+<li>if want to follow along at home, can build lox from my repo</li>
+<li>think of rest of book as specification for lox, this is tutorial</li>
+</ul>
+<h2><a href="#hello-lox" name="hello-lox"><small>4&#8202;.&#8202;1</small> Hello, Lox</a></h2>
+<ul>
+<li>first lox prog</li>
+</ul>
+<div class="codehilite"><pre><span></span>print(&quot;Hello, world!&quot;);
+</pre></div>
 
+
+<ul>
+<li>c-ish syntax</li>
+<li>not to say c&rsquo;s grammar is that great</li>
+<li>other language&rsquo;s simpler and cleaner</li>
+<li>very very familiar, you probably already know it</li>
+<li>similar to languages using to implement it, java and c</li>
+<li>
+<p>when implementing lang, don&rsquo;t want to dodge all the tricky parts!</p>
+</li>
+<li>
+<p>most similar to js</p>
+</li>
+<li>very simple lang<ul>
+<li>10 days</li>
+</ul>
+</li>
+<li>lots of big apps written in</li>
+<li>
+<p>try to dodge most of js&rsquo;s worst misfeatures</p>
+</li>
+<li>
+<p>other big inspiration, especially in impl, is lua</p>
+</li>
+</ul>
+<h2><a href="#data-types" name="data-types"><small>4&#8202;.&#8202;2</small> Data types</a></h2>
+<ul>
+<li>start on bottom, work our way up</li>
+<li>numbers</li>
+<li>everything double</li>
+<li>keeps it simple</li>
+<li>tolerable for js and lua</li>
+<li>bools</li>
+<li>true and false</li>
+<li>strings</li>
+<li>literals</li>
+<li>escapes</li>
+<li>encoding</li>
+<li>nil</li>
+<li>not &ldquo;null&rdquo; to be clearer in impl</li>
+<li>billion dollar mistake</li>
+<li>comes up in missing return and uninitialized var</li>
+<li>gc</li>
+<li>don&rsquo;t have to manage memory for objects</li>
+<li>most modern languages are</li>
+<li>need memory safety for dynamic typing</li>
+<li>hard to do memory safety without memory management</li>
+<li>ref counting slower, can&rsquo;t handle cycles</li>
+<li>notoriously scary, want to get rid of magic</li>
+<li>gc is fun to implement!</li>
+<li>these are built-in data types, get to user-defined below</li>
+</ul>
+<h2><a href="#expressions" name="expressions"><small>4&#8202;.&#8202;3</small> Expressions</a></h2>
+<ul>
+<li>arithmetic</li>
+<li>basic arithmetic expressions know from other languages</li>
+<li>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li>/</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>called &ldquo;binary&rdquo; or &ldquo;infix&rdquo;</li>
+<li>also negate</li>
+<li>called &ldquo;unary&rdquo; or &ldquo;prefix&rdquo;</li>
+<li>all work on numbers</li>
+<li>runtime error to use any other type</li>
+<li>
+<p>few implicit conversions like js</p>
+</li>
+<li>
+<p>comparison</p>
+</li>
+<li>
+<blockquote>
+<p>&lt; &gt;= &lt;=</p>
+</blockquote>
+</li>
+<li>also only work on numbers</li>
+<li>
+<p>produce a bool result</p>
+</li>
+<li>
+<p>equality</p>
+</li>
+<li>== !=</li>
+<li>work on any type</li>
+<li>values of different type are never equal</li>
+<li>no implicit conversions</li>
+<li>value equality for built-in types, even strings</li>
+<li>
+<p>like comparison, produces bool result</p>
+</li>
+<li>
+<p>precedence follows c (will be more precise later when get to parsing)</p>
+</li>
+<li>
+<p>can use &ldquo;()&rdquo; to override precedence</p>
+</li>
+<li>
+<p>ditched a few other operators for simplicity: ++, &ndash;, ?:, %, etc.</p>
+</li>
+</ul>
+<h2><a href="#statements" name="statements"><small>4&#8202;.&#8202;4</small> Statements</a></h2>
+<ul>
+<li>where expressions produce value, statements produce effect</li>
+<li>usually modify some state, produce output, etc.</li>
+<li>
+<p>top level of program is list of statements</p>
+</li>
+<li>
+<p>seen a bunch already</p>
+</li>
+<li>look like expressions but end in &ldquo;;&rdquo;</li>
+<li>that&rsquo;s expression statement</li>
+<li>
+<p>lets you put expr where statement is required</p>
+</li>
+<li>
+<p>semicolon as terminator not separator</p>
+</li>
+<li>blocks</li>
+</ul>
+<h2><a href="#variables" name="variables"><small>4&#8202;.&#8202;5</small> Variables</a></h2>
+<ul>
+<li>declare using &ldquo;var&rdquo;</li>
+<li>optional initializers (nil if omitted)</li>
+<li>global and local scope</li>
+<li>collision</li>
+<li>shadowing</li>
+<li>
+<p>go into lot more later</p>
+</li>
+<li>
+<p>access using name expr</p>
+</li>
+<li>name characters</li>
+<li>assignment</li>
+<li>
+<p>just identifier on lhs (for now)</p>
+</li>
+<li>
+<p>dynamic typing</p>
+</li>
+<li>when declaring vars and params, no types mentioned</li>
+<li>could technically mean types are inferred, but no</li>
+<li>variable can hold value of any type</li>
+<li>can change</li>
+<li>why?<ul>
+<li>most scripting languages are</li>
+<li>static types very big topic by themselves</li>
+<li>get something up and running sooner</li>
+<li>don&rsquo;t have to implement type checker before can run simple progs</li>
+<li>generally simpler</li>
+<li>also widely user for real progs</li>
+<li>not to say it&rsquo;s overall better: note that implementing lox using two
+  static langs</li>
+</ul>
+</li>
+</ul>
+<h2><a href="#control-flow" name="control-flow"><small>4&#8202;.&#8202;6</small> Control Flow</a></h2>
+<ul>
+<li>hard to write useful programs if you can&rsquo;t choose not to do something or do</li>
+<li>something more than once</li>
+<li>
+<p>same control flow statements as c, java, et. al. more or less</p>
+</li>
+<li>
+<p>if</p>
+</li>
+<li>because dynamically typed, have to handle non-bool conditions</li>
+<li>nil and false are falsey, everything else truthy</li>
+<li>same as ruby</li>
+<li>then and else branches take statements</li>
+<li>usually block but most statements allowed</li>
+<li>
+<p>else is optional</p>
+</li>
+<li>
+<p>or and</p>
+</li>
+<li>here because they short circuit</li>
+<li>not &ldquo;&amp;&amp;&rdquo; and &ldquo;!!&rdquo; since no bitwise</li>
+<li>while</li>
+<li>for</li>
+<li>simple c-style</li>
+<li>keep things simple</li>
+</ul>
+<h2><a href="#functions" name="functions"><small>4&#8202;.&#8202;7</small> Functions</a></h2>
+<ul>
+<li>calls look like in c</li>
+<li>parameters and arguments</li>
+<li>
+<p>parens mandatory unlike ruby</p>
+</li>
+<li>
+<p>define using &ldquo;fun&rdquo;</p>
+</li>
+<li>return statements</li>
+<li>recursion</li>
+<li>mutual recursion at top level</li>
+<li>why globals late bound</li>
+<li>first-class</li>
+<li>but no lambda syntax (could easily add)</li>
+<li><strong>TODO: Add lambdas?</strong></li>
+<li>keep it simple</li>
+<li>closures</li>
+<li>lox is &ldquo;functional&rdquo; for some definitions</li>
+</ul>
+<h2><a href="#classes" name="classes"><small>4&#8202;.&#8202;8</small> Classes</a></h2>
+<ul>
+<li>lox is object-oriented</li>
+<li>why?</li>
+<li>two question: why put in language in general and why put in lang in this
+    book?</li>
+<li>in general<ul>
+<li>oop hugely successful</li>
+<li>despite backlash from overuse, oop is awesome</li>
+<li>need some way of defining user-defined aggregate data types</li>
+<li>being able to hang methods off it and dynamically dispatch avoids
+  long function names like hash-remove in scheme</li>
+</ul>
+</li>
+<li>for book<ul>
+<li>few language impl books cover it</li>
+<li>gives us reason to cover hash tables and dynamic dispatch</li>
+<li>lots of fun</li>
+</ul>
+</li>
+<li>two flavors of oop, classes and prototypes</li>
+<li>no classes in prototypal</li>
+<li>object can inherit directly from other arbitrary object</li>
+<li>self, then lua</li>
+<li>got big in js</li>
+<li>all languages that heavily focused on minimalism</li>
+<li>in particular, class flavor of oop, why?</li>
+<li>prototypes really fun for lang implementer</li>
+<li>so simple and clean</li>
+<li>give user prototypal language, what do they use them for?</li>
+<li>&hellip; implement class system</li>
+<li>pushes complexity onto user &ldquo;waterbed&rdquo;</li>
+<li>
+<p>users seem to think in terms of kinds of things</p>
+<ul>
+<li>can give better user experience if bake classes right in</li>
+</ul>
+</li>
+<li>
+<p>constructing instances</p>
+</li>
+<li>call class like fn</li>
+<li>initializers</li>
+<li>methods</li>
+<li>properties</li>
+<li>this</li>
+<li>inheritance</li>
+<li>super calls</li>
+<li>first-class classes</li>
+<li>
+<p>in fact, classes and fns are interchangeable</p>
+</li>
+<li>
+<p>not pure oop</p>
+</li>
+<li>built-in types not instances of classes</li>
+<li>because we&rsquo;re implementing language one chapter at a time</li>
+<li>better language would be pure oop
+<strong>TODO: omit this?</strong></li>
+</ul>
+<h2><a href="#standard-library" name="standard-library"><small>4&#8202;.&#8202;9</small> Standard library</a></h2>
+<ul>
+<li>saddest part of lox</li>
+<li>trying to keep things small for book</li>
+<li>absolutely minimal std lib</li>
+<li>seen print() already</li>
+<li>can&rsquo;t do anything without it: no output</li>
+<li>also time()</li>
+<li>for benchmarks</li>
+<li>all we need for book</li>
+<li>to make useful language, need lot more!</li>
+<li>but adding more not that technically interesting, mostly just shuffling data
+  around</li>
+<li>
+<p>so omitted from book</p>
+</li>
+<li>
+<p>challenges</p>
+</li>
+<li>using build of lox interpreter from my repo, write some example lox programs</li>
+<li>list some questions about language semantics that above leaves open<ul>
+<li>(calling fn with too many or two few args, precedence, errors, dangling
+  else)</li>
+</ul>
+</li>
+<li>design note</li>
+<li>statements or not?</li>
+<li>implicit return</li>
+</ul>
+<!--
+
+wzxhzdk:1
+
+
+-->
 
 <footer>&copy; 2016 Robert Nystrom</footer>
 </article>
