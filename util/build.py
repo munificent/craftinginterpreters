@@ -43,6 +43,7 @@ TOC = [
       {
         'name': 'Introduction',
         'topics': ['Why learn programming languages?', 'How this book is organized'],
+        'design_note': "What's in a Name?"
       },
       {
         'name': 'A Map of the Territory',
@@ -51,6 +52,7 @@ TOC = [
       {
         'name': 'The Lox Language',
         'topics': ['Lexical grammars', 'Grammars', 'Extended Backus-Naur Form'],
+        'design_note': "Statements and Expressions"
       }
     ]
   },
@@ -326,18 +328,18 @@ def pretty(text):
 
 
 def look_up_chapters(title):
-  """If [title] is the title of a part, returns the number of the first
-     chapter in the part, and the list of chapter names."""
-  first_chapter = 0
+  """If [title] is the title of a part, returns a list of pairs of chapter
+  numbers and names."""
   chapters = []
   for part in TOC:
     if title == part['name']:
-      first_chapter = NUMBERS[part['chapters'][0]['name']]
+      chapter_number = int(NUMBERS[part['chapters'][0]['name']])
       for chapter in part['chapters']:
-        chapters.append(chapter['name'])
+        chapters.append([chapter_number, chapter['name']])
+        chapter_number += 1
       break
 
-  return first_chapter, chapters
+  return chapters
 
 
 def format_file(path, skip_up_to_date, templates_mod):
@@ -366,6 +368,8 @@ def format_file(path, skip_up_to_date, templates_mod):
   sections = []
   header_index = 0
   subheader_index = 0
+  has_challenges = False
+  design_note = None
 
   # Read the markdown file and preprocess it.
   contents = ''
@@ -396,6 +400,15 @@ def format_file(path, skip_up_to_date, templates_mod):
         # else:
         #   print "UNKNOWN COMMAND:", command, args
 
+      elif stripped.startswith('## Challenges'):
+        has_challenges = True
+        contents += '<h2><a href="#challenges" name="challenges">Challenges</a></h2>\n'
+
+      elif stripped.startswith('## Design Note:'):
+        has_design_note = True
+        design_note = stripped[len('## Design Note:') + 1:]
+        contents += '<h2><a href="#design-note" name="design-note">Design Note: {}</a></h2>\n'.format(design_note)
+
       elif stripped.startswith('#') and not stripped.startswith('####'):
         # Build the section navigation from the headers.
         index = stripped.find(" ")
@@ -420,21 +433,12 @@ def format_file(path, skip_up_to_date, templates_mod):
 
         # Build the section navigation.
         if len(header_type) == 2:
-          sections.append(header)
+          sections.append([header_index, header])
 
       else:
         contents += pretty(line)
 
-  first_chapter, chapters = look_up_chapters(title)
-
-  # title_text = title
-  # section_header = ""
-
-  # if section != "":
-  #   title_text = title + " &middot; " + section
-  #   section_href = section.lower().replace(" ", "-")
-  #   section_header = '<span class="section"><a href="{}.html">{}</a></span>'.format(
-  #     section_href, section)
+  chapters = look_up_chapters(title)
 
   # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
@@ -448,7 +452,8 @@ def format_file(path, skip_up_to_date, templates_mod):
     'body': body,
     'sections': sections,
     'chapters': chapters,
-    'first_chapter': first_chapter,
+    'design_note': design_note,
+    'has_challenges': has_challenges,
     'number': NUMBERS[title],
     'prev': adjacent_page(title, -1),
     'next': adjacent_page(title, 1),

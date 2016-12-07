@@ -1,26 +1,35 @@
 {% if part %}
 <!-- If there is a part, it must be a chapter within a part. -->
-<h3><a href="#top"><small>{{ number }}.</small> {{ title }}</a></h3>
+<h3><a href="#top">{{ title }}<small>{{ number }}</small></a></h3>
 
 <ul>
   {% if sections %}
   {% for section in sections %}
-    <li><a href="#{{ section|file }}">{{ section }}</a></li>
+    <li><a href="#{{ section[1]|file }}"><small>{{ number }}.{{ section[0] }}</small> {{ section[1] }}</a></li>
   {% endfor %}
   {% else %}
     <em>No sections yet&hellip;</em>
+  {% endif %}
+  {% if has_challenges or design_note %}
+    <li class="divider"></li>
+  {% endif %}
+  {% if has_challenges %}
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
+  {% endif %}
+  {% if design_note %}
+    <li class="end-part"><a href="#design-note"><small>note</small>{{ design_note }}</a></li>
   {% endif %}
 </ul>
 
 {% elif title %}
 <!-- A title with no part means it's a part chapter. -->
-<h2><small>{{ number }}.</small> {{ title }}</h2>
+<h2><small>{{ number }}</small>{{ title }}</h2>
 
-<ol start="{{ first_chapter }}">
+<ul>
   {% for chapter in chapters %}
-    <li><a href="{{ chapter|file }}.html">{{ chapter }}</a></li>
+    <li><a href="{{ chapter[1]|file }}.html"><small>{{ chapter[0] }}</small>{{ chapter[1] }}</a></li>
   {% endfor %}
-</ol>
+</ul>
 
 {% endif %}
 

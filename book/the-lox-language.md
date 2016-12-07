@@ -830,7 +830,7 @@ If you wanted to turn Lox into an actual useful language, the very first thing y
 
 <div class="challenges">
 
-<h2>Challenges</h2>
+## Challenges
 
 1. Build a copy of Lox (either jlox or clox, whichever you prefer) from my
    implementation. Write some sample programs and run them. Try to come up with
@@ -849,7 +849,7 @@ If you wanted to turn Lox into an actual useful language, the very first thing y
 
 <div class="design-note">
 
-<h2>Design note: Statements and Expressions</h2>
+## Design Note: Statements and Expressions
 
 Lox's grammar is split into expressions and statements, but it's not a foregone
 conclusion that you *need* statements. Some languages treat declarations

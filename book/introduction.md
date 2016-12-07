@@ -403,7 +403,7 @@ few thousand lines of code.
 
 <div class="challenges">
 
-<h2>Challenges</h2>
+## Challenges
 
 1. There are least six domain-specific languages used in the [little system I
    cobbled together][repo] to write and publish this book. What are they?
@@ -418,5 +418,41 @@ few thousand lines of code.
 
 [repo]: https://github.com/munificent/crafting-interpreters
 [doubly-linked list]: https://en.wikipedia.org/wiki/Doubly_linked_list
+
+</div>
+
+<div class="design-note">
+
+## Design Note: What's in a Name?
+
+One the hardest challenges in writing this book was coming up with a name for
+the language it implements. I auditioned pages of hopeful names before I found
+one that got the part.
+
+As you'll discover the first day you start hacking on your own language,
+*naming* it is deviously difficult. A good name satisfies a few criteria:
+
+1. **It isn't in use.** You can run into all sorts of trouble, legal and social
+   if you inadvertently step on someone else's name.
+
+2. **It's easy to pronounce.** If things go well, lots of people will be saying
+   and writing your language's name all the time. Anything longer than a couple
+   of syllables and a handful of letters will annoy them to no end.
+
+3. **It's distinct enough to search for.** People will Google your language's
+   name to find help with using it, and you want a word that's not common enough
+   to confuse the search engine. Though, with the amount of AI most search
+   engines pack in today, that's less of an issue. Still, you won't be doing
+   your users any favors if you name your language "for".
+
+4. **It doesn't have negative connotations across a number of cultures.** This
+   is hard to guard for, but it's worth considering. The designer of Nimrod
+   ended up renaming his language to "Nim" because too many people only remember
+   that Bugs Bunny used "Nimrod" as an insult.
+
+If your potential name makes it through that gauntlet, keep it. Don't get hung
+up on trying to find a particularly meaningful or exciting name. Since languages
+tend to be too general for their name to be *about* what the language is for,
+all you really need is a reasonably unique token.
 
 </div>

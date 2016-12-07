@@ -630,7 +630,7 @@ Henceforth, I promise to tone down the whole mountain metaphor thing.
 
 <div class="challenges">
 
-<h2>Challenges</h2>
+## Challenges
 
 1. Pick an open source implementation of a language you like. Download the
    source code and poke around in it. Try to find the code that implements the
