@@ -49,10 +49,6 @@ TOC = [
         'topics': ['Interpreters and compilers', 'Phases of a compiler', 'Transpilers', 'Just-in-time compilation'],
       },
       {
-        'name': 'The Pancake Language',
-        'topics': ['Splitting into tokens', 'Kinds of errors', 'REPL', 'Reading files', 'Validating code', 'Running programs'],
-      },
-      {
         'name': 'The Lox Language',
         'topics': ['Lexical grammars', 'Grammars', 'Extended Backus-Naur Form'],
       }
@@ -203,16 +199,6 @@ TOC = [
       }
     ]
   },
-  # {
-  #   'name': '',
-  #   'chapters': [
-  #     {
-  #       'name': 'Glossary',
-  #       'topics': [],
-  #       'done': False,
-  #     }
-  #   ]
-  # }
 ]
 
 
@@ -410,7 +396,7 @@ def format_file(path, skip_up_to_date, templates_mod):
         # else:
         #   print "UNKNOWN COMMAND:", command, args
 
-      elif stripped.startswith('#'):
+      elif stripped.startswith('#') and not stripped.startswith('####'):
         # Build the section navigation from the headers.
         index = stripped.find(" ")
         header_type = stripped[:index]
@@ -453,6 +439,7 @@ def format_file(path, skip_up_to_date, templates_mod):
   # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
   contents = contents.replace('<div class="challenges">', '<div class="challenges" markdown="1">')
+  contents = contents.replace('<div class="design-note">', '<div class="design-note" markdown="1">')
   body = markdown.markdown(contents, ['extra', 'codehilite', 'smarty'])
 
   data = {

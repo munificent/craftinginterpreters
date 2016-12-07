@@ -7,7 +7,6 @@ import os
 import re
 
 JAVA_CHAPTERS = [
-  "The Pancake Language",
   "Scanning",
   "Representing Code",
   "Parsing Expressions",
@@ -168,4 +167,4 @@ for i, chapter in enumerate(JAVA_CHAPTERS):
 # The C chapters.
 for i, chapter in enumerate(C_CHAPTERS):
   walk("c", [".c", ".h"],
-      lambda path: split_file("c", C_CHAPTERS, 15, path, i))
+      lambda path: split_file("c", C_CHAPTERS, 14, path, i))
