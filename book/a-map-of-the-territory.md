@@ -23,7 +23,7 @@ We're going to spend a lot of time on those details, so if I have write
 fingers off. Instead, I'll use "language" to refer to either a language or an
 implementation of it, or both, unless the distinction isn't obvious.
 
-## The parts of a language
+## The Parts of a Language
 
 Engineers have been building programming languages since the Dark Ages of
 computing. As soon as we could talk to computers, we discovered doing so was too
@@ -369,7 +369,7 @@ is how most implementations of languages like Java, Python, and JavaScript work.
 
 [go]: https://golang.org/
 
-## Shortcuts and alternate routes
+## Shortcuts and Alternate Routes
 
 That's the long path covering every possible phase you might implement. Many
 languages do walk the entire route, but there are a few shortcuts and alternate
@@ -533,7 +533,7 @@ This is, of course, exactly where the HotSpot JVM gets its name.
 
 </aside>
 
-## Compilers and interpreters
+## Compilers and Interpreters
 
 Now that I've stuffed your head with a dictionary's worth of programming
 language jargon, we can finally address a question that's plagued coders since
@@ -608,7 +608,7 @@ That overlapping region in the center is where our second interpreter lives too,
 since it internally compiles to bytecode. So while this book is nominally about
 interpreters, we'll cover some compilation too.
 
-## Our journey
+## Our Journey
 
 That's a lot to take in all at once. Don't worry. This isn't the chapter where
 you're expected to *understand* all of these pieces and parts. I just want you

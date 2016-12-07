@@ -62,7 +62,7 @@ real language lives and breathes. My hope is that when you read other, more
 theoretical books later, the concepts there will firmly stick in your mind,
 adhered to this tangible substrate.
 
-## Why learn this stuff?
+## Why Learn This Stuff?
 
 Every introduction to every language book seems to have this section. I don't
 know what it is about programming languages that causes such existential doubt.
@@ -161,7 +161,7 @@ braver than you were before.
 
 And, who knows, maybe you *will* make the next great language. Someone has to.
 
-## How the book is organized
+## How the Book is Organized
 
 This book is broken into three parts. You're reading the first one now. It's a
 couple of chapters to get you oriented, teach you some of the lingo language
@@ -300,7 +300,7 @@ expert on this -- I don't know if anyone really is -- so take these with a large
 pinch of salt. That should make them tastier food for thought, which is my main
 aim.
 
-## The first interpreter
+## The First Interpreter
 
 We'll write our first interpreter, jlox, in Java. The focus is on *concepts*.
 We'll write the simplest, cleanest code we can to correctly implement the
@@ -354,7 +354,7 @@ By the end of part II, we'll have a simple, readable implementation. What we
 won't have is a *fast* one. It also leans on the Java virtual machine's runtime
 facilities, but we want to learn how Java *itself* implements those things.
 
-## The second interpreter
+## The Second Interpreter
 
 So in the next part, we'll start all over again, but this time in C. C is the
 perfect language for understanding how an implementation *really* works, all the
