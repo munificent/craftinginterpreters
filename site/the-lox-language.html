@@ -155,7 +155,9 @@ in a language: <em>familiarity</em>. I know you are already comfortable with tha
 because the two languages we&rsquo;ll be using to <em>implement</em> Lox, Java and C, also
 inherit it. Doing something similar for Lox gives you one less thing to learn.</p>
 <h2><a href="#a-high-level-language" name="a-high-level-language"><small>3&#8202;.&#8202;2</small> A High-Level Language</a></h2>
-<p>While this book ended up bigger than I was hoping, it&rsquo;s still not big enough to fit a huge language like Java in it. In order to fit two complete implementations of Lox in these pages, Lox itself has to be pretty compact.</p>
+<p>While this book ended up bigger than I was hoping, it&rsquo;s still not big enough to
+fit a huge language like Java in it. In order to fit two complete
+implementations of Lox in these pages, Lox itself has to be pretty compact.</p>
 <p>When I think of languages that are small but useful, what comes to mind are
 high-level &ldquo;scripting&rdquo; languages like <span name="js">JavaScript</span>, Scheme,
 and Lua. Of those three, Lox looks most like JavaScript, mainly because most
@@ -172,11 +174,15 @@ used to be a cute little baby language.</p>
 investment as an episode of MacGuyver, it has some weird semantic corners where
 the duct tape and paper clips show through. Things like variable hoisting,
 dynamically-bound <code>this</code>, holes in arrays, and implicit conversions.</p>
-<p>Because I had the luxury of taking my time on Lox, it&rsquo;s a little more finely crafted.</p>
+<p>Because I had the luxury of taking my time on Lox, it&rsquo;s a little more finely
+crafted.</p>
 </aside>
 <p>Lox shares two other aspects with those three languages:</p>
 <h3><a href="#dynamic-typing" name="dynamic-typing"><small>3&#8202;.&#8202;2&#8202;.&#8202;1</small> Dynamic typing</a></h3>
-<p>Lox is dynamically typed. Variables can store values of any type, and a single variable can even store values of different types at different times. If you try to perform an operation on values of the wrong type&#8202;&mdash;&#8202;say, trying to subtract a string from a number&#8202;&mdash;&#8202;then the error is detected and reported at runtime.</p>
+<p>Lox is dynamically typed. Variables can store values of any type, and a single
+variable can even store values of different types at different times. If you try
+to perform an operation on values of the wrong type&#8202;&mdash;&#8202;say, trying to subtract a
+string from a number&#8202;&mdash;&#8202;then the error is detected and reported at runtime.</p>
 <p>There are plenty of reasons to like <span name="static">static</span> types, but
 they don&rsquo;t outweigh the pragmatic reasons to pick dynamic types for Lox. A type
 system is a ton of work to learn and implement. Skipping it gives you a simpler
@@ -187,7 +193,11 @@ code sooner if we don&rsquo;t have to build a type checker first.</p>
 statically typed.</p>
 </aside>
 <h3><a href="#automatic-memory-management" name="automatic-memory-management"><small>3&#8202;.&#8202;2&#8202;.&#8202;2</small> Automatic memory management</a></h3>
-<p>High-level languages exist to eliminate error-prone, low-level drudgery and what could be more tedious than manually managing the allocation and freeing of storage? No one rises and greets the morning sun with, &ldquo;I can&rsquo;t wait to figure out the correct place to call <code>free()</code> for every byte of memory I allocate today!&rdquo;</p>
+<p>High-level languages exist to eliminate error-prone, low-level drudgery and what
+could be more tedious than manually managing the allocation and freeing of
+storage? No one rises and greets the morning sun with, &ldquo;I can&rsquo;t wait to figure
+out the correct place to call <code>free()</code> for every byte of memory I allocate
+today!&rdquo;</p>
 <p>There are two main <span name="gc">styles</span> of memory management,
 <strong>reference counting</strong> and <strong>tracing garbage collection</strong> (usually just called
 <strong>&ldquo;garbage collection&rdquo;</strong> or <strong>&ldquo;GC&rdquo;</strong>). Ref counters are much simpler to
@@ -198,7 +208,8 @@ up adding a full tracing GC or at least enough of one to clean up object cycles.
 <aside name="gc">
 <p>In practice, ref counting and tracing are more ends of a continuum than
 oppposing sides. Most ref counting systems end up doing some tracing to handle
-cycles, and the write barriers of a generational collector look a bit like retain calls if you squint.</p>
+cycles, and the write barriers of a generational collector look a bit like
+retain calls if you squint.</p>
 <p>For lots more on this, see &ldquo;<a href="http://www.cs.virginia.edu/~cs415/reading/bacon-garbage.pdf">A Unified Theory of Garbage Collection</a>&rdquo; (PDF).</p>
 </aside>
 <p>Tracing garbage collection has a fearsome reputation. It <em>is</em> a little harrowing
@@ -295,7 +306,8 @@ to fill in those holes.</p>
 <p>If built-in data types and their literals are atoms, then <strong>expressions</strong> must
 be the molecules. Most of these will be familiar.</p>
 <h3><a href="#arithmetic" name="arithmetic"><small>3&#8202;.&#8202;4&#8202;.&#8202;1</small> Arithmetic</a></h3>
-<p>Lox features the basic arithmetic operators you know and love from C and other languages:</p>
+<p>Lox features the basic arithmetic operators you know and love from C and other
+languages:</p>
 <div class="codehilite"><pre><span></span><span class="n">add</span> <span class="o">+</span> <span class="n">me</span><span class="p">;</span>
 <span class="n">subtract</span> <span class="o">-</span> <span class="n">me</span><span class="p">;</span>
 <span class="n">multiply</span> <span class="o">*</span> <span class="n">me</span><span class="p">;</span>
@@ -315,26 +327,35 @@ operands, these are also called <strong><em>in</em>fix</strong> operators as opp
 operators where the operator comes before and <strong><em>post</em>fix</strong> where it goes after
 the operand.</p>
 <aside name="fixity">
-<p>There are some operators that have more than two operands and where the operators are interleaved between them. The only one in wide usage is the &ldquo;conditional&rdquo; or &ldquo;ternary&rdquo; operator of C and friends:</p>
+<p>There are some operators that have more than two operands and where the
+operators are interleaved between them. The only one in wide usage is the
+&ldquo;conditional&rdquo; or &ldquo;ternary&rdquo; operator of C and friends:</p>
 <div class="codehilite"><pre><span></span><span class="n">condition</span> <span class="o">?</span> <span class="nl">then</span> <span class="p">:</span> <span class="n">otherwise</span><span class="p">;</span>
 </pre></div>
 
 
-<p>Some call these <strong>mixfix</strong> operators. A few languages let you define your own operator and control how it is positioned&#8202;&mdash;&#8202;its &ldquo;fixity&rdquo;.</p>
+<p>Some call these <strong>mixfix</strong> operators. A few languages let you define your own
+operator and control how it is positioned&#8202;&mdash;&#8202;its &ldquo;fixity&rdquo;.</p>
 </aside>
-<p>One arithmetic operator is actually <em>both</em> an infix and a prefix one. Can you guess it? Right:</p>
+<p>One arithmetic operator is actually <em>both</em> an infix and a prefix one. Can you
+guess it? Right:</p>
 <div class="codehilite"><pre><span></span><span class="o">-</span><span class="n">negateMe</span><span class="p">;</span>
 </pre></div>
 
 
 <p>The <code>-</code> operator can also be used to negate a number.</p>
-<p>All of these operators work on numbers, and it&rsquo;s an error to pass any other types to them. The exception is <code>+</code> and strings. If either operand of <code>+</code> is a string, then the other operand is converted to a string (if it isn&rsquo;t already one) and the results are concatenated.</p>
+<p>All of these operators work on numbers, and it&rsquo;s an error to pass any other
+types to them. The exception is <code>+</code> and strings. If either operand of <code>+</code> is a
+string, then the other operand is converted to a string (if it isn&rsquo;t already
+one) and the results are concatenated.</p>
 <p>I&rsquo;m not a proponent of implicit conversions in general, but this one saves us
 from needing to define a explicit function to stringify the other built-in
 types. We don&rsquo;t want to spend our time cranking out boring standard library
 functions.</p>
 <h3><a href="#comparison-and-equality" name="comparison-and-equality"><small>3&#8202;.&#8202;4&#8202;.&#8202;2</small> Comparison and equality</a></h3>
-<p>Moving along, we reach the logical operators&#8202;&mdash;&#8202;the ones whose result is a Boolean. We can compare numbers (and only numbers), using Ye Olde Comparison Operators:</p>
+<p>Moving along, we reach the logical operators&#8202;&mdash;&#8202;the ones whose result is a
+Boolean. We can compare numbers (and only numbers), using Ye Olde Comparison
+Operators:</p>
 <div class="codehilite"><pre><span></span><span class="n">less</span> <span class="o">&lt;</span> <span class="n">than</span><span class="p">;</span>
 <span class="n">lessThan</span> <span class="o">&lt;=</span> <span class="n">orEqual</span><span class="p">;</span>
 <span class="n">greater</span> <span class="o">&gt;</span> <span class="n">than</span><span class="p">;</span>
@@ -360,8 +381,13 @@ functions.</p>
 
 <p>Like I said, I&rsquo;m generally against implicit conversions.</p>
 <h3><a href="#truth" name="truth"><small>3&#8202;.&#8202;4&#8202;.&#8202;3</small> Truth</a></h3>
-<p>Before we can get to the last pair operators in Lox&rsquo;s arsenal, we need to make a little side trip to go over one of the great questions of Western philosophy: <em>what is truth?</em></p>
-<p>OK, maybe we&rsquo;re not going to really get into the universal question, but at least inside the world of Lox, we need to decide what happens when you use something other than <code>true</code> or <code>false</code> in a place where a Boolean is expected, like the condition in an <code>if</code> statement.</p>
+<p>Before we can get to the last pair operators in Lox&rsquo;s arsenal, we need to make a
+little side trip to go over one of the great questions of Western philosophy:
+<em>what is truth?</em></p>
+<p>OK, maybe we&rsquo;re not going to really get into the universal question, but at
+least inside the world of Lox, we need to decide what happens when you use
+something other than <code>true</code> or <code>false</code> in a place where a Boolean is expected,
+like the condition in an <code>if</code> statement.</p>
 <p>We <em>could</em> just say it&rsquo;s an error because we don&rsquo;t roll with implicit
 conversions, but most dynamically typed languages aren&rsquo;t that ascetic. Instead,
 they take the universe of values of all types and partition them into two sets,
@@ -369,7 +395,9 @@ one of which they define to be &ldquo;true&rdquo;, or &ldquo;truthful&rdquo;, or
 and the rest which are &ldquo;false&rdquo; or &ldquo;falsey&rdquo;. This partitioning is fairly
 arbitrary and gets <span name="hairy">hairy</span> in some languages.</p>
 <aside name="hairy">
-<p>In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy but empty arrays are&hellip; also truthy. The number <code>0</code> is falsey, but the <em>string</em> <code>"0"</code> is truthy.</p>
+<p>In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
+but empty arrays are&hellip; also truthy. The number <code>0</code> is falsey, but the <em>string</em>
+<code>"0"</code> is truthy.</p>
 <p>In Python, empty strings are falsey as are all other empty sequences.</p>
 </aside>
 <p>Lox follows Ruby&rsquo;s simple rule: <code>false</code> and <code>nil</code> are falsey and everything else
@@ -377,14 +405,16 @@ is truthy.</p>
 <h3><a href="#logical-operators" name="logical-operators"><small>3&#8202;.&#8202;4&#8202;.&#8202;4</small> Logical operators</a></h3>
 <p>Now where were we? Oh, right. Our last two operators are really control flow
 constructs in the guise of expressions. An <span name="and"><code>and</code></span>
-expression determines if two values are both truthy. It returns the left operand if it&rsquo;s falsey, or the right operand otherwise:</p>
+expression determines if two values are both truthy. It returns the left operand
+if it&rsquo;s falsey, or the right operand otherwise:</p>
 <div class="codehilite"><pre><span></span><span class="n">print</span><span class="p">(</span><span class="nb">true</span> <span class="k">and</span> <span class="nb">nil</span><span class="p">);</span> <span class="c1">// &quot;nil&quot;.</span>
 <span class="n">print</span><span class="p">(</span><span class="mi">1</span> <span class="k">and</span> <span class="s">&quot;yes&quot;</span><span class="p">);</span>  <span class="c1">// &quot;yes&quot;.</span>
 </pre></div>
 
 
 <p>And an <code>or</code> expression determines if <em>either</em> of two values (or both) are
-truthy. It returns the left operand if it is <em>truthy</em> and the right operand otherwise:</p>
+truthy. It returns the left operand if it is <em>truthy</em> and the right operand
+otherwise:</p>
 <div class="codehilite"><pre><span></span><span class="n">print</span><span class="p">(</span><span class="nb">nil</span> <span class="k">or</span> <span class="nb">false</span><span class="p">);</span> <span class="c1">// &quot;false&quot;.</span>
 <span class="n">print</span><span class="p">(</span><span class="s">&quot;aye&quot;</span> <span class="k">or</span> <span class="mi">2</span><span class="p">);</span>   <span class="c1">// &quot;aye&quot;.</span>
 </pre></div>
@@ -398,8 +428,10 @@ double-character forms without the single-character ones.</p>
 structures and not simple operators.</p>
 </aside>
 <p>The reason <code>and</code> and <code>or</code> are like control flow structures, of course, is
-because they <strong>short-circuit</strong>. Not only does <code>and</code> return the left operand if it is falsey, it doesn&rsquo;t even <em>evaluate</em> the right one in that case. Conversely, (&ldquo;contrapositively&rdquo;?) if the left operand of an <code>or</code> is
-truthy, the right is skipped.</p>
+because they <strong>short-circuit</strong>. Not only does <code>and</code> return the left operand if
+it is falsey, it doesn&rsquo;t even <em>evaluate</em> the right one in that case. Conversely,
+(&ldquo;contrapositively&rdquo;?) if the left operand of an <code>or</code> is truthy, the right is
+skipped.</p>
 <h3><a href="#precedence-and-grouping" name="precedence-and-grouping"><small>3&#8202;.&#8202;4&#8202;.&#8202;5</small> Precedence and grouping</a></h3>
 <p>All of these operators have the same precedence and associativity that you&rsquo;d
 expect coming from C. (When we get to parsing, we&rsquo;ll get <em>way</em> more precise
@@ -411,7 +443,8 @@ to group stuff:</p>
 
 <p>Since they aren&rsquo;t very technically interesting, I&rsquo;ve cut the remainder of the
 typical operator menagerie out of our little language. No bitwise, shift,
-modulo, or conditional operators. I&rsquo;m not grading you, but you will get bonus points in my heart if you augment your own implementation of Lox with them.</p>
+modulo, or conditional operators. I&rsquo;m not grading you, but you will get bonus
+points in my heart if you augment your own implementation of Lox with them.</p>
 <h2><a href="#statements" name="statements"><small>3&#8202;.&#8202;5</small> Statements</a></h2>
 <p>That&rsquo;s all the expression forms, so let&rsquo;s move up a level. Now we&rsquo;re at
 statements. Where an expression&rsquo;s main job is to produce a <em>value</em>, a
@@ -427,7 +460,8 @@ statement</strong>.</p>
 </pre></div>
 
 
-<p>If you want to pack a series of statements where a single one is expected, you can wrap them up in a <strong>block</strong>:</p>
+<p>If you want to pack a series of statements where a single one is expected, you
+can wrap them up in a <strong>block</strong>:</p>
 <div class="codehilite"><pre><span></span><span class="p">{</span>
   <span class="n">print</span><span class="p">(</span><span class="s">&quot;One statement&quot;</span><span class="p">);</span>
   <span class="n">print</span><span class="p">(</span><span class="s">&quot;Two statements.&quot;</span><span class="p">);</span>
@@ -437,7 +471,8 @@ statement</strong>.</p>
 
 <p>Blocks also affect scoping, which leads us to the next section&hellip;</p>
 <h2><a href="#variables" name="variables"><small>3&#8202;.&#8202;6</small> Variables</a></h2>
-<p>You declare variables using <code>var</code> statements. Like I mentioned before, you can omit the initializer to implicitly initialize the variable with <code>nil</code>:</p>
+<p>You declare variables using <code>var</code> statements. Like I mentioned before, you can
+omit the initializer to implicitly initialize the variable with <code>nil</code>:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">imAVariable</span> <span class="o">=</span> <span class="s">&quot;here is my value&quot;</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">iAmNil</span><span class="p">;</span>
 </pre></div>
@@ -451,9 +486,11 @@ statement</strong>.</p>
 
 
 <aside name="breakfast">
-<p>Can you tell that I tend to work on this book in the morning before I&rsquo;ve had anything to eat?</p>
+<p>Can you tell that I tend to work on this book in the morning before I&rsquo;ve had
+anything to eat?</p>
 </aside>
-<p>You can assign a new value to an existing variable using an assignment expression:</p>
+<p>You can assign a new value to an existing variable using an assignment
+expression:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">breakfast</span> <span class="o">=</span> <span class="s">&quot;bagel&quot;</span><span class="p">;</span>
 <span class="n">breakfast</span> <span class="o">=</span> <span class="s">&quot;bacon and eggs&quot;</span><span class="p">;</span>
 <span class="n">print</span><span class="p">(</span><span class="n">breakfast</span><span class="p">);</span> <span class="c1">// &quot;bacon and eggs&quot;.</span>
@@ -465,10 +502,16 @@ This is <strong>scoping</strong>, and we&rsquo;ll spend a surprising amount of t
 chapters mapping every square inch of the rules. For now, don&rsquo;t worry about them
 too much. In most cases, it works like you expect coming from C or Java.</p>
 <h2><a href="#control-flow" name="control-flow"><small>3&#8202;.&#8202;7</small> Control Flow</a></h2>
-<p>It&rsquo;s hard to write <span name="flow">useful</span> programs if you can&rsquo;t choose to <em>not</em> execute some code, or execute something more than once. We need some more control flow structures. In addition to the logical operators we already covered, Lox lifts three control flow statements straight from C.</p>
+<p>It&rsquo;s hard to write <span name="flow">useful</span> programs if you can&rsquo;t choose
+to <em>not</em> execute some code, or execute something more than once. We need some
+more control flow structures. In addition to the logical operators we already
+covered, Lox lifts three control flow statements straight from C.</p>
 <aside name="flow">
-<p>We already have <code>and</code> and <code>or</code> for branching, and we could use recursion to repeat code, so that&rsquo;s theoretically sufficient. It would be a little strange to program that way in an imperative-styled language.</p>
-<p>It&rsquo;s worth noting, though, that Scheme has no built-in looping constructs. It does rely on recursion for repetition.</p>
+<p>We already have <code>and</code> and <code>or</code> for branching, and we could use recursion to
+repeat code, so that&rsquo;s theoretically sufficient. It would be a little strange to
+program that way in an imperative-styled language.</p>
+<p>It&rsquo;s worth noting, though, that Scheme has no built-in looping constructs. It
+does rely on recursion for repetition.</p>
 </aside>
 <p>An <code>if ()</code> statement executes one of two statements based on some condition:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="s">&quot;something&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -479,8 +522,11 @@ too much. In most cases, it works like you expect coming from C or Java.</p>
 </pre></div>
 
 
-<p>Just like in the logical operators, we use truthiness to determine when a condition evaluates the then or the else branch. In this case, strings are truthy, so &ldquo;something&rdquo; is true and &ldquo;yes&rdquo; is printed.</p>
-<p>A <code>while</code> loop executes the body repeatedly as long as the condition expression evaluates to true:</p>
+<p>Just like in the logical operators, we use truthiness to determine when a
+condition evaluates the then or the else branch. In this case, strings are
+truthy, so &ldquo;something&rdquo; is true and &ldquo;yes&rdquo; is printed.</p>
+<p>A <code>while</code> loop executes the body repeatedly as long as the condition expression
+evaluates to true:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="k">while</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
@@ -489,7 +535,9 @@ too much. In most cases, it works like you expect coming from C or Java.</p>
 </pre></div>
 
 
-<p>Lox doesn&rsquo;t have <code>do-while</code> loops because they aren&rsquo;t that common and aren&rsquo;t any more technically interesting to implement than <code>while</code>. Go ahead and add it to your implementation if it makes you happy. It&rsquo;s your party.</p>
+<p>Lox doesn&rsquo;t have <code>do-while</code> loops because they aren&rsquo;t that common and aren&rsquo;t any
+more technically interesting to implement than <code>while</code>. Go ahead and add it to
+your implementation if it makes you happy. It&rsquo;s your party.</p>
 <p>Finally, we have <code>for</code> loops:</p>
 <div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
@@ -497,7 +545,11 @@ too much. In most cases, it works like you expect coming from C or Java.</p>
 </pre></div>
 
 
-<p>This loop does the same thing as the previous <code>while</code> loop. Most modern languages also have some sort of <span name="foreach"><code>for-in</code></span> or <code>foreach</code> loop for explicitly iterating over various sequence types. In a real language, those are much better than the crude C-style <code>for</code> loop we got here. Lox keeps it basic.</p>
+<p>This loop does the same thing as the previous <code>while</code> loop. Most modern
+languages also have some sort of <span name="foreach"><code>for-in</code></span> or
+<code>foreach</code> loop for explicitly iterating over various sequence types. In a real
+language, those are much better than the crude C-style <code>for</code> loop we got here.
+Lox keeps it basic.</p>
 <aside name="foreach">
 <p>This is a concession I made because of how the implementation is split across
 chapters. A <code>for-in</code> loop needs some sort of dynamic dispatch for the iterator
@@ -507,7 +559,8 @@ later, but I didn&rsquo;t think doing so would teach you anything particularly
 interesting.</p>
 </aside>
 <h2><a href="#functions" name="functions"><small>3&#8202;.&#8202;8</small> Functions</a></h2>
-<p>You&rsquo;ve already seen a function call already with our friend <code>print</code>. A series of comma-separated arguments surrounded by parentheses a function call:</p>
+<p>You&rsquo;ve already seen a function call already with our friend <code>print</code>. A series of
+comma-separated arguments surrounded by parentheses a function call:</p>
 <div class="codehilite"><pre><span></span><span class="n">makeBreakfast</span><span class="p">(</span><span class="n">bacon</span><span class="p">,</span> <span class="n">eggs</span><span class="p">,</span> <span class="n">toast</span><span class="p">);</span>
 </pre></div>
 
@@ -517,8 +570,10 @@ interesting.</p>
 </pre></div>
 
 
-<p>Unlike, say, Ruby, the parentheses are mandatory in this case. If you leave them off, it doesn&rsquo;t <em>call</em> the function, it just refers to it.</p>
-<p>A language isn&rsquo;t very fun if you can&rsquo;t define your own functions. In Lox, you do that with <span name="fun"><code>fun</code></span>:</p>
+<p>Unlike, say, Ruby, the parentheses are mandatory in this case. If you leave them
+off, it doesn&rsquo;t <em>call</em> the function, it just refers to it.</p>
+<p>A language isn&rsquo;t very fun if you can&rsquo;t define your own functions. In Lox, you do
+that with <span name="fun"><code>fun</code></span>:</p>
 <aside name="fun">
 <p>I&rsquo;ve seen languages that use <code>fn</code>, <code>fun</code>, <code>func</code>, and <code>function</code>. I&rsquo;m still
 hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</code> somewhere.</p>
@@ -529,7 +584,10 @@ hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</c
 </pre></div>
 
 
-<p>Now&rsquo;s a good time to clarify some terminology. Some people throw around &ldquo;parameter&rdquo; and &ldquo;argument&rdquo; like they are interchangeable and, to many, they are. We&rsquo;re going to spend a lot of time with splitting the finest of downy hairs around semantics, so let&rsquo;s sharpen our words. From here on out:</p>
+<p>Now&rsquo;s a good time to clarify some terminology. Some people throw around
+&ldquo;parameter&rdquo; and &ldquo;argument&rdquo; like they are interchangeable and, to many, they are.
+We&rsquo;re going to spend a lot of time with splitting the finest of downy hairs
+around semantics, so let&rsquo;s sharpen our words. From here on out:</p>
 <ul>
 <li>
 <p>An <strong>argument</strong> is an actual value you pass to a function when you call it.
@@ -541,16 +599,19 @@ hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</c
   function. Thus, a function <em>declaration</em> has a <em>parameter</em> list.</p>
 </li>
 </ul>
-<p>The body of a function is always a block. Inside it, you can return a value using a <code>return</code> statement:</p>
+<p>The body of a function is always a block. Inside it, you can return a value
+using a <code>return</code> statement:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">returnSum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>If a execution reaches the end of the block without hitting a <code>return</code>, it implicitly returns <code>nil</code>. See, I told you it would be hard to escape <code>nil</code>!</p>
+<p>If a execution reaches the end of the block without hitting a <code>return</code>, it
+implicitly returns <code>nil</code>. See, I told you it would be hard to escape <code>nil</code>!</p>
 <h3><a href="#closures" name="closures"><small>3&#8202;.&#8202;8&#8202;.&#8202;1</small> Closures</a></h3>
-<p>Functions are <em>first-class</em> in Lox, which just means they are real values that you can get a reference to, store in variables, pass around, etc. This works:</p>
+<p>Functions are <em>first-class</em> in Lox, which just means they are real values that
+you can get a reference to, store in variables, pass around, etc. This works:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">addPair</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 <span class="p">}</span>
@@ -563,7 +624,8 @@ hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</c
 </pre></div>
 
 
-<p>Since function declarations are statements, you can declare local functions inside another function:</p>
+<p>Since function declarations are statements, you can declare local functions
+inside another function:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">outerFunction</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">fun</span> <span class="n">localFunction</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">print</span><span class="p">(</span><span class="s">&quot;I&#39;m local!&quot;</span><span class="p">);</span>
@@ -574,7 +636,8 @@ hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</c
 </pre></div>
 
 
-<p>If you combine local functions, first class functions, and block scope, you run into this interesting situation:</p>
+<p>If you combine local functions, first class functions, and block scope, you run
+into this interesting situation:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">returnFunction</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">var</span> <span class="n">outside</span> <span class="o">=</span> <span class="s">&quot;outside&quot;</span><span class="p">;</span>
 
@@ -590,8 +653,15 @@ hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</c
 </pre></div>
 
 
-<p>Here, <code>inner()</code> accesses a local variable declared outside of its body in the surrounding function. Is this kosher? Now that lots of languages have borrowed this feature from Lisp, you probably know the answer is yes.</p>
-<p>For that to work, <code>inner()</code> has to &ldquo;hold on&rdquo; to references to any surrounding variables that it uses so that they stay around even after the outer function has returned. We call functions that do this <span name="closure"><strong>&ldquo;closures&rdquo;</strong></span>. These days, the term is often used for <em>any</em> first-class function, though it&rsquo;s sort of a misnomer if the function doesn&rsquo;t happen to close over any variables.</p>
+<p>Here, <code>inner()</code> accesses a local variable declared outside of its body in the
+surrounding function. Is this kosher? Now that lots of languages have borrowed
+this feature from Lisp, you probably know the answer is yes.</p>
+<p>For that to work, <code>inner()</code> has to &ldquo;hold on&rdquo; to references to any surrounding
+variables that it uses so that they stay around even after the outer function
+has returned. We call functions that do this <span
+name="closure"><strong>&ldquo;closures&rdquo;</strong></span>. These days, the term is often used for
+<em>any</em> first-class function, though it&rsquo;s sort of a misnomer if the function
+doesn&rsquo;t happen to close over any variables.</p>
 <aside name="closure">
 <p>Peter J. Landin coined the term. (Yeah, he coined damn near half the terms in
 programming languages. Most of them came out of one incredible paper, &ldquo;The next
@@ -601,26 +671,46 @@ structure that bundles together the function&rsquo;s code, and the surrounding
 variables it needs. He called this a &ldquo;closure&rdquo; because it &ldquo;closes over&rdquo; and
 holds onto the variables it needs.</p>
 </aside>
-<p>As you can imagine, implementing these adds some complexity because we can no longer assume variable scope works strictly like a stack where local variables evaporate the moment the function returns. We&rsquo;re going to have a fun time learning how to make these work and do so efficiently.</p>
+<p>As you can imagine, implementing these adds some complexity because we can no
+longer assume variable scope works strictly like a stack where local variables
+evaporate the moment the function returns. We&rsquo;re going to have a fun time
+learning how to make these work and do so efficiently.</p>
 <h2><a href="#classes" name="classes"><small>3&#8202;.&#8202;9</small> Classes</a></h2>
 <p>Since Lox has dynamic typing, lexical (i.e. block) scope, and closures, it&rsquo;s
 about halfway to being a functional language. But it&rsquo;s <em>also</em> about halfway to
 being an object-oriented language. Both paradigms have a lot going for them, so
 I thought it was worth covering some of each.</p>
-<p>Since classes have come under fire for not living up to their hype, I thought I&rsquo;d explain why I put them into Lox and into this book. There are really two questions:</p>
+<p>Since classes have come under fire for not living up to their hype, I thought
+I&rsquo;d explain why I put them into Lox and into this book. There are really two
+questions:</p>
 <h3><a href="#why-might-any-language-want-to-be-object-oriented" name="why-might-any-language-want-to-be-object-oriented"><small>3&#8202;.&#8202;9&#8202;.&#8202;1</small> Why might any language want to be object oriented?</a></h3>
 <p>Now that object-oriented languages like Java have sold out and only play arena
 shows, it&rsquo;s not cool to like them anymore. Why would anyone make a <em>new</em>
 language with objects? Isn&rsquo;t that like releasing music on 8-track?</p>
-<p>It is true that the &ldquo;all inheritance all the time&rdquo; binge of the 90s produced some monstrous class hierarchies, but object-oriented programming is still pretty rad. Billions of lines of successful code has been written in OOP languages, shipping millions of apps to happy users. Likely a majority of working programmers today are using an object-oriented language. They can&rsquo;t all be <em>that</em> wrong.</p>
-<p>In particular, for a dynamically-typed language, objects are pretty handy. We need <em>some</em> way of defining compound data types to bundle blobs of stuff together.</p>
-<p>If we can also hang methods off of those, then we avoid the need to prefix all of our functions with the name of the data type they operate on to avoid colliding with similar functions for different types. In, say, Racket, you end up having to name your functions like <code>hash-copy</code> and <code>vector-copy</code> so they don&rsquo;t step on each other. Methods are scoped to the <em>object</em>, so that problem goes away.</p>
+<p>It is true that the &ldquo;all inheritance all the time&rdquo; binge of the 90s produced
+some monstrous class hierarchies, but object-oriented programming is still
+pretty rad. Billions of lines of successful code has been written in OOP
+languages, shipping millions of apps to happy users. Likely a majority of
+working programmers today are using an object-oriented language. They can&rsquo;t all
+be <em>that</em> wrong.</p>
+<p>In particular, for a dynamically-typed language, objects are pretty handy. We
+need <em>some</em> way of defining compound data types to bundle blobs of stuff
+together.</p>
+<p>If we can also hang methods off of those, then we avoid the need to prefix all
+of our functions with the name of the data type they operate on to avoid
+colliding with similar functions for different types. In, say, Racket, you end
+up having to name your functions like <code>hash-copy</code> and <code>vector-copy</code> so they
+don&rsquo;t step on each other. Methods are scoped to the <em>object</em>, so that problem
+goes away.</p>
 <h3><a href="#why-is-lox-object-oriented" name="why-is-lox-object-oriented"><small>3&#8202;.&#8202;9&#8202;.&#8202;2</small> Why is Lox object oriented?</a></h3>
 <p>I <em>could</em> claim objects are groovy but, alas, out of scope for the book. Most
 programming language books, especially ones that try to implement a whole
 language, leave objects out. To me, that means the topic isn&rsquo;t well covered. For
 such a widespread paradigm, that seems an embarrassing omission.</p>
-<p>Given how many of us spend all day <em>using</em> OOP languages, it seems like the world could use a little documentation on how to <em>make</em> one. As you&rsquo;ll see, it turns out to be pretty interesting. Not as hard as you might fear, but not as simple as you might presume, either.</p>
+<p>Given how many of us spend all day <em>using</em> OOP languages, it seems like the
+world could use a little documentation on how to <em>make</em> one. As you&rsquo;ll see, it
+turns out to be pretty interesting. Not as hard as you might fear, but not as
+simple as you might presume, either.</p>
 <h3><a href="#classes-or-prototypes" name="classes-or-prototypes"><small>3&#8202;.&#8202;9&#8202;.&#8202;3</small> Classes or prototypes?</a></h3>
 <p>When it comes to objects, there are actually two approaches to them, <a href="https://en.wikipedia.org/wiki/Class-based_programming">classes</a>
 and <a href="https://en.wikipedia.org/wiki/Prototype-based_programming">prototypes</a>. Classes are more common thanks to C++, Java, C#, and
@@ -636,16 +726,24 @@ can be its own special snowflake.</p>
 pretty hard</a> towards defining class-like objects. Meanwhile, class-based
 Ruby is perfectly happy to let you attach methods to individual instances.</p>
 </aside>
-<p>With classes, there is always a level of indirection. When you call a method, you look up the object&rsquo;s class and then you find the method <em>there</em>. If it&rsquo;s not there, you walk the class&rsquo;s inheritance chain. With prototypes, method lookup is right on the object itself, then you walk its &ldquo;delegate&rdquo; or &ldquo;prototype&rdquo; chain.</p>
+<p>With classes, there is always a level of indirection. When you call a method,
+you look up the object&rsquo;s class and then you find the method <em>there</em>. If it&rsquo;s not
+there, you walk the class&rsquo;s inheritance chain. With prototypes, method lookup is
+right on the object itself, then you walk its &ldquo;delegate&rdquo; or &ldquo;prototype&rdquo; chain.</p>
 <p><strong>TODO: Illustrate inheritance and delegation chains.</strong></p>
-<p>This means prototypal languages are more &ldquo;fundamental&rdquo; in some way than classes. They are really neat to implement because they&rsquo;re so simple. Also, they can express lots of unusual patterns that built-in class support steers you away from.</p>
+<p>This means prototypal languages are more &ldquo;fundamental&rdquo; in some way than classes.
+They are really neat to implement because they&rsquo;re so simple. Also, they can
+express lots of unusual patterns that built-in class support steers you away
+from.</p>
 <p>But I&rsquo;ve looked at a <em>lot</em> of code written in prototypal languages&#8202;&mdash;&#8202;including
 <a href="http://finch.stuffwithstuff.com/">some of my own devising</a>. Do you know what people generally do with all
 of the power and flexibility of prototypes? &hellip;They use it to reinvent
 classes.</p>
 <p>I don&rsquo;t know <em>why</em> that is, but people naturally seem to prefer a class-based
 (&ldquo;Classic&rdquo;? &ldquo;Classy&rdquo;?) style. Prototypes <em>are</em> simpler in the language, but it
-seems to be that why by <span name="waterbed">pushing</span> the complexity onto the user. So, for Lox, we&rsquo;ll cut out the middle man and go right to putting classes in the language.</p>
+seems to be that why by <span name="waterbed">pushing</span> the complexity onto
+the user. So, for Lox, we&rsquo;ll cut out the middle man and go right to putting
+classes in the language.</p>
 <aside name="waterbed">
 <p>Larry Wall, Perl&rsquo;s inventor/prophet calls this the &ldquo;<a href="http://wiki.c2.com/?WaterbedTheory">waterbed
 theory</a>&rdquo;. Some complexity is essential and cannot be eliminated. If you push
@@ -655,7 +753,10 @@ do make the <em>user</em> take that complexity by building their own class-like
 metaprogramming libraries.</p>
 </aside>
 <h3><a href="#classes-in-lox" name="classes-in-lox"><small>3&#8202;.&#8202;9&#8202;.&#8202;4</small> Classes in Lox</a></h3>
-<p>Now that&rsquo;s out of the way, let&rsquo;s see what Lox actually has. &ldquo;Classes&rdquo; describes a pretty large constellation of features in most languages. For Lox, I&rsquo;ve stripped it down to what I think are the essentials. You declare a class and its methods like so:</p>
+<p>Now that&rsquo;s out of the way, let&rsquo;s see what Lox actually has. &ldquo;Classes&rdquo; describes
+a pretty large constellation of features in most languages. For Lox, I&rsquo;ve
+stripped it down to what I think are the essentials. You declare a class and its
+methods like so:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">print</span><span class="p">(</span><span class="s">&quot;Eggs a-fryin&#39;!&quot;</span><span class="p">);</span>
@@ -668,7 +769,10 @@ metaprogramming libraries.</p>
 </pre></div>
 
 
-<p>The body of a class contains a series of methods. Syntactically, they are identical to function declarations, but without the <code>fun</code> keyword. When the class declaration is executed, it produces a class object bound to its name. Just like functions, classes are first class in Lox:</p>
+<p>The body of a class contains a series of methods. Syntactically, they are
+identical to function declarations, but without the <code>fun</code> keyword. When the
+class declaration is executed, it produces a class object bound to its name.
+Just like functions, classes are first class in Lox:</p>
 <div class="codehilite"><pre><span></span><span class="c1">// Store it in variables.</span>
 <span class="k">var</span> <span class="n">someVariable</span> <span class="o">=</span> <span class="vg">Breakfast</span><span class="p">;</span>
 
@@ -687,13 +791,18 @@ instance of itself:</p>
 
 
 <h3><a href="#instantiation-and-initialization" name="instantiation-and-initialization"><small>3&#8202;.&#8202;9&#8202;.&#8202;5</small> Instantiation and initialization</a></h3>
-<p>Classes that only have behavior aren&rsquo;t very useful. The idea behind object-oriented programming is encapsulating behavior <em>and state</em> together. To do that, you need fields. Lox follows other dynamically typed languages in letting you add arbitrary properties onto objects as you see fit:</p>
+<p>Classes that only have behavior aren&rsquo;t very useful. The idea behind
+object-oriented programming is encapsulating behavior <em>and state</em> together. To
+do that, you need fields. Lox follows other dynamically typed languages in
+letting you add arbitrary properties onto objects as you see fit:</p>
 <div class="codehilite"><pre><span></span><span class="n">breakfast</span><span class="p">.</span><span class="n">meat</span> <span class="o">=</span> <span class="s">&quot;sausage&quot;</span><span class="p">;</span>
 <span class="n">breakfast</span><span class="p">.</span><span class="n">bread</span> <span class="o">=</span> <span class="s">&quot;sourdough&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<p>The <code>.field</code> syntax can be used to access or assign fields. Assigning to a field creates it if it doesn&rsquo;t already exist. To access the current instance from a method on its class, you use good old <code>this</code>:</p>
+<p>The <code>.field</code> syntax can be used to access or assign fields. Assigning to a field
+creates it if it doesn&rsquo;t already exist. To access the current instance from a
+method on its class, you use good old <code>this</code>:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">serve</span><span class="p">(</span><span class="n">who</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">print</span><span class="p">(</span><span class="s">&quot;Enjoy your &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">meat</span> <span class="o">+</span> <span class="s">&quot; and &quot;</span>
@@ -705,7 +814,11 @@ instance of itself:</p>
 </pre></div>
 
 
-<p>Typically, when you create an instance, you want the class to set up its state before anyone else sees it. To do that, you can define an initializer. If your class has a method named <code>init()</code>, it will be called when the object is constructed. Any parameters passed to the class are forwarded to its initializer:</p>
+<p>Typically, when you create an instance, you want the class to set up its state
+before anyone else sees it. To do that, you can define an initializer. If your
+class has a method named <code>init()</code>, it will be called when the object is
+constructed. Any parameters passed to the class are forwarded to its
+initializer:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">init</span><span class="p">(</span><span class="n">meat</span><span class="p">,</span> <span class="n">bread</span><span class="p">)</span> <span class="p">{</span>
     <span class="nb">this</span><span class="p">.</span><span class="n">meat</span> <span class="o">=</span> <span class="n">bread</span><span class="p">;</span>
@@ -721,8 +834,12 @@ instance of itself:</p>
 
 
 <h3><a href="#inheritance" name="inheritance"><small>3&#8202;.&#8202;9&#8202;.&#8202;6</small> Inheritance</a></h3>
-<p>Already, we&rsquo;ve increased the expressiveness of Lox quite a bit. We can define structures to aggregate data. We can associate behavior with them. Method calls are dynamically dispatched, so we&rsquo;ve got polymorphism too.</p>
-<p>The next step is reusing methods across classes. For that, Lox supports simple single inheritance. When you declare a class, you can specify a class that it inherits from using <span name="less"><code>&lt;</code></span>:</p>
+<p>Already, we&rsquo;ve increased the expressiveness of Lox quite a bit. We can define
+structures to aggregate data. We can associate behavior with them. Method calls
+are dynamically dispatched, so we&rsquo;ve got polymorphism too.</p>
+<p>The next step is reusing methods across classes. For that, Lox supports simple
+single inheritance. When you declare a class, you can specify a class that it
+inherits from using <span name="less"><code>&lt;</code></span>:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Brunch</span> <span class="o">&lt;</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">drink</span><span class="p">()</span> <span class="p">{</span>
     <span class="n">print</span><span class="p">(</span><span class="s">&quot;How about a Blood Mary?&quot;</span><span class="p">);</span>
@@ -732,7 +849,9 @@ instance of itself:</p>
 
 
 <aside name="less">
-<p>Why <code>&lt;</code>? I didn&rsquo;t feel like introducing a new keyword like <code>extends</code>. Lox doesn&rsquo;t use <code>:</code> for anything else so I didn&rsquo;t want to reserve that either. Instead, I took a page from Ruby and used <code>&lt;</code>.</p>
+<p>Why <code>&lt;</code>? I didn&rsquo;t feel like introducing a new keyword like <code>extends</code>. Lox
+doesn&rsquo;t use <code>:</code> for anything else so I didn&rsquo;t want to reserve that either.
+Instead, I took a page from Ruby and used <code>&lt;</code>.</p>
 <p>If you know any type theory, you&rsquo;ll notice it&rsquo;s not a <em>totally</em> arbitrary
 choice. Every instance of a subclass is an instance of its superclass too, but
 there may be instances of the superclass that are not instances of the subclass.
@@ -740,13 +859,18 @@ That means, in the universe of possible objects, the subclass has fewer than the
 superclass. Its set of objects is &ldquo;smaller&rdquo;, though type nerds usually use <code>&lt;:</code>
 for that relation.</p>
 </aside>
-<p>Here, Brunch is the <strong>derived class</strong> or <strong>subclass</strong>, and Breakfast is the <strong>base class</strong> or <strong>superclass</strong>. Any method defined in the superclass is also available to its subclasses:</p>
+<p>Here, Brunch is the <strong>derived class</strong> or <strong>subclass</strong>, and Breakfast is the
+<strong>base class</strong> or <strong>superclass</strong>. Any method defined in the superclass is also
+available to its subclasses:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">brunch</span> <span class="o">=</span> <span class="vg">Brunch</span><span class="p">(</span><span class="s">&quot;ham&quot;</span><span class="p">,</span> <span class="s">&quot;English muffin&quot;</span><span class="p">);</span>
 <span class="n">brunch</span><span class="p">.</span><span class="n">serve</span><span class="p">(</span><span class="s">&quot;Noble Reader&quot;</span><span class="p">);</span>
 </pre></div>
 
 
-<p>Even the <code>init()</code> method gets inherited. In practice, the subclass usually wants to define its own <code>init()</code> method too. But the original one also needs to be called so that the superclass can maintain its own state. We need some way to call a method on our own <em>instance</em> without hitting our own <em>methods</em>.</p>
+<p>Even the <code>init()</code> method gets inherited. In practice, the subclass usually wants
+to define its own <code>init()</code> method too. But the original one also needs to be
+called so that the superclass can maintain its own state. We need some way to
+call a method on our own <em>instance</em> without hitting our own <em>methods</em>.</p>
 <p>As in Java, you use <code>super</code> for that:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Brunch</span> <span class="o">&lt;</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">init</span><span class="p">(</span><span class="n">meat</span><span class="p">,</span> <span class="n">bread</span><span class="p">,</span> <span class="n">drink</span><span class="p">)</span> <span class="p">{</span>
@@ -757,8 +881,12 @@ for that relation.</p>
 </pre></div>
 
 
-<p>From within a method, you can use <code>super.</code> followed by a name to call any method on the superclass, ignoring your own overriding ones.</p>
-<p>That&rsquo;s about it. I tried to keep it minimal. The structure of the book did force one compromise. Lox is not a <em>pure</em> object-oriented language. In a true OOP language every object is an instance of a class, even primitive types like numbers and Booleans.</p>
+<p>From within a method, you can use <code>super.</code> followed by a name to call any method
+on the superclass, ignoring your own overriding ones.</p>
+<p>That&rsquo;s about it. I tried to keep it minimal. The structure of the book did force
+one compromise. Lox is not a <em>pure</em> object-oriented language. In a true OOP
+language every object is an instance of a class, even primitive types like
+numbers and Booleans.</p>
 <p>Because we don&rsquo;t implement classes until later in the book, that would have been
 hard. So values of primitive types aren&rsquo;t real objects in the sense of being
 instances of classes. They don&rsquo;t have methods or properties. If I were trying to
@@ -775,7 +903,11 @@ that, all we need is <code>print()</code>.</p>
 takes to execute code. That means we need to track time, so we&rsquo;ll add a function
 <code>clock()</code> that returns the number of seconds since the application started.</p>
 <p>And&hellip; that&rsquo;s it. I know, right? It&rsquo;s embarrassing.</p>
-<p>If you wanted to turn Lox into an actual useful language, the very first thing you should do is flesh this out. String manipulation, trigonometric functions, file IO, networking, heck, even <em>reading input from the user</em> would help. But we don&rsquo;t need any of that for this book, and adding it is mostly just grunt work, so I left it out.</p>
+<p>If you wanted to turn Lox into an actual useful language, the very first thing
+you should do is flesh this out. String manipulation, trigonometric functions,
+file IO, networking, heck, even <em>reading input from the user</em> would help. But we
+don&rsquo;t need any of that for this book, and adding it is mostly just grunt work,
+so I left it out.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 
