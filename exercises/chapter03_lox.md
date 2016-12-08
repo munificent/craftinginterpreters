@@ -55,3 +55,9 @@
 
     2.  Some mechanism for handling runtime errors along the lines of exception
         handling.
+
+    Also:
+
+    3.  No break or continue for loops.
+
+    4.  No switch.

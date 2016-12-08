@@ -426,18 +426,17 @@ few thousand lines of code.
 ## Design Note: What's in a Name?
 
 One the hardest challenges in writing this book was coming up with a name for
-the language it implements. I auditioned pages of hopeful names before I found
-one that got the part.
+the language it implements. I went through *pages* of candidates before I found
+one that worked. As you'll discover on the first day you start building your own
+language, *naming* it is deviously difficult. A good name satisfies a few
+criteria:
 
-As you'll discover the first day you start hacking on your own language,
-*naming* it is deviously difficult. A good name satisfies a few criteria:
-
-1. **It isn't in use.** You can run into all sorts of trouble, legal and social
+1. **It isn't in use.** You can run into all sorts of trouble, legal and social,
    if you inadvertently step on someone else's name.
 
-2. **It's easy to pronounce.** If things go well, lots of people will be saying
-   and writing your language's name all the time. Anything longer than a couple
-   of syllables and a handful of letters will annoy them to no end.
+2. **It's easy to pronounce.** If things go well, hordes of people will be
+   saying and writing your language's name. Anything longer than a couple of
+   syllables or a handful of letters will annoy them to no end.
 
 3. **It's distinct enough to search for.** People will Google your language's
    name to find help with using it, and you want a word that's not common enough
@@ -451,8 +450,9 @@ As you'll discover the first day you start hacking on your own language,
    that Bugs Bunny used "Nimrod" as an insult.
 
 If your potential name makes it through that gauntlet, keep it. Don't get hung
-up on trying to find a particularly meaningful or exciting name. Since languages
-tend to be too general for their name to be *about* what the language is for,
-all you really need is a reasonably unique token.
+up on trying to find an appellation that captures the quintessence of your
+language. If the names of the world's other successful languages tell you
+anything, it's that the name doesn't matter much. All you need is a reasonably
+unique token.
 
 </div>
