@@ -438,8 +438,8 @@ language, naming is deviously hard. A good name satisfies a few criteria:
    syllables or a handful of letters will annoy them to no end.
 
 3. **It's distinct enough to search for.** People will Google your language's
-   name to find docs for it, and you want a word that's not common enough to
-   confuse the search engine. Though, with the amount of AI most search engines
+   name to find docs for it, so you want a word that's rare enough that most
+   results point to your docs. Though, with the amount of AI most search engines
    are packing today, that's less of an issue. Still, you won't be doing your
    users any favors if you name your language "for".
 
@@ -450,7 +450,7 @@ language, naming is deviously hard. A good name satisfies a few criteria:
 
 If your potential name makes it through that gauntlet, keep it. Don't get hung
 up on trying to find an appellation that captures the quintessence of your
-language. If the names of the world's other successful languages tell you
+language. If the names of the world's other successful languages teach us
 anything, it's that the name doesn't matter much. All you need is a reasonably
 unique token.
 
