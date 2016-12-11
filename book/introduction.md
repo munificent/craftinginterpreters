@@ -428,8 +428,7 @@ few thousand lines of code.
 One the hardest challenges in writing this book was coming up with a name for
 the language it implements. I went through *pages* of candidates before I found
 one that worked. As you'll discover on the first day you start building your own
-language, *naming* it is deviously difficult. A good name satisfies a few
-criteria:
+language, naming is deviously hard. A good name satisfies a few criteria:
 
 1. **It isn't in use.** You can run into all sorts of trouble, legal and social,
    if you inadvertently step on someone else's name.
@@ -439,10 +438,10 @@ criteria:
    syllables or a handful of letters will annoy them to no end.
 
 3. **It's distinct enough to search for.** People will Google your language's
-   name to find help with using it, and you want a word that's not common enough
-   to confuse the search engine. Though, with the amount of AI most search
-   engines pack in today, that's less of an issue. Still, you won't be doing
-   your users any favors if you name your language "for".
+   name to find docs for it, and you want a word that's not common enough to
+   confuse the search engine. Though, with the amount of AI most search engines
+   are packing today, that's less of an issue. Still, you won't be doing your
+   users any favors if you name your language "for".
 
 4. **It doesn't have negative connotations across a number of cultures.** This
    is hard to guard for, but it's worth considering. The designer of Nimrod
