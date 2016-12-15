@@ -356,49 +356,27 @@ We can compare numbers (and only numbers), using Ye Olde Comparison Operators:</
 
 
 <p>Like I said, I&rsquo;m generally against implicit conversions.</p>
-<h3><a href="#truth" name="truth"><small>3&#8202;.&#8202;4&#8202;.&#8202;3</small> Truth</a></h3>
-<p>We&rsquo;ve got the logical operators next, but first we need to make a little side
-trip to one of the great questions of Western philosophy: <em>what is truth?</em></p>
-<p>OK, maybe we&rsquo;re not going to really get into the universal question, but at
-least inside the world of Lox, we need to decide what happens when you use
-something other than <code>true</code> or <code>false</code> in a logical operator or other place
-where a Boolean is expected.</p>
-<p>We <em>could</em> just say it&rsquo;s an error because we don&rsquo;t roll with implicit
-conversions, but most dynamically-typed languages aren&rsquo;t that ascetic. Instead,
-they take the universe of values of all types and partition them into two sets,
-one of which they define to be &ldquo;true&rdquo;, or &ldquo;truthful&rdquo;, or (my favorite) &ldquo;truthy&rdquo;,
-and the rest which are &ldquo;false&rdquo; or &ldquo;falsey&rdquo;. This partitioning is somewhat arbitrary and gets <span name="weird">weird</span> in some languages.</p>
-<aside name="weird">
-<p>In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
-but empty arrays are&hellip; also truthy. The number <code>0</code> is falsey, but the <em>string</em>
-<code>"0"</code> is truthy.</p>
-<p>In Python, empty strings are falsey like JS, but other empty sequences are falsey too.</p>
-<p>In PHP, both the number <code>0</code> and the string <code>"0"</code> are falsey. Most other non-empty strings are truthy.</p>
-<p>Get all that?</p>
-</aside>
-<p>Lox follows Ruby&rsquo;s simple rule: <code>false</code> and <code>nil</code> are falsey and everything else
-is truthy.</p>
-<h3><a href="#logical-operators" name="logical-operators"><small>3&#8202;.&#8202;4&#8202;.&#8202;4</small> Logical operators</a></h3>
-<p>Now where were we? Oh, right. The not operator, a prefix <code>!</code>, returns <code>false</code> if its operand is truthy, and vice versa:</p>
-<div class="codehilite"><pre><span></span><span class="o">!</span><span class="nb">true</span><span class="p">;</span> <span class="c1">// false.</span>
-<span class="o">!</span><span class="nb">nil</span><span class="p">;</span>  <span class="c1">// true;</span>
+<h3><a href="#logical-operators" name="logical-operators"><small>3&#8202;.&#8202;4&#8202;.&#8202;3</small> Logical operators</a></h3>
+<p>The not operator, a prefix <code>!</code>, returns <code>false</code> if its operand is true, and vice
+versa:</p>
+<div class="codehilite"><pre><span></span><span class="o">!</span><span class="nb">true</span><span class="p">;</span>  <span class="c1">// false.</span>
+<span class="o">!</span><span class="nb">false</span><span class="p">;</span> <span class="c1">// true;</span>
 </pre></div>
 
 
 <p>The other two logical operators really are control flow constructs in the guise
 of expressions. An <span name="and"><code>and</code></span> expression determines if two
-values are <em>both</em> truthy. It returns the left operand if it&rsquo;s falsey, or the
+values are <em>both</em> true. It returns the left operand if it&rsquo;s false, or the
 right operand otherwise:</p>
-<div class="codehilite"><pre><span></span><span class="nb">true</span> <span class="k">and</span> <span class="nb">nil</span><span class="p">;</span> <span class="c1">// nil.</span>
-<span class="mi">1</span> <span class="k">and</span> <span class="s">&quot;yes&quot;</span><span class="p">;</span>  <span class="c1">// &quot;yes&quot;.</span>
+<div class="codehilite"><pre><span></span><span class="nb">true</span> <span class="k">and</span> <span class="nb">false</span><span class="p">;</span> <span class="c1">// false.</span>
+<span class="nb">true</span> <span class="k">and</span> <span class="nb">true</span><span class="p">;</span>  <span class="c1">// true.</span>
 </pre></div>
 
 
-<p>And an <code>or</code> expression determines if <em>either</em> of two values (or both) are
-truthy. It returns the left operand if it is truthy and the right operand
-otherwise:</p>
-<div class="codehilite"><pre><span></span><span class="nb">nil</span> <span class="k">or</span> <span class="nb">false</span><span class="p">;</span> <span class="c1">// false.</span>
-<span class="s">&quot;aye&quot;</span> <span class="k">or</span> <span class="mi">2</span><span class="p">;</span>   <span class="c1">// &quot;aye&quot;.</span>
+<p>And an <code>or</code> expression determines if <em>either</em> of two values (or both) are true.
+It returns the left operand if it is true and the right operand otherwise:</p>
+<div class="codehilite"><pre><span></span><span class="nb">false</span> <span class="k">or</span> <span class="nb">false</span><span class="p">;</span> <span class="c1">// false.</span>
+<span class="nb">true</span> <span class="k">or</span> <span class="nb">false</span><span class="p">;</span>  <span class="c1">// true.</span>
 </pre></div>
 
 
@@ -410,11 +388,11 @@ double-character forms without the single-character ones.</p>
 structures and not simple operators.</p>
 </aside>
 <p>The reason <code>and</code> and <code>or</code> are like control flow structures is because they
-<strong>short-circuit</strong>. Not only does <code>and</code> return the left operand if it is falsey,
+<strong>short-circuit</strong>. Not only does <code>and</code> return the left operand if it is false,
 it doesn&rsquo;t even <em>evaluate</em> the right one in that case. Conversely,
-(&ldquo;contrapositively&rdquo;?) if the left operand of an <code>or</code> is truthy, the right is
+(&ldquo;contrapositively&rdquo;?) if the left operand of an <code>or</code> is true, the right is
 skipped.</p>
-<h3><a href="#precedence-and-grouping" name="precedence-and-grouping"><small>3&#8202;.&#8202;4&#8202;.&#8202;5</small> Precedence and grouping</a></h3>
+<h3><a href="#precedence-and-grouping" name="precedence-and-grouping"><small>3&#8202;.&#8202;4&#8202;.&#8202;4</small> Precedence and grouping</a></h3>
 <p>All of these operators have the same precedence and associativity that you&rsquo;d
 expect coming from C. (When we get to parsing, we&rsquo;ll get <em>way</em> more precise
 about that.) In cases where the precedence isn&rsquo;t what you want, you can use <code>()</code>
@@ -495,7 +473,7 @@ recursion for repetition. Smalltalk has no built-in branching constructs, and
 relies on dynamic dispatch for selectively executing code.</p>
 </aside>
 <p>An <code>if ()</code> statement executes one of two statements based on some condition:</p>
-<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="s">&quot;something&quot;</span><span class="p">)</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">print</span><span class="p">(</span><span class="s">&quot;yes&quot;</span><span class="p">);</span>
 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
   <span class="n">print</span><span class="p">(</span><span class="s">&quot;no&quot;</span><span class="p">);</span>
@@ -503,10 +481,7 @@ relies on dynamic dispatch for selectively executing code.</p>
 </pre></div>
 
 
-<p>Just like in the logical operators, we use truthiness to determine when a
-condition evaluates the then or the else branch. In this case, strings are
-truthy, so &ldquo;something&rdquo; is true and &ldquo;yes&rdquo; is printed.</p>
-<p>A <code>while</code> loop executes the body repeatedly as long as the condition expression
+<p>A <code>while</code> <span name="do">loop</span> executes the body repeatedly as long as the condition expression
 evaluates to true:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="k">while</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span> <span class="p">{</span>
@@ -516,9 +491,11 @@ evaluates to true:</p>
 </pre></div>
 
 
-<p>Lox doesn&rsquo;t have <code>do-while</code> loops because they aren&rsquo;t that common and aren&rsquo;t any
-more technically interesting to implement than <code>while</code>. Go ahead and add it to
+<aside name="do">
+<p>I left <code>do-while</code> loops out of Lox because they aren&rsquo;t that common and wouldn&rsquo;t
+teach you anything that won&rsquo;t already learn from <code>while</code>. Go ahead and add it to
 your implementation if it makes you happy. It&rsquo;s your party.</p>
+</aside>
 <p>Finally, we have <code>for</code> loops:</p>
 <div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>

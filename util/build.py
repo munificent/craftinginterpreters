@@ -42,16 +42,25 @@ TOC = [
     'chapters': [
       {
         'name': 'Introduction',
-        'topics': ['Why learn programming languages?', 'How this book is organized'],
+        'topics': [
+          'Why learn programming languages?',
+          'How this book is organized'
+        ],
         'design_note': "What's in a Name?"
       },
       {
         'name': 'A Map of the Territory',
-        'topics': ['Interpreters and compilers', 'Phases of a compiler', 'Transpilers', 'Just-in-time compilation'],
+        'topics': [
+          'Interpreters and compilers', 'Phases of a compiler',
+          'Transpilers', 'Just-in-time compilation'
+        ],
       },
       {
         'name': 'The Lox Language',
-        'topics': ['Lexical grammars', 'Grammars', 'Extended Backus-Naur Form'],
+        'topics': [
+          'Dynamic typing', 'Automatic memory management', 'Built-in types',
+          'Expressions', 'Statements', 'Object-orientation', 'Prototypes'
+        ],
         'design_note': "Statements and Expressions"
       }
     ]
@@ -61,37 +70,59 @@ TOC = [
     'chapters': [
       {
         'name': 'Scanning',
-        'topics': ['Tokens', 'Token types', 'Lexical analysis', 'Regular languages', 'Lookahead', 'Reserved words', 'Error reporting'],
+        'topics': [
+          'Tokens', 'Token types', 'Lexical analysis', 'Regular languages',
+          'Lookahead', 'Reserved words', 'Error reporting'
+        ],
         'done': False,
       },
       {
         'name': 'Representing Code',
-        'topics': ['Abstract syntax trees', 'Expression trees', 'Generating AST classes', 'The Visitor pattern', 'Pretty printing'],
+        'topics': [
+          'Abstract syntax trees', 'Expression trees', 'Generating AST classes',
+          'The Visitor pattern', 'Pretty printing'
+        ],
         'done': False,
       },
       {
         'name': 'Parsing Expressions',
-        'topics': ['Expression nodes', 'Recursive descent', 'Precedence', 'Associativity', 'Primary expressions', 'Syntax errors'],
+        'topics': [
+          'Expression nodes', 'Recursive descent', 'Precedence',
+          'Associativity', 'Primary expressions', 'Syntax errors'
+        ],
         'done': False,
       },
       {
         'name': 'Evaluating Expressions',
-        'topics': ['The Interpreter pattern', 'Tree-walk interpretation', 'Subexpressions', 'Runtime errors', 'Type checking', 'Truthiness'],
+        'topics': [
+          'The Interpreter pattern', 'Tree-walk interpretation',
+          'Subexpressions', 'Runtime errors', 'Type checking', 'Truthiness'
+        ],
         'done': False,
       },
       {
         'name': 'Statements and State',
-        'topics': ['Statement nodes', 'Blocks', 'Expression statements', 'Variables', 'Assignment', 'Lexical scope', 'Environments'],
+        'topics': [
+          'Statement nodes', 'Blocks', 'Expression statements', 'Variables',
+          'Assignment', 'Lexical scope', 'Environments'
+        ],
         'done': False,
       },
       {
         'name': 'Control Flow',
-        'topics': ['If statements', 'While statements', 'For statements', 'Desugaring', 'Logical operators', 'Short-circuit evaluation'],
+        'topics': [
+          'If statements', 'While statements', 'For statements', 'Desugaring',
+          'Logical operators', 'Short-circuit evaluation'
+        ],
         'done': False,
       },
       {
         'name': 'Functions',
-        'topics': ['Function declarations', 'Formal parameters', 'Call expressions', 'Arguments', 'Return statements', 'Function objects', 'Closures', 'Arity', 'Native functions'],
+        'topics': [
+          'Function declarations', 'Formal parameters', 'Call expressions',
+          'Arguments', 'Return statements', 'Function objects', 'Closures',
+          'Arity', 'Native functions'
+        ],
         'done': False,
       },
       {
@@ -101,7 +132,11 @@ TOC = [
       },
       {
         'name': 'Classes',
-        'topics': ['Class declarations', 'Fields', 'Properties', 'Get and set expressions', 'Constructors', 'Initializers', 'this', 'Method references'],
+        'topics': [
+          'Class declarations', 'Fields', 'Properties',
+          'Get and set expressions', 'Constructors', 'Initializers', 'this',
+          'Method references'
+        ],
         'done': False,
       },
       {
@@ -116,87 +151,138 @@ TOC = [
     'chapters': [
       {
         'name': 'Chunks of Bytecode',
-        'topics': ['Allocation', 'Dynamic arrays', 'Code chunks', 'Constant tables', 'Instruction arguments', 'Disassembly'],
+        'topics': [
+          'Allocation', 'Dynamic arrays', 'Code chunks', 'Constant tables',
+          'Instruction arguments', 'Disassembly'
+        ],
         'done': False,
       },
       {
         'name': 'A Virtual Machine',
-        'topics': ['Bytecode instructions', 'The stack', 'Instruction pointer', 'Loading constants', 'Arithmetic instructions', 'Interpreter loop', 'Instruction dispatch'],
+        'topics': [
+          'Bytecode instructions', 'The stack', 'Instruction pointer',
+          'Loading constants', 'Arithmetic instructions', 'Interpreter loop',
+          'Instruction dispatch'
+        ],
         'done': False,
       },
       {
         'name': 'Scanning on Demand',
-        'topics': ['Reading files', 'Token values', 'Source pointers', 'LL(k) grammars'],
+        'topics': [
+          'Reading files', 'Token values', 'Source pointers', 'LL(k) grammars'
+        ],
         'done': False,
       },
       {
         'name': 'Compiling Expressions',
-        'topics': ['Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence', 'Single-pass compilation', 'Code generation'],
+        'topics': [
+          'Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence',
+          'Single-pass compilation', 'Code generation'
+        ],
         'done': False,
       },
       {
         'name': 'Types of Values',
-        'topics': ['Tagged unions', 'Boolean values', 'nil', 'Comparison and equality operators', 'Not operator', 'Runtime errors'],
+        'topics': [
+          'Tagged unions', 'Boolean values', 'nil',
+          'Comparison and equality operators', 'Not operator', 'Runtime errors'
+        ],
         'done': False,
       },
       {
         'name': 'Strings',
-        'topics': ['Objects', 'Reference types', 'Heap tracing', 'Concatenation', 'Polymorphism'],
+        'topics': [
+          'Objects', 'Reference types', 'Heap tracing', 'Concatenation',
+          'Polymorphism'
+        ],
         'done': False,
       },
       {
         'name': 'Hash Tables',
-        'topics': ['Hash functions', 'FNV-1a string hashing', 'Linear probing', 'Rehashing', 'Reference equality', 'String interning'],
+        'topics': [
+          'Hash functions', 'FNV-1a string hashing', 'Linear probing',
+          'Rehashing', 'Reference equality', 'String interning'
+        ],
         'done': False,
       },
       {
         'name': 'Global Variables',
-        'topics': ['Statements', 'Variable declaration', 'Assignment', 'Global variables table'],
+        'topics': [
+          'Statements', 'Variable declaration', 'Assignment',
+          'Global variables table'
+        ],
         'done': False,
       },
       {
         'name': 'Local Variables',
-        'topics': ['Blocks', 'Scope depth', 'Stack variables', 'Name resolution', 'Byte argument instructions'],
+        'topics': [
+          'Blocks', 'Scope depth', 'Stack variables', 'Name resolution',
+          'Byte argument instructions'
+        ],
         'done': False,
       },
       {
         'name': 'Jumping Forward and Back',
-        'topics': ['Jump instructions', 'Conditional jumps', 'Control flow statements', 'Short-circuiting', 'Backpatching'],
+        'topics': [
+          'Jump instructions', 'Conditional jumps', 'Control flow statements',
+          'Short-circuiting', 'Backpatching'
+        ],
         'done': False,
       },
       {
         'name': 'Calls and Functions',
-        'topics': ['Calling convention', 'Arguments', 'Call instructions', 'Native functions', 'Function declarations', 'Parameters', 'Return statements', 'Function objects', 'Call frames', 'Stack overflow'],
+        'topics': [
+          'Calling convention', 'Arguments', 'Call instructions',
+          'Native functions', 'Function declarations', 'Parameters',
+          'Return statements', 'Function objects', 'Call frames',
+          'Stack overflow'
+        ],
         'done': False,
       },
       {
         'name': 'Closures',
-        'topics': ['Upvalues', 'Resolving enclosing locals', 'Closure flattening', 'Capturing variables', 'Closing upvalues'],
+        'topics': [
+          'Upvalues', 'Resolving enclosing locals', 'Closure flattening',
+          'Capturing variables', 'Closing upvalues'
+        ],
         'done': False,
       },
       {
         'name': 'Garbage Collection',
-        'topics': ['Roots', 'Stress testing', 'Mark-sweep collection', 'Tracing', 'Tri-color marking', 'Weak references', 'Heap growth'],
+        'topics': [
+          'Roots', 'Stress testing', 'Mark-sweep collection', 'Tracing',
+          'Tri-color marking', 'Weak references', 'Heap growth'
+        ],
         'done': False,
       },
       {
         'name': 'Classes and Instances',
-        'topics': ['Property expressions', 'Class declarations', 'Instances', 'Fields', 'Undefined fields'],
+        'topics': [
+          'Property expressions', 'Class declarations', 'Instances', 'Fields',
+          'Undefined fields'
+        ],
         'done': False,
       },
       {
         'name': 'Methods and Initializers',
-        'topics': ['Invocation expressions', 'This', 'Method declarations', 'Initializers', 'Bound methods'],
+        'topics': [
+          'Invocation expressions', 'This', 'Method declarations',
+          'Initializers', 'Bound methods'
+        ],
         'done': False,
       },
       {
         'name': 'Superclasses',
-        'topics': ['Method inheritance', 'Super invocations'],
+        'topics': [
+          'Method inheritance', 'Super invocations'
+        ],
         'done': False,
       },
       {
         'name': 'Optimization',
-        'topics': ['Benchmarking', 'Hash code masking', 'NaN tagging'],
+        'topics': [
+          'Benchmarking', 'Hash code masking', 'NaN tagging'
+        ],
         'done': False,
       }
     ]

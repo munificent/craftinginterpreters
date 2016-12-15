@@ -77,3 +77,38 @@ reduction", "scalar replacement of aggregates", "dead code elimination", and
 "loop unrolling", to name a few.
 
 </aside>
+
+---
+
+Explain truthiness. Old prose:
+
+We've got the logical operators next, but first we need to make a little side
+trip to one of the great questions of Western philosophy: *what is truth?*
+
+OK, maybe we're not going to really get into the universal question, but at
+least inside the world of Lox, we need to decide what happens when you use
+something other than `true` or `false` in a logical operator or other place
+where a Boolean is expected.
+
+We *could* just say it's an error because we don't roll with implicit
+conversions, but most dynamically-typed languages aren't that ascetic. Instead,
+they take the universe of values of all types and partition them into two sets,
+one of which they define to be "true", or "truthful", or (my favorite) "truthy",
+and the rest which are "false" or "falsey". This partitioning is somewhat arbitrary and gets <span name="weird">weird</span> in some languages.
+
+<aside name="weird">
+
+In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
+but empty arrays are... also truthy. The number `0` is falsey, but the *string*
+`"0"` is truthy.
+
+In Python, empty strings are falsey like JS, but other empty sequences are falsey too.
+
+In PHP, both the number `0` and the string `"0"` are falsey. Most other non-empty strings are truthy.
+
+Get all that?
+
+</aside>
+
+Lox follows Ruby's simple rule: `false` and `nil` are falsey and everything else
+is truthy.

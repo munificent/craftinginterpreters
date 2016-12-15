@@ -314,65 +314,32 @@ Values of different types are *never* equivalent:
 
 Like I said, I'm generally against implicit conversions.
 
-### Truth
-
-We've got the logical operators next, but first we need to make a little side
-trip to one of the great questions of Western philosophy: *what is truth?*
-
-OK, maybe we're not going to really get into the universal question, but at
-least inside the world of Lox, we need to decide what happens when you use
-something other than `true` or `false` in a logical operator or other place
-where a Boolean is expected.
-
-We *could* just say it's an error because we don't roll with implicit
-conversions, but most dynamically-typed languages aren't that ascetic. Instead,
-they take the universe of values of all types and partition them into two sets,
-one of which they define to be "true", or "truthful", or (my favorite) "truthy",
-and the rest which are "false" or "falsey". This partitioning is somewhat arbitrary and gets <span name="weird">weird</span> in some languages.
-
-<aside name="weird">
-
-In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
-but empty arrays are... also truthy. The number `0` is falsey, but the *string*
-`"0"` is truthy.
-
-In Python, empty strings are falsey like JS, but other empty sequences are falsey too.
-
-In PHP, both the number `0` and the string `"0"` are falsey. Most other non-empty strings are truthy.
-
-Get all that?
-
-</aside>
-
-Lox follows Ruby's simple rule: `false` and `nil` are falsey and everything else
-is truthy.
-
 ### Logical operators
 
-Now where were we? Oh, right. The not operator, a prefix `!`, returns `false` if its operand is truthy, and vice versa:
+The not operator, a prefix `!`, returns `false` if its operand is true, and vice
+versa:
 
 ```lox
-!true; // false.
-!nil;  // true;
+!true;  // false.
+!false; // true;
 ```
 
 The other two logical operators really are control flow constructs in the guise
 of expressions. An <span name="and">`and`</span> expression determines if two
-values are *both* truthy. It returns the left operand if it's falsey, or the
+values are *both* true. It returns the left operand if it's false, or the
 right operand otherwise:
 
 ```lox
-true and nil; // nil.
-1 and "yes";  // "yes".
+true and false; // false.
+true and true;  // true.
 ```
 
-And an `or` expression determines if *either* of two values (or both) are
-truthy. It returns the left operand if it is truthy and the right operand
-otherwise:
+And an `or` expression determines if *either* of two values (or both) are true.
+It returns the left operand if it is true and the right operand otherwise:
 
 ```lox
-nil or false; // false.
-"aye" or 2;   // "aye".
+false or false; // false.
+true or false;  // true.
 ```
 
 <aside name="and">
@@ -387,9 +354,9 @@ structures and not simple operators.
 </aside>
 
 The reason `and` and `or` are like control flow structures is because they
-**short-circuit**. Not only does `and` return the left operand if it is falsey,
+**short-circuit**. Not only does `and` return the left operand if it is false,
 it doesn't even *evaluate* the right one in that case. Conversely,
-("contrapositively"?) if the left operand of an `or` is truthy, the right is
+("contrapositively"?) if the left operand of an `or` is true, the right is
 skipped.
 
 ### Precedence and grouping
@@ -500,18 +467,14 @@ relies on dynamic dispatch for selectively executing code.
 An `if ()` statement executes one of two statements based on some condition:
 
 ```lox
-if ("something") {
+if (condition) {
   print("yes");
 } else {
   print("no");
 }
 ```
 
-Just like in the logical operators, we use truthiness to determine when a
-condition evaluates the then or the else branch. In this case, strings are
-truthy, so "something" is true and "yes" is printed.
-
-A `while` loop executes the body repeatedly as long as the condition expression
+A `while` <span name="do">loop</span> executes the body repeatedly as long as the condition expression
 evaluates to true:
 
 ```lox
@@ -522,9 +485,13 @@ while (a < 10) {
 }
 ```
 
-Lox doesn't have `do-while` loops because they aren't that common and aren't any
-more technically interesting to implement than `while`. Go ahead and add it to
+<aside name="do">
+
+I left `do-while` loops out of Lox because they aren't that common and wouldn't
+teach you anything that won't already learn from `while`. Go ahead and add it to
 your implementation if it makes you happy. It's your party.
+
+</aside>
 
 Finally, we have `for` loops:
 
