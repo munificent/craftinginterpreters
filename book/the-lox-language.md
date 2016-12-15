@@ -744,8 +744,8 @@ accidentally took over the world.
 The line between the two gets <span name="blurry">blurry</span> once you look at
 the details of languages on both sides, but the basic idea is that in
 prototypes, you don't need to have some "class"-like construct that represents a
-"kind of thing". Methods can exist right on an individual object and each object
-can be its own special snowflake.
+"kind of thing". Methods can exist right on an individual object and objects can
+inherit from ("delegate to" in prototypal lingo) each other.
 
 <aside name="blurry">
 
@@ -757,12 +757,13 @@ Ruby is perfectly happy to let you attach methods to individual instances.
 
 </aside>
 
+<img src="image/the-lox-language/prototype-lookup.png" alt="How fields and methods are looked up in a prototypal system" />
 
-With classes, there is always a level of indirection. When you call a method,
-you look up the object's class and then you find the method *there*. With
-prototypes, method lookup is right on the object itself.
+With classes, state is on the instance, but for methods, there is always a level
+of indirection. When you call a method, you look up the object's class and then
+you find the method *there*.
 
-**TODO: Illustrate inheritance and delegation chains.**
+<img src="image/the-lox-language/class-lookup.png" alt="How fields and methods are looked up on classes and instances" />
 
 This means prototypal languages are more fundamental in some way than classes.
 They are really neat to implement because they're so simple. Also, they can
@@ -926,8 +927,8 @@ Here, Brunch is the **derived class** or **subclass**, and Breakfast is the
 available to its subclasses:
 
 ```lox
-var brunch = Brunch("ham", "English muffin");
-brunch.serve("Noble Reader");
+var benedict = Brunch("ham", "English muffin");
+benedict.serve("Noble Reader");
 ```
 
 Even the `init()` method gets inherited. In practice, the subclass usually wants
