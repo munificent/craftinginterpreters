@@ -1,13 +1,13 @@
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 #include <stdlib.h>
 
 #include "chunk.h"
 
 #include "memory.h"
 #include "value.h"
-//>= Garbage Collection
+//>= Garbage Collection 1
 #include "vm.h"
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 
 void initChunk(Chunk* chunk) {
   chunk->count = 0;
@@ -45,16 +45,16 @@ int addConstant(Chunk* chunk, Value value) {
   }
   
   if (chunk->constants.count == UINT8_COUNT) return -1;
-//>= Garbage Collection
+//>= Garbage Collection 1
   
   // Make sure the value doesn't get collected when resizing the array.
   push(value);
   
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
   growArray(&chunk->constants);
   chunk->constants.values[chunk->constants.count] = value;
-//>= Garbage Collection
+//>= Garbage Collection 1
   pop();
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
   return chunk->constants.count++;
 }

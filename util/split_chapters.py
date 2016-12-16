@@ -6,6 +6,8 @@ import glob
 import os
 import re
 
+import sections
+
 JAVA_CHAPTERS = [
   "Scanning",
   "Representing Code",
@@ -47,6 +49,8 @@ RANGE_PATTERN = re.compile(r'/[/*]>= (.*) (<=?) (.*)')
 MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
 
 
+source_code = sections.load()
+
 def chapter_to_package(chapters, chapter_offset, index):
   name = chapters[index].split()[0].lower().replace(',', '')
   if name == "a" or name == "the":
@@ -83,50 +87,15 @@ def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
   directory = os.path.dirname(relative)
 
   # Don't split the generated files.
-  if relative == "com/craftinginterpreters/vox/Expr.java": return
-  if relative == "com/craftinginterpreters/vox/Stmt.java": return
+  if relative == "com/craftinginterpreters/lox/Expr.java": return
+  if relative == "com/craftinginterpreters/lox/Stmt.java": return
 
-  min_chapter = 999
-  max_chapter = 999
+  output = source_code.at_chapter(relative, chapters[chapter_index])
 
-  # Some chunks of code are replaced in later chapters, so they are commented
-  # out in the canonical source. This tracks when we are in one of those.
-  in_block_comment = False
+  package = chapter_to_package(chapters, chapter_offset, chapter_index)
+  output_path = os.path.join("gen", package, relative)
 
-  # Read the source file and preprocess it.
-  output = ""
-  with open(path, 'r') as input:
-    # Read each line, preprocessing the special codes.
-    line_num = 1
-    for line in input:
-      if LINE_SECTION_PATTERN.match(line):
-        min_chapter, max_chapter = parse_range(chapters, line)
-      elif BLOCK_SECTION_PATTERN.match(line):
-        min_chapter, max_chapter = parse_range(chapters, line)
-        in_block_comment = True
-      elif in_block_comment and line.strip() == "*/":
-        min_chapter = None
-        max_chapter = None
-        in_block_comment = False
-      elif min_chapter == None:
-        print("{} {}: No section after block comment".format(relative, line_num))
-        min_chapter = 0
-        max_chapter = 999
-      elif chapter_index >= min_chapter and chapter_index <= max_chapter:
-        # Hack. In generate_ast.java, we split up a parameter list among
-        # multiple chapters, which leads to hanging commas in some cases.
-        # Remove them.
-        if line.strip().startswith(")") and output.endswith(",\n"):
-          output = output[:-2] + "\n"
-        output += line
-
-      line_num += 1
-
-  # Write the output.
   if output:
-    package = chapter_to_package(chapters, chapter_offset, chapter_index)
-    output_path = os.path.join("gen", package, relative)
-
     # Don't overwrite it if it didn't change, so the makefile doesn't think it
     # was touched.
     if os.path.exists(output_path):
@@ -134,10 +103,15 @@ def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
         previous = file.read()
         if output == previous: return
 
+    # Write the changed output.
     ensure_dir(os.path.join("gen", package, directory))
     with codecs.open(output_path, "w", encoding="utf-8") as out:
       print(output_path)
       out.write(output)
+  else:
+    # Remove it if it's supposed to be nonexistent.
+    if os.path.exists(output_path):
+      os.remove(output_path)
 
 
 def ensure_dir(path):

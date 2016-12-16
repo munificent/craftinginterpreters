@@ -1,4 +1,4 @@
-//>= Hash Tables
+//>= Hash Tables 1
 #ifndef clox_table_h
 #define clox_table_h
 
@@ -12,12 +12,12 @@ typedef struct {
 
 typedef struct {
   int count;
-/*>= Hash Tables < Optimization
+/*>= Hash Tables 1 < Optimization 1
   int capacity;
 */
-//>= Optimization
+//>= Optimization 1
   int capacityMask;
-//>= Hash Tables
+//>= Hash Tables 1
   Entry* entries;
 } Table;
 
@@ -31,10 +31,10 @@ void tableAddAll(Table* from, Table* to);
 
 ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash);
-//>= Garbage Collection
+//>= Garbage Collection 1
 
 void tableRemoveWhite(Table* table);
 void grayTable(Table* table);
-//>= Hash Tables
+//>= Hash Tables 1
 
 #endif

@@ -1,14 +1,14 @@
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 #include <stdlib.h>
 
 #include "common.h"
-//>= Garbage Collection
+//>= Garbage Collection 1
 #include "compiler.h"
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 #include "memory.h"
-//>= Strings
+//>= Strings 1
 #include "vm.h"
-//>= Garbage Collection
+//>= Garbage Collection 1
 
 #ifdef DEBUG_TRACE_GC
 #include <stdio.h>
@@ -16,10 +16,10 @@
 #endif
 
 #define GC_HEAP_GROW_FACTOR 2
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize) {
-//>= Garbage Collection
+//>= Garbage Collection 1
   vm.bytesAllocated += newSize - oldSize;
   
   if (newSize > oldSize) {
@@ -32,10 +32,10 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
     }
   }
   
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
   return realloc(previous, newSize);
 }
-//>= Garbage Collection
+//>= Garbage Collection 1
 
 void grayObject(Obj* object) {
   if (object == NULL) return;
@@ -81,27 +81,27 @@ static void blackenObject(Obj* object) {
 #endif
   
   switch (object->type) {
-//>= Methods and Initializers
+//>= Methods and Initializers 1
     case OBJ_BOUND_METHOD: {
       ObjBoundMethod* bound = (ObjBoundMethod*)object;
       grayValue(bound->receiver);
       grayObject((Obj*)bound->method);
       break;
     }
-//>= Classes and Instances
+//>= Classes and Instances 1
       
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       grayObject((Obj*)klass->name);
-//>= Superclasses
+//>= Superclasses 1
       grayObject((Obj*)klass->superclass);
-//>= Methods and Initializers
+//>= Methods and Initializers 1
       grayTable(&klass->methods);
-//>= Classes and Instances
+//>= Classes and Instances 1
       break;
     }
     
-//>= Garbage Collection
+//>= Garbage Collection 1
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
       grayObject((Obj*)closure->function);
@@ -118,7 +118,7 @@ static void blackenObject(Obj* object) {
       break;
     }
       
-//>= Classes and Instances
+//>= Classes and Instances 1
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       grayObject((Obj*)instance->klass);
@@ -126,50 +126,50 @@ static void blackenObject(Obj* object) {
       break;
     }
       
-//>= Garbage Collection
+//>= Garbage Collection 1
     case OBJ_UPVALUE:
       grayValue(((ObjUpvalue*)object)->closed);
       break;
       
-//>= Garbage Collection
+//>= Garbage Collection 1
     case OBJ_NATIVE:
     case OBJ_STRING:
       // No references.
       break;
   }
 }
-//>= Strings
+//>= Strings 1
 
 static void freeObject(Obj* object) {
-//>= Garbage Collection
+//>= Garbage Collection 1
 #ifdef DEBUG_TRACE_GC
   printf("%p free ", object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
   
-//>= Strings
+//>= Strings 1
   switch (object->type) {
-//>= Methods and Initializers
+//>= Methods and Initializers 1
     case OBJ_BOUND_METHOD:
       FREE(ObjBoundMethod, object);
       break;
       
-/*== Classes and Instances
+/*>= Classes and Instances 1 < Methods and Initializers 1
     case OBJ_CLASS:
 */
-//>= Methods and Initializers
+//>= Methods and Initializers 1
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       freeTable(&klass->methods);
-//>= Classes and Instances
+//>= Classes and Instances 1
       FREE(ObjClass, object);
       break;
-//>= Methods and Initializers
+//>= Methods and Initializers 1
     }
-//>= Classes and Instances
+//>= Classes and Instances 1
       
-//>= Closures
+//>= Closures 1
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
       FREE_ARRAY(Value, closure->upvalues, closure->upvalueCount);
@@ -177,7 +177,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= Calls and Functions
+//>= Calls and Functions 1
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       freeChunk(&function->chunk);
@@ -185,7 +185,7 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= Classes and Instances
+//>= Classes and Instances 1
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       freeTable(&instance->fields);
@@ -193,27 +193,27 @@ static void freeObject(Obj* object) {
       break;
     }
       
-//>= Calls and Functions
+//>= Calls and Functions 1
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
       
-//>= Strings
+//>= Strings 1
     case OBJ_STRING: {
       ObjString* string = (ObjString*)object;
       FREE_ARRAY(char, string->chars, string->length + 1);
       FREE(ObjString, object);
       break;
     }
-//>= Closures
+//>= Closures 1
       
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;
-//>= Strings
+//>= Strings 1
   }
 }
-//>= Garbage Collection
+//>= Garbage Collection 1
 
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
@@ -240,9 +240,9 @@ void collectGarbage() {
   // Mark the global roots.
   grayTable(&vm.globals);
   grayCompilerRoots();
-//>= Methods and Initializers
+//>= Methods and Initializers 1
   grayObject((Obj*)vm.initString);
-//>= Garbage Collection
+//>= Garbage Collection 1
   
   // Traverse the references.
   while (vm.grayCount > 0) {
@@ -278,7 +278,7 @@ void collectGarbage() {
          before - vm.bytesAllocated, before, vm.bytesAllocated, vm.nextGC);
 #endif
 }
-//>= Strings
+//>= Strings 1
 
 void freeObjects() {
   // Free all objects.
@@ -288,8 +288,8 @@ void freeObjects() {
     freeObject(object);
     object = next;
   }
-//>= Garbage Collection
+//>= Garbage Collection 1
   
   free(vm.grayStack);
-//>= Strings
+//>= Strings 1
 }

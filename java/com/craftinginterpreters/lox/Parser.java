@@ -1,10 +1,10 @@
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 package com.craftinginterpreters.lox;
 
-//>= Statements and State
+//>= Statements and State 1
 import java.util.ArrayList;
 import java.util.Arrays;
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,15 +15,15 @@ class Parser {
   private static final Set<TokenType> synchronizing = new HashSet<>();
 
   static {
-//>= Statements and State
+//>= Statements and State 1
     synchronizing.add(LEFT_BRACE);
     synchronizing.add(RIGHT_BRACE);
-//>= Parsing Expressions
+//>= Parsing Expressions 1
     synchronizing.add(RIGHT_PAREN);
-//>= Statements and State
+//>= Statements and State 1
     synchronizing.add(EQUAL);
     synchronizing.add(SEMICOLON);
-//>= Parsing Expressions
+//>= Parsing Expressions 1
   }
 
   private final List<Token> tokens;
@@ -34,7 +34,7 @@ class Parser {
     this.tokens = tokens;
     this.errorReporter = errorReporter;
   }
-//>= Statements and State
+//>= Statements and State 1
 
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
@@ -44,40 +44,40 @@ class Parser {
 
     return statements;
   }
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 
   Expr parseExpression() {
-//>= Statements and State
+//>= Statements and State 1
     return assignment();
-/*>= Parsing Expressions < Statements and State
+/*>= Parsing Expressions 1 < Statements and State 1
     return equality();
 */
-//>= Parsing Expressions
+//>= Parsing Expressions 1
   }
-//>= Statements and State
+//>= Statements and State 1
 
   private Stmt declaration() {
-//>= Classes
+//>= Classes 1
     if (match(CLASS)) return classDeclaration();
-//>= Functions
+//>= Functions 1
     if (match(FUN)) return function("function");
-//>= Statements and State
+//>= Statements and State 1
     if (match(VAR)) return varDeclaration();
 
     return statement();
   }
-//>= Classes
+//>= Classes 1
 
   private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
-//>= Inheritance
+//>= Inheritance 1
 
     Expr superclass = null;
     if (match(LESS)) {
       consume(IDENTIFIER, "Expect superclass name.");
       superclass = new Expr.Variable(previous());
     }
-//>= Classes
+//>= Classes 1
 
     List<Stmt.Function> methods = new ArrayList<>();
     consume(LEFT_BRACE, "Expect '{' before class body.");
@@ -88,31 +88,31 @@ class Parser {
 
     consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-/*== Classes
+/*>= Classes 1 < Inheritance 1
     return new Stmt.Class(name, methods);
 */
-//>= Inheritance
+//>= Inheritance 1
     return new Stmt.Class(name, superclass, methods);
-//>= Classes
+//>= Classes 1
   }
-//>= Statements and State
+//>= Statements and State 1
 
   private Stmt statement() {
-//>= Control Flow
+//>= Control Flow 1
     if (match(FOR)) return forStatement();
     if (match(IF)) return ifStatement();
-//>= Statements and State
+//>= Statements and State 1
     if (match(PRINT)) return printStatement();
-//>= Functions
+//>= Functions 1
     if (match(RETURN)) return returnStatement();
-//>= Control Flow
+//>= Control Flow 1
     if (match(WHILE)) return whileStatement();
-//>= Statements and State
+//>= Statements and State 1
     if (check(LEFT_BRACE)) return new Stmt.Block(block());
 
     return expressionStatement();
   }
-//>= Control Flow
+//>= Control Flow 1
 
   private Stmt forStatement() {
     // Parse it.
@@ -169,14 +169,14 @@ class Parser {
 
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
-//>= Statements and State
+//>= Statements and State 1
 
   private Stmt printStatement() {
     Expr value = parseExpression();
     consume(SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(value);
   }
-//>= Functions
+//>= Functions 1
 
   private Stmt returnStatement() {
     Token keyword = previous();
@@ -188,7 +188,7 @@ class Parser {
     consume(SEMICOLON, "Expect ';' after return value.");
     return new Stmt.Return(keyword, value);
   }
-//>= Statements and State
+//>= Statements and State 1
 
   private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
@@ -202,7 +202,7 @@ class Parser {
 
     return new Stmt.Var(name, initializer);
   }
-//>= Control Flow
+//>= Control Flow 1
 
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
@@ -212,14 +212,14 @@ class Parser {
 
     return new Stmt.While(condition, body);
   }
-//>= Statements and State
+//>= Statements and State 1
 
   private Stmt expressionStatement() {
     Expr expr = parseExpression();
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
-//>= Functions
+//>= Functions 1
 
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
@@ -239,7 +239,7 @@ class Parser {
     List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
   }
-//>= Statements and State
+//>= Statements and State 1
 
   private List<Stmt> block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
@@ -255,12 +255,12 @@ class Parser {
   }
 
   private Expr assignment() {
-/*== Statements and State
+/*>= Statements and State 1 < Control Flow 1
     Expr expr = equality();
 */
-//>= Control Flow
+//>= Control Flow 1
     Expr expr = or();
-//>= Statements and State
+//>= Statements and State 1
 
     if (match(EQUAL)) {
       Token equals = previous();
@@ -269,11 +269,11 @@ class Parser {
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable)expr).name;
         return new Expr.Assign(name, value);
-//>= Classes
+//>= Classes 1
       } else if (expr instanceof Expr.Get) {
         Expr.Get get = (Expr.Get)expr;
         return new Expr.Set(get.object, get.name, value);
-//>= Statements and State
+//>= Statements and State 1
       }
 
       error("Invalid assignment target.", equals);
@@ -281,7 +281,7 @@ class Parser {
 
     return expr;
   }
-//>= Control Flow
+//>= Control Flow 1
 
   private Expr or() {
     Expr expr = and();
@@ -306,7 +306,7 @@ class Parser {
 
     return expr;
   }
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 
   private Expr equality() {
     Expr expr = comparison();
@@ -363,14 +363,14 @@ class Parser {
       return new Expr.Unary(operator, right);
     }
 
-/*>= Parsing Expressions < Functions
+/*>= Parsing Expressions 1 < Functions 1
     return primary();
 */
-//>= Functions
+//>= Functions 1
     return call();
-//>= Parsing Expressions
+//>= Parsing Expressions 1
   }
-//>= Functions
+//>= Functions 1
 
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = new ArrayList<>();
@@ -396,12 +396,12 @@ class Parser {
     while (true) {
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
-//>= Classes
+//>= Classes 1
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
         expr = new Expr.Get(expr, name);
-//>= Functions
+//>= Functions 1
       } else {
         break;
       }
@@ -409,7 +409,7 @@ class Parser {
 
     return expr;
   }
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 
   private Expr primary() {
     if (match(FALSE)) return new Expr.Literal(false);
@@ -419,7 +419,7 @@ class Parser {
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().value);
     }
-//>= Inheritance
+//>= Inheritance 1
 
     if (match(SUPER)) {
       Token keyword = previous();
@@ -428,15 +428,15 @@ class Parser {
           "Expect superclass method name.");
       return new Expr.Super(keyword, method);
     }
-//>= Classes
+//>= Classes 1
 
     if (match(THIS)) return new Expr.This(previous());
-//>= Statements and State
+//>= Statements and State 1
 
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous());
     }
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 
     if (match(LEFT_PAREN)) {
       Expr expr = parseExpression();

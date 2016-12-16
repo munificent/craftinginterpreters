@@ -1,4 +1,4 @@
-//>= Scanning
+//>= Scanning 1
 package com.craftinginterpreters.lox;
 
 import java.io.BufferedReader;
@@ -8,20 +8,20 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-//>= Resolving and Binding
+//>= Resolving and Binding 1
 import java.util.Map;
-//>= Scanning
+//>= Scanning 1
 
 public class Lox {
   private final ErrorReporter reporter = new ErrorReporter();
-//>= Evaluating Expressions
+//>= Evaluating Expressions 1
   private final Interpreter interpreter;
-//>= Evaluating Expressions
+//>= Evaluating Expressions 1
 
   private Lox() {
     interpreter = new Interpreter(reporter);
   }
-//>= Scanning
+//>= Scanning 1
 
   private void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -58,33 +58,33 @@ public class Lox {
     }
   }
 
-//>= Scanning
+//>= Scanning 1
   private void run(String source) {
     Scanner scanner = new Scanner(source, reporter);
     List<Token> tokens = scanner.scanTokens();
-/*== Scanning
+/*>= Scanning 1 < Representing Code 1
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
     }
 */
-//>= Parsing Expressions
+//>= Parsing Expressions 1
 
     Parser parser = new Parser(tokens, reporter);
-/*>= Parsing Expressions < Statements and State
+/*>= Parsing Expressions 1 < Statements and State 1
     Expr expression = parser.parseExpression();
 */
-/*== Parsing Expressions
+/*>= Parsing Expressions 1 < Evaluating Expressions 1
 
     // For now, just print the tree.
     System.out.println(new AstPrinter().print(expression));
 */
-//>= Statements and State
+//>= Statements and State 1
     List<Stmt> statements = parser.parseProgram();
 
     // Stop if there was a syntax error.
     if (reporter.hadError) return;
-//>= Resolving and Binding
+//>= Resolving and Binding 1
 
     Resolver resolver = new Resolver(reporter);
     Map<Expr, Integer> locals = resolver.resolve(statements);
@@ -92,14 +92,14 @@ public class Lox {
     // Stop if there was a resolution error.
     if (reporter.hadError) return;
 
-/*== Evaluating Expressions
+/*>= Evaluating Expressions 1 < Statements and State 1
     interpreter.interpret(expression);
 */
-/*>= Statements and State < Resolving and Binding
+/*>= Statements and State 1 < Resolving and Binding 1
     interpreter.interpret(statements);
 */
-//>= Resolving and Binding
+//>= Resolving and Binding 1
     interpreter.interpret(statements, locals);
-//>= Scanning
+//>= Scanning 1
   }
 }

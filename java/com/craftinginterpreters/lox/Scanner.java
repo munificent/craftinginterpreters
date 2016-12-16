@@ -1,4 +1,4 @@
-//>= Scanning
+//>= Scanning 4
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;

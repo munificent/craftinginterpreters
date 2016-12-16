@@ -1,4 +1,4 @@
-//>= Scanning
+//>= Scanning 2
 package com.craftinginterpreters.lox;
 
 class Token {

@@ -1,4 +1,4 @@
-//>= Functions
+//>= Functions 1
 package com.craftinginterpreters.lox;
 
 class Return extends RuntimeException {

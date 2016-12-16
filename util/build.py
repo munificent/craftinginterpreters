@@ -15,6 +15,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import jinja2
 import markdown
 
+import sections
 
 GRAY = '\033[1;30m'
 GREEN = '\033[32m'
@@ -347,6 +348,7 @@ num_chapters = 0
 empty_chapters = 0
 total_words = 0
 
+source_code = None
 
 class RootedHTTPServer(HTTPServer):
   """Simple server that resolves paths relative to a given directory.
@@ -428,6 +430,27 @@ def look_up_chapters(title):
   return chapters
 
 
+def include_code(chapter, number, indentation):
+  # TODO: Handle deletion/replacement lines.
+  file, lines = source_code.find(chapter, number)
+
+  # TODO: Include function name, like:
+  #       <em>compiler.c</em> : <em>initCompiler()</em>
+  where = '<em>compiler.c</em> : <em>initCompiler()</em>'
+  code = '{}<div class="source-file"><em>{}</em></div>\n'.format(
+      indentation, file.nice_path())
+
+  code += '{}    :::{}\n'.format(indentation, file.language())
+
+  for line in lines:
+    if len(line) > 72:
+      print("Warning, long line:\n{}".format(line))
+
+    code += '{}    {}\n'.format(indentation, line)
+
+  return code
+
+
 def format_file(path, skip_up_to_date, templates_mod):
   basename = os.path.basename(path)
   basename = basename.split('.')[0]
@@ -449,7 +472,6 @@ def format_file(path, skip_up_to_date, templates_mod):
   title_html = ''
   part = None
   template_file = 'page'
-  # isoutline = False
 
   sections = []
   header_index = 0
@@ -466,25 +488,23 @@ def format_file(path, skip_up_to_date, templates_mod):
       indentation = line[:len(line) - len(stripped)]
 
       if stripped.startswith('^'):
-        command,_,args = stripped.rstrip('\n').lstrip('^').partition(' ')
-        args = args.strip()
+        command,_,arg = stripped.rstrip('\n').lstrip('^').partition(' ')
+        arg = arg.strip()
 
         if command == 'title':
-          title = args
+          title = arg
           title_html = title
 
           # Remove any discretionary hyphens from the title.
           title = title.replace('&shy;', '')
         elif command == 'part':
-          part = args
+          part = arg
         elif command == 'template':
-          template_file = args
-        # elif command == 'code':
-        #   contents = contents + include_code(basename, args, indentation)
-        # elif command == 'outline':
-        #   isoutline = True
-        # else:
-        #   print "UNKNOWN COMMAND:", command, args
+          template_file = arg
+        elif command == 'code':
+          contents = contents + include_code(title, arg, indentation)
+        else:
+          raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
       elif stripped.startswith('## Challenges'):
         has_challenges = True
@@ -523,6 +543,8 @@ def format_file(path, skip_up_to_date, templates_mod):
 
       else:
         contents += pretty(line)
+
+  # TODO: Validate that every section for the chapter is included.
 
   chapters = look_up_chapters(title)
 
@@ -589,6 +611,11 @@ def format_file(path, skip_up_to_date, templates_mod):
 
 def format_files(skip_up_to_date):
   '''Process each markdown file.'''
+
+  # Reload the source sections in case the code was changed.
+  # TODO: Could skip this if no source file was touched.
+  global source_code
+  source_code = sections.load()
 
   # See if any of the templates were modified. If so, all pages will be rebuilt.
   templates_mod = None

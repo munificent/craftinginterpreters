@@ -1,4 +1,4 @@
-//>= Representing Code
+//>= Representing Code 1
 package com.craftinginterpreters.tool;
 
 import java.io.IOException;
@@ -18,58 +18,58 @@ public class GenerateAst {
     outputDir = args[0];
 
     defineAstType("Expr", Arrays.asList(
-//>= Statements and State
+//>= Statements and State 1
         "Assign   : Token name, Expr value",
-//>= Representing Code
+//>= Representing Code 1
         "Binary   : Expr left, Token operator, Expr right",
-//>= Functions
+//>= Functions 1
         "Call     : Expr callee, Token paren, List<Expr> arguments",
-//>= Classes
+//>= Classes 1
         "Get      : Expr object, Token name",
-//>= Representing Code
+//>= Representing Code 1
         "Grouping : Expr expression",
         "Literal  : Object value",
-//>= Control Flow
+//>= Control Flow 1
         "Logical  : Expr left, Token operator, Expr right",
-//>= Classes
+//>= Classes 1
         "Set      : Expr object, Token name, Expr value",
-//>= Inheritance
+//>= Inheritance 1
         "Super    : Token keyword, Token method",
-//>= Classes
+//>= Classes 1
         "This     : Token keyword",
-//>= Representing Code
+//>= Representing Code 1
         "Unary    : Token operator, Expr right",
-//>= Statements and State
+//>= Statements and State 1
         "Variable : Token name"
-//>= Representing Code
+//>= Representing Code 1
     ));
-//>= Statements and State
+//>= Statements and State 1
 
     defineAstType("Stmt", Arrays.asList(
-//>= Statements and State
+//>= Statements and State 1
         "Block       : List<Stmt> statements",
-/*== Classes
+/*>= Classes 1 < Inheritance 1
         "Class       : Token name, List<Stmt.Function> methods",
 */
-//>= Inheritance
+//>= Inheritance 1
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
-//>= Statements and State
+//>= Statements and State 1
         "Expression  : Expr expression",
-//>= Functions
+//>= Functions 1
         "Function    : Token name, List<Token> parameters, List<Stmt> body",
-//>= Control Flow
+//>= Control Flow 1
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
-//>= Statements and State
+//>= Statements and State 1
         "Print       : Expr expression",
-//>= Functions
+//>= Functions 1
         "Return      : Token keyword, Expr value",
-//>= Statements and State
+//>= Statements and State 1
         "Var         : Token name, Expr initializer",
-//>= Control Flow
+//>= Control Flow 1
         "While       : Expr condition, Stmt body"
-//>= Statements and State
+//>= Statements and State 1
     ));
-//>= Representing Code
+//>= Representing Code 1
   }
 
   private static void defineAstType(String baseName, List<String> types)

@@ -1,15 +1,15 @@
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 #ifndef clox_value_h
 #define clox_value_h
 
 #include "common.h"
 
-//>= Strings
+//>= Strings 1
 
 typedef struct sObj Obj;
 typedef struct sObjString ObjString;
 
-//>= Optimization
+//>= Optimization 1
 
 #ifdef NAN_TAGGING
 
@@ -72,54 +72,54 @@ static inline Value numToValue(double num)
 
 #else
 
-/*>= Chunks of Bytecode < Types of Values
+/*>= Chunks of Bytecode 1 < Types of Values 1
 typedef double Value;
 */
-//>= Types of Values
+//>= Types of Values 1
 #define IS_BOOL(value)    ((value).type == VAL_BOOL)
 #define IS_NIL(value)     ((value).type == VAL_NIL)
 #define IS_NUMBER(value)  ((value).type == VAL_NUMBER)
-//>= Strings
+//>= Strings 1
 #define IS_OBJ(value)     ((value).type == VAL_OBJ)
-//>= Types of Values
+//>= Types of Values 1
 
-//>= Strings
+//>= Strings 1
 #define AS_OBJ(value)     ((value).as.object)
-//>= Types of Values
+//>= Types of Values 1
 #define AS_BOOL(value)    ((value).as.boolean)
 #define AS_NUMBER(value)  ((value).as.number)
 
 #define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
 #define NIL_VAL           ((Value){ VAL_NIL, { .number = 0 } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-//>= Strings
+//>= Strings 1
 #define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .object = (Obj*)obj } })
-//>= Types of Values
+//>= Types of Values 1
 
 typedef enum {
   VAL_BOOL,
   VAL_NIL,
   VAL_NUMBER,
-//>= Strings
+//>= Strings 1
   VAL_OBJ
-//>= Types of Values
+//>= Types of Values 1
 } ValueType;
-//>= Types of Values
+//>= Types of Values 1
 
 typedef struct {
   ValueType type;
   union {
     bool boolean;
     double number;
-//>= Strings
+//>= Strings 1
     Obj* object;
-//>= Types of Values
+//>= Types of Values 1
   } as;
 } Value;
-//>= Optimization
+//>= Optimization 1
 
 #endif
-//>= Chunks of Bytecode
+//>= Chunks of Bytecode 1
 
 typedef struct {
   int capacity;

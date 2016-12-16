@@ -1,4 +1,4 @@
-//>= Functions
+//>= Functions 1
 package com.craftinginterpreters.lox;
 
 import java.util.List;
@@ -6,32 +6,32 @@ import java.util.List;
 class LoxFunction implements Callable {
   private final Stmt.Function declaration;
   private final Environment closure;
-//>= Classes
+//>= Classes 1
   private final boolean isInitializer;
-//>= Functions
+//>= Functions 1
 
-/*>= Functions < Classes
+/*>= Functions 1 < Classes 1
 LoxFunction(Stmt.Function declaration, Environment closure) {
 */
-//>= Classes
+//>= Classes 1
   LoxFunction(Stmt.Function declaration, Environment closure,
               boolean isInitializer) {
-//>= Functions
+//>= Functions 1
     this.declaration = declaration;
     this.closure = closure;
-//>= Classes
+//>= Classes 1
     this.isInitializer = isInitializer;
-//>= Functions
+//>= Functions 1
   }
 
-//>= Classes
+//>= Classes 1
   LoxFunction bind(LoxInstance self) {
     Environment environment = closure.enterScope();
     environment.define("this", self);
     return new LoxFunction(declaration, environment, isInitializer);
   }
 
-//>= Functions
+//>= Functions 1
   @Override
   public String toString() {
     return declaration.name.text;
@@ -58,11 +58,11 @@ LoxFunction(Stmt.Function declaration, Environment closure) {
       result = returnValue.value;
     }
 
-/*>= Functions < Classes
+/*>= Functions 1 < Classes 1
     return result;
 */
-//>= Classes
+//>= Classes 1
     return isInitializer ? closure.getAt(0, "this") : result;
-//>= Functions
+//>= Functions 1
   }
 }

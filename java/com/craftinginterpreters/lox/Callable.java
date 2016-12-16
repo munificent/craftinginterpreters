@@ -1,10 +1,10 @@
-//>= Functions
+//>= Functions 1
 package com.craftinginterpreters.lox;
 
 import java.util.List;
 
 interface Callable {
-//>= Functions
+//>= Functions 1
   // The number of arguments this function requires.
   int requiredArguments();
 

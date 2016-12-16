@@ -1,4 +1,4 @@
-//>= Classes
+//>= Classes 1
 package com.craftinginterpreters.lox;
 
 import java.util.List;
@@ -6,27 +6,27 @@ import java.util.Map;
 
 class LoxClass implements Callable {
   final String name;
-//>= Inheritance
+//>= Inheritance 1
   final LoxClass superclass;
-//>= Classes
+//>= Classes 1
   private final Map<String, LoxFunction> methods;
 
-/*== Classes
+/*>= Classes 1 < Inheritance 1
   LoxClass(String name, Map<String, LoxFunction> methods) {
 */
-//>= Inheritance
+//>= Inheritance 1
   LoxClass(String name, LoxClass superclass,
            Map<String, LoxFunction> methods) {
-//>= Classes
+//>= Classes 1
     this.name = name;
-//>= Inheritance
+//>= Inheritance 1
     this.superclass = superclass;
-//>= Classes
+//>= Classes 1
     this.methods = methods;
   }
 
   LoxFunction findMethod(LoxInstance instance, String name) {
-/*== Classes
+/*>= Classes 1 < Inheritance 1
     if (methods.containsKey(name)) {
       return methods.get(name).bind(instance);
     }
@@ -34,7 +34,7 @@ class LoxClass implements Callable {
     // Not found.
     return null;
 */
-//>= Inheritance
+//>= Inheritance 1
     LoxClass klass = this;
     while (klass != null) {
       if (klass.methods.containsKey(name)) {
@@ -46,7 +46,7 @@ class LoxClass implements Callable {
 
     // Not found.
     return null;
-//>= Classes
+//>= Classes 1
   }
 
   @Override
