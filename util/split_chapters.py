@@ -5,6 +5,7 @@ import codecs
 import glob
 import os
 import re
+import sys
 
 import sections
 
@@ -82,7 +83,7 @@ def parse_range(chapters, line):
   raise Exception("Invalid line: '" + line + "'")
 
 
-def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
+def split_file(source_dir, chapters, chapter_offset, path, chapter_index, section=None):
   relative = os.path.relpath(path, source_dir)
   directory = os.path.dirname(relative)
 
@@ -90,9 +91,13 @@ def split_file(source_dir, chapters, chapter_offset, path, chapter_index):
   if relative == "com/craftinginterpreters/lox/Expr.java": return
   if relative == "com/craftinginterpreters/lox/Stmt.java": return
 
-  output = source_code.at_chapter(relative, chapters[chapter_index])
+  # If we're generating the split for an entire chapter, include all its sections.
+  real_section = section if section != None else 999
+  output = source_code.split_chapter(relative, chapters[chapter_index], real_section)
 
-  package = chapter_to_package(chapters, chapter_offset, chapter_index)
+  package = "section_test"
+  if section == None:
+    package = chapter_to_package(chapters, chapter_offset, chapter_index)
   output_path = os.path.join("gen", package, relative)
 
   if output:
@@ -133,12 +138,42 @@ def walk(dir, extensions, callback):
       callback(nfile)
 
 
-# The Java chapters.
-for i, chapter in enumerate(JAVA_CHAPTERS):
-  walk("java", [".java"],
-      lambda path: split_file("java", JAVA_CHAPTERS, 4, path, i))
+def process_language(name, extensions, chapters, first_chapter, section):
+  for i, chapter in enumerate(chapters):
+    # TODO: Uncomment this to split out each individual section.
+    # TODO: Need to also pass section to chapter_to_package() to generate
+    # directory name.
+    # code_sections = source_code.find_all(chapter)
+    # for section in code_sections:
+    #   walk(name, extensions,
+    #       lambda path: split_file(name, chapters, first_chapter, path, i, section))
 
-# The C chapters.
-for i, chapter in enumerate(C_CHAPTERS):
-  walk("c", [".c", ".h"],
-      lambda path: split_file("c", C_CHAPTERS, 14, path, i))
+    walk(name, extensions,
+        lambda path: split_file(name, chapters, first_chapter, path, i))
+
+
+if len(sys.argv) == 3:
+  # Generate the code at a single section.
+  chapter = sys.argv[1]
+  section = int(sys.argv[2])
+
+  chapters = JAVA_CHAPTERS
+  # TODO: Lot of redundancy between this and below.
+  name = "java"
+  first_chapter = 4
+  extensions = [".java"]
+  if chapter in C_CHAPTERS:
+    chapters = C_CHAPTERS
+    name = "c"
+    first_chapter = 14
+    extensions = [".c", ".h"]
+
+  chapter_index = chapters.index(chapter)
+
+  walk(name, extensions,
+      lambda path: split_file(
+          name, chapters, first_chapter, path, chapter_index, section))
+else:
+  # Split all the chapters.
+  process_language("java", [".java"], JAVA_CHAPTERS, 4, None)
+  process_language("c", [".c", ".h"], C_CHAPTERS, 14, None)

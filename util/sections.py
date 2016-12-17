@@ -75,30 +75,37 @@ class SourceCode:
   def __init__(self):
     self.files = []
 
-  def find(self, chapter, number):
-    """ Gets the lines of code in snippet [number] in [chapter]. """
-    result_lines = []
+  def find_all(self, chapter):
+    """ Gets the list of sections that occur in [chapter]. """
+    sections = {}
 
     # TODO: If this is slow, could organize directly by sections in SourceCode.
     for file in self.files:
       for line in file.lines:
-        if line.chapter == chapter and line.number == number:
-          result_lines.append(line.text)
-        elif line.end_chapter == chapter and line.end_number == number:
-          raise "Deleted lines not implemented yet"
-          pass
+        if line.chapter == chapter:
+          if not line.number in sections:
+            sections[line.number] = Section(file)
+          # TODO: Enable this check once we can.
+          # else if sections[line.number].file.path != file.path:
+          #   raise "{} {} appears in two files, {} and {}".format(
+          #       chapter, line.number, sections[line.number].file.path, file.path)
+          sections[line.number].added.append(line.text)
+        elif line.end_chapter == chapter:
+          if not line.end_number in sections:
+            sections[line.end_number] = Section(file)
+          # TODO: Enable this check once we can.
+          # else if sections[line.number].file.path != file.path:
+          #   raise "{} {} appears in two files, {} and {}".format(
+          #       chapter, line.number, sections[line.number].file.path, file.path)
+          sections[line.end_number].removed.append(line.text)
 
-      if len(result_lines) > 0:
-        return (file, result_lines)
+    # TODO: Check for discontiguous sections that are interrupted by earlier
+    # chapters.
+    return sections
 
-    # TODO: Check for the lines from the same snippet appearing in separate
-    # files.
-
-    raise Exception('Could not find lines for "{} {}"'.format(chapter, number))
-
-  def at_chapter(self, file, chapter):
-    """ Gets the code for [file] as it appears at the end of [chapter]. """
-    index = chapter_index(chapter)
+  def split_chapter(self, file, chapter, number):
+    """ Gets the code for [file] as it appears at [number] of [chapter]. """
+    index = get_chapter_index(chapter)
 
     source_file = None
     for source in self.files:
@@ -111,7 +118,7 @@ class SourceCode:
 
     output = ""
     for line in source_file.lines:
-      if (line.in_chapter(index)):
+      if (line.is_present(index, number)):
         # Hack. In generate_ast.java, we split up a parameter list among
         # multiple chapters, which leads to hanging commas in some cases.
         # Remove them.
@@ -142,18 +149,39 @@ class SourceLine:
     self.end_chapter = end_chapter
     self.end_number = end_number
 
-  def in_chapter(self, index):
-    """ Returns true if this line exists by the end of chapter [index]. """
-    if chapter_index(self.chapter) > index:
-      # We haven't gotten to it yet.
-      return False
+  def chapter_index(self):
+    return get_chapter_index(self.chapter)
 
-    if self.end_chapter != None:
-      if chapter_index(self.end_chapter) <= index:
-        # We are past it.
+  def end_chapter_index(self):
+    return get_chapter_index(self.end_chapter)
+
+  def is_present(self, chapter_index, section_number):
+    """ If this line exists by [section_number] of [chapter_index]. """
+    if chapter_index < self.chapter_index():
+      # We haven't gotten to its chapter yet.
+      return False
+    elif chapter_index == self.chapter_index():
+      if section_number < self.number:
+        # We haven't reached this section yet.
         return False
 
+    if self.end_chapter != None:
+      if chapter_index > self.end_chapter_index():
+        # We are past the chapter where it is removed.
+        return False
+      elif chapter_index == self.end_chapter_index():
+        if section_number > self.end_number:
+          # We are past this section where it is removed.
+          return False
+
     return True
+
+
+class Section:
+  def __init__(self, file):
+    self.file = file
+    self.added = []
+    self.removed = []
 
 
 def chapter_name(number):
@@ -164,7 +192,7 @@ def chapter_name(number):
   return C_CHAPTERS[number - 14]
 
 
-def chapter_index(name):
+def get_chapter_index(name):
   """Given the name of a chapter, finds its number."""
   if name in JAVA_CHAPTERS:
     return 4 + JAVA_CHAPTERS.index(name)
@@ -198,7 +226,7 @@ def load_file(source_code, source_dir, path):
       match = LINE_PATTERN.match(line)
       if match:
         chapter = match.group(1)
-        number = match.group(2)
+        number = int(match.group(2))
         end_chapter = None
         end_number = None
         handled = True
@@ -206,9 +234,9 @@ def load_file(source_code, source_dir, path):
       match = BLOCK_PATTERN.match(line)
       if match:
         chapter = match.group(1)
-        number = match.group(2)
+        number = int(match.group(2))
         end_chapter = match.group(3)
-        end_number = match.group(4)
+        end_number = int(match.group(4))
         handled = True
 
       if line.strip() == '*/' and end_chapter:

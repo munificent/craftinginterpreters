@@ -430,19 +430,32 @@ def look_up_chapters(title):
   return chapters
 
 
-def include_code(chapter, number, indentation):
+def include_section(sections, number, indentation):
+  if number not in sections:
+    raise Exception("Section {} not found".format(number))
+  if sections[number] == False:
+    raise Exception("Section {} already used".format(number))
+
+  section = sections[number]
+
+  # Consume it.
+  sections[number] = False
+
   # TODO: Handle deletion/replacement lines.
-  file, lines = source_code.find(chapter, number)
 
   # TODO: Include function name, like:
   #       <em>compiler.c</em> : <em>initCompiler()</em>
   where = '<em>compiler.c</em> : <em>initCompiler()</em>'
   code = '{}<div class="source-file"><em>{}</em></div>\n'.format(
-      indentation, file.nice_path())
+      indentation, section.file.nice_path())
 
-  code += '{}    :::{}\n'.format(indentation, file.language())
+  code += '{}    :::{}\n'.format(indentation, section.file.language())
 
-  for line in lines:
+  # TODO: Figure out how we want to really display deleted lines.
+  for line in section.removed:
+    code += '{}    !! {}\n'.format(indentation, line)
+
+  for line in section.added:
     if len(line) > 72:
       print("Warning, long line:\n{}".format(line))
 
@@ -478,6 +491,7 @@ def format_file(path, skip_up_to_date, templates_mod):
   subheader_index = 0
   has_challenges = False
   design_note = None
+  code_sections = None
 
   # Read the markdown file and preprocess it.
   contents = ''
@@ -497,12 +511,16 @@ def format_file(path, skip_up_to_date, templates_mod):
 
           # Remove any discretionary hyphens from the title.
           title = title.replace('&shy;', '')
+
+          # Load the code snippets now that we know the title.
+          code_sections = source_code.find_all(title)
         elif command == 'part':
           part = arg
         elif command == 'template':
           template_file = arg
         elif command == 'code':
-          contents = contents + include_code(title, arg, indentation)
+          contents = contents + include_section(
+              code_sections, int(arg), indentation)
         else:
           raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
@@ -544,7 +562,13 @@ def format_file(path, skip_up_to_date, templates_mod):
       else:
         contents += pretty(line)
 
-  # TODO: Validate that every section for the chapter is included.
+  # Validate that every section for the chapter is included.
+  # TODO: Hack. If the chapter only has one section, it means I haven't written
+  # it and sliced up its code yet. Just ignore it.
+  if len(code_sections) > 1:
+    for number, section in code_sections.items():
+      if section != False:
+        raise Exception("{} {} was not used".format(title, number))
 
   chapters = look_up_chapters(title)
 
