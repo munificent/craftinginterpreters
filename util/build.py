@@ -366,9 +366,11 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
   From: http://louistiao.me/posts/python-simplehttpserver-recipe-serve-specific-directory/
   """
   def translate_path(self, path):
-    # Refresh on request.
-    format_files(True)
-    build_sass(True)
+    # Refresh files that are being requested.
+    if path.endswith(".html"):
+      format_files(True, path.replace(".html", "").replace("/", ""))
+    if path.endswith(".css"):
+      build_sass(True)
 
     path = posixpath.normpath(urllib.parse.unquote(path))
     words = path.split('/')
@@ -430,11 +432,16 @@ def look_up_chapters(title):
   return chapters
 
 
-def include_section(sections, number, indentation):
+def include_section(sections, number, contents, indentation):
   if number not in sections:
-    raise Exception("Section {} not found".format(number))
+    contents = "**ERROR: Undefined section {}**\n\n".format(number) + contents
+    contents += "{}**ERROR: Missing section {}**\n".format(indentation, number)
+    return contents
+
   if sections[number] == False:
-    raise Exception("Section {} already used".format(number))
+    contents = "**ERROR: Reused section {}**\n\n".format(number) + contents
+    contents += "{}**ERROR: Reused section {}**\n".format(indentation, number)
+    return contents
 
   section = sections[number]
 
@@ -461,10 +468,11 @@ def include_section(sections, number, indentation):
 
     code += '{}    {}\n'.format(indentation, line)
 
-  return code
+  contents += code
+  return contents
 
 
-def format_file(path, skip_up_to_date, templates_mod):
+def format_file(path, skip_up_to_date, dependencies_mod):
   basename = os.path.basename(path)
   basename = basename.split('.')[0]
 
@@ -472,10 +480,7 @@ def format_file(path, skip_up_to_date, templates_mod):
 
   # See if the HTML is up to date.
   if skip_up_to_date:
-    source_mod = max(os.path.getmtime(path), templates_mod)
-    # if os.path.exists(cpp_path(basename)):
-    #   source_mod = max(source_mod, os.path.getmtime(cpp_path(basename)))
-
+    source_mod = max(os.path.getmtime(path), dependencies_mod)
     dest_mod = os.path.getmtime(output_path)
 
     if source_mod < dest_mod:
@@ -519,8 +524,7 @@ def format_file(path, skip_up_to_date, templates_mod):
         elif command == 'template':
           template_file = arg
         elif command == 'code':
-          contents = contents + include_section(
-              code_sections, int(arg), indentation)
+          contents = include_section(code_sections, int(arg), contents, indentation)
         else:
           raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
@@ -568,7 +572,7 @@ def format_file(path, skip_up_to_date, templates_mod):
   if len(code_sections) > 1:
     for number, section in code_sections.items():
       if section != False:
-        raise Exception("{} {} was not used".format(title, number))
+        contents = "**ERROR: Unused section {}**\n\n".format(number) + contents
 
   chapters = look_up_chapters(title)
 
@@ -633,24 +637,44 @@ def format_file(path, skip_up_to_date, templates_mod):
         GREEN, DEFAULT, num, title, word_count))
 
 
-def format_files(skip_up_to_date):
+def latest_mod(glob_pattern):
+  ''' Returns the mod time of the most recently modified file match
+      [glob_pattern].
+  '''
+  latest = None
+  for file in glob.iglob(glob_pattern):
+    file_mod = os.path.getmtime(file)
+    if not latest: latest = file_mod
+    latest = max(latest, file_mod)
+  return latest
+
+
+last_code_load_time = None
+
+def format_files(skip_up_to_date, one_file=None):
   '''Process each markdown file.'''
 
-  # Reload the source sections in case the code was changed.
-  # TODO: Could skip this if no source file was touched.
+  code_mod = max(
+      latest_mod("c/*.c"),
+      latest_mod("c/*.h"),
+      latest_mod("java/com/craftinginterpreters/tool/*.java"),
+      latest_mod("java/com/craftinginterpreters/lox/*.java"))
+
+  # Reload the source sections if the code was changed.
   global source_code
-  source_code = sections.load()
+  global last_code_load_time
+  if not last_code_load_time or code_mod > last_code_load_time:
+    source_code = sections.load()
+    last_code_load_time = time.time()
 
   # See if any of the templates were modified. If so, all pages will be rebuilt.
-  templates_mod = None
-  for template in glob.iglob("asset/template/*.html"):
-    template_mod = os.path.getmtime(template)
-    if not templates_mod: templates_mod = template_mod
-    templates_mod = max(templates_mod, template_mod)
+  templates_mod = latest_mod("asset/template/*.html")
 
   for page in PAGES:
-    file = os.path.join('book', title_to_file(page) + '.md')
-    format_file(file, skip_up_to_date, templates_mod)
+    page_file = title_to_file(page)
+    if one_file == None or page_file == one_file:
+      file = os.path.join('book', page_file + '.md')
+      format_file(file, skip_up_to_date, max(code_mod, templates_mod))
 
 
 def build_sass(skip_up_to_date):
