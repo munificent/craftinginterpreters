@@ -1,4 +1,4 @@
-//>> Classes 99
+//> Classes 99
 package com.craftinginterpreters.lox;
 
 import java.util.HashMap;

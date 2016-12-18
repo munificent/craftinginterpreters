@@ -1,4 +1,4 @@
-//>> Resolving and Binding 99
+//> Resolving and Binding 99
 package com.craftinginterpreters.lox;
 
 import java.util.*;
@@ -11,33 +11,33 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   private enum FunctionType {
     NONE,
-/*>= Resolving and Binding 99 < Classes 99
+/* Resolving and Binding 99 < Classes 99
     FUNCTION
 */
-//>> Classes 99
+//> Classes 99
     FUNCTION,
     METHOD,
     INITIALIZER
-//<< Classes 99
+//< Classes 99
   }
 
   private FunctionType currentFunction = FunctionType.NONE;
-//>> Classes 99
+//> Classes 99
 
   private enum ClassType {
     NONE,
-/*>= Classes 99 < Inheritance 99
+/* Classes 99 < Inheritance 99
     CLASS
  */
-//>> Inheritance 99
+//> Inheritance 99
     CLASS,
     SUBCLASS
-//<< Inheritance 99
+//< Inheritance 99
   }
 
   private ClassType currentClass = ClassType.NONE;
 
-//<< Classes 99
+//< Classes 99
   Resolver(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
   }
@@ -58,7 +58,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>> Classes 99
+//> Classes 99
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
     declare(stmt.name);
@@ -66,7 +66,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     ClassType enclosingClass = currentClass;
     currentClass = ClassType.CLASS;
-//>> Inheritance 99
+//> Inheritance 99
 
     if (stmt.superclass != null) {
       currentClass = ClassType.SUBCLASS;
@@ -74,7 +74,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       beginScope();
       scopes.peek().put("super", true);
     }
-//<< Inheritance 99
+//< Inheritance 99
 
     for (Stmt.Function method : stmt.methods) {
       // Push the implicit scope that binds "this" and "class".
@@ -90,16 +90,16 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       endScope();
     }
 
-//>> Inheritance 99
+//> Inheritance 99
 
     if (currentClass == ClassType.SUBCLASS) endScope();
 
-//<< Inheritance 99
+//< Inheritance 99
     currentClass = enclosingClass;
     return null;
   }
 
-//<< Classes 99
+//< Classes 99
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     resolve(stmt.expression);
@@ -137,13 +137,13 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     if (stmt.value != null) {
-//>> Classes 99
+//> Classes 99
       if (currentFunction == FunctionType.INITIALIZER) {
         errorReporter.error(stmt.keyword,
             "Cannot return a value from an initializer.");
       }
 
-//<< Classes 99
+//< Classes 99
       resolve(stmt.value);
     }
 
@@ -192,14 +192,14 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>> Classes 99
+//> Classes 99
   @Override
   public Void visitGetExpr(Expr.Get expr) {
     resolve(expr.object);
     return null;
   }
 
-//<< Classes 99
+//< Classes 99
   @Override
   public Void visitGroupingExpr(Expr.Grouping expr) {
     resolve(expr.expression);
@@ -218,7 +218,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>> Classes 99
+//> Classes 99
   @Override
   public Void visitSetExpr(Expr.Set expr) {
     resolve(expr.value);
@@ -226,8 +226,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//<< Classes 99
-//>> Inheritance 99
+//< Classes 99
+//> Inheritance 99
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
     if (currentClass == ClassType.NONE) {
@@ -242,8 +242,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//<< Inheritance 99
-//>> Classes 99
+//< Inheritance 99
+//> Classes 99
   @Override
   public Void visitThisExpr(Expr.This expr) {
     if (currentClass == ClassType.NONE) {
@@ -255,7 +255,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     return null;
   }
 
-//<< Classes 99
+//< Classes 99
   @Override
   public Void visitUnaryExpr(Expr.Unary expr) {
     resolve(expr.right);

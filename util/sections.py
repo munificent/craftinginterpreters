@@ -9,21 +9,20 @@ test against) and build.py (to include code sections into the book).
 
 There are a few kinds of section markers:
 
-//>> [chapter] [number]
+//> [chapter] [number]
 
     This marks the following code as being added in snippet [number] in
     [chapter]. A section marked like this must be closed with...
 
-    If this is beginning a new section in the same chapter, the name can be
-    omitted.
+    If this is beginning a new section in the same chapter, the name is omitted.
 
-//<< [chapter] [number]
+//< [chapter] [number]
 
-    Ends the previous innermost //>> section and returns the whatever section
+    Ends the previous innermost //> section and returns the whatever section
     surrounded it. The chapter and number are redundant, but are required to
     validate that we're exiting the section we intend to.
 
-/*>= [chapter] [number] < [end chapter] [end number]
+/* [chapter] [number] < [end chapter] [end number]
 ...
 */
 
@@ -75,11 +74,11 @@ C_CHAPTERS = [
   "Optimization"
 ]
 
-BLOCK_PATTERN = re.compile(r'/\*>= ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
-BEGIN_SECTION_PATTERN = re.compile(r'//>> (\d+)')
-END_SECTION_PATTERN = re.compile(r'//<< (\d+)')
-BEGIN_CHAPTER_PATTERN = re.compile(r'//>> ([A-Za-z\s]+) (\d+)')
-END_CHAPTER_PATTERN = re.compile(r'//<< ([A-Za-z\s]+) (\d+)')
+BLOCK_PATTERN = re.compile(r'/\* ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
+BEGIN_SECTION_PATTERN = re.compile(r'//> (\d+)')
+END_SECTION_PATTERN = re.compile(r'//< (\d+)')
+BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Za-z\s]+) (\d+)')
+END_CHAPTER_PATTERN = re.compile(r'//< ([A-Za-z\s]+) (\d+)')
 
 class SourceCode:
   """ All of the source files in the book. """

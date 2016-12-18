@@ -1,4 +1,4 @@
-//>> Statements and State 99
+//> Statements and State 99
 package com.craftinginterpreters.lox;
 
 import java.util.HashMap;
@@ -54,7 +54,7 @@ class Environment {
     values.put(name, value);
   }
 
-//>> Resolving and Binding 99
+//> Resolving and Binding 99
   Object getAt(int distance, String name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -72,7 +72,7 @@ class Environment {
 
     environment.values.put(name.text, value);
   }
-//<< Resolving and Binding 99
+//< Resolving and Binding 99
 
   Environment enterScope() {
     return new Environment(this);

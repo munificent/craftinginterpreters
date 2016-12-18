@@ -1,23 +1,23 @@
-//>> Scanning on Demand 99
+//> Scanning on Demand 99
 #ifndef clox_compiler_h
 #define clox_compiler_h
 
-//>> Strings 99
+//> Strings 99
 #include "object.h"
-//<< Strings 99
+//< Strings 99
 #include "vm.h"
 
-/*>= Scanning on Demand 99 < Compiling Expressions 99
+/* Scanning on Demand 99 < Compiling Expressions 99
 void compile(const char* source);
 */
-/*>= Compiling Expressions 99 < Calls and Functions 99
+/* Compiling Expressions 99 < Calls and Functions 99
 bool compile(const char* source, Chunk* chunk);
 */
-//>> Calls and Functions 99
+//> Calls and Functions 99
 ObjFunction* compile(const char* source);
-//<< Calls and Functions 99
-//>> Garbage Collection 99
+//< Calls and Functions 99
+//> Garbage Collection 99
 void grayCompilerRoots();
-//<< Garbage Collection 99
+//< Garbage Collection 99
 
 #endif

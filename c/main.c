@@ -1,16 +1,16 @@
-//>> Chunks of Bytecode 99
+//> Chunks of Bytecode 99
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "common.h"
-/*>= Chunks of Bytecode 99 < Scanning on Demand 99
+/* Chunks of Bytecode 99 < Scanning on Demand 99
 #include "chunk.h"
 #include "debug.h"
 */
-//>> A Virtual Machine 99
+//> A Virtual Machine 99
 #include "vm.h"
-//<< A Virtual Machine 99
-//>> Scanning on Demand 99
+//< A Virtual Machine 99
+//> Scanning on Demand 99
 
 #define MAX_LINE_LENGTH 1024
 
@@ -73,13 +73,13 @@ static void runFile(const char* path) {
   if (result == INTERPRET_COMPILE_ERROR) exit(65);
   if (result == INTERPRET_RUNTIME_ERROR) exit(70);
 }
-//<< Scanning on Demand 99
+//< Scanning on Demand 99
 
 int main(int argc, const char* argv[]) {
-//>> A Virtual Machine 99
+//> A Virtual Machine 99
   initVM();
 
-/*>= Chunks of Bytecode 99 < Scanning on Demand 99
+/* Chunks of Bytecode 99 < Scanning on Demand 99
   Chunk chunk;
   initChunk(&chunk);
 
@@ -92,7 +92,7 @@ int main(int argc, const char* argv[]) {
   writeChunk(&chunk, 1, 101);
 
 */
-/*>= A Virtual Machine 99 < Scanning on Demand 99
+/* A Virtual Machine 99 < Scanning on Demand 99
   writeChunk(&chunk, OP_ADD, 101);
 
   addConstant(&chunk, 5.6);
@@ -105,14 +105,14 @@ int main(int argc, const char* argv[]) {
   writeChunk(&chunk, OP_RETURN, 102);
 
 */
-/*>= Chunks of Bytecode 99 < Scanning on Demand 99
+/* Chunks of Bytecode 99 < Scanning on Demand 99
   disassembleChunk(&chunk, "test chunk");
 */
-/*>= A Virtual Machine 99 < Scanning on Demand 99
+/* A Virtual Machine 99 < Scanning on Demand 99
 
   interpret(&chunk);
 */
-//>> Scanning on Demand 99
+//> Scanning on Demand 99
   if (argc == 1) {
     repl();
   } else if (argc == 2) {
@@ -121,9 +121,9 @@ int main(int argc, const char* argv[]) {
     fprintf(stderr, "Usage: clox [path]\n");
     exit(64);
   }
-//<< Scanning on Demand 99
+//< Scanning on Demand 99
 
   endVM();
-//<< A Virtual Machine 99
+//< A Virtual Machine 99
   return 0;
 }

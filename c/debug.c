@@ -1,10 +1,10 @@
-//>> Chunks of Bytecode 99
+//> Chunks of Bytecode 99
 #include <stdio.h>
 
 #include "debug.h"
-//>> Strings 99
+//> Strings 99
 #include "object.h"
-//<< Strings 99
+//< Strings 99
 #include "value.h"
 
 int disassembleInstruction(Chunk* chunk, int i) {
@@ -18,12 +18,12 @@ int disassembleInstruction(Chunk* chunk, int i) {
   uint8_t* code = chunk->code;
   uint8_t instruction = code[i++];
 
-//>> A Virtual Machine 99
+//> A Virtual Machine 99
 #define INST_ZERO(name) \
     case name: printf(#name "\n"); break;
 
-//<< A Virtual Machine 99
-//>> Local Variables 99
+//< A Virtual Machine 99
+//> Local Variables 99
 #define INST_BYTE(name) \
     case name: { \
       uint8_t slot = code[i++]; \
@@ -31,8 +31,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
       break; \
     }
 
-//<< Local Variables 99
-//>> Jumping Forward and Back 99
+//< Local Variables 99
+//> Jumping Forward and Back 99
 #define INST_JUMP(name, sign) \
     case name: { \
       uint16_t offset = (uint16_t)(code[i++] << 8); \
@@ -41,7 +41,7 @@ int disassembleInstruction(Chunk* chunk, int i) {
       break; \
     }
 
-//<< Jumping Forward and Back 99
+//< Jumping Forward and Back 99
 #define INST_CONSTANT(name) \
     case name: {\
       uint8_t constant = chunk->code[i++]; \
@@ -53,60 +53,60 @@ int disassembleInstruction(Chunk* chunk, int i) {
 
   switch (instruction) {
     INST_CONSTANT(OP_CONSTANT)
-//>> Types of Values 99
+//> Types of Values 99
     INST_ZERO(OP_NIL)
     INST_ZERO(OP_TRUE)
     INST_ZERO(OP_FALSE)
-//<< Types of Values 99
-//>> Global Variables 99
+//< Types of Values 99
+//> Global Variables 99
     INST_ZERO(OP_POP)
-//<< Global Variables 99
-//>> Local Variables 99
+//< Global Variables 99
+//> Local Variables 99
     INST_BYTE(OP_GET_LOCAL)
     INST_BYTE(OP_SET_LOCAL)
-//<< Local Variables 99
-//>> Global Variables 99
+//< Local Variables 99
+//> Global Variables 99
     INST_CONSTANT(OP_GET_GLOBAL)
     INST_CONSTANT(OP_DEFINE_GLOBAL)
     INST_CONSTANT(OP_SET_GLOBAL)
-//<< Global Variables 99
-//>> Closures 99
+//< Global Variables 99
+//> Closures 99
     INST_BYTE(OP_GET_UPVALUE)
     INST_BYTE(OP_SET_UPVALUE)
-//<< Closures 99
-//>> Classes and Instances 99
+//< Closures 99
+//> Classes and Instances 99
     INST_CONSTANT(OP_GET_PROPERTY)
     INST_CONSTANT(OP_SET_PROPERTY)
-//<< Classes and Instances 99
-//>> Superclasses 99
+//< Classes and Instances 99
+//> Superclasses 99
     INST_CONSTANT(OP_GET_SUPER)
-//<< Superclasses 99
-//>> Types of Values 99
+//< Superclasses 99
+//> Types of Values 99
     INST_ZERO(OP_EQUAL)
     INST_ZERO(OP_GREATER)
     INST_ZERO(OP_LESS)
-//<< Types of Values 99
-//>> A Virtual Machine 99
+//< Types of Values 99
+//> A Virtual Machine 99
     INST_ZERO(OP_ADD)
     INST_ZERO(OP_SUBTRACT)
     INST_ZERO(OP_MULTIPLY)
     INST_ZERO(OP_DIVIDE)
-//<< A Virtual Machine 99
-//>> Types of Values 99
+//< A Virtual Machine 99
+//> Types of Values 99
     INST_ZERO(OP_NOT)
-//<< Types of Values 99
-//>> A Virtual Machine 99
+//< Types of Values 99
+//> A Virtual Machine 99
     INST_ZERO(OP_NEGATE)
-//<< A Virtual Machine 99
-//>> Global Variables 99
+//< A Virtual Machine 99
+//> Global Variables 99
     INST_ZERO(OP_PRINT)
-//<< Global Variables 99
-//>> Jumping Forward and Back 99
+//< Global Variables 99
+//> Jumping Forward and Back 99
     INST_JUMP(OP_JUMP, +)
     INST_JUMP(OP_JUMP_IF_FALSE, +)
     INST_JUMP(OP_LOOP, -)
-//<< Jumping Forward and Back 99
-//>> Calls and Functions 99
+//< Jumping Forward and Back 99
+//> Calls and Functions 99
     INST_ZERO(OP_CALL_0)
     INST_ZERO(OP_CALL_1)
     INST_ZERO(OP_CALL_2)
@@ -116,8 +116,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_ZERO(OP_CALL_6)
     INST_ZERO(OP_CALL_7)
     INST_ZERO(OP_CALL_8)
-//<< Calls and Functions 99
-//>> Methods and Initializers 99
+//< Calls and Functions 99
+//> Methods and Initializers 99
     INST_CONSTANT(OP_INVOKE_0)
     INST_CONSTANT(OP_INVOKE_1)
     INST_CONSTANT(OP_INVOKE_2)
@@ -127,8 +127,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_INVOKE_6)
     INST_CONSTANT(OP_INVOKE_7)
     INST_CONSTANT(OP_INVOKE_8)
-//<< Methods and Initializers 99
-//>> Superclasses 99
+//< Methods and Initializers 99
+//> Superclasses 99
     INST_CONSTANT(OP_SUPER_0)
     INST_CONSTANT(OP_SUPER_1)
     INST_CONSTANT(OP_SUPER_2)
@@ -138,8 +138,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
     INST_CONSTANT(OP_SUPER_6)
     INST_CONSTANT(OP_SUPER_7)
     INST_CONSTANT(OP_SUPER_8)
-//<< Superclasses 99
-//>> Closures 99
+//< Superclasses 99
+//> Closures 99
 
     case OP_CLOSURE: {
       uint8_t constant = code[i++];
@@ -158,19 +158,19 @@ int disassembleInstruction(Chunk* chunk, int i) {
     }
 
     INST_ZERO(OP_CLOSE_UPVALUE)
-//<< Closures 99
-//>> A Virtual Machine 99
+//< Closures 99
+//> A Virtual Machine 99
     INST_ZERO(OP_RETURN)
-//<< A Virtual Machine 99
-//>> Classes and Instances 99
+//< A Virtual Machine 99
+//> Classes and Instances 99
     INST_CONSTANT(OP_CLASS)
-//<< Classes and Instances 99
-//>> Superclasses 99
+//< Classes and Instances 99
+//> Superclasses 99
     INST_CONSTANT(OP_SUBCLASS)
-//<< Superclasses 99
-//>> Methods and Initializers 99
+//< Superclasses 99
+//> Methods and Initializers 99
     INST_CONSTANT(OP_METHOD)
-//<< Methods and Initializers 99
+//< Methods and Initializers 99
   }
 
   return i;

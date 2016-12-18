@@ -1,4 +1,4 @@
-//>> Hash Tables 99
+//> Hash Tables 99
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,42 +11,42 @@
 
 void initTable(Table* table) {
   table->count = 0;
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   table->capacity = 0;
 */
-//>> Optimization 99
+//> Optimization 99
   table->capacityMask = -1;
-//<< Optimization 99
+//< Optimization 99
   table->entries = NULL;
 }
 
 void freeTable(Table* table) {
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   FREE_ARRAY(Value, table->entries, table->capacity);
 */
-//>> Optimization 99
+//> Optimization 99
   FREE_ARRAY(Value, table->entries, table->capacityMask + 1);
-//<< Optimization 99
+//< Optimization 99
   initTable(table);
 }
 
 // Finds the entry where [key] should be. If the key is not already present in
 // the table, this will be an unused entry. Otherwise, it will be the existing
 // entry for that key.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
 static uint32_t findEntry(Entry* entries, int capacity, ObjString* key) {
 */
-//>> Optimization 99
+//> Optimization 99
 static uint32_t findEntry(Entry* entries, int capacityMask, ObjString* key) {
-//<< Optimization 99
+//< Optimization 99
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   uint32_t index = key->hash % capacity;
 */
-//>> Optimization 99
+//> Optimization 99
   uint32_t index = key->hash & capacityMask;
-//<< Optimization 99
+//< Optimization 99
 
   // We don't worry about an infinite loop here because resize() ensures
   // there are empty slots in the array.
@@ -56,12 +56,12 @@ static uint32_t findEntry(Entry* entries, int capacityMask, ObjString* key) {
     if (entry->key == NULL || entry->key == key) return index;
 
     // Try the next slot.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
     index = (index + 1) % capacity;
 */
-//>> Optimization 99
+//> Optimization 99
     index = (index + 1) & capacityMask;
-//<< Optimization 99
+//< Optimization 99
   }
 }
 
@@ -69,12 +69,12 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   // If the table is empty, we definitely won't find it.
   if (table->entries == NULL) return false;
 
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   uint32_t index = findEntry(table->entries, table->capacity, key);
 */
-//>> Optimization 99
+//> Optimization 99
   uint32_t index = findEntry(table->entries, table->capacityMask, key);
-//<< Optimization 99
+//< Optimization 99
   Entry* entry = &table->entries[index];
   if (entry->key == NULL) return false;
 
@@ -82,42 +82,42 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   return true;
 }
 
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
 static void resize(Table* table, int capacity) {
 */
-//>> Optimization 99
+//> Optimization 99
 static void resize(Table* table, int capacityMask) {
-//<< Optimization 99
+//< Optimization 99
   // Create the new empty entry array.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   Entry* entries = ALLOCATE(Entry, capacity);
   for (int i = 0; i < capacity; i++) {
 */
-//>> Optimization 99
+//> Optimization 99
   Entry* entries = ALLOCATE(Entry, capacityMask + 1);
   for (int i = 0; i <= capacityMask; i++) {
-//<< Optimization 99
+//< Optimization 99
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
   }
 
   // Re-hash the existing entries into the new array.
   table->count = 0;
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   for (int i = 0; i < table->capacity; i++) {
 */
-//>> Optimization 99
+//> Optimization 99
   for (int i = 0; i <= table->capacityMask; i++) {
-//<< Optimization 99
+//< Optimization 99
     Entry* entry = &table->entries[i];
     if (entry->key == NULL) continue;
 
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
     uint32_t index = findEntry(entries, capacity, entry->key);
 */
-//>> Optimization 99
+//> Optimization 99
     uint32_t index = findEntry(entries, capacityMask, entry->key);
-//<< Optimization 99
+//< Optimization 99
     Entry* dest = &entries[index];
     dest->key = entry->key;
     dest->value = entry->value;
@@ -125,43 +125,43 @@ static void resize(Table* table, int capacityMask) {
   }
 
   // Replace the array.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   FREE_ARRAY(Value, table->entries, table->capacity);
 */
-//>> Optimization 99
+//> Optimization 99
   FREE_ARRAY(Value, table->entries, table->capacityMask + 1);
-//<< Optimization 99
+//< Optimization 99
   table->entries = entries;
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   table->capacity = capacity;
 */
-//>> Optimization 99
+//> Optimization 99
   table->capacityMask = capacityMask;
-//<< Optimization 99
+//< Optimization 99
 }
 
 bool tableSet(Table* table, ObjString* key, Value value) {
   // If the table is getting too full, make room first.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     // Figure out the new table size.
     int capacity = GROW_CAPACITY(table->capacity);
     resize(table, capacity);
 */
-//>> Optimization 99
+//> Optimization 99
   if (table->count + 1 > (table->capacityMask + 1) * TABLE_MAX_LOAD) {
     // Figure out the new table size.
     int capacityMask = GROW_CAPACITY(table->capacityMask + 1) - 1;
     resize(table, capacityMask);
-//<< Optimization 99
+//< Optimization 99
   }
 
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   uint32_t index = findEntry(table->entries, table->capacity, key);
 */
-//>> Optimization 99
+//> Optimization 99
   uint32_t index = findEntry(table->entries, table->capacityMask, key);
-//<< Optimization 99
+//< Optimization 99
   Entry* entry = &table->entries[index];
   bool isNewKey = entry->key == NULL;
   entry->key = key;
@@ -175,12 +175,12 @@ bool tableDelete(Table* table, ObjString* key) {
   if (table->count == 0) return false;
 
   // Find the entry.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   uint32_t index = findEntry(table->entries, table->capacity, key);
 */
-//>> Optimization 99
+//> Optimization 99
   uint32_t index = findEntry(table->entries, table->capacityMask, key);
-//<< Optimization 99
+//< Optimization 99
   Entry* entry = &table->entries[index];
   if (entry->key == NULL) return false;
 
@@ -193,12 +193,12 @@ bool tableDelete(Table* table, ObjString* key) {
   // up to fill the hole. The simplest way to handle that is to just re-add
   // them all until we hit an empty entry.
   for (;;) {
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
     index = (index + 1) % table->capacity;
 */
-//>> Optimization 99
+//> Optimization 99
     index = (index + 1) & table->capacityMask;
-//<< Optimization 99
+//< Optimization 99
     entry = &table->entries[index];
 
     if (entry->key == NULL) break;
@@ -216,12 +216,12 @@ bool tableDelete(Table* table, ObjString* key) {
 }
 
 void tableAddAll(Table* from, Table* to) {
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   for (int i = 0; i < from->capacity; i++) {
 */
-//>> Optimization 99
+//> Optimization 99
   for (int i = 0; i <= from->capacityMask; i++) {
-//<< Optimization 99
+//< Optimization 99
     Entry* entry = &from->entries[i];
     if (entry->key != NULL) {
       tableSet(to, entry->key, entry->value);
@@ -236,12 +236,12 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
 
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
   uint32_t index = hash % table->capacity;
 */
-//>> Optimization 99
+//> Optimization 99
   uint32_t index = hash & table->capacityMask;
-//<< Optimization 99
+//< Optimization 99
 
   for (;;) {
     Entry* entry = &table->entries[index];
@@ -254,25 +254,25 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     }
 
     // Try the next slot.
-/*>= Hash Tables 99 < Optimization 99
+/* Hash Tables 99 < Optimization 99
     index = (index + 1) % table->capacity;
 */
-//>> Optimization 99
+//> Optimization 99
     index = (index + 1) & table->capacityMask;
-//<< Optimization 99
+//< Optimization 99
   }
 
   return NULL;
 }
-//>> Garbage Collection 99
+//> Garbage Collection 99
 
 void tableRemoveWhite(Table* table) {
-/*>= Garbage Collection 99 < Optimization 99
+/* Garbage Collection 99 < Optimization 99
   for (int i = 0; i < table->capacity; i++) {
 */
-//>> Optimization 99
+//> Optimization 99
   for (int i = 0; i <= table->capacityMask; i++) {
-//<< Optimization 99
+//< Optimization 99
     Entry* entry = &table->entries[i];
     if (entry->key != NULL && !entry->key->object.isDark) {
       tableDelete(table, entry->key);
@@ -281,15 +281,15 @@ void tableRemoveWhite(Table* table) {
 }
 
 void grayTable(Table* table) {
-/*>= Garbage Collection 99 < Optimization 99
+/* Garbage Collection 99 < Optimization 99
   for (int i = 0; i < table->capacity; i++) {
 */
-//>> Optimization 99
+//> Optimization 99
   for (int i = 0; i <= table->capacityMask; i++) {
-//<< Optimization 99
+//< Optimization 99
     Entry* entry = &table->entries[i];
     grayObject((Obj*)entry->key);
     grayValue(entry->value);
   }
 }
-//<< Garbage Collection 99
+//< Garbage Collection 99

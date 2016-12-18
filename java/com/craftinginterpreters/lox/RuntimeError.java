@@ -1,4 +1,4 @@
-//>> Evaluating Expressions 99
+//> Evaluating Expressions 99
 package com.craftinginterpreters.lox;
 
 class RuntimeError extends RuntimeException {
