@@ -1,4 +1,4 @@
-//>= Chunks of Bytecode 99
+//>> Chunks of Bytecode 99
 #ifndef clox_chunk_h
 #define clox_chunk_h
 
@@ -7,47 +7,60 @@
 
 typedef enum {
   OP_CONSTANT,
-//>= Types of Values 99
+//>> Types of Values 99
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
-//>= Global Variables 99
+//<< Types of Values 99
+//>> Global Variables 99
   OP_POP,
-//>= Local Variables 99
+//<< Global Variables 99
+//>> Local Variables 99
   OP_GET_LOCAL,
   OP_SET_LOCAL,
-//>= Global Variables 99
+//<< Local Variables 99
+//>> Global Variables 99
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
-//>= Closures 99
+//<< Global Variables 99
+//>> Closures 99
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
-//>= Classes and Instances 99
+//<< Closures 99
+//>> Classes and Instances 99
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
-//>= Superclasses 99
+//<< Classes and Instances 99
+//>> Superclasses 99
   OP_GET_SUPER,
-//>= Types of Values 99
+//<< Superclasses 99
+//>> Types of Values 99
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
-//>= A Virtual Machine 99
+//<< Types of Values 99
+//>> A Virtual Machine 99
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
-//>= Types of Values 99
+//<< A Virtual Machine 99
+//>> Types of Values 99
   OP_NOT,
-//>= A Virtual Machine 99
+//<< Types of Values 99
+//>> A Virtual Machine 99
   OP_NEGATE,
-//>= Global Variables 99
+//<< A Virtual Machine 99
+//>> Global Variables 99
   OP_PRINT,
-//>= Jumping Forward and Back 99
+//<< Global Variables 99
+//>> Jumping Forward and Back 99
   OP_JUMP,
   OP_JUMP_IF_FALSE,
   OP_LOOP,
-//>= Calls and Functions 99
+//<< Jumping Forward and Back 99
+//>> Calls and Functions 99
   OP_CALL_0,
   OP_CALL_1,
   OP_CALL_2,
@@ -57,7 +70,8 @@ typedef enum {
   OP_CALL_6,
   OP_CALL_7,
   OP_CALL_8,
-//>= Methods and Initializers 99
+//<< Calls and Functions 99
+//>> Methods and Initializers 99
   OP_INVOKE_0,
   OP_INVOKE_1,
   OP_INVOKE_2,
@@ -67,7 +81,8 @@ typedef enum {
   OP_INVOKE_6,
   OP_INVOKE_7,
   OP_INVOKE_8,
-//>= Superclasses 99
+//<< Methods and Initializers 99
+//>> Superclasses 99
   OP_SUPER_0,
   OP_SUPER_1,
   OP_SUPER_2,
@@ -77,18 +92,23 @@ typedef enum {
   OP_SUPER_6,
   OP_SUPER_7,
   OP_SUPER_8,
-//>= Closures 99
+//<< Superclasses 99
+//>> Closures 99
   OP_CLOSURE,
   OP_CLOSE_UPVALUE,
-//>= A Virtual Machine 99
+//<< Closures 99
+//>> A Virtual Machine 99
   OP_RETURN,
-//>= Classes and Instances 99
+//<< A Virtual Machine 99
+//>> Classes and Instances 99
   OP_CLASS,
-//>= Superclasses 99
+//<< Classes and Instances 99
+//>> Superclasses 99
   OP_SUBCLASS,
-//>= Methods and Initializers 99
+//<< Superclasses 99
+//>> Methods and Initializers 99
   OP_METHOD
-//>= Chunks of Bytecode 99
+//<< Methods and Initializers 99
 } OpCode;
 
 typedef struct {

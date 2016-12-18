@@ -1,4 +1,4 @@
-//>= Scanning on Demand 99
+//>> Scanning on Demand 99
 #include <stdio.h>
 #include <string.h>
 

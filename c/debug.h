@@ -1,4 +1,4 @@
-//>= Chunks of Bytecode 99
+//>> Chunks of Bytecode 99
 #ifndef clox_debug_h
 #define clox_debug_h
 

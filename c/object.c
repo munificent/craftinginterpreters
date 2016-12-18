@@ -1,11 +1,11 @@
-//>= Strings 99
+//>> Strings 99
 #include <string.h>
 
 #include "memory.h"
 #include "object.h"
-//>= Hash Tables 99
+//>> Hash Tables 99
 #include "table.h"
-//>= Strings 99
+//<< Hash Tables 99
 #include "value.h"
 #include "vm.h"
 
@@ -15,22 +15,22 @@
 static Obj* allocateObject(size_t size, ObjType type) {
   Obj* object = (Obj*)reallocate(NULL, 0, size);
   object->type = type;
-//>= Garbage Collection 99
+//>> Garbage Collection 99
   object->isDark = false;
-//>= Strings 99
+//<< Garbage Collection 99
 
   object->next = vm.objects;
   vm.objects = object;
-//>= Garbage Collection 99
+//>> Garbage Collection 99
 
 #ifdef DEBUG_TRACE_GC
   printf("%p allocate %ld for %d\n", object, size, type);
 #endif
 
-//>= Strings 99
+//<< Garbage Collection 99
   return object;
 }
-//>= Methods and Initializers 99
+//>> Methods and Initializers 99
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
@@ -39,24 +39,27 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   bound->method = method;
   return bound;
 }
-//>= Classes and Instances 99
+//<< Methods and Initializers 99
+//>> Classes and Instances 99
 
 /*>= Classes and Instances 99 < Superclasses 99
 ObjClass* newClass(ObjString* name) {
 */
-//>= Superclasses 99
+//>> Superclasses 99
 ObjClass* newClass(ObjString* name, ObjClass* superclass) {
-//>= Classes and Instances 99
+//<< Superclasses 99
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
-//>= Superclasses 99
+//>> Superclasses 99
   klass->superclass = superclass;
-//>= Methods and Initializers 99
+//<< Superclasses 99
+//>> Methods and Initializers 99
   initTable(&klass->methods);
-//>= Classes and Instances 99
+//<< Methods and Initializers 99
   return klass;
 }
-//>= Closures 99
+//<< Classes and Instances 99
+//>> Closures 99
 
 ObjClosure* newClosure(ObjFunction* function) {
   // Allocate the upvalue array first so it doesn't cause the closure to get
@@ -72,20 +75,22 @@ ObjClosure* newClosure(ObjFunction* function) {
   closure->upvalueCount = function->upvalueCount;
   return closure;
 }
-//>= Calls and Functions 99
+//<< Closures 99
+//>> Calls and Functions 99
 
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
 
   function->arity = 0;
-//>= Closures 99
+//>> Closures 99
   function->upvalueCount = 0;
-//>= Calls and Functions 99
+//<< Closures 99
   function->name = NULL;
   initChunk(&function->chunk);
   return function;
 }
-//>= Classes and Instances 99
+//<< Calls and Functions 99
+//>> Classes and Instances 99
 
 ObjInstance* newInstance(ObjClass* klass) {
   ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
@@ -93,38 +98,42 @@ ObjInstance* newInstance(ObjClass* klass) {
   initTable(&instance->fields);
   return instance;
 }
-//>= Calls and Functions 99
+//<< Classes and Instances 99
+//>> Calls and Functions 99
 
 ObjNative* newNative(NativeFn function) {
   ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
   native->function = function;
   return native;
 }
-/*>= Strings 99 < Hash Tables 99
+//<< Calls and Functions 99
 
+/*>= Strings 99 < Hash Tables 99
 static ObjString* allocateString(char* chars, int length) {
 */
-//>= Hash Tables 99
-
+//>> Hash Tables 99
 static ObjString* allocateString(char* chars, int length, uint32_t hash) {
-//>= Strings 99
+//<< Hash Tables 99
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
-//>= Hash Tables 99
+//>> Hash Tables 99
   string->hash = hash;
+//<< Hash Tables 99
 
-//>= Garbage Collection 99
+//>> Garbage Collection 99
   push(OBJ_VAL(string));
-//>= Hash Tables 99
+//<< Garbage Collection 99
+//>> Hash Tables 99
   tableSet(&vm.strings, string, NIL_VAL);
-//>= Garbage Collection 99
+//>> Garbage Collection 99
   pop();
-//>= Strings 99
+//<< Garbage Collection 99
 
+//<< Hash Tables 99
   return string;
 }
-//>= Hash Tables 99
+//>> Hash Tables 99
 
 static uint32_t hashString(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
@@ -140,28 +149,28 @@ static uint32_t hashString(const char* key, int length) {
 
   return hash;
 }
-//>= Strings 99
+//<< Hash Tables 99
 
 ObjString* takeString(char* chars, int length) {
 /*>= Strings 99 < Hash Tables 99
   return allocateString(chars, length);
 */
-//>= Hash Tables 99
+//>> Hash Tables 99
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
 
   return allocateString(chars, length, hash);
-//>= Strings 99
+//<< Hash Tables 99
 }
 
 ObjString* copyString(const char* chars, int length) {
-//>= Hash Tables 99
+//>> Hash Tables 99
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
   if (interned != NULL) return interned;
 
-//>= Strings 99
+//<< Hash Tables 99
   // Copy the characters to the heap so the object can own it.
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
@@ -170,11 +179,11 @@ ObjString* copyString(const char* chars, int length) {
 /*>= Strings 99 < Hash Tables 99
   return allocateString(heapChars, length);
 */
-//>= Hash Tables 99
+//>> Hash Tables 99
   return allocateString(heapChars, length, hash);
-//>= Strings 99
+//<< Hash Tables 99
 }
-//>= Closures 99
+//>> Closures 99
 
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
@@ -184,3 +193,4 @@ ObjUpvalue* newUpvalue(Value* slot) {
 
   return upvalue;
 }
+//<< Closures 99

@@ -7,7 +7,7 @@ Parses the Java and C source files and separates out their sections. This is
 used by both split_chapters.py (to make the chapter-specific source files to
 test against) and build.py (to include code sections into the book).
 
-There are several kinds of section markers:
+There are a few kinds of section markers:
 
 //>> [chapter] [number]
 
@@ -23,18 +23,13 @@ There are several kinds of section markers:
     surrounded it. The chapter and number are redundant, but are required to
     validate that we're exiting the section we intend to.
 
-//>= [chapter] [number]
-
-    This marks the following code as being added in snippet [number] in
-    [chapter]. The code then remains until the end of the book.
-
 /*>= [chapter] [number] < [end chapter] [end number]
 ...
 */
 
-    This marks the code in the rest of the block comment as being added in snippet
-    [number] in [chapter]. It is then replaced or removed in snippet [end number]
-    in [end chapter].
+    This marks the code in the rest of the block comment as being added in
+    section [number] in [chapter]. It is then replaced or removed in section
+    [end number] in [end chapter].
 
     Since this section doesn't end up in the final version of the code, it's
     commented out in the source.
@@ -80,7 +75,6 @@ C_CHAPTERS = [
   "Optimization"
 ]
 
-LINE_PATTERN = re.compile(r'//>= ([A-Za-z\s]+) (\d+)')
 BLOCK_PATTERN = re.compile(r'/\*>= ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
 BEGIN_SECTION_PATTERN = re.compile(r'//>> (\d+)')
 END_SECTION_PATTERN = re.compile(r'//<< (\d+)')
@@ -280,11 +274,6 @@ def load_file(source_code, source_dir, path):
       line = line.rstrip()
       handled = False
 
-      match = LINE_PATTERN.match(line)
-      if match:
-        pop()
-        push(match.group(1), int(match.group(2)))
-
       match = BLOCK_PATTERN.match(line)
       if match:
         push(match.group(1), int(match.group(2)), match.group(3), int(match.group(4)))
@@ -319,6 +308,8 @@ def load_file(source_code, source_dir, path):
           old_chapter_index = get_chapter_index(state.chapter)
           new_chapter_index = get_chapter_index(chapter)
 
+          if chapter == state.chapter and number == state.number:
+            fail('Pushing same state "{} {}"'.format(chapter, number))
           if chapter == state.chapter:
             fail('Pushing same chapter, just use "//>> {}"'.format(number))
           if new_chapter_index < old_chapter_index:

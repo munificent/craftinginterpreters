@@ -1,4 +1,4 @@
-//>= Chunks of Bytecode 99
+//>> Chunks of Bytecode 99
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,9 +7,10 @@
 #include "chunk.h"
 #include "debug.h"
 */
-//>= A Virtual Machine 99
+//>> A Virtual Machine 99
 #include "vm.h"
-//>= Scanning on Demand 99
+//<< A Virtual Machine 99
+//>> Scanning on Demand 99
 
 #define MAX_LINE_LENGTH 1024
 
@@ -72,10 +73,10 @@ static void runFile(const char* path) {
   if (result == INTERPRET_COMPILE_ERROR) exit(65);
   if (result == INTERPRET_RUNTIME_ERROR) exit(70);
 }
-//>= Chunks of Bytecode 99
+//<< Scanning on Demand 99
 
 int main(int argc, const char* argv[]) {
-//>= A Virtual Machine 99
+//>> A Virtual Machine 99
   initVM();
 
 /*>= Chunks of Bytecode 99 < Scanning on Demand 99
@@ -111,7 +112,7 @@ int main(int argc, const char* argv[]) {
 
   interpret(&chunk);
 */
-//>= Scanning on Demand 99
+//>> Scanning on Demand 99
   if (argc == 1) {
     repl();
   } else if (argc == 2) {
@@ -120,9 +121,9 @@ int main(int argc, const char* argv[]) {
     fprintf(stderr, "Usage: clox [path]\n");
     exit(64);
   }
-//>= A Virtual Machine 99
+//<< Scanning on Demand 99
 
   endVM();
-//>= Chunks of Bytecode 99
+//<< A Virtual Machine 99
   return 0;
 }

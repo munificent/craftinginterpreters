@@ -1,4 +1,4 @@
-//>= Representing Code 99
+//>> Representing Code 99
 package com.craftinginterpreters.lox;
 
 import java.util.Arrays;
@@ -7,35 +7,34 @@ import java.util.Arrays;
 /*>= Representing Code 99 < Statements and State 99
 class AstPrinter implements Expr.Visitor<String> {
 */
-//>= Statements and State 99
+//>> Statements and State 99
 class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
-//>= Representing Code 99
+//<< Statements and State 99
   String print(Expr expr) {
     return expr.accept(this);
   }
-//>= Statements and State 99
+//>> Statements and State 99
 
   String print(Stmt stmt) {
     return stmt.accept(this);
   }
-//>= Statements and State 99
 
   @Override
   public String visitBlockStmt(Stmt.Block stmt) {
     return join("block", stmt.statements);
   }
-//>= Classes 99
+//>> Classes 99
 
   @Override
   public String visitClassStmt(Stmt.Class stmt) {
     StringBuilder builder = new StringBuilder();
     builder.append("(class " + stmt.name.text);
-//>= Inheritance 99
+//>> Inheritance 99
 
     if (stmt.superclass != null) {
       builder.append(" < " + print(stmt.superclass));
     }
-//>= Classes 99
+//<< Inheritance 99
 
     for (Stmt.Function method : stmt.methods) {
       builder.append(" " + print(method));
@@ -44,13 +43,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-//>= Statements and State 99
+//<< Classes 99
 
   @Override
   public String visitExpressionStmt(Stmt.Expression stmt) {
     return join(";", stmt.expression);
   }
-//>= Functions 99
+//>> Functions 99
 
   @Override
   public String visitFunctionStmt(Stmt.Function stmt) {
@@ -65,7 +64,8 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(") " + join(stmt.body) + ")");
     return builder.toString();
   }
-//>= Control Flow 99
+//<< Functions 99
+//>> Control Flow 99
 
   @Override
   public String visitIfStmt(Stmt.If stmt) {
@@ -76,20 +76,20 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return join("if", stmt.condition, "then", stmt.thenBranch,
         "else", stmt.elseBranch);
   }
-//>= Statements and State 99
+//<< Control Flow 99
 
   @Override
   public String visitPrintStmt(Stmt.Print stmt) {
     return join("print", stmt.expression);
   }
-//>= Functions 99
+//>> Functions 99
 
   @Override
   public String visitReturnStmt(Stmt.Return stmt) {
     if (stmt.value == null) return "(return)";
     return join("return", stmt.value);
   }
-//>= Statements and State 99
+//<< Functions 99
 
   @Override
   public String visitVarStmt(Stmt.Var stmt) {
@@ -99,37 +99,38 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     return join("var", stmt.name.text, "=", stmt.initializer);
   }
-//>= Control Flow 99
+//>> Control Flow 99
 
   @Override
   public String visitWhileStmt(Stmt.While stmt) {
     return join("while", stmt.condition, stmt.body);
   }
-//>= Statements and State 99
+//<< Control Flow 99
 
   @Override
   public String visitAssignExpr(Expr.Assign expr) {
     return join("=", expr.name.text, expr.value);
   }
-//>= Representing Code 99
+//<< Statements and State 99
 
   @Override
   public String visitBinaryExpr(Expr.Binary expr) {
     return join(expr.operator, expr.left, expr.right);
   }
-//>= Functions 99
+//>> Functions 99
 
   @Override
   public String visitCallExpr(Expr.Call expr) {
     return join("call", expr.callee, expr.arguments);
   }
-//>= Classes 99
+//<< Functions 99
+//>> Classes 99
 
   @Override
   public String visitGetExpr(Expr.Get expr) {
     return join(".", expr.object, expr.name.text);
   }
-//>= Representing Code 99
+//<< Classes 99
 
   @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
@@ -145,43 +146,46 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     return expr.value.toString();
   }
-//>= Control Flow 99
+//>> Control Flow 99
 
   @Override
   public String visitLogicalExpr(Expr.Logical expr) {
     return join(expr.operator, expr.left, expr.right);
   }
-//>= Classes 99
+//<< Control Flow 99
+//>> Classes 99
 
   @Override
   public String visitSetExpr(Expr.Set expr) {
     return join("=", expr.object, expr.name.text, expr.value);
   }
-//>= Inheritance 99
+//<< Classes 99
+//>> Inheritance 99
 
   @Override
   public String visitSuperExpr(Expr.Super expr) {
     return join("super", expr.method);
   }
-//>= Classes 99
+//<< Inheritance 99
+//>> Classes 99
 
   @Override
   public String visitThisExpr(Expr.This expr) {
     return "this";
   }
-//>= Representing Code 99
+//<< Classes 99
 
   @Override
   public String visitUnaryExpr(Expr.Unary expr) {
     return join(expr.operator, expr.right);
   }
-//>= Statements and State 99
+//>> Statements and State 99
 
   @Override
   public String visitVariableExpr(Expr.Variable expr) {
     return expr.name.text;
   }
-//>= Representing Code 99
+//<< Statements and State 99
 
   private String join(Object... parts) {
     StringBuilder builder = new StringBuilder();
@@ -200,10 +204,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
       if (part instanceof Expr) {
         builder.append(print((Expr)part));
-//>= Statements and State 99
+//>> Statements and State 99
       } else if (part instanceof Stmt) {
         builder.append(print((Stmt) part));
-//>= Representing Code 99
+//<< Statements and State 99
       } else if (part instanceof Token) {
         builder.append(((Token) part).text);
       } else if (part instanceof Iterable) {
@@ -227,5 +231,4 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     System.out.println(new AstPrinter().print(expression));
   }
 */
-//>= Representing Code 99
 }

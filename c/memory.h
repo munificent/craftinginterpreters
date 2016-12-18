@@ -1,11 +1,11 @@
-//>= Chunks of Bytecode 99
+//>> Chunks of Bytecode 99
 #ifndef clox_memory_h
 #define clox_memory_h
 
-//>= Strings 99
+//>> Strings 99
 #include "object.h"
 
-//>= Chunks of Bytecode 99
+//<< Strings 99
 #define ALLOCATE(type, count) (type*)reallocate(NULL, 0, sizeof(type) * (count))
 #define FREE(type, pointer) reallocate(pointer, sizeof(type), 0)
 
@@ -17,13 +17,14 @@
     reallocate(pointer, sizeof(type) * (oldCount), 0)
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize);
-//>= Garbage Collection 99
+//>> Garbage Collection 99
 
 void grayObject(Obj* object);
 void grayValue(Value value);
 void collectGarbage();
-//>= Strings 99
+//<< Garbage Collection 99
+//>> Strings 99
 void freeObjects();
-//>= Chunks of Bytecode 99
+//<< Strings 99
 
 #endif
