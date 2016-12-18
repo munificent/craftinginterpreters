@@ -1,4 +1,4 @@
-//>= Scanning on Demand 1
+//>= Scanning on Demand 99
 #include <stdio.h>
 #include <string.h>
 
@@ -108,7 +108,7 @@ static Token errorToken(const char* message) {
   token.start = message;
   token.length = (int)strlen(message);
   token.line = scanner.line;
-  
+
   return token;
 }
 

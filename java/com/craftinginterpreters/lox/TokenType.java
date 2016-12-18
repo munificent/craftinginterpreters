@@ -1,4 +1,4 @@
-//>= Scanning 5
+//>> Scanning 5
 package com.craftinginterpreters.lox;
 
 enum TokenType {

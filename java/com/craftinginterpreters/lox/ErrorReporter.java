@@ -1,4 +1,4 @@
-//>= Scanning 3
+//>> Scanning 3
 package com.craftinginterpreters.lox;
 
 class ErrorReporter {

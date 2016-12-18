@@ -7,31 +7,45 @@ Parses the Java and C source files and separates out their sections. This is
 used by both split_chapters.py (to make the chapter-specific source files to
 test against) and build.py (to include code sections into the book).
 
-There are two kinds of section markers:
+There are several kinds of section markers:
+
+//>> [chapter] [number]
+
+    This marks the following code as being added in snippet [number] in
+    [chapter]. A section marked like this must be closed with...
+
+    If this is beginning a new section in the same chapter, the name can be
+    omitted.
+
+//<< [chapter] [number]
+
+    Ends the previous innermost //>> section and returns the whatever section
+    surrounded it. The chapter and number are redundant, but are required to
+    validate that we're exiting the section we intend to.
 
 //>= [chapter] [number]
 
-This marks the following code as being added in snippet [number] in [chapter].
-The code then remains until the end of the book.
+    This marks the following code as being added in snippet [number] in
+    [chapter]. The code then remains until the end of the book.
 
 /*>= [chapter] [number] < [end chapter] [end number]
 ...
 */
 
-This marks the code in the rest of the block comment as being added in snippet
-[number] in [chapter]. It is then replaced or removed in snippet [end number]
-in [end chapter].
+    This marks the code in the rest of the block comment as being added in snippet
+    [number] in [chapter]. It is then replaced or removed in snippet [end number]
+    in [end chapter].
 
-Since this section doesn't end up in the final version of the code, it's
-commented out in the source.
+    Since this section doesn't end up in the final version of the code, it's
+    commented out in the source.
 
-The effect of both of these is that the source we hand-edit and store on disc
-also reflects the final version of the code.
+    After the block comment, this returns to the previous section, if any.
 
 """
 
 import os
 import re
+import sys
 
 JAVA_CHAPTERS = [
   "Scanning",
@@ -68,12 +82,21 @@ C_CHAPTERS = [
 
 LINE_PATTERN = re.compile(r'//>= ([A-Za-z\s]+) (\d+)')
 BLOCK_PATTERN = re.compile(r'/\*>= ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
+BEGIN_SECTION_PATTERN = re.compile(r'//>> (\d+)')
+END_SECTION_PATTERN = re.compile(r'//<< (\d+)')
+BEGIN_CHAPTER_PATTERN = re.compile(r'//>> ([A-Za-z\s]+) (\d+)')
+END_CHAPTER_PATTERN = re.compile(r'//<< ([A-Za-z\s]+) (\d+)')
 
 class SourceCode:
   """ All of the source files in the book. """
 
   def __init__(self):
     self.files = []
+
+    # The chapter/number pairs of every parsed section. Used to ensure we don't
+    # try to create the same section twice.
+    self.all_sections = {}
+
 
   def find_all(self, chapter):
     """ Gets the list of sections that occur in [chapter]. """
@@ -184,6 +207,14 @@ class Section:
     self.removed = []
 
 
+class ParseState:
+  def __init__(self, parent, chapter, number, end_chapter=None, end_number=None):
+    self.parent = parent
+    self.chapter = chapter
+    self.number = number
+    self.end_chapter = end_chapter
+    self.end_number = end_number
+
 def chapter_name(number):
   """Given a chapter number, returns its name."""
   if number < 14:
@@ -212,10 +243,36 @@ def load_file(source_code, source_dir, path):
 
   file = SourceFile(relative)
   source_code.files.append(file)
-  chapter = None
-  number = None
-  end_chapter = None
-  end_number = None
+
+  line_num = 1
+  state = ParseState(None, None, None)
+  handled = False
+
+  def fail(message):
+    print("{} line {}: {}".format(relative, line_num, message), file=sys.stderr)
+    sys.exit(1)
+
+  def push(chapter, number, end_chapter=None, end_number=None):
+    nonlocal state
+    nonlocal handled
+
+    # 99 is a magic number for sections in chapters that haven't been done yet.
+    # Don't worry about duplication.
+    if number != 99:
+      name = "{} {}".format(chapter, number)
+      if name in source_code.all_sections:
+        fail('Duplicate section "{}" is also in {}'.format(name,
+            source_code.all_sections[name]))
+      source_code.all_sections[name] = "{} line {}".format(relative, line_num)
+
+    state = ParseState(state, chapter, number, end_chapter, end_number)
+    handled = True
+
+  def pop():
+    nonlocal state
+    nonlocal handled
+    state = state.parent
+    handled = True
 
   # Split the source file into chunks.
   with open(path, 'r') as input:
@@ -225,32 +282,82 @@ def load_file(source_code, source_dir, path):
 
       match = LINE_PATTERN.match(line)
       if match:
-        chapter = match.group(1)
-        number = int(match.group(2))
-        end_chapter = None
-        end_number = None
-        handled = True
+        pop()
+        push(match.group(1), int(match.group(2)))
 
       match = BLOCK_PATTERN.match(line)
       if match:
+        push(match.group(1), int(match.group(2)), match.group(3), int(match.group(4)))
+
+      if line.strip() == '*/' and state.end_chapter:
+        pop()
+
+      match = BEGIN_SECTION_PATTERN.match(line)
+      if match:
+        number = int(match.group(1))
+        if number < state.number:
+          fail("Can't push an earlier number {} from {}.".format(number, state.number))
+        elif number == state.number:
+          fail("Can't push to same number {}.".format(number))
+        push(state.chapter, number)
+
+      match = END_SECTION_PATTERN.match(line)
+      if match:
+        number = int(match.group(1))
+        if number != state.number:
+          fail("Expecting to pop {} but got {}.".format(state.number, number))
+        if state.parent.chapter == None:
+          fail('Cannot pop last state "{} {}".'.format(state.chapter, state.number))
+        pop()
+
+      match = BEGIN_CHAPTER_PATTERN.match(line)
+      if match:
         chapter = match.group(1)
         number = int(match.group(2))
-        end_chapter = match.group(3)
-        end_number = int(match.group(4))
-        handled = True
 
-      if line.strip() == '*/' and end_chapter:
-        chapter = None
-        number = None
-        end_chapter = None
-        end_number = None
-        handled = True
+        if state.chapter != None:
+          old_chapter_index = get_chapter_index(state.chapter)
+          new_chapter_index = get_chapter_index(chapter)
+
+          if chapter == state.chapter:
+            fail('Pushing same chapter, just use "//>> {}"'.format(number))
+          if new_chapter_index < old_chapter_index:
+            fail('Can\'t push earlier chapter "{}" from "{}".'.format(
+                chapter, state.chapter))
+        push(chapter, number)
+
+      match = END_CHAPTER_PATTERN.match(line)
+      if match:
+        chapter = match.group(1)
+        number = int(match.group(2))
+        if chapter != state.chapter or number != state.number:
+          fail('Expecting to pop "{} {}" but got "{} {}".'.format(
+              state.chapter, state.number, chapter, number))
+        if state.parent.chapter == None:
+          fail('Cannot pop last state "{} {}".'.format(state.chapter, state.number))
+        pop()
 
       if not handled:
-        if not chapter:
-          raise "{}: No section in effect".format(relative)
+        if not state.chapter:
+          fail("No section in effect.".format(relative))
 
-        file.lines.append(SourceLine(line, chapter, number, end_chapter, end_number))
+        file.lines.append(SourceLine(line, state.chapter, state.number, state.end_chapter, state.end_number))
+
+      line_num += 1
+
+    # ".parent.parent" because there is always the top "null" state.
+    if state.parent != None and state.parent.parent != None:
+      print("{}: Ended with more than one state on the stack.".format(relative), file=sys.stderr)
+      s = state
+      while s.parent != None:
+        print("  {} {}".format(s.chapter, s.number), file=sys.stderr)
+        s = s.parent
+      sys.exit(1)
+
+  # TODO: Validate that we don't define two sections with the same chapter and
+  # number. A section may end up in disjoint lines in the final output because
+  # a later section is inserted in it, but it shouldn't be explicitly authored
+  # that way.
 
 
 def load():

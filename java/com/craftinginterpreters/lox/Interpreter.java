@@ -1,47 +1,47 @@
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 package com.craftinginterpreters.lox;
 
-//>= Functions 1
+//>= Functions 99
 import java.util.ArrayList;
-//>= Classes 1
+//>= Classes 99
 import java.util.HashMap;
-//>= Statements and State 1
+//>= Statements and State 99
 import java.util.List;
-//>= Resolving and Binding 1
+//>= Resolving and Binding 99
 import java.util.Map;
-//>= Statements and State 1
+//>= Statements and State 99
 
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 // Tree-walk interpreter.
-/*>= Evaluating Expressions 1 < Statements and State 1
+/*>= Evaluating Expressions 99 < Statements and State 99
 class Interpreter implements Expr.Visitor<Object> {
 */
-//>= Statements and State 1
+//>= Statements and State 99
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
   private final ErrorReporter reporter;
-/*>= Statements and State 1 < Functions 1
+/*>= Statements and State 99 < Functions 99
 
   private Environment environment = new Environment();
 */
-//>= Functions 1
+//>= Functions 99
 
   final Environment globals = new Environment();
   private Environment environment = globals;
-//>= Resolving and Binding 1
+//>= Resolving and Binding 99
 
   private Map<Expr, Integer> locals;
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   Interpreter(ErrorReporter reporter) {
     this.reporter = reporter;
 
-//>= Functions 1
+//>= Functions 99
     globals.define("clock", new NativeFunction(0, this::clock));
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
   }
 
-/*>= Evaluating Expressions 1 < Statements and State 1
+/*>= Evaluating Expressions 99 < Statements and State 99
   void interpret(Expr expression) {
     try {
       print(evaluate(expression));
@@ -50,14 +50,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/*>= Statements and State 1 < Resolving and Binding 1
+/*>= Statements and State 99 < Resolving and Binding 99
   void interpret(List<Stmt> statements) {
 */
-//>= Resolving and Binding 1
+//>= Resolving and Binding 99
   void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
     this.locals = locals;
 
-//>= Statements and State 1
+//>= Statements and State 99
     try {
       for (Stmt statement : statements) {
         execute(statement);
@@ -66,17 +66,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       reporter.runtimeError(error.token.line, error.getMessage());
     }
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   private void execute(Stmt stmt) {
     stmt.accept(this);
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   void executeBody(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
@@ -90,21 +90,21 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       this.environment = previous;
     }
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
     executeBody(stmt.statements, environment.enterScope());
     return null;
   }
-//>= Classes 1
+//>= Classes 99
 
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
     environment.declare(stmt.name);
 
     Map<String, LoxFunction> methods = new HashMap<>();
-//>= Inheritance 1
+//>= Inheritance 99
     Object superclass = null;
     if (stmt.superclass != null) {
       superclass = evaluate(stmt.superclass);
@@ -117,17 +117,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       environment.define("super", superclass);
     }
 
-//>= Classes 1
+//>= Classes 99
     for (Stmt.Function method : stmt.methods) {
       LoxFunction function = new LoxFunction(method, environment,
           method.name.text.equals("init"));
         methods.put(method.name.text, function);
     }
 
-/*>= Classes 1 < Inheritance 1
+/*>= Classes 99 < Inheritance 99
     LoxClass klass = new LoxClass(stmt.name.text, methods);
 */
-//>= Inheritance 1
+//>= Inheritance 99
     LoxClass klass = new LoxClass(stmt.name.text,
         (LoxClass)superclass, methods);
 
@@ -135,32 +135,32 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       environment = environment.enclosing;
     }
 
-//>= Classes 1
+//>= Classes 99
     environment.assign(stmt.name, klass);
     return null;
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
     return null;
   }
-//>= Functions 1
+//>= Functions 99
 
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
     environment.declare(stmt.name);
-/*>= Functions 1 < Classes 1
+/*>= Functions 99 < Classes 99
     LoxFunction function = new LoxFunction(stmt, environment);
 */
-//>= Classes 1
+//>= Classes 99
     LoxFunction function = new LoxFunction(stmt, environment, false);
-//>= Functions 1
+//>= Functions 99
     environment.assign(stmt.name, function);
     return null;
   }
-//>= Control Flow 1
+//>= Control Flow 99
 
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
@@ -171,7 +171,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return null;
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   @Override
   public Void visitPrintStmt(Stmt.Print stmt) {
@@ -180,7 +180,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 
-//>= Functions 1
+//>= Functions 99
 
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
@@ -189,7 +189,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new Return(value);
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
@@ -201,7 +201,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     environment.define(stmt.name.text, value);
     return null;
   }
-//>= Control Flow 1
+//>= Control Flow 99
 
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
@@ -210,27 +210,27 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return null;
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-/*>= Statements and State 1 < Resolving and Binding 1
+/*>= Statements and State 99 < Resolving and Binding 99
     environment.assign(expr.name, value);
 */
-//>= Resolving and Binding 1
+//>= Resolving and Binding 99
     Integer distance = locals.get(expr);
     if (distance != null) {
       environment.assignAt(distance, expr.name, value);
     } else {
       globals.assign(expr.name, value);
     }
-//>= Statements and State 1
+//>= Statements and State 99
 
     return value;
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
@@ -284,7 +284,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     // Unreachable.
     return null;
   }
-//>= Functions 1
+//>= Functions 99
 
   @Override
   public Object visitCallExpr(Expr.Call expr) {
@@ -309,7 +309,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return function.call(this, arguments);
   }
-//>= Classes 1
+//>= Classes 99
 
   @Override
   public Object visitGetExpr(Expr.Get expr) {
@@ -321,7 +321,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     throw new RuntimeError(expr.name,
         "Only instances have properties.");
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
@@ -332,7 +332,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitLiteralExpr(Expr.Literal expr) {
     return expr.value;
   }
-//>= Control Flow 1
+//>= Control Flow 99
 
   @Override
   public Object visitLogicalExpr(Expr.Logical expr) {
@@ -348,7 +348,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return evaluate(expr.right);
   }
-//>= Classes 1
+//>= Classes 99
 
   @Override
   public Object visitSetExpr(Expr.Set expr) {
@@ -362,7 +362,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new RuntimeError(expr.name, "Only instances have fields.");
   }
-//>= Inheritance 1
+//>= Inheritance 99
 
   @Override
   public Object visitSuperExpr(Expr.Super expr) {
@@ -378,13 +378,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return method;
   }
-//>= Classes 1
+//>= Classes 99
 
   @Override
   public Object visitThisExpr(Expr.This expr) {
     return lookUpVariable(expr.keyword, expr);
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   @Override
   public Object visitUnaryExpr(Expr.Unary expr) {
@@ -401,18 +401,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     // Unreachable.
     return null;
   }
-//>= Statements and State 1
+//>= Statements and State 99
 
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-/*>= Statements and State 1 < Resolving and Binding 1
+/*>= Statements and State 99 < Resolving and Binding 99
     return environment.get(expr.name);
 */
-//>= Resolving and Binding 1
+//>= Resolving and Binding 99
     return lookUpVariable(expr.name, expr);
-//>= Statements and State 1
+//>= Statements and State 99
   }
-//>= Resolving and Binding 1
+//>= Resolving and Binding 99
 
   private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);
@@ -422,7 +422,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       return globals.get(name);
     }
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   private void checkNumberOperands(Token operator,
                                    Object left, Object right) {
@@ -440,18 +440,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new RuntimeError(operator, "Operand must be a number.");
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   private Object print(Object argument) {
     System.out.println(stringify(argument));
     return argument;
   }
-//>= Functions 1
+//>= Functions 99
 
   private Object clock(List<Object> arguments) {
     return (double)System.currentTimeMillis() / 1000.0;
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   private boolean isTrue(Object object) {
     if (object == null) return false;
@@ -466,7 +466,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return a.equals(b);
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 
   private String stringify(Object object) {
     if (object == null) return "nil";
@@ -482,5 +482,5 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return object.toString();
   }
-//>= Evaluating Expressions 1
+//>= Evaluating Expressions 99
 }

@@ -1,4 +1,4 @@
-//>= Chunks of Bytecode 1
+//>= Chunks of Bytecode 99
 #ifndef clox_chunk_h
 #define clox_chunk_h
 
@@ -7,47 +7,47 @@
 
 typedef enum {
   OP_CONSTANT,
-//>= Types of Values 1
+//>= Types of Values 99
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
-//>= Global Variables 1
+//>= Global Variables 99
   OP_POP,
-//>= Local Variables 1
+//>= Local Variables 99
   OP_GET_LOCAL,
   OP_SET_LOCAL,
-//>= Global Variables 1
+//>= Global Variables 99
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
-//>= Closures 1
+//>= Closures 99
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
-//>= Classes and Instances 1
+//>= Classes and Instances 99
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
-//>= Superclasses 1
+//>= Superclasses 99
   OP_GET_SUPER,
-//>= Types of Values 1
+//>= Types of Values 99
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
-//>= A Virtual Machine 1
+//>= A Virtual Machine 99
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
-//>= Types of Values 1
+//>= Types of Values 99
   OP_NOT,
-//>= A Virtual Machine 1
+//>= A Virtual Machine 99
   OP_NEGATE,
-//>= Global Variables 1
+//>= Global Variables 99
   OP_PRINT,
-//>= Jumping Forward and Back 1
+//>= Jumping Forward and Back 99
   OP_JUMP,
   OP_JUMP_IF_FALSE,
   OP_LOOP,
-//>= Calls and Functions 1
+//>= Calls and Functions 99
   OP_CALL_0,
   OP_CALL_1,
   OP_CALL_2,
@@ -57,7 +57,7 @@ typedef enum {
   OP_CALL_6,
   OP_CALL_7,
   OP_CALL_8,
-//>= Methods and Initializers 1
+//>= Methods and Initializers 99
   OP_INVOKE_0,
   OP_INVOKE_1,
   OP_INVOKE_2,
@@ -67,7 +67,7 @@ typedef enum {
   OP_INVOKE_6,
   OP_INVOKE_7,
   OP_INVOKE_8,
-//>= Superclasses 1
+//>= Superclasses 99
   OP_SUPER_0,
   OP_SUPER_1,
   OP_SUPER_2,
@@ -77,18 +77,18 @@ typedef enum {
   OP_SUPER_6,
   OP_SUPER_7,
   OP_SUPER_8,
-//>= Closures 1
+//>= Closures 99
   OP_CLOSURE,
   OP_CLOSE_UPVALUE,
-//>= A Virtual Machine 1
+//>= A Virtual Machine 99
   OP_RETURN,
-//>= Classes and Instances 1
+//>= Classes and Instances 99
   OP_CLASS,
-//>= Superclasses 1
+//>= Superclasses 99
   OP_SUBCLASS,
-//>= Methods and Initializers 1
+//>= Methods and Initializers 99
   OP_METHOD
-//>= Chunks of Bytecode 1
+//>= Chunks of Bytecode 99
 } OpCode;
 
 typedef struct {

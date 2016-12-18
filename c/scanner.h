@@ -1,4 +1,4 @@
-//>= Scanning on Demand 1
+//>= Scanning on Demand 99
 #ifndef clox_scanner_h
 #define clox_scanner_h
 

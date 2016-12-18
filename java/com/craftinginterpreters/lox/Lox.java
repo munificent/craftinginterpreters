@@ -1,27 +1,31 @@
-//>= Scanning 1
+//>> Scanning 1
 package com.craftinginterpreters.lox;
 
+//>> 6
 import java.io.BufferedReader;
+//<< 6
 import java.io.IOException;
+//>> 7
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-//>= Resolving and Binding 1
+//<< 7
+//>> Resolving and Binding 99
 import java.util.Map;
-//>= Scanning 1
+//<< Resolving and Binding 99
 
 public class Lox {
+//>> 8
   private final ErrorReporter reporter = new ErrorReporter();
-//>= Evaluating Expressions 1
+//>> Evaluating Expressions 99
   private final Interpreter interpreter;
-//>= Evaluating Expressions 1
 
   private Lox() {
     interpreter = new Interpreter(reporter);
   }
-//>= Scanning 1
+//<< Evaluating Expressions 99
 
   private void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -46,6 +50,7 @@ public class Lox {
     }
   }
 
+//<< 8
   public static void main(String[] args) throws IOException {
     Lox lox = new Lox();
 
@@ -57,34 +62,36 @@ public class Lox {
       lox.repl();
     }
   }
+//>> 9
 
-//>= Scanning 1
   private void run(String source) {
     Scanner scanner = new Scanner(source, reporter);
     List<Token> tokens = scanner.scanTokens();
-/*>= Scanning 1 < Representing Code 1
+/*>= Scanning 10 < Representing Code 1
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
     }
 */
-//>= Parsing Expressions 1
+//>> Parsing Expressions 99
 
     Parser parser = new Parser(tokens, reporter);
-/*>= Parsing Expressions 1 < Statements and State 1
+//<< Parsing Expressions 99
+/*>= Parsing Expressions 99 < Statements and State 99
     Expr expression = parser.parseExpression();
 */
-/*>= Parsing Expressions 1 < Evaluating Expressions 1
+/*>= Parsing Expressions 99 < Evaluating Expressions 99
 
     // For now, just print the tree.
     System.out.println(new AstPrinter().print(expression));
 */
-//>= Statements and State 1
+//>> Statements and State 99
     List<Stmt> statements = parser.parseProgram();
 
     // Stop if there was a syntax error.
     if (reporter.hadError) return;
-//>= Resolving and Binding 1
+//<< Statements and State 99
+//>> Resolving and Binding 99
 
     Resolver resolver = new Resolver(reporter);
     Map<Expr, Integer> locals = resolver.resolve(statements);
@@ -92,14 +99,14 @@ public class Lox {
     // Stop if there was a resolution error.
     if (reporter.hadError) return;
 
-/*>= Evaluating Expressions 1 < Statements and State 1
+/*>= Evaluating Expressions 99 < Statements and State 99
     interpreter.interpret(expression);
 */
-/*>= Statements and State 1 < Resolving and Binding 1
+/*>= Statements and State 99 < Resolving and Binding 99
     interpreter.interpret(statements);
 */
-//>= Resolving and Binding 1
     interpreter.interpret(statements, locals);
-//>= Scanning 1
+//<< Resolving and Binding 99
   }
+//<< 9
 }

@@ -1,13 +1,13 @@
-//>= Chunks of Bytecode 1
+//>= Chunks of Bytecode 99
 #include <stdlib.h>
 
 #include "chunk.h"
 
 #include "memory.h"
 #include "value.h"
-//>= Garbage Collection 1
+//>= Garbage Collection 99
 #include "vm.h"
-//>= Chunks of Bytecode 1
+//>= Chunks of Bytecode 99
 
 void initChunk(Chunk* chunk) {
   chunk->count = 0;
@@ -31,7 +31,7 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
     chunk->code = GROW_ARRAY(chunk->code, uint8_t, oldCapacity, chunk->capacity);
     chunk->lines = GROW_ARRAY(chunk->lines, int, oldCapacity, chunk->capacity);
   }
-  
+
   chunk->code[chunk->count] = byte;
   chunk->lines[chunk->count++] = line;
 }
@@ -43,18 +43,18 @@ int addConstant(Chunk* chunk, Value value) {
       return i;
     }
   }
-  
+
   if (chunk->constants.count == UINT8_COUNT) return -1;
-//>= Garbage Collection 1
-  
+//>= Garbage Collection 99
+
   // Make sure the value doesn't get collected when resizing the array.
   push(value);
-  
-//>= Chunks of Bytecode 1
+
+//>= Chunks of Bytecode 99
   growArray(&chunk->constants);
   chunk->constants.values[chunk->constants.count] = value;
-//>= Garbage Collection 1
+//>= Garbage Collection 99
   pop();
-//>= Chunks of Bytecode 1
+//>= Chunks of Bytecode 99
   return chunk->constants.count++;
 }
