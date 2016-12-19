@@ -127,16 +127,16 @@ don&rsquo;t have a Lox interpreter yet, since you haven&rsquo;t built one!</p>
 <p>Here&rsquo;s your very first taste of <span name="salmon">Lox</span>:</p>
 <aside name="salmon">
 <p>Your first taste of Lox, the language, that is. I don&rsquo;t know if you&rsquo;ve ever had
-the cured, cold-smoked salmon before. If not, give it a try too. It&rsquo;s delicious.</p>
+the cured, cold-smoked salmon before. If not, give it a try too.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="c1">// Your first Lox program!</span>
-<span class="n">print</span><span class="p">(</span><span class="s">&quot;Hello, world!&quot;</span><span class="p">);</span>
+<span class="n">print</span> <span class="s">&quot;Hello, world!&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<p>There&rsquo;s not much to this, but already its colors are starting to show. The <code>//</code>
-line comment, those parentheses after the function name, and especially that
-trailing semicolon signal that Lox&rsquo;s syntax is a member of the C family.</p>
+<p>As that <code>//</code> line comment and the trailing semicolon imply, Lox&rsquo;s syntax is a
+member of the C family. (There are no parentheses around the string because
+<code>print</code> is a built-in statement, and not a library function.)</p>
 <p>Now, I won&rsquo;t claim that <span name="c">C</span> has a <em>great</em> syntax. If we
 wanted something elegant, we&rsquo;d probably mimic Pascal or Smalltalk. If we wanted
 to go full Scandinavian-furniture-minimalism, we&rsquo;d do a Scheme. Those all have
@@ -406,25 +406,37 @@ typical operator menagerie out of our little language. No bitwise, shift,
 modulo, or conditional operators. I&rsquo;m not grading you, but you will get bonus
 points in my heart if you augment your own implementation of Lox with them.</p>
 <h2><a href="#statements" name="statements"><small>3&#8202;.&#8202;5</small> Statements</a></h2>
-<p>That&rsquo;s all the expression forms, so let&rsquo;s move up a level. Now we&rsquo;re at
-statements. Where an expression&rsquo;s main job is to produce a <em>value</em>, a
-statement&rsquo;s job is to produce an <em>effect</em>. Since, by definition, statements
-don&rsquo;t evaluate to a value, to be useful they have to otherwise change the world
-in same way&#8202;&mdash;&#8202;usually modifying some state, reading input, or producing output.</p>
-<p>You&rsquo;ve actually seen a bunch of statements already. Each line of code above is
-an expression followed by a <code>;</code>. The semicolon promotes an expression to
-statement-hood. This is called (imaginatively enough), an <strong>expression
-statement</strong>.</p>
-<div class="codehilite"><pre><span></span><span class="s">&quot;A bare expression&quot;</span>
-<span class="s">&quot;An expression *statement*&quot;</span><span class="p">;</span> <span class="c1">// &lt;-- Statement-ize!</span>
+<p>That&rsquo;s the expression forms (except for a couple related to specific features
+that we&rsquo;ll get to later), so let&rsquo;s move up a level. Now we&rsquo;re at statements.
+Where an expression&rsquo;s main job is to produce a <em>value</em>, a statement&rsquo;s job is to
+produce an <em>effect</em>. Since, by definition, statements don&rsquo;t evaluate to a value,
+to be useful they have to otherwise change the world in same way&#8202;&mdash;&#8202;usually
+modifying some state, reading input, or producing output.</p>
+<p>You&rsquo;ve seen a couple of kinds of statements already. The first one was:</p>
+<div class="codehilite"><pre><span></span><span class="n">print</span> <span class="s">&quot;Hello, world!&quot;</span><span class="p">;</span>
 </pre></div>
 
 
+<p>A <span name="print">print statement</span> evaluates a single expression
+and displays the result to the user. You&rsquo;ve also seen some statements like:</p>
+<aside name="print">
+<p>Baking <code>print</code> into the language instead of just making it a core library
+function is a hack. But it&rsquo;s a <em>useful</em> hack for us: it means our in-progress
+interpreter can start producing output before we&rsquo;ve implemented all of the
+machinery required to define functions, look them up by name, and call them.</p>
+</aside>
+<div class="codehilite"><pre><span></span><span class="s">&quot;some expression&quot;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>An expression followed by a semicolon (<code>;</code>) promotes the expression to
+statement-hood. This is called (imaginatively enough), an <strong>expression
+statement</strong>.</p>
 <p>If you want to pack a series of statements where a single one is expected, you
-can wrap them up in a <strong>block</strong>:</p>
+can wrap them up in a block:</p>
 <div class="codehilite"><pre><span></span><span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="s">&quot;One statement&quot;</span><span class="p">);</span>
-  <span class="n">print</span><span class="p">(</span><span class="s">&quot;Two statements.&quot;</span><span class="p">);</span>
+  <span class="n">print</span> <span class="s">&quot;One statement&quot;</span><span class="p">;</span>
+  <span class="n">print</span> <span class="s">&quot;Two statements.&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -446,9 +458,9 @@ itself.</p>
 <p>Once declared, you can, naturally, access and assign a variable using its name:</p>
 <p><span name="breakfast"></span></p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">breakfast</span> <span class="o">=</span> <span class="s">&quot;bagels&quot;</span><span class="p">;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">breakfast</span><span class="p">);</span> <span class="c1">// &quot;bagels&quot;.</span>
+<span class="n">print</span> <span class="n">breakfast</span><span class="p">;</span> <span class="c1">// &quot;bagels&quot;.</span>
 <span class="n">breakfast</span> <span class="o">=</span> <span class="s">&quot;beignets&quot;</span><span class="p">;</span>
-<span class="n">print</span><span class="p">(</span><span class="n">breakfast</span><span class="p">);</span> <span class="c1">// &quot;beignets&quot;.</span>
+<span class="n">print</span> <span class="n">breakfast</span><span class="p">;</span> <span class="c1">// &quot;beignets&quot;.</span>
 </pre></div>
 
 
@@ -474,9 +486,9 @@ relies on dynamic dispatch for selectively executing code.</p>
 </aside>
 <p>An <code>if ()</code> statement executes one of two statements based on some condition:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="s">&quot;yes&quot;</span><span class="p">);</span>
+  <span class="n">print</span> <span class="s">&quot;yes&quot;</span><span class="p">;</span>
 <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="s">&quot;no&quot;</span><span class="p">);</span>
+  <span class="n">print</span> <span class="s">&quot;no&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -485,7 +497,7 @@ relies on dynamic dispatch for selectively executing code.</p>
 evaluates to true:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="k">while</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
   <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
@@ -498,7 +510,7 @@ your implementation if it makes you happy. It&rsquo;s your party.</p>
 </aside>
 <p>Finally, we have <code>for</code> loops:</p>
 <div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -516,8 +528,7 @@ after we&rsquo;re done with control flow. We could circle back and add <code>for
 later, but I didn&rsquo;t think doing so would teach you anything super interesting.</p>
 </aside>
 <h2><a href="#functions" name="functions"><small>3&#8202;.&#8202;8</small> Functions</a></h2>
-<p>You&rsquo;ve seen a function call already with our friend <code>print</code>. They look just like
-they do in C:</p>
+<p>A function call expression looks the same as it does in C:</p>
 <div class="codehilite"><pre><span></span><span class="n">makeBreakfast</span><span class="p">(</span><span class="n">bacon</span><span class="p">,</span> <span class="n">eggs</span><span class="p">,</span> <span class="n">toast</span><span class="p">);</span>
 </pre></div>
 
@@ -536,7 +547,7 @@ that with <span name="fun"><code>fun</code></span>:</p>
 hoping to discover a <code>funct</code>, <code>functi</code> or <code>functio</code> somewhere.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">printSum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">print</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
@@ -577,7 +588,7 @@ you can get a reference to, store in variables, pass around, etc. This works:</p
   <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="n">print</span><span class="p">(</span><span class="n">identity</span><span class="p">(</span><span class="n">addPair</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">));</span> <span class="c1">// Prints &quot;3&quot;.</span>
+<span class="n">print</span> <span class="n">identity</span><span class="p">(</span><span class="n">addPair</span><span class="p">)(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// Prints &quot;3&quot;.</span>
 </pre></div>
 
 
@@ -585,7 +596,7 @@ you can get a reference to, store in variables, pass around, etc. This works:</p
 inside another function:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">outerFunction</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">fun</span> <span class="n">localFunction</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;I&#39;m local!&quot;</span><span class="p">);</span>
+    <span class="n">print</span> <span class="s">&quot;I&#39;m local!&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="n">localFunction</span><span class="p">();</span>
@@ -599,7 +610,7 @@ into this interesting situation:</p>
   <span class="k">var</span> <span class="n">outside</span> <span class="o">=</span> <span class="s">&quot;outside&quot;</span><span class="p">;</span>
 
   <span class="k">fun</span> <span class="n">inner</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="n">outside</span><span class="p">);</span>
+    <span class="n">print</span> <span class="n">outside</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="k">return</span> <span class="n">inner</span><span class="p">;</span>
@@ -713,11 +724,11 @@ of features in most languages. For Lox, I&rsquo;ve selected what I think are the
 brightest stars. You declare a class and its methods like so:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;Eggs a-fryin&#39;!&quot;</span><span class="p">);</span>
+    <span class="n">print</span> <span class="s">&quot;Eggs a-fryin&#39;!&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="n">serve</span><span class="p">(</span><span class="n">who</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;Enjoy your breakfast, &quot;</span> <span class="o">+</span> <span class="n">who</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="p">);</span>
+    <span class="n">print</span> <span class="s">&quot;Enjoy your breakfast, &quot;</span> <span class="o">+</span> <span class="n">who</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -734,7 +745,7 @@ named after the class. Just like functions, classes are first class in Lox:</p>
 <span class="k">var</span> <span class="n">someVariable</span> <span class="o">=</span> <span class="vg">Breakfast</span><span class="p">;</span>
 
 <span class="c1">// Pass it to functions.</span>
-<span class="n">print</span><span class="p">(</span><span class="vg">Breakfast</span><span class="p">);</span>
+<span class="n">someFunction</span><span class="p">(</span><span class="vg">Breakfast</span><span class="p">);</span>
 </pre></div>
 
 
@@ -743,7 +754,7 @@ keyword, but to keep things simple, in Lox the class itself is a factory
 function for instances. Call a class like a function and it produces a new
 instance of itself:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">breakfast</span> <span class="o">=</span> <span class="vg">Breakfast</span><span class="p">();</span>
-<span class="n">print</span><span class="p">(</span><span class="n">breakfast</span><span class="p">);</span> <span class="c1">// &quot;Breakfast instance&quot;.</span>
+<span class="n">print</span> <span class="n">breakfast</span><span class="p">;</span> <span class="c1">// &quot;Breakfast instance&quot;.</span>
 </pre></div>
 
 
@@ -762,8 +773,8 @@ freely add properties onto objects:</p>
 method, you use good old <code>this</code>:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">serve</span><span class="p">(</span><span class="n">who</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;Enjoy your &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">meat</span> <span class="o">+</span> <span class="s">&quot; and &quot;</span> <span class="o">+</span>
-        <span class="nb">this</span><span class="p">.</span><span class="n">bread</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="n">who</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="p">);</span>
+    <span class="n">print</span> <span class="s">&quot;Enjoy your &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">meat</span> <span class="o">+</span> <span class="s">&quot; and &quot;</span> <span class="o">+</span>
+        <span class="nb">this</span><span class="p">.</span><span class="n">bread</span> <span class="o">+</span> <span class="s">&quot;, &quot;</span> <span class="o">+</span> <span class="n">who</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="c1">// ...</span>
@@ -798,7 +809,7 @@ When you declare a class, you can specify a class that it inherits from using
 <span name="less"><code>&lt;</code></span>:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Brunch</span> <span class="o">&lt;</span> <span class="vg">Breakfast</span> <span class="p">{</span>
   <span class="n">drink</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">print</span><span class="p">(</span><span class="s">&quot;How about a Blood Mary?&quot;</span><span class="p">);</span>
+    <span class="n">print</span> <span class="s">&quot;How about a Blood Mary?&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -853,10 +864,11 @@ in the interpreter and that all user-defined behavior is built on top of.</p>
 <p>This is the saddest part of Lox. Its standard library goes beyond minimalism and
 veers close to outright nihilism. For the sample code in the book, we only need
 to demonstrate that code is running and doing what it&rsquo;s supposed to do. For
-that, all we need is <code>print()</code>.</p>
+that, we already have the built-in <code>print</code> statement.</p>
 <p>Later, when we start optimizing, we&rsquo;ll write some benchmarks and see how long it
-takes to execute code. That means we need to track time, so we&rsquo;ll add a function
-<code>clock()</code> that returns the number of seconds since the application started.</p>
+takes to execute code. That means we need to track time, so we&rsquo;ll define one
+built-in function <code>clock()</code> that returns the number of seconds since the
+application started.</p>
 <p>And&hellip; that&rsquo;s it. I know, right? It&rsquo;s embarrassing.</p>
 <p>If you wanted to turn Lox into an actual useful language, the very first thing
 you should do is flesh this out. String manipulation, trigonometric functions,

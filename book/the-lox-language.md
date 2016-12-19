@@ -30,18 +30,18 @@ Here's your very first taste of <span name="salmon">Lox</span>:
 <aside name="salmon">
 
 Your first taste of Lox, the language, that is. I don't know if you've ever had
-the cured, cold-smoked salmon before. If not, give it a try too. It's delicious.
+the cured, cold-smoked salmon before. If not, give it a try too.
 
 </aside>
 
 ```lox
 // Your first Lox program!
-print("Hello, world!");
+print "Hello, world!";
 ```
 
-There's not much to this, but already its colors are starting to show. The `//`
-line comment, those parentheses after the function name, and especially that
-trailing semicolon signal that Lox's syntax is a member of the C family.
+As that `//` line comment and the trailing semicolon imply, Lox's syntax is a
+member of the C family. (There are no parentheses around the string because
+`print` is a built-in statement, and not a library function.)
 
 Now, I won't claim that <span name="c">C</span> has a *great* syntax. If we
 wanted something elegant, we'd probably mimic Pascal or Smalltalk. If we wanted
@@ -377,29 +377,46 @@ points in my heart if you augment your own implementation of Lox with them.
 
 ## Statements
 
-That's all the expression forms, so let's move up a level. Now we're at
-statements. Where an expression's main job is to produce a *value*, a
-statement's job is to produce an *effect*. Since, by definition, statements
-don't evaluate to a value, to be useful they have to otherwise change the world
-in same way -- usually modifying some state, reading input, or producing output.
+That's the expression forms (except for a couple related to specific features
+that we'll get to later), so let's move up a level. Now we're at statements.
+Where an expression's main job is to produce a *value*, a statement's job is to
+produce an *effect*. Since, by definition, statements don't evaluate to a value,
+to be useful they have to otherwise change the world in same way -- usually
+modifying some state, reading input, or producing output.
 
-You've actually seen a bunch of statements already. Each line of code above is
-an expression followed by a `;`. The semicolon promotes an expression to
+You've seen a couple of kinds of statements already. The first one was:
+
+```lox
+print "Hello, world!";
+```
+
+A <span name="print">print statement</span> evaluates a single expression
+and displays the result to the user. You've also seen some statements like:
+
+<aside name="print">
+
+Baking `print` into the language instead of just making it a core library
+function is a hack. But it's a *useful* hack for us: it means our in-progress
+interpreter can start producing output before we've implemented all of the
+machinery required to define functions, look them up by name, and call them.
+
+</aside>
+
+```lox
+"some expression";
+```
+
+An expression followed by a semicolon (`;`) promotes the expression to
 statement-hood. This is called (imaginatively enough), an **expression
 statement**.
 
-```lox
-"A bare expression"
-"An expression *statement*"; // <-- Statement-ize!
-```
-
 If you want to pack a series of statements where a single one is expected, you
-can wrap them up in a **block**:
+can wrap them up in a block:
 
 ```lox
 {
-  print("One statement");
-  print("Two statements.");
+  print "One statement";
+  print "Two statements.";
 }
 ```
 
@@ -429,9 +446,9 @@ Once declared, you can, naturally, access and assign a variable using its name:
 
 ```lox
 var breakfast = "bagels";
-print(breakfast); // "bagels".
+print breakfast; // "bagels".
 breakfast = "beignets";
-print(breakfast); // "beignets".
+print breakfast; // "beignets".
 ```
 
 <aside name="breakfast">
@@ -468,9 +485,9 @@ An `if ()` statement executes one of two statements based on some condition:
 
 ```lox
 if (condition) {
-  print("yes");
+  print "yes";
 } else {
-  print("no");
+  print "no";
 }
 ```
 
@@ -480,7 +497,7 @@ evaluates to true:
 ```lox
 var a = 1;
 while (a < 10) {
-  print(a);
+  print a;
   a = a + 1;
 }
 ```
@@ -497,7 +514,7 @@ Finally, we have `for` loops:
 
 ```lox
 for (var a = 1; a < 10; a = a + 1) {
-  print(a);
+  print a;
 }
 ```
 
@@ -519,8 +536,7 @@ later, but I didn't think doing so would teach you anything super interesting.
 
 ## Functions
 
-You've seen a function call already with our friend `print`. They look just like
-they do in C:
+A function call expression looks the same as it does in C:
 
 ```lox
 makeBreakfast(bacon, eggs, toast);
@@ -547,7 +563,7 @@ hoping to discover a `funct`, `functi` or `functio` somewhere.
 
 ```lox
 fun printSum(a, b) {
-  print(a + b);
+  print a + b;
 }
 ```
 
@@ -589,7 +605,7 @@ fun identity(a) {
   return a;
 }
 
-print(identity(addPair)(1, 2)); // Prints "3".
+print identity(addPair)(1, 2); // Prints "3".
 ```
 
 Since function declarations are statements, you can declare local functions
@@ -598,7 +614,7 @@ inside another function:
 ```lox
 fun outerFunction() {
   fun localFunction() {
-    print("I'm local!");
+    print "I'm local!";
   }
 
   localFunction();
@@ -613,7 +629,7 @@ fun returnFunction() {
   var outside = "outside";
 
   fun inner() {
-    print(outside);
+    print outside;
   }
 
   return inner;
@@ -772,11 +788,11 @@ brightest stars. You declare a class and its methods like so:
 ```lox
 class Breakfast {
   cook() {
-    print("Eggs a-fryin'!");
+    print "Eggs a-fryin'!";
   }
 
   serve(who) {
-    print("Enjoy your breakfast, " + who + ".");
+    print "Enjoy your breakfast, " + who + ".";
   }
 }
 ```
@@ -797,7 +813,7 @@ They are still just as fun, though.
 var someVariable = Breakfast;
 
 // Pass it to functions.
-print(Breakfast);
+someFunction(Breakfast);
 ```
 
 Next, we need a way to create instances. We could add some sort of `new`
@@ -807,7 +823,7 @@ instance of itself:
 
 ```lox
 var breakfast = Breakfast();
-print(breakfast); // "Breakfast instance".
+print breakfast; // "Breakfast instance".
 ```
 
 ### Instantiation and initialization
@@ -830,8 +846,8 @@ method, you use good old `this`:
 ```lox
 class Breakfast {
   serve(who) {
-    print("Enjoy your " + this.meat + " and " +
-        this.bread + ", " + who + ".");
+    print "Enjoy your " + this.meat + " and " +
+        this.bread + ", " + who + ".";
   }
 
   // ...
@@ -869,7 +885,7 @@ When you declare a class, you can specify a class that it inherits from using
 ```lox
 class Brunch < Breakfast {
   drink() {
-    print("How about a Blood Mary?");
+    print "How about a Blood Mary?";
   }
 }
 ```
@@ -934,11 +950,12 @@ in the interpreter and that all user-defined behavior is built on top of.
 This is the saddest part of Lox. Its standard library goes beyond minimalism and
 veers close to outright nihilism. For the sample code in the book, we only need
 to demonstrate that code is running and doing what it's supposed to do. For
-that, all we need is `print()`.
+that, we already have the built-in `print` statement.
 
 Later, when we start optimizing, we'll write some benchmarks and see how long it
-takes to execute code. That means we need to track time, so we'll add a function
-`clock()` that returns the number of seconds since the application started.
+takes to execute code. That means we need to track time, so we'll define one
+built-in function `clock()` that returns the number of seconds since the
+application started.
 
 And... that's it. I know, right? It's embarrassing.
 
