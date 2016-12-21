@@ -32,15 +32,13 @@ class Scanner {
   }
 
   private final String source;
-  private final ErrorReporter errorReporter;
   private final List<Token> tokens = new ArrayList<>();
   private int tokenStart = 0;
   private int current = 0;
   private int line = 1;
 
-  Scanner(String source, ErrorReporter errorReporter) {
+  Scanner(String source) {
     this.source = source;
-    this.errorReporter = errorReporter;
   }
 
   List<Token> scanTokens() {
@@ -99,7 +97,7 @@ class Scanner {
           } else if (isDigit(c)) {
             number();
           } else {
-            errorReporter.error(line, "Unexpected character.");
+            Lox.error(line, "Unexpected character.");
           }
           break;
       }
@@ -147,7 +145,7 @@ class Scanner {
 
     // Unterminated string.
     if (isAtEnd()) {
-      errorReporter.error(line, "Unterminated string.");
+      Lox.error(line, "Unterminated string.");
       return;
     }
 

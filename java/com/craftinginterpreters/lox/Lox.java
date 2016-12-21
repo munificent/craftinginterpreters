@@ -1,73 +1,75 @@
 //> Scanning 1
 package com.craftinginterpreters.lox;
 
-//> 6
 import java.io.BufferedReader;
-//< 6
 import java.io.IOException;
-//> 7
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-//< 7
 //> Resolving and Binding 99
 import java.util.Map;
 //< Resolving and Binding 99
 
 public class Lox {
-//> 8
-  private final ErrorReporter reporter = new ErrorReporter();
+  static boolean hadError = false;
 //> Evaluating Expressions 99
-  private final Interpreter interpreter;
+  static boolean hadRuntimeError = false;
 
-  private Lox() {
-    interpreter = new Interpreter(reporter);
-  }
+  private static final Interpreter interpreter = new Interpreter();
+
 //< Evaluating Expressions 99
+  public static void main(String[] args) throws IOException {
+    if (args.length > 1) {
+      System.out.println("Usage: jlox [script]");
+    } else if (args.length == 1) {
+      runFile(args[0]);
+    } else {
+      repl();
+    }
+  }
+//> 2
 
-  private void runFile(String path) throws IOException {
+  private static void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
     String source = new String(bytes, Charset.defaultCharset());
-
+//> 99
     run(source);
 
     // Indicate an error in the exit code.
-    if (reporter.hadError) System.exit(65);
-    if (reporter.hadRuntimeError) System.exit(70);
+    if (hadError) System.exit(65);
+//> Evaluating Expressions 99
+    if (hadRuntimeError) System.exit(70);
+//< Evaluating Expressions 99
+//< 99
   }
+//< 2
+//> 3
 
-  private void repl() throws IOException {
+  private static void repl() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
 
     for (;;) {
       System.out.print("> ");
       String source = reader.readLine();
+//> 99
       run(source);
-      reporter.reset();
+      hadError = false;
+//> Evaluating Expressions 99
+      hadRuntimeError = false;
+//< Evaluating Expressions 99
+//< 99
     }
   }
-
-//< 8
-  public static void main(String[] args) throws IOException {
-    Lox lox = new Lox();
-
-    if (args.length > 1) {
-      System.out.println("Usage: jlox [script]");
-    } else if (args.length == 1) {
-      lox.runFile(args[0]);
-    } else {
-      lox.repl();
-    }
-  }
+//< 3
 //> 9
 
-  private void run(String source) {
-    Scanner scanner = new Scanner(source, reporter);
+  private static void run(String source) {
+    Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
-/* Scanning 10 < Representing Code 1
+/* Scanning 10 < Representing Code 99
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
@@ -75,7 +77,7 @@ public class Lox {
 */
 //> Parsing Expressions 99
 
-    Parser parser = new Parser(tokens, reporter);
+    Parser parser = new Parser(tokens);
 //< Parsing Expressions 99
 /* Parsing Expressions 99 < Statements and State 99
     Expr expression = parser.parseExpression();
@@ -89,15 +91,15 @@ public class Lox {
     List<Stmt> statements = parser.parseProgram();
 
     // Stop if there was a syntax error.
-    if (reporter.hadError) return;
+    if (hadError) return;
 //< Statements and State 99
 //> Resolving and Binding 99
 
-    Resolver resolver = new Resolver(reporter);
+    Resolver resolver = new Resolver();
     Map<Expr, Integer> locals = resolver.resolve(statements);
 
     // Stop if there was a resolution error.
-    if (reporter.hadError) return;
+    if (hadError) return;
 
 /* Evaluating Expressions 99 < Statements and State 99
     interpreter.interpret(expression);
@@ -109,4 +111,31 @@ public class Lox {
 //< Resolving and Binding 99
   }
 //< 9
+
+  static void error(int line, String message) {
+    report(line, "", message);
+  }
+
+  static void error(Token token, String message) {
+    if (token.type == TokenType.EOF) {
+      report(token.line, " at end", message);
+    } else {
+      report(token.line, " at '" + token.text + "'", message);
+    }
+  }
+
+//> Evaluating Expressions 99
+  // TODO: Stack trace?
+  static void runtimeError(RuntimeError error) {
+    System.err.println(error.getMessage() +
+        "\n[line " + error.token.line + "]");
+    hadRuntimeError = true;
+  }
+
+//< Evaluating Expressions 99
+  static private void report(int line, String location, String message) {
+    System.err.println("[line " + line + "] Error" + location +
+        ": " + message);
+    hadError = true;
+  }
 }

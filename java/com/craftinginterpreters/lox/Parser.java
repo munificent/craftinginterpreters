@@ -28,11 +28,9 @@ class Parser {
 
   private final List<Token> tokens;
   private int currentIndex = 0;
-  private final ErrorReporter errorReporter;
 
-  Parser(List<Token> tokens, ErrorReporter errorReporter) {
+  Parser(List<Token> tokens) {
     this.tokens = tokens;
-    this.errorReporter = errorReporter;
   }
 //> Statements and State 99
 
@@ -278,7 +276,7 @@ class Parser {
 //< Classes 99
       }
 
-      error("Invalid assignment target.", equals);
+      Lox.error(equals, "Invalid assignment target.");
     }
 
     return expr;
@@ -505,10 +503,6 @@ class Parser {
   }
 
   private void error(String message) {
-    error(message, current());
-  }
-
-  private void error(String message, Token token) {
-    errorReporter.error(token, message);
+    Lox.error(current(), message);
   }
 }

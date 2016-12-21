@@ -4,8 +4,6 @@ package com.craftinginterpreters.lox;
 import java.util.*;
 
 class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
-  private final ErrorReporter errorReporter;
-
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private final Map<Expr, Integer> locals = new HashMap<>();
 
@@ -38,10 +36,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private ClassType currentClass = ClassType.NONE;
 
 //< Classes 99
-  Resolver(ErrorReporter errorReporter) {
-    this.errorReporter = errorReporter;
-  }
-
   Map<Expr, Integer> resolve(List<Stmt> statements) {
     for (Stmt statement : statements) {
       resolve(statement);
@@ -132,14 +126,13 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
     if (currentFunction == FunctionType.NONE) {
-      errorReporter.error(stmt.keyword,
-          "Cannot return from top-level code.");
+      Lox.error(stmt.keyword, "Cannot return from top-level code.");
     }
 
     if (stmt.value != null) {
 //> Classes 99
       if (currentFunction == FunctionType.INITIALIZER) {
-        errorReporter.error(stmt.keyword,
+        Lox.error(stmt.keyword,
             "Cannot return a value from an initializer.");
       }
 
@@ -231,10 +224,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
     if (currentClass == ClassType.NONE) {
-      errorReporter.error(expr.keyword,
+      Lox.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
     } else if (currentClass != ClassType.SUBCLASS) {
-      errorReporter.error(expr.keyword,
+      Lox.error(expr.keyword,
           "Cannot use 'super' in a class with no superclass.");
     } else {
       resolveLocal(expr, expr.keyword);
@@ -247,7 +240,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitThisExpr(Expr.This expr) {
     if (currentClass == ClassType.NONE) {
-      errorReporter.error(expr.keyword,
+      Lox.error(expr.keyword,
           "Cannot use 'this' outside of a class.");
     } else {
       resolveLocal(expr, expr.keyword);
@@ -266,7 +259,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   public Void visitVariableExpr(Expr.Variable expr) {
     if (!scopes.isEmpty() &&
         scopes.peek().get(expr.name.text) == Boolean.FALSE) {
-      errorReporter.error(expr.name,
+      Lox.error(expr.name,
           "Cannot read local variable in its own initializer.");
     }
 
@@ -311,7 +304,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     Map<String, Boolean> scope = scopes.peek();
     if (scope.containsKey(name.text)) {
-      errorReporter.error(name,
+      Lox.error(name,
           "Variable with this name already declared in this scope.");
     }
 

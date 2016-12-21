@@ -23,7 +23,6 @@ class Interpreter implements Expr.Visitor<Object> {
 //> Statements and State 99
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< Statements and State 99
-  private final ErrorReporter reporter;
 /* Statements and State 99 < Functions 99
 
   private Environment environment = new Environment();
@@ -38,20 +37,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private Map<Expr, Integer> locals;
 //< Resolving and Binding 99
 
-  Interpreter(ErrorReporter reporter) {
-    this.reporter = reporter;
-
 //> Functions 99
+  Interpreter() {
     globals.define("clock", new NativeFunction(0, this::clock));
-//< Functions 99
   }
+//< Functions 99
 
 /* Evaluating Expressions 99 < Statements and State 99
   void interpret(Expr expression) {
     try {
       print(evaluate(expression));
     } catch (RuntimeError error) {
-      reporter.runtimeError(error.token.line, error.getMessage());
+      Lox.runtimeError(error);
     }
   }
 */
@@ -69,7 +66,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         execute(statement);
       }
     } catch (RuntimeError error) {
-      reporter.runtimeError(error.token.line, error.getMessage());
+      Lox.runtimeError(error);
     }
   }
 //< Statements and State 99

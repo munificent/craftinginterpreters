@@ -46,7 +46,7 @@ run_generate_ast = 	@ java -cp build/gen/$(1) \
 			gen/$(1)/com/craftinginterpreters/lox
 
 chapters:
-	@ python util/split_chapters.py
+	@ python3 util/split_chapters.py
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap04_scanning PACKAGE=lox
 
@@ -88,7 +88,7 @@ chapters:
 
 # TODO: Unify with make chapters, and make more demand-driven.
 c_chapters:
-	@ python util/split_chapters.py
+	@ python3 util/split_chapters.py
 	@ $(MAKE) -f util/c.make NAME=chap14_chunks MODE=release SOURCE_DIR=gen/chap14_chunks
 	@ $(MAKE) -f util/c.make NAME=chap15_virtual MODE=release SOURCE_DIR=gen/chap15_virtual
 	@ $(MAKE) -f util/c.make NAME=chap16_scanning MODE=release SOURCE_DIR=gen/chap16_scanning
