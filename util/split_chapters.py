@@ -11,35 +11,7 @@ import book
 import sections
 
 
-LINE_SECTION_PATTERN = re.compile(r'//[>=]=')
-BLOCK_SECTION_PATTERN = re.compile(r'/\*[>=]=')
-
-EQUALS_PATTERN = re.compile(r'/[/*]== (.*)')
-RANGE_PATTERN = re.compile(r'/[/*]>= (.*) (<=?) (.*)')
-MIN_PATTERN = re.compile(r'/[/*]>= (.*)')
-
 source_code = sections.load()
-
-def parse_range(chapters, line):
-  match = EQUALS_PATTERN.match(line)
-  if match:
-    chapter = chapters.index(match.group(1))
-    return chapter, chapter
-
-  match = RANGE_PATTERN.match(line)
-  if match:
-    min_chapter = chapters.index(match.group(1))
-    operator = match.group(2)
-    max_chapter = chapters.index(match.group(3))
-    if operator == '<': max_chapter -= 1
-    return min_chapter, max_chapter
-
-  match = MIN_PATTERN.match(line)
-  if match:
-    min_chapter = chapters.index(match.group(1))
-    return min_chapter, 999
-
-  raise Exception("Invalid line: '" + line + "'")
 
 
 def split_file(chapter_name, path, snippet=None):
@@ -53,7 +25,7 @@ def split_file(chapter_name, path, snippet=None):
   if relative == "com/craftinginterpreters/lox/Expr.java": return
   if relative == "com/craftinginterpreters/lox/Stmt.java": return
 
-  package = "section_test" if snippet else book.get_short_name(chapter_name)
+  package = "snippet_test" if snippet else book.get_short_name(chapter_name)
   output_path = os.path.join("gen", package, relative)
 
   # If we're generating the split for an entire chapter, include all its
@@ -113,7 +85,7 @@ else:
     # TODO: Uncomment this to split out the chapters at each snippet.
     # TODO: Need to also pass snippet to chapter_to_package() to generate
     # directory name.
-    # code_sections = source_code.find_all(chapter)
-    # for section in code_sections:
-    #   split_chapter(chapter, section)
+    # snippets = source_code.find_all(chapter)
+    # for snippet in snippets.values():
+    #   split_chapter(chapter, snippet)
     split_chapter(chapter)

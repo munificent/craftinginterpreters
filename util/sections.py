@@ -3,37 +3,36 @@
 
 """
 
-Parses the Java and C source files and separates out their sections. This is
+Parses the Java and C source files and separates out their snippets. This is
 used by both split_chapters.py (to make the chapter-specific source files to
-test against) and build.py (to include code sections into the book).
+test against) and build.py (to include code snippets into the book).
 
-There are a few kinds of section markers:
+There are a few kinds of snippet markers:
 
 //> [chapter] [name]
 
     This marks the following code as being added in snippet [name] in
-    [chapter]. A section marked like this must be closed with...
-
-    If this is beginning a new section in the same chapter, the name is omitted.
+    [chapter]. If this is beginning a new snippet in the same chapter, the name
+    is omitted.
 
 //< [chapter] [name]
 
-    Ends the previous innermost //> section and returns the whatever section
+    Ends the previous innermost //> snippet and returns to whatever snippet
     surrounded it. The chapter and name are redundant, but are required to
-    validate that we're exiting the section we intend to.
+    validate that we're exiting the snippet we intend to.
 
 /* [chapter] [name] < [end chapter] [end name]
 ...
 */
 
     This marks the code in the rest of the block comment as being added in
-    section [name] in [chapter]. It is then replaced or removed in section
+    snippet [name] in [chapter]. It is then replaced or removed in snippet
     [end name] in [end chapter].
 
-    Since this section doesn't end up in the final version of the code, it's
+    Since this snippet doesn't end up in the final version of the code, it's
     commented out in the source.
 
-    After the block comment, this returns to the previous section, if any.
+    After the block comment, this returns to the previous snippet, if any.
 
 """
 
@@ -44,9 +43,9 @@ import sys
 import book
 
 BLOCK_PATTERN = re.compile(r'/\* ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
-BLOCK_SECTION_PATTERN = re.compile(r'/\* < (\d+)')
-BEGIN_SECTION_PATTERN = re.compile(r'//> (\d+)')
-END_SECTION_PATTERN = re.compile(r'//< (\d+)')
+BLOCK_SNIPPET_PATTERN = re.compile(r'/\* < (\d+)')
+BEGIN_SNIPPET_PATTERN = re.compile(r'//> (\d+)')
+END_SNIPPET_PATTERN = re.compile(r'//< (\d+)')
 BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Za-z\s]+) (\d+)')
 END_CHAPTER_PATTERN = re.compile(r'//< ([A-Za-z\s]+) (\d+)')
 
@@ -62,12 +61,6 @@ class SourceCode:
 
   def __init__(self):
     self.files = []
-
-    # The chapter/number pairs of every parsed section. Used to ensure we don't
-    # try to create the same section twice.
-    # TODO: Remove now that we have snippet tags.
-    self.all_sections = {}
-
     self.snippet_tags = book.get_chapter_snippet_tags()
 
   def find_snippet_tag(self, chapter, name):
@@ -76,7 +69,7 @@ class SourceCode:
     if name in snippets:
       return snippets[name]
 
-    print('Warning: Unknown snippet tag "{} {}".'.format(chapter, name))
+    print('Warning: Snippet {} not used in chapter {}.'.format(name, chapter))
     # Synthesize a fake one so we can keep going.
     # TODO: Only do this for some blessed tag name for unfinished chapters.
     snippets[name] = book.SnippetTag(chapter, name, len(snippets))
@@ -96,93 +89,75 @@ class SourceCode:
 
   def find_all(self, chapter):
     """ Gets the list of snippets that occur in [chapter]. """
-    sections = {}
+    snippets = {}
 
     first_lines = {}
     last_lines = {}
 
-    # Create a new section for [name] if it doesn't already exist.
-    def ensure_section(name, line_num):
-      if not name in sections:
-        section = Section(file, name)
-        sections[name] = section
-        first_lines[section] = line_num
-        return section
+    # Create a new snippet for [name] if it doesn't already exist.
+    def ensure_snippet(name, line_num):
+      if not name in snippets:
+        snippet = Snippet(file, name)
+        snippets[name] = snippet
+        first_lines[snippet] = line_num
+        return snippet
 
-      section = sections[name]
-      if name != '99' and section.file.path != file.path:
-        raise "{} {} appears in two files, {} and {}".format(
-            chapter, name, section.file.path, file.path)
+      snippet = snippets[name]
+      if name != '99' and snippet.file.path != file.path:
+        # TODO: Test.
+        print('Warning: "{}" appears in two files, {} and {}.'.format(
+            chapter, name, snippet.file.path, file.path))
 
-      return section
+      return snippet
 
-    # TODO: If this is slow, could organize directly by sections in SourceCode.
-    # Find the lines added and removed in each section.
+    # TODO: If this is slow, could organize directly by snippets in SourceCode.
+    # Find the lines added and removed in each snippet.
     for file in self.files:
       line_num = 0
       for line in file.lines:
         if line.start.chapter == chapter:
-          section = ensure_section(line.start.name, line_num)
-          section.added.append(line.text)
-          last_lines[section] = line_num
+          snippet = ensure_snippet(line.start.name, line_num)
+          snippet.added.append(line.text)
+          last_lines[snippet] = line_num
 
-          if line.function and not section.function:
-            section.function = line.function
+          if line.function and not snippet.function:
+            snippet.function = line.function
 
         if line.end and line.end.chapter == chapter:
-          section = ensure_section(line.end.name, line_num)
-          section.removed.append(line.text)
-          last_lines[section] = line_num
+          snippet = ensure_snippet(line.end.name, line_num)
+          snippet.removed.append(line.text)
+          last_lines[snippet] = line_num
 
         line_num += 1
 
-    if len(sections) == 0: return sections
-
-    # Find the surrounding context lines and location for each section.
-    for name, section in sections.items():
+    # Find the surrounding context lines and location for each snippet.
+    for name, snippet in snippets.items():
       current_snippet = self.snippet_tags[chapter][name]
 
       # Look for preceding lines.
-      i = first_lines[section] - 1
+      i = first_lines[snippet] - 1
       before = []
       while i >= 0 and len(before) <= 5:
-        line = section.file.lines[i]
+        line = snippet.file.lines[i]
         if line.is_present(current_snippet):
           before.append(line.text)
 
-          if line.function and not section.preceding_function:
-            section.preceding_function = line.function
+          if line.function and not snippet.preceding_function:
+            snippet.preceding_function = line.function
         i -= 1
-      section.context_before = before[::-1]
+      snippet.context_before = before[::-1]
 
       # Look for following lines.
-      i = last_lines[section] + 1
+      i = last_lines[snippet] + 1
       after = []
-      while i < len(section.file.lines) and len(after) <= 5:
-        line = section.file.lines[i]
+      while i < len(snippet.file.lines) and len(after) <= 5:
+        line = snippet.file.lines[i]
         if line.is_present(current_snippet):
           after.append(line.text)
         i += 1
-      section.context_after = after
+      snippet.context_after = after
 
-    # if chapter == "Scanning":
-    #   for number, section in sections.items():
-    #     print("Scanning {} - {}".format(number, section.file.path))
-    #     for line in section.context_before:
-    #       print("   {}".format(line.rstrip()))
-    #     for line in section.removed:
-    #       print("-- {}".format(line.rstrip()))
-    #     for line in section.added:
-    #       print("++ {}".format(line.rstrip()))
-    #     for line in section.context_after:
-    #       print("   {}".format(line.rstrip()))
-
-    #   for section, first in first_lines.items():
-    #     last = last_lines[section]
-    #     print("Scanning {} - {}: {} to {}".format(
-    #         section.name, section.file.path, first, last))
-
-    return sections
+    return snippets
 
   def split_chapter(self, file, chapter, name):
     """
@@ -257,8 +232,11 @@ class SourceLine:
     return result
 
 
-# TODO: Rename "Snippet"?
-class Section:
+class Snippet:
+  """
+  A snippet of source code that is inserted in the book.
+  """
+
   def __init__(self, file, name):
     self.file = file
     self.name = name
@@ -271,10 +249,10 @@ class Section:
     self.preceding_function = None
 
   def location(self):
-    """Describes where in the file this section appears."""
+    """Describes where in the file this snippet appears."""
 
     if len(self.context_before) == 0:
-      # No lines before the section, it must be a new file.
+      # No lines before the snippet, it must be a new file.
       return 'create new file'
 
     if self.function:
@@ -323,14 +301,7 @@ def load_file(source_code, source_dir, path):
     if end_chapter:
       end = source_code.find_snippet_tag(end_chapter, end_name)
 
-    # 99 is a magic number for sections in chapters that haven't been done yet.
-    # Don't worry about duplication.
-    # if number != 99:
-    #   name = "{} {}".format(chapter, number)
-    #   if name in source_code.all_sections:
-    #     fail('Duplicate section "{}" is also in {}'.format(name,
-    #         source_code.all_sections[name]))
-    #   source_code.all_sections[name] = "{} line {}".format(relative, line_num)
+    # TODO: Warn if the same snippet appears in multiple files.
 
     state = ParseState(state, start, end)
     handled = True
@@ -358,7 +329,7 @@ def load_file(source_code, source_dir, path):
       if match:
         push(match.group(1), match.group(2), match.group(3), match.group(4))
 
-      match = BLOCK_SECTION_PATTERN.match(line)
+      match = BLOCK_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
         push(state.start.chapter, state.start.name, state.start.chapter, name)
@@ -366,7 +337,7 @@ def load_file(source_code, source_dir, path):
       if line.strip() == '*/' and state.end:
         pop()
 
-      match = BEGIN_SECTION_PATTERN.match(line)
+      match = BEGIN_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
         # TODO: Look up snippet for name and compare indexes.
@@ -376,7 +347,7 @@ def load_file(source_code, source_dir, path):
         #   fail("Can't push to same snippet {}.".format(name))
         push(state.start.chapter, name)
 
-      match = END_SECTION_PATTERN.match(line)
+      match = END_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
         number = int(name)
@@ -417,7 +388,7 @@ def load_file(source_code, source_dir, path):
 
       if not handled:
         if not state.start:
-          fail("No section in effect.".format(relative))
+          fail("No snippet in effect.".format(relative))
 
         source_line = SourceLine(line, current_function, state.start, state.end)
         file.lines.append(source_line)
@@ -441,9 +412,9 @@ def load_file(source_code, source_dir, path):
         s = s.parent
       sys.exit(1)
 
-  # TODO: Validate that we don't define two sections with the same chapter and
-  # number. A section may end up in disjoint lines in the final output because
-  # a later section is inserted in it, but it shouldn't be explicitly authored
+  # TODO: Validate that we don't define two snippets with the same chapter and
+  # number. A snippet may end up in disjoint lines in the final output because
+  # a later snippet is inserted in it, but it shouldn't be explicitly authored
   # that way.
 
 

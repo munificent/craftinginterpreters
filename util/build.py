@@ -404,7 +404,7 @@ def format_files(skip_up_to_date, one_file=None):
       latest_mod("java/com/craftinginterpreters/tool/*.java"),
       latest_mod("java/com/craftinginterpreters/lox/*.java"))
 
-  # Reload the source sections if the code was changed.
+  # Reload the source snippets if the code was changed.
   global source_code
   global last_code_load_time
   if not last_code_load_time or code_mod > last_code_load_time:
