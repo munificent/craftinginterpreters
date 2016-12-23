@@ -131,7 +131,7 @@ def format_code(language, lines):
   return html
 
 
-def insert_code(sections, arg, contents):
+def insert_snippet(snippets, arg, contents):
   name = None
   before_lines = 0
   after_lines = 0
@@ -159,55 +159,55 @@ def insert_code(sections, arg, contents):
     # Otherwise, the arg is just the name of the snippet.
     name = arg
 
-  if name not in sections:
+  if name not in snippets:
     contents = "**ERROR: Undefined snippet {}**\n\n".format(name) + contents
     contents += "**ERROR: Missing snippet {}**\n".format(name)
     return contents
 
-  if sections[name] == False:
+  if snippets[name] == False:
     contents = "**ERROR: Reused snippet {}**\n\n".format(name) + contents
     contents += "**ERROR: Reused snippet {}**\n".format(name)
     return contents
 
-  section = sections[name]
+  snippet = snippets[name]
 
   # Consume it.
-  sections[name] = False
+  snippets[name] = False
 
   # TODO: Show indentation in snippets somehow.
 
   contents += '<div class="codehilite">'
 
   if before_lines > 0:
-    before = format_code(section.file.language(),
-        section.context_before[-before_lines:])
+    before = format_code(snippet.file.language(),
+        snippet.context_before[-before_lines:])
     before = before.replace('<pre>', '<pre class="insert-before">')
     contents += before
 
-  where = '<em>{}</em>'.format(section.file.nice_path())
+  where = '<em>{}</em>'.format(snippet.file.nice_path())
 
-  if section.location():
-    where += '<br>\n{}'.format(section.location())
+  if snippet.location():
+    where += '<br>\n{}'.format(snippet.location())
 
-  if section.removed and section.added:
+  if snippet.removed and snippet.added:
     where += '<br>\nreplace {} line{}'.format(
-        len(section.removed), '' if len(section.removed) == 1 else 's')
+        len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
   contents += '<div class="source-file">{}</div>\n'.format(where)
 
-  if section.removed and not section.added:
-    removed = format_code(section.file.language(), section.removed)
+  if snippet.removed and not snippet.added:
+    removed = format_code(snippet.file.language(), snippet.removed)
     removed = removed.replace('<pre>', '<pre class="delete">')
     contents += removed
 
-  if section.added:
-    added = format_code(section.file.language(), section.added)
+  if snippet.added:
+    added = format_code(snippet.file.language(), snippet.added)
     if before_lines > 0 or after_lines > 0:
       added = added.replace('<pre>', '<pre class="insert">')
     contents += added
 
   if after_lines > 0:
-    after = format_code(section.file.language(),
-        section.context_after[:after_lines])
+    after = format_code(snippet.file.language(),
+        snippet.context_after[:after_lines])
     after = after.replace('<pre>', '<pre class="insert-after">')
     contents += after
 
@@ -240,7 +240,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   subheader_index = 0
   has_challenges = False
   design_note = None
-  code_sections = None
+  snippets = None
 
   # Read the markdown file and preprocess it.
   contents = ''
@@ -262,13 +262,13 @@ def format_file(path, skip_up_to_date, dependencies_mod):
           title = title.replace('&shy;', '')
 
           # Load the code snippets now that we know the title.
-          code_sections = source_code.find_all(title)
+          snippets = source_code.find_all(title)
         elif command == 'part':
           part = arg
         elif command == 'template':
           template_file = arg
         elif command == 'code':
-          contents = insert_code(code_sections, arg, contents)
+          contents = insert_snippet(snippets, arg, contents)
         else:
           raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
@@ -312,13 +312,11 @@ def format_file(path, skip_up_to_date, dependencies_mod):
       else:
         contents += pretty(line)
 
-  # Validate that every section for the chapter is included.
-  # TODO: Hack. If the chapter only has one section, it means I haven't written
-  # it and sliced up its code yet. Just ignore it.
-  if len(code_sections) > 1:
-    for number, section in code_sections.items():
-      if section != False:
-        contents = "**ERROR: Unused section {}**\n\n".format(number) + contents
+  # Validate that every snippet for the chapter is included.
+  for name, snippet in snippets.items():
+    # TODO: Better name for the "not done yet" snippet.
+    if name != '99' and snippet != False:
+      contents = "**ERROR: Unused snippet {}**\n\n".format(name) + contents
 
   part_chapters = get_part_chapters(title)
 
