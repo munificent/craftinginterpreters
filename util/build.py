@@ -131,44 +131,48 @@ def format_code(language, lines):
   return html
 
 
-def include_section(sections, arg, contents):
-  number = None
+def insert_code(sections, arg, contents):
+  name = None
   before_lines = 0
   after_lines = 0
 
   match = CODE_BEFORE_PATTERN.match(arg)
   if match:
-    number = int(match.group(1))
+    # "^code name (2 before)"
+    name = match.group(1)
     before_lines = int(match.group(2))
 
   match = CODE_AFTER_PATTERN.match(arg)
   if match:
-    number = int(match.group(1))
+    # "^code name (2 after)"
+    name = match.group(1)
     after_lines = int(match.group(2))
 
   match = CODE_AROUND_PATTERN.match(arg)
   if match:
-    number = int(match.group(1))
+    # "^code name (1 before, 2 after)"
+    name = match.group(1)
     before_lines = int(match.group(2))
     after_lines = int(match.group(3))
 
-  if not number:
-    number = int(arg)
+  if not name:
+    # Otherwise, the arg is just the name of the snippet.
+    name = arg
 
-  if number not in sections:
-    contents = "**ERROR: Undefined section {}**\n\n".format(number) + contents
-    contents += "**ERROR: Missing section {}**\n".format(number)
+  if name not in sections:
+    contents = "**ERROR: Undefined snippet {}**\n\n".format(name) + contents
+    contents += "**ERROR: Missing snippet {}**\n".format(name)
     return contents
 
-  if sections[number] == False:
-    contents = "**ERROR: Reused section {}**\n\n".format(number) + contents
-    contents += "**ERROR: Reused section {}**\n".format(number)
+  if sections[name] == False:
+    contents = "**ERROR: Reused snippet {}**\n\n".format(name) + contents
+    contents += "**ERROR: Reused snippet {}**\n".format(name)
     return contents
 
-  section = sections[number]
+  section = sections[name]
 
   # Consume it.
-  sections[number] = False
+  sections[name] = False
 
   # TODO: Show indentation in snippets somehow.
 
@@ -264,7 +268,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
         elif command == 'template':
           template_file = arg
         elif command == 'code':
-          contents = include_section(code_sections, arg, contents)
+          contents = insert_code(code_sections, arg, contents)
         else:
           raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
@@ -415,7 +419,7 @@ def format_files(skip_up_to_date, one_file=None):
   for page in book.PAGES:
     page_file = book.get_file_name(page)
     if one_file == None or page_file == one_file:
-      file = os.path.join('book', page_file + '.md')
+      file = book.get_markdown_path(page)
       format_file(file, skip_up_to_date, max(code_mod, templates_mod))
 
 

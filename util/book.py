@@ -4,7 +4,13 @@
 """
 Tracks metadata about the material in the book.
 """
+from functools import total_ordering
+import os
 import re
+
+# Matches the name in a `^code` tag and ignores the rest.
+SNIPPET_TAG_PATTERN = re.compile(r'\s*\^code ([a-z_0-9]+).*')
+TITLE_PATTERN = re.compile(r'\^title (.*)')
 
 TOC = [
   {
@@ -378,6 +384,10 @@ def get_file_name(title):
   return title
 
 
+def get_markdown_path(title):
+  return os.path.join('book', get_file_name(title) + '.md')
+
+
 def get_short_name(name):
   number = chapter_number(name)
 
@@ -388,3 +398,59 @@ def get_short_name(name):
     first_word = "user"
 
   return "chap{0:02d}_{1}".format(number, first_word)
+
+
+@total_ordering
+class SnippetTag:
+  def __init__(self, chapter, name, index):
+    self.chapter = chapter
+    self.name = name
+    self.chapter_index = chapter_number(chapter)
+    self.index = index
+
+  def __lt__(self, other):
+    if self.chapter_index != other.chapter_index:
+      return self.chapter_index < other.chapter_index
+
+    return self.index < other.index
+
+  def __repr__(self):
+    return "Tag({}|{}: {} {})".format(
+        self.chapter_index, self.index, self.chapter, self.name)
+
+
+def get_chapter_snippet_tags():
+  """
+  Parses the snippet tags from every chapter. Returns a map of chapter names
+  to maps of snippet names to SnippetTags.
+  """
+  chapters = {}
+
+  for chapter in CODE_CHAPTERS:
+    chapters[chapter] = get_snippet_tags(get_markdown_path(chapter))
+
+  return chapters
+
+
+def get_snippet_tags(path):
+  """
+  Parses the Markdown file at [path] and finds all of the `^code` tags.
+  Returns a map of snippet names to SnippetTags for them.
+  """
+  tags = {}
+
+  with open(path, 'r') as input:
+    title = None
+
+    for line in input:
+      match = TITLE_PATTERN.match(line)
+      if match:
+        title = match.group(1)
+
+      match = SNIPPET_TAG_PATTERN.match(line)
+      if match:
+        if title == None:
+          raise Exception("Should have found title first.")
+        tags[match.group(1)] = SnippetTag(title, match.group(1), len(tags))
+
+  return tags

@@ -42,7 +42,7 @@ def parse_range(chapters, line):
   raise Exception("Invalid line: '" + line + "'")
 
 
-def split_file(chapter_name, path, section=None):
+def split_file(chapter_name, path, snippet=None):
   chapter_number = book.chapter_number(chapter_name)
 
   source_dir = book.get_language(chapter_name)
@@ -53,14 +53,15 @@ def split_file(chapter_name, path, section=None):
   if relative == "com/craftinginterpreters/lox/Expr.java": return
   if relative == "com/craftinginterpreters/lox/Stmt.java": return
 
-  # If we're generating the split for an entire chapter, include all its sections.
-  real_section = section if section != None else 999
-  output = source_code.split_chapter(relative, chapter_name, real_section)
-
-  package = "section_test"
-  if section == None:
-    package = book.get_short_name(chapter_name)
+  package = "section_test" if snippet else book.get_short_name(chapter_name)
   output_path = os.path.join("gen", package, relative)
+
+  # If we're generating the split for an entire chapter, include all its
+  # snippets.
+  if not snippet:
+    snippet = source_code.last_snippet_for_chapter(chapter_name).name
+
+  output = source_code.split_chapter(relative, chapter_name, snippet)
 
   if output:
     # Don't overwrite it if it didn't change, so the makefile doesn't think it
@@ -86,7 +87,7 @@ def ensure_dir(path):
       os.makedirs(path)
 
 
-def split_chapter(chapter, section=None):
+def split_chapter(chapter, snippet=None):
   source_dir = book.get_language(chapter)
 
   def walk(dir):
@@ -96,21 +97,21 @@ def split_chapter(chapter, section=None):
       if os.path.isdir(nfile):
         walk(nfile)
       elif os.path.splitext(path)[1] in [".java", ".h", ".c"]:
-        split_file(chapter, nfile, section)
+        split_file(chapter, nfile, snippet)
 
   walk(source_dir)
 
 
 if len(sys.argv) == 3:
-  # Generate the code at a single section.
+  # Generate the code at a single snippet.
   chapter = sys.argv[1]
-  section = int(sys.argv[2])
+  snippet = int(sys.argv[2])
 
-  split_chapter(chapter, section)
+  split_chapter(chapter, snippet)
 else:
   for chapter in book.CODE_CHAPTERS:
-    # TODO: Uncomment this to split out each individual section.
-    # TODO: Need to also pass section to chapter_to_package() to generate
+    # TODO: Uncomment this to split out the chapters at each snippet.
+    # TODO: Need to also pass snippet to chapter_to_package() to generate
     # directory name.
     # code_sections = source_code.find_all(chapter)
     # for section in code_sections:
