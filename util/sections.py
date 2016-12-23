@@ -41,38 +41,7 @@ import os
 import re
 import sys
 
-JAVA_CHAPTERS = [
-  "Scanning",
-  "Representing Code",
-  "Parsing Expressions",
-  "Evaluating Expressions",
-  "Statements and State",
-  "Control Flow",
-  "Functions",
-  "Resolving and Binding",
-  "Classes",
-  "Inheritance"
-]
-
-C_CHAPTERS = [
-  "Chunks of Bytecode",
-  "A Virtual Machine",
-  "Scanning on Demand",
-  "Compiling Expressions",
-  "Types of Values",
-  "Strings",
-  "Hash Tables",
-  "Global Variables",
-  "Local Variables",
-  "Jumping Forward and Back",
-  "Calls and Functions",
-  "Closures",
-  "Garbage Collection",
-  "Classes and Instances",
-  "Methods and Initializers",
-  "Superclasses",
-  "Optimization"
-]
+import book
 
 BLOCK_PATTERN = re.compile(r'/\* ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
 BLOCK_SECTION_PATTERN = re.compile(r'/\* < (\d+)')
@@ -144,14 +113,14 @@ class SourceCode:
     if len(sections) == 0: return sections
 
     # Find the surrounding context lines and location for each section.
-    chapter_index = get_chapter_index(chapter)
+    chapter_number = book.chapter_number(chapter)
     for number, section in sections.items():
       # Look for preceding lines.
       i = first_lines[section] - 1
       before = []
       while i >= 0 and len(before) <= 5:
         line = section.file.lines[i]
-        if line.is_present(chapter_index, number):
+        if line.is_present(chapter_number, number):
           before.append(line.text)
 
           if line.function and not section.preceding_function:
@@ -164,7 +133,7 @@ class SourceCode:
       after = []
       while i < len(section.file.lines) and len(after) <= 5:
         line = section.file.lines[i]
-        if line.is_present(chapter_index, number):
+        if line.is_present(chapter_number, number):
           after.append(line.text)
         i += 1
       section.context_after = after
@@ -190,7 +159,7 @@ class SourceCode:
 
   def split_chapter(self, file, chapter, number):
     """ Gets the code for [file] as it appears at [number] of [chapter]. """
-    index = get_chapter_index(chapter)
+    chapter_number = book.chapter_number(chapter)
 
     source_file = None
     for source in self.files:
@@ -203,7 +172,7 @@ class SourceCode:
 
     output = ""
     for line in source_file.lines:
-      if (line.is_present(index, number)):
+      if (line.is_present(chapter_number, number)):
         # Hack. In generate_ast.java, we split up a parameter list among
         # multiple chapters, which leads to hanging commas in some cases.
         # Remove them.
@@ -236,10 +205,10 @@ class SourceLine:
     self.end_number = end_number
 
   def chapter_index(self):
-    return get_chapter_index(self.chapter)
+    return book.chapter_number(self.chapter)
 
   def end_chapter_index(self):
-    return get_chapter_index(self.end_chapter)
+    return book.chapter_number(self.end_chapter)
 
   def is_present(self, chapter_index, section_number):
     """ If this line exists by [section_number] of [chapter_index]. """
@@ -310,24 +279,6 @@ class ParseState:
     self.number = number
     self.end_chapter = end_chapter
     self.end_number = end_number
-
-def chapter_name(number):
-  """Given a chapter number, returns its name."""
-  if number < 14:
-    return JAVA_CHAPTERS[number - 4]
-
-  return C_CHAPTERS[number - 14]
-
-
-def get_chapter_index(name):
-  """Given the name of a chapter, finds its number."""
-  if name in JAVA_CHAPTERS:
-    return 4 + JAVA_CHAPTERS.index(name)
-
-  if name in C_CHAPTERS:
-    return 14 + C_CHAPTERS.index(name)
-
-  raise Exception('Unknown chapter "{}".'.format(name))
 
 
 def load_file(source_code, source_dir, path):
@@ -421,14 +372,14 @@ def load_file(source_code, source_dir, path):
         number = int(match.group(2))
 
         if state.chapter != None:
-          old_chapter_index = get_chapter_index(state.chapter)
-          new_chapter_index = get_chapter_index(chapter)
+          old_chapter = book.chapter_number(state.chapter)
+          new_chapter = book.chapter_number(chapter)
 
           if chapter == state.chapter and number == state.number:
             fail('Pushing same state "{} {}"'.format(chapter, number))
           if chapter == state.chapter:
             fail('Pushing same chapter, just use "//>> {}"'.format(number))
-          if new_chapter_index < old_chapter_index:
+          if new_chapter < old_chapter:
             fail('Can\'t push earlier chapter "{}" from "{}".'.format(
                 chapter, state.chapter))
         push(chapter, number)

@@ -15,6 +15,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 import jinja2
 import markdown
 
+import book
 import sections
 
 GRAY = '\033[1;30m'
@@ -27,325 +28,6 @@ YELLOW = '\033[33m'
 CODE_BEFORE_PATTERN = re.compile(r'(\d+) \((\d+) before\)')
 CODE_AFTER_PATTERN = re.compile(r'(\d+) \((\d+) after\)')
 CODE_AROUND_PATTERN = re.compile(r'(\d+) \((\d+) before, (\d+) after\)')
-
-TOC = [
-  {
-    'name': '',
-    'chapters': [
-      {
-        'name': 'Crafting Interpreters',
-        'topics': [],
-      },
-      {
-        'name': 'Table of Contents',
-        'topics': [],
-      }
-    ],
-  },
-  {
-    'name': 'Welcome',
-    'chapters': [
-      {
-        'name': 'Introduction',
-        'topics': [
-          'Why learn programming languages?',
-          'How this book is organized'
-        ],
-        'design_note': "What's in a Name?"
-      },
-      {
-        'name': 'A Map of the Territory',
-        'topics': [
-          'Interpreters and compilers', 'Phases of a compiler',
-          'Transpilers', 'Just-in-time compilation'
-        ],
-      },
-      {
-        'name': 'The Lox Language',
-        'topics': [
-          'Dynamic typing', 'Automatic memory management', 'Built-in types',
-          'Expressions', 'Statements', 'Object-orientation', 'Prototypes'
-        ],
-        'design_note': "Statements and Expressions"
-      }
-    ]
-  },
-  {
-    'name': 'A Tree-Walk Interpreter in Java',
-    'chapters': [
-      {
-        'name': 'Scanning',
-        'topics': [
-          'Tokens', 'Token types', 'Lexical analysis', 'Regular languages',
-          'Lookahead', 'Reserved words', 'Error reporting'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Representing Code',
-        'topics': [
-          'Abstract syntax trees', 'Expression trees', 'Generating AST classes',
-          'The Visitor pattern', 'Pretty printing'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Parsing Expressions',
-        'topics': [
-          'Expression nodes', 'Recursive descent', 'Precedence',
-          'Associativity', 'Primary expressions', 'Syntax errors'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Evaluating Expressions',
-        'topics': [
-          'The Interpreter pattern', 'Tree-walk interpretation',
-          'Subexpressions', 'Runtime errors', 'Type checking', 'Truthiness'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Statements and State',
-        'topics': [
-          'Statement nodes', 'Blocks', 'Expression statements', 'Variables',
-          'Assignment', 'Lexical scope', 'Environments'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Control Flow',
-        'topics': [
-          'If statements', 'While statements', 'For statements', 'Desugaring',
-          'Logical operators', 'Short-circuit evaluation'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Functions',
-        'topics': [
-          'Function declarations', 'Formal parameters', 'Call expressions',
-          'Arguments', 'Return statements', 'Function objects', 'Closures',
-          'Arity', 'Native functions'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Resolving and Binding',
-        'topics': ['Name resolution', 'Early binding', 'Static errors'],
-        'done': False,
-      },
-      {
-        'name': 'Classes',
-        'topics': [
-          'Class declarations', 'Fields', 'Properties',
-          'Get and set expressions', 'Constructors', 'Initializers', 'this',
-          'Method references'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Inheritance',
-        'topics': ['Superclasses', 'Overriding', 'Calling superclass methods'],
-        'done': False,
-      }
-    ]
-  },
-  {
-    'name': 'A Bytecode Interpreter in C',
-    'chapters': [
-      {
-        'name': 'Chunks of Bytecode',
-        'topics': [
-          'Allocation', 'Dynamic arrays', 'Code chunks', 'Constant tables',
-          'Instruction arguments', 'Disassembly'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'A Virtual Machine',
-        'topics': [
-          'Bytecode instructions', 'The stack', 'Instruction pointer',
-          'Loading constants', 'Arithmetic instructions', 'Interpreter loop',
-          'Instruction dispatch'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Scanning on Demand',
-        'topics': [
-          'Reading files', 'Token values', 'Source pointers', 'LL(k) grammars'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Compiling Expressions',
-        'topics': [
-          'Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence',
-          'Single-pass compilation', 'Code generation'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Types of Values',
-        'topics': [
-          'Tagged unions', 'Boolean values', 'nil',
-          'Comparison and equality operators', 'Not operator', 'Runtime errors'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Strings',
-        'topics': [
-          'Objects', 'Reference types', 'Heap tracing', 'Concatenation',
-          'Polymorphism'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Hash Tables',
-        'topics': [
-          'Hash functions', 'FNV-1a string hashing', 'Linear probing',
-          'Rehashing', 'Reference equality', 'String interning'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Global Variables',
-        'topics': [
-          'Statements', 'Variable declaration', 'Assignment',
-          'Global variables table'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Local Variables',
-        'topics': [
-          'Blocks', 'Scope depth', 'Stack variables', 'Name resolution',
-          'Byte argument instructions'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Jumping Forward and Back',
-        'topics': [
-          'Jump instructions', 'Conditional jumps', 'Control flow statements',
-          'Short-circuiting', 'Backpatching'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Calls and Functions',
-        'topics': [
-          'Calling convention', 'Arguments', 'Call instructions',
-          'Native functions', 'Function declarations', 'Parameters',
-          'Return statements', 'Function objects', 'Call frames',
-          'Stack overflow'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Closures',
-        'topics': [
-          'Upvalues', 'Resolving enclosing locals', 'Closure flattening',
-          'Capturing variables', 'Closing upvalues'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Garbage Collection',
-        'topics': [
-          'Roots', 'Stress testing', 'Mark-sweep collection', 'Tracing',
-          'Tri-color marking', 'Weak references', 'Heap growth'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Classes and Instances',
-        'topics': [
-          'Property expressions', 'Class declarations', 'Instances', 'Fields',
-          'Undefined fields'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Methods and Initializers',
-        'topics': [
-          'Invocation expressions', 'This', 'Method declarations',
-          'Initializers', 'Bound methods'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Superclasses',
-        'topics': [
-          'Method inheritance', 'Super invocations'
-        ],
-        'done': False,
-      },
-      {
-        'name': 'Optimization',
-        'topics': [
-          'Benchmarking', 'Hash code masking', 'NaN tagging'
-        ],
-        'done': False,
-      }
-    ]
-  },
-]
-
-
-def flatten_pages():
-  """Flatten the tree of parts and chapters to a single linear list of pages."""
-  pages = []
-  for part in TOC:
-    # There are no part pages for the front- and backmatter.
-    if part['name']:
-      pages.append(part['name'])
-
-    for chapter in part['chapters']:
-      pages.append(chapter['name'])
-
-  return pages
-
-PAGES = flatten_pages()
-
-
-def roman(n):
-  """Convert n to roman numerals."""
-  if n <= 3:
-    return "I" * n
-  elif n == 4:
-    return "IV"
-  elif n < 10:
-    return "V" + "I" * (n - 5)
-  else:
-    raise "Can't convert " + str(n) + " to Roman."
-
-def number_chapters():
-  """Determine the part or chapter numbers for each part or chapter."""
-  numbers = {}
-  part_num = 1
-  chapter_num = 1
-  in_matter = False
-  for part in TOC:
-    # Front- and backmatter have no names, pages, or numbers.
-    in_matter = part['name'] == ''
-    if not in_matter:
-      numbers[part['name']] = roman(part_num)
-      part_num += 1
-
-    for chapter in part['chapters']:
-      if in_matter:
-        # Front- and backmatter chapters are not numbered.
-        numbers[chapter['name']] = ''
-      else:
-        numbers[chapter['name']] = str(chapter_num)
-        chapter_num += 1
-
-  return numbers
-
-NUMBERS = number_chapters()
 
 
 num_chapters = 0
@@ -389,27 +71,6 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
     return path
 
 
-def title_to_file(title):
-  '''Given a title like "Hash Tables", converts it to the corresponding file
-     name like "hash-tables".'''
-  if title == "Crafting Interpreters":
-    return "index"
-  if title == "Table of Contents":
-    return "contents"
-
-  title = title.lower().replace(" ", "-")
-  title = re.sub(r'[,.?!:/"]', '', title)
-  return title
-
-
-def adjacent_page(title, offset):
-  '''Generate template data to link to the previous or next page.'''
-  page_index = PAGES.index(title) + offset
-  if page_index < 0 or page_index >= len(PAGES): return None
-
-  return PAGES[page_index]
-
-
 def pretty(text):
   '''Use nicer HTML entities and special characters.'''
   text = text.replace(" -- ", "&#8202;&mdash;&#8202;")
@@ -421,13 +82,13 @@ def pretty(text):
   return text
 
 
-def look_up_chapters(title):
+def get_part_chapters(title):
   """If [title] is the title of a part, returns a list of pairs of chapter
   numbers and names."""
   chapters = []
-  for part in TOC:
+  for part in book.TOC:
     if title == part['name']:
-      chapter_number = int(NUMBERS[part['chapters'][0]['name']])
+      chapter_number = book.chapter_number(part['chapters'][0]['name'])
       for chapter in part['chapters']:
         chapters.append([chapter_number, chapter['name']])
         chapter_number += 1
@@ -621,7 +282,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
         index = stripped.find(" ")
         header_type = stripped[:index]
         header = pretty(stripped[index:].strip())
-        anchor = title_to_file(header)
+        anchor = book.get_file_name(header)
         anchor = re.sub(r'[.?!:/"]', '', anchor)
 
         # Add an anchor to the header.
@@ -630,10 +291,12 @@ def format_file(path, skip_up_to_date, dependencies_mod):
         if len(header_type) == 2:
           header_index += 1
           subheader_index = 0
-          number = '{0}&#8202;.&#8202;{1}'.format(NUMBERS[title], header_index)
+          page_number = book.chapter_number(title)
+          number = '{0}&#8202;.&#8202;{1}'.format(page_number, header_index)
         elif len(header_type) == 3:
           subheader_index += 1
-          number = '{0}&#8202;.&#8202;{1}&#8202;.&#8202;{2}'.format(NUMBERS[title], header_index, subheader_index)
+          page_number = book.chapter_number(title)
+          number = '{0}&#8202;.&#8202;{1}&#8202;.&#8202;{2}'.format(page_number, header_index, subheader_index)
 
         header_line = '<a href="#{0}" name="{0}"><small>{1}</small> {2}</a>\n'.format(anchor, number, header)
         contents += header_line
@@ -653,7 +316,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
       if section != False:
         contents = "**ERROR: Unused section {}**\n\n".format(number) + contents
 
-  chapters = look_up_chapters(title)
+  part_chapters = get_part_chapters(title)
 
   # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
@@ -666,13 +329,13 @@ def format_file(path, skip_up_to_date, dependencies_mod):
     'part': part,
     'body': body,
     'sections': sections,
-    'chapters': chapters,
+    'chapters': part_chapters,
     'design_note': design_note,
     'has_challenges': has_challenges,
-    'number': NUMBERS[title],
-    'prev': adjacent_page(title, -1),
-    'next': adjacent_page(title, 1),
-    'toc': TOC
+    'number': book.chapter_number(title),
+    'prev': book.adjacent_page(title, -1),
+    'next': book.adjacent_page(title, 1),
+    'toc': book.TOC
   }
 
   template = environment.get_template(template_file + '.html')
@@ -687,9 +350,9 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   global empty_chapters
 
   word_count = len(contents.split(None))
-  num = NUMBERS[title]
+  num = book.chapter_number(title)
   if num:
-    num += '. '
+    num = '{}. '.format(num)
 
   # Non-chapter pages aren't counted like regular chapters.
   if part:
@@ -749,8 +412,8 @@ def format_files(skip_up_to_date, one_file=None):
   # See if any of the templates were modified. If so, all pages will be rebuilt.
   templates_mod = latest_mod("asset/template/*.html")
 
-  for page in PAGES:
-    page_file = title_to_file(page)
+  for page in book.PAGES:
+    page_file = book.get_file_name(page)
     if one_file == None or page_file == one_file:
       file = os.path.join('book', page_file + '.md')
       format_file(file, skip_up_to_date, max(code_mod, templates_mod))
@@ -791,7 +454,7 @@ environment = jinja2.Environment(
     lstrip_blocks=True,
     trim_blocks=True)
 
-environment.filters['file'] = title_to_file
+environment.filters['file'] = book.get_file_name
 
 if len(sys.argv) == 2 and sys.argv[1] == "--watch":
   run_server()
