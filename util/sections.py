@@ -75,10 +75,18 @@ C_CHAPTERS = [
 ]
 
 BLOCK_PATTERN = re.compile(r'/\* ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
+BLOCK_SECTION_PATTERN = re.compile(r'/\* < (\d+)')
 BEGIN_SECTION_PATTERN = re.compile(r'//> (\d+)')
 END_SECTION_PATTERN = re.compile(r'//< (\d+)')
 BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Za-z\s]+) (\d+)')
 END_CHAPTER_PATTERN = re.compile(r'//< ([A-Za-z\s]+) (\d+)')
+
+# Hacky regex that matches a method or function declaration.
+FUNCTION_PATTERN = re.compile(r'(\w+)>* (\w+)\(')
+
+# Reserved words that can appear like a return type in a function declaration
+# but shouldn't be treated as one.
+KEYWORDS = ['new', 'return']
 
 class SourceCode:
   """ All of the source files in the book. """
@@ -95,28 +103,89 @@ class SourceCode:
     """ Gets the list of sections that occur in [chapter]. """
     sections = {}
 
+    first_lines = {}
+    last_lines = {}
+
+    # Create a new section for [number] if it doesn't already exist.
+    def ensure_section(number, line_num):
+      if not number in sections:
+        section = Section(file, number)
+        sections[number] = section
+        first_lines[section] = line_num
+        return section
+
+      section = sections[number]
+      if number != 99 and section.file.path != file.path:
+        raise "{} {} appears in two files, {} and {}".format(
+            chapter, number, section.file.path, file.path)
+
+      return section
+
     # TODO: If this is slow, could organize directly by sections in SourceCode.
+    # Find the lines added and removed in each section.
     for file in self.files:
+      line_num = 0
       for line in file.lines:
         if line.chapter == chapter:
-          if not line.number in sections:
-            sections[line.number] = Section(file)
-          # TODO: Enable this check once we can.
-          # else if sections[line.number].file.path != file.path:
-          #   raise "{} {} appears in two files, {} and {}".format(
-          #       chapter, line.number, sections[line.number].file.path, file.path)
-          sections[line.number].added.append(line.text)
-        elif line.end_chapter == chapter:
-          if not line.end_number in sections:
-            sections[line.end_number] = Section(file)
-          # TODO: Enable this check once we can.
-          # else if sections[line.number].file.path != file.path:
-          #   raise "{} {} appears in two files, {} and {}".format(
-          #       chapter, line.number, sections[line.number].file.path, file.path)
-          sections[line.end_number].removed.append(line.text)
+          section = ensure_section(line.number, line_num)
+          section.added.append(line.text)
+          last_lines[section] = line_num
 
-    # TODO: Check for discontiguous sections that are interrupted by earlier
-    # chapters.
+          if line.function and not section.function:
+            section.function = line.function
+
+        if line.end_chapter == chapter:
+          section = ensure_section(line.end_number, line_num)
+          section.removed.append(line.text)
+          last_lines[section] = line_num
+
+        line_num += 1
+
+    if len(sections) == 0: return sections
+
+    # Find the surrounding context lines and location for each section.
+    chapter_index = get_chapter_index(chapter)
+    for number, section in sections.items():
+      # Look for preceding lines.
+      i = first_lines[section] - 1
+      before = []
+      while i >= 0 and len(before) <= 5:
+        line = section.file.lines[i]
+        if line.is_present(chapter_index, number):
+          before.append(line.text)
+
+          if line.function and not section.preceding_function:
+            section.preceding_function = line.function
+        i -= 1
+      section.context_before = before[::-1]
+
+      # Look for following lines.
+      i = last_lines[section] + 1
+      after = []
+      while i < len(section.file.lines) and len(after) <= 5:
+        line = section.file.lines[i]
+        if line.is_present(chapter_index, number):
+          after.append(line.text)
+        i += 1
+      section.context_after = after
+
+    # if chapter == "Scanning":
+    #   for number, section in sections.items():
+    #     print("Scanning {} - {}".format(number, section.file.path))
+    #     for line in section.context_before:
+    #       print("   {}".format(line.rstrip()))
+    #     for line in section.removed:
+    #       print("-- {}".format(line.rstrip()))
+    #     for line in section.added:
+    #       print("++ {}".format(line.rstrip()))
+    #     for line in section.context_after:
+    #       print("   {}".format(line.rstrip()))
+
+    #   for section, first in first_lines.items():
+    #     last = last_lines[section]
+    #     print("Scanning {} - {}: {} to {}".format(
+    #         section.number, section.file.path, first, last))
+
     return sections
 
   def split_chapter(self, file, chapter, number):
@@ -158,8 +227,9 @@ class SourceFile:
 
 
 class SourceLine:
-  def __init__(self, text, chapter, number, end_chapter, end_number):
+  def __init__(self, text, function, chapter, number, end_chapter, end_number):
     self.text = text
+    self.function = function
     self.chapter = chapter
     self.number = number
     self.end_chapter = end_chapter
@@ -192,12 +262,45 @@ class SourceLine:
 
     return True
 
+  def __str__(self):
+    result = "{:72} // {} {}".format(self.text, self.chapter, self.number)
+
+    if self.end_chapter:
+      result += " < {} {}".format(self.end_chapter, self.end_number)
+
+    if self.function:
+      result += " (in {})".format(self.function)
+
+    return result
+
 
 class Section:
-  def __init__(self, file):
+  def __init__(self, file, number):
     self.file = file
+    self.number = number
+    self.context_before = []
     self.added = []
     self.removed = []
+    self.context_after = []
+
+    self.function = None
+    self.preceding_function = None
+
+  def location(self):
+    """Describes where in the file this section appears."""
+
+    if len(self.context_before) == 0:
+      # No lines before the section, it must be a new file.
+      return 'create new file'
+
+    if self.function:
+      if self.function != self.preceding_function:
+        return 'add after <em>{}</em>()'.format(
+            self.preceding_function)
+      else:
+        return 'in <em>{}</em>()'.format(self.function)
+
+    return None
 
 
 class ParseState:
@@ -241,6 +344,8 @@ def load_file(source_code, source_dir, path):
   state = ParseState(None, None, None)
   handled = False
 
+  current_function = None
+
   def fail(message):
     print("{} line {}: {}".format(relative, line_num, message), file=sys.stderr)
     sys.exit(1)
@@ -251,12 +356,12 @@ def load_file(source_code, source_dir, path):
 
     # 99 is a magic number for sections in chapters that haven't been done yet.
     # Don't worry about duplication.
-    if number != 99:
-      name = "{} {}".format(chapter, number)
-      if name in source_code.all_sections:
-        fail('Duplicate section "{}" is also in {}'.format(name,
-            source_code.all_sections[name]))
-      source_code.all_sections[name] = "{} line {}".format(relative, line_num)
+    # if number != 99:
+    #   name = "{} {}".format(chapter, number)
+    #   if name in source_code.all_sections:
+    #     fail('Duplicate section "{}" is also in {}'.format(name,
+    #         source_code.all_sections[name]))
+    #   source_code.all_sections[name] = "{} line {}".format(relative, line_num)
 
     state = ParseState(state, chapter, number, end_chapter, end_number)
     handled = True
@@ -273,9 +378,21 @@ def load_file(source_code, source_dir, path):
       line = line.rstrip()
       handled = False
 
+      # See if we reached a new function or method declaration.
+      match = FUNCTION_PATTERN.search(line)
+      if match and match.group(1) not in KEYWORDS:
+        # Hack. Don't get caught by comments or string literals.
+        if '//' not in line and '"' not in line:
+          current_function = match.group(2)
+
       match = BLOCK_PATTERN.match(line)
       if match:
         push(match.group(1), int(match.group(2)), match.group(3), int(match.group(4)))
+
+      match = BLOCK_SECTION_PATTERN.match(line)
+      if match:
+        number = int(match.group(1))
+        push(state.chapter, state.number, state.chapter, number)
 
       if line.strip() == '*/' and state.end_chapter:
         pop()
@@ -331,7 +448,19 @@ def load_file(source_code, source_dir, path):
         if not state.chapter:
           fail("No section in effect.".format(relative))
 
-        file.lines.append(SourceLine(line, state.chapter, state.number, state.end_chapter, state.end_number))
+        source_line = SourceLine(
+            line,
+            current_function,
+            state.chapter, state.number,
+            state.end_chapter, state.end_number)
+        file.lines.append(source_line)
+
+      # Hacky. Detect the end of the function. Assumes everything is nicely
+      # indented.
+      if path.endswith('.java') and line == '  }':
+        current_function = None
+      elif (path.endswith('.c') or path.endswith('.h')) and line == '}':
+        current_function = None
 
       line_num += 1
 

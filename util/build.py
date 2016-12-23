@@ -24,6 +24,10 @@ DEFAULT = '\033[0m'
 PINK = '\033[91m'
 YELLOW = '\033[33m'
 
+CODE_BEFORE_PATTERN = re.compile(r'(\d+) \((\d+) before\)')
+CODE_AFTER_PATTERN = re.compile(r'(\d+) \((\d+) after\)')
+CODE_AROUND_PATTERN = re.compile(r'(\d+) \((\d+) before, (\d+) after\)')
+
 TOC = [
   {
     'name': '',
@@ -432,15 +436,72 @@ def look_up_chapters(title):
   return chapters
 
 
-def include_section(sections, number, contents, indentation):
+def format_code(language, lines):
+  markup = '```{}\n'.format(language)
+
+  # Hack. Markdown seems to discard leading and trailing newlines, so we'll
+  # add them back ourselves.
+  leading_newlines = 0
+  while lines and lines[0].strip() == '':
+    lines = lines[1:]
+    leading_newlines += 1
+
+  trailing_newlines = 0
+  while lines and lines[-1].strip() == '':
+    lines = lines[:-1]
+    trailing_newlines += 1
+
+  for line in lines:
+    markup += line + '\n'
+
+  markup += '```'
+
+  html = markdown.markdown(markup, ['extra', 'codehilite'])
+
+  if leading_newlines > 0:
+    html = html.replace('<pre>', '<pre>' + ('<br>' * leading_newlines))
+
+  if trailing_newlines > 0:
+    html = html.replace('</pre>', ('<br>' * trailing_newlines) + '</pre>')
+
+  # Strip off the div wrapper. We just want the <pre>.
+  html = html.replace('<div class="codehilite">', '')
+  html = html.replace('</div>', '')
+  return html
+
+
+def include_section(sections, arg, contents):
+  number = None
+  before_lines = 0
+  after_lines = 0
+
+  match = CODE_BEFORE_PATTERN.match(arg)
+  if match:
+    number = int(match.group(1))
+    before_lines = int(match.group(2))
+
+  match = CODE_AFTER_PATTERN.match(arg)
+  if match:
+    number = int(match.group(1))
+    after_lines = int(match.group(2))
+
+  match = CODE_AROUND_PATTERN.match(arg)
+  if match:
+    number = int(match.group(1))
+    before_lines = int(match.group(2))
+    after_lines = int(match.group(3))
+
+  if not number:
+    number = int(arg)
+
   if number not in sections:
     contents = "**ERROR: Undefined section {}**\n\n".format(number) + contents
-    contents += "{}**ERROR: Missing section {}**\n".format(indentation, number)
+    contents += "**ERROR: Missing section {}**\n".format(number)
     return contents
 
   if sections[number] == False:
     contents = "**ERROR: Reused section {}**\n\n".format(number) + contents
-    contents += "{}**ERROR: Reused section {}**\n".format(indentation, number)
+    contents += "**ERROR: Reused section {}**\n".format(number)
     return contents
 
   section = sections[number]
@@ -448,27 +509,45 @@ def include_section(sections, number, contents, indentation):
   # Consume it.
   sections[number] = False
 
-  # TODO: Handle deletion/replacement lines.
+  # TODO: Show indentation in snippets somehow.
 
-  # TODO: Include function name, like:
-  #       <em>compiler.c</em> : <em>initCompiler()</em>
-  where = '<em>compiler.c</em> : <em>initCompiler()</em>'
-  code = '{}<div class="source-file"><em>{}</em></div>\n'.format(
-      indentation, section.file.nice_path())
+  contents += '<div class="codehilite">'
 
-  code += '{}    :::{}\n'.format(indentation, section.file.language())
+  if before_lines > 0:
+    before = format_code(section.file.language(),
+        section.context_before[-before_lines:])
+    before = before.replace('<pre>', '<pre class="insert-before">')
+    contents += before
 
-  # TODO: Figure out how we want to really display deleted lines.
-  for line in section.removed:
-    code += '{}    !! {}\n'.format(indentation, line)
+  where = '<em>{}</em>'.format(section.file.nice_path())
 
-  for line in section.added:
-    if len(line) > 72:
-      print("Warning, long line:\n{}".format(line))
+  if section.location():
+    where += '<br>\n{}'.format(section.location())
 
-    code += '{}    {}\n'.format(indentation, line)
+  if section.removed and section.added:
+    where += '<br>\nreplace {} line{}'.format(
+        len(section.removed), '' if len(section.removed) == 1 else 's')
+  contents += '<div class="source-file">{}</div>\n'.format(where)
 
-  contents += code
+  if section.removed and not section.added:
+    removed = format_code(section.file.language(), section.removed)
+    removed = removed.replace('<pre>', '<pre class="delete">')
+    contents += removed
+
+  if section.added:
+    added = format_code(section.file.language(), section.added)
+    if before_lines > 0 or after_lines > 0:
+      added = added.replace('<pre>', '<pre class="insert">')
+    contents += added
+
+  if after_lines > 0:
+    after = format_code(section.file.language(),
+        section.context_after[:after_lines])
+    after = after.replace('<pre>', '<pre class="insert-after">')
+    contents += after
+
+  contents += '</div>'
+
   return contents
 
 
@@ -524,7 +603,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
         elif command == 'template':
           template_file = arg
         elif command == 'code':
-          contents = include_section(code_sections, int(arg), contents, indentation)
+          contents = include_section(code_sections, arg, contents)
         else:
           raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
@@ -721,6 +800,7 @@ if len(sys.argv) == 2 and sys.argv[1] == "--watch":
     build_sass(True)
     time.sleep(0.3)
 if len(sys.argv) == 2 and sys.argv[1] == "--serve":
+  format_files(True)
   run_server()
 else:
   format_files(False)
