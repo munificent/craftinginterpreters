@@ -16,7 +16,7 @@ import jinja2
 import markdown
 
 import book
-import sections
+import code_snippets
 
 GRAY = '\033[1;30m'
 GREEN = '\033[32m'
@@ -408,7 +408,7 @@ def format_files(skip_up_to_date, one_file=None):
   global source_code
   global last_code_load_time
   if not last_code_load_time or code_mod > last_code_load_time:
-    source_code = sections.load()
+    source_code = code_snippets.load()
     last_code_load_time = time.time()
 
   # See if any of the templates were modified. If so, all pages will be rebuilt.

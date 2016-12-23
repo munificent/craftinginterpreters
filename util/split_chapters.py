@@ -8,10 +8,10 @@ import re
 import sys
 
 import book
-import sections
+import code_snippets
 
 
-source_code = sections.load()
+source_code = code_snippets.load()
 
 
 def split_file(chapter_name, path, snippet=None):
