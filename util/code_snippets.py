@@ -71,7 +71,8 @@ class SourceCode:
       return snippets[name]
 
     if name != 'not-yet':
-      print('Error: "{}" does not use snippet "{}".'.format(chapter, name))
+      print('Error: "{}" does not use snippet "{}".'.format(chapter, name),
+          file=sys.stderr)
 
     # Synthesize a fake one so we can keep going.
     snippets[name] = book.SnippetTag(chapter, name, len(snippets))
@@ -107,7 +108,8 @@ class SourceCode:
       snippet = snippets[name]
       if name != 'not-yet' and snippet.file.path != file.path:
         print('Error: "{}" appears in two files, {} and {}.'.format(
-            chapter, name, snippet.file.path, file.path))
+                chapter, name, snippet.file.path, file.path),
+            file=sys.stderr)
 
       return snippet
 
@@ -289,9 +291,9 @@ def load_file(source_code, source_dir, path):
 
   current_function = None
 
-  def fail(message):
-    print("{} line {}: {}".format(relative, line_num, message), file=sys.stderr)
-    sys.exit(1)
+  def error(message):
+    print("Error: {} line {}: {}".format(relative, line_num, message),
+        file=sys.stderr)
 
   def push(chapter, name, end_chapter=None, end_name=None):
     nonlocal state
@@ -301,8 +303,6 @@ def load_file(source_code, source_dir, path):
     end = None
     if end_chapter:
       end = source_code.find_snippet_tag(end_chapter, end_name)
-
-    # TODO: Warn if the same snippet appears in multiple files.
 
     state = ParseState(state, start, end)
     handled = True
@@ -341,20 +341,20 @@ def load_file(source_code, source_dir, path):
       match = BEGIN_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
-        # TODO: Look up snippet for name and compare indexes.
-        # if number < state.number:
-        #   fail("Can't push an earlier snippet {} from {}.".format(name, state.start.name))
-        # elif name == state.start.name:
-        #   fail("Can't push to same snippet {}.".format(name))
+        tag = source_code.find_snippet_tag(state.start.chapter, name)
+        if tag < state.start:
+          error("Can't push earlier snippet {} from {}.".format(name, state.start.name))
+        elif tag == state.start:
+          error("Can't push to same snippet {}.".format(name))
         push(state.start.chapter, name)
 
       match = END_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
         if name != state.start.name:
-          fail("Expecting to pop {} but got {}.".format(state.start.name, name))
+          error("Expecting to pop {} but got {}.".format(state.start.name, name))
         if state.parent.start.chapter == None:
-          fail('Cannot pop last state "{}".'.format(state.start))
+          error('Cannot pop last state {}.'.format(state.start))
         pop()
 
       match = BEGIN_CHAPTER_PATTERN.match(line)
@@ -367,11 +367,11 @@ def load_file(source_code, source_dir, path):
           new_chapter = book.chapter_number(chapter)
 
           if chapter == state.start.chapter and name == state.start.name:
-            fail('Pushing same state "{} {}"'.format(chapter, name))
+            error('Pushing same snippet "{} {}"'.format(chapter, name))
           if chapter == state.start.chapter:
-            fail('Pushing same chapter, just use "//>> {}"'.format(name))
+            error('Pushing same chapter, just use "//>> {}"'.format(name))
           if new_chapter < old_chapter:
-            fail('Can\'t push earlier chapter "{}" from "{}".'.format(
+            error('Can\'t push earlier chapter "{}" from "{}".'.format(
                 chapter, state.start.chapter))
         push(chapter, name)
 
@@ -380,8 +380,8 @@ def load_file(source_code, source_dir, path):
         chapter = match.group(1)
         name = match.group(2)
         if chapter != state.start.chapter or name != state.start.name:
-          fail('Expecting to pop "{}" but got "{} {}".'.format(
-              state.start, chapter, name))
+          fail('Expecting to pop "{} {}" but got "{} {}".'.format(
+              state.start.chapter, state.start.name, chapter, name))
         if state.parent.start.chapter == None:
           fail('Cannot pop last state "{}".'.format(state.start))
         pop()
