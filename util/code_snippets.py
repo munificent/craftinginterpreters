@@ -64,6 +64,13 @@ class SourceCode:
     self.files = []
     self.snippet_tags = book.get_chapter_snippet_tags()
 
+    # The errors that occurred when parsing the source code, mapped to the
+    # chapter where the error should be displayed.
+    self.errors = {}
+    for chapter in book.CODE_CHAPTERS:
+      self.errors[chapter] = []
+
+
   def find_snippet_tag(self, chapter, name):
     snippets = self.snippet_tags[chapter]
 
@@ -294,6 +301,8 @@ def load_file(source_code, source_dir, path):
   def error(message):
     print("Error: {} line {}: {}".format(relative, line_num, message),
         file=sys.stderr)
+    source_code.errors[state.start.chapter].append(
+        "{} line {}: {}".format(relative, line_num, message))
 
   def push(chapter, name, end_chapter=None, end_name=None):
     nonlocal state

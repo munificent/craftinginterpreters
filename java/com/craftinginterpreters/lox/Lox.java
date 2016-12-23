@@ -1,4 +1,4 @@
-//> Scanning 1
+//> Scanning lox-class
 package com.craftinginterpreters.lox;
 
 import java.io.BufferedReader;
@@ -31,7 +31,7 @@ public class Lox {
       repl();
     }
   }
-//> 2
+//> run-file
 
   private static void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
@@ -45,8 +45,8 @@ public class Lox {
     if (hadRuntimeError) System.exit(70);
 //< Evaluating Expressions not-yet
   }
-//< 2
-//> 3
+//< run-file
+//> repl
 
   private static void repl() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
@@ -57,7 +57,7 @@ public class Lox {
       run(reader.readLine());
     }
   }
-//< 3
+//< repl
 //> not-yet
 
   private static void run(String source) {
@@ -67,7 +67,7 @@ public class Lox {
 */
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
-/* Scanning 10 < Representing Code not-yet
+/* Scanning print-tokens < Representing Code not-yet
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
@@ -132,9 +132,11 @@ public class Lox {
   }
 
 //< Evaluating Expressions not-yet
+//> not-yet
   static private void report(int line, String location, String message) {
     System.err.println("[line " + line + "] Error" + location +
         ": " + message);
     hadError = true;
   }
+//< not-yet
 }

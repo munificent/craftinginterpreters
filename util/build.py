@@ -25,9 +25,9 @@ DEFAULT = '\033[0m'
 PINK = '\033[91m'
 YELLOW = '\033[33m'
 
-CODE_BEFORE_PATTERN = re.compile(r'(\d+) \((\d+) before\)')
-CODE_AFTER_PATTERN = re.compile(r'(\d+) \((\d+) after\)')
-CODE_AROUND_PATTERN = re.compile(r'(\d+) \((\d+) before, (\d+) after\)')
+CODE_BEFORE_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) before\)')
+CODE_AFTER_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) after\)')
+CODE_AROUND_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) before, (\d+) after\)')
 
 
 num_chapters = 0
@@ -131,7 +131,7 @@ def format_code(language, lines):
   return html
 
 
-def insert_snippet(snippets, arg, contents):
+def insert_snippet(snippets, arg, contents, errors):
   name = None
   before_lines = 0
   after_lines = 0
@@ -160,12 +160,12 @@ def insert_snippet(snippets, arg, contents):
     name = arg
 
   if name not in snippets:
-    contents = "**ERROR: Undefined snippet {}**\n\n".format(name) + contents
+    errors.append("Undefined snippet {}".format(name))
     contents += "**ERROR: Missing snippet {}**\n".format(name)
     return contents
 
   if snippets[name] == False:
-    contents = "**ERROR: Reused snippet {}**\n\n".format(name) + contents
+    errors.append("Reused snippet {}".format(name))
     contents += "**ERROR: Reused snippet {}**\n".format(name)
     return contents
 
@@ -235,6 +235,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   part = None
   template_file = 'page'
 
+  errors = []
   sections = []
   header_index = 0
   subheader_index = 0
@@ -263,12 +264,16 @@ def format_file(path, skip_up_to_date, dependencies_mod):
 
           # Load the code snippets now that we know the title.
           snippets = source_code.find_all(title)
+
+          # If there were any errors loading the code, include them.
+          if title in book.CODE_CHAPTERS:
+            errors.extend(source_code.errors[title])
         elif command == 'part':
           part = arg
         elif command == 'template':
           template_file = arg
         elif command == 'code':
-          contents = insert_snippet(snippets, arg, contents)
+          contents = insert_snippet(snippets, arg, contents, errors)
         else:
           raise Exception('Unknown command "^{} {}"'.format(command, arg))
 
@@ -315,9 +320,14 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   # Validate that every snippet for the chapter is included.
   for name, snippet in snippets.items():
     if name != 'not-yet' and snippet != False:
-      contents = "**ERROR: Unused snippet {}**\n\n".format(name) + contents
+      errors.append("Unused snippet {}".format(name))
 
-  part_chapters = get_part_chapters(title)
+  # Show any errors at the top of the file.
+  if errors:
+    error_markdown = ""
+    for error in errors:
+      error_markdown += "**Error: {}**\n\n".format(error)
+    contents = error_markdown + contents
 
   # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
@@ -330,7 +340,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
     'part': part,
     'body': body,
     'sections': sections,
-    'chapters': part_chapters,
+    'chapters': get_part_chapters(title),
     'design_note': design_note,
     'has_challenges': has_challenges,
     'number': book.chapter_number(title),

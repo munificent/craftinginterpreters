@@ -9,7 +9,7 @@ import os
 import re
 
 # Matches the name in a `^code` tag and ignores the rest.
-SNIPPET_TAG_PATTERN = re.compile(r'\s*\^code ([a-z_0-9]+).*')
+SNIPPET_TAG_PATTERN = re.compile(r'\s*\^code ([-a-z0-9]+).*')
 TITLE_PATTERN = re.compile(r'\^title (.*)')
 
 TOC = [
@@ -408,6 +408,12 @@ class SnippetTag:
     self.chapter_index = chapter_number(chapter)
     self.index = index
 
+    # Hackish. Always want "not-yet" to be the last tag even if it appears
+    # before a real tag. That ensures we can push it for other tags that have
+    # been named.
+    if name == "not-yet":
+      self.index = 9999
+
   def __lt__(self, other):
     if self.chapter_index != other.chapter_index:
       return self.chapter_index < other.chapter_index
@@ -428,6 +434,11 @@ def get_chapter_snippet_tags():
 
   for chapter in CODE_CHAPTERS:
     chapters[chapter] = get_snippet_tags(get_markdown_path(chapter))
+
+  # for chapter, tags in chapters.items():
+  #   print(chapter)
+  #   for tag in tags.values():
+  #     print("  {}".format(tag))
 
   return chapters
 

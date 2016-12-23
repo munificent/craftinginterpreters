@@ -1,11 +1,11 @@
-//> Scanning 5
+//> Scanning token-class
 package com.craftinginterpreters.lox;
 
 class Token {
   final TokenType type;
   final String text;
   final Object value;
-/* < 6
+/* < token-line
 
   Token(TokenType type, String text, Object value) {
     this.type = type;
@@ -14,7 +14,7 @@ class Token {
   }
 
 */
-//> 6
+//> token-line
   final int line;
 
   Token(TokenType type, String text, Object value, int line) {
@@ -24,7 +24,7 @@ class Token {
     this.line = line;
   }
 
-//< 6
+//< token-line
   public String toString() {
     return type + " " + text + " " + value;
   }
