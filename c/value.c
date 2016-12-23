@@ -1,56 +1,56 @@
-//> Chunks of Bytecode 99
+//> Chunks of Bytecode not-yet
 #include <stdio.h>
 #include <stdlib.h>
-/* Strings 99 < Hash Tables 99
+/* Strings not-yet < Hash Tables not-yet
 #include <string.h>
 */
 
 #include "memory.h"
 #include "value.h"
 
-//> Strings 99
+//> Strings not-yet
 static void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
-//> Classes and Instances 99
+//> Classes and Instances not-yet
     case OBJ_CLASS:
       printf("%s", AS_CLASS(value)->name->chars);
       break;
-//< Classes and Instances 99
-//> Methods and Initializers 99
+//< Classes and Instances not-yet
+//> Methods and Initializers not-yet
     case OBJ_BOUND_METHOD:
-//< Methods and Initializers 99
-//> Closures 99
+//< Methods and Initializers not-yet
+//> Closures not-yet
     case OBJ_CLOSURE:
-//< Closures 99
-//> Calls and Functions 99
+//< Closures not-yet
+//> Calls and Functions not-yet
     case OBJ_FUNCTION:
       printf("<fn %p>", AS_FUNCTION(value));
       break;
-//< Calls and Functions 99
-//> Classes and Instances 99
+//< Calls and Functions not-yet
+//> Classes and Instances not-yet
     case OBJ_INSTANCE:
       printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
       break;
-//< Classes and Instances 99
-//> Calls and Functions 99
+//< Classes and Instances not-yet
+//> Calls and Functions not-yet
     case OBJ_NATIVE:
       printf("<native %p>", AS_NATIVE(value));
       break;
-//< Calls and Functions 99
+//< Calls and Functions not-yet
     case OBJ_STRING:
       printf("%s", AS_CSTRING(value));
       break;
-//> Closures 99
+//> Closures not-yet
     case OBJ_UPVALUE:
       printf("upvalue");
       break;
-//< Closures 99
+//< Closures not-yet
   }
 }
-//< Strings 99
+//< Strings not-yet
 
 void printValue(Value value) {
-//> Optimization 99
+//> Optimization not-yet
 #ifdef NAN_TAGGING
   if (IS_BOOL(value)) {
     printf(AS_BOOL(value) ? "true" : "false");
@@ -62,45 +62,45 @@ void printValue(Value value) {
     printObject(value);
   }
 #else
-//< Optimization 99
-/* Chunks of Bytecode 99 < Types of Values 99
+//< Optimization not-yet
+/* Chunks of Bytecode not-yet < Types of Values not-yet
   printf("%g", value);
 */
-//> Types of Values 99
+//> Types of Values not-yet
   switch (value.type) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
     case VAL_NIL:    printf("nil"); break;
     case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
-//> Strings 99
+//> Strings not-yet
     case VAL_OBJ:    printObject(value); break;
-//< Strings 99
+//< Strings not-yet
   }
-//< Types of Values 99
-//> Optimization 99
+//< Types of Values not-yet
+//> Optimization not-yet
 #endif
-//< Optimization 99
+//< Optimization not-yet
 }
 
 bool valuesEqual(Value a, Value b) {
-//> Optimization 99
+//> Optimization not-yet
 #ifdef NAN_TAGGING
   return a == b;
 #else
-//< Optimization 99
-/* Chunks of Bytecode 99 < Types of Values 99
+//< Optimization not-yet
+/* Chunks of Bytecode not-yet < Types of Values not-yet
   return a == b;
 */
-//> Types of Values 99
+//> Types of Values not-yet
   if (a.type != b.type) return false;
 
   switch (a.type) {
     case VAL_BOOL:   return AS_BOOL(a) == AS_BOOL(b);
     case VAL_NIL:    return true;
     case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
-//> Strings 99
+//> Strings not-yet
     case VAL_OBJ:
-//< Strings 99
-/* Strings 99 < Hash Tables 99
+//< Strings not-yet
+/* Strings not-yet < Hash Tables not-yet
     {
       ObjString* aString = AS_STRING(a);
       ObjString* bString = AS_STRING(b);
@@ -108,15 +108,15 @@ bool valuesEqual(Value a, Value b) {
           memcmp(aString->chars, bString->chars, aString->length) == 0;
     }
  */
-//> Hash Tables 99
+//> Hash Tables not-yet
       // Objects have reference equality.
       return AS_OBJ(a) == AS_OBJ(b);
-//< Hash Tables 99
+//< Hash Tables not-yet
   }
-//> Optimization 99
+//> Optimization not-yet
 #endif
-//< Optimization 99
-//< Types of Values 99
+//< Optimization not-yet
+//< Types of Values not-yet
 }
 
 void initArray(ValueArray* array) {

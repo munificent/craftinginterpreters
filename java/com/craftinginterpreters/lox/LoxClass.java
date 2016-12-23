@@ -1,4 +1,4 @@
-//> Classes 99
+//> Classes not-yet
 package com.craftinginterpreters.lox;
 
 import java.util.List;
@@ -6,27 +6,27 @@ import java.util.Map;
 
 class LoxClass implements Callable {
   final String name;
-//> Inheritance 99
+//> Inheritance not-yet
   final LoxClass superclass;
-//< Inheritance 99
+//< Inheritance not-yet
   private final Map<String, LoxFunction> methods;
 
-/* Classes 99 < Inheritance 99
+/* Classes not-yet < Inheritance not-yet
   LoxClass(String name, Map<String, LoxFunction> methods) {
 */
-//> Inheritance 99
+//> Inheritance not-yet
   LoxClass(String name, LoxClass superclass,
            Map<String, LoxFunction> methods) {
-//< Inheritance 99
+//< Inheritance not-yet
     this.name = name;
-//> Inheritance 99
+//> Inheritance not-yet
     this.superclass = superclass;
-//< Inheritance 99
+//< Inheritance not-yet
     this.methods = methods;
   }
 
   LoxFunction findMethod(LoxInstance instance, String name) {
-/* Classes 99 < Inheritance 99
+/* Classes not-yet < Inheritance not-yet
     if (methods.containsKey(name)) {
       return methods.get(name).bind(instance);
     }
@@ -34,7 +34,7 @@ class LoxClass implements Callable {
     // Not found.
     return null;
 */
-//> Inheritance 99
+//> Inheritance not-yet
     LoxClass klass = this;
     while (klass != null) {
       if (klass.methods.containsKey(name)) {
@@ -46,7 +46,7 @@ class LoxClass implements Callable {
 
     // Not found.
     return null;
-//< Inheritance 99
+//< Inheritance not-yet
   }
 
   @Override

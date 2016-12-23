@@ -1,16 +1,16 @@
-//> Chunks of Bytecode 99
+//> Chunks of Bytecode not-yet
 #ifndef clox_value_h
 #define clox_value_h
 
 #include "common.h"
 
-//> Strings 99
+//> Strings not-yet
 
 typedef struct sObj Obj;
 typedef struct sObjString ObjString;
 
-//< Strings 99
-//> Optimization 99
+//< Strings not-yet
+//> Optimization not-yet
 
 #ifdef NAN_TAGGING
 
@@ -73,38 +73,38 @@ static inline Value numToValue(double num)
 
 #else
 
-//< Optimization 99
-/* Chunks of Bytecode 99 < Types of Values 99
+//< Optimization not-yet
+/* Chunks of Bytecode not-yet < Types of Values not-yet
 typedef double Value;
 */
-//> Types of Values 99
+//> Types of Values not-yet
 #define IS_BOOL(value)    ((value).type == VAL_BOOL)
 #define IS_NIL(value)     ((value).type == VAL_NIL)
 #define IS_NUMBER(value)  ((value).type == VAL_NUMBER)
-//> Strings 99
+//> Strings not-yet
 #define IS_OBJ(value)     ((value).type == VAL_OBJ)
-//< Strings 99
+//< Strings not-yet
 
-//> Strings 99
+//> Strings not-yet
 #define AS_OBJ(value)     ((value).as.object)
-//< Strings 99
+//< Strings not-yet
 #define AS_BOOL(value)    ((value).as.boolean)
 #define AS_NUMBER(value)  ((value).as.number)
 
 #define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
 #define NIL_VAL           ((Value){ VAL_NIL, { .number = 0 } })
 #define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-//> Strings 99
+//> Strings not-yet
 #define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .object = (Obj*)obj } })
-//< Strings 99
+//< Strings not-yet
 
 typedef enum {
   VAL_BOOL,
   VAL_NIL,
   VAL_NUMBER,
-//> Strings 99
+//> Strings not-yet
   VAL_OBJ
-//< Strings 99
+//< Strings not-yet
 } ValueType;
 
 typedef struct {
@@ -112,16 +112,16 @@ typedef struct {
   union {
     bool boolean;
     double number;
-//> Strings 99
+//> Strings not-yet
     Obj* object;
-//< Strings 99
+//< Strings not-yet
   } as;
 } Value;
-//> Optimization 99
+//> Optimization not-yet
 
 #endif
-//< Optimization 99
-//< Types of Values 99
+//< Optimization not-yet
+//< Types of Values not-yet
 
 typedef struct {
   int capacity;

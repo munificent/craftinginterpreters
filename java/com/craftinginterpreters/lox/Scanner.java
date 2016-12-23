@@ -1,4 +1,4 @@
-//> Scanning 99
+//> Scanning 8
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
@@ -9,6 +9,7 @@ import java.util.Map;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 class Scanner {
+//> not-yet
   private static final Map<String, TokenType> keywords;
 
   static {
@@ -31,16 +32,19 @@ class Scanner {
     keywords.put("while",  WHILE);
   }
 
+//< not-yet
   private final String source;
   private final List<Token> tokens = new ArrayList<>();
+//> not-yet
   private int tokenStart = 0;
   private int current = 0;
   private int line = 1;
+//< not-yet
 
   Scanner(String source) {
     this.source = source;
   }
-
+//> not-yet
   List<Token> scanTokens() {
     while (!isAtEnd()) {
       // The next token starts with the current character.
@@ -209,4 +213,5 @@ class Scanner {
   private boolean isAtEnd() {
     return current >= source.length();
   }
+//< not-yet
 }

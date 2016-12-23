@@ -1,4 +1,4 @@
-//> Representing Code 99
+//> Representing Code not-yet
 package com.craftinginterpreters.tool;
 
 import java.io.IOException;
@@ -18,62 +18,62 @@ public class GenerateAst {
     outputDir = args[0];
 
     defineAstType("Expr", Arrays.asList(
-//> Statements and State 99
+//> Statements and State not-yet
         "Assign   : Token name, Expr value",
-//< Statements and State 99
+//< Statements and State not-yet
         "Binary   : Expr left, Token operator, Expr right",
-//> Functions 99
+//> Functions not-yet
         "Call     : Expr callee, Token paren, List<Expr> arguments",
-//< Functions 99
-//> Classes 99
+//< Functions not-yet
+//> Classes not-yet
         "Get      : Expr object, Token name",
-//< Classes 99
+//< Classes not-yet
         "Grouping : Expr expression",
         "Literal  : Object value",
-//> Control Flow 99
+//> Control Flow not-yet
         "Logical  : Expr left, Token operator, Expr right",
-//< Control Flow 99
-//> Classes 99
+//< Control Flow not-yet
+//> Classes not-yet
         "Set      : Expr object, Token name, Expr value",
-//< Classes 99
-//> Inheritance 99
+//< Classes not-yet
+//> Inheritance not-yet
         "Super    : Token keyword, Token method",
-//< Inheritance 99
-//> Classes 99
+//< Inheritance not-yet
+//> Classes not-yet
         "This     : Token keyword",
-//< Classes 99
+//< Classes not-yet
         "Unary    : Token operator, Expr right",
-//> Statements and State 99
+//> Statements and State not-yet
         "Variable : Token name"
-//< Statements and State 99
+//< Statements and State not-yet
     ));
-//> Statements and State 99
+//> Statements and State not-yet
 
     defineAstType("Stmt", Arrays.asList(
         "Block       : List<Stmt> statements",
-/* Classes 99 < Inheritance 99
+/* Classes not-yet < Inheritance not-yet
         "Class       : Token name, List<Stmt.Function> methods",
 */
-//> Inheritance 99
+//> Inheritance not-yet
         "Class       : Token name, Expr superclass, List<Stmt.Function> methods",
-//< Inheritance 99
+//< Inheritance not-yet
         "Expression  : Expr expression",
-//> Functions 99
+//> Functions not-yet
         "Function    : Token name, List<Token> parameters, List<Stmt> body",
-//< Functions 99
-//> Control Flow 99
+//< Functions not-yet
+//> Control Flow not-yet
         "If          : Expr condition, Stmt thenBranch, Stmt elseBranch",
-//< Control Flow 99
+//< Control Flow not-yet
         "Print       : Expr expression",
-//> Functions 99
+//> Functions not-yet
         "Return      : Token keyword, Expr value",
-//< Functions 99
+//< Functions not-yet
         "Var         : Token name, Expr initializer",
-//> Control Flow 99
+//> Control Flow not-yet
         "While       : Expr condition, Stmt body"
-//< Control Flow 99
+//< Control Flow not-yet
     ));
-//< Statements and State 99
+//< Statements and State not-yet
   }
 
   private static void defineAstType(String baseName, List<String> types)

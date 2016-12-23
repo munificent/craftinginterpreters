@@ -1,79 +1,79 @@
-//> A Virtual Machine 99
+//> A Virtual Machine not-yet
 #ifndef clox_vm_h
 #define clox_vm_h
 
-/* A Virtual Machine 99 < Calls and Functions 99
+/* A Virtual Machine not-yet < Calls and Functions not-yet
 #include "chunk.h"
 */
-//> Calls and Functions 99
+//> Calls and Functions not-yet
 #include "object.h"
-//< Calls and Functions 99
-//> Hash Tables 99
+//< Calls and Functions not-yet
+//> Hash Tables not-yet
 #include "table.h"
-//< Hash Tables 99
+//< Hash Tables not-yet
 #include "value.h"
 
-/* A Virtual Machine 99 < Calls and Functions 99
+/* A Virtual Machine not-yet < Calls and Functions not-yet
 #define STACK_SIZE 256
 */
-//> Calls and Functions 99
+//> Calls and Functions not-yet
 // TODO: Don't depend on frame count for stack count since we have stack before
 // frames?
 #define FRAMES_SIZE 64
 #define STACK_SIZE (FRAMES_SIZE * UINT8_COUNT)
 
 typedef struct {
-/* Calls and Functions 99 < Closures 99
+/* Calls and Functions not-yet < Closures not-yet
   ObjFunction* function;
 */
-//> Closures 99
+//> Closures not-yet
   ObjClosure* closure;
-//< Closures 99
+//< Closures not-yet
   uint8_t* ip;
   Value* slots;
 } CallFrame;
-//< Calls and Functions 99
+//< Calls and Functions not-yet
 
 typedef struct {
   Value stack[STACK_SIZE];
   Value* stackTop;
-/* A Virtual Machine 99 < Calls and Functions 99
+/* A Virtual Machine not-yet < Calls and Functions not-yet
   Chunk* chunk;
   uint8_t* ip;
 */
-//> Calls and Functions 99
+//> Calls and Functions not-yet
 
   CallFrame frames[FRAMES_SIZE];
   int frameCount;
 
-//< Calls and Functions 99
-//> Global Variables 99
+//< Calls and Functions not-yet
+//> Global Variables not-yet
   Table globals;
-//< Global Variables 99
-//> Hash Tables 99
+//< Global Variables not-yet
+//> Hash Tables not-yet
   Table strings;
 
-//< Hash Tables 99
-//> Methods and Initializers 99
+//< Hash Tables not-yet
+//> Methods and Initializers not-yet
   ObjString* initString;
-//< Methods and Initializers 99
-//> Closures 99
+//< Methods and Initializers not-yet
+//> Closures not-yet
   ObjUpvalue* openUpvalues;
-//< Closures 99
-//> Garbage Collection 99
+//< Closures not-yet
+//> Garbage Collection not-yet
 
   size_t bytesAllocated;
   size_t nextGC;
-//< Garbage Collection 99
-//> Strings 99
+//< Garbage Collection not-yet
+//> Strings not-yet
 
   Obj* objects;
-//< Strings 99
-//> Garbage Collection 99
+//< Strings not-yet
+//> Garbage Collection not-yet
   int grayCount;
   int grayCapacity;
   Obj** grayStack;
-//< Garbage Collection 99
+//< Garbage Collection not-yet
 } VM;
 
 typedef enum {
@@ -88,12 +88,12 @@ extern VM vm;
 void initVM();
 void push(Value value);
 Value pop();
-/* A Virtual Machine 99 < Scanning on Demand 99
+/* A Virtual Machine not-yet < Scanning on Demand not-yet
 InterpretResult interpret(Chunk* chunk);
 */
-//> Scanning on Demand 99
+//> Scanning on Demand not-yet
 InterpretResult interpret(const char* source);
-//< Scanning on Demand 99
+//< Scanning on Demand not-yet
 void endVM();
 
 #endif

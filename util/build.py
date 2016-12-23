@@ -314,8 +314,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
 
   # Validate that every snippet for the chapter is included.
   for name, snippet in snippets.items():
-    # TODO: Better name for the "not done yet" snippet.
-    if name != '99' and snippet != False:
+    if name != 'not-yet' and snippet != False:
       contents = "**ERROR: Unused snippet {}**\n\n".format(name) + contents
 
   part_chapters = get_part_chapters(title)

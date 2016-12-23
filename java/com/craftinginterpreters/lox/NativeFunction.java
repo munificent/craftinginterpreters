@@ -1,4 +1,4 @@
-//> Functions 99
+//> Functions not-yet
 package com.craftinginterpreters.lox;
 
 import java.util.List;

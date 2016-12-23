@@ -1,4 +1,4 @@
-//> Chunks of Bytecode 99
+//> Chunks of Bytecode not-yet
 #ifndef clox_chunk_h
 #define clox_chunk_h
 
@@ -7,60 +7,60 @@
 
 typedef enum {
   OP_CONSTANT,
-//> Types of Values 99
+//> Types of Values not-yet
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
-//< Types of Values 99
-//> Global Variables 99
+//< Types of Values not-yet
+//> Global Variables not-yet
   OP_POP,
-//< Global Variables 99
-//> Local Variables 99
+//< Global Variables not-yet
+//> Local Variables not-yet
   OP_GET_LOCAL,
   OP_SET_LOCAL,
-//< Local Variables 99
-//> Global Variables 99
+//< Local Variables not-yet
+//> Global Variables not-yet
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
-//< Global Variables 99
-//> Closures 99
+//< Global Variables not-yet
+//> Closures not-yet
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
-//< Closures 99
-//> Classes and Instances 99
+//< Closures not-yet
+//> Classes and Instances not-yet
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
-//< Classes and Instances 99
-//> Superclasses 99
+//< Classes and Instances not-yet
+//> Superclasses not-yet
   OP_GET_SUPER,
-//< Superclasses 99
-//> Types of Values 99
+//< Superclasses not-yet
+//> Types of Values not-yet
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
-//< Types of Values 99
-//> A Virtual Machine 99
+//< Types of Values not-yet
+//> A Virtual Machine not-yet
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
-//< A Virtual Machine 99
-//> Types of Values 99
+//< A Virtual Machine not-yet
+//> Types of Values not-yet
   OP_NOT,
-//< Types of Values 99
-//> A Virtual Machine 99
+//< Types of Values not-yet
+//> A Virtual Machine not-yet
   OP_NEGATE,
-//< A Virtual Machine 99
-//> Global Variables 99
+//< A Virtual Machine not-yet
+//> Global Variables not-yet
   OP_PRINT,
-//< Global Variables 99
-//> Jumping Forward and Back 99
+//< Global Variables not-yet
+//> Jumping Forward and Back not-yet
   OP_JUMP,
   OP_JUMP_IF_FALSE,
   OP_LOOP,
-//< Jumping Forward and Back 99
-//> Calls and Functions 99
+//< Jumping Forward and Back not-yet
+//> Calls and Functions not-yet
   OP_CALL_0,
   OP_CALL_1,
   OP_CALL_2,
@@ -70,8 +70,8 @@ typedef enum {
   OP_CALL_6,
   OP_CALL_7,
   OP_CALL_8,
-//< Calls and Functions 99
-//> Methods and Initializers 99
+//< Calls and Functions not-yet
+//> Methods and Initializers not-yet
   OP_INVOKE_0,
   OP_INVOKE_1,
   OP_INVOKE_2,
@@ -81,8 +81,8 @@ typedef enum {
   OP_INVOKE_6,
   OP_INVOKE_7,
   OP_INVOKE_8,
-//< Methods and Initializers 99
-//> Superclasses 99
+//< Methods and Initializers not-yet
+//> Superclasses not-yet
   OP_SUPER_0,
   OP_SUPER_1,
   OP_SUPER_2,
@@ -92,23 +92,23 @@ typedef enum {
   OP_SUPER_6,
   OP_SUPER_7,
   OP_SUPER_8,
-//< Superclasses 99
-//> Closures 99
+//< Superclasses not-yet
+//> Closures not-yet
   OP_CLOSURE,
   OP_CLOSE_UPVALUE,
-//< Closures 99
-//> A Virtual Machine 99
+//< Closures not-yet
+//> A Virtual Machine not-yet
   OP_RETURN,
-//< A Virtual Machine 99
-//> Classes and Instances 99
+//< A Virtual Machine not-yet
+//> Classes and Instances not-yet
   OP_CLASS,
-//< Classes and Instances 99
-//> Superclasses 99
+//< Classes and Instances not-yet
+//> Superclasses not-yet
   OP_SUBCLASS,
-//< Superclasses 99
-//> Methods and Initializers 99
+//< Superclasses not-yet
+//> Methods and Initializers not-yet
   OP_METHOD
-//< Methods and Initializers 99
+//< Methods and Initializers not-yet
 } OpCode;
 
 typedef struct {

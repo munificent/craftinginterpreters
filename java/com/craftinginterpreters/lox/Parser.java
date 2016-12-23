@@ -1,10 +1,10 @@
-//> Parsing Expressions 99
+//> Parsing Expressions not-yet
 package com.craftinginterpreters.lox;
 
-//> Statements and State 99
+//> Statements and State not-yet
 import java.util.ArrayList;
 import java.util.Arrays;
-//< Statements and State 99
+//< Statements and State not-yet
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,15 +15,15 @@ class Parser {
   private static final Set<TokenType> synchronizing = new HashSet<>();
 
   static {
-//> Statements and State 99
+//> Statements and State not-yet
     synchronizing.add(LEFT_BRACE);
     synchronizing.add(RIGHT_BRACE);
-//< Statements and State 99
+//< Statements and State not-yet
     synchronizing.add(RIGHT_PAREN);
-//> Statements and State 99
+//> Statements and State not-yet
     synchronizing.add(EQUAL);
     synchronizing.add(SEMICOLON);
-//< Statements and State 99
+//< Statements and State not-yet
   }
 
   private final List<Token> tokens;
@@ -32,7 +32,7 @@ class Parser {
   Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
-//> Statements and State 99
+//> Statements and State not-yet
 
   List<Stmt> parseProgram() {
     List<Stmt> statements = new ArrayList<>();
@@ -42,41 +42,41 @@ class Parser {
 
     return statements;
   }
-//< Statements and State 99
+//< Statements and State not-yet
 
   Expr parseExpression() {
-/* Parsing Expressions 99 < Statements and State 99
+/* Parsing Expressions not-yet < Statements and State not-yet
     return equality();
 */
-//> Statements and State 99
+//> Statements and State not-yet
     return assignment();
-//< Statements and State 99
+//< Statements and State not-yet
   }
-//> Statements and State 99
+//> Statements and State not-yet
 
   private Stmt declaration() {
-//> Classes 99
+//> Classes not-yet
     if (match(CLASS)) return classDeclaration();
-//< Classes 99
-//> Functions 99
+//< Classes not-yet
+//> Functions not-yet
     if (match(FUN)) return function("function");
-//< Functions 99
+//< Functions not-yet
     if (match(VAR)) return varDeclaration();
 
     return statement();
   }
-//> Classes 99
+//> Classes not-yet
 
   private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
-//> Inheritance 99
+//> Inheritance not-yet
 
     Expr superclass = null;
     if (match(LESS)) {
       consume(IDENTIFIER, "Expect superclass name.");
       superclass = new Expr.Variable(previous());
     }
-//< Inheritance 99
+//< Inheritance not-yet
 
     List<Stmt.Function> methods = new ArrayList<>();
     consume(LEFT_BRACE, "Expect '{' before class body.");
@@ -87,32 +87,32 @@ class Parser {
 
     consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-/* Classes 99 < Inheritance 99
+/* Classes not-yet < Inheritance not-yet
     return new Stmt.Class(name, methods);
 */
-//> Inheritance 99
+//> Inheritance not-yet
     return new Stmt.Class(name, superclass, methods);
-//< Inheritance 99
+//< Inheritance not-yet
   }
-//< Classes 99
+//< Classes not-yet
 
   private Stmt statement() {
-//> Control Flow 99
+//> Control Flow not-yet
     if (match(FOR)) return forStatement();
     if (match(IF)) return ifStatement();
-//< Control Flow 99
+//< Control Flow not-yet
     if (match(PRINT)) return printStatement();
-//> Functions 99
+//> Functions not-yet
     if (match(RETURN)) return returnStatement();
-//< Functions 99
-//> Control Flow 99
+//< Functions not-yet
+//> Control Flow not-yet
     if (match(WHILE)) return whileStatement();
-//< Control Flow 99
+//< Control Flow not-yet
     if (check(LEFT_BRACE)) return new Stmt.Block(block());
 
     return expressionStatement();
   }
-//> Control Flow 99
+//> Control Flow not-yet
 
   private Stmt forStatement() {
     // Parse it.
@@ -169,14 +169,14 @@ class Parser {
 
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
-//< Control Flow 99
+//< Control Flow not-yet
 
   private Stmt printStatement() {
     Expr value = parseExpression();
     consume(SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(value);
   }
-//> Functions 99
+//> Functions not-yet
 
   private Stmt returnStatement() {
     Token keyword = previous();
@@ -188,7 +188,7 @@ class Parser {
     consume(SEMICOLON, "Expect ';' after return value.");
     return new Stmt.Return(keyword, value);
   }
-//< Functions 99
+//< Functions not-yet
 
   private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
@@ -202,7 +202,7 @@ class Parser {
 
     return new Stmt.Var(name, initializer);
   }
-//> Control Flow 99
+//> Control Flow not-yet
 
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
@@ -212,14 +212,14 @@ class Parser {
 
     return new Stmt.While(condition, body);
   }
-//< Control Flow 99
+//< Control Flow not-yet
 
   private Stmt expressionStatement() {
     Expr expr = parseExpression();
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
-//> Functions 99
+//> Functions not-yet
 
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
@@ -239,7 +239,7 @@ class Parser {
     List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
   }
-//< Functions 99
+//< Functions not-yet
 
   private List<Stmt> block() {
     consume(LEFT_BRACE, "Expect '{' before block.");
@@ -255,12 +255,12 @@ class Parser {
   }
 
   private Expr assignment() {
-/* Statements and State 99 < Control Flow 99
+/* Statements and State not-yet < Control Flow not-yet
     Expr expr = equality();
 */
-//> Control Flow 99
+//> Control Flow not-yet
     Expr expr = or();
-//< Control Flow 99
+//< Control Flow not-yet
 
     if (match(EQUAL)) {
       Token equals = previous();
@@ -269,11 +269,11 @@ class Parser {
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable)expr).name;
         return new Expr.Assign(name, value);
-//> Classes 99
+//> Classes not-yet
       } else if (expr instanceof Expr.Get) {
         Expr.Get get = (Expr.Get)expr;
         return new Expr.Set(get.object, get.name, value);
-//< Classes 99
+//< Classes not-yet
       }
 
       Lox.error(equals, "Invalid assignment target.");
@@ -281,8 +281,8 @@ class Parser {
 
     return expr;
   }
-//< Statements and State 99
-//> Control Flow 99
+//< Statements and State not-yet
+//> Control Flow not-yet
 
   private Expr or() {
     Expr expr = and();
@@ -307,7 +307,7 @@ class Parser {
 
     return expr;
   }
-//< Control Flow 99
+//< Control Flow not-yet
 
   private Expr equality() {
     Expr expr = comparison();
@@ -364,14 +364,14 @@ class Parser {
       return new Expr.Unary(operator, right);
     }
 
-/* Parsing Expressions 99 < Functions 99
+/* Parsing Expressions not-yet < Functions not-yet
     return primary();
 */
-//> Functions 99
+//> Functions not-yet
     return call();
-//< Functions 99
+//< Functions not-yet
   }
-//> Functions 99
+//> Functions not-yet
 
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = new ArrayList<>();
@@ -397,12 +397,12 @@ class Parser {
     while (true) {
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
-//> Classes 99
+//> Classes not-yet
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
         expr = new Expr.Get(expr, name);
-//< Classes 99
+//< Classes not-yet
       } else {
         break;
       }
@@ -410,7 +410,7 @@ class Parser {
 
     return expr;
   }
-//< Functions 99
+//< Functions not-yet
 
   private Expr primary() {
     if (match(FALSE)) return new Expr.Literal(false);
@@ -420,7 +420,7 @@ class Parser {
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().value);
     }
-//> Inheritance 99
+//> Inheritance not-yet
 
     if (match(SUPER)) {
       Token keyword = previous();
@@ -429,17 +429,17 @@ class Parser {
           "Expect superclass method name.");
       return new Expr.Super(keyword, method);
     }
-//< Inheritance 99
-//> Classes 99
+//< Inheritance not-yet
+//> Classes not-yet
 
     if (match(THIS)) return new Expr.This(previous());
-//< Classes 99
-//> Statements and State 99
+//< Classes not-yet
+//> Statements and State not-yet
 
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous());
     }
-//< Statements and State 99
+//< Statements and State not-yet
 
     if (match(LEFT_PAREN)) {
       Expr expr = parseExpression();

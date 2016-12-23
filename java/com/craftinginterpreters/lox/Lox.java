@@ -8,18 +8,20 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-//> Resolving and Binding 99
+//> Resolving and Binding not-yet
 import java.util.Map;
-//< Resolving and Binding 99
+//< Resolving and Binding not-yet
 
 public class Lox {
+//> not-yet
   static boolean hadError = false;
-//> Evaluating Expressions 99
+//> Evaluating Expressions not-yet
   static boolean hadRuntimeError = false;
 
   private static final Interpreter interpreter = new Interpreter();
+//< Evaluating Expressions not-yet
 
-//< Evaluating Expressions 99
+//< not-yet
   public static void main(String[] args) throws IOException {
     if (args.length > 1) {
       System.out.println("Usage: jlox [script]");
@@ -33,16 +35,15 @@ public class Lox {
 
   private static void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
-    String source = new String(bytes, Charset.defaultCharset());
-//> 99
-    run(source);
+    run(new String(bytes, Charset.defaultCharset()));
+//> not-yet
 
     // Indicate an error in the exit code.
     if (hadError) System.exit(65);
-//> Evaluating Expressions 99
+//< not-yet
+//> Evaluating Expressions not-yet
     if (hadRuntimeError) System.exit(70);
-//< Evaluating Expressions 99
-//< 99
+//< Evaluating Expressions not-yet
   }
 //< 2
 //> 3
@@ -53,47 +54,44 @@ public class Lox {
 
     for (;;) {
       System.out.print("> ");
-      String source = reader.readLine();
-//> 99
-      run(source);
-      hadError = false;
-//> Evaluating Expressions 99
-      hadRuntimeError = false;
-//< Evaluating Expressions 99
-//< 99
+      run(reader.readLine());
     }
   }
 //< 3
-//> 9
+//> not-yet
 
   private static void run(String source) {
+/* Scanning not-yet < Scanning not-yet
+    // For now, just print the source.
+    System.out.println(source);
+*/
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
-/* Scanning 10 < Representing Code 99
+/* Scanning 10 < Representing Code not-yet
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
     }
 */
-//> Parsing Expressions 99
+//> Parsing Expressions not-yet
 
     Parser parser = new Parser(tokens);
-//< Parsing Expressions 99
-/* Parsing Expressions 99 < Statements and State 99
+//< Parsing Expressions not-yet
+/* Parsing Expressions not-yet < Statements and State not-yet
     Expr expression = parser.parseExpression();
 */
-/* Parsing Expressions 99 < Evaluating Expressions 99
+/* Parsing Expressions not-yet < Evaluating Expressions not-yet
 
     // For now, just print the tree.
     System.out.println(new AstPrinter().print(expression));
 */
-//> Statements and State 99
+//> Statements and State not-yet
     List<Stmt> statements = parser.parseProgram();
 
     // Stop if there was a syntax error.
     if (hadError) return;
-//< Statements and State 99
-//> Resolving and Binding 99
+//< Statements and State not-yet
+//> Resolving and Binding not-yet
 
     Resolver resolver = new Resolver();
     Map<Expr, Integer> locals = resolver.resolve(statements);
@@ -101,17 +99,17 @@ public class Lox {
     // Stop if there was a resolution error.
     if (hadError) return;
 
-/* Evaluating Expressions 99 < Statements and State 99
+/* Evaluating Expressions not-yet < Statements and State not-yet
     interpreter.interpret(expression);
 */
-/* Statements and State 99 < Resolving and Binding 99
+/* Statements and State not-yet < Resolving and Binding not-yet
     interpreter.interpret(statements);
 */
     interpreter.interpret(statements, locals);
-//< Resolving and Binding 99
+//< Resolving and Binding not-yet
   }
-//< 9
-
+//< not-yet
+//> not-yet
   static void error(int line, String message) {
     report(line, "", message);
   }
@@ -123,8 +121,9 @@ public class Lox {
       report(token.line, " at '" + token.text + "'", message);
     }
   }
+//< not-yet
+//> Evaluating Expressions not-yet
 
-//> Evaluating Expressions 99
   // TODO: Stack trace?
   static void runtimeError(RuntimeError error) {
     System.err.println(error.getMessage() +
@@ -132,7 +131,7 @@ public class Lox {
     hadRuntimeError = true;
   }
 
-//< Evaluating Expressions 99
+//< Evaluating Expressions not-yet
   static private void report(int line, String location, String message) {
     System.err.println("[line " + line + "] Error" + location +
         ": " + message);

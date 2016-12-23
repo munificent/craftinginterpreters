@@ -1,19 +1,19 @@
-//> Representing Code 99
+//> Representing Code not-yet
 package com.craftinginterpreters.lox;
 
 import java.util.Arrays;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-/* Representing Code 99 < Statements and State 99
+/* Representing Code not-yet < Statements and State not-yet
 class AstPrinter implements Expr.Visitor<String> {
 */
-//> Statements and State 99
+//> Statements and State not-yet
 class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
-//< Statements and State 99
+//< Statements and State not-yet
   String print(Expr expr) {
     return expr.accept(this);
   }
-//> Statements and State 99
+//> Statements and State not-yet
 
   String print(Stmt stmt) {
     return stmt.accept(this);
@@ -23,18 +23,18 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitBlockStmt(Stmt.Block stmt) {
     return join("block", stmt.statements);
   }
-//> Classes 99
+//> Classes not-yet
 
   @Override
   public String visitClassStmt(Stmt.Class stmt) {
     StringBuilder builder = new StringBuilder();
     builder.append("(class " + stmt.name.text);
-//> Inheritance 99
+//> Inheritance not-yet
 
     if (stmt.superclass != null) {
       builder.append(" < " + print(stmt.superclass));
     }
-//< Inheritance 99
+//< Inheritance not-yet
 
     for (Stmt.Function method : stmt.methods) {
       builder.append(" " + print(method));
@@ -43,13 +43,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-//< Classes 99
+//< Classes not-yet
 
   @Override
   public String visitExpressionStmt(Stmt.Expression stmt) {
     return join(";", stmt.expression);
   }
-//> Functions 99
+//> Functions not-yet
 
   @Override
   public String visitFunctionStmt(Stmt.Function stmt) {
@@ -64,8 +64,8 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(") " + join(stmt.body) + ")");
     return builder.toString();
   }
-//< Functions 99
-//> Control Flow 99
+//< Functions not-yet
+//> Control Flow not-yet
 
   @Override
   public String visitIfStmt(Stmt.If stmt) {
@@ -76,20 +76,20 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return join("if", stmt.condition, "then", stmt.thenBranch,
         "else", stmt.elseBranch);
   }
-//< Control Flow 99
+//< Control Flow not-yet
 
   @Override
   public String visitPrintStmt(Stmt.Print stmt) {
     return join("print", stmt.expression);
   }
-//> Functions 99
+//> Functions not-yet
 
   @Override
   public String visitReturnStmt(Stmt.Return stmt) {
     if (stmt.value == null) return "(return)";
     return join("return", stmt.value);
   }
-//< Functions 99
+//< Functions not-yet
 
   @Override
   public String visitVarStmt(Stmt.Var stmt) {
@@ -99,38 +99,38 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     return join("var", stmt.name.text, "=", stmt.initializer);
   }
-//> Control Flow 99
+//> Control Flow not-yet
 
   @Override
   public String visitWhileStmt(Stmt.While stmt) {
     return join("while", stmt.condition, stmt.body);
   }
-//< Control Flow 99
+//< Control Flow not-yet
 
   @Override
   public String visitAssignExpr(Expr.Assign expr) {
     return join("=", expr.name.text, expr.value);
   }
-//< Statements and State 99
+//< Statements and State not-yet
 
   @Override
   public String visitBinaryExpr(Expr.Binary expr) {
     return join(expr.operator, expr.left, expr.right);
   }
-//> Functions 99
+//> Functions not-yet
 
   @Override
   public String visitCallExpr(Expr.Call expr) {
     return join("call", expr.callee, expr.arguments);
   }
-//< Functions 99
-//> Classes 99
+//< Functions not-yet
+//> Classes not-yet
 
   @Override
   public String visitGetExpr(Expr.Get expr) {
     return join(".", expr.object, expr.name.text);
   }
-//< Classes 99
+//< Classes not-yet
 
   @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
@@ -146,46 +146,46 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     return expr.value.toString();
   }
-//> Control Flow 99
+//> Control Flow not-yet
 
   @Override
   public String visitLogicalExpr(Expr.Logical expr) {
     return join(expr.operator, expr.left, expr.right);
   }
-//< Control Flow 99
-//> Classes 99
+//< Control Flow not-yet
+//> Classes not-yet
 
   @Override
   public String visitSetExpr(Expr.Set expr) {
     return join("=", expr.object, expr.name.text, expr.value);
   }
-//< Classes 99
-//> Inheritance 99
+//< Classes not-yet
+//> Inheritance not-yet
 
   @Override
   public String visitSuperExpr(Expr.Super expr) {
     return join("super", expr.method);
   }
-//< Inheritance 99
-//> Classes 99
+//< Inheritance not-yet
+//> Classes not-yet
 
   @Override
   public String visitThisExpr(Expr.This expr) {
     return "this";
   }
-//< Classes 99
+//< Classes not-yet
 
   @Override
   public String visitUnaryExpr(Expr.Unary expr) {
     return join(expr.operator, expr.right);
   }
-//> Statements and State 99
+//> Statements and State not-yet
 
   @Override
   public String visitVariableExpr(Expr.Variable expr) {
     return expr.name.text;
   }
-//< Statements and State 99
+//< Statements and State not-yet
 
   private String join(Object... parts) {
     StringBuilder builder = new StringBuilder();
@@ -204,10 +204,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
       if (part instanceof Expr) {
         builder.append(print((Expr)part));
-//> Statements and State 99
+//> Statements and State not-yet
       } else if (part instanceof Stmt) {
         builder.append(print((Stmt) part));
-//< Statements and State 99
+//< Statements and State not-yet
       } else if (part instanceof Token) {
         builder.append(((Token) part).text);
       } else if (part instanceof Iterable) {
@@ -217,7 +217,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
       }
     }
   }
-/* Representing Code 99 < Parsing Expressions 99
+/* Representing Code not-yet < Parsing Expressions not-yet
 
   public static void main(String[] args) {
     Expr expression = new Expr.Binary(

@@ -42,12 +42,13 @@ import sys
 
 import book
 
-BLOCK_PATTERN = re.compile(r'/\* ([A-Za-z\s]+) (\d+) < ([A-Za-z\s]+) (\d+)')
-BLOCK_SNIPPET_PATTERN = re.compile(r'/\* < (\d+)')
-BEGIN_SNIPPET_PATTERN = re.compile(r'//> (\d+)')
-END_SNIPPET_PATTERN = re.compile(r'//< (\d+)')
-BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Za-z\s]+) (\d+)')
-END_CHAPTER_PATTERN = re.compile(r'//< ([A-Za-z\s]+) (\d+)')
+BLOCK_PATTERN = re.compile(
+    r'/\* ([A-Z][A-Za-z\s]+) ([-a-z0-9]+) < ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
+BLOCK_SNIPPET_PATTERN = re.compile(r'/\* < ([-a-z0-9]+)')
+BEGIN_SNIPPET_PATTERN = re.compile(r'//> ([-a-z0-9]+)')
+END_SNIPPET_PATTERN = re.compile(r'//< ([-a-z0-9]+)')
+BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
+END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 
 # Hacky regex that matches a method or function declaration.
 FUNCTION_PATTERN = re.compile(r'(\w+)>* (\w+)\(')
@@ -69,9 +70,10 @@ class SourceCode:
     if name in snippets:
       return snippets[name]
 
-    print('Warning: Snippet {} not used in chapter {}.'.format(name, chapter))
+    if name != 'not-yet':
+      print('Error: "{}" does not use snippet "{}".'.format(chapter, name))
+
     # Synthesize a fake one so we can keep going.
-    # TODO: Only do this for some blessed tag name for unfinished chapters.
     snippets[name] = book.SnippetTag(chapter, name, len(snippets))
     return snippets[name]
 
@@ -103,9 +105,8 @@ class SourceCode:
         return snippet
 
       snippet = snippets[name]
-      if name != '99' and snippet.file.path != file.path:
-        # TODO: Test.
-        print('Warning: "{}" appears in two files, {} and {}.'.format(
+      if name != 'not-yet' and snippet.file.path != file.path:
+        print('Error: "{}" appears in two files, {} and {}.'.format(
             chapter, name, snippet.file.path, file.path))
 
       return snippet
@@ -350,7 +351,6 @@ def load_file(source_code, source_dir, path):
       match = END_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
-        number = int(name)
         if name != state.start.name:
           fail("Expecting to pop {} but got {}.".format(state.start.name, name))
         if state.parent.start.chapter == None:

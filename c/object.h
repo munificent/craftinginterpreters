@@ -1,96 +1,96 @@
-//> Strings 99
+//> Strings not-yet
 #ifndef clox_object_h
 #define clox_object_h
 
 #include "common.h"
 #include "chunk.h"
-//> Classes and Instances 99
+//> Classes and Instances not-yet
 #include "table.h"
-//< Classes and Instances 99
+//< Classes and Instances not-yet
 
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
 
-//> Methods and Initializers 99
+//> Methods and Initializers not-yet
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
-//< Methods and Initializers 99
-//> Classes and Instances 99
+//< Methods and Initializers not-yet
+//> Classes and Instances not-yet
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
-//< Classes and Instances 99
-//> Closures 99
+//< Classes and Instances not-yet
+//> Closures not-yet
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
-//< Closures 99
-//> Calls and Functions 99
+//< Closures not-yet
+//> Calls and Functions not-yet
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
-//< Calls and Functions 99
-//> Classes and Instances 99
+//< Calls and Functions not-yet
+//> Classes and Instances not-yet
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
-//< Classes and Instances 99
-//> Calls and Functions 99
+//< Classes and Instances not-yet
+//> Calls and Functions not-yet
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
-//< Calls and Functions 99
+//< Calls and Functions not-yet
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 
-//> Methods and Initializers 99
+//> Methods and Initializers not-yet
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
-//< Methods and Initializers 99
-//> Classes and Instances 99
+//< Methods and Initializers not-yet
+//> Classes and Instances not-yet
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
-//< Classes and Instances 99
-//> Closures 99
+//< Classes and Instances not-yet
+//> Closures not-yet
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
-//< Closures 99
-//> Calls and Functions 99
+//< Closures not-yet
+//> Calls and Functions not-yet
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
-//< Calls and Functions 99
-//> Classes and Instances 99
+//< Calls and Functions not-yet
+//> Classes and Instances not-yet
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-//< Classes and Instances 99
-//> Calls and Functions 99
+//< Classes and Instances not-yet
+//> Calls and Functions not-yet
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
-//< Calls and Functions 99
+//< Calls and Functions not-yet
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 
 typedef enum {
-//> Methods and Initializers 99
+//> Methods and Initializers not-yet
   OBJ_BOUND_METHOD,
-//< Methods and Initializers 99
-//> Classes and Instances 99
+//< Methods and Initializers not-yet
+//> Classes and Instances not-yet
   OBJ_CLASS,
-//< Classes and Instances 99
-//> Closures 99
+//< Classes and Instances not-yet
+//> Closures not-yet
   OBJ_CLOSURE,
-//< Closures 99
-//> Calls and Functions 99
+//< Closures not-yet
+//> Calls and Functions not-yet
   OBJ_FUNCTION,
-//< Calls and Functions 99
-//> Classes and Instances 99
+//< Calls and Functions not-yet
+//> Classes and Instances not-yet
   OBJ_INSTANCE,
-//< Classes and Instances 99
-//> Calls and Functions 99
+//< Classes and Instances not-yet
+//> Calls and Functions not-yet
   OBJ_NATIVE,
-//< Calls and Functions 99
+//< Calls and Functions not-yet
   OBJ_STRING,
-//> Closures 99
+//> Closures not-yet
   OBJ_UPVALUE
-//< Closures 99
+//< Closures not-yet
 } ObjType;
 
 struct sObj {
   ObjType type;
-//> Garbage Collection 99
+//> Garbage Collection not-yet
   bool isDark;
-//< Garbage Collection 99
+//< Garbage Collection not-yet
   struct sObj* next;
 };
-//> Calls and Functions 99
+//> Calls and Functions not-yet
 
 typedef struct {
   Obj object;
   int arity;
-//> Closures 99
+//> Closures not-yet
   int upvalueCount;
-//< Closures 99
+//< Closures not-yet
   Chunk chunk;
   ObjString* name;
 } ObjFunction;
@@ -101,17 +101,17 @@ typedef struct {
   Obj object;
   NativeFn function;
 } ObjNative;
-//< Calls and Functions 99
+//< Calls and Functions not-yet
 
 struct sObjString {
   Obj object;
   int length;
   char* chars;
-//> Hash Tables 99
+//> Hash Tables not-yet
   uint32_t hash;
-//< Hash Tables 99
+//< Hash Tables not-yet
 };
-//> Closures 99
+//> Closures not-yet
 
 typedef struct sUpvalue {
   Obj object;
@@ -135,18 +135,18 @@ typedef struct {
   ObjUpvalue** upvalues;
   int upvalueCount;
 } ObjClosure;
-//< Closures 99
-//> Classes and Instances 99
+//< Closures not-yet
+//> Classes and Instances not-yet
 
 typedef struct sObjClass {
   Obj object;
   ObjString* name;
-//> Superclasses 99
+//> Superclasses not-yet
   struct sObjClass* superclass;
-//< Superclasses 99
-//> Methods and Initializers 99
+//< Superclasses not-yet
+//> Methods and Initializers not-yet
   Table methods;
-//< Methods and Initializers 99
+//< Methods and Initializers not-yet
 } ObjClass;
 
 typedef struct {
@@ -154,8 +154,8 @@ typedef struct {
   ObjClass* klass;
   Table fields;
 } ObjInstance;
-//< Classes and Instances 99
-//> Methods and Initializers 99
+//< Classes and Instances not-yet
+//> Methods and Initializers not-yet
 
 typedef struct {
   Obj object;
@@ -164,30 +164,30 @@ typedef struct {
 } ObjBoundMethod;
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
-//< Methods and Initializers 99
-/* Classes and Instances 99 < Superclasses 99
+//< Methods and Initializers not-yet
+/* Classes and Instances not-yet < Superclasses not-yet
 ObjClass* newClass(ObjString* name);
 */
-//> Superclasses 99
+//> Superclasses not-yet
 ObjClass* newClass(ObjString* name, ObjClass* superclass);
-//< Superclasses 99
-//> Closures 99
+//< Superclasses not-yet
+//> Closures not-yet
 ObjClosure* newClosure(ObjFunction* function);
-//< Closures 99
-//> Calls and Functions 99
+//< Closures not-yet
+//> Calls and Functions not-yet
 ObjFunction* newFunction();
-//< Calls and Functions 99
-//> Classes and Instances 99
+//< Calls and Functions not-yet
+//> Classes and Instances not-yet
 ObjInstance* newInstance(ObjClass* klass);
-//< Classes and Instances 99
-//> Calls and Functions 99
+//< Classes and Instances not-yet
+//> Calls and Functions not-yet
 ObjNative* newNative(NativeFn function);
-//< Calls and Functions 99
+//< Calls and Functions not-yet
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
-//> Closures 99
+//> Closures not-yet
 ObjUpvalue* newUpvalue(Value* slot);
-//< Closures 99
+//< Closures not-yet
 
 // Returns true if [value] is an object of type [type]. Do not call this
 // directly, instead use the [IS___] macro for the type in question.
