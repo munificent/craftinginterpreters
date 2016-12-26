@@ -50,8 +50,10 @@ END_SNIPPET_PATTERN = re.compile(r'//< ([-a-z0-9]+)')
 BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 
-# Hacky regex that matches a method or function declaration.
+# Hacky regexes that matches a function, method or constructor declaration.
 FUNCTION_PATTERN = re.compile(r'(\w+)>* (\w+)\(')
+CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
+CLASS_PATTERN = re.compile(r'(public )?class (\w+)')
 
 # Reserved words that can appear like a return type in a function declaration
 # but shouldn't be treated as one.
@@ -130,8 +132,9 @@ class SourceCode:
           snippet.added.append(line.text)
           last_lines[snippet] = line_num
 
-          if line.function and not snippet.function:
+          if len(snippet.added) == 1:
             snippet.function = line.function
+            snippet.clas = line.clas
 
         if line.end and line.end.chapter == chapter:
           snippet = ensure_snippet(line.end.name, line_num)
@@ -210,9 +213,10 @@ class SourceFile:
 
 
 class SourceLine:
-  def __init__(self, text, function, start, end):
+  def __init__(self, text, function, clas, start, end):
     self.text = text
     self.function = function
+    self.clas = clas
     self.start = start
     self.end = end
 
@@ -257,6 +261,7 @@ class Snippet:
 
     self.function = None
     self.preceding_function = None
+    self.clas = None
 
   def location(self):
     """Describes where in the file this snippet appears."""
@@ -265,12 +270,12 @@ class Snippet:
       # No lines before the snippet, it must be a new file.
       return 'create new file'
 
-    if self.function:
-      if self.function != self.preceding_function:
-        return 'add after <em>{}</em>()'.format(
-            self.preceding_function)
-      else:
-        return 'in <em>{}</em>()'.format(self.function)
+    if self.preceding_function and self.function != self.preceding_function:
+      return 'add after <em>{}</em>()'.format(self.preceding_function)
+    elif self.function:
+      return 'in <em>{}</em>()'.format(self.function)
+    elif self.clas:
+      return 'in class <em>{}</em>'.format(self.clas)
 
     return None
 
@@ -297,6 +302,7 @@ def load_file(source_code, source_dir, path):
   handled = False
 
   current_function = None
+  current_class = None
 
   def error(message):
     print("Error: {} line {}: {}".format(relative, line_num, message),
@@ -334,6 +340,15 @@ def load_file(source_code, source_dir, path):
         # Hack. Don't get caught by comments or string literals.
         if '//' not in line and '"' not in line:
           current_function = match.group(2)
+
+      match = CONSTRUCTOR_PATTERN.match(line)
+      if match:
+        current_function = match.group(1)
+
+      match = CLASS_PATTERN.match(line)
+      if match:
+        current_class = match.group(2)
+
 
       match = BLOCK_PATTERN.match(line)
       if match:
@@ -399,15 +414,19 @@ def load_file(source_code, source_dir, path):
         if not state.start:
           fail("No snippet in effect.".format(relative))
 
-        source_line = SourceLine(line, current_function, state.start, state.end)
+        source_line = SourceLine(line, current_function, current_class,
+            state.start, state.end)
         file.lines.append(source_line)
 
-      # Hacky. Detect the end of the function. Assumes everything is nicely
-      # indented.
+      # Hacky. Detect the end of the function or class. Assumes everything is
+      # nicely indented.
       if path.endswith('.java') and line == '  }':
         current_function = None
       elif (path.endswith('.c') or path.endswith('.h')) and line == '}':
         current_function = None
+
+      if path.endswith('.java') and line == '}':
+        current_class = None
 
       line_num += 1
 
