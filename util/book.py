@@ -414,6 +414,11 @@ class SnippetTag:
     if name == "not-yet":
       self.index = 9999
 
+  def __eq__(self, other):
+      return (isinstance(other, SnippetTag) and
+          self.chapter_index == other.chapter_index and
+          self.index < other.index)
+
   def __lt__(self, other):
     if self.chapter_index != other.chapter_index:
       return self.chapter_index < other.chapter_index
