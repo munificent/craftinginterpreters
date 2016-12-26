@@ -13,8 +13,10 @@ import java.util.Map;
 //< Resolving and Binding not-yet
 
 public class Lox {
-//> not-yet
+//> had-error
   static boolean hadError = false;
+//< had-error
+//> not-yet
 //> Evaluating Expressions not-yet
   static boolean hadRuntimeError = false;
 
@@ -36,11 +38,11 @@ public class Lox {
   private static void runFile(String path) throws IOException {
     byte[] bytes = Files.readAllBytes(Paths.get(path));
     run(new String(bytes, Charset.defaultCharset()));
-//> not-yet
+//> exit-code
 
     // Indicate an error in the exit code.
     if (hadError) System.exit(65);
-//< not-yet
+//< exit-code
 //> Evaluating Expressions not-yet
     if (hadRuntimeError) System.exit(70);
 //< Evaluating Expressions not-yet
@@ -58,16 +60,13 @@ public class Lox {
     }
   }
 //< repl
-//> not-yet
+//> run
 
   private static void run(String source) {
-/* Scanning not-yet < Scanning not-yet
-    // For now, just print the source.
-    System.out.println(source);
-*/
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
-/* Scanning print-tokens < Representing Code not-yet
+/* Scanning run < Representing Code not-yet
+
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
@@ -108,12 +107,13 @@ public class Lox {
     interpreter.interpret(statements, locals);
 //< Resolving and Binding not-yet
   }
-//< not-yet
-//> not-yet
+//< run
+//> lox-error
   static void error(int line, String message) {
     report(line, "", message);
   }
-
+//< lox-error
+//> not-yet
   static void error(Token token, String message) {
     if (token.type == TokenType.EOF) {
       report(token.line, " at end", message);
@@ -132,11 +132,11 @@ public class Lox {
   }
 
 //< Evaluating Expressions not-yet
-//> not-yet
+//> report
   static private void report(int line, String location, String message) {
     System.err.println("[line " + line + "] Error" + location +
         ": " + message);
     hadError = true;
   }
-//< not-yet
+//< report
 }

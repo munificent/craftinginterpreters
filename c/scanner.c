@@ -175,7 +175,19 @@ static Token number() {
 }
 
 static Token string() {
-  while (peek() != '"' && !isAtEnd()) advance();
+  int newline = -1;
+  while (peek() != '"' && !isAtEnd()) {
+    if (peek() == '\n') newline = scanner.line;
+    advance();
+  }
+  
+  // Newline in string.
+  if (newline != -1) {
+    Token token = errorToken(
+        "String literals may not contain newlines.");
+    token.line = newline;
+    return token;
+  }
 
   // Unterminated string.
   if (isAtEnd()) return errorToken("Unterminated string.");

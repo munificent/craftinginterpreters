@@ -1,4 +1,4 @@
-//> Scanning 8
+//> Scanning scanner-class
 package com.craftinginterpreters.lox;
 
 import java.util.ArrayList;
@@ -35,26 +35,26 @@ class Scanner {
 //< not-yet
   private final String source;
   private final List<Token> tokens = new ArrayList<>();
-//> not-yet
-  private int tokenStart = 0;
+//> scan-state
+  private int start = 0;
   private int current = 0;
   private int line = 1;
-//< not-yet
+//< scan-state
 
   Scanner(String source) {
     this.source = source;
   }
-//> not-yet
+//> scan-tokens
   List<Token> scanTokens() {
     while (!isAtEnd()) {
       // The next token starts with the current character.
-      tokenStart = current;
+      start = current;
 
-      // TODO: Maybe rewrite to be more explicitly automata based?
       char c = advance();
       switch (c) {
         case '(': addToken(LEFT_PAREN); break;
         case ')': addToken(RIGHT_PAREN); break;
+//> single-char-tokens
         case '{': addToken(LEFT_BRACE); break;
         case '}': addToken(RIGHT_BRACE); break;
         case ';': addToken(SEMICOLON); break;
@@ -62,11 +62,14 @@ class Scanner {
         case '+': addToken(PLUS); break;
         case '-': addToken(MINUS); break;
         case '*': addToken(STAR); break;
+//< single-char-tokens
+//> two-char-tokens
         case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
         case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
         case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
         case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
-
+//< two-char-tokens
+//> slash
         case '/':
           if (match('/')) {
             comment();
@@ -74,7 +77,8 @@ class Scanner {
             addToken(SLASH);
           }
           break;
-
+//< slash
+//> not-yet
         case '.':
           if (isDigit(peek())) {
             number();
@@ -82,8 +86,8 @@ class Scanner {
             addToken(DOT);
           }
           break;
-
-        case '"': string(); break;
+//< not-yet
+//> whitespace
 
         case ' ':
         case '\r':
@@ -94,8 +98,18 @@ class Scanner {
         case '\n':
           line++;
           break;
+//< whitespace
+//> string-start
+
+        case '"': string(); break;
+//< string-start
+//> char-error
 
         default:
+/* Scanning char-error < Scanning not-yet
+          Lox.error(line, "Unexpected character.");
+*/
+//> not-yet
           if (isAlpha(c)) {
             identifier();
           } else if (isDigit(c)) {
@@ -103,24 +117,28 @@ class Scanner {
           } else {
             Lox.error(line, "Unexpected character.");
           }
+//< not-yet
           break;
+//< char-error
       }
     }
 
     tokens.add(new Token(EOF, "", null, line));
     return tokens;
   }
-
+//< scan-tokens
+//> comment
   private void comment() {
     // A comment goes until the end of the line.
     while (peek() != '\n' && !isAtEnd()) advance();
   }
-
+//< comment
+//> not-yet
   private void identifier() {
     while (isAlphaNumeric(peek())) advance();
 
     // See if the identifier is a reserved word.
-    String text = source.substring(tokenStart, current);
+    String text = source.substring(start, current);
 
     TokenType type = keywords.get(text);
     if (type == null) type = IDENTIFIER;
@@ -132,7 +150,7 @@ class Scanner {
     while (isDigit(peek())) advance();
 
     // Look for a fractional part.
-    if (peek() == '.' && isDigit(peek(1))) {
+    if (peek() == '.' && isDigit(peekNext())) {
       // Consume the "."
       advance();
 
@@ -140,12 +158,19 @@ class Scanner {
     }
 
     double value = Double.parseDouble(
-        source.substring(tokenStart, current));
+        source.substring(start, current));
     addToken(NUMBER, value);
   }
-
+//< not-yet
+//> string
   private void string() {
-    while (peek() != '"' && !isAtEnd()) advance();
+    while (peek() != '"' && !isAtEnd()) {
+      if (peek() == '\n') {
+        Lox.error(line, "String literals may not contain newlines.");
+      }
+
+      advance();
+    }
 
     // Unterminated string.
     if (isAtEnd()) {
@@ -157,19 +182,11 @@ class Scanner {
     advance();
 
     // Trim the surrounding quotes.
-    String value = source.substring(tokenStart + 1, current - 1);
+    String value = source.substring(start + 1, current - 1);
     addToken(STRING, value);
   }
-
-  private void addToken(TokenType type) {
-    addToken(type, null);
-  }
-
-  private void addToken(TokenType type, Object value) {
-    String text = source.substring(tokenStart, current);
-    tokens.add(new Token(type, text, value, line));
-  }
-
+//< string
+//> match
   private boolean match(char expected) {
     if (isAtEnd()) return false;
     if (source.charAt(current) != expected) return false;
@@ -177,19 +194,17 @@ class Scanner {
     current++;
     return true;
   }
-
-  private char advance() {
-    current++;
-    return source.charAt(current - 1);
-  }
-
+//< match
+//> peek
   private char peek() {
-    return peek(0);
+    if (current >= source.length()) return '\0';
+    return source.charAt(current);
   }
-
-  private char peek(int ahead) {
-    if (current + ahead >= source.length()) return '\0';
-    return source.charAt(current + ahead);
+//< peek
+//> not-yet
+  private char peekNext() {
+    if (current + 1 >= source.length()) return '\0';
+    return source.charAt(current + 1);
   }
 
   // Returns true if `c` is an English letter or underscore.
@@ -209,9 +224,25 @@ class Scanner {
   private boolean isDigit(char c) {
     return c >= '0' && c <= '9';
   }
-
+//< not-yet
+//> is-at-end-and-advance
   private boolean isAtEnd() {
     return current >= source.length();
   }
-//< not-yet
+
+  private char advance() {
+    current++;
+    return source.charAt(current - 1);
+  }
+//< is-at-end-and-advance
+//> add-token
+  private void addToken(TokenType type) {
+    addToken(type, null);
+  }
+
+  private void addToken(TokenType type, Object value) {
+    String text = source.substring(start, current);
+    tokens.add(new Token(type, text, value, line));
+  }
+//< add-token
 }
