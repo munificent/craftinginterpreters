@@ -85,11 +85,11 @@ indebted to Lua's clean, efficient implementation.
 
 <aside name="js">
 
-Now that JavaScript has taken over the world and is being used to build all
-sorts of ginormous applications, it's hard to think of it as a "little scripting
-language". But Brendan Eich hacked it into Netscape in *ten days* as a crude way
-to make buttons animate on web pages. JavaScript has grown up since then, but it
-was once a cute little language.
+Now that JavaScript has taken over the world and is used to build ginormous
+applications, it's hard to think of it as a "little scripting language". But
+Brendan Eich hacked it into Netscape in *ten days* to make buttons animate on
+web pages. JavaScript has grown up since then, but it was once a cute little
+language.
 
 Because Eich slapped JS together with roughly the same raw materials and time as
 an episode of MacGuyver, it has some weird semantic corners where the duct tape
@@ -573,11 +573,12 @@ We're going to spend a lot of time splitting the finest of downy hairs around
 semantics, so let's sharpen our words. From here on out:
 
 * An **argument** is an actual value you pass to a function when you call it.
-  So a function *call* has an *argument* list.
+  So a function *call* has an *argument* list. Sometimes you hear "actual
+  parameter" used for these.
 
-* A **parameter** (called **"formal parameter"** or just **"formal"** by some)
-  is a variable that holds the value of the argument inside the body of the
-  function. Thus, a function *declaration* has a *parameter* list.
+* A **parameter** is a variable that holds the value of the argument inside the
+  body of the function. Thus, a function *declaration* has a *parameter* list.
+  Others call these **"formal parameters"** or simply **"formals"**.
 
 The body of a function is always a block. Inside it, you can return a value
 using a `return` statement:
