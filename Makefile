@@ -15,10 +15,10 @@ watch:
 test: test_java test_c
 	@ python util/test.py
 
-test_c: debug
+test_c: debug c_chapters
 	@ python util/test.py c
 
-test_java: jlox
+test_java: jlox chapters
 	@ python util/test.py java
 
 # Remove all build outputs and intermediate files.
