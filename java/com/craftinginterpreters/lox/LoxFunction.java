@@ -34,7 +34,7 @@ LoxFunction(Stmt.Function declaration, Environment closure) {
 //< Classes not-yet
   @Override
   public String toString() {
-    return declaration.name.text;
+    return declaration.name.lexeme;
   }
 
   @Override
@@ -49,7 +49,7 @@ LoxFunction(Stmt.Function declaration, Environment closure) {
     try {
       Environment environment = closure.enterScope();
       for (int i = 0; i < declaration.parameters.size(); i++) {
-        environment.define(declaration.parameters.get(i).text,
+        environment.define(declaration.parameters.get(i).lexeme,
             arguments.get(i));
       }
 

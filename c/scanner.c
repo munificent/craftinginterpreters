@@ -175,20 +175,11 @@ static Token number() {
 }
 
 static Token string() {
-  int newline = -1;
   while (peek() != '"' && !isAtEnd()) {
-    if (peek() == '\n') newline = scanner.line;
+    if (peek() == '\n') scanner.line++;
     advance();
   }
   
-  // Newline in string.
-  if (newline != -1) {
-    Token token = errorToken(
-        "String literals may not contain newlines.");
-    token.line = newline;
-    return token;
-  }
-
   // Unterminated string.
   if (isAtEnd()) return errorToken("Unterminated string.");
 
@@ -217,17 +208,14 @@ Token scanToken() {
     case '}': return makeToken(TOKEN_RIGHT_BRACE);
     case ';': return makeToken(TOKEN_SEMICOLON);
     case ',': return makeToken(TOKEN_COMMA);
-    case '+': return makeToken(TOKEN_PLUS);
+    case '.': return makeToken(TOKEN_DOT);
     case '-': return makeToken(TOKEN_MINUS);
-    case '*': return makeToken(TOKEN_STAR);
+    case '+': return makeToken(TOKEN_PLUS);
     case '/': return makeToken(TOKEN_SLASH);
+    case '*': return makeToken(TOKEN_STAR);
     case '!':
       if (match('=')) return makeToken(TOKEN_BANG_EQUAL);
       return makeToken(TOKEN_BANG);
-
-    case '.':
-      if (isDigit(peek())) return number();
-      return makeToken(TOKEN_DOT);
 
     case '=':
       if (match('=')) return makeToken(TOKEN_EQUAL_EQUAL);

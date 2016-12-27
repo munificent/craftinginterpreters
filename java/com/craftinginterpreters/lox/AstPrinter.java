@@ -28,7 +28,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   @Override
   public String visitClassStmt(Stmt.Class stmt) {
     StringBuilder builder = new StringBuilder();
-    builder.append("(class " + stmt.name.text);
+    builder.append("(class " + stmt.name.lexeme);
 //> Inheritance not-yet
 
     if (stmt.superclass != null) {
@@ -54,11 +54,11 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   @Override
   public String visitFunctionStmt(Stmt.Function stmt) {
     StringBuilder builder = new StringBuilder();
-    builder.append("(fun " + stmt.name.text + "(");
+    builder.append("(fun " + stmt.name.lexeme + "(");
 
     for (Token param : stmt.parameters) {
       if (param != stmt.parameters.get(0)) builder.append(" ");
-      builder.append(param.text);
+      builder.append(param.lexeme);
     }
 
     builder.append(") " + join(stmt.body) + ")");
@@ -94,10 +94,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   @Override
   public String visitVarStmt(Stmt.Var stmt) {
     if (stmt.initializer == null) {
-      return join("var", stmt.name.text);
+      return join("var", stmt.name.lexeme);
     }
 
-    return join("var", stmt.name.text, "=", stmt.initializer);
+    return join("var", stmt.name.lexeme, "=", stmt.initializer);
   }
 //> Control Flow not-yet
 
@@ -109,7 +109,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitAssignExpr(Expr.Assign expr) {
-    return join("=", expr.name.text, expr.value);
+    return join("=", expr.name.lexeme, expr.value);
   }
 //< Statements and State not-yet
 
@@ -128,7 +128,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitGetExpr(Expr.Get expr) {
-    return join(".", expr.object, expr.name.text);
+    return join(".", expr.object, expr.name.lexeme);
   }
 //< Classes not-yet
 
@@ -157,7 +157,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitSetExpr(Expr.Set expr) {
-    return join("=", expr.object, expr.name.text, expr.value);
+    return join("=", expr.object, expr.name.lexeme, expr.value);
   }
 //< Classes not-yet
 //> Inheritance not-yet
@@ -183,7 +183,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
   @Override
   public String visitVariableExpr(Expr.Variable expr) {
-    return expr.name.text;
+    return expr.name.lexeme;
   }
 //< Statements and State not-yet
 
@@ -209,7 +209,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         builder.append(print((Stmt) part));
 //< Statements and State not-yet
       } else if (part instanceof Token) {
-        builder.append(((Token) part).text);
+        builder.append(((Token) part).lexeme);
       } else if (part instanceof Iterable) {
         addParts(builder, (Iterable)part);
       } else {

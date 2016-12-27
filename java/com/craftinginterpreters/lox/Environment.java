@@ -19,25 +19,25 @@ class Environment {
   void declare(Token name) {
     // Note: Can't just use define(name, null). That will overwrite a
     // previously defined global value.
-    if (!values.containsKey(name.text)) {
-      values.put(name.text, null);
+    if (!values.containsKey(name.lexeme)) {
+      values.put(name.lexeme, null);
     }
   }
 
   Object get(Token name) {
-    if (values.containsKey(name.text)) {
-      return values.get(name.text);
+    if (values.containsKey(name.lexeme)) {
+      return values.get(name.lexeme);
     }
 
     if (enclosing != null) return enclosing.get(name);
 
     throw new RuntimeError(name,
-        "Undefined variable '" + name.text + "'.");
+        "Undefined variable '" + name.lexeme + "'.");
   }
 
   void assign(Token name, Object value) {
-    if (values.containsKey(name.text)) {
-      values.put(name.text, value);
+    if (values.containsKey(name.lexeme)) {
+      values.put(name.lexeme, value);
       return;
     }
 
@@ -47,7 +47,7 @@ class Environment {
     }
 
     throw new RuntimeError(name,
-        "Undefined variable '" + name.text + "'.");
+        "Undefined variable '" + name.lexeme + "'.");
   }
 
   void define(String name, Object value) {
@@ -70,7 +70,7 @@ class Environment {
       environment = environment.enclosing;
     }
 
-    environment.values.put(name.text, value);
+    environment.values.put(name.lexeme, value);
   }
 //< Resolving and Binding not-yet
 

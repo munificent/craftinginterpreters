@@ -9,7 +9,7 @@ import java.util.Map;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 class Scanner {
-//> not-yet
+//> keyword-map
   private static final Map<String, TokenType> keywords;
 
   static {
@@ -31,8 +31,7 @@ class Scanner {
     keywords.put("var",    VAR);
     keywords.put("while",  WHILE);
   }
-
-//< not-yet
+//< keyword-map
   private final String source;
   private final List<Token> tokens = new ArrayList<>();
 //> scan-state
@@ -47,105 +46,106 @@ class Scanner {
 //> scan-tokens
   List<Token> scanTokens() {
     while (!isAtEnd()) {
-      // The next token starts with the current character.
+      // We are the beginning of the next lexeme.
       start = current;
-
-      char c = advance();
-      switch (c) {
-        case '(': addToken(LEFT_PAREN); break;
-        case ')': addToken(RIGHT_PAREN); break;
-//> single-char-tokens
-        case '{': addToken(LEFT_BRACE); break;
-        case '}': addToken(RIGHT_BRACE); break;
-        case ';': addToken(SEMICOLON); break;
-        case ',': addToken(COMMA); break;
-        case '+': addToken(PLUS); break;
-        case '-': addToken(MINUS); break;
-        case '*': addToken(STAR); break;
-//< single-char-tokens
-//> two-char-tokens
-        case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
-        case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
-        case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
-        case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
-//< two-char-tokens
-//> slash
-        case '/':
-          if (match('/')) {
-            comment();
-          } else {
-            addToken(SLASH);
-          }
-          break;
-//< slash
-//> not-yet
-        case '.':
-          if (isDigit(peek())) {
-            number();
-          } else {
-            addToken(DOT);
-          }
-          break;
-//< not-yet
-//> whitespace
-
-        case ' ':
-        case '\r':
-        case '\t':
-          // Ignore whitespace.
-          break;
-
-        case '\n':
-          line++;
-          break;
-//< whitespace
-//> string-start
-
-        case '"': string(); break;
-//< string-start
-//> char-error
-
-        default:
-/* Scanning char-error < Scanning not-yet
-          Lox.error(line, "Unexpected character.");
-*/
-//> not-yet
-          if (isAlpha(c)) {
-            identifier();
-          } else if (isDigit(c)) {
-            number();
-          } else {
-            Lox.error(line, "Unexpected character.");
-          }
-//< not-yet
-          break;
-//< char-error
-      }
+      scanToken();
     }
 
     tokens.add(new Token(EOF, "", null, line));
     return tokens;
   }
 //< scan-tokens
+//> scan-token
+  private void scanToken() {
+    char c = advance();
+    switch (c) {
+      case '(': addToken(LEFT_PAREN); break;
+      case ')': addToken(RIGHT_PAREN); break;
+      case '{': addToken(LEFT_BRACE); break;
+      case '}': addToken(RIGHT_BRACE); break;
+      case ',': addToken(COMMA); break;
+      case '.': addToken(DOT); break;
+      case '-': addToken(MINUS); break;
+      case '+': addToken(PLUS); break;
+      case ';': addToken(SEMICOLON); break;
+      case '*': addToken(STAR); break;
+//> two-char-tokens
+      case '!': addToken(match('=') ? BANG_EQUAL : BANG); break;
+      case '=': addToken(match('=') ? EQUAL_EQUAL : EQUAL); break;
+      case '<': addToken(match('=') ? LESS_EQUAL : LESS); break;
+      case '>': addToken(match('=') ? GREATER_EQUAL : GREATER); break;
+//< two-char-tokens
+//> slash
+      case '/':
+        if (match('/')) {
+          comment();
+        } else {
+          addToken(SLASH);
+        }
+        break;
+//< slash
+//> whitespace
+
+      case ' ':
+      case '\r':
+      case '\t':
+        // Ignore whitespace.
+        break;
+
+      case '\n':
+        line++;
+        break;
+//< whitespace
+//> string-start
+
+      case '"': string(); break;
+//< string-start
+//> char-error
+
+      default:
+/* Scanning char-error < Scanning digit-start
+          Lox.error(line, "Unexpected character.");
+*/
+//> digit-start
+        if (isDigit(c)) {
+          number();
+//> identifier-start
+        } else if (isAlpha(c)) {
+          identifier();
+//< identifier-start
+        } else {
+          Lox.error(line, "Unexpected character.");
+        }
+//< digit-start
+        break;
+//< char-error
+    }
+  }
+//< scan-token
 //> comment
   private void comment() {
     // A comment goes until the end of the line.
     while (peek() != '\n' && !isAtEnd()) advance();
   }
 //< comment
-//> not-yet
+//> identifier
   private void identifier() {
     while (isAlphaNumeric(peek())) advance();
 
+/* Scanning identifier < Scanning keyword-type
+    addToken(IDENTIFIER);
+*/
+//> keyword-type
     // See if the identifier is a reserved word.
     String text = source.substring(start, current);
 
     TokenType type = keywords.get(text);
     if (type == null) type = IDENTIFIER;
-
     addToken(type);
+//< keyword-type
   }
-
+//< identifier
+//> number
   private void number() {
     while (isDigit(peek())) advance();
 
@@ -161,14 +161,11 @@ class Scanner {
         source.substring(start, current));
     addToken(NUMBER, value);
   }
-//< not-yet
+//< number
 //> string
   private void string() {
     while (peek() != '"' && !isAtEnd()) {
-      if (peek() == '\n') {
-        Lox.error(line, "String literals may not contain newlines.");
-      }
-
+      if (peek() == '\n') line++;
       advance();
     }
 
@@ -201,48 +198,46 @@ class Scanner {
     return source.charAt(current);
   }
 //< peek
-//> not-yet
+//> peek-next
   private char peekNext() {
     if (current + 1 >= source.length()) return '\0';
     return source.charAt(current + 1);
   }
-
-  // Returns true if `c` is an English letter or underscore.
+//< peek-next
+//> is-alpha
   private boolean isAlpha(char c) {
     return (c >= 'a' && c <= 'z') ||
            (c >= 'A' && c <= 'Z') ||
             c == '_';
   }
 
-  // Returns true if `c` is an English letter, underscore,
-  // or digit.
   private boolean isAlphaNumeric(char c) {
     return isAlpha(c) || isDigit(c);
   }
-
-  // Returns true if `c` is a digit.
+//< is-alpha
+//> is-digit
   private boolean isDigit(char c) {
     return c >= '0' && c <= '9';
   }
-//< not-yet
-//> is-at-end-and-advance
+//< is-digit
+//> is-at-end
   private boolean isAtEnd() {
     return current >= source.length();
   }
-
+//< is-at-end
+//> advance-and-add-token
   private char advance() {
     current++;
     return source.charAt(current - 1);
   }
-//< is-at-end-and-advance
-//> add-token
+
   private void addToken(TokenType type) {
     addToken(type, null);
   }
 
-  private void addToken(TokenType type, Object value) {
+  private void addToken(TokenType type, Object literal) {
     String text = source.substring(start, current);
-    tokens.add(new Token(type, text, value, line));
+    tokens.add(new Token(type, text, literal, line));
   }
-//< add-token
+//< advance-and-add-token
 }

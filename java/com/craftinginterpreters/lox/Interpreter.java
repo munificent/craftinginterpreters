@@ -121,15 +121,15 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< Inheritance not-yet
     for (Stmt.Function method : stmt.methods) {
       LoxFunction function = new LoxFunction(method, environment,
-          method.name.text.equals("init"));
-        methods.put(method.name.text, function);
+          method.name.lexeme.equals("init"));
+        methods.put(method.name.lexeme, function);
     }
 
 /* Classes not-yet < Inheritance not-yet
-    LoxClass klass = new LoxClass(stmt.name.text, methods);
+    LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
 */
 //> Inheritance not-yet
-    LoxClass klass = new LoxClass(stmt.name.text,
+    LoxClass klass = new LoxClass(stmt.name.lexeme,
         (LoxClass)superclass, methods);
 
     if (superclass != null) {
@@ -200,7 +200,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       value = evaluate(stmt.initializer);
     }
 
-    environment.define(stmt.name.text, value);
+    environment.define(stmt.name.lexeme, value);
     return null;
   }
 //> Control Flow not-yet
@@ -360,7 +360,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object object = evaluate(expr.object);
 
     if (object instanceof LoxInstance) {
-      ((LoxInstance)object).fields.put(expr.name.text, value);
+      ((LoxInstance)object).fields.put(expr.name.lexeme, value);
       return value;
     }
 
@@ -375,10 +375,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     LoxClass superclass = (LoxClass)environment.getAt(distance, "super");
     LoxInstance receiver = (LoxInstance)environment.getAt(distance, "this");
 
-    LoxFunction method = superclass.findMethod(receiver, expr.method.text);
+    LoxFunction method = superclass.findMethod(receiver, expr.method.lexeme);
     if (method == null) {
       throw new RuntimeError(expr.method,
-          "Undefined property '" + expr.method.text + "'.");
+          "Undefined property '" + expr.method.lexeme + "'.");
     }
 
     return method;
@@ -423,7 +423,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);
     if (distance != null) {
-      return environment.getAt(distance, name.text);
+      return environment.getAt(distance, name.lexeme);
     } else {
       return globals.get(name);
     }

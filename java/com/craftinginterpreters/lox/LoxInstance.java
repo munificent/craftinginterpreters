@@ -13,15 +13,15 @@ class LoxInstance {
   }
 
   Object getProperty(Token name) {
-    if (fields.containsKey(name.text)) {
-      return fields.get(name.text);
+    if (fields.containsKey(name.lexeme)) {
+      return fields.get(name.lexeme);
     }
 
-    LoxFunction method = klass.findMethod(this, name.text);
+    LoxFunction method = klass.findMethod(this, name.lexeme);
     if (method != null) return method;
 
     throw new RuntimeError(name,
-        "Undefined property '" + name.text + "'.");
+        "Undefined property '" + name.lexeme + "'.");
   }
 
   @Override

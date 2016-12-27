@@ -76,7 +76,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       scopes.peek().put("this", true);
 
       FunctionType declaration = FunctionType.METHOD;
-      if (method.name.text.equals("init")) {
+      if (method.name.lexeme.equals("init")) {
         declaration = FunctionType.INITIALIZER;
       }
 
@@ -258,7 +258,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitVariableExpr(Expr.Variable expr) {
     if (!scopes.isEmpty() &&
-        scopes.peek().get(expr.name.text) == Boolean.FALSE) {
+        scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
       Lox.error(expr.name,
           "Cannot read local variable in its own initializer.");
     }
@@ -303,24 +303,24 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (scopes.isEmpty()) return;
 
     Map<String, Boolean> scope = scopes.peek();
-    if (scope.containsKey(name.text)) {
+    if (scope.containsKey(name.lexeme)) {
       Lox.error(name,
           "Variable with this name already declared in this scope.");
     }
 
-    scope.put(name.text, false);
+    scope.put(name.lexeme, false);
   }
 
   private void define(Token name) {
     // Don't need to track top level variables.
     if (scopes.isEmpty()) return;
 
-    scopes.peek().put(name.text, true);
+    scopes.peek().put(name.lexeme, true);
   }
 
   private void resolveLocal(Expr expr, Token name) {
     for (int i = scopes.size() - 1; i >= 0; i--) {
-      if (scopes.get(i).containsKey(name.text)) {
+      if (scopes.get(i).containsKey(name.lexeme)) {
 
         locals.put(expr, scopes.size() - 1 - i);
         return;
