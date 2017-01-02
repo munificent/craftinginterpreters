@@ -27,7 +27,7 @@ public class Lox {
     } else if (args.length == 1) {
       runFile(args[0]);
     } else {
-      repl();
+      runPrompt();
     }
   }
 //> run-file
@@ -44,17 +44,23 @@ public class Lox {
 //< Evaluating Expressions not-yet
   }
 //< run-file
-//> repl
-  private static void repl() throws IOException {
+//> prompt
+  private static void runPrompt() throws IOException {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
 
-    for (;;) {
+    for (;;) { // [repl]
       System.out.print("> ");
       run(reader.readLine());
+//> reset-had-error
+      hadError = false;
+//< reset-had-error
+//> Evaluating Expressions not-yet
+      hadRuntimeError = false;
+//< Evaluating Expressions not-yet
     }
   }
-//< repl
+//< prompt
 //> run
   private static void run(String source) {
     Scanner scanner = new Scanner(source);

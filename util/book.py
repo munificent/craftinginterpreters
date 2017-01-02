@@ -63,7 +63,7 @@ TOC = [
           'Tokens', 'Token types', 'Lexical analysis', 'Regular languages',
           'Lookahead', 'Reserved words', 'Error reporting'
         ],
-        'done': False,
+        'design_note': "Implicit Semicolons"
       },
       {
         'name': 'Representing Code',

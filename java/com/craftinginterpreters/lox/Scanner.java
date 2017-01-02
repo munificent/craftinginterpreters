@@ -8,7 +8,7 @@ import java.util.Map;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
-class Scanner {
+class Scanner { // [files]
 //> keyword-map
   private static final Map<String, TokenType> keywords;
 
@@ -78,7 +78,8 @@ class Scanner {
 //> slash
       case '/':
         if (match('/')) {
-          comment();
+          // A comment goes until the end of the line.
+          while (peek() != '\n' && !isAtEnd()) advance();
         } else {
           addToken(SLASH);
         }
@@ -122,12 +123,6 @@ class Scanner {
     }
   }
 //< scan-token
-//> comment
-  private void comment() {
-    // A comment goes until the end of the line.
-    while (peek() != '\n' && !isAtEnd()) advance();
-  }
-//< comment
 //> identifier
   private void identifier() {
     while (isAlphaNumeric(peek())) advance();
@@ -157,9 +152,8 @@ class Scanner {
       while (isDigit(peek())) advance();
     }
 
-    double value = Double.parseDouble(
-        source.substring(start, current));
-    addToken(NUMBER, value);
+    addToken(NUMBER,
+        Double.parseDouble(source.substring(start, current)));
   }
 //< number
 //> string
@@ -218,7 +212,7 @@ class Scanner {
 //> is-digit
   private boolean isDigit(char c) {
     return c >= '0' && c <= '9';
-  }
+  } // [is-digit]
 //< is-digit
 //> is-at-end
   private boolean isAtEnd() {

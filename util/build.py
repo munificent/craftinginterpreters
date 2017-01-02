@@ -28,7 +28,7 @@ YELLOW = '\033[33m'
 CODE_BEFORE_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) before\)')
 CODE_AFTER_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) after\)')
 CODE_AROUND_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) before, (\d+) after\)')
-
+ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\]</span>')
 
 num_chapters = 0
 empty_chapters = 0
@@ -251,7 +251,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
       stripped = line.lstrip()
       indentation = line[:len(line) - len(stripped)]
 
-      if stripped.startswith('^'):
+      if line.startswith('^'):
         command,_,arg = stripped.rstrip('\n').lstrip('^').partition(' ')
         arg = arg.strip()
 
@@ -334,6 +334,10 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   contents = contents.replace('<div class="challenges">', '<div class="challenges" markdown="1">')
   contents = contents.replace('<div class="design-note">', '<div class="design-note" markdown="1">')
   body = markdown.markdown(contents, ['extra', 'codehilite', 'smarty'])
+
+  # Turn aside markers in code into spans.
+  # <span class="c1">// [repl]</span>
+  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"></span>', body)
 
   data = {
     'title': title,

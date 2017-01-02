@@ -38,3 +38,11 @@ https://www.cs.cmu.edu/~pattis/misc/ebnf.pdf
   - is an empty source file a valid program?
   - write the bnf for a language you know. if the language is complex, just do
     an interesting subset. what parts are hard?
+
+--
+
+error recovery:
+
+The tricky part, of course, is that the first error may *cause* later **cascaded errors**. For example, if they accidentally started a string with `'` instead of `"`, then the rest of the string literal will likely cause a number of bogus syntax errors when the scanner and parser tries to treat it like code.
+
+There is an art, called **error recovery** to getting back to a good state after an error is found to minimize the number of later spurious errors. We'll talk more about it during parsing.
