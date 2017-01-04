@@ -1,9 +1,15 @@
 ^title Scanning
 ^part A Tree-Walk Interpreter in Java
 
+> Take big bites. Anything worth doing is worth overdoing.
+>
+> <cite>Robert A. Heinlein</cite>
+
 **TODO: explain snippet notation in introduction**
 
 **TODO: consider reorganizing the headers and subheaders**
+
+**TODO: jlox part intro**
 
 The first step in any compiler or interpreter is <span name="lexing">scanning</span>. The scanner takes in the raw source code as a series characters and groups them into meaningful chunks -- the "words" and "punctuation" that make up the language's artificial grammar.
 

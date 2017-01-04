@@ -1,6 +1,10 @@
 ^title The Lox Language
 ^part Welcome
 
+> What nicer thing can you do for somebody than make them breakfast?
+>
+> <cite>Anthony Bourdain</cite>
+
 We're going to spend the rest of this book illuminating every dark and sundry
 corner of the Lox language, but it seems cruel to have you immediately start
 grinding out code for the interpreter without at least a glimpse of what we're

@@ -1,9 +1,9 @@
 ^title Introduction
 ^part Welcome
 
-> No, no! The adventures first, explanations take such a dreadful time.
+> Fairy tales are more than true: not because they tell us that dragons exist, but because they tell us that dragons can be beaten.”
 >
-> <cite>Lewis Carroll</cite>
+> <cite>Neil Gaiman</cite>
 
 I'm really excited we're going on this journey together. This is a book on
 implementing interpreters for programming languages. It's also a book on how to
