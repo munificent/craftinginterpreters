@@ -26,7 +26,10 @@
     <li><a href="#the-interpreter-framework"><small>4.1</small> The Interpreter Framework</a></li>
     <li><a href="#tokens-and-lexemes"><small>4.2</small> Tokens and Lexemes</a></li>
     <li><a href="#regular-languages-and-expressions"><small>4.3</small> Regular Languages and Expressions</a></li>
-    <li><a href="#a-scanner-for-lox"><small>4.4</small> A Scanner for Lox</a></li>
+    <li><a href="#the-scanner-class"><small>4.4</small> The Scanner Class</a></li>
+    <li><a href="#recognizing-lexemes"><small>4.5</small> Recognizing Lexemes</a></li>
+    <li><a href="#longer-lexemes"><small>4.6</small> Longer Lexemes</a></li>
+    <li><a href="#reserved-words-and-identifiers"><small>4.7</small> Reserved Words and Identifiers</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
     <li class="end-part"><a href="#design-note"><small>note</small>Implicit Semicolons
@@ -59,7 +62,10 @@
     <li><a href="#the-interpreter-framework"><small>4.1</small> The Interpreter Framework</a></li>
     <li><a href="#tokens-and-lexemes"><small>4.2</small> Tokens and Lexemes</a></li>
     <li><a href="#regular-languages-and-expressions"><small>4.3</small> Regular Languages and Expressions</a></li>
-    <li><a href="#a-scanner-for-lox"><small>4.4</small> A Scanner for Lox</a></li>
+    <li><a href="#the-scanner-class"><small>4.4</small> The Scanner Class</a></li>
+    <li><a href="#recognizing-lexemes"><small>4.5</small> Recognizing Lexemes</a></li>
+    <li><a href="#longer-lexemes"><small>4.6</small> Longer Lexemes</a></li>
+    <li><a href="#reserved-words-and-identifiers"><small>4.7</small> Reserved Words and Identifiers</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
     <li class="end-part"><a href="#design-note"><small>note</small>Implicit Semicolons
@@ -103,9 +109,6 @@
 <p>Take big bites. Anything worth doing is worth overdoing.</p>
 <p><cite>Robert A. Heinlein</cite></p>
 </blockquote>
-<p><strong>TODO: explain snippet notation in introduction</strong></p>
-<p><strong>TODO: consider reorganizing the headers and subheaders</strong></p>
-<p><strong>TODO: jlox part intro</strong></p>
 <p>The first step in any compiler or interpreter is <span name="lexing">scanning</span>. The scanner takes in the raw source code as a series characters and groups them into meaningful chunks&#8202;&mdash;&#8202;the &ldquo;words&rdquo; and &ldquo;punctuation&rdquo; that make up the language&rsquo;s artificial grammar.</p>
 <aside name="lexing">
 <p>This task has been variously called &ldquo;scanning&rdquo; and &ldquo;lexing&rdquo;&#8202;&mdash;&#8202;short for lexical analysis&#8202;&mdash;&#8202;over the years and the two terms don&rsquo;t have very distinct definitions. Way back when computers were as big as Winebagos but had less memory than your watch, some people used &ldquo;scanner&rdquo; only to refer to the piece of code that deals with reading raw source code characters from disk and buffering them in memory. Then lexing was the phase after that that did useful stuff with the characters.</p>
@@ -361,7 +364,7 @@ Lox&rsquo;s lexical grammar and spit out an entire scanner for us.</p>
 </aside>
 <p>But our goal is to understand how a scanner works inside, so we won&rsquo;t be
 outsourcing that task. We&rsquo;re about hand-crafted goods here.</p>
-<h2><a href="#a-scanner-for-lox" name="a-scanner-for-lox"><small>4&#8202;.&#8202;4</small> A Scanner for Lox</a></h2>
+<h2><a href="#the-scanner-class" name="the-scanner-class"><small>4&#8202;.&#8202;4</small> The Scanner Class</a></h2>
 <p>Without further ado, let&rsquo;s make ourselves a scanner.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
 create new file</div>
@@ -424,7 +427,7 @@ add after <em>scanTokens</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<h3><a href="#recognizing-lexemes" name="recognizing-lexemes"><small>4&#8202;.&#8202;4&#8202;.&#8202;1</small> Recognizing lexemes</a></h3>
+<h2><a href="#recognizing-lexemes" name="recognizing-lexemes"><small>4&#8202;.&#8202;5</small> Recognizing Lexemes</a></h2>
 <p>Each turn of the loop, we scan the next token. This is the real heart of the scanner. We&rsquo;ll start simple. Imagine if every lexeme was only a single character long. To implement that, you can just consume the next character and pick a token type for it.</p>
 <p>This works fine for several of Lox&rsquo;s real lexemes, so lets start there:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -466,7 +469,7 @@ add after <em>isAtEnd</em>()</div>
 
 <p>The <code>advance()</code> method adds the next character to the lexeme we&rsquo;re currently building and then returns it. We can call this even before we know what kind of lexeme we&rsquo;re building since we know the character is going into <em>some</em> lexeme.</p>
 <p>If <code>advance()</code> is the input then <code>addToken()</code> is the output. It grabs the text of the current lexeme and creates a new token for it. Later, we&rsquo;ll use the other overloaded version here to handle tokens with literal values.</p>
-<h3><a href="#lexical-errors" name="lexical-errors"><small>4&#8202;.&#8202;4&#8202;.&#8202;2</small> Lexical errors</a></h3>
+<h3><a href="#lexical-errors" name="lexical-errors"><small>4&#8202;.&#8202;5&#8202;.&#8202;1</small> Lexical errors</a></h3>
 <p>Before we get too far in, let&rsquo;s take a moment to think about errors at the lexical level. Lox doesn&rsquo;t use the <code>@</code> character. What happens if a user throws a source file containing that at our interpreter? Right now, it just gets silently added to the next token. That ain&rsquo;t right.</p>
 <p>Let&rsquo;s fix that:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="n">addToken</span><span class="o">(</span><span class="n">STAR</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
@@ -484,7 +487,7 @@ in <em>scanToken</em>()</div>
 <p>Because we report each invalid character as its own error, this will shotgun the user with a blast of errors if they accidentally paste a big blob of weird characters. If we wanted to be a little more nicer, we should coalesce a run of invalid characters into a single error.</p>
 </aside>
 <p>Even though we keep scanning, though, we won&rsquo;t try to <em>execute</em> this code. As soon as the first error is hit, <code>hadError</code> gets set so we know not to try to run it.</p>
-<h3><a href="#operators" name="operators"><small>4&#8202;.&#8202;4&#8202;.&#8202;3</small> Operators</a></h3>
+<h3><a href="#operators" name="operators"><small>4&#8202;.&#8202;5&#8202;.&#8202;2</small> Operators</a></h3>
 <p>We have single-character lexemes covered, but that doesn&rsquo;t cover all of Lox&rsquo;s operators. What about <code>!</code>? It&rsquo;s a single character, right? Sometimes, yes, but not if it&rsquo;s followed by a <code>=</code>. In that case, it should be a <code>!=</code> lexeme. Likewise, <code>&lt;</code>, <code>&gt;</code>, and <code>=</code> can all be followed by <code>=</code>.</p>
 <p>For those, we need to look at the second character:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="n">addToken</span><span class="o">(</span><span class="n">STAR</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
@@ -510,7 +513,7 @@ add after <em>scanToken</em>()</div>
 </pre></div>
 
 <p>It&rsquo;s like a conditional <code>advance()</code>. It only consumes the current character if it&rsquo;s what we&rsquo;re looking for.</p>
-<h3><a href="#comments-and-whitespace" name="comments-and-whitespace"><small>4&#8202;.&#8202;4&#8202;.&#8202;4</small> Comments and whitespace</a></h3>
+<h2><a href="#longer-lexemes" name="longer-lexemes"><small>4&#8202;.&#8202;6</small> Longer Lexemes</a></h2>
 <p>We&rsquo;re still missing one operator, <code>/</code>. That one needs a little special handling because we use <code>//</code> to begin a comment.</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span><span class="o">:</span> <span class="n">addToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="sc">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="n">GREATER_EQUAL</span> <span class="o">:</span> <span class="n">GREATER</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -567,7 +570,7 @@ in <em>scanToken</em>()</div>
 </pre></div>
 
 
-<h3><a href="#string-literals" name="string-literals"><small>4&#8202;.&#8202;4&#8202;.&#8202;5</small> String literals</a></h3>
+<h3><a href="#string-literals" name="string-literals"><small>4&#8202;.&#8202;6&#8202;.&#8202;1</small> String literals</a></h3>
 <p>Now that we know how to handle multiple-character lexemes, we can add support for literals. We&rsquo;ll do strings first, since that always begin with a specific character, <code>"</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="o">;</span>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -603,7 +606,7 @@ add after <em>scanToken</em>()</div>
 <p>Like with comments, we keep consuming characters until we hit the <code>"</code> that ends the string. We also need to gracefully handle running out of input before the string is closed and report an error for that.</p>
 <p>For no particular reason, Lox supports multi-line strings. There are pros and cons to that, but prohibiting them was a little more complex that allowing them, so I left them in. This does mean we also need to update <code>line</code> when we hit a newline inside a string.</p>
 <p>Finally, the last interesting bit is that when we create the token, we also produce the actual <em>value</em> of the string literal that will be used later by the interpreter. Here, that conversion just requires a <code>substring()</code> to strip off the quotes. That&rsquo;s because we don&rsquo;t support escape sequences in Lox. If we did, we&rsquo;d process those here.</p>
-<h3><a href="#number-literals" name="number-literals"><small>4&#8202;.&#8202;4&#8202;.&#8202;6</small> Number literals</a></h3>
+<h3><a href="#number-literals" name="number-literals"><small>4&#8202;.&#8202;6&#8202;.&#8202;2</small> Number literals</a></h3>
 <p>All numbers in Lox are floating point at runtime, but it supports both integer and decimal literals. That means a number literal is a series of <span name="minus">digits</span> optionally followed by a <code>.</code> and one or more digits:</p>
 <aside name="minus">
 <p>Since we only look for a digit to start a number, that means <code>-123</code> is not a
@@ -690,7 +693,7 @@ add after <em>peek</em>()</div>
 <p>If we have a fractional part, again, we consume as many digits as we can find.</p>
 <p>Finally, we convert the lexeme to its numeric value. Our interpreter will use Java&rsquo;s <code>double</code> type to represent numbers, so we produce a value of that type. We&rsquo;re using Java&rsquo;s own parsing method to convert the lexeme to a real Java double. We could implement this ourselves, but really, unless you&rsquo;re trying to cram for an upcoming programming interview, it&rsquo;s not worth our time.</p>
 <p>The remaining literals are Booleans and <code>null</code>, but we&rsquo;ll handle those as keywords, which gets us to&hellip;</p>
-<h3><a href="#identifiers-and-keywords" name="identifiers-and-keywords"><small>4&#8202;.&#8202;4&#8202;.&#8202;7</small> Identifiers and keywords</a></h3>
+<h2><a href="#reserved-words-and-identifiers" name="reserved-words-and-identifiers"><small>4&#8202;.&#8202;7</small> Reserved Words and Identifiers</a></h2>
 <p>Our scanner is almost done. The only things left in the lexical grammar to implement is identifiers and their close cousins the reserved words. You might think we could match keywords like we handle multiple-character operators like <code>&lt;=</code>. Something like:</p>
 <div class="codehilite"><pre><span></span><span class="k">case</span> <span class="sc">&#39;o&#39;</span><span class="o">:</span>
   <span class="k">if</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">==</span> <span class="sc">&#39;r&#39;</span><span class="o">)</span> <span class="o">{</span>

@@ -5,12 +5,6 @@
 >
 > <cite>Robert A. Heinlein</cite>
 
-**TODO: explain snippet notation in introduction**
-
-**TODO: consider reorganizing the headers and subheaders**
-
-**TODO: jlox part intro**
-
 The first step in any compiler or interpreter is <span name="lexing">scanning</span>. The scanner takes in the raw source code as a series characters and groups them into meaningful chunks -- the "words" and "punctuation" that make up the language's artificial grammar.
 
 <aside name="lexing">
@@ -229,7 +223,7 @@ It pains me to gloss over the theory so much, especially when it's as fun as I t
 But our goal is to understand how a scanner works inside, so we won't be
 outsourcing that task. We're about hand-crafted goods here.
 
-## A Scanner for Lox
+## The Scanner Class
 
 Without further ado, let's make ourselves a scanner.
 
@@ -259,7 +253,7 @@ Then we have one little helper function:
 
 ^code is-at-end
 
-### Recognizing lexemes
+## Recognizing Lexemes
 
 Each turn of the loop, we scan the next token. This is the real heart of the scanner. We'll start simple. Imagine if every lexeme was only a single character long. To implement that, you can just consume the next character and pick a token type for it.
 
@@ -309,7 +303,7 @@ Those use this new method:
 
 It's like a conditional `advance()`. It only consumes the current character if it's what we're looking for.
 
-### Comments and whitespace
+## Longer Lexemes
 
 We're still missing one operator, `/`. That one needs a little special handling because we use `//` to begin a comment.
 
@@ -435,7 +429,7 @@ Finally, we convert the lexeme to its numeric value. Our interpreter will use Ja
 
 The remaining literals are Booleans and `null`, but we'll handle those as keywords, which gets us to...
 
-### Identifiers and keywords
+## Reserved Words and Identifiers
 
 Our scanner is almost done. The only things left in the lexical grammar to implement is identifiers and their close cousins the reserved words. You might think we could match keywords like we handle multiple-character operators like `<=`. Something like:
 
