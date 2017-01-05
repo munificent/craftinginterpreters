@@ -1,2 +1,2 @@
 ^title Garbage Collection
-^part A Bytecode Interpreter in C
+^part A Bytecode Virtual Machine

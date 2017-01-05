@@ -55,7 +55,7 @@ TOC = [
     ]
   },
   {
-    'name': 'A Tree-Walk Interpreter in Java',
+    'name': 'A Tree-Walk Interpreter',
     'chapters': [
       {
         'name': 'Scanning',
@@ -136,7 +136,7 @@ TOC = [
     ]
   },
   {
-    'name': 'A Bytecode Interpreter in C',
+    'name': 'A Bytecode Virtual Machine',
     'chapters': [
       {
         'name': 'Chunks of Bytecode',
@@ -189,7 +189,7 @@ TOC = [
       {
         'name': 'Hash Tables',
         'topics': [
-          'Hash functions', 'FNV-1a string hashing', 'Linear probing',
+          'Hash functions', 'String hashing', 'Linear probing',
           'Rehashing', 'Reference equality', 'String interning'
         ],
         'done': False,

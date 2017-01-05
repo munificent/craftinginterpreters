@@ -1,2 +1,2 @@
 ^title Types of Values
-^part A Bytecode Interpreter in C
+^part A Bytecode Virtual Machine

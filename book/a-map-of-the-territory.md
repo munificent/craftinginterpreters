@@ -420,7 +420,7 @@ name="ruby">Ruby</span> which was a tree walker prior to version 1.9.
 
 At 1.9, the canonical implementation of Ruby switched from the original MRI
 ("Matz' Ruby Interpreter") to Koichi Sasada's YARV ("Yet Another Ruby VM"). YARV
-is a bytecode virtual machine.
+is A Bytecode Virtual Machine.
 
 </aside>
 

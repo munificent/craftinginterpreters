@@ -1,5 +1,5 @@
 ^title Scanning
-^part A Tree-Walk Interpreter in Java
+^part A Tree-Walk Interpreter
 
 > Take big bites. Anything worth doing is worth overdoing.
 >
