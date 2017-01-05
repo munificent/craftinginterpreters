@@ -339,6 +339,12 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   # <span class="c1">// [repl]</span>
   body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"></span>', body)
 
+  up = 'Table of Contents'
+  if part:
+    up = part
+  elif title == 'Table of Contents':
+    up = 'Crafting Interpreters'
+
   data = {
     'title': title,
     'part': part,
@@ -350,6 +356,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
     'number': book.chapter_number(title),
     'prev': book.adjacent_page(title, -1),
     'next': book.adjacent_page(title, 1),
+    'up': up,
     'toc': book.TOC
   }
 
