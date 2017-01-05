@@ -132,6 +132,8 @@ def format_code(language, lines):
 
 
 def insert_snippet(snippets, arg, contents, errors):
+  # NOTE: If you change this, be sure to update the baked in example snippet
+  # in introduction.md.
   name = None
   before_lines = 0
   after_lines = 0
