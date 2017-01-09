@@ -196,7 +196,7 @@ class Scanner { // [files]
   private char peekNext() {
     if (current + 1 >= source.length()) return '\0';
     return source.charAt(current + 1);
-  }
+  } // [peek-next]
 //< peek-next
 //> is-alpha
   private boolean isAlpha(char c) {
