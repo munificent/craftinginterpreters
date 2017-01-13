@@ -335,25 +335,36 @@ NUMBERS = number_chapters()
 def flatten_pages():
   """Flatten the tree of parts and chapters to a single linear list of pages."""
   pages = []
+  types = []
   for part in TOC:
     # There are no part pages for the front- and backmatter.
     if part['name']:
       pages.append(part['name'])
+      types.append('Part')
 
     for chapter in part['chapters']:
       pages.append(chapter['name'])
+      types.append('Chapter')
 
-  return pages
+  return pages, types
 
-PAGES = flatten_pages()
+PAGES, TYPES = flatten_pages()
 
 
 def adjacent_page(title, offset):
-  '''Generate template data to link to the previous or next page.'''
+  '''The title of the page [offset] pages before or after [title].'''
   page_index = PAGES.index(title) + offset
   if page_index < 0 or page_index >= len(PAGES): return None
 
   return PAGES[page_index]
+
+
+def adjacent_type(title, offset):
+  '''Generate template data to link to the previous or next page.'''
+  page_index = PAGES.index(title) + offset
+  if page_index < 0 or page_index >= len(PAGES): return None
+
+  return TYPES[page_index]
 
 
 def chapter_number(name):

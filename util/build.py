@@ -357,7 +357,9 @@ def format_file(path, skip_up_to_date, dependencies_mod):
     'has_challenges': has_challenges,
     'number': book.chapter_number(title),
     'prev': book.adjacent_page(title, -1),
+    'prev_type': book.adjacent_type(title, -1),
     'next': book.adjacent_page(title, 1),
+    'next_type': book.adjacent_type(title, 1),
     'up': up,
     'toc': book.TOC
   }
