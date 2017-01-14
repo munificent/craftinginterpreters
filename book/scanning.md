@@ -7,30 +7,30 @@
 
 The first step in any compiler or interpreter is <span
 name="lexing">scanning</span>. The scanner takes in raw source code as a series
-characters and groups it into meaningful chunks, the "words" and "punctuation"
+characters and groups it into meaningful chunks -- the "words" and "punctuation"
 that make up the language's grammar.
 
 <aside name="lexing">
 
-This task has been variously called "scanning" and "lexing" -- short for lexical
-analysis -- over the years and the two terms don't have very distinct
-definitions.
+This task has been variously called "scanning" and "lexing" (short for "lexical
+analysis") over the years. Way back when computers were as big as Winebagos but
+had less memory than your watch, some people used "scanner" only to refer to the
+piece of code that dealt with reading raw source code characters from disk and
+buffering them in memory. Then "lexing" was the phase after that that did useful
+stuff with the characters.
 
-Way back when computers were as big as Winebagos but had less memory than your
-watch, some people used "scanner" only to refer to the piece of code that dealt
-with reading raw source code characters from disk and buffering them in memory.
-Then "lexing" was the phase after that that did useful stuff with the
-characters. These days, reading a source file into memory is an easier task and
-the two terms are basically interchangeable.
+These days, reading a source file into memory is trivial, so it's rarely a
+distinct phase in the compiler. Because of that two terms are basically
+interchangeable.
 
 </aside>
 
 Scanning is a good starting point for us too because the code isn't very hard --
 pretty much a switch statement with delusions of grandeur. It will help us warm
 up before we tackle some of the more interesting material later. By the end of
-this chapter, we'll have a full-featured, fast scanner that can handle any
-string of Lox source code and produce the tokens that we'll feed into the parser
-in the next chapter.
+this chapter, we'll have a full-featured, fast scanner that can take any string
+of Lox source code and produce the tokens that we'll feed into the parser in the
+next chapter.
 
 ## The Interpreter Framework
 
@@ -40,7 +40,7 @@ starts with a class in Java:
 
 ^code lox-class
 
-Stick that in a text file, and go get your IDE and Makefile or whatever set up.
+Stick that in a text file, and go get your IDE or Makefile or whatever set up.
 I'll be right here when you're ready. Good? OK!
 
 Lox is a scripting language, which means it executes directly from source. There
@@ -63,9 +63,8 @@ wrapping a loop around a few built-in functions:
 (print (eval (read))
 ```
 
-Working outwards from the most nested function call, you **R**ead a line of
-input, **E**valuate it, **P**rint the result, then **L**oop and do it all over
-again.
+Working outwards from the most nested call, you **R**ead a line of input,
+**E**valuate it, **P**rint the result, then **L**oop and do it all over again.
 
 </aside>
 
@@ -86,25 +85,26 @@ will emit so that we can see if we're making progress.
 
 While we're setting things up, another key piece of infrastructure is *error
 handling*. Textbooks sometimes gloss over this because it's more a practical
-problem than a formal computer science-y issue. But if you care about making a
+matter than a formal computer science-y problem. But if you care about making a
 language that's actually *usable*, then handling errors gracefully is vital.
 
-The tools your language provides for dealing with errors make up a large portion
-of your language's user interface. When the user's code is working, they aren't
-thinking about your language at all -- their headspace is all about *their
-program*. It's usually only when things go wrong that they notice your
-implementation.
+The tools our language provides for dealing with errors make up a large portion
+of its user interface. When the user's code is working, they aren't thinking
+about our language at all -- their headspace is all about *their program*. It's
+usually only when things go wrong that they notice our implementation.
 
-When that happens, it's up to us to give the user all of the information they
-need to understand what went wrong and guide them gently back to where they are
-trying to go. Doing that well means thinking about error handling all through
-the implementation of our interpreter, starting now.
+<span name="errors">When</span> that happens, it's up to us to give the user all
+of the information they need to understand what went wrong and guide them gently
+back to where they are trying to go. Doing that well means thinking about error
+handling all through the implementation of our interpreter, starting now:
+
+<aside name="errors">
 
 Having said all that, for *this* interpreter, what we'll build is pretty bare
 bones. I'd love to talk about interactive debuggers, static analyzers and other
 fun stuff, but there's only so much ink in the pen.
 
-For now, we'll start with:
+</aside>
 
 ^code lox-error
 
@@ -191,9 +191,9 @@ sequence 'v' 'a' 'r' *means* something. If we yank three letters out of the
 middle of `language`, like `gua`, those don't mean anything on their own.
 
 That's what lexical analysis is about. Our job is to scan through the list of
-characters and group them together into the smallest possible sequences that
-still represent something. Each of these blobs of characters is called a
-**lexeme**. In that example line of code, the lexemes are:
+characters and group them together into the smallest sequences that still
+represent something. Each of these blobs of characters is called a **lexeme**.
+In that example line of code, the lexemes are:
 
 <img src="image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" />
 
@@ -283,18 +283,18 @@ Lexical analygator.
 </aside>
 
 The part of the loop where we look at a handful of characters to figure out
-which kind of lexeme it "matches" may sound familiar. If you're familiar with
-regular expressions, you might consider defining a regex for each kind of lexeme
-and use those to match characters. For example, Lox has the same identifier
-rules as C. This regex matches one:
+which kind of lexeme it "matches" may sound familiar. If you know regular
+expressions, you might consider defining a regex for each kind of lexeme and use
+those to match characters. For example, Lox has the same identifier rules as C.
+This regex matches one:
 
 ```text
 [a-zA-Z_][a-zA-Z_0-9]*
 ```
 
 If you did think of regular expressions, your intuition is a deep one. The rules
-that determine how characters are grouped lexemes for some language are called
-its <span name="theory">**lexical grammar**</span>. In Lox, as in most
+that determine how characters are grouped into lexemes for some language are
+called its <span name="theory">**lexical grammar**</span>. In Lox, as in most
 programming languages, the rules of that grammar are simple enough to be
 classified a **[regular language][]**. That's the same "regular" as in regular
 expressions.
@@ -334,7 +334,7 @@ one multi-billionaire among us.
 [flex]: https://github.com/westes/flex
 
 Since our goal is to understand how a scanner does what it does, we won't be
-outsourcing that task. We're about hand-crafted goods.
+delegating that task. We're about hand-crafted goods.
 
 ## The Scanner Class
 
@@ -365,7 +365,7 @@ code we are:
 
 ^code scan-state (1 before, 2 after)
 
-The `start` and `current` fields are indexes into the string -- the first
+The `start` and `current` fields are offsets in the string -- the first
 character in the current lexeme being scanned, and the character we're currently
 considering. The other field tracks what source line `current` is on so we can
 produce tokens that know their location.
@@ -392,7 +392,7 @@ Again, we need a couple of helper methods:
 The `advance()` method consumes the next character in the source file and
 returns it. Where `advance()` is for input, `addToken()` is for output. It grabs
 the text of the current lexeme and creates a new token for it. (We'll use the
-other overloaded version to handle tokens with literal values later.)
+other overload to handle tokens with literal values later.)
 
 ### Lexical errors
 
@@ -406,12 +406,11 @@ Let's fix that:
 ^code char-error (1 before, 1 after)
 
 Note that the erroneous character is still *consumed* by the earlier call to
-`advance()`. That's important so that we don't get stuck in an infinite loop on
-it.
+`advance()`. That's important so that we don't get stuck in an infinite loop.
 
 Note also that we <span name="shotgun">*keep scanning*</span>. There may be
 other errors later in the program. It gives our users a better experience if we
-can detect as many of those as possible in one go. Otherwise, they see one tiny
+detect as many of those as possible in one go. Otherwise, they see one tiny
 error and fix it, only to have the next error appear, and so on. Syntax error
 whack-a-mole is no fun.
 
@@ -446,7 +445,8 @@ It's like a conditional `advance()`. It only consumes the current character if
 it's what we're looking for.
 
 Using that, we recognize these lexemes in two stages. When we hit, say `!`, we
-jump to its switch case. That case means "OK, we know the lexeme *starts* with `!`." Then we look at one more character to determine if we're on a `!` or a
+jump to its switch case. That case means "OK, we know the lexeme *starts* with
+`!`". Then we look at the next character to determine if we're on a `!` or a
 `!=`.
 
 ## Longer Lexemes
@@ -460,9 +460,9 @@ This is similar to the other two-character operators, except that when we find a
 second `/`, we don't end the token yet. Instead, we keep consuming characters
 until we reach the end of the line.
 
-This is our general strategy for handling longer lexemes. Once we detect the
-beginning of a lexeme, we shunt off to some code specific to that kind of lexeme
-that keeps eating characters until it sees the end.
+This is our general strategy for handling longer lexemes. After we detect the
+beginning of one, we shunt off to some code specific to that kind of lexeme that
+keeps eating characters until it sees the end.
 
 We've got another helper:
 
@@ -492,7 +492,7 @@ whitespace, too:
 
 ^code whitespace (1 before, 3 after)
 
-When encountering a space or tab, we simply go back to the beginning of the scan
+When encountering whitespace, we simply go back to the beginning of the scan
 loop. That starts a new lexeme *after* the whitespace character. For newlines,
 we do the same thing, but we also increment the line counter. (This is why we
 used `peek()` to find the newline ending a comment instead of `match()`. We want
@@ -528,10 +528,9 @@ so I left them in. That does mean we also need to update `line` when we hit a
 newline inside a string.
 
 Finally, the last interesting bit is that when we create the token, we also
-produce the actual *value* of the string literal that will be used later by the
-interpreter. Here, that conversion just requires a `substring()` to strip off
-the surrounding quotes. If Lox supported escapes sequences like `\n`, we'd
-unescape those here.
+produce the actual string *value* that will be used later by the interpreter.
+Here, that conversion only requires a `substring()` to strip off the surrounding
+quotes. If Lox supported escapes sequences like `\n`, we'd unescape those here.
 
 ### Number literals
 
@@ -636,8 +635,8 @@ which gets us to...
 
 Our scanner is almost done. The only remaining pieces of the lexical grammar to
 implement are identifiers and their close cousins the reserved words. You might
-think we could match keywords like we handle multiple-character operators like
-`<=`. Something like:
+think we could match keywords like `or` in the same way we handle
+multiple-character operators like `<=`:
 
 ```java
 case 'o':
@@ -650,9 +649,9 @@ case 'o':
 Consider what would happen if a user named a variable `orchid`. The scanner
 would see the first two letters, `or`, and immediately emit an `or` keyword
 token. This gets us to an important principle called <span
-name="maximal">**maximal munch**</span>. If two lexical grammar rules match some
-prefixes of the same series of characters, *whichever one matches the most
-characters wins*.
+name="maximal">**maximal munch**</span>. When two lexical grammar rules can both
+match a chunk of code that the scanner is looking at, *whichever one matches the
+most characters wins*.
 
 That rule states that if we can match `orchid` as an identifier and `or` as a
 keyword, then the former wins. This is also why we tacitly assumed above that
@@ -666,7 +665,7 @@ Consider this nasty bit of C code:
 ---a;
 ```
 
-Is it valid? That depends on how scanned splits the lexemes. If the scanner
+Is it valid? That depends on how the scanner splits the lexemes. If the scanner
 sees it like:
 
 ```c
@@ -751,19 +750,18 @@ and see if it handles them as it should.
 ## Design Note: Implicit Semicolons
 
 Programmers today are spoiled for choice in languages and have gotten picky
-about the look and feel of its syntax. They want their language to look clean
-and modern. One bit of syntactic lichen that almost every new language scrapes
-off (and some ancient ones like BASIC never had) is `;` as an explicit statement
-separator.
+about syntax. They want their language to look clean and modern. One bit of
+syntactic lichen that almost every new language scrapes off (and some ancient
+ones like BASIC never had) is `;` as an explicit statement terminator.
 
-Instead, they treat a newline as a statement separator where it makes sense to
+Instead, they treat a newline as a statement terminator where it makes sense to
 do so. The "where it makes sense" part is the interesting bit. While *most*
 statements are on their own line, sometimes you need to spread a single
-statement across a couple of lines. Those newlines should not be treated as
-separators.
+statement across a couple of lines. Those intermingled newlines should not be
+treated as terminators.
 
-Most of the obvious cases are easy to detect, but there are a handful of nasty
-ones:
+Most of the obvious cases where the newline should be ignored are easy to
+detect, but there are a handful of nasty ones:
 
 * A return value on the next line:
 
@@ -813,18 +811,19 @@ are separators. Here are a couple:
 
 *   [Go][] handles newlines in the scanner. If a newline appears following one
     of a handful of token types that are known to potentially end a statement,
-    the newline is treated like a semicolon. The Go team provides a canonical
-    code formatter, [gofmt][], and the ecosystem is fervent about its use, which
-    ensures that idiomatic styled code works well with this simple rule.
+    the newline is treated like a semicolon, otherwise it is ignored. The Go
+    team provides a canonical code formatter, [gofmt][], and the ecosystem is
+    fervent about its use, which ensures that idiomatic styled code works well
+    with this simple rule.
 
 *   [Python][] treats all newlines as significent unless an explicit backslash
     is used at the end of a line to continue it to the next line. Also, newlines
     anywhere inside a pair of brackets (`()`, `[]`, or `{}`) are ignored.
     Idiomatic style strongly prefers the latter.
 
-    This rule works well for Python because it is a strongly statement-oriented
+    This rule works well for Python because it is a deeply statement-oriented
     language. In particular, Python's grammar ensures a statement never appears
-    inside an expression. C does the same, many other languages which have a
+    inside an expression. C does the same, but many other languages which have a
     "lambda" or function literal syntax do not.
 
     For example, in JavaScript:
@@ -855,7 +854,7 @@ And now you know why Python's `lambda` only allows a single expression body.
     minimal set of newlines to turn into semicolons to get to something
     grammatically valid.
 
-    This design note would turn into a design essay it I went into complete
+    This design note would turn into a design diatribe if I went into complete
     detail about how that even *works*, much less all the various ways that that
     is a bad idea. It's a mess. JavaScript is the only language I know where
     many style guides demand explicit semicolons after every statement even
@@ -868,9 +867,9 @@ And now you know why Python's `lambda` only allows a single expression body.
 [asi]: https://www.ecma-international.org/ecma-262/5.1/#sec-7.9
 
 If you're designing a new language, you almost surely *should* avoid an explicit
-statement separator. Programmers are creatures of fashion like other humans and
+statement terminator. Programmers are creatures of fashion like other humans and
 semicolons are as passé as ALL CAPS KEYWORDS. Just make sure you pick a set of
-rules that make sense for your language's particular grammar and idioms. And,
-uh, don't do what JavaScript did.
+rules that make sense for your language's particular grammar and idioms. And
+don't do what JavaScript did.
 
 </div>
