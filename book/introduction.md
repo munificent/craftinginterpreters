@@ -238,9 +238,12 @@ choice in order to get the code to run.
 
 ### Snippets
 
-Since the book contains literally every line of code needed for the implementations, the snippets are quite precise. Also, because I try to keep the program in a runnable state even while it's half-implemented, sometimes we add temporary code that is replaced in later snippets.
+Since the book contains literally every line of code needed for the
+implementations, the snippets are quite precise. Also, because I try to keep the
+program in a runnable state even when it's half-implemented, sometimes we add
+temporary code that is replaced in later snippets.
 
-To address all of that and ensure you can follow along, take the code, and get it running, snippets look like this (though some parts are omitted if not needed):
+A snippet with all the bells and whistles looks like this:
 
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">default</span><span class="o">:</span>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -254,8 +257,11 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="o">;</span>
 </pre></div>
 
-The main code in the center is the new code being added. The faded out lines above and below tell you where it gets inserted in the existing code. There is also a little context blurb telling you which file and where in the file it goes. If it says "replace _ lines", that means there was some previous code between the faded lines that is being removed and replaced by this snippet.
-
+In the center, you have the new code being added in this snippet. It may have a
+few faded out lines above or below to show you where to insert it in the
+existing code. There is also a little blurb telling you which file and where in
+the file it goes. If it says "replace _ lines", there was some previous code
+between the faded lines that you need to remove and replace with this snippet.
 
 ### Asides
 
