@@ -443,7 +443,7 @@ few thousand lines of code.
    [doubly-linked list][] of heap-allocated strings. Write functions to insert,
    find, and delete items from it. Test them.
 
-[repo]: https://github.com/munificent/crafting-interpreters
+[repo]: https://github.com/munificent/craftinginterpreters
 [doubly-linked list]: https://en.wikipedia.org/wiki/Doubly_linked_list
 
 </div>

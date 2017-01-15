@@ -23,7 +23,7 @@ don't have a Lox interpreter yet, since you haven't built one!
 
 Fear not. You can use [mine][repo].
 
-[repo]: https://github.com/munificent/crafting-interpreters
+[repo]: https://github.com/munificent/craftinginterpreters
 
 </aside>
 
