@@ -235,13 +235,13 @@ the exact same value, we can do the evaluation at compile time and replace the
 code for the expression with its result. If the user typed in:
 
 ```java
-pennyArea = 3.15159 * (0.75 / 2) * (0.75 / 2);
+pennyArea = 3.14159 * (0.75 / 2) * (0.75 / 2);
 ```
 
 We can do all of that arithmetic in the compiler and change the code to:
 
 ```java
-pennyArea = 0.44319234375;
+pennyArea = 0.4417860938;
 ```
 
 Optimization is a huge part of the programming language business. Many language
