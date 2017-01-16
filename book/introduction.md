@@ -130,7 +130,7 @@ couldn't conceive how BASIC *itself* was made.
 
 Later, the mixture of awe and terror my college friends used to refer to their
 compilers class was enough to convince me language hackers were a different
-breed of human. Some sort of wizards granted priveleged access to arcane arts.
+breed of human. Some sort of wizards granted privileged access to arcane arts.
 
 It's a charming <span name="image">image</span>, but it has a darker side. *I*
 didn't feel like a wizard, so I was left thinking I lacked some in-born quality
