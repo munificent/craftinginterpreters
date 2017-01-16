@@ -786,9 +786,9 @@ metaprogramming libraries.
 
 ### Classes in Lox
 
-Enough rationale, let's see we actually have. Classes encompass a constellation
-of features in most languages. For Lox, I've selected what I think are the
-brightest stars. You declare a class and its methods like so:
+Enough rationale, let's see what we actually have. Classes encompass a
+constellation of features in most languages. For Lox, I've selected what I think
+are the brightest stars. You declare a class and its methods like so:
 
 ```lox
 class Breakfast {
