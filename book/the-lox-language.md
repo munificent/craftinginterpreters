@@ -114,10 +114,10 @@ to perform an operation on values of the wrong type -- say, dividing a number by
 a string -- then the error is detected and reported at runtime.
 
 There are plenty of reasons to like <span name="static">static</span> types, but
-they don't outweigh the pragmatic reasons to pick dynamic types for Lox. A type
-system is a ton of work to learn and implement. Skipping it gives you a simpler
-language and a shorter book. We'll get our interpreter up and executing bits of
-code sooner if we don't have to build a type checker first.
+they don't outweigh the pragmatic reasons to pick dynamic types for Lox. A
+static type system is a ton of work to learn and implement. Skipping it gives
+you a simpler language and a shorter book. We'll get our interpreter up and
+executing bits of code sooner if we defer our type checking to runtime.
 
 <aside name="static">
 
