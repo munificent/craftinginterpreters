@@ -970,6 +970,9 @@ file IO, networking, heck, even *reading input from the user* would help. But we
 don't need any of that for this book, and adding wouldn't teach you anything
 interesting, so I left it out.
 
+Don't worry, we'll have plenty of exciting stuff in the language itself to keep
+us busy.
+
 <div class="challenges">
 
 ## Challenges
