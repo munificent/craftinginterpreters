@@ -628,7 +628,7 @@ using Java's own parsing method to convert the lexeme to a real Java double. We
 could implement it ourselves, but really, unless you're trying to cram for an
 upcoming programming interview, it's not worth your time.
 
-The remaining literals are Booleans and `null`, but we handle those as keywords,
+The remaining literals are Booleans and `nil`, but we handle those as keywords,
 which gets us to...
 
 ## Reserved Words and Identifiers
