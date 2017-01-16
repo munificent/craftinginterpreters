@@ -849,7 +849,7 @@ And now you know why Python's `lambda` only allows a single expression body.
 *   JavaScript's "[automatic semicolon insertion][asi]" rule is the odd one.
     Where other languages assume most newlines *are* meaningful and only a few
     should be ignored in multi-line statements, JS assumes the opposite. It
-    treats all of your semicolons as meaningless whitespace *unless* it
+    treats all of your newlines as meaningless whitespace *unless* it
     encounters a parse error. If it does, it goes back and figures out the
     minimal set of newlines to turn into semicolons to get to something
     grammatically valid.
