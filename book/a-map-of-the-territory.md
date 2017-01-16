@@ -451,7 +451,7 @@ order to run in the browser, they've affected the hipster sobriquet
 
 <aside name="gary">
 
-The first transcompiler, XLT86, translated 8088 assembly into 8086 assembly.
+The first transcompiler, XLT86, translated 8080 assembly into 8086 assembly.
 That might seem straightforward, but keep in mind the 8080 was an 8-bit chip and
 the 8086 a 16-bit chip that could use each register as a pair of 8-bit ones.
 XLT86 did data flow analysis to track register usage in the source program and
