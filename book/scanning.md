@@ -816,7 +816,7 @@ are separators. Here are a couple:
     fervent about its use, which ensures that idiomatic styled code works well
     with this simple rule.
 
-*   [Python][] treats all newlines as significent unless an explicit backslash
+*   [Python][] treats all newlines as significant unless an explicit backslash
     is used at the end of a line to continue it to the next line. Also, newlines
     anywhere inside a pair of brackets (`()`, `[]`, or `{}`) are ignored.
     Idiomatic style strongly prefers the latter.
