@@ -300,7 +300,7 @@ greaterThan >= orEqual;
 We can test two values of any kind for equality or inequality:
 
 ```lox
-1 == 2;         // true.
+1 == 2;         // false.
 "cat" != "dog"; // true.
 ```
 
