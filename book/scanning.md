@@ -195,7 +195,7 @@ characters and group them together into the smallest sequences that still
 represent something. Each of these blobs of characters is called a **lexeme**.
 In that example line of code, the lexemes are:
 
-<img src="image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" />
+<img src="/site/image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" />
 
 The lexemes are only the raw substrings of the source code. However, in the
 process of recognizing them, we also stumble upon some other useful information.
@@ -274,7 +274,7 @@ excreting tokens, until it runs out of characters.
 
 <span name="alligator"></span>
 
-<img src="image/scanning/lexigator.png" alt="An alligator eating characters and, well, you don't want to know." />
+<img src="/site/image/scanning/lexigator.png" alt="An alligator eating characters and, well, you don't want to know." />
 
 <aside name="alligator">
 
