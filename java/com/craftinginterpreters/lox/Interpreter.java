@@ -373,7 +373,9 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitSuperExpr(Expr.Super expr) {
     int distance = locals.get(expr);
     LoxClass superclass = (LoxClass)environment.getAt(distance, "super");
-    LoxInstance receiver = (LoxInstance)environment.getAt(distance, "this");
+
+    // "this" is always one level nearer than "super"'s environment.
+    LoxInstance receiver = (LoxInstance)environment.getAt(distance - 1, "this");
 
     LoxFunction method = superclass.findMethod(receiver, expr.method.lexeme);
     if (method == null) {
