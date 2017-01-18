@@ -300,8 +300,8 @@ affinity for things that are black and white, ones and zeroes.
 
 <aside name="benchmark">
 
-I know a lot of language hackers who whose careers are based on this. You slide
-a language spec under their door, wait a few months, and code and benchmark
+I know a lot of language hackers whose careers are based on this. You slide a
+language spec under their door, wait a few months, and code and benchmark
 results come out.
 
 </aside>
@@ -452,7 +452,7 @@ few thousand lines of code.
 
 ## Design Note: What's in a Name?
 
-One the hardest challenges in writing this book was coming up with a name for
+One of the hardest challenges in writing this book was coming up with a name for
 the language it implements. I went through *pages* of candidates before I found
 one that worked. As you'll discover on the first day you start building your own
 language, naming is deviously hard. A good name satisfies a few criteria:
