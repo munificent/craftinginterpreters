@@ -18,7 +18,7 @@ are nuts and bolts one particular implementation might use. From the user's
 perspective, as long as the resulting contraption faithfully follows the
 language's specification, it's all implementation detail.
 
-We're going to spend a lot of time on those details, so if I have write
+We're going to spend a lot of time on those details, so if I have to write
 "language *implementation*" every single time I mention them, I'll wear my
 fingers off. Instead, I'll use "language" to refer to either a language or an
 implementation of it, or both, unless the distinction isn't obvious.
