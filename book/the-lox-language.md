@@ -1007,7 +1007,7 @@ These "everything is an expression" languages tend to have functional pedigrees
 and include most Lisps, SML, Haskell, Ruby, and CoffeeScript.
 
 To do that, for each "statement-like" construct in the language, you need to
-decide value it evaluates to. Some of those are easy:
+decide what value it evaluates to. Some of those are easy:
 
 *   An `if` expression evaluates to the result of whichever branch is chosen.
     Likewise, a `switch` or other multi-way branch evaluates to whichever case
