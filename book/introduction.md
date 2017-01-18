@@ -80,7 +80,7 @@ justify. Fortunately, it isn't.
 
 For every successful general-purpose language out there, there are a thousand
 successful niche ones. We used to call them "little languages", but inflation in
-the jargon economy lead today to the name "domain-specific languages". These are
+the jargon economy led today to the name "domain-specific languages". These are
 pidgins tailor-built to a specific task. Things like application scripting
 languages, template engines, markup formats, and configuration files.
 
@@ -336,7 +336,7 @@ techniques and also hone our understanding of exactly how the language is
 supposed to behave.
 
 Java is a great language for this. It's high level enough that we don't get
-overhwelmed by fiddly implementation details, but it's still pretty explicit.
+overwhelmed by fiddly implementation details, but it's still pretty explicit.
 Unlike scripting languages, there tends to be less magic under the hood, and
 you've got static types to see what data structures you're working with.
 
