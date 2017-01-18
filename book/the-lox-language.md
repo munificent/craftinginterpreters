@@ -594,7 +594,13 @@ fun returnSum(a, b) {
 ```
 
 If execution reaches the end of the block without hitting a `return`, it
-implicitly returns `nil`. Again, `nil` sneaks in the back door.
+<span name="sneaky">implicitly</span> returns `nil`.
+
+<aside name="sneaky">
+
+See, I told you `nil` would sneak in when we weren't looking.
+
+</aside>
 
 ### Closures
 
