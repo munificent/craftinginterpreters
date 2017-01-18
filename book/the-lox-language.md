@@ -874,7 +874,7 @@ initializer:
 ```lox
 class Breakfast {
   init(meat, bread) {
-    this.meat = bread;
+    this.meat = meat;
     this.bread = bread;
   }
 
