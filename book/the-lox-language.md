@@ -999,7 +999,7 @@ us busy.
 
 <div class="design-note">
 
-## Design Note: Statements and Expressions
+## Design Note: Expressions and Statements
 
 Lox has both expressions and statements. Some languages omit the latter.
 Instead, they treat declarations and control flow constructs as expressions too.

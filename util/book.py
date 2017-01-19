@@ -50,7 +50,7 @@ TOC = [
           'Dynamic typing', 'Automatic memory management', 'Built-in types',
           'Expressions', 'Statements', 'Object-orientation', 'Prototypes'
         ],
-        'design_note': "Statements and Expressions"
+        'design_note': "Expressions and Statements"
       }
     ]
   },
