@@ -1,25 +1,36 @@
 BUILD_DIR := build
 
-default: clox jlox
+default: book clox jlox
 
-html:
-	@ python util/build.py
+# Build the site.
+book:
+	@ python3 util/build.py
 
+# Compile a debug build of clox.
 debug:
 	@ $(MAKE) -f util/c.make NAME=cloxd MODE=debug SOURCE_DIR=c
 
-watch:
-	@ python util/build.py --watch
+# Run a local development server for the site that rebuilds automatically.
+serve:
+	@ python3 util/build.py --serve
 
-# TODO: Get this working even if the first returns non-zero.
-test: test_java test_c
-	@ python util/test.py
+# Run the tests for the final versions of clox and jlox.
+test: debug jlox
+	# TODO: Get this working even if the first returns non-zero.
+	@ python3 util/test.py clox
+	@ python3 util/test.py jlox
 
+# Run the tests for every chapter's version of clox.
 test_c: debug c_chapters
-	@ python util/test.py c
+	@ python3 util/test.py c
 
-test_java: jlox chapters
-	@ python util/test.py java
+# Run the tests for every chapter's version of jlox.
+test_java: jlox java_chapters
+	@ python3 util/test.py java
+
+# Run the tests for every chapter's version of clox and jlox.
+test_all: debug jlox c_chapters java_chapters
+	@ python3 util/test.py all
 
 # Remove all build outputs and intermediate files.
 clean:
@@ -41,13 +52,11 @@ generate_ast:
 jlox: generate_ast
 	@ $(MAKE) -f util/java.make DIR=java PACKAGE=lox
 
-run_generate_ast = 	@ java -cp build/gen/$(1) \
+run_generate_ast = @ java -cp build/gen/$(1) \
 			com.craftinginterpreters.tool.GenerateAst \
 			gen/$(1)/com/craftinginterpreters/lox
 
-chapters:
-	@ python3 util/split_chapters.py
-
+java_chapters: split_chapters
 	@ $(MAKE) -f util/java.make DIR=gen/chap04_scanning PACKAGE=lox
 
 	@ $(MAKE) -f util/java.make DIR=gen/chap05_representing PACKAGE=tool
@@ -86,9 +95,7 @@ chapters:
 	$(call run_generate_ast,chap13_inheritance)
 	@ $(MAKE) -f util/java.make DIR=gen/chap13_inheritance PACKAGE=lox
 
-# TODO: Unify with make chapters, and make more demand-driven.
-c_chapters:
-	@ python3 util/split_chapters.py
+c_chapters: split_chapters
 	@ $(MAKE) -f util/c.make NAME=chap14_chunks MODE=release SOURCE_DIR=gen/chap14_chunks
 	@ $(MAKE) -f util/c.make NAME=chap15_virtual MODE=release SOURCE_DIR=gen/chap15_virtual
 	@ $(MAKE) -f util/c.make NAME=chap16_scanning MODE=release SOURCE_DIR=gen/chap16_scanning
@@ -107,7 +114,7 @@ c_chapters:
 	@ $(MAKE) -f util/c.make NAME=chap29_superclasses MODE=release SOURCE_DIR=gen/chap29_superclasses
 	@ $(MAKE) -f util/c.make NAME=chap30_optimization MODE=release SOURCE_DIR=gen/chap30_optimization
 
-diffs:
+diffs: split_chapters java_chapters
 	@ mkdir -p build/diffs
 	@ -diff --recursive --new-file nonexistent/ gen/chap04_scanning/com/craftinginterpreters/ > build/diffs/chap04_scanning.diff
 	@ -diff --recursive --new-file gen/chap04_scanning/com/craftinginterpreters/ gen/chap05_representing/com/craftinginterpreters/ > build/diffs/chap05_representing.diff
@@ -138,4 +145,7 @@ diffs:
 	@ -diff --new-file gen/chap28_methods/ gen/chap29_superclasses/ > build/diffs/chap29_superclasses.diff
 	@ -diff --new-file gen/chap29_superclasses/ gen/chap30_optimization/ > build/diffs/chap30_optimization.diff
 
-.PHONY: clean clox debug default diffs jlox test test_c test_java watch
+split_chapters:
+	@ python3 util/split_chapters.py
+
+.PHONY: book c_chapters clean clox debug default diffs java_chapters jlox serve split_chapters test test_all test_c test_java
