@@ -590,7 +590,7 @@ This relies on:
 <aside name="is-digit">
 
 The Java standard library provides [`Character.isDigit()`][is-digit] which seems
-like a good fit. Alas, that method allows things like Devangari digits,
+like a good fit. Alas, that method allows things like Devanagari digits,
 fullwidth numbers, and other funny stuff we don't want.
 
 [is-digit]: http://docs.oracle.com/javase/7/docs/api/java/lang/Character.html#isDigit(char)
