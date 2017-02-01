@@ -39,7 +39,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 //> Functions not-yet
   Interpreter() {
-    globals.define("clock", new NativeFunction(0, this::clock));
+    globals.define("clock", new Callable() {
+      @Override
+      public int requiredArguments() {
+        return 0;
+      }
+
+      @Override
+      public Object call(Interpreter interpreter,
+                         List<Object> arguments) {
+        return (double)System.currentTimeMillis() / 1000.0;
+      }
+    });
   }
 //< Functions not-yet
 
@@ -454,12 +465,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     System.out.println(stringify(argument));
     return argument;
   }
-//> Functions not-yet
-
-  private Object clock(List<Object> arguments) {
-    return (double)System.currentTimeMillis() / 1000.0;
-  }
-//< Functions not-yet
 
   private boolean isTrue(Object object) {
     if (object == null) return false;

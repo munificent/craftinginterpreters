@@ -291,7 +291,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   }
 
   private void beginScope() {
-    scopes.push(new HashMap<>());
+    scopes.push(new HashMap<String, Boolean>());
   }
 
   private void endScope() {
