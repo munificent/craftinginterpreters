@@ -20,7 +20,7 @@ buffering them in memory. Then "lexing" was the phase after that that did useful
 stuff with the characters.
 
 These days, reading a source file into memory is trivial, so it's rarely a
-distinct phase in the compiler. Because of that two terms are basically
+distinct phase in the compiler. Because of that, the two terms are basically
 interchangeable.
 
 </aside>
