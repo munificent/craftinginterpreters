@@ -19,6 +19,9 @@ take a look at:
 * **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
 * **Swift:** [alexito4/slox](https://github.com/alexito4/slox)
 
+Are you porting jlox or clox to another language? Let me know and I'll add you
+to this list.
+
 ## Contributing
 
 One of the absolute best things about writing a book online and putting it out
