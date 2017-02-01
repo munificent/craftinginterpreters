@@ -8,6 +8,17 @@ final site.
 If you find an error or have a suggestion, please do file an issue here. Thank
 you!
 
+## Implementations in Other Languages
+
+Some brave souls have ported (or are porting, depending on when you read this)
+the interpreters in the book to other languages. If Java and C aren't your bag,
+take a look at:
+
+* **C++:** [ikatanic/lox-cpp](https://github.com/ikatanic/lox-cpp)
+* **Go:** [paulja/glox](https://github.com/paulja/glox)
+* **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
+* **Swift:** [alexito4/slox](https://github.com/alexito4/slox)
+
 ## Contributing
 
 One of the absolute best things about writing a book online and putting it out
