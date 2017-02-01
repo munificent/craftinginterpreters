@@ -193,7 +193,7 @@ data types. There are only a few:
     point. Since floating point numbers can also represent a wide range of
     integers, that covers a lot of territory, while keeping things simple.
 
-    Full-featured languages have lots of syntax for numbers -- hexidecimal,
+    Full-featured languages have lots of syntax for numbers -- hexadecimal,
     scientific notation, octal, all sorts of fun stuff. We'll settle for basic
     integer and decimal literals:
 
