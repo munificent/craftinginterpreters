@@ -29,7 +29,7 @@ $(document).ready(function() {
 
   // Hide the sign-up box if the user has already dismissed it.
   if (document.cookie.indexOf("hidesignup") != -1) {
-    $(".sign-up").hide();
+    $(".sign-up.closable").hide();
   }
 
   // Since we may not have the height correct for the images, adjust the asides
