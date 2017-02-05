@@ -474,7 +474,7 @@ While the first transcompiler translated one assembly language to another,
 today, almost all transpilers work on higher-level languages. After the viral
 spread of UNIX to machines various and sundry, there began a long tradition of
 compilers that produced C as their output language. C compilers were available
-everywhere UNIX was and produced efficient code, so targetting C was a good way
+everywhere UNIX was and produced efficient code, so targeting C was a good way
 to get your language running on a lot of architectures.
 
 Web browsers are the "machines" of today, and their "machine code" is
