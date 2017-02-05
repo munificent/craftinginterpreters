@@ -46,3 +46,21 @@ error recovery:
 The tricky part, of course, is that the first error may *cause* later **cascaded errors**. For example, if they accidentally started a string with `'` instead of `"`, then the rest of the string literal will likely cause a number of bogus syntax errors when the scanner and parser tries to treat it like code.
 
 There is an art, called **error recovery** to getting back to a good state after an error is found to minimize the number of later spurious errors. We'll talk more about it during parsing.
+
+--
+
+In representing code, talking about how grammar generates sentences. Now go
+in other direction.
+
+- can play game in other direction as well
+- given string of symbols, starting at start rule, can we pick set of
+  productions that *match* string?
+- ex: is "glorious fire-breathing dragon" valid monsters?
+- what about "tiny troll beast"?
+- call this process parsing
+- more about it later
+
+--
+
+Explain difference between parse tree and AST now that we have intermediate
+productions for handling precedence that aren't stored in tree.

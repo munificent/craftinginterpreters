@@ -65,7 +65,7 @@ public class Lox {
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
-/* Scanning run < Representing Code not-yet
+/* Scanning run < Parsing Expressions not-yet
 
     // For now, just print the tokens.
     for (Token token : tokens) {

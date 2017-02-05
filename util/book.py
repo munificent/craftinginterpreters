@@ -71,7 +71,6 @@ TOC = [
           'Abstract syntax trees', 'Expression trees', 'Generating AST classes',
           'The Visitor pattern', 'Pretty printing'
         ],
-        'done': False,
       },
       {
         'name': 'Parsing Expressions',

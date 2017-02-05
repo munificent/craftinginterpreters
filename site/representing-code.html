@@ -37,7 +37,12 @@
 <h3><a href="#top">Representing Code<small>5</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#context-free-grammars"><small>5.1</small> Context-Free Grammars</a></li>
+    <li><a href="#implementing-syntax-trees"><small>5.2</small> Implementing Syntax Trees</a></li>
+    <li><a href="#working-with-trees"><small>5.3</small> Working with Trees</a></li>
+    <li><a href="#a-(not-very)-pretty-printer"><small>5.4</small> A (Not Very) Pretty Printer</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -63,7 +68,12 @@
 <h3><a href="#top">Representing Code<small>5</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#context-free-grammars"><small>5.1</small> Context-Free Grammars</a></li>
+    <li><a href="#implementing-syntax-trees"><small>5.2</small> Implementing Syntax Trees</a></li>
+    <li><a href="#working-with-trees"><small>5.3</small> Working with Trees</a></li>
+    <li><a href="#a-(not-very)-pretty-printer"><small>5.4</small> A (Not Very) Pretty Printer</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -82,9 +92,9 @@
   <h1>Representing Code</h1>
 
 <div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
+    <h1>This book is a work in progress!</h1>
   <span class="dismiss">&times;</span>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -99,7 +109,795 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<p>In the last chapter, we took the raw source code as a string and transformed it
+into a slightly higher-level representation&#8202;&mdash;&#8202;a series of tokens. In the next
+chapter, the parser will take those tokens and produce yet another
+representation. ince we are now higher up the mountain of understanding, it will
+be a richer, more complex representation of the code. Before we can write that
+parser, we need to spend some time talking about that data structure itself.</p>
+<p>Along the way, we&rsquo;ll learn some theory around formal grammars, a little about
+the differences between function and object-oriented programming, go over a
+couple of design patterns, and do some metaprogramming.</p>
+<p>But first, let&rsquo;s think about how we might want to shape our code&rsquo;s
+representation. The goal is something that&rsquo;s simple for the parser to produce,
+and easy for the interpreter to consume. Since you probably haven&rsquo;t written a
+parser or interpreter yet, it&rsquo;s hard to know what kind of structure accomplish
+that.</p>
+<p>Maybe our informal intuition can help us out. What is your brain doing when you
+are playing the part of a <em>human</em> interpreter? Consider how you manually
+evaluate an arithmetic expression like:</p>
+<div class="codehilite"><pre><span></span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">4</span>
+</pre></div>
 
+
+<p>Because you understand the rules of precedence&#8202;&mdash;&#8202;the old &ldquo;Please Excude My Dear
+Aunt Sally&rdquo; stuff&#8202;&mdash;&#8202;you know which subexpressions to evaluate first. You fill
+in the implicit grouping:</p>
+<div class="codehilite"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span><span class="p">))</span> <span class="o">-</span> <span class="mi">4</span>
+</pre></div>
+
+
+<p>Another way to visualize that grouping is using a tree:</p>
+<p><strong>TODO: illustrate tree and bottom-up eval</strong></p>
+<p>Leaves are numbers, and interior nodes are arithmetic operators. In order to
+evaluate one of the arithmetic nodes, you need to know the numeric value of each
+of its subtrees, so you have to evaluate those first. That means working your
+way from the leaves up&#8202;&mdash;&#8202;a &ldquo;post-order&rdquo; traversal. In this example, you end up
+with 3.</p>
+<p>It seemed pretty straightforward for us to draw one of these trees given the
+original text of the expression. Once we had that, it wasn&rsquo;t too hard to
+manually evaluate it. So it intuitively seems like a workable representation of
+our code is a tree that matches the grammatical structure of the language. We
+need to get more precise about what that grammar is then. Like with the lexical
+grammar of the previous chapter, there is a metric ton of theory around
+syntactic grammars as well.</p>
+<p>We&rsquo;re going to go into that theory a little more than we did when scanning
+because it turns out to be a really useful tool through much of the interpreter.
+It starts by moving one level up the <a href="https://en.wikipedia.org/wiki/Chomsky_hierarchy">Chomsky hierarchy</a>&hellip;</p>
+<p><strong>TODO: asides?</strong></p>
+<h2><a href="#context-free-grammars" name="context-free-grammars"><small>5&#8202;.&#8202;1</small> Context-Free Grammars</a></h2>
+<p>In the last chapter, the formalism we used for defining the lexical grammar&#8202;&mdash;&#8202;the rules for how characters get grouped into tokens&#8202;&mdash;&#8202;was called a <em>regular
+language</em>. Our scanner emits a flat sequence of tokens, and, indeed, regular
+languages aren&rsquo;t powerful enough to handle the nested structure we need for
+expressions and their subexpressions.</p>
+<p>We need a bigger hammer, and that hammer is a <strong>context-free grammar</strong>. It&rsquo;s the
+next heavier tool in the toolbox of <a href="https://en.wikipedia.org/wiki/Formal_grammar">formal grammars</a>. A <strong>formal grammar</strong> is
+a tool for understanding a language, where &ldquo;language&rdquo; is defined pretty
+abstractly.</p>
+<p>Each formal grammar takes a set of atomic pieces it calls its &ldquo;alphabet&rdquo;. Then
+it specifies a (usually infinite) set of &ldquo;strings&rdquo; that are in the grammar. Each
+string is a sequence of &ldquo;letters&rdquo; in the alphabet.</p>
+<p>I&rsquo;m using all those quotes because the terms get a little confusing as you move
+from lexical to syntactic grammars. In our scanner&rsquo;s grammar, the alphabet
+consists of individual characters and the strings are the valid lexemes. In the
+syntactic grammar we&rsquo;re talking about now, we&rsquo;re at a different level of
+granularity. Now each &ldquo;letter&rdquo; in the alphabet is an entire token and a &ldquo;string&rdquo;
+is a sequence of <em>tokens</em>.</p>
+<p>A formal grammar&rsquo;s job is to define which strings are valid and which aren&rsquo;t. If
+we were defining a grammar for English sentences, &ldquo;Eggs are tasty for
+breakfast.&rdquo; is in the grammar but, &ldquo;Tasty breakfast for are eggs.&rdquo; not so much.</p>
+<h3><a href="#rules-for-grammars" name="rules-for-grammars"><small>5&#8202;.&#8202;1&#8202;.&#8202;1</small> Rules for grammars</a></h3>
+<p>How do we define a grammar that contains an infinite number of valid strings? We
+obviously can&rsquo;t list them all out. Instead, we define finite a set of <em>rules</em>.
+You can think of them as a game that you can &ldquo;play&rdquo; in one of two directions.</p>
+<p>If you start with the rules, you can use them to <em>generate</em> strings that are in
+the grammar. Each step of the game involves picking a rule and seeing what it
+tells you to do. Most of the lingo around formal grammars comes from thinking of
+them in that way. Each rule is called a <strong>production</strong> because it is used to
+<em>produce</em> a string in the grammar.</p>
+<p>Each production in a context-free grammar has a <em>name</em>, then a <em>body</em> which
+describes what it generates. In it&rsquo;s pure form, the body is simply a list of
+symbols. There are two kinds:</p>
+<ul>
+<li>
+<p>A <strong>terminal</strong> is a letter from the grammar&rsquo;s alphabet. You can think of it
+    like a literal value. In the syntactic grammar we&rsquo;re defining, the terminals
+    are individual lexemes&#8202;&mdash;&#8202;tokens coming from the scanner like <code>if</code> or
+    <code>1234</code>.</p>
+<p>These are called &ldquo;terminals&rdquo; because they don&rsquo;t lead to any further &ldquo;moves&rdquo;
+in the game. You simply produce that one symbol.</p>
+</li>
+<li>
+<p>A <strong>nonterminal</strong> is a named reference to another rule in the grammar. It
+    means &ldquo;play that rule and insert whatever it produces here&rdquo;. In this way,
+    our grammar composes.</p>
+</li>
+</ul>
+<p>There is one more key refinement: you may have multiple rules with the same
+name. When you reach a nonterminal with that name, you are allowed to pick any
+of the rules for it, whichever floats your boat.</p>
+<p>We need some kind of <span name="turtles">notation</span> to write down the
+production rules. Ever since John Backus snuck into Noam Chomsky&rsquo;s class and
+stole a bit of linguistics theory to use when specifying ALGOL 58, programmers
+have been using some notation for context-free grammars to pin down their
+language&rsquo;s syntax.</p>
+<aside name="turtles">
+<p>Yes, we need to define a syntax to use for the rules that define our syntax.
+Should we specify <em>that</em> syntax too? What notation do we use for it? It&rsquo;s
+languages all the way down!</p>
+</aside>
+<p>For some reason, virtually every single one of them has tweaked the notation in
+one way or another. I tried to come up with something clean. Each rule is a
+name, followed by an arrow (<code>→</code>), followed by its sequence of symbols. Terminals
+are quoted strings, and nonterminals are lowercase words.</p>
+<p>Using that, here&rsquo;s a grammar for a <span name="breakfast">breakfast</span> menu:</p>
+<aside name="breakfast">
+<p>Yes, I really am going to be using breakfast examples throughout this entire
+book. Sorry.</p>
+</aside>
+<div class="codehilite"><pre><span></span><span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;with&quot;</span> <span class="n">bread</span>
+<span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span>
+<span class="n">breakfast</span> <span class="err">→</span> <span class="n">bread</span>
+
+<span class="n">protein</span> <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span>
+<span class="n">protein</span> <span class="err">→</span> <span class="s">&quot;bacon&quot;</span>
+<span class="n">protein</span> <span class="err">→</span> <span class="s">&quot;sausage&quot;</span>
+<span class="n">protein</span> <span class="err">→</span> <span class="n">cooked</span> <span class="s">&quot;eggs&quot;</span>
+
+<span class="n">cooked</span> <span class="err">→</span> <span class="s">&quot;scrambled&quot;</span>
+<span class="n">cooked</span> <span class="err">→</span> <span class="s">&quot;poached&quot;</span>
+<span class="n">cooked</span> <span class="err">→</span> <span class="s">&quot;fried&quot;</span>
+
+<span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;toast&quot;</span>
+<span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;biscuits&quot;</span>
+<span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;English muffin&quot;</span>
+</pre></div>
+
+
+<p>We can now
+play our grammar to generate random breakfasts. Let&rsquo;s play a round and see how it works. By age-old convention, the first rule is where you start playing the game. We roll a die and pick the first production. Our resulting string looks like:</p>
+<div class="codehilite"><pre><span></span>protein &quot;with&quot; bread
+</pre></div>
+
+
+<p>We need to expand that first nonterminal, <code>protein</code>, so we pick a production for that. Let&rsquo;s again pick the first one:</p>
+<div class="codehilite"><pre><span></span><span class="n">protein</span> <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span>
+</pre></div>
+
+
+<p>Note that the production refers to its own rule. This is the key difference between context-free and regular languages. The former are allowed to be recursive. It is exactly this that lets them nest and compose, and generate an unbounded number of strings.</p>
+<p>We could keep picking the first production for protein over and over again yielding all manner of breakfasts like &ldquo;bacon and sausage and sausage and bacon and&hellip;&rdquo;. We won&rsquo;t though. We need to again pick a production for protein for the inner reference to protein. This time we&rsquo;ll pick &ldquo;bacon&rdquo;. We finally hit a nonterminal, so set that as the first word in the resulting string.</p>
+<p>Now we pop back out to the first <code>protein "and" protein</code>. The next symbol is &ldquo;and&rdquo;, a nonterminal, so we add that. Then we pick another protein. This time, we pick:</p>
+<div class="codehilite"><pre><span></span><span class="n">protein</span> <span class="err">→</span> <span class="n">cooked</span> <span class="s">&quot;eggs&quot;</span>
+</pre></div>
+
+
+<p>We need to pick a production for <code>cooked</code> and pick &ldquo;poached&rdquo;. That&rsquo;s a nonterminal, so we add that. Now we&rsquo;re back to the protein, so we add &ldquo;eggs&rdquo;. We bounce back to breakfast and add &ldquo;with&rdquo;. Now all that&rsquo;s left is to pick a
+production for bread. We&rsquo;ll pick &ldquo;English muffin&rdquo;. That&rsquo;s again a non-terminal, so we add that and we&rsquo;re done:</p>
+<div class="codehilite"><pre><span></span>bacon and poached eggs with English muffin
+</pre></div>
+
+
+<p><strong>TODO: illustrate</strong></p>
+<p>Any time we hit a rule that had multiple productions, we just picked one arbitrarily. It is this flexibility that allows a short number of grammar rules to encode a combinatorially larger set of strings. The fact that a rule can refer to itself&#8202;&mdash;&#8202;directly or indirectly&#8202;&mdash;&#8202;kicks it up even more, letting us pack an infinite number of strings into a finite grammar.</p>
+<h3><a href="#enhancing-our-notation" name="enhancing-our-notation"><small>5&#8202;.&#8202;1&#8202;.&#8202;2</small> Enhancing our notation</a></h3>
+<p>Stuffing an infinite set of strings in a handful of rules is pretty fantastic, but let&rsquo;s take it a bit farther. Our notation works, but it does feel a little tedious. So, like any good language designer, we&rsquo;ll sprinkle a bit of syntactic sugar on top. Almost everyone who uses a notation for CFGs ends up doing so.</p>
+<p>The most well-known of them is <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">Enhanced Backus-Naur form</a> (EBNF). It&rsquo;s groovy, but I want something that looks a little more familiar if you&rsquo;re used to regular expression syntax. In addition to terminals and nonterminals, we&rsquo;ll allow a few other kinds of expressions on the production side of a rule:</p>
+<ul>
+<li>
+<p>Instead of repeating the rule name each time we want to add another
+    production for it, we&rsquo;ll allow a series of productions separated by <code>|</code>:</p>
+<div class="codehilite"><pre><span></span><span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;toast&quot;</span> <span class="err">|</span> <span class="s">&quot;biscuits&quot;</span> <span class="err">|</span> <span class="s">&quot;English muffin&quot;</span>
+</pre></div>
+
+
+</li>
+<li>
+<p>Further, we&rsquo;ll allow <code>(</code> and <code>)</code> for grouping and then allow <code>|</code> within that
+    to allow selecting one from a series of options within the middle of a
+    production:</p>
+<div class="codehilite"><pre><span></span><span class="n">protein</span> <span class="err">→</span> <span class="p">(</span> <span class="s">&quot;scrambled&quot;</span> <span class="err">|</span> <span class="s">&quot;poached&quot;</span> <span class="err">|</span> <span class="s">&quot;fried&quot;</span> <span class="p">)</span> <span class="s">&quot;eggs&quot;</span>
+</pre></div>
+
+
+</li>
+<li>
+<p>Using <span name="recursion">recursion</span> to support repeated sequences
+    of symbols has a certain appealing <span name="purity">purity</span>, but
+    it&rsquo;s kind of a chore to make a separate named sub-rule each time we want
+    repetition. Instead, we allow a postfix <code>*</code> to mean the previous symbol or
+    group can be repeated zero or more times.</p>
+<div class="codehilite"><pre><span></span><span class="n">protein</span> <span class="err">→</span> <span class="n">protein</span> <span class="p">(</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span> <span class="p">)</span><span class="o">*</span>
+</pre></div>
+
+
+</li>
+</ul>
+<aside name="purity">
+<p>This is how the Scheme programming language works. It has no built-in looping
+functionality at all. Instead, all repetition is expressed in terms of
+recursion.</p>
+</aside>
+<ul>
+<li>
+<p>A postfix <code>+</code> is similar, but requires the preceding production to appear
+    at least once.</p>
+</li>
+<li>
+<p>A postfix <code>?</code> is for an optional production. The thing before it can appear
+    zero or one time, but not more.</p>
+<div class="codehilite"><pre><span></span><span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span> <span class="p">(</span> <span class="s">&quot;with&quot;</span> <span class="n">bread</span> <span class="p">)</span><span class="err">?</span>
+</pre></div>
+
+
+</li>
+</ul>
+<p>With all of that sugar, our breakfast grammar now looks like:</p>
+<div class="codehilite"><pre><span></span><span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span> <span class="p">(</span> <span class="s">&quot;with&quot;</span> <span class="n">bread</span> <span class="p">)</span><span class="err">?</span>
+          <span class="err">|</span> <span class="n">bread</span>
+
+<span class="n">protein</span>   <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span>
+          <span class="err">|</span> <span class="s">&quot;bacon&quot;</span>
+          <span class="err">|</span> <span class="s">&quot;sausage&quot;</span>
+          <span class="err">|</span> <span class="p">(</span> <span class="s">&quot;scrambled&quot;</span> <span class="err">|</span> <span class="s">&quot;poached&quot;</span> <span class="err">|</span> <span class="s">&quot;fried&quot;</span> <span class="p">)</span> <span class="s">&quot;eggs&quot;</span>
+
+<span class="n">bread</span>     <span class="err">→</span> <span class="s">&quot;toast&quot;</span> <span class="err">|</span> <span class="s">&quot;biscuits&quot;</span> <span class="err">|</span> <span class="s">&quot;English muffin&quot;</span>
+</pre></div>
+
+
+<p>Not too bad, I hope. If you&rsquo;re used to grep or using regular expressions in your
+text editor, most of the punctuation should be familiar. The main difference is
+that symbols here represent entire lexemes, not raw characters.</p>
+<p>We&rsquo;ll use this notation throughout the rest of the book to precisely describe
+Lox&rsquo;s grammar. As you spend more time working on programming languages, you&rsquo;ll
+find context-free grammars (using this or EBNF or some other notation) will help
+you crystallize your informal design ideas for syntax. They are also a handy
+medium for communicating with other language hackers about syntax.</p>
+<p>The rules and productions we define for Lox will also be our guide to the tree
+data structure we&rsquo;re going to implement to represent code in memory. Before we
+can do that, we need an actual grammar for Lox, or at least enough of it for us
+to get started.</p>
+<h3><a href="#a-grammar-for-lox-expressions" name="a-grammar-for-lox-expressions"><small>5&#8202;.&#8202;1&#8202;.&#8202;3</small> A Grammar for Lox expressions</a></h3>
+<p>In the previous chapter, we did the entire lexical grammar in one fell swoop.
+Every keyword and bit of punctuation is there. The syntactic grammar is a good
+bit bigger, and it would be a real bore to grind through the entire thing before
+we actually get our interpreter up and running.</p>
+<p>Instead, we&rsquo;ll start with a subset of the language in the next couple of chapters. Once we have that minilanguage represented, parsed, and interpreted, later chapters will progressively add new features to it, starting with the syntax. For now, we are only going to worry about a handful of expressions:</p>
+<ul>
+<li>
+<p><strong>Literals.</strong> Numbers, strings, Booleans, and <code>nil</code>.</p>
+</li>
+<li>
+<p><strong>Unary expressions.</strong> A prefix <code>!</code> to perform a logical not, and <code>-</code>
+    to negate a number.</p>
+</li>
+<li>
+<p><strong>Binary expressions.</strong> The infix arithmetic (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>) and logic
+    (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code>) operators we know and love.</p>
+</li>
+<li>
+<p><strong>Parentheses for grouping.</strong></p>
+</li>
+</ul>
+<p>That gives us enough to encode expressions like:</p>
+<div class="codehilite"><pre><span></span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="o">==</span> <span class="nb">false</span>
+</pre></div>
+
+
+<p>Using our handy dandy new notation, the grammar for those looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="n">expression</span> <span class="err">→</span> <span class="n">literal</span>
+           <span class="err">|</span> <span class="n">unary</span>
+           <span class="err">|</span> <span class="n">binary</span>
+           <span class="err">|</span> <span class="n">grouping</span>
+
+<span class="n">literal</span>    <span class="err">→</span> <span class="vg">NUMBER</span> <span class="err">|</span> <span class="vg">STRING</span> <span class="err">|</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span>
+<span class="n">grouping</span>   <span class="err">→</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span>
+<span class="n">unary</span>      <span class="err">→</span> <span class="p">(</span> <span class="s">&quot;-&quot;</span> <span class="err">|</span> <span class="s">&quot;!&quot;</span> <span class="p">)</span> <span class="n">expression</span>
+<span class="n">binary</span>     <span class="err">→</span> <span class="n">expression</span> <span class="n">operator</span> <span class="n">expression</span>
+<span class="n">operator</span>   <span class="err">→</span> <span class="s">&quot;==&quot;</span> <span class="err">|</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span>
+           <span class="err">|</span> <span class="s">&quot;+&quot;</span>  <span class="err">|</span> <span class="s">&quot;-&quot;</span>  <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="err">|</span> <span class="s">&quot;/&quot;</span>
+</pre></div>
+
+
+<p>There&rsquo;s one bit of extra <span name="play">notation</span> here. In addition to quoted strings for terminals that match exact lexemes, we also use <code>ALL CAPS</code> for terminals that are a single lexeme whose text representation may vary. <code>NUMBER</code> is any number literal, and <code>STRING</code> is any string literal. Later, we&rsquo;ll do the same for <code>IDENTIFIER</code>.</p>
+<p>This grammar is actually ambiguous, which we&rsquo;ll see when we get to parsing it. But it&rsquo;s good enough to hang our data structure off of for now.</p>
+<aside name="play">
+<p>If you&rsquo;re so inclined, try using this grammar to generate a few expressions like we did with the breakfast grammar before. Do the resulting expressions look right to you? Can you make it generate anything wrong like <code>1 + / 3</code>?</p>
+</aside>
+<h2><a href="#implementing-syntax-trees" name="implementing-syntax-trees"><small>5&#8202;.&#8202;2</small> Implementing Syntax Trees</a></h2>
+<p>Finally, we get to start building some data structures. We&rsquo;ll use that little
+expression grammar as our skeleton. Since the grammar is recursive&#8202;&mdash;&#8202;note how
+<code>grouping</code>, <code>unary</code>, and <code>binary</code> all refer back to <code>expression</code>, our data
+structure will form a tree. Since this structure represents the syntax of our language, it&rsquo;s called a <span name="ast"><strong>&ldquo;syntax tree&rdquo;</strong></span>.</p>
+<aside name="ast">
+<p>In particular, we&rsquo;re defining an <strong><em>abstract</em> syntax tree</strong> (or <strong>AST</strong>). In a
+<strong>parse tree</strong>, every single grammar production becomes a node in the tree. An
+AST elides productions that aren&rsquo;t needed by later phases.</p>
+</aside>
+<p>Our scanner used a single Token class to represent all kinds of lexemes. To distinguish the different kinds, a TokenType enum was sufficient. Since every token stores the same data regardless of what kind of lexeme its for, there was no <span name="token-data">need</span> to for separate classes.</p>
+<aside name="token-data">
+<p>This isn&rsquo;t exactly true. Tokens for literals store the value but other kinds of
+lexemes don&rsquo;t need that state. I have seen some scanners that do use different
+classes for literals and other kinds of lexemes, but I figured I&rsquo;d keep things a little simpler for us.</p>
+</aside>
+<p>Our syntax tree is not so homogenous. Unary expressions have a single operand, binary expressions have two, and literals have none. We <em>could</em> mush that all together into a single class with an arbitrary list of children. Some compilers do.</p>
+<p>But I like getting the most out of Java&rsquo;s type system. So we&rsquo;ll define a base
+class for expressions. Then, for each kind of expression&#8202;&mdash;&#8202;each rule listed
+<code>expression</code> in the grammar above&#8202;&mdash;&#8202;we&rsquo;ll create a subclass that has the state
+specific to that kind of expression. Each interesting terminal or nonterminal in
+that rule&rsquo;s production will become a field on its class. This way, we can make
+it a compile error to, say, try to access the second operand of an unary
+expression.</p>
+<p>A little something like:</p>
+<div class="codehilite"><pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Expr</span> <span class="o">{</span> <span name="expr"></span>
+  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Binary</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Binary</span><span class="o">(</span><span class="n">Expr</span> <span class="n">left</span><span class="o">,</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Other expressions...</span>
+<span class="o">}</span>
+</pre></div>
+
+
+<aside name="expr">
+<p>I avoid abbreviations in my code because they can trip up a reader who doesn&rsquo;t know what they stand for. But in compilers I&rsquo;ve looked at, &ldquo;Expr&rdquo; and &ldquo;Stmt&rdquo; are so ubiquitous that I may as well start getting you used to them now.</p>
+</aside>
+<p>Expr is the base class that all expression classes inherit from. I went ahead and nested the subclasses inside of it. There&rsquo;s no real need for this, but it lets us stuff all of the classes into a single file. If we didn&rsquo;t, we&rsquo;d probably end up suffixing each subclass with <code>Expr</code> anyway, so this makes that automatic.</p>
+<h3><a href="#disoriented-objects" name="disoriented-objects"><small>5&#8202;.&#8202;2&#8202;.&#8202;1</small> Disoriented objects</a></h3>
+<p>You&rsquo;ll note that, much like the Token class, there aren&rsquo;t any methods here. It&rsquo;s a dumb struct. Nicely typed, but merely a bag of data. This feels strange in an object-oriented language like Java. Shouldn&rsquo;t the class do stuff?</p>
+<p>The problem is that these tree classes aren&rsquo;t owned by any single domain. Should it have methods related to parsing, where the trees are produced? Or interpreting, where they are consumed? It has one foot on each side, which means it&rsquo;s really a part of neither.</p>
+<p>In fact, these types exist to enable the parser and interpreter to <em>communicate</em>. That lends itself to types that are simply data with no associated behavior. This style is very natural in functional languages like Lisp and ML where <em>all</em> data is separate from behavior, but it feels odd in Java.</p>
+<p>Functional programming aficionados right now are jumping up to exclaim &ldquo;See! Object-oriented languages are a bad fit for an interpreter!&rdquo; I won&rsquo;t go that far. You&rsquo;ll recall that the scanner itself worked great as an object-oriented class. It had all of the mutable state to keep track of where it was in the source code, a well-defined set of public methods, and a handful of private helper ones.</p>
+<p>My feeling is that each phase or part of the interpreter works fine in an object-oriented style. It&rsquo;s just these data structures that flow between and are owned by none that get stripped of behavior. That&rsquo;s OK. An object-oriented language can handle that.</p>
+<h3><a href="#metaprogramming-the-trees" name="metaprogramming-the-trees"><small>5&#8202;.&#8202;2&#8202;.&#8202;2</small> Metaprogramming the trees</a></h3>
+<p>While Java can certainly express behavior-less classes, I wouldn&rsquo;t say that&rsquo;s particularly great at it. Eleven lines of code to define a simple structure that has three fields is pretty tedious, and when we&rsquo;re all done, we&rsquo;re going to have 21 total syntax tree classes. That&rsquo;s a lot of boilerplate.</p>
+<p>I don&rsquo;t want to waste your time or my ink writing all that down. Really, what the essential information for each subclass? It has a name, and a list of fields. Each field has a name and a type. That&rsquo;s it.</p>
+<p>We&rsquo;re smart language hackers, right? Let&rsquo;s go meta. Instead of tediously hand-writing each class definion, field declaration, constructor, and initializer, we&rsquo;ll hack together a little script that does it for us. It has a desription of each tree type&#8202;&mdash;&#8202;its name and fields&#8202;&mdash;&#8202;and it prints out the Java code needed to define a class with that name and state.</p>
+<p>This script is a one file <span name="python">Java</span> command-line app that writes a file called Expr.java.</p>
+<aside name="python">
+<p>An actual scripting language like Python or, heck, even Lox itself would be a better fit for this than Java, but I&rsquo;m trying not to throw too many languages at you.</p>
+</aside>
+<div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.tool</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.io.PrintWriter</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Arrays</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">GenerateAst</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">args</span><span class="o">.</span><span class="na">length</span> <span class="o">!=</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Usage: generate_ast &lt;output directory&gt;&quot;</span><span class="o">);</span>
+      <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">String</span> <span class="n">outputDir</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Note that this file is in a different package, <code>.tool</code> instead of <code>.lox</code>. This script isn&rsquo;t part of the interpreter itself. It&rsquo;s a tool <em>we</em>, the people hacking on the interpreter, run ourselves to generate the syntax tree classes. When it&rsquo;s done, we treat <code>Expr.java</code> like any other file in the implementation. We are merely automating how that file gets created.</p>
+<p>To generate the classes, it needs to have some description of each class and its fields:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">String</span> <span class="n">outputDir</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>main</em>()</div>
+<pre class="insert"><span></span>    <span class="n">defineAst</span><span class="o">(</span><span class="n">outputDir</span><span class="o">,</span> <span class="s">&quot;Expr&quot;</span><span class="o">,</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span>
+      <span class="s">&quot;Binary   : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
+      <span class="s">&quot;Grouping : Expr expression&quot;</span><span class="o">,</span>
+      <span class="s">&quot;Literal  : Object value&quot;</span><span class="o">,</span>
+      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>
+    <span class="o">));</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<p>To try to keep things terse, I jammed the description into a single string that we&rsquo;ll slice up later. Each string is the name of the class followed by <code>:</code> and the list of fields separated by commas. Each field has a type and name.</p>
+<p>The first thing that function needs to do is output the main Expr class that contains everything:</p>
+<div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
+add after <em>main</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">defineAst</span><span class="o">(</span>
+      <span class="n">String</span> <span class="n">outputDir</span><span class="o">,</span> <span class="n">String</span> <span class="n">baseName</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">types</span><span class="o">)</span>
+      <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">path</span> <span class="o">=</span> <span class="n">outputDir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot;.java&quot;</span><span class="o">;</span>
+    <span class="n">PrintWriter</span> <span class="n">writer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PrintWriter</span><span class="o">(</span><span class="n">path</span><span class="o">,</span> <span class="s">&quot;UTF-8&quot;</span><span class="o">);</span>
+
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;package com.craftinginterpreters.lox;&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;import java.util.List;&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;abstract class &quot;</span> <span class="o">+</span> <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>
+
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;}&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>When we call this, base name is &ldquo;Expr&rdquo;, which is both the name of the class and the name of the file it outputs. We pass this in instead of hardcoding it because we&rsquo;ll have another family of classes later when we add statements.</p>
+<p>Inside, Expr, we create each subclass:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;abstract class &quot;</span> <span class="o">+</span> <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>
+<br></pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>defineAst</em>()</div>
+<pre class="insert"><span></span>    <span class="c1">// The AST classes.</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">type</span> <span class="o">:</span> <span class="n">types</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">String</span> <span class="n">className</span> <span class="o">=</span> <span class="n">type</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot;:&quot;</span><span class="o">)[</span><span class="mi">0</span><span class="o">].</span><span class="na">trim</span><span class="o">();</span>
+      <span class="n">String</span> <span class="n">fields</span> <span class="o">=</span> <span class="n">type</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot;:&quot;</span><span class="o">)[</span><span class="mi">1</span><span class="o">].</span><span class="na">trim</span><span class="o">();</span>
+      <span class="n">defineType</span><span class="o">(</span><span class="n">writer</span><span class="o">,</span> <span class="n">baseName</span><span class="o">,</span> <span class="n">className</span><span class="o">,</span> <span class="n">fields</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;}&quot;</span><span class="o">);</span>
+</pre></div>
+
+<p>This isn&rsquo;t the world&rsquo;s most beautiful or efficient string munging code, but that&rsquo;s fine. Remember, we are the only ones who will ever run this code, and it only runs on the exact set of class definitions we give it. Robustness ain&rsquo;t a priority.</p>
+<p>It in turn calls:</p>
+<div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
+add after <em>defineAst</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">defineType</span><span class="o">(</span>
+      <span class="n">PrintWriter</span> <span class="n">writer</span><span class="o">,</span> <span class="n">String</span> <span class="n">baseName</span><span class="o">,</span>
+      <span class="n">String</span> <span class="n">className</span><span class="o">,</span> <span class="n">String</span> <span class="n">fieldList</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;  static class &quot;</span> <span class="o">+</span> <span class="n">className</span> <span class="o">+</span> <span class="s">&quot; extends &quot;</span> <span class="o">+</span>
+        <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>
+
+    <span class="c1">// Constructor.</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    &quot;</span> <span class="o">+</span> <span class="n">className</span> <span class="o">+</span> <span class="s">&quot;(&quot;</span> <span class="o">+</span> <span class="n">fieldList</span> <span class="o">+</span> <span class="s">&quot;) {&quot;</span><span class="o">);</span>
+
+    <span class="c1">// Store parameters in fields.</span>
+    <span class="n">String</span><span class="o">[]</span> <span class="n">fields</span> <span class="o">=</span> <span class="n">fieldList</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot;, &quot;</span><span class="o">);</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">field</span> <span class="o">:</span> <span class="n">fields</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">)[</span><span class="mi">1</span><span class="o">];</span>
+      <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;      this.&quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot; = &quot;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>
+
+    <span class="c1">// Fields.</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">();</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">field</span> <span class="o">:</span> <span class="n">fields</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    final &quot;</span> <span class="o">+</span> <span class="n">field</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;  }&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>There we go. All of that glorious Java boilerplate is done. It declares each field in the class body. It also defines a constructor for the class with a parameter for each field. The body initializes the fields based on the parameters.</p>
+<p>If you run this script now, it blasts out almost a hundred lines of code. That&rsquo;s only going to get longer as we add new types. Aren&rsquo;t you glad we automated it?</p>
+<h2><a href="#working-with-trees" name="working-with-trees"><small>5&#8202;.&#8202;3</small> Working with Trees</a></h2>
+<p>Put on your imagination hat for a moment. Even though we aren&rsquo;t there yet, think
+about how the interpreter is going to use the syntax trees. It&rsquo;s going to need
+to interpret every kind of expression with some different code for each one.</p>
+<p>With tokens, you can simply switch on the TokenType. But we don&rsquo;t have a
+corresponding &ldquo;type&rdquo; enum for the syntax trees, just a different Java class for
+each one. You could imagine some long chain like:</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="n">expr</span> <span class="n">is</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">)</span> <span class="o">{</span>
+  <span class="c1">// ...</span>
+<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">expr</span> <span class="n">is</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span><span class="o">)</span> <span class="o">{</span>
+  <span class="c1">// ...</span>
+<span class="o">}</span> <span class="k">else</span> <span class="c1">// ...</span>
+</pre></div>
+
+
+<p>That&rsquo;s verbose and slow. Also, the Java compiler won&rsquo;t tell us if we forget to
+add support for some new expression class. With an enum, we get a compile
+error when a switch is missing a case.</p>
+<p>When you have a family of classes and you need to associate a chunk of behavior with each one, the natural solution in an object-oriented language like Java is to put that behavior into methods on the classes themselves. You could imagine us adding an abstract <span name="interpreter-pattern"><code>interpret()</code></span> method on Expr which each subclass implements to interpret itself.</p>
+<aside name="interpreter-pattern">
+<p>This exact thing is literally called the <a href="https://en.wikipedia.org/wiki/Interpreter_pattern">&ldquo;Interpreter pattern&rdquo;</a> in &ldquo;Design Patterns: Elements of Reusable Object-Oriented Software&rdquo;.</p>
+</aside>
+<p>This works alright for small projects, but it tends to scale poorly. Like I noted before, these tree classes span a few domains. At the very least, both the parser and interpreter will mess with them. In a bigger language, you could also imagine doing some other static analysis or other work on the trees. If our language was statically typed, the type check would walk over them. Maybe do some optimization passes.</p>
+<p>If we added instance methods to each expression class for every one of those operations, you&rsquo;d have a bunch of different domains all smushed together. That would violate <a href="https://en.wikipedia.org/wiki/Separation_of_concerns">separation of concerns</a> and lead to some really hard to maintain classes.</p>
+<h3><a href="#the-expression-problem" name="the-expression-problem"><small>5&#8202;.&#8202;3&#8202;.&#8202;1</small> The Expression Problem</a></h3>
+<p>This problem is more fundamental that it may at first seem. You have a handful of types, and a handful of high level operations like &ldquo;interpret&rdquo;. For each pair of type and operation, you need a specific implementation. You can think of it like a table:</p>
+<p><strong>TODO: illustrate</strong></p>
+<p>Rows are types, and columns are operations. Each cell represents the implementation of that operation for that type.</p>
+<p>An object-oriented language like Java assumes that all of the operations in one row naturally hang together. It assume all the things you can do with one type are likely to be related to each other, and the language makes it easy to define them all together as methods inside the same class.</p>
+<p>This makes it easy to extend the table by adding new rows. Simply define a new class. No existing code has to be touched. But imagine if you want to add a new operation&#8202;&mdash;&#8202;a new column. In Java, that means modifying a lot of separate files to define a new method on every one of those existing classes.</p>
+<p>Languages in the functional paradigm, specifically the statically-typed ones in the <span name="ml">ML</span> family flip that around. There, you don&rsquo;t have classes and methods. Types and functions are totally distinct. To implement an operation for a number of different types, you define a single function. In the body of that you use <em>pattern matching</em>&#8202;&mdash;&#8202;sort of a type-based switch on steroids to implement the operation for each type all in one place.</p>
+<aside name="ml">
+<p>ML, short for &ldquo;metalanguage&rdquo; was created by Robin Milner and friends and forms one of the main branches in the great programming language family. It directly led to SML, Caml, OCaml, Haskell, and F#, and its influence is clear in Scala, F#, Rust, and Swift.</p>
+<p>Much like Lisp, it is one of those languages that is so full of good ideas that language designers today are still rediscovering them over forty years later.</p>
+</aside>
+<p>This makes it trivial to add new operations&#8202;&mdash;&#8202;simply define another function that pattern matches on all of the types. But adding a new type is harder. You have to go back and add a new case to all of the pattern matches of all of the existing functions.</p>
+<p>Each style has a certain &ldquo;grain&rdquo; to it. That&rsquo;s what the paradigm literally means&#8202;&mdash;&#8202;a object-oriented language wants you to <em>orient</em> your code along the rows of types. A functional language instead encourages you to lump each column&rsquo;s worth of code together.</p>
+<p>A bunch of smart language nerds noticed that neither style made it easy to add <em>both</em> rows and columns to the table. They called this the &ldquo;expression problem&rdquo; because&#8202;&mdash;&#8202;like we are here&#8202;&mdash;&#8202;the example problem they used was about expression types in an interpreter, but also because it relates to how &ldquo;expressive&rdquo; a language is.</p>
+<p>A number of interesting language features, design patterns and programming tricks have been conceived to try to tackle that problem but no perfect language has arisen to knock it dead. In the meantime, the best we can do is try to pick a language whose orientation matches the natural architectural seams in the program we&rsquo;re trying to write.</p>
+<p>I find OOP works fine for many parts of our interpreter, but these tree classes are definitely naturally in a functional style. Now we can feel ourselves rubbing against the grain of Java. Fortunately, there&rsquo;s another design pattern we can bring to help.</p>
+<h3><a href="#the-visitor-pattern" name="the-visitor-pattern"><small>5&#8202;.&#8202;3&#8202;.&#8202;2</small> The Visitor pattern</a></h3>
+<p>The Visitor pattern is the most widely misunderstood pattern in all of Design Patterns, which is really saying something when you look around and realize how many programmers <em>think</em> they know design patterns but have never <span name="read">cracked</span> open that book once in their life.</p>
+<aside name="read">
+<p>In their defense, it is a pretty dry read.</p>
+</aside>
+<p>Part of the problem is that all of the terminology around the pattern is confusing. The pattern isn&rsquo;t about &ldquo;visiting&rdquo; and the &ldquo;accept&rdquo; method isn&rsquo;t exactly a clear metaphor either. Many think it has to do with traversing trees, which isn&rsquo;t the case at all. We are going to use it on a set of classes that are tree-like, but that&rsquo;s a total coincidence. You can use the visitor pattern just fine on a flat set of classes.</p>
+<p>The visitor pattern is really about approximating the functional style within an OOP language. It&rsquo;s a way to let you add new columns to that table easily. It lets you define all of the behavior for an operation on a set of types all in one place, without having to touch the types themselves.</p>
+<p>We don&rsquo;t want to stuff methods directly into each expression for each operation we need to support, but the polymorphic dispatch Java gives for methods is a really powerful tool. It&rsquo;s fast, directly supported by the language, and safely -typed&#8202;&mdash;&#8202;the compiler will yell at you if you forget to implement a method in an interface.</p>
+<p>Can take advantage of that without jamming the whole interpreter into the expression classes? Yes! How? The same way we solve everything in programming, friend, by adding a layer of indirection.</p>
+<p>In the base Expression class, we define a <em>single</em> abstract &ldquo;do stuff&rdquo; method. Each expression subclass implements that to &ldquo;do stuff&rdquo; in a way that&rsquo;s specific to its type. But, we don&rsquo;t actually do the stuff right there.</p>
+<p>Instead, the actual work is delegated to some <em>other</em> class that knows how to do stuff. In each expression subclasses, we simply tell the delegate what kind of expression we are. We do that by calling a different method on the delegate specific to that type.</p>
+<p>The delegate has a different method for each type, but they are all on the same delegate class. That way, all of the implementations for some conceptual operation are kept together.</p>
+<p>The only remaining question&#8202;&mdash;&#8202;aside from what the hell I&rsquo;m talking about since that was beyond vague&#8202;&mdash;&#8202;is how does the expression get ahold of the delegate? That&rsquo;s easy: we pass it in.</p>
+<p>OK, if I hand-wave anymore, I&rsquo;m going to go airborn, so let me try to make this more concrete. Before we get to rolling it into our expression classes, let&rsquo;s walk through a simpler example. Say we have two kinds of pastries: <span name="beignet">beignets</span> and crullers.</p>
+<aside name="beignet">
+<p>A beignet (pronounced &ldquo;ben-yay&rdquo;, with equal emphasis on both syllables) is a deep-fried pastry in the same family as doughnuts. When the French colonized North America in the 1700s, they brought beignets with them. Today, in the US, they are most strongly associated with the cuisine of New Orleans.</p>
+<p>The ideal way to consume them is fresh out of the fryer at Café du Monde, piled high in powdered sugar, and washed down with a cup of café au lait while you watch tourists squint at the sun and try to shake off their hangover from the previous night&rsquo;s revelry.</p>
+</aside>
+<div class="codehilite"><pre><span></span>  <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Pastry</span> <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="kd">class</span> <span class="nc">Beignet</span> <span class="kd">extends</span> <span class="n">Pastry</span> <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="kd">class</span> <span class="nc">Cruller</span> <span class="kd">extends</span> <span class="n">Pastry</span> <span class="o">{</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>We want to be able to define new operations for them&#8202;&mdash;&#8202;cooking them, eating them, decorating them, etc. Here&rsquo;s how we do it. The &ldquo;delegate&rdquo; I mentioned above is called the &ldquo;visitor&rdquo;:</p>
+<div class="codehilite"><pre><span></span>  <span class="kd">interface</span> <span class="nc">PastryVisitor</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">visitBeignet</span><span class="o">(</span><span class="n">Beignet</span> <span class="n">beignet</span><span class="o">);</span> <span name="overload"></span>
+    <span class="kt">void</span> <span class="nf">visitCruller</span><span class="o">(</span><span class="n">Cruller</span> <span class="n">cruller</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<aside name="overload">
+<p>In Design Patterns, both of these methods are named <code>visit()</code>, and they rely on overloading to distinguish them. This leads some readers to think that the correct visit method is chosen <em>at runtime</em> based on its parameter type. That isn&rsquo;t the case. Unlike over<em>riding</em>, over<em>loading</em> is statically dispatched at compile time.</p>
+<p>Using distinct names for each method makes that more explicit, and also shows you how to apply this pattern in languages that don&rsquo;t support overloading.</p>
+</aside>
+<p>To define a new operation that can be performed on pastries, we create a new class that implements that interface. It has a concrete method for each type of pastry. That keeps all the code for the operation across both types all nestled snuggly together in one class.</p>
+<p>Given some pastry, how do we route it to the correct method on the visitor based on its type? Polymorphism to the rescue! We add this method to Pastry:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Pastry</span> <span class="o">{</span>
+</pre><pre class="insert"><span></span>    <span class="kd">abstract</span> <span class="kt">void</span> <span class="nf">accept</span><span class="o">(</span><span class="n">PastryVisitor</span> <span class="n">visitor</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<p>This &ldquo;accept&rdquo; method is the &ldquo;do stuff&rdquo; I mentioned earlier. Each subclass overrides this method:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">class</span> <span class="nc">Beignet</span> <span class="kd">extends</span> <span class="n">Pastry</span> <span class="o">{</span>
+</pre><pre class="insert"><span></span>    <span class="nd">@Override</span>
+    <span class="kt">void</span> <span class="nf">accept</span><span class="o">(</span><span class="n">PastryVisitor</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">visitor</span><span class="o">.</span><span class="na">visitBeignet</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<p>And:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">class</span> <span class="nc">Cruller</span> <span class="kd">extends</span> <span class="n">Pastry</span> <span class="o">{</span>
+</pre><pre class="insert"><span></span>    <span class="nd">@Override</span>
+    <span class="kt">void</span> <span class="nf">accept</span><span class="o">(</span><span class="n">PastryVisitor</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">visitor</span><span class="o">.</span><span class="na">visitCruller</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<p>These are the &ldquo;do stuff&rdquo; methods for each class. There&rsquo;s a little sleight of hand here that is what trips most people up. When outside code calls <code>accept()</code>, it calls it <em>on</em> a pastry and passes <em>in</em> the visitor. All each class&rsquo;s implementation of <code>accept()</code> does swap those&#8202;&mdash;&#8202;it calls <code>visit___()</code> on the <em>visitor</em> and passes in <em>itself</em>, the pastry.</p>
+<p>That&rsquo;s the heart of the trick right there. It lets us use polymorphic dispatch on the <em>pastry</em> classes to select the appropriate method on the <em>visitor</em> class. In the table, each pastry class is a row, but if you look at all of the methods for a single visitor, they form a <em>column</em>.</p>
+<p><strong>TODO: Illustrate.</strong></p>
+<p>Now we can define as many classes as we want that all implement <code>PastryVisitor</code>. To perform the operation, we just call <code>accept()</code> on some pastry and pass a visitor in.</p>
+<p>It&rsquo;s a really clever pattern. But it&rsquo;s also not a very <em>common</em> one. Personally, I never found myself using it years of programming across multiple domains until I started working on programming languages. Maybe that&rsquo;s why it&rsquo;s misunderstood.</p>
+<h3><a href="#visitors-for-expressions" name="visitors-for-expressions"><small>5&#8202;.&#8202;3&#8202;.&#8202;3</small> Visitors for expressions</a></h3>
+<p>Now that we understand the pattern, let&rsquo;s stuff it into our expression classes. If we were hand-maintaining those, we&rsquo;d have to manually define a visitor class with visit methods for each type. Then we&rsquo;d need to go through and add <code>accept()</code> methods to each expression class. Fortunately, we already have our handy script to automate this drudgery, so we&rsquo;ll add the visitor stuff there.</p>
+<p>We&rsquo;ll also <span name="context">refine</span> the pattern a little. In the pastry example, the visit and <code>accept()</code> methods don&rsquo;t return anything. In practice, visitors often want to define operations that produce values. But what type should we use? We can&rsquo;t assume every operation every visitor class defines will return the same type, so we&rsquo;ll use generics to let each one choose.</p>
+<aside name="context">
+<p>Another common refinement is an additional &ldquo;context&rdquo; parameter that is passed to the visit methods and then sent back through as a parameter to <code>accept()</code>. That lets operations take an additional parameter. The visitors we&rsquo;ll define in the book don&rsquo;t need that, so I omitted it.</p>
+</aside>
+<p>First, we&rsquo;ll define the visitor interface. Again we&rsquo;ll nest it inside the Expr class so that we can keep everything in file:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;abstract class &quot;</span> <span class="o">+</span> <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>
+<br></pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>defineAst</em>()</div>
+<pre class="insert"><span></span>    <span class="n">defineVisitor</span><span class="o">(</span><span class="n">writer</span><span class="o">,</span> <span class="n">baseName</span><span class="o">,</span> <span class="n">types</span><span class="o">);</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="c1">// The AST classes.</span>
+</pre></div>
+
+<p>That generates the visitor interface:</p>
+<div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
+add after <em>defineAst</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">defineVisitor</span><span class="o">(</span>
+      <span class="n">PrintWriter</span> <span class="n">writer</span><span class="o">,</span> <span class="n">String</span> <span class="n">baseName</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">types</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;  interface Visitor&lt;R&gt; {&quot;</span><span class="o">);</span>
+
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">type</span> <span class="o">:</span> <span class="n">types</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">String</span> <span class="n">typeName</span> <span class="o">=</span> <span class="n">type</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">&quot;:&quot;</span><span class="o">)[</span><span class="mi">0</span><span class="o">].</span><span class="na">trim</span><span class="o">();</span>
+      <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    R visit&quot;</span> <span class="o">+</span> <span class="n">typeName</span> <span class="o">+</span> <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot;(&quot;</span> <span class="o">+</span>
+          <span class="n">typeName</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">baseName</span><span class="o">.</span><span class="na">toLowerCase</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;);&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;  }&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>It iterates through all of the subclasses and declares a visit method for each one. Every time we add a new expression type later, this will automatically pick it up and add a new visit method too.</p>
+<p>Inside the base class, we define the abstract <code>accept()</code> method:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">defineType</span><span class="o">(</span><span class="n">writer</span><span class="o">,</span> <span class="n">baseName</span><span class="o">,</span> <span class="n">className</span><span class="o">,</span> <span class="n">fields</span><span class="o">);</span>
+    <span class="o">}</span>
+</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>defineAst</em>()</div>
+<pre class="insert"><br><span></span>    <span class="c1">// The base accept() method.</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;  abstract &lt;R&gt; R accept(Visitor&lt;R&gt; visitor);&quot;</span><span class="o">);</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;}&quot;</span><span class="o">);</span>
+</pre></div>
+
+<p>Finally, each subclass implements that and calls the right visit method for its type:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>
+</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>defineType</em>()</div>
+<pre class="insert"><br><span></span>    <span class="c1">// Visitor pattern.</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">();</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    &lt;R&gt; R accept(Visitor&lt;R&gt; visitor) {&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;      return visitor.visit&quot;</span> <span class="o">+</span>
+        <span class="n">className</span> <span class="o">+</span> <span class="n">baseName</span> <span class="o">+</span> <span class="s">&quot;(this);&quot;</span><span class="o">);</span>
+    <span class="n">writer</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>
+</pre><pre class="insert-after"><br><span></span>    <span class="c1">// Fields.</span>
+</pre></div>
+
+<p>There we go. Now we&rsquo;ll be able to define operations that apply to every type of expression without having to much with the expression classes themselves. Before we close out this rambling chapter, let&rsquo;s try it out&hellip;</p>
+<h2><a href="#a-(not-very)-pretty-printer" name="a-(not-very)-pretty-printer"><small>5&#8202;.&#8202;4</small> A (Not Very) Pretty Printer</a></h2>
+<p>When we&rsquo;re debugging our parser and interpreter, it&rsquo;s often useful to look at some chunk of parsed syntax tree and make sure it has the structure we expect. We can try to poke around in a debugger, but that can be a chore.</p>
+<p>Instead, we&rsquo;d like some code that, given a syntax tree, produces a terse, unambiguous string representation of it including its subexpressions. Converting a syntax tree to a string is sort of the opposite of a parser, and is often called &ldquo;pretty printing&rdquo; when the goal is to produce a string of text that is valid syntax in the source language.</p>
+<p>That&rsquo;s not our goal here. We want the string to very explicitly show the nesting structure of the tree. A printer that returned <code>1 + 2 * 3</code> isn&rsquo;t super helpful if what we&rsquo;re trying to debug is whether operator precedence is handled correctly. We want to know if the <code>+</code> or <code>*</code> is at the top of the tree.</p>
+<p>To that end, the string representation we produce isn&rsquo;t going to be Lox syntax. Instead, it will look a lot like, well, Lisp. Each expression will be explicitly parenthesized, and all of its subexpressions and tokens are contained in that.</p>
+<p>For example, given a syntax tree like:</p>
+<p><strong>TODO: illustration</strong></p>
+<p>It produces:</p>
+<div class="codehilite"><pre><span></span>(* (- 123) (group 45.67))
+</pre></div>
+
+
+<p>Not exactly &ldquo;pretty&rdquo;, but it does show the nesting and parenthesis expression explicitly. To generate this, we define a new class:</p>
+<div class="codehilite"><div class="source-file"><em>lox/AstPrinter.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="c1">// Creates an unambiguous, if ugly, string representation of AST nodes.</span>
+<span class="kd">class</span> <span class="nc">AstPrinter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="n">String</span> <span class="nf">print</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Note: AstPrinting other types syntax trees is now shown in the</span>
+  <span class="c1">// book, but this is provided here as a reference for those reading</span>
+  <span class="c1">// the full code.</span>
+  <span class="kd">private</span> <span class="n">String</span> <span class="nf">parenthesize2</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Object</span><span class="o">...</span> <span class="n">parts</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">StringBuilder</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="o">();</span>
+
+    <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;(&quot;</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+
+    <span class="k">for</span> <span class="o">(</span><span class="n">Object</span> <span class="n">part</span> <span class="o">:</span> <span class="n">parts</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">);</span>
+
+      <span class="k">if</span> <span class="o">(</span><span class="n">part</span> <span class="k">instanceof</span> <span class="n">Expr</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(((</span><span class="n">Expr</span><span class="o">)</span><span class="n">part</span><span class="o">).</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">));</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">part</span> <span class="k">instanceof</span> <span class="n">Token</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(((</span><span class="n">Token</span><span class="o">)</span> <span class="n">part</span><span class="o">).</span><span class="na">lexeme</span><span class="o">);</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">part</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;)&quot;</span><span class="o">);</span>
+
+    <span class="k">return</span> <span class="n">builder</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>As you can see, it implements the visitor interface. That means we need a visit method for each of the five AST types we have so far:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre><div class="source-file"><em>lox/AstPrinter.java</em><br>
+add after <em>print</em>()</div>
+<pre class="insert"><br><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">visitBinaryExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">parenthesize</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">left</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">visitGroupingExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">parenthesize</span><span class="o">(</span><span class="s">&quot;group&quot;</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">expression</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">visitLiteralExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">value</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">visitUnaryExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Unary</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">parenthesize</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre><pre class="insert-after"><br><span></span>
+</pre></div>
+
+<p>Literal expressions are easy&#8202;&mdash;&#8202;they just convert the value to a string. The other expressions have subexpressions, so they use this <code>parenthesize()</code> helper method:</p>
+<div class="codehilite"><div class="source-file"><em>lox/AstPrinter.java</em><br>
+add after <em>visitUnaryExpr</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="n">String</span> <span class="nf">parenthesize</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Expr</span><span class="o">...</span> <span class="n">exprs</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">StringBuilder</span> <span class="n">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuilder</span><span class="o">();</span>
+
+    <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;(&quot;</span><span class="o">).</span><span class="na">append</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span> <span class="o">:</span> <span class="n">exprs</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">);</span>
+      <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">));</span>
+    <span class="o">}</span>
+    <span class="n">builder</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;)&quot;</span><span class="o">);</span>
+
+    <span class="k">return</span> <span class="n">builder</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>It takes a name and a list of subexpressions and wraps them all up in parentheses, yielding a string like:</p>
+<div class="codehilite"><pre><span></span>(+ 1 2)
+</pre></div>
+
+
+<p>Note that it calls <span name="builder"><code>accept()</code></span> on each subexpression and passes the AstPrinter itself to the expression. This is the recursive step that lets us print an entire tree.</p>
+<aside name="builder">
+<p>Each call to <code>parenthesize()</code> creates a new StringBuilder including recursive calls to subexpressions, which then flatten and return their results. A more efficient implementation would create a single StringBuilder and thread it through all of the recursive calls.</p>
+<p>Since this code is only to help us debug stuff, simple and dumb is fine.</p>
+</aside>
+<p>We don&rsquo;t have a parser yet, so it&rsquo;s hard to see this in action. For now, we&rsquo;ll hack together a little <code>main()</code> method that manually instantiates a tree and prints it:</p>
+<div class="codehilite"><div class="source-file"><em>lox/AstPrinter.java</em><br>
+add after <em>parenthesize2</em>()</div>
+<pre><br><span></span>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Expr</span> <span class="n">expression</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">(</span>
+        <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Unary</span><span class="o">(</span>
+            <span class="k">new</span> <span class="n">Token</span><span class="o">(</span><span class="n">TokenType</span><span class="o">.</span><span class="na">MINUS</span><span class="o">,</span> <span class="s">&quot;-&quot;</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">1</span><span class="o">),</span>
+            <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="mi">123</span><span class="o">)),</span>
+        <span class="k">new</span> <span class="n">Token</span><span class="o">(</span><span class="n">TokenType</span><span class="o">.</span><span class="na">STAR</span><span class="o">,</span> <span class="s">&quot;*&quot;</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="mi">1</span><span class="o">),</span>
+        <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span><span class="o">(</span>
+            <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="mf">45.67</span><span class="o">)));</span>
+
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="k">new</span> <span class="n">AstPrinter</span><span class="o">().</span><span class="na">print</span><span class="o">(</span><span class="n">expression</span><span class="o">));</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>If we did everything right, it prints:</p>
+<div class="codehilite"><pre><span></span>(* (- 123) (group 45.67))
+</pre></div>
+
+
+<p>You can go ahead and delete this method. We won&rsquo;t need. Also, as we add new syntax tree types, I won&rsquo;t bother showing the necessary visit methods for them in AstPrinter. If you want to (and you want the Java compiler to not yet at you), go ahead and add them yourself.</p>
+<p>This printer will come in handy in the next chapter when we start parsing Lox code into syntax trees.</p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>Earlier, I said that the <code>|</code>, <code>*</code>, and <code>+</code> we added to our grammar
+    notation was just syntactic sugar. Given this grammar:</p>
+<div class="codehilite"><pre><span></span>expr → expr ( &quot;(&quot; ( expr ( &quot;,&quot; expr )* )? &quot;)&quot; | &quot;.&quot; IDENTIFIER )*
+     | IDENTIFIER
+     | NUMBER
+</pre></div>
+
+
+<p>Produce a grammar that matches the same language but does not use any of
+that notational sugar.</p>
+</li>
+<li>
+<p>The visitor pattern lets you emulate the functional style where operations
+    on different types are bundled together so that you can add new operations
+    to existing types, but in an object-oriented language. Come up with a
+    corresponding pattern that lets you bundle all of the operations on one type
+    together and lets you define new types easily, but in a functional language.</p>
+<p>(SML or Haskell would be ideal for this exercise, but Scheme or another Lisp
+works as well.)</p>
+</li>
+<li>
+<p>In Reverse Polish Notation, the operands to an arithmetic operator are both
+    placed before the operator, so <code>1 + 2</code> is <code>1 2 +</code> in RPN. Evaluation
+    proceeds from left to right. Numbers are pushed onto an implicit stack, and
+    an arithmetic operator pops the top two numbers, performs the operation,
+    and pushes the result. Thus, this:</p>
+<div class="codehilite"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+
+
+<p>in RPN becomes:</p>
+<div class="codehilite"><pre><span></span><span class="mi">1</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="mi">3</span> <span class="o">-</span> <span class="o">*</span>
+</pre></div>
+
+
+<p>Define another visitor class for our syntax trees classes that takes an
+expression, converts it to RPN, and returns the resulting string.</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="parsing-expressions.html" class="next">
