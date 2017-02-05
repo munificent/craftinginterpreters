@@ -404,15 +404,15 @@ def load_file(source_code, source_dir, path):
         chapter = match.group(1)
         name = match.group(2)
         if chapter != state.start.chapter or name != state.start.name:
-          fail('Expecting to pop "{} {}" but got "{} {}".'.format(
+          error('Expecting to pop "{} {}" but got "{} {}".'.format(
               state.start.chapter, state.start.name, chapter, name))
         if state.parent.start.chapter == None:
-          fail('Cannot pop last state "{}".'.format(state.start))
+          error('Cannot pop last state "{}".'.format(state.start))
         pop()
 
       if not handled:
         if not state.start:
-          fail("No snippet in effect.".format(relative))
+          error("No snippet in effect.".format(relative))
 
         source_line = SourceLine(line, current_function, current_class,
             state.start, state.end)

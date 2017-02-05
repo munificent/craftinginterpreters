@@ -25,9 +25,10 @@ DEFAULT = '\033[0m'
 PINK = '\033[91m'
 YELLOW = '\033[33m'
 
-CODE_BEFORE_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) before\)')
-CODE_AFTER_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) after\)')
-CODE_AROUND_PATTERN = re.compile(r'([-a-z0-9]+) \((\d+) before, (\d+) after\)')
+CODE_OPTIONS_PATTERN = re.compile(r'([-a-z0-9]+) \(([^)]+)\)')
+BEFORE_PATTERN = re.compile(r'(\d+) before')
+AFTER_PATTERN = re.compile(r'(\d+) after')
+
 ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\]</span>')
 
 num_chapters = 0
@@ -135,29 +136,27 @@ def insert_snippet(snippets, arg, contents, errors):
   # NOTE: If you change this, be sure to update the baked in example snippet
   # in introduction.md.
   name = None
+  show_location = True
   before_lines = 0
   after_lines = 0
 
-  match = CODE_BEFORE_PATTERN.match(arg)
-  if match:
-    # "^code name (2 before)"
+  match = CODE_OPTIONS_PATTERN.match(arg)
+  if (match):
     name = match.group(1)
-    before_lines = int(match.group(2))
+    options = match.group(2).split(', ')
 
-  match = CODE_AFTER_PATTERN.match(arg)
-  if match:
-    # "^code name (2 after)"
-    name = match.group(1)
-    after_lines = int(match.group(2))
+    for option in options:
+      if option == "no location":
+        show_location = False
 
-  match = CODE_AROUND_PATTERN.match(arg)
-  if match:
-    # "^code name (1 before, 2 after)"
-    name = match.group(1)
-    before_lines = int(match.group(2))
-    after_lines = int(match.group(3))
+      match = BEFORE_PATTERN.match(option)
+      if match:
+        before_lines = int(match.group(1))
 
-  if not name:
+      match = AFTER_PATTERN.match(option)
+      if match:
+        after_lines = int(match.group(1))
+  else:
     # Otherwise, the arg is just the name of the snippet.
     name = arg
 
@@ -186,15 +185,16 @@ def insert_snippet(snippets, arg, contents, errors):
     before = before.replace('<pre>', '<pre class="insert-before">')
     contents += before
 
-  where = '<em>{}</em>'.format(snippet.file.nice_path())
+  if show_location:
+    where = '<em>{}</em>'.format(snippet.file.nice_path())
 
-  if snippet.location():
-    where += '<br>\n{}'.format(snippet.location())
+    if snippet.location():
+      where += '<br>\n{}'.format(snippet.location())
 
-  if snippet.removed and snippet.added:
-    where += '<br>\nreplace {} line{}'.format(
-        len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
-  contents += '<div class="source-file">{}</div>\n'.format(where)
+    if snippet.removed and snippet.added:
+      where += '<br>\nreplace {} line{}'.format(
+          len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
+    contents += '<div class="source-file">{}</div>\n'.format(where)
 
   if snippet.removed and not snippet.added:
     removed = format_code(snippet.file.language(), snippet.removed)
