@@ -1,6 +1,10 @@
 ^title Representing Code
 ^part A Tree-Walk Interpreter
 
+> To dwellers in a wood, almost every species of tree has its voice as well as
+> its feature.
+> <cite>Thomas Hardy</cite>
+
 In the last chapter, we took the raw source code as a string and transformed it
 into a slightly higher-level representation -- a series of tokens. In the next
 chapter, the parser will take those tokens and produce yet another
@@ -485,7 +489,7 @@ fields. Each field has a name and a type. That's it.
 We're smart language hackers, right? Let's go meta. Instead of tediously
 hand-writing each class definion, field declaration, constructor, and
 initializer, we'll hack together a little <span name="python">script</span> that
-does it for us. It has a desription of each tree type -- its name and fields --
+does it for us. It has a description of each tree type -- its name and fields --
 and it prints out the Java code needed to define a class with that name and
 state.
 
