@@ -77,6 +77,13 @@ function refreshAsides() {
     }
 
     // Vertically position the aside next to the span it annotates.
-    aside.offset({top: span.position().top - 6});
+    var pos = span.position();
+    if (pos == null) {
+      window.console.log("Could not find position for '" + name + "'");
+      console.log(span);
+      return;
+    }
+
+    aside.offset({top: pos.top - 6});
   });
 }

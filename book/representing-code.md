@@ -1,6 +1,9 @@
 ^title Representing Code
 ^part A Tree-Walk Interpreter
 
+**TODO: define "head" "body" and "derivation" (sentence "derived" from playing
+game)**
+
 > To dwellers in a wood, almost every species of tree has its voice as well as
 > its feature.
 > <cite>Thomas Hardy</cite>
@@ -38,15 +41,23 @@ in the implicit grouping:
 (1 + (2 * 3)) - 4
 ```
 
-Another way to visualize that grouping is using a tree:
+Another way to visualize that grouping is using a tree. Leaves are numbers, and
+interior nodes are arithmetic operators.
 
-**TODO: illustrate tree and bottom-up eval**
+<span name="tree-steps"></span>
 
-Leaves are numbers, and interior nodes are arithmetic operators. In order to
-evaluate one of the arithmetic nodes, you need to know the numeric value of each
-of its subtrees, so you have to evaluate those first. That means working your
-way from the leaves up -- a "post-order" traversal. In this example, you end up
-with 3.
+<img src="image/representing-code/tree-evaluate.png" alt="Evaluating the tree from the bottom up." />
+
+<aside name="tree-steps">
+
+A. Starting with the full tree, evaluate the bottom-most operation, `2 * 3`. B.
+Now we can evaluate the `+`. C. Finally the `-`. D. The final answer.
+
+</aside>
+
+In order to evaluate one of the arithmetic nodes, you need to know the numeric
+value of each of its subtrees, so you have to evaluate those first. That means
+working your way from the leaves up -- a "post-order" traversal.
 
 It seemed pretty straightforward for us to draw one of these trees given the
 original text of the expression. Once we had that, it wasn't too hard to
@@ -213,11 +224,7 @@ bounce back to breakfast and add "with". Now all that's left is to pick a
 production for bread. We'll pick "English muffin". That's again a non-terminal,
 so we add that and we're done:
 
-```text
-bacon and poached eggs with English muffin
-```
-
-**TODO: illustrate**
+<img src="image/representing-code/breakfast.png" alt='"Playing" the grammar to generate a string.' />
 
 Any time we hit a rule that had multiple productions, we just picked one
 arbitrarily. It is this flexibility that allows a short number of grammar rules
@@ -294,7 +301,7 @@ bread     → "toast" | "biscuits" | "English muffin"
 
 Not too bad, I hope. If you're used to grep or using regular expressions in your
 text editor, most of the punctuation should be familiar. The main difference is
-that symbols here represent entire lexemes, not raw characters.
+that symbols here represent entire words, not single characters.
 
 We'll use this notation throughout the rest of the book to precisely describe
 Lox's grammar. As you spend more time working on programming languages, you'll
@@ -609,7 +616,7 @@ of types, and a handful of high level operations like "interpret". For each pair
 of type and operation, you need a specific implementation. You can think of it
 like a table:
 
-**TODO: illustrate**
+<img src="image/representing-code/table.png" alt="A table where rows are labeled with expression classes and columns are function names." />
 
 Rows are types, and columns are operations. Each cell represents the
 implementation of that operation for that type.
@@ -620,9 +627,13 @@ are likely to be related to each other, and the language makes it easy to define
 them all together as methods inside the same class.
 
 This makes it easy to extend the table by adding new rows. Simply define a new
-class. No existing code has to be touched. But imagine if you want to add a new
-operation -- a new column. In Java, that means modifying a lot of separate files
-to define a new method on every one of those existing classes.
+class. No existing code has to be touched.
+
+<img src="image/representing-code/rows.png" alt="The table split into rows for each class." />
+
+But imagine if you want to add a new operation -- a new column. In Java, that
+means modifying a lot of separate files to define a new method on every one of
+those existing classes.
 
 Languages in the functional paradigm, specifically the statically-typed ones in
 the <span name="ml">ML</span> family flip that around. There, you don't have
@@ -644,9 +655,12 @@ language designers today are still rediscovering them over forty years later.
 </aside>
 
 This makes it trivial to add new operations -- simply define another function
-that pattern matches on all of the types. But adding a new type is harder. You
-have to go back and add a new case to all of the pattern matches of all of the
-existing functions.
+that pattern matches on all of the types.
+
+<img src="image/representing-code/columns.png" alt="The table split into columns for each function." />
+
+But adding a new type is harder. You have to go back and add a new case to all
+of the pattern matches of all of the existing functions.
 
 Each style has a certain "grain" to it. That's what the paradigm literally means
 -- a object-oriented language wants you to *orient* your code along the rows of
@@ -792,7 +806,7 @@ on the *pastry* classes to select the appropriate method on the *visitor* class.
 In the table, each pastry class is a row, but if you look at all of the methods
 for a single visitor, they form a *column*.
 
-**TODO: Illustrate.**
+<img src="image/representing-code/visitor.png" alt="Now all of the cells for one operation are part of the same class, the visitor." />
 
 Now we can define as many classes as we want that all implement `PastryVisitor`.
 To perform the operation, we just call `accept()` on some pastry and pass a
@@ -874,7 +888,7 @@ parenthesized, and all of its subexpressions and tokens are contained in that.
 
 For example, given a syntax tree like:
 
-**TODO: illustration**
+<img src="image/representing-code/expression.png" alt="An example syntax tree." />
 
 It produces:
 
