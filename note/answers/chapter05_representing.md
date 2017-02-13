@@ -16,6 +16,8 @@
     arguments → arguments "," expr
     ```
 
+    It's the syntax for a function invocation.
+
 2.  One way is to create a record or tuple containing a function pointer for
     each operation. In order to allow defining new types and passing them to
     existing code, these functions need to encapsulate the type entirely -- the

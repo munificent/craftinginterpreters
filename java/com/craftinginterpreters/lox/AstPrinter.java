@@ -218,7 +218,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return builder.toString();
   }
 //< print-utilities
-
+//> omit
   // Note: AstPrinting other types syntax trees is now shown in the
   // book, but this is provided here as a reference for those reading
   // the full code.
@@ -246,6 +246,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     return builder.toString();
   }
+//< omit
 /* Representing Code printer-main < Parsing Expressions not-yet
 
   public static void main(String[] args) {

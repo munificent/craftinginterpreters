@@ -321,7 +321,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
 
   # Validate that every snippet for the chapter is included.
   for name, snippet in snippets.items():
-    if name != 'not-yet' and snippet != False:
+    if name != 'not-yet' and name != 'omit' and snippet != False:
       errors.append("Unused snippet {}".format(name))
 
   # Show any errors at the top of the file.
