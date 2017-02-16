@@ -87,8 +87,8 @@ $ jlox
 ### Hacking on the book
 
 The Markdown and snippets of source code are weaved together into the final
-HTML using a hand-written little static site generator, `util/build.py`. It,
-It's a fairly simple static site generator. The generated HTML is committed in
+HTML using a hand-written little static site generator, `util/build.py`. It's
+a fairly simple static site generator. The generated HTML is committed in
 the repo under `site/`. It is built from a combination of Markdown for prose,
 which lives in `book/`, and snippets of code that are weaved in from the Java
 and C implementations in `java/` and `c/`. (All of those funny looking comments
