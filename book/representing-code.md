@@ -120,7 +120,7 @@ directions.
 
 If you start with the rules, you can use them to *generate* strings that are in
 the grammar. Strings created this way are called **derivations** because each is
-"derived" from the rules of the grammer.
+"derived" from the rules of the grammar.
 
 In each step of the game, you pick a rule and follow what it tells you to do.
 Most of the lingo around formal grammars comes from playing them in this
