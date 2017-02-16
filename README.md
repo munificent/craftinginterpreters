@@ -17,7 +17,8 @@ take a look at:
 * **C++:** [ikatanic/lox-cpp](https://github.com/ikatanic/lox-cpp)
 * **Go:** [paulja/glox](https://github.com/paulja/glox)
 * **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
-* **Rust:** [rodaine/rlox](https://github.com/rodaine/rlox)
+* **Rust:** [rodaine/rlox](https://github.com/rodaine/rlox),
+    [HarveyHunt/loxr](https://github.com/HarveyHunt/loxr)
 * **Swift:** [alexito4/slox](https://github.com/alexito4/slox)
 
 Are you porting jlox or clox to another language? Let me know and I'll add you
