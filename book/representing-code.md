@@ -114,7 +114,7 @@ probably not.
 ### Rules for grammars
 
 How do we write down a grammar that contains an infinite number of valid
-strings? We obviously can't list them all out. Instead, we create finite a set
+strings? We obviously can't list them all out. Instead, we create a finite set
 of *rules*. You can think of them as a game that you can "play" in one of two
 directions.
 
@@ -129,7 +129,7 @@ the grammar.
 
 Each production in a context-free grammar has a **head** -- its <span
 name="name">name</span> -- and a **body** which describes what it generates. In
-its pure form the the body is simply a list of symbols. Symbols come in two
+its pure form the body is simply a list of symbols. Symbols come in two
 delectable flavors:
 
 <aside name="name">
