@@ -229,21 +229,21 @@ We could keep picking the first production for `protein` over and over again
 yielding all manner of breakfasts like "bacon and sausage and sausage and bacon
 and...". We won't though. We need to again pick a production for `protein` in
 the inner reference to `protein "and" protein`. This time we'll pick `"bacon"`.
-We finally hit a nonterminal, so we set that as the first word in the resulting
+We finally hit a terminal, so we set that as the first word in the resulting
 string.
 
 Now we pop back out to the first `protein "and" protein`. The next symbol is
-`"and"`, a nonterminal, so we add that. Then we hit another `protein`. This
+`"and"`, a terminal, so we add that. Then we hit another `protein`. This
 time, we pick:
 
 ```lox
 protein → cooked "eggs"
 ```
 
-We need a production for `cooked` and pick `"poached"`. That's a nonterminal, so
+We need a production for `cooked` and pick `"poached"`. That's a terminal, so
 we add that. Now we're back to the `protein`, so we add `"eggs"`. We bounce back
 to `breakfast` and add `"with"`. Now all that's left is to pick a production for
-`bread`. We'll pick `"English muffin"`. That's again a nonterminal, so we add
+`bread`. We'll pick `"English muffin"`. That's again a terminal, so we add
 that and we're done:
 
 <img src="image/representing-code/breakfast.png" alt='"Playing" the grammar to generate a string.' />
