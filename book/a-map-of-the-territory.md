@@ -559,16 +559,18 @@ peanuts aren't even nuts!)
 
 So, back to languages:
 
-* **Compilation** is an *implementation technique* that involves translating a
+* **Compiling** is an *implementation technique* that involves translating a
   source language to some other -- usually lower-level -- form. When you
   generate bytecode or machine code, you are compiling. When you transpile to
-  another high-level language you are compiling too. If users run a tool that
-  takes a source language and outputs some target language and then stops, we
-  call that tool a **compiler**.
+  another high-level language you are compiling too.
 
-* **Interpretation** describes the *user experience of executing a language*. If
-  the end user has a single tool that takes in source code and is able to then
-  execute it immediately, that tool is an **interpreter**.
+* When we say a language implementation "is a **compiler**", we mean it
+  translates source code to some other form but doesn't execute it. The user has
+  to take the resulting output and run it themselves.
+
+* Conversely, when say an implementation "is an **interpreter**", we mean it
+  takes in source code and executes it immediately. It runs programs "from
+  source".
 
 Like apples and oranges, some implementations are clearly compilers and *not*
 interpreters. GCC and Clang take your C code and compile it to machine code. An
@@ -596,7 +598,10 @@ The [Go tool][go] is even more of a horticultural curiosity. If you run `go
 build`, it compiles your Go source code to machine code and stops. If you type
 `go run`, it does that then immediately executes the generated executable.
 
-So `go` *has* a compiler, *is* an interpreter, and *is* also a compiler.
+So `go` *is* a compiler (you can use it as tool to compile code without running
+it), *is* an interpreter (you can invoke it to immediately run a program from
+source), and also *has* a compiler (when you use it as an interpreter, it is
+still compiling internally).
 
 [go tool]: https://golang.org/cmd/go/
 
