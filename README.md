@@ -15,6 +15,7 @@ the interpreters in the book to other languages. If Java and C aren't your bag,
 take a look at:
 
 * **C++:** [ikatanic/lox-cpp](https://github.com/ikatanic/lox-cpp)
+* **C#:** [ByronMayne/LoxSharp](https://github.com/ByronMayne/LoxSharp)
 * **Go:** [paulja/glox](https://github.com/paulja/glox)
 * **Kotlin:** [GraydenH/klox](https://github.com/GraydenH/klox)
 * **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
