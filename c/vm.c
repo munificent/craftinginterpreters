@@ -420,7 +420,6 @@ static void concatenateStringAndNumber(ObjString *string, double number) {
   chars[length] = '\0';
 
   ObjString* result = takeString(chars, length);
-//> Garbage Collection not-yet
   pop();
   pop();
   
