@@ -5,6 +5,7 @@
 #include <stdio.h>
 //> Strings not-yet
 #include <string.h>
+#include <stdlib.h>
 //< Strings not-yet
 //> Calls and Functions not-yet
 #include <time.h>
@@ -416,10 +417,15 @@ static void concatenateStringAndNumber(ObjString *string, double number) {
   int length = string->length + numDigits(number);
   char* chars = ALLOCATE(char, length + 1);
   memcpy(chars, string->chars, string->length);
-  memcpy(chars + string->length, number + '0', strlen(number + "0'));
+  char snum[numDigits(number)];
+
+  sprintf(snum, "%f", number);
+
+  memcpy(chars + string->length, snum, numDigits(number));
   chars[length] = '\0';
 
   ObjString* result = takeString(chars, length);
+
   pop();
   pop();
   
