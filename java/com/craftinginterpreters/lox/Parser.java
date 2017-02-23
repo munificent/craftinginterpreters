@@ -1,7 +1,8 @@
-//> Parsing Expressions not-yet
+//> Parsing Expressions parser
 package com.craftinginterpreters.lox;
 
 //> Statements and State not-yet
+
 import java.util.ArrayList;
 import java.util.Arrays;
 //< Statements and State not-yet
@@ -12,20 +13,25 @@ import java.util.Set;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 class Parser {
-  private static final Set<TokenType> synchronizing = new HashSet<>();
+//> parse-error
+  private static class ParseError extends RuntimeException {}
+//< parse-error
+//> statement-starts
+
+  private static final Set<TokenType> statementStarts = new HashSet<>();
 
   static {
-//> Statements and State not-yet
-    synchronizing.add(LEFT_BRACE);
-    synchronizing.add(RIGHT_BRACE);
-//< Statements and State not-yet
-    synchronizing.add(RIGHT_PAREN);
-//> Statements and State not-yet
-    synchronizing.add(EQUAL);
-    synchronizing.add(SEMICOLON);
-//< Statements and State not-yet
+    statementStarts.add(CLASS);
+    statementStarts.add(FUN);
+    statementStarts.add(VAR);
+    statementStarts.add(FOR);
+    statementStarts.add(IF);
+    statementStarts.add(WHILE);
+    statementStarts.add(PRINT);
+    statementStarts.add(RETURN);
   }
 
+//< statement-starts
   private final List<Token> tokens;
   private int currentIndex = 0;
 
@@ -43,27 +49,40 @@ class Parser {
     return statements;
   }
 //< Statements and State not-yet
-
+//> parse-expression
   Expr parseExpression() {
-/* Parsing Expressions not-yet < Statements and State not-yet
+/* Parsing Expressions parse-expression < Statements and State not-yet
     return equality();
 */
 //> Statements and State not-yet
     return assignment();
 //< Statements and State not-yet
   }
+//< parse-expression
 //> Statements and State not-yet
 
   private Stmt declaration() {
+    try {
 //> Classes not-yet
-    if (match(CLASS)) return classDeclaration();
+      if (match(CLASS)) return classDeclaration();
 //< Classes not-yet
 //> Functions not-yet
-    if (match(FUN)) return function("function");
+      if (match(FUN)) return function("function");
 //< Functions not-yet
-    if (match(VAR)) return varDeclaration();
+      if (match(VAR)) return varDeclaration();
 
-    return statement();
+      return statement();
+    } catch (ParseError error) {
+      // Panic mode.
+      while (!isAtEnd()) {
+        if (previous().type == SEMICOLON) break;
+        if (statementStarts.contains(current().type)) break;
+
+        advance();
+      }
+
+      return null;
+    }
   }
 //> Classes not-yet
 
@@ -228,7 +247,7 @@ class Parser {
     if (!check(RIGHT_PAREN)) {
       do {
         if (parameters.size() >= 8) {
-          error("Cannot have more than 8 parameters.");
+          error(current(), "Cannot have more than 8 parameters.");
         }
 
         parameters.add(consume(IDENTIFIER, "Expect parameter name."));
@@ -276,7 +295,7 @@ class Parser {
 //< Classes not-yet
       }
 
-      Lox.error(equals, "Invalid assignment target.");
+      error(equals, "Invalid assignment target.");
     }
 
     return expr;
@@ -308,7 +327,7 @@ class Parser {
     return expr;
   }
 //< Control Flow not-yet
-
+//> equal-and-comparison
   private Expr equality() {
     Expr expr = comparison();
 
@@ -332,7 +351,8 @@ class Parser {
 
     return expr;
   }
-
+//< equal-and-comparison
+//> term
   private Expr term() {
     Expr expr = factor();
 
@@ -344,7 +364,8 @@ class Parser {
 
     return expr;
   }
-
+//< term
+//> factor
   private Expr factor() {
     Expr expr = unary();
 
@@ -356,7 +377,8 @@ class Parser {
 
     return expr;
   }
-
+//< factor
+//> unary
   private Expr unary() {
     if (match(BANG, MINUS)) {
       Token operator = previous();
@@ -364,21 +386,21 @@ class Parser {
       return new Expr.Unary(operator, right);
     }
 
-/* Parsing Expressions not-yet < Functions not-yet
+/* Parsing Expressions unary < Functions not-yet
     return primary();
 */
 //> Functions not-yet
     return call();
 //< Functions not-yet
   }
+//< unary
 //> Functions not-yet
-
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
       do {
         if (arguments.size() >= 8) {
-          error("Cannot have more than 8 arguments.");
+          error(current(), "Cannot have more than 8 arguments.");
         }
 
         arguments.add(parseExpression());
@@ -411,6 +433,7 @@ class Parser {
     return expr;
   }
 //< Functions not-yet
+//> primary
 
   private Expr primary() {
     if (match(FALSE)) return new Expr.Literal(false);
@@ -440,20 +463,22 @@ class Parser {
       return new Expr.Variable(previous());
     }
 //< Statements and State not-yet
-
+//> grouping
     if (match(LEFT_PAREN)) {
       Expr expr = parseExpression();
       consume(RIGHT_PAREN, "Expect ')' after expression.");
       return new Expr.Grouping(expr);
     }
-
-    error("Expect expression.");
+//< grouping
 
     // Discard the token so we can make progress.
     advance();
+
+    error(previous(), "Expect expression.");
     return null;
   }
-
+//< primary
+//> match
   private boolean match(TokenType... types) {
     for (TokenType type : types) {
       if (check(type)) {
@@ -464,32 +489,36 @@ class Parser {
 
     return false;
   }
-
+//< match
+//> consume
   private Token consume(TokenType type, String message) {
-    if (check(type)) return advance();
-    error(message);
-
-    if (!synchronizing.contains(type)) return null;
-
-    while (!check(type) && !isAtEnd()) {
-      advance();
-    }
+    if (!check(type)) error(current(), message);
 
     return advance();
+//    if (check(type)) return advance();
+//    error(message);
+//
+//    if (!synchronizing.contains(type)) return null;
+//
+//    while (!check(type) && !isAtEnd()) {
+//      advance();
+//    }
+//
+//    return advance();
   }
-
+//< consume
+//> check-and-advance
   private Token advance() {
     if (!isAtEnd()) currentIndex++;
     return previous();
   }
 
-  // Returns true if the current token is of tokenType, but
-  // does not consume it.
   private boolean check(TokenType tokenType) {
     if (isAtEnd()) return false;
     return current().type == tokenType;
   }
-
+//< check-and-advance
+//> utils
   private boolean isAtEnd() {
     return current().type == EOF;
   }
@@ -501,8 +530,11 @@ class Parser {
   private Token previous() {
     return tokens.get(currentIndex - 1);
   }
-
-  private void error(String message) {
-    Lox.error(current(), message);
+//< utils
+//> error
+  private void error(Token token, String message) {
+    Lox.error(token, message);
+    throw new ParseError();
   }
+//< error
 }

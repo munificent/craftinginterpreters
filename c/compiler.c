@@ -24,6 +24,7 @@
 
 typedef struct {
   bool hadError;
+  bool panicMode;
   Token current;
   Token previous;
 } Parser;
@@ -131,6 +132,7 @@ typedef struct ClassCompiler {
 //< Methods and Initializers not-yet
 
 Parser parser;
+
 //> Local Variables not-yet
 
 Compiler* current = NULL;
@@ -155,6 +157,9 @@ static Chunk* currentChunk() {
 //< Calls and Functions not-yet
 
 static void errorAt(Token* token, const char* message) {
+  if (parser.panicMode) return;
+  parser.panicMode = true;
+
   fprintf(stderr, "[line %d] Error", token->line);
 
   if (token->type == TOKEN_EOF) {
@@ -195,25 +200,6 @@ static void consume(TokenType type, const char* message) {
   }
 
   errorAtCurrent(message);
-
-  // If we're consuming a synchronizing token, keep going until we find it.
-/* Compiling Expressions not-yet < Global Variables not-yet
-  if (type == TOKEN_RIGHT_PAREN) {
-*/
-//> Global Variables not-yet
-  if (type == TOKEN_LEFT_BRACE ||
-      type == TOKEN_RIGHT_BRACE ||
-      type == TOKEN_RIGHT_PAREN ||
-      type == TOKEN_EQUAL ||
-      type == TOKEN_SEMICOLON) {
-//< Global Variables not-yet
-    while (parser.current.type != type &&
-           parser.current.type != TOKEN_EOF) {
-      advance();
-    }
-
-    advance();
-  }
 }
 //> Global Variables not-yet
 
@@ -1408,6 +1394,32 @@ static void whileStatement() {
 //< Jumping Forward and Back not-yet
 //> Global Variables not-yet
 
+static void synchronize() {
+  parser.panicMode = false;
+  
+  while (parser.current.type != TOKEN_EOF) {
+    if (parser.previous.type == TOKEN_SEMICOLON) return;
+    
+    switch (parser.current.type) {
+      case TOKEN_CLASS:
+      case TOKEN_FUN:
+      case TOKEN_VAR:
+      case TOKEN_FOR:
+      case TOKEN_IF:
+      case TOKEN_WHILE:
+      case TOKEN_PRINT:
+      case TOKEN_RETURN:
+        return;
+        
+      default:
+        // Do nothing.
+        ;
+    }
+    
+    advance();
+  }
+}
+
 static void declaration() {
 //> Classes and Instances not-yet
   if (match(TOKEN_CLASS)) {
@@ -1428,6 +1440,8 @@ static void declaration() {
   } else {
     statement();
   }
+  
+  if (parser.panicMode) synchronize();
 }
 
 static void statement() {
@@ -1504,8 +1518,10 @@ ObjFunction* compile(const char* source) {
 */
 //> Compiling Expressions not-yet
 
-  // Prime the pump.
   parser.hadError = false;
+  parser.panicMode = false;
+
+  // Prime the pump.
   advance();
 
 //< Compiling Expressions not-yet

@@ -14,7 +14,7 @@ REPO_DIR = dirname(dirname(realpath(__file__)))
 
 OUTPUT_EXPECT = re.compile(r'// expect: ?(.*)')
 ERROR_EXPECT = re.compile(r'// (Error.*)')
-ERROR_LINE_EXPECT = re.compile(r'// \[line (\d+)\] (Error.*)')
+ERROR_LINE_EXPECT = re.compile(r'// \[((java|c) )?line (\d+)\] (Error.*)')
 RUNTIME_ERROR_EXPECT = re.compile(r'// expect runtime error: (.+)')
 SYNTAX_ERROR_RE = re.compile(r'\[.*line (\d+)\] (Error.+)')
 STACK_TRACE_RE = re.compile(r'\[line (\d+)\]')
@@ -34,8 +34,9 @@ JAVA_SUITES = []
 
 
 class Interpreter:
-  def __init__(self, name, args, tests):
+  def __init__(self, name, language, args, tests):
     self.name = name
+    self.language = language
     self.args = args
     self.tests = tests
 
@@ -46,7 +47,7 @@ def c_interpreter(name, tests):
   else:
     path = 'build/' + name
 
-  INTERPRETERS[name] = Interpreter(name, [path], tests)
+  INTERPRETERS[name] = Interpreter(name, 'c', [path], tests)
   C_SUITES.append(name)
 
 
@@ -56,7 +57,7 @@ def java_interpreter(name, tests):
   else:
     dir = 'build/gen/' + name
 
-  INTERPRETERS[name] = Interpreter(name,
+  INTERPRETERS[name] = Interpreter(name, 'java',
       ['java', '-cp', dir, 'com.craftinginterpreters.lox.Lox'], tests)
   JAVA_SUITES.append(name)
 
@@ -715,11 +716,19 @@ class Test:
 
         match = ERROR_LINE_EXPECT.search(line)
         if match:
-          self.compile_errors.add("[{0}] {1}".format(match.group(1), match.group(2)))
+          # The two interpreters are slightly different in terms of which
+          # cascaded errors may appear after an initial compile error because
+          # their panic mode recovery is a little different. To handle that,
+          # the tests can indicate if an error line should only appear for a
+          # certain interpreter.
+          language = match.group(2)
+          if not language or language == interpreter.language:
+            self.compile_errors.add("[{0}] {1}".format(
+                match.group(3), match.group(4)))
 
-          # If we expect a compile error, it should exit with EX_DATAERR.
-          self.exit_code = 65
-          expectations += 1
+            # If we expect a compile error, it should exit with EX_DATAERR.
+            self.exit_code = 65
+            expectations += 1
 
         match = RUNTIME_ERROR_EXPECT.search(line)
         if match:
@@ -895,6 +904,7 @@ def green(text):  return color_text(text, '\033[32m')
 def pink(text):   return color_text(text, '\033[91m')
 def red(text):    return color_text(text, '\033[31m')
 def yellow(text): return color_text(text, '\033[33m')
+def gray(text):   return color_text(text, '\033[1;30m')
 
 
 def walk(dir, callback):
@@ -937,16 +947,17 @@ def run_script(path):
     if not this_test.startswith(filter_path):
       return
 
-  # Update the status line.
-  print_line('Passed: ' + green(passed) +
-             ' Failed: ' + red(failed) +
-             ' Skipped: ' + yellow(num_skipped))
-
   # Make a nice short path relative to the working directory.
 
   # Normalize it to use "/" since, among other things, the interpreters expect
   # the argument to use that.
   path = relpath(path).replace("\\", "/")
+
+  # Update the status line.
+  print_line('Passed: ' + green(passed) +
+             ' Failed: ' + red(failed) +
+             ' Skipped: ' + yellow(num_skipped) +
+             gray(' (' + path + ')'))
 
   # Read the test and parse out the expectations.
   test = Test(path)

@@ -24,7 +24,7 @@ static void printObject(Value value) {
 //< Closures not-yet
 //> Calls and Functions not-yet
     case OBJ_FUNCTION:
-      printf("<fn %p>", AS_FUNCTION(value));
+      printf("<fn %p>", (void*)AS_FUNCTION(value));
       break;
 //< Calls and Functions not-yet
 //> Classes and Instances not-yet
@@ -34,7 +34,7 @@ static void printObject(Value value) {
 //< Classes and Instances not-yet
 //> Calls and Functions not-yet
     case OBJ_NATIVE:
-      printf("<native %p>", AS_NATIVE(value));
+      printf("<native %p>", (void*)AS_NATIVE(value));
       break;
 //< Calls and Functions not-yet
     case OBJ_STRING:
