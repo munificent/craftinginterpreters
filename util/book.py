@@ -78,7 +78,6 @@ TOC = [
           'Expression nodes', 'Recursive descent', 'Precedence',
           'Associativity', 'Primary expressions', 'Syntax errors'
         ],
-        'done': False,
       },
       {
         'name': 'Evaluating Expressions',

@@ -20,6 +20,14 @@ test: debug jlox
 	@ python3 util/test.py clox
 	@ python3 util/test.py jlox
 
+# Run the tests for the final version of clox.
+test_clox: debug
+	@ python3 util/test.py clox
+
+# Run the tests for final version of jlox.
+test_jlox: jlox
+	@ python3 util/test.py jlox
+
 # Run the tests for every chapter's version of clox.
 test_c: debug c_chapters
 	@ python3 util/test.py c

@@ -6,41 +6,33 @@ package com.craftinginterpreters.lox;
 import java.util.ArrayList;
 import java.util.Arrays;
 //< Statements and State not-yet
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
 class Parser {
 //> parse-error
   private static class ParseError extends RuntimeException {}
+
 //< parse-error
-//> statement-starts
-
-  private static final Set<TokenType> statementStarts = new HashSet<>();
-
-  static {
-    statementStarts.add(CLASS);
-    statementStarts.add(FUN);
-    statementStarts.add(VAR);
-    statementStarts.add(FOR);
-    statementStarts.add(IF);
-    statementStarts.add(WHILE);
-    statementStarts.add(PRINT);
-    statementStarts.add(RETURN);
-  }
-
-//< statement-starts
   private final List<Token> tokens;
-  private int currentIndex = 0;
+  private int current = 0;
 
   Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
-//> Statements and State not-yet
 
-  List<Stmt> parseProgram() {
+/* Parsing Expressions parse < Statements and State not-yet
+  Expr parse() {
+    try {
+      return expression();
+    } catch (ParseError error) {
+      return null;
+    }
+  }
+*/
+//> Statements and State not-yet
+  List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
       statements.add(declaration());
@@ -50,7 +42,7 @@ class Parser {
   }
 //< Statements and State not-yet
 //> parse-expression
-  Expr parseExpression() {
+  private Expr expression() {
 /* Parsing Expressions parse-expression < Statements and State not-yet
     return equality();
 */
@@ -73,14 +65,7 @@ class Parser {
 
       return statement();
     } catch (ParseError error) {
-      // Panic mode.
-      while (!isAtEnd()) {
-        if (previous().type == SEMICOLON) break;
-        if (statementStarts.contains(current().type)) break;
-
-        advance();
-      }
-
+      synchronize();
       return null;
     }
   }
@@ -148,13 +133,13 @@ class Parser {
 
     Expr condition = null;
     if (!check(SEMICOLON)) {
-      condition = parseExpression();
+      condition = expression();
     }
     consume(SEMICOLON, "Expect ';' after loop condition.");
 
     Stmt increment = null;
     if (!check(RIGHT_PAREN)) {
-      increment = new Stmt.Expression(parseExpression());
+      increment = new Stmt.Expression(expression());
     }
     consume(RIGHT_PAREN, "Expect ')' after for clauses.");
 
@@ -177,7 +162,7 @@ class Parser {
 
   private Stmt ifStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'if'.");
-    Expr condition = parseExpression();
+    Expr condition = expression();
     consume(RIGHT_PAREN, "Expect ')' after if condition.");
 
     Stmt thenBranch = statement();
@@ -191,7 +176,7 @@ class Parser {
 //< Control Flow not-yet
 
   private Stmt printStatement() {
-    Expr value = parseExpression();
+    Expr value = expression();
     consume(SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(value);
   }
@@ -201,7 +186,7 @@ class Parser {
     Token keyword = previous();
     Expr value = null;
     if (!check(SEMICOLON)) {
-      value = parseExpression();
+      value = expression();
     }
 
     consume(SEMICOLON, "Expect ';' after return value.");
@@ -214,7 +199,7 @@ class Parser {
 
     Expr initializer = null;
     if (match(EQUAL)) {
-      initializer = parseExpression();
+      initializer = expression();
     }
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
@@ -225,7 +210,7 @@ class Parser {
 
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
-    Expr condition = parseExpression();
+    Expr condition = expression();
     consume(RIGHT_PAREN, "Expect '(' after condition.");
     Stmt body = statement();
 
@@ -234,7 +219,7 @@ class Parser {
 //< Control Flow not-yet
 
   private Stmt expressionStatement() {
-    Expr expr = parseExpression();
+    Expr expr = expression();
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
@@ -247,7 +232,7 @@ class Parser {
     if (!check(RIGHT_PAREN)) {
       do {
         if (parameters.size() >= 8) {
-          error(current(), "Cannot have more than 8 parameters.");
+          error(peek(), "Cannot have more than 8 parameters.");
         }
 
         parameters.add(consume(IDENTIFIER, "Expect parameter name."));
@@ -327,7 +312,7 @@ class Parser {
     return expr;
   }
 //< Control Flow not-yet
-//> equal-and-comparison
+//> equality
   private Expr equality() {
     Expr expr = comparison();
 
@@ -339,7 +324,8 @@ class Parser {
 
     return expr;
   }
-
+//< equality
+//> comparison
   private Expr comparison() {
     Expr expr = term();
 
@@ -351,8 +337,8 @@ class Parser {
 
     return expr;
   }
-//< equal-and-comparison
-//> term
+//< comparison
+//> term-and-factor
   private Expr term() {
     Expr expr = factor();
 
@@ -364,8 +350,7 @@ class Parser {
 
     return expr;
   }
-//< term
-//> factor
+
   private Expr factor() {
     Expr expr = unary();
 
@@ -377,7 +362,7 @@ class Parser {
 
     return expr;
   }
-//< factor
+//< term-and-factor
 //> unary
   private Expr unary() {
     if (match(BANG, MINUS)) {
@@ -400,10 +385,10 @@ class Parser {
     if (!check(RIGHT_PAREN)) {
       do {
         if (arguments.size() >= 8) {
-          error(current(), "Cannot have more than 8 arguments.");
+          error(peek(), "Cannot have more than 8 arguments.");
         }
 
-        arguments.add(parseExpression());
+        arguments.add(expression());
       } while (match(COMMA));
     }
 
@@ -463,19 +448,18 @@ class Parser {
       return new Expr.Variable(previous());
     }
 //< Statements and State not-yet
-//> grouping
+
     if (match(LEFT_PAREN)) {
-      Expr expr = parseExpression();
+      Expr expr = expression();
       consume(RIGHT_PAREN, "Expect ')' after expression.");
       return new Expr.Grouping(expr);
     }
-//< grouping
-
+//> primary-error
     // Discard the token so we can make progress.
     advance();
 
-    error(previous(), "Expect expression.");
-    return null;
+    throw error(previous(), "Expect expression.");
+//< primary-error
   }
 //< primary
 //> match
@@ -492,49 +476,60 @@ class Parser {
 //< match
 //> consume
   private Token consume(TokenType type, String message) {
-    if (!check(type)) error(current(), message);
+    if (check(type)) return advance();
 
-    return advance();
-//    if (check(type)) return advance();
-//    error(message);
-//
-//    if (!synchronizing.contains(type)) return null;
-//
-//    while (!check(type) && !isAtEnd()) {
-//      advance();
-//    }
-//
-//    return advance();
+    throw error(peek(), message);
   }
 //< consume
 //> check-and-advance
-  private Token advance() {
-    if (!isAtEnd()) currentIndex++;
-    return previous();
-  }
-
   private boolean check(TokenType tokenType) {
     if (isAtEnd()) return false;
-    return current().type == tokenType;
+    return peek().type == tokenType;
+  }
+
+  private Token advance() {
+    if (!isAtEnd()) current++;
+    return previous();
   }
 //< check-and-advance
 //> utils
   private boolean isAtEnd() {
-    return current().type == EOF;
+    return peek().type == EOF;
   }
 
-  private Token current() {
-    return tokens.get(currentIndex);
+  private Token peek() {
+    return tokens.get(current);
   }
 
   private Token previous() {
-    return tokens.get(currentIndex - 1);
+    return tokens.get(current - 1);
   }
 //< utils
 //> error
-  private void error(Token token, String message) {
+  private ParseError error(Token token, String message) {
     Lox.error(token, message);
-    throw new ParseError();
+    return new ParseError();
   }
 //< error
+//> synchronize
+  private void synchronize() {
+    while (!isAtEnd()) {
+      if (previous().type == SEMICOLON) return;
+
+      switch (peek().type) {
+        case CLASS:
+        case FUN:
+        case VAR:
+        case FOR:
+        case IF:
+        case WHILE:
+        case PRINT:
+        case RETURN:
+          return;
+      }
+
+      advance();
+    }
+  }
+//< synchronize
 }

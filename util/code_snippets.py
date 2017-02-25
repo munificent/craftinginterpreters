@@ -79,7 +79,7 @@ class SourceCode:
     if name in snippets:
       return snippets[name]
 
-    if name != 'not-yet':
+    if name != 'not-yet' and name != 'omit':
       print('Error: "{}" does not use snippet "{}".'.format(chapter, name),
           file=sys.stderr)
 

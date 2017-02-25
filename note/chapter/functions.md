@@ -12,3 +12,8 @@ Define "parameter" and "argument" early on.
 --
 
 When defining "parameter", also mention "formal parameter".
+
+--
+
+Put check for too many arguments outside of parsing loop so that the parser
+doesn't get into an ugly state if there are more than 8 arguments/params.

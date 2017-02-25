@@ -65,27 +65,28 @@ public class Lox {
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
-/* Scanning run < Parsing Expressions not-yet
+/* Scanning run < Parsing Expressions print-ast
 
     // For now, just print the tokens.
     for (Token token : tokens) {
       System.out.println(token);
     }
 */
-//> Parsing Expressions not-yet
+//> Parsing Expressions print-ast
 
     Parser parser = new Parser(tokens);
-//< Parsing Expressions not-yet
-/* Parsing Expressions not-yet < Statements and State not-yet
-    Expr expression = parser.parseExpression();
+//< Parsing Expressions print-ast
+/* Parsing Expressions print-ast < Statements and State not-yet
+    Expr expression = parser.parse();
 */
-/* Parsing Expressions not-yet < Evaluating Expressions not-yet
+/* Parsing Expressions print-ast < Evaluating Expressions not-yet
 
-    // For now, just print the tree.
-    System.out.println(new AstPrinter().print(expression));
+    if (!hadError) {
+      System.out.println(new AstPrinter().print(expression));
+    }
 */
 //> Statements and State not-yet
-    List<Stmt> statements = parser.parseProgram();
+    List<Stmt> statements = parser.parse();
 
     // Stop if there was a syntax error.
     if (hadError) return;
@@ -119,7 +120,7 @@ public class Lox {
     hadError = true;
   }
 //< lox-error
-//> Parsing Expressions not-yet
+//> Parsing Expressions token-error
   static void error(Token token, String message) {
     if (token.type == TokenType.EOF) {
       report(token.line, " at end", message);
@@ -127,7 +128,7 @@ public class Lox {
       report(token.line, " at '" + token.lexeme + "'", message);
     }
   }
-//< Parsing Expressions not-yet
+//< Parsing Expressions token-error
 //> Evaluating Expressions not-yet
 
   static void runtimeError(RuntimeError error) {
