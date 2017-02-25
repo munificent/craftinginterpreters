@@ -145,7 +145,7 @@ enough of one to clean up object cycles.
 <aside name="gc">
 
 In practice, ref counting and tracing are more ends of a continuum than
-oppposing sides. Most ref counting systems end up doing some tracing to handle
+opposing sides. Most ref counting systems end up doing some tracing to handle
 cycles, and the write barriers of a generational collector look a bit like
 retain calls if you squint.
 
