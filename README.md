@@ -84,7 +84,7 @@ as well as `javac`.
 Once you've got that setup, try:
 
 ```sh
-make
+$ make
 ```
 
 If everything is working, that will generate the site for the book as well as
