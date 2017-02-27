@@ -62,6 +62,13 @@ You'll need to install a few Python packages:
 $ pip3 install markdown jinja2 pygments
 ```
 
+The makefile also assumes `ruby` is on your PATH; you'll need to install
+these Ruby gems:
+
+```sh
+$ gem install sass
+```
+
 In order to get syntax highlighting for Lox itself working, you need to plug in
 its custom Pygments lexer:
 
