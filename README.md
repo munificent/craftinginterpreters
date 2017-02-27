@@ -59,9 +59,7 @@ on your PATH.
 You'll need to install a few Python packages:
 
 ```sh
-$ pip3 install markdown
-$ pip3 install jinja2
-$ pip3 install pygments
+$ pip3 install markdown jinja2 pygments
 ```
 
 In order to get syntax highlighting for Lox itself working, you need to plug in
