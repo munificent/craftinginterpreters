@@ -18,6 +18,7 @@ take a look at:
 * **C#:** [ByronMayne/LoxSharp](https://github.com/ByronMayne/LoxSharp),
     [tslater2006/Gravlox](https://github.com/tslater2006/Gravlox)
 * **Go:** [paulja/glox](https://github.com/paulja/glox)
+* **JavaScript:** [brandly/lox.js](https://github.com/brandly/lox.js)
 * **Kotlin:** [GraydenH/klox](https://github.com/GraydenH/klox)
 * **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
 * **Rust:** [rodaine/rlox](https://github.com/rodaine/rlox),
