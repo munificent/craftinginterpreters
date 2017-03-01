@@ -19,6 +19,7 @@ take a look at:
     [tslater2006/Gravlox](https://github.com/tslater2006/Gravlox)
 * **Go:** [paulja/glox](https://github.com/paulja/glox)
 * **Kotlin:** [GraydenH/klox](https://github.com/GraydenH/klox)
+* **Lua:** [ryanplusplus/llox](https://github.com/ryanplusplus/llox)
 * **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
 * **Rust:** [rodaine/rlox](https://github.com/rodaine/rlox),
     [HarveyHunt/loxr](https://github.com/HarveyHunt/loxr),
