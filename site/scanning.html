@@ -336,7 +336,7 @@ with a <code>scanTokens()</code> method, we can start running it. Before we get 
 let&rsquo;s talk about these mysterious &ldquo;tokens&rdquo;.</p>
 <h2><a href="#tokens-and-lexemes" name="tokens-and-lexemes"><small>4&#8202;.&#8202;2</small> Tokens and Lexemes</a></h2>
 <p>Here&rsquo;s a line of Lox code:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">language</span> <span class="o">=</span> <span class="s">&quot;lox&quot;</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span>var language = &quot;lox&quot;;
 </pre></div>
 
 
@@ -499,7 +499,7 @@ create new file</div>
 <span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
 
-<span class="kn">import</span> <span class="nn">static</span> <span class="n">com</span><span class="o">.</span><span class="na">craftinginterpreters</span><span class="o">.</span><span class="na">lox</span><span class="o">.</span><span class="na">TokenType</span><span class="o">.*;</span> <span name="static-import"></span>
+<span class="kn">import static</span> <span class="nn">com.craftinginterpreters.lox.TokenType.*</span><span class="o">;</span> <span name="static-import"></span>
 
 <span class="kd">class</span> <span class="nc">Scanner</span> <span class="o">{</span>
   <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">source</span><span class="o">;</span>
@@ -742,9 +742,9 @@ used <code>peek()</code> to find the newline ending a comment instead of <code>m
 that newline to get here and update <code>line</code>.)</p>
 <p>Our scanner is starting to feel more real now. It can handle fairly free-form
 code like:</p>
-<div class="codehilite"><pre><span></span><span class="c1">// this is a comment</span>
-<span class="p">((</span> <span class="p">)){}</span> <span class="c1">// grouping stuff</span>
-<span class="o">!*+-/=&lt;&gt;</span> <span class="o">&lt;=</span> <span class="o">==</span> <span class="c1">// operators</span>
+<div class="codehilite"><pre><span></span>// this is a comment
+(( )){} // grouping stuff
+!*+-/=&lt;&gt; &lt;= == // operators
 </pre></div>
 
 
@@ -802,28 +802,28 @@ name="minus">digits</span> optionally followed by a <code>.</code> and one or mo
 number <em>literal</em>. Instead, <code>-123</code>, is an <em>expression</em> that applies <code>-</code> to the
 number literal <code>123</code>. In practice, the result is the same, though it has one
 interesting edge case if we were to add method calls on numbers. Consider:</p>
-<div class="codehilite"><pre><span></span><span class="n">print</span> <span class="o">-</span><span class="mi">123</span><span class="p">.</span><span class="n">abs</span><span class="p">();</span>
+<div class="codehilite"><pre><span></span>print -123.abs();
 </pre></div>
 
 
 <p>This prints <code>-123</code> because <code>-</code> has lower precedence than <code>.</code>. We could fix that
 by making <code>-</code> part of the number literal. But then consider:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">123</span><span class="p">;</span>
-<span class="n">print</span> <span class="o">-</span><span class="n">n</span><span class="p">.</span><span class="n">abs</span><span class="p">();</span>
+<div class="codehilite"><pre><span></span>var n = 123;
+print -n.abs();
 </pre></div>
 
 
 <p>This still produces <code>-123</code>, so now the language seems inconsistent. No matter
 what you do, some case ends up weird.</p>
 </aside>
-<div class="codehilite"><pre><span></span><span class="mi">1234</span>
-<span class="mf">12.34</span>
+<div class="codehilite"><pre><span></span>1234
+12.34
 </pre></div>
 
 
 <p>We don&rsquo;t allow a leading or trailing decimal point, so these are both invalid:</p>
-<div class="codehilite"><pre><span></span><span class="p">.</span><span class="mi">1234</span>
-<span class="mi">1234</span><span class="p">.</span>
+<div class="codehilite"><pre><span></span><span class="nf">.1234</span>
+<span class="err">1234.</span>
 </pre></div>
 
 
