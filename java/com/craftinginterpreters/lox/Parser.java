@@ -21,7 +21,6 @@ class Parser {
   Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
-
 /* Parsing Expressions parse < Statements and State not-yet
   Expr parse() {
     try {
@@ -41,16 +40,16 @@ class Parser {
     return statements;
   }
 //< Statements and State not-yet
-//> parse-expression
+//> expression
   private Expr expression() {
-/* Parsing Expressions parse-expression < Statements and State not-yet
+/* Parsing Expressions expression < Statements and State not-yet
     return equality();
 */
 //> Statements and State not-yet
     return assignment();
 //< Statements and State not-yet
   }
-//< parse-expression
+//< expression
 //> Statements and State not-yet
 
   private Stmt declaration() {
@@ -455,10 +454,8 @@ class Parser {
       return new Expr.Grouping(expr);
     }
 //> primary-error
-    // Discard the token so we can make progress.
-    advance();
 
-    throw error(previous(), "Expect expression.");
+    throw error(peek(), "Expect expression.");
 //< primary-error
   }
 //< primary
@@ -481,17 +478,18 @@ class Parser {
     throw error(peek(), message);
   }
 //< consume
-//> check-and-advance
+//> check
   private boolean check(TokenType tokenType) {
     if (isAtEnd()) return false;
     return peek().type == tokenType;
   }
-
+//< check
+//> advance
   private Token advance() {
     if (!isAtEnd()) current++;
     return previous();
   }
-//< check-and-advance
+//< advance
 //> utils
   private boolean isAtEnd() {
     return peek().type == EOF;
@@ -513,6 +511,8 @@ class Parser {
 //< error
 //> synchronize
   private void synchronize() {
+    advance();
+
     while (!isAtEnd()) {
       if (previous().type == SEMICOLON) return;
 
