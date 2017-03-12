@@ -78,6 +78,7 @@ TOC = [
           'Expression nodes', 'Recursive descent', 'Precedence',
           'Associativity', 'Primary expressions', 'Syntax errors'
         ],
+        'design_note': "Logic Versus History"
       },
       {
         'name': 'Evaluating Expressions',
