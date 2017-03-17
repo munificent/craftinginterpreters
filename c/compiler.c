@@ -371,7 +371,8 @@ static ObjFunction* endCompiler() {
     disassembleChunk(currentChunk(), "code");
 */
 //> Calls and Functions not-yet
-    disassembleChunk(currentChunk(), function->name->chars);
+    disassembleChunk(currentChunk(),
+        function->name != NULL ? function->name->chars : "<top>");
 //< Calls and Functions not-yet
   }
 #endif

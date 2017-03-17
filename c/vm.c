@@ -550,7 +550,7 @@ static bool run() {
 
       case OP_SET_UPVALUE: {
         uint8_t slot = READ_BYTE();
-        *frame->closure->upvalues[slot]->value = pop();
+        *frame->closure->upvalues[slot]->value = peek(0);
         break;
       }
 //< Closures not-yet
