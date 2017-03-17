@@ -272,18 +272,16 @@ operator and control how it is positioned -- its "fixity".
 
 </aside>
 
-One arithmetic operator is actually *both* an infix and a prefix one. The `-` operator can also be used to negate a number:
+One arithmetic operator is actually *both* an infix and a prefix one. The `-`
+operator can also be used to negate a number:
 
 ```lox
 -negateMe;
 ```
 
 All of these operators work on numbers, and it's an error to pass any other
-types to them. The exception is `+` and strings. If either operand of `+` is a
-string, then the other operand is converted to a string (if it isn't already
-one) and the results are concatenated. I'm not a proponent of implicit
-conversions in general, but this one saves us from needing to define a dedicated
-function to stringify the other built-in types.
+types to them. The exception is the `+` operator -- you can also pass it two
+strings to concatenate them.
 
 ### Comparison and equality
 
