@@ -13,7 +13,7 @@ that make up the language's grammar.
 <aside name="lexing">
 
 This task has been variously called "scanning" and "lexing" (short for "lexical
-analysis") over the years. Way back when computers were as big as Winebagos but
+analysis") over the years. Way back when computers were as big as Winnebagos but
 had less memory than your watch, some people used "scanner" only to refer to the
 piece of code that dealt with reading raw source code characters from disk and
 buffering them in memory. Then "lexing" was the phase after that that did useful

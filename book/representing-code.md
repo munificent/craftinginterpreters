@@ -430,7 +430,7 @@ But I like getting the most out of Java's type system. So we'll define a base
 class for expressions. Then, for each kind of expression -- each production
 under `expression` -- we create a subclass that has fields for the nonterminals
 specific to that rule. This way, we get a compile error if we, say, try to
-access the second operand of an unary expression.
+access the second operand of a unary expression.
 
 Something like:
 
