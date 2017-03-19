@@ -17,6 +17,7 @@ take a look at:
 * **C++:** [ikatanic/lox-cpp](https://github.com/ikatanic/lox-cpp)
 * **C#:** [ByronMayne/LoxSharp](https://github.com/ByronMayne/LoxSharp),
     [tslater2006/Gravlox](https://github.com/tslater2006/Gravlox)
+* **Ceylon:** [leomindez/celox](https://github.com/leomindez/celox)
 * **Go:** [paulja/glox](https://github.com/paulja/glox)
 * **JavaScript:** [brandly/lox.js](https://github.com/brandly/lox.js)
 * **Kotlin:** [GraydenH/klox](https://github.com/GraydenH/klox)
@@ -64,8 +65,8 @@ You'll need to install a few Python packages:
 $ pip3 install markdown jinja2 pygments
 ```
 
-The makefile also assumes `ruby` is on your PATH; you'll need to install
-these Ruby gems:
+The makefile also assumes Ruby (in particular `gem`) is on your PATH. You'll
+need to install this gem:
 
 ```sh
 $ gem install sass
