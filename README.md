@@ -27,7 +27,8 @@ take a look at:
     [HarveyHunt/loxr](https://github.com/HarveyHunt/loxr),
     [mariosangiorgio/rulox](https://github.com/mariosangiorgio/rulox)
 * **SPARK:** [aeszter/lox-spark](https://github.com/aeszter/lox-spark)
-* **Swift:** [alexito4/slox](https://github.com/alexito4/slox)
+* **Swift:** [alexito4/slox](https://github.com/alexito4/slox),
+    [hashemi/slox](https://github.com/hashemi/slox)
 * **Wren:** [CodogoFreddie/wlox](https://github.com/CodogoFreddie/wlox)
 
 Are you porting jlox or clox to another language? Let me know and I'll add you
