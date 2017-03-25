@@ -27,3 +27,8 @@ parsing a declaration even though it isn't valid.
 
 Lisp in Small Pieces has some good notes around choosing the semantics of top
 level variables. I think chapter 3.4? Look for "Hyperstatic".
+
+--
+
+Explain that we store parentheses in the syntax tree so that we can report
+`(a) = 2` as a syntax error.
