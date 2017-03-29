@@ -286,7 +286,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       case PLUS:
         if (left instanceof Double && right instanceof Double) {
           return (double)left + (double)right;
-        }
+        } // [plus]
 
         if (left instanceof String && right instanceof String) {
           return (String)left + (String)right;
