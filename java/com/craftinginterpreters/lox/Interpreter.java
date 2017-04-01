@@ -482,7 +482,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       return;
     }
 
-    throw new RuntimeError(operator, "Operands must be numbers.");
+    throw new RuntimeError(operator, "Operands must be numbers."); // [operand]
   }
 //< check-operands
 //> is-true

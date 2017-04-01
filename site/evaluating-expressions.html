@@ -43,6 +43,8 @@
     <li><a href="#hooking-up-the-interpreter"><small>7.4</small> Hooking Up the Interpreter</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
+    <li class="end-part"><a href="#design-note"><small>note</small>Static and Dynamic Typing
+</a></li>
 </ul>
 
 
@@ -74,6 +76,8 @@
     <li><a href="#hooking-up-the-interpreter"><small>7.4</small> Hooking Up the Interpreter</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
+    <li class="end-part"><a href="#design-note"><small>note</small>Static and Dynamic Typing
+</a></li>
 </ul>
 
 
@@ -113,27 +117,26 @@
 <p>You are my creator, but I am your master; Obey!</p>
 <p><cite>Mary Shelley, Frankenstein</cite></p>
 </blockquote>
-<p>If you&rsquo;re trying to set the mood before you embark on this chapter, do your best
-to summon a thunderstorm. Once of those swirling tempests that likes to throw
-open shutters right at the most dramatic moment of the story. We could use a
-little lightning tonight.</p>
+<p>If you&rsquo;re setting the mood before you embark on this chapter, do your best to
+summon a thunderstorm, one of those swirling tempests that likes to yank open
+shutters right at the climax of the story. We could use some lightning tonight.
+In this chapter, our interpreter will take breath, open its eyes, and execute
+some code.</p>
 <p><strong>TODO: illustrate a storm</strong></p>
-<p>Finally, our interpreter will come to life. In this chapter, it will take
-breath, open its eyes, and execute some code.</p>
-<p>There are a variety of ways that language implementations make a computer do
-what the user&rsquo;s source code specifies. It can be compiled to machine code,
-translated to another high level language and executed from there, translated to
-some bytecode format for a virtual machine that runs it. For our first
-interpreter, though, we are going to take the simplest, shortest path and
-execute the syntax tree itself.</p>
-<p>Right now, our front end only knows how to parse a single expression. So, to
-&ldquo;execute&rdquo; code, we will evaluate an expression to produce a value. For each kind
-of expression syntax in Lox&#8202;&mdash;&#8202;literal, operator, etc.&#8202;&mdash;&#8202;we need a chunk of
-code that knows how to evaluate that tree to produce a result. That raises two
-questions:</p>
+<p>There are all manner of ways that language implementations make a computer do
+what the user&rsquo;s source code commands. They can compile it to machine code,
+translate it to another high level language, or translate to some bytecode
+format for a virtual machine that runs it. For our first interpreter, though, we
+are going to take the simplest, shortest path and execute the syntax tree
+itself.</p>
+<p>Right now, our parser only supports expressions. So, to &ldquo;execute&rdquo; code, we will
+evaluate the expression and produce a value. For each kind of expression syntax
+we know how to parse&#8202;&mdash;&#8202;literal, operator, etc.&#8202;&mdash;&#8202;we need a corresponding chunk
+of code that knows how to evaluate that tree to produce a result. That raises
+two questions:</p>
 <ol>
-<li>What kinds of objects are these values?</li>
-<li>Where does the code to execute expressions live?</li>
+<li>What kinds of values are produced?</li>
+<li>How is the code to execute expressions organized?</li>
 </ol>
 <p>Let&rsquo;s tackle them one at a time.</p>
 <h2><a href="#representing-values" name="representing-values"><small>7&#8202;.&#8202;1</small> Representing Values</a></h2>
@@ -141,7 +144,7 @@ questions:</p>
 name="value">values</span>. They are created by literals, produced by
 expressions, and stored in variables. To the user, they are <em>Lox</em> objects. But
 to us, the language implementer, they are defined in terms of the implementation
-language, Java in our case.</p>
+language&#8202;&mdash;&#8202;Java in our case.</p>
 <aside name="value">
 <p>Here, I&rsquo;m using &ldquo;value&rdquo; and &ldquo;object&rdquo; pretty much interchangeably.</p>
 <p>Later, in the C interpreter, we&rsquo;ll make a slight distinction between them, but
@@ -150,11 +153,11 @@ implementation&#8202;&mdash;&#8202;in-place versus heap-allocated data. From the
 perspective, the terms are synonymous.</p>
 </aside>
 <p>So how do we want to implement Lox values? Aside from the basic &ldquo;pass around and
-store in variables&rdquo;, we need to do a few things with them:</p>
+store in variables&rdquo;, we need to do a few things with one:</p>
 <ul>
 <li>
-<p><strong>Determine their type.</strong> Since Lox is dynamically typed, we need to be able
-    to check the type of a value at runtime and make sure you don&rsquo;t do things
+<p><strong>Determine its type.</strong> Since Lox is dynamically typed, we need to be able
+    to check the type of a value at runtime to make sure you don&rsquo;t do things
     like subtract a string from a number.</p>
 </li>
 <li>
@@ -172,8 +175,7 @@ equality as methods that check the type and do the right thing for each kind of
 value. So, really, asking an object its type is the only fundamental operation.</p>
 <p>Fortunately, the <span name="jvm">JVM</span> gives us that for free. The
 <code>instanceof</code> operator lets you ask if an object has some type. There are also
-boxed types for all of the primitive types we need for Lox. This keeps things
-easy:</p>
+boxed types for all of the primitive types we need for Lox. Here&rsquo;s how we map each Lox type to Java:</p>
 <aside name="jvm">
 <p>Built in instance checks and a really nice garbage collector are the main
 reasons we&rsquo;re writing our first interpreter in Java. Those get us up and running
@@ -206,23 +208,25 @@ more quickly.</p>
 </tbody>
 </table>
 
-<p>This means that in jlox, a number is implemented simply using a Java Double.</p>
 <p>We&rsquo;ll have to do a little more work later when we add Lox&rsquo;s notions of
 functions, classes, and instances, but these are fine for the basic types. We
-don&rsquo;t need any kind of wrapper classes or indirection.</p>
+don&rsquo;t need any kind of wrapper classes or indirection. We won&rsquo;t be, say,
+defining a LoxNumber class. Plain old Double works fine. When we want to pass a
+Lox object around, we can type it as Object, since that&rsquo;s a superclass of all of
+the above types.</p>
 <h2><a href="#evaluating-expressions" name="evaluating-expressions"><small>7&#8202;.&#8202;2</small> Evaluating Expressions</a></h2>
-<p>We need a blob of code to implement the evaluation logic for each kind of
+<p>Next, we need blobs of code to implement the evaluation logic for each kind of
 expression we can parse. We could stuff those into the syntax tree classes
 directly in something like an <code>interpret()</code> method. In effect, we could tell
-each syntax tree node, &ldquo;Interpret thyself.&rdquo; This is [the Gang of Four&rsquo;s
+each syntax tree node, &ldquo;Interpret thyself.&rdquo; This is the Gang of Four&rsquo;s
 <a href="https://en.wikipedia.org/wiki/Interpreter_pattern">Interpreter design pattern</a>&rdquo;. It&rsquo;s a neat pattern, but like I mentioned
-early, it gets messy to start jamming all sorts of logic into the tree classes.</p>
-<p>Instead, we&rsquo;re going to bring out our handy <a href="representing-code.html#the-visitor-pattern">visitor pattern</a>.</p>
-<p>In the previous chapter, we created an AstPrinter class. It took in a syntax
-tree and recursively traversed, building up a string which it ultimately
-returned. That&rsquo;s almost exactly what our real interpreter will do, except
-instead of concatenating strings, it evaluates expressions.</p>
-<p>This goes into a new class:</p>
+earlier, it gets messy if we jam all sorts of logic into the tree classes.</p>
+<p>Instead, we&rsquo;re going to break out our groovy <a href="representing-code.html#the-visitor-pattern">Visitor pattern</a>. In the
+previous chapter, we created an AstPrinter class. It took in a syntax tree and
+recursively traversed it, building up a string which it ultimately returned.
+That&rsquo;s almost exactly what a real interpreter does, except instead of
+concatenating strings, it produces values.</p>
+<p>We start with a new class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 create new file</div>
 <pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
@@ -232,25 +236,22 @@ create new file</div>
 <span class="o">}</span>
 </pre></div>
 
-<p>It declares that it&rsquo;s a visitor. In this case, the return type of the visit
-methods will be Object. That is the single root class that we will use to refer
-to a Lox value in our Java code. Since Boolean, Double, and String are all
-subclasses of Object in Java, that lets us return any kind of Lox value&#8202;&mdash;&#8202;exactly what we need to implement dynamic typing.</p>
-<p>To satisfy the Visitor interface, we need to define visit methods for each of
-the four expression tree classes we&rsquo;ve defined. We&rsquo;ll start with the simplest,
-literals.</p>
+<p>It declares that it&rsquo;s a visitor. The return type of the visit methods is Object,
+the root class that we use to refer to a Lox value in our Java code. To satisfy
+the Visitor interface, we need to define visit methods for each of the four
+expression tree classes we&rsquo;ve defined. We&rsquo;ll start with the simplest, literals.</p>
 <h3><a href="#evaluating-literals" name="evaluating-literals"><small>7&#8202;.&#8202;2&#8202;.&#8202;1</small> Evaluating literals</a></h3>
 <p>The leaves of an expression tree&#8202;&mdash;&#8202;the atomic bits of syntax that all other
 expressions are composed of&#8202;&mdash;&#8202;are <span name="leaf">literals</span>. Literals
-are almost already values, but the distinction is important. A literal is a <em>bit
+are almost values already, but the distinction is important. A literal is a <em>bit
 of syntax</em> that produces a value. A literal, for example, always has a token
 that identifiers where it occurs in the user&rsquo;s source code. Lots of values are
-produced by computation and don&rsquo;t appear anywhere in the code itself. A literal
-comes from the parser&rsquo;s domain. Values are interpreter concept, part of the
-runtime&rsquo;s world.</p>
+produced by computation and don&rsquo;t appear anywhere in the code itself. Those
+aren&rsquo;t literals. A literal comes from the parser&rsquo;s domain. Values are an
+interpreter concept, part of the runtime&rsquo;s world.</p>
 <aside name="leaf">
-<p>In the next chapter, when we support variables, then we&rsquo;ll add identifier
-expressions which are also leaves.</p>
+<p>In the next chapter, when we implement variables, we&rsquo;ll add identifiers, which
+are also leaf nodes.</p>
 </aside>
 <p>So, much like we converted a literal <em>token</em> into a literal <em>syntax tree node</em>
 in the parser, now we convert the literal tree node into a runtime value. That
@@ -263,9 +264,9 @@ in class <em>Interpreter</em></div>
   <span class="o">}</span>
 </pre></div>
 
-<p>We already produced the runtime value way back during scanning and stuffed it in
-the token. The literal tree node stores that token, so to evaluate it, we just
-unwrap the value.</p>
+<p>We eagerly produced the runtime value way back during scanning and stuffed it in
+the token. The parser took that value and stuffed it in the literal tree node,
+so to evaluate a literal, we simply pull it back out.</p>
 <h3><a href="#evaluating-parentheses" name="evaluating-parentheses"><small>7&#8202;.&#8202;2&#8202;.&#8202;2</small> Evaluating parentheses</a></h3>
 <p>The next simplest node to evaluate is a grouping expression&#8202;&mdash;&#8202;the node you get
 as a result of using explicit parentheses to override precedence in an
@@ -280,17 +281,16 @@ in class <em>Interpreter</em></div>
 
 <p>A <span name="grouping">grouping</span> node has a reference to an inner node
 for the expression contained inside the parentheses. To evaluate the
-parenthesized expression itself, we just recursively evaluate that subexpression
-and return it.</p>
+parenthesized expression itself, we recursively evaluate that subexpression and
+return it.</p>
 <aside name="grouping">
-<p>Some parsers don&rsquo;t even define syntax tree nodes for parentheses. Instead, when
-it parses a parenthesized expression, it simply returns a node for the inner
-expression.</p>
-<p>We store it explicitly in the syntax trees for Lox because we&rsquo;ll need it later
-when we get to handling the left-hand sides of assignment expressions.</p>
+<p>Some parsers don&rsquo;t define tree nodes for parentheses. Instead, when parsing a
+parenthesized expression, they simply return the node for the inner expression.
+We do create a node for parentheses in Lox because we&rsquo;ll need it later when we
+get to handling the left-hand sides of assignment expressions.</p>
 </aside>
-<p>It recurses into the subexpression using this helper, which simply sends the
-expression back into the interpreter&rsquo;s visitor implementation:</p>
+<p>We rely on this helper, which simply sends the expression back into the
+interpreter&rsquo;s visitor implementation:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>evaluate</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Object</span> <span class="nf">evaluate</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
@@ -301,7 +301,7 @@ in <em>evaluate</em>()</div>
 <h3><a href="#evaluating-unary-expressions" name="evaluating-unary-expressions"><small>7&#8202;.&#8202;2&#8202;.&#8202;3</small> Evaluating unary expressions</a></h3>
 <p>Like grouping, unary expressions have a single subexpression that we must
 evaluate first. The only difference is that the unary expression itself does a
-little work to it afterwards:</p>
+little work afterwards:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitLiteralExpr</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -318,8 +318,10 @@ add after <em>visitLiteralExpr</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>There are two different unary expressions, identified by the type of token for
-their operator. Here&rsquo;s <code>-</code>, which negates the result of the subexpression.</p>
+<p>First, we evaluate the operand expression. Then we apply the unary operator
+itself to the result of that. There are two different unary expressions,
+identified by the type of the operator token. Here&rsquo;s <code>-</code>, which negates the
+result of the subexpression.</p>
 <p>The subexpression must be a number. Since we don&rsquo;t <em>statically</em> know that in
 Java, we <span name="cast">cast</span> it before performing the operation. This
 type cast is happening at runtime when the <code>-</code> is evaluated. That&rsquo;s the core of
@@ -329,9 +331,8 @@ dynamic typing right there before your eyes.</p>
 into that soon.</p>
 </aside>
 <p>Now you can start to see how evaluation recursively traverses the tree. Note how
-we can&rsquo;t produce the result value of the grouping expression until after we&rsquo;ve
-evaluated its subexpression. That means our interpreter is doing a <strong>post-order
-traversal</strong>&#8202;&mdash;&#8202;each node evaluates its children before doing its own work.</p>
+we can&rsquo;t evaluate the unary operator until after we&rsquo;ve evaluated its operand
+subexpression. That means our interpreter is doing a <strong>post-order traversal</strong>&#8202;&mdash;&#8202;each node evaluates its children before doing its own work.</p>
 <p>The other operator is <code>!</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
@@ -404,11 +405,11 @@ we need our object representation to support <code>instanceof</code>.</p>
 <aside name="plus">
 <p>We could have defined an operator specifically for string concatenation. That&rsquo;s
 what Perl (<code>.</code>), Lua (<code>..</code>), Smalltalk (<code>,</code>), Haskell (<code>++</code>) and others do.</p>
-<p>I thought it would make Lox a little more approachable to use the same syntax
-that Java, JavaScript, Python, and others do. This means that the <code>+</code> operator
-is <strong>overloaded</strong> to support both adding numbers and concatenating strings. Even
-in languages that don&rsquo;t use <code>+</code> for strings, it is often overloaded for
-supporting adding both integers and floating point numbers.</p>
+<p>I thought it would make Lox a little more approachable to use the same syntax as
+Java, JavaScript, Python, and others. This means that the <code>+</code> operator is
+<strong>overloaded</strong> to support both adding numbers and concatenating strings. Even in
+languages that don&rsquo;t use <code>+</code> for strings, it is often overloaded to support
+adding both integers and floating point numbers.</p>
 </aside>
 <p>Next up are the comparison operators:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
@@ -436,13 +437,13 @@ in <em>visitBinaryExpr</em>()</div>
 </pre></div>
 
 <p>Unlike the comparison operators which require numbers, the equality operators
-support operands of any type, even mixed ones. You can&rsquo;t ask Lox if 3 is less
-than <code>"four"</code>, but you can ask if it&rsquo;s <span name="equal">equivalent</span> to
+support operands of any type, even mixed ones. You can&rsquo;t ask Lox if 3 is <em>less</em>
+than <code>"four"</code>, but you can ask if it&rsquo;s <span name="equal"><em>equal</em></span> to
 it.</p>
 <aside name="equal">
 <p>Spoiler alert: it&rsquo;s not.</p>
 </aside>
-<p>Like truthiness, that equality logic is hoisted out into a separate method:</p>
+<p>Like truthiness, the equality logic is hoisted out into a separate method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>isTrue</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isEqual</span><span class="o">(</span><span class="n">Object</span> <span class="n">a</span><span class="o">,</span> <span class="n">Object</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
@@ -458,7 +459,7 @@ add after <em>isTrue</em>()</div>
 in terms of Java matters. We need to correctly implement <em>Lox&rsquo;s</em> notion of
 equality, which may be different from Java&rsquo;s.</p>
 <p>Fortunately, the two are pretty similar. We have to handle <code>nil</code>/<code>null</code>
-specially so that we don&rsquo;t get a null reference error if we try to call
+specially so that we don&rsquo;t throw a NullPointerException if we try to call
 <code>equals()</code> on <code>null</code>. Otherwise, we&rsquo;re fine. <code>.equals()</code> on Boolean, Double, and
 String have the behavior we want for Lox.</p>
 <p>And that&rsquo;s it! That&rsquo;s all the code we need to correctly interpret a valid Lox
@@ -466,55 +467,34 @@ expression. But what about an <em>invalid</em> one? In particular, what happens 
 subexpression evaluates to an object of the wrong type for the operation being
 performed?</p>
 <h2><a href="#runtime-errors" name="runtime-errors"><small>7&#8202;.&#8202;3</small> Runtime Errors</a></h2>
-<p>We&rsquo;ve been pretty cavalier about jamming casts into the above code to take the
-Object that a subexpression produces and treat it like the number or string type
-an operator requires. What happens when those casts fail? Or, more to the point,
-what do we <em>want</em> to happen?</p>
+<p>I was cavalier about jamming casts into the previous code to take the Object
+that a subexpression produces and use it as the number or string some operators
+require. Those casts can fail. Even though the code is erroneous, if we want to
+make a <span name="fail">usable</span> language, we are responsible to handling
+that error gracefully.</p>
+<aside name="fail">
+<p>We could simply not detect or report a type error at all. This is what C does if
+you cast a pointer to some type that doesn&rsquo;t match the data that is actually
+being pointed to. C gets gains flexibility and speed by allowing that, but is
+also famously dangerous. Once you misinterpret bits in memory, all bets are off.</p>
+<p>Few modern languages accept unsafe operations like this. Instead, most are
+<strong>memory safe</strong> and ensure&#8202;&mdash;&#8202;through a combination of static and runtime checks
+&ndash; that a program can never incorrectly interpret the value stored in a piece of
+memory.</p>
+</aside>
 <p>It&rsquo;s time for us to talk about <strong>runtime errors.</strong> I spilled a lot of ink in the
 previous chapters talking about error handling, but those were all <em>syntax</em> or
-<em>static</em> errors. That&rsquo;s the category of errors that we can detect and report
-before <em>any</em> code is executed.</p>
-<p>Now we have entered the realm of <em>runtime</em> errors. These are failures that the
-language semantics demand we detect and report while the program is running.
-You&rsquo;re probably familiar with the distinction here, but it&rsquo;s worth noting that
-the line between the two can get a littly blurry.</p>
-<p>There are statically typed languages where type errors are all checked at
-compile time before a line of code is executed. And there are dynamically typed
-languages like Lox where type errors aren&rsquo;t checked until runtime.</p>
-<p>But&hellip; in practice it turns out that most statically typed languages push off
-<em>some</em> of their type checks until <span name="covariant">runtime</span>. The
-type system checks <em>some</em> type rules statically, but inserts runtime checks for
-other operations. For example, in Java, the <em>static</em> type system assumes a cast
-expression will always safely succeed. The only reason it can do that without
-violating soundness is because the cast is checked <em>at runtime</em> and throws an
-exception on failure. There are few statically typed languages that defer <em>none</em>
-of their type checking until runtime.</p>
-<aside name="covariant">
-<p>A more subtle example is covariant arrays in Java and C#. The subtyping rules
-for arrays allow operations that are not statically safe. Consider:</p>
-<div class="codehilite"><pre><span></span><span class="n">Object</span><span class="o">[]</span> <span class="n">stuff</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Integer</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
-<span class="n">stuff</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;not an int!&quot;</span><span class="o">;</span>
-</pre></div>
-
-
-<p>In the first line, we upcast the Integer array and store it in a variable of
-type Object array. In the second line, we store a string in one of its cells.
-The Object array type statically allows that&#8202;&mdash;&#8202;strings <em>are</em> Objects&#8202;&mdash;&#8202;but the
-actual Integer array that <code>stuff</code> refers to at runtime should never have a
-string in it!</p>
-<p>To avoid that, when you store a value in an array, the JVM does a <em>runtime</em>
-check to make sure it&rsquo;s an allowed type. If not, it throws an
-ArrayStoreException.</p>
-</aside>
-<p>Meanwhile, Lox defers all of its type errors until runtime. What should happen
-when one occurs? Right now, the Java cast will fail and the JVM will throw an
-exception. That unwinds the whole stack and exits the application, dumping a
-Java stack trace on the user. That&rsquo;s definitely not what we want. The fact that
-Lox is implemented in Java should be a detail hidden from the user. Instead, we
-want them to understand that a <em>Lox</em> runtime error occurred, and give them an
-error message relevant to our language and their program.</p>
-<p>The Java behavior does have one good thing going for it, though&#8202;&mdash;&#8202;it correctly
-stops executing any code when the error occurs. Let&rsquo;s say the user enters some
+<em>static</em> errors. Those are detected and reported before <em>any</em> code is executed.
+Runtime errors are failures that the language semantics demand we detect and
+report while the program is running (hence the name).</p>
+<p>Right now, the Java cast will fail and the JVM will throw a ClassCastException.
+That unwinds the whole stack and exits the application, vomiting a Java stack
+trace onto the user. That&rsquo;s probably not what we want. The fact that Lox is
+implemented in Java should be a detail hidden from the user. Instead, we want
+them to understand that a <em>Lox</em> runtime error occurred, and give them an error
+message relevant to our language and their program.</p>
+<p>The Java behavior does have one thing going for it, though&#8202;&mdash;&#8202;it correctly stops
+executing any code when the error occurs. Let&rsquo;s say the user enters some
 expression like:</p>
 <div class="codehilite"><pre><span></span><span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">3</span> <span class="o">/</span> <span class="o">-</span><span class="s">&quot;muffin&quot;</span><span class="p">)</span>
 </pre></div>
@@ -526,22 +506,21 @@ the <code>/</code> expression since it has no meaningful right operand. Likewise
 So when a runtime error occurs deep in some expression, we need to escape all
 the way out.</p>
 <aside name="muffin">
-<p>I don&rsquo;t know, <em>can</em> you negate a muffin? Is that what a cake doughnut is?</p>
+<p>I don&rsquo;t know, man, <em>can</em> you negate a muffin?</p>
 </aside>
-<p>We could simply print a runtime error and then abort the process and exit the
-application entirely. That has a certain melodramatic flair that&rsquo;s appealing.
-We&rsquo;d probably dump the error message in ALL CAPS with some scary hex numbers to
-go along with it.</p>
-<p>Tempting as that is, we should probably do something a little less user-hostile.
-In particular, while a runtime error needs to stop evaluating the expression, it
-shouldn&rsquo;t kill the <em>interpreter</em>. If a user is running the REPL and has a typo
-in a line of code, they should still be able to keep going and enter more code
-after that.</p>
+<p>We could print a runtime error and then abort the process and exit the
+application entirely. That has a certain melodramatic flair. Sort of the
+programming language interpreter equivalent of a mic drop.</p>
+<p>Tempting as that is, we should probably do something a little less
+confrontational. While a runtime error needs to stop evaluating the expression,
+it shouldn&rsquo;t kill the <em>interpreter</em>. If a user is running the REPL and has a
+typo in a line of code, they should still be able to keep going and enter more
+code after that.</p>
 <h3><a href="#detecting-runtime-errors" name="detecting-runtime-errors"><small>7&#8202;.&#8202;3&#8202;.&#8202;1</small> Detecting runtime errors</a></h3>
 <p>Our tree-walk interpreter evaluates nested expressions using recursive method
 calls, and we need to unwind out of all of those. Throwing an exception in Java
 is a fine way to accomplish that. However, instead of using Java&rsquo;s own cast
-failure, we&rsquo;ll define our own so that we can handle it the way we want.</p>
+failure, we&rsquo;ll define a Lox-specific one so that we can handle it how we want.</p>
 <p>Before we do the cast, we validate the type ourselves. So, for unary <code>-</code>, we
 add:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
@@ -578,18 +557,18 @@ create new file</div>
 <span class="o">}</span>
 </pre></div>
 
-<p>Unlike the Java cast exception, our <span name="class">own class</span> tracks
-the token that identifies where in the user&rsquo;s code the runtime error came from.
-Like with static errors, this helps the user know where to fix their code.</p>
+<p>Unlike the Java cast exception, our <span name="class">class</span> tracks the
+token that identifies where in the user&rsquo;s code the runtime error came from. Like
+with static errors, this helps the user know where to fix their code.</p>
 <aside name="class">
-<p>I admit the name &ldquo;RuntimeError&rdquo; is a little confusing because the Java core
-libraries also define &ldquo;RuntimeException&rdquo;. An annoying thing about implementing
-programming languages is you often want names that collide with ones already in
-use by the host implementation language. Wait until we get to implementing Lox
-classes in Java.</p>
+<p>I admit the name &ldquo;RuntimeError&rdquo; is confusing since Java defines a
+RuntimeException class. An annoying thing about implementing languages is you
+often want names that collide with ones already taken by the implementation
+language. Wait until we get to implementing Lox classes.</p>
 </aside>
-<p>We add similar checking to the binary operators. I&rsquo;ll run them all. Greater
-than:</p>
+<p>We add similar checking to the binary operators. In the interest of
+completeness, I&rsquo;ll run through them all.</p>
+<p>Greater than:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">GREATER</span><span class="o">:</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
@@ -655,10 +634,14 @@ add after <em>checkNumberOperand</em>()</div>
       <span class="k">return</span><span class="o">;</span>
     <span class="o">}</span>
 
-    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="s">&quot;Operands must be numbers.&quot;</span><span class="o">);</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="s">&quot;Operands must be numbers.&quot;</span><span class="o">);</span> <span name="operand"></span>
   <span class="o">}</span>
 </pre></div>
 
+<aside name="operand">
+<p>A better error message would tell the user <em>which</em> operand wasn&rsquo;t a number, but
+I&rsquo;m trying to keep the code terse.</p>
+</aside>
 <p>The odd one out, again, is addition. Since it&rsquo;s overloaded for numbers and
 strings, it already has code to check the types. All we need to do is fail when
 neither of the two success cases are matched:</p>
@@ -673,7 +656,7 @@ in <em>visitBinaryExpr</em>()</div>
 </pre></div>
 
 <p>OK, now we detect runtime errors deep in the bowels of the evaluator. The errors
-are getting thrown, the next step is to write the code that catches them. For
+are getting thrown. The next step is to write the code that catches them. For
 that, we need to wire up the Interpreter class into the main Lox class that
 drives it.</p>
 <h2><a href="#hooking-up-the-interpreter" name="hooking-up-the-interpreter"><small>7&#8202;.&#8202;4</small> Hooking Up the Interpreter</a></h2>
@@ -693,8 +676,9 @@ in <em>interpret</em>()</div>
 </pre></div>
 
 <p>It takes in a syntax tree for an expression and evaluates it. If that succeeds,
-it get an object for the result value. It converts that to a string and shows it
-to the user. To convert any Lox value to a string, we use:</p>
+<code>evaluate()</code> returns an object for the result value. <code>interpret()</code> converts that
+to a string and shows it to the user. To convert any Lox value to a string, we
+rely on:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>isEqual</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">String</span> <span class="nf">stringify</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
@@ -713,24 +697,23 @@ add after <em>isEqual</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>This is another of those pieces of code like <code>isTrue()</code> where we cross the
+<p>This is another of those pieces of code like <code>isTrue()</code> that crosses the
 membrane between the user&rsquo;s view of Lox objects and their internal
 representation in Java.</p>
 <p>It&rsquo;s pretty straightforward. Since Lox was designed to be familiar to someone
 coming from Java, things like Booleans look the same in both languages. The two
-edge cases are <code>nil</code>, which we represent using Java&rsquo;s <code>null</code> and <span
-name="number">numbers</span>.</p>
+edge cases are <code>nil</code>, which we represent using Java&rsquo;s <code>null</code>, and numbers.</p>
 <p>Lox uses double-precision numbers even for integer values. In that case, they
-should print without a decimal point. Java wants you to know when you have a
-double and adds an explicit <code>.0</code> to integer-valued doubles. So we hack that
-off the end.</p>
+should print without a decimal point. Since Java has both floating point and
+integer types, it wants you to know which one you&rsquo;re using. It tells you by
+adding an explicit <code>.0</code> to integer-valued doubles. We don&rsquo;t care about that, so
+we <span name="number">hack</span> it off the end.</p>
 <aside name="number">
 <p>We take care of this edge case with numbers to ensure that jlox and clox behave
 the same. Ensuring compatibility in all of the weird corners of the language
-like this is an annoying, but very important part of the job. Users will either
-deliberately or inadvertently rely on these details and if the implementations
-aren&rsquo;t consistent, their program will break when they run it on different
-interpreters.</p>
+like this is an annoying but vital part of the job. Users rely on these
+details&#8202;&mdash;&#8202;either deliberately or inadvertently&#8202;&mdash;&#8202;and if the implementations aren&rsquo;t consistent, their program will break when they
+run it on different interpreters.</p>
 </aside>
 <h3><a href="#reporting-runtime-errors" name="reporting-runtime-errors"><small>7&#8202;.&#8202;4&#8202;.&#8202;1</small> Reporting runtime errors</a></h3>
 <p>If a runtime error is thrown while evaluating the expression, <code>interpret()</code>
@@ -772,18 +755,18 @@ in <em>runFile</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>
 </pre></div>
 
-<p>It has one minor use. If the user is running a Lox <span name="repl">script
-file</span> and runtime error occurs, we want to set an exit code when the
-process quits to let them know. Not everyone cares about command line program
-shell conventions, but we do.</p>
+<p>It has one minor use. If the user is running a Lox <span name="repl">script from
+a file</span> and a runtime error occurs, we set an exit code when the process
+quits to let them know. Not everyone cares about command line program shell
+conventions, but we do.</p>
 <aside name="repl">
 <p>If the user is running the REPL, we don&rsquo;t care about tracking runtime errors.
 After they are reported, we simply loop around and let them input new code and
 keep going.</p>
 </aside>
 <h3><a href="#running-the-interpreter" name="running-the-interpreter"><small>7&#8202;.&#8202;4&#8202;.&#8202;2</small> Running the interpreter</a></h3>
-<p>Now that we have an interpreter, Lox can start using it. It creates and stores
-an instance of it:</p>
+<p>Now that we have an interpreter, the Lox class can start using it. It creates
+and stores an instance of it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lox</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in class <em>Lox</em></div>
@@ -792,11 +775,11 @@ in class <em>Lox</em></div>
 </pre></div>
 
 <p>We make it static so that successive calls to <code>run()</code> inside a REPL session
-reuse the same interpreter. That takes make a difference now, but it will be
-important later when the interpreter stores state like global variables. That
-state needs to persist throughout the entire REPL session.</p>
-<p>Finally, we remove that temporary code from the <a href="parsing-expressions.html">last chapter</a> that printed
-the syntax tree and replace it with this:</p>
+reuse the same interpreter. That doesn&rsquo;t make a difference now, but it will
+later when the interpreter stores state like global variables. That state needs
+to persist throughout the entire REPL session.</p>
+<p>Finally, we remove the temporary code from the <a href="parsing-expressions.html">last chapter</a> that printed the
+syntax tree and replace it with this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="na">scanTokens</span><span class="o">();</span>
     <span class="n">Parser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Parser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
     <span class="n">Expr</span> <span class="n">expression</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="na">parse</span><span class="o">();</span>
@@ -809,11 +792,10 @@ replace 4 lines</div>
 
 <p>We have an entire language pipeline now: scanning, parsing, and
 execution. Congratulations, you now have your very own arithmetic calculator.</p>
-<p>As you can see, the interpreter is pretty simple. There&rsquo;s not too much going on
-in this chapter. But the Interpreter class and the visitor pattern we&rsquo;ve set up
-form the skeleton that will house all of the interesting guts later chapters are
-going to stuff in&#8202;&mdash;&#8202;variables, functions, etc. Right now, the interpreter
-doesn&rsquo;t do very much, but it&rsquo;s alive!</p>
+<p>As you can see, the interpreter is pretty simple. But the Interpreter class and
+the visitor pattern we&rsquo;ve set up form the skeleton that later chapters will
+stuff full of interesting guts&#8202;&mdash;&#8202;variables, functions, etc. Right now, the
+interpreter doesn&rsquo;t do very much, but it&rsquo;s alive!</p>
 <p><strong>TODO: illustrate</strong></p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
@@ -823,26 +805,80 @@ doesn&rsquo;t do very much, but it&rsquo;s alive!</p>
 <p>Allowing comparison operators on types other than numbers could be useful.
     The syntax is shorter than named function calls and might have a reasonable
     interpretation for some types like strings. Even comparisons among mixed
-    types, like <code>3 &lt; "pancake"</code> could be handy for things like heterogenous
-    ordered collections. Or it could lead to bugs and confused users.</p>
+    types, like <code>3 &lt; "pancake"</code> could be handy to enable things like
+    heterogenous ordered collections. Or it could lead to bugs and confused
+    users.</p>
 <p>Would you extend Lox to support comparing other types? If so, which pairs of
 types do you allow and how do you define their ordering? Justify your
 choices and compare them to other languages.</p>
 </li>
 <li>
-<p>Many languages define <code>+</code> such that if either operand is a string, the other
-    is converted to a string and the results are then concatenated. For example,
-    <code>"scone" + 4</code> would yield <code>scone4</code>. Extend the code in <code>visitBinary()</code> to
-    support that.</p>
+<p>Many languages define <code>+</code> such that if <em>either</em> operand is a string, the
+    other is converted to a string and the results are then concatenated. For
+    example, <code>"scone" + 4</code> would yield <code>scone4</code>. Extend the code in
+    <code>visitBinary()</code> to support that.</p>
 </li>
 <li>
 <p>What happens right now if you divide a number by zero? What do you think
-    should happen? Justify your choice? How do other languages you know handle
+    should happen? Justify your choice. How do other languages you know handle
     division by zero and why do they make the choices they do?</p>
 <p>Change the implementation in <code>visitBinary()</code> to detect and report a runtime
 error for this case.</p>
 </li>
 </ol>
+</div>
+<div class="design-note">
+<h2><a href="#design-note" name="design-note">Design Note: Static and Dynamic Typing
+</a></h2>
+
+<p>Some languages, like Java, are statically typed which means type errors are
+detected and reported at compile time before any code is run. Others, like Lox,
+are dynamically typed and defer checking for type errors until runtime right
+before an operation is attempted. We tend to think of these two styles as
+entirely disjoint, but there is actually a continuum between them.</p>
+<p>It turns out that even most statically typed languages defer <em>some</em> type checks
+until runtime. The type system checks most type rules statically, but inserts
+runtime checks in the generated code for other operations.</p>
+<p>For example, in Java, the <em>static</em> type system assumes a cast expression will
+always safely succeed. After you cast some value, you can statically treat it as
+the destination type and not get any compile errors.</p>
+<p>But downcasts can fail, obviously. The only reason the static checker can
+presume that casts always succeed without violating the language&rsquo;s soundness
+guarantees is because the cast is checked <em>at runtime</em> and throws an exception
+on failure.</p>
+<p>A more subtle example is <a href="https://en.wikipedia.org/wiki/Covariance_and_contravariance_(computer_science)#Covariant_arrays_in_Java_and_C.23">covariant arrays</a> in Java and C#. The static
+subtyping rules for arrays allow operations that are not sound. Consider:</p>
+<div class="codehilite"><pre><span></span><span class="n">Object</span><span class="o">[]</span> <span class="n">stuff</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Integer</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+<span class="n">stuff</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span> <span class="o">=</span> <span class="s">&quot;not an int!&quot;</span><span class="o">;</span>
+</pre></div>
+
+
+<p>This code compiles without any errors. The first line upcasts the Integer array
+and stores it in a variable of type Object array. The second line stores a
+string in one of its cells. The Object array type statically allows that
+&ndash; strings <em>are</em> Objects&#8202;&mdash;&#8202;but the actual Integer array that <code>stuff</code> refers to
+at runtime should never have a string in it!</p>
+<p>To avoid that catastrophe, when you store a value in an array, the JVM does a
+<em>runtime</em> check to make sure it&rsquo;s an allowed type. If not, it throws an
+ArrayStoreException.</p>
+<p>Java could have avoided the need to check this at runtime by disallowing the
+cast on the first line. It could make arrays <em>invariant</em> such that an array of
+Integers is <em>not</em> an array of Objects. That&rsquo;s statically sound, but it prohibits
+common and safe patterns of code that only read from arrays. Covariants is fine
+if you never <em>write</em> to the array. Those patterns were particularly important
+for usability in Java 1.0 before it supported generics.</p>
+<p>Gosling and the other Java designers traded off a little static safety and
+performance (those checks in array stores take time) in return for some
+flexibility.</p>
+<p>There are few modern statically typed languages that don&rsquo;t do <em>any</em> of their
+type validation at runtime. If you find yourself designing a statically typed
+language, keep in mind that you can sometimes give users more flexibility
+without sacrificing too many of the benefits of static safety by deferring some
+type checks until runtime.</p>
+<p>On the other hand, a key reason users choose statically typed languages is
+because of the confidence the language gives them that certain kinds of errors
+can <em>never</em> occur when their program is run. Defer too many type checks until
+runtime, and you risk eroding that confidence.</p>
 </div>
 
 <footer>
