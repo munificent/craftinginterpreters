@@ -19,6 +19,8 @@ take a look at:
     [tslater2006/Gravlox](https://github.com/tslater2006/Gravlox)
 * **Ceylon:** [leomindez/celox](https://github.com/leomindez/celox)
 * **Go:** [paulja/glox](https://github.com/paulja/glox)
+* **Haskell:** [Thomas-Neill/hlox](https://github.com/Thomas-Neill/hlox)
+* **Java:** [fsacer/FailLang](https://github.com/fsacer/FailLang)
 * **JavaScript:** [brandly/lox.js](https://github.com/brandly/lox.js)
 * **Kotlin:** [GraydenH/klox](https://github.com/GraydenH/klox)
 * **Lua:** [ryanplusplus/llox](https://github.com/ryanplusplus/llox)
@@ -30,7 +32,6 @@ take a look at:
 * **Swift:** [alexito4/slox](https://github.com/alexito4/slox),
     [hashemi/slox](https://github.com/hashemi/slox)
 * **Wren:** [CodogoFreddie/wlox](https://github.com/CodogoFreddie/wlox)
-* **Haskell:** [Thomas-Neill/hlox](https://github.com/Thomas-Neill/hlox)
 
 Are you porting jlox or clox to another language? Let me know and I'll add you
 to this list.
