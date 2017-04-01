@@ -1,7 +1,9 @@
-1.  The modification to the unary covers the prefix forms.
+1.  The comma operator has the lowest precedence, so it goes between expression
+    and equality:
 
     ```lox
-    expression → equality
+    expression → comma
+    comma      → equality ( "," equality )*
     equality   → comparison ( ( "!=" | "==" ) comparison )*
     comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
     term       → factor ( ( "-" | "+" ) factor )*
@@ -13,33 +15,31 @@
                | "(" expression ")"
     ```
 
-    I won't bother showing the scanner and token changes since those are
-    pretty obvious. (See how "=" and "==" are handled for scanning.)
+    To define the new syntax tree node, we add a line to the `defineAst()` call:
 
-    I won't show the code for changing the syntax tree classes. Basically,
-    instead of a single Expr.Unary class, we'll split it into Expr.Prefix
-    and Expr.Postfix. You could also keep a single Unary class and add a boolean
-    flag to it to track whether the operator was in prefix or postfix position.
+    ```java
+    "Comma    : Expr left, Expr right",
+    ```
 
-    private Expr unary() {
-      if (match(BANG, MINUS, MINUS_MINUS, PLUS_PLUS)) {
-        Token operator = previous();
-        Expr right = unary();
-        return new Expr.Prefix(operator, right);
-      }
+    Parsing is similar to other infix operators (except that we don't bother to
+    keep the operator token):
 
-      return postfix();
+    ```java
+    private Expr expression() {
+      return comma();
     }
 
-    private Expr postfix() {
-      Expr expr = primary();
+    private Expr comma() {
+      Expr expr = equality();
 
-      while (match(MINUS_MINUS, PLUS_PLUS)) {
-        expr = new Expr.Postfix(previous(), expr);
+      while (match(COMMA)) {
+        Expr right = equality();
+        expr = new Expr.Comma(expr, right);
       }
 
       return expr;
     }
+    ```
 
 2.  We just need one new rule.
 
