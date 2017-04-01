@@ -8,34 +8,6 @@ final site.
 If you find an error or have a suggestion, please do file an issue here. Thank
 you!
 
-## Implementations in Other Languages
-
-Some brave souls have ported (or are porting, depending on when you read this)
-the interpreters in the book to other languages. If Java and C aren't your bag,
-take a look at:
-
-* **C++:** [ikatanic/lox-cpp](https://github.com/ikatanic/lox-cpp)
-* **C#:** [ByronMayne/LoxSharp](https://github.com/ByronMayne/LoxSharp),
-    [tslater2006/Gravlox](https://github.com/tslater2006/Gravlox)
-* **Ceylon:** [leomindez/celox](https://github.com/leomindez/celox)
-* **Go:** [paulja/glox](https://github.com/paulja/glox)
-* **Haskell:** [Thomas-Neill/hlox](https://github.com/Thomas-Neill/hlox)
-* **Java:** [fsacer/FailLang](https://github.com/fsacer/FailLang)
-* **JavaScript:** [brandly/lox.js](https://github.com/brandly/lox.js)
-* **Kotlin:** [GraydenH/klox](https://github.com/GraydenH/klox)
-* **Lua:** [ryanplusplus/llox](https://github.com/ryanplusplus/llox)
-* **Python:** [selectnull/pylox](https://github.com/selectnull/pylox)
-* **Rust:** [rodaine/rlox](https://github.com/rodaine/rlox),
-    [HarveyHunt/loxr](https://github.com/HarveyHunt/loxr),
-    [mariosangiorgio/rulox](https://github.com/mariosangiorgio/rulox)
-* **SPARK:** [aeszter/lox-spark](https://github.com/aeszter/lox-spark)
-* **Swift:** [alexito4/slox](https://github.com/alexito4/slox),
-    [hashemi/slox](https://github.com/hashemi/slox)
-* **Wren:** [CodogoFreddie/wlox](https://github.com/CodogoFreddie/wlox)
-
-Are you porting jlox or clox to another language? Let me know and I'll add you
-to this list.
-
 ## Contributing
 
 One of the absolute best things about writing a book online and putting it out
@@ -46,6 +18,16 @@ If you'd like to do that, great! You can just file bugs here on the repo, or
 send a pull request if you're so inclined. If you want to send a pull request,
 but don't want to get the build system set up to regenerate the HTML too, don't
 worry about it. I'll do that when I pull it in.
+
+## Ports and implementations
+
+Another way to get involved is by sharing your own implementation of Lox. Ports
+to other langauges are particularly useful since not every reader likes Java and
+C. Feel free to add your Lox port or implementation to the wiki:
+
+* [Lox implementations][]
+
+[lox implementations]: https://github.com/munificent/craftinginterpreters/wiki/Lox-implementations
 
 ## Building Stuff
 
