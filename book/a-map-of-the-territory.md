@@ -213,11 +213,12 @@ match those to get every combination.
 
 If you've ever wondered how [GCC][] supports so many crazy languages and
 architectures, like Modula-3 on Motorola 68k, now you know. Language front ends
-target one of a handful of IRs, mainly [GIMPLE][]. Then target backends like the
-one for 68k take the GIMPLE and produce native code.
+target one of a handful of IRs, mainly [GIMPLE][] and [RTL][]. Then target
+backends like the one for 68k take those IRs and produce native code.
 
 [gcc]: https://en.wikipedia.org/wiki/GNU_Compiler_Collection
 [gimple]: https://gcc.gnu.org/onlinedocs/gccint/GIMPLE.html
+[rtl]: https://gcc.gnu.org/onlinedocs/gccint/RTL.html
 
 </aside>
 
