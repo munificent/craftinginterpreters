@@ -16,7 +16,6 @@ import java.util.Map;
 //> Statements and State not-yet
 
 //< Statements and State not-yet
-// Tree-walk interpreter.
 /* Evaluating Expressions interpreter-class < Statements and State not-yet
 class Interpreter implements Expr.Visitor<Object> {
 */
@@ -248,7 +247,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
     Object left = evaluate(expr.left);
-    Object right = evaluate(expr.right);
+    Object right = evaluate(expr.right); // [left]
 
     switch (expr.operator.type) {
 //> binary-equality
@@ -468,21 +467,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< Statements and State not-yet
 //> check-operand
   private void checkNumberOperand(Token operator, Object operand) {
-    if (operand instanceof Double) {
-      return;
-    }
-
+    if (operand instanceof Double) return;
     throw new RuntimeError(operator, "Operand must be a number.");
   }
 //< check-operand
 //> check-operands
   private void checkNumberOperands(Token operator,
                                    Object left, Object right) {
-    if (left instanceof Double && right instanceof Double) {
-      return;
-    }
-
-    throw new RuntimeError(operator, "Operands must be numbers."); // [operand]
+    if (left instanceof Double && right instanceof Double) return;
+    // [operand]
+    throw new RuntimeError(operator, "Operands must be numbers.");
   }
 //< check-operands
 //> is-true
