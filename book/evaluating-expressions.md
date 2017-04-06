@@ -7,11 +7,11 @@
 
 If you're setting the mood before you embark on this chapter, do your best to
 summon a thunderstorm, one of those swirling tempests that likes to yank open
-shutters right at the climax of the story. We could use some lightning tonight.
-In this chapter, our interpreter will take breath, open its eyes, and execute
-some code.
+shutters right at the climax of the story. A bolt of lightning would come in
+handy. In this chapter, our interpreter will take breath, open its eyes, and
+execute some code.
 
-**TODO: illustrate a storm**
+<img src="image/evaluating-expressions/lightning.png" alt="A bolt of lightning strikes a Victorian mansion. Spooky!" />
 
 There are all manner of ways that language implementations make a computer do
 what the user's source code commands. They can compile it to machine code,
@@ -363,6 +363,8 @@ the way out.
 
 I don't know, man, *can* you negate a muffin?
 
+![A muffin, negated.](image/evaluating-expressions/muffin.png)
+
 </aside>
 
 We could print a runtime error and then abort the process and exit the
@@ -566,7 +568,16 @@ the visitor pattern we've set up form the skeleton that later chapters will
 stuff full of interesting guts -- variables, functions, etc. Right now, the
 interpreter doesn't do very much, but it's alive!
 
-**TODO: illustrate**
+<span name="useless"></span>
+
+<img src="image/evaluating-expressions/skeleton.png" alt="A skeleton waving hello." />
+
+<aside name="useless">
+
+Did you notice that none of the illustrations in this chapter are even the
+slightest bit useful?
+
+</aside>
 
 <div class="challenges">
 
