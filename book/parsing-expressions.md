@@ -627,7 +627,7 @@ really want to raise the ante beyond that. A decent parser should:
     errors that don't indicate other real problems in the code. When the first
     error is fixed, they disappear, because they merely represent the parser's
     own confusion. These are annoying because they can scare the user into
-    thinking their code is in a worst state than it is.
+    thinking their code is in a worse state than it is.
 
 The last two points are in tension. We want to report as many separate errors as
 we can, but we don't want to report ones that are merely side effects of an

@@ -13,14 +13,16 @@ import java.util.Map;
 //< Resolving and Binding not-yet
 
 public class Lox {
+//> Evaluating Expressions interpreter-instance
+  private static final Interpreter interpreter = new Interpreter();
+//< Evaluating Expressions interpreter-instance
 //> had-error
   static boolean hadError = false;
 //< had-error
-//> Evaluating Expressions not-yet
+//> Evaluating Expressions had-runtime-error-field
   static boolean hadRuntimeError = false;
 
-  private static final Interpreter interpreter = new Interpreter();
-//< Evaluating Expressions not-yet
+//< Evaluating Expressions had-runtime-error-field
   public static void main(String[] args) throws IOException {
     if (args.length > 1) {
       System.out.println("Usage: jlox [script]");
@@ -39,9 +41,9 @@ public class Lox {
     // Indicate an error in the exit code.
     if (hadError) System.exit(65);
 //< exit-code
-//> Evaluating Expressions not-yet
+//> Evaluating Expressions check-runtime-error
     if (hadRuntimeError) System.exit(70);
-//< Evaluating Expressions not-yet
+//< Evaluating Expressions check-runtime-error
   }
 //< run-file
 //> prompt
@@ -55,9 +57,6 @@ public class Lox {
 //> reset-had-error
       hadError = false;
 //< reset-had-error
-//> Evaluating Expressions not-yet
-      hadRuntimeError = false;
-//< Evaluating Expressions not-yet
     }
   }
 //< prompt
@@ -78,12 +77,6 @@ public class Lox {
 /* Parsing Expressions print-ast < Statements and State not-yet
     Expr expression = parser.parse();
 */
-/* Parsing Expressions print-ast < Evaluating Expressions not-yet
-
-    if (!hadError) {
-      System.out.println(new AstPrinter().print(expression));
-    }
-*/
 //> Statements and State not-yet
     List<Stmt> statements = parser.parse();
 
@@ -98,7 +91,13 @@ public class Lox {
     // Stop if there was a resolution error.
     if (hadError) return;
 
-/* Evaluating Expressions not-yet < Statements and State not-yet
+/* Parsing Expressions print-ast < Evaluating Expressions interpreter-interpret
+
+    if (!hadError) {
+      System.out.println(new AstPrinter().print(expression));
+    }
+*/
+/* Evaluating Expressions interpreter-interpret < Statements and State not-yet
     interpreter.interpret(expression);
 */
 /* Statements and State not-yet < Resolving and Binding not-yet
@@ -128,12 +127,11 @@ public class Lox {
     }
   }
 //< Parsing Expressions token-error
-//> Evaluating Expressions not-yet
-
+//> Evaluating Expressions runtime-error-method
   static void runtimeError(RuntimeError error) {
     System.err.println(error.getMessage() +
         "\n[line " + error.token.line + "]");
     hadRuntimeError = true;
   }
-//< Evaluating Expressions not-yet
+//< Evaluating Expressions runtime-error-method
 }

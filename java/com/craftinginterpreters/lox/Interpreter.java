@@ -1,4 +1,4 @@
-//> Evaluating Expressions not-yet
+//> Evaluating Expressions interpreter-class
 package com.craftinginterpreters.lox;
 
 //> Functions not-yet
@@ -16,8 +16,7 @@ import java.util.Map;
 //> Statements and State not-yet
 
 //< Statements and State not-yet
-// Tree-walk interpreter.
-/* Evaluating Expressions not-yet < Statements and State not-yet
+/* Evaluating Expressions interpreter-class < Statements and State not-yet
 class Interpreter implements Expr.Visitor<Object> {
 */
 //> Statements and State not-yet
@@ -36,7 +35,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   private Map<Expr, Integer> locals;
 //< Resolving and Binding not-yet
-
 //> Functions not-yet
   Interpreter() {
     globals.define("clock", new Callable() {
@@ -53,11 +51,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     });
   }
 //< Functions not-yet
-
-/* Evaluating Expressions not-yet < Statements and State not-yet
+/* Evaluating Expressions interpret < Statements and State not-yet
   void interpret(Expr expression) {
     try {
-      print(evaluate(expression));
+      Object value = evaluate(expression);
+      System.out.println(stringify(value));
     } catch (RuntimeError error) {
       Lox.runtimeError(error);
     }
@@ -81,10 +79,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 //< Statements and State not-yet
-
+//> evaluate
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }
+//< evaluate
 //> Statements and State not-yet
 
   private void execute(Stmt stmt) {
@@ -244,59 +243,75 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return value;
   }
 //< Statements and State not-yet
-
+//> visit-binary
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
     Object left = evaluate(expr.left);
-    Object right = evaluate(expr.right);
+    Object right = evaluate(expr.right); // [left]
 
     switch (expr.operator.type) {
+//> binary-equality
       case BANG_EQUAL: return !isEqual(left, right);
       case EQUAL_EQUAL: return isEqual(left, right);
-
+//< binary-equality
+//> binary-comparison
       case GREATER:
+//> check-greater-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-greater-operand
         return (double)left > (double)right;
-
       case GREATER_EQUAL:
+//> check-greater-equal-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-greater-equal-operand
         return (double)left >= (double)right;
       case LESS:
+//> check-less-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-less-operand
         return (double)left < (double)right;
-
       case LESS_EQUAL:
+//> check-less-equal-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-less-equal-operand
         return (double)left <= (double)right;
-
+//< binary-comparison
       case MINUS:
+//> check-minus-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-minus-operand
         return (double)left - (double)right;
-
+//> binary-plus
       case PLUS:
         if (left instanceof Double && right instanceof Double) {
           return (double)left + (double)right;
-        }
+        } // [plus]
 
         if (left instanceof String && right instanceof String) {
           return (String)left + (String)right;
         }
+//> string-wrong-type
 
         throw new RuntimeError(expr.operator,
             "Operands must be two numbers or two strings.");
-
+//< string-wrong-type
+//< binary-plus
       case SLASH:
+//> check-slash-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-slash-operand
         return (double)left / (double)right;
-
       case STAR:
+//> check-star-operand
         checkNumberOperands(expr.operator, left, right);
+//< check-star-operand
         return (double)left * (double)right;
     }
 
     // Unreachable.
     return null;
   }
+//< visit-binary
 //> Functions not-yet
 
   @Override
@@ -336,16 +351,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         "Only instances have properties.");
   }
 //< Classes not-yet
-
+//> visit-grouping
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
     return evaluate(expr.expression);
   }
-
+//< visit-grouping
+//> visit-literal
   @Override
   public Object visitLiteralExpr(Expr.Literal expr) {
     return expr.value;
   }
+//< visit-literal
 //> Control Flow not-yet
 
   @Override
@@ -404,22 +421,27 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return lookUpVariable(expr.keyword, expr);
   }
 //< Classes not-yet
-
+//> visit-unary
   @Override
   public Object visitUnaryExpr(Expr.Unary expr) {
     Object right = evaluate(expr.right);
 
     switch (expr.operator.type) {
+//> unary-bang
       case BANG:
         return !isTrue(right);
+//< unary-bang
       case MINUS:
+//> check-unary-operand
         checkNumberOperand(expr.operator, right);
+//< check-unary-operand
         return -(double)right;
     }
 
     // Unreachable.
     return null;
   }
+//< visit-unary
 //> Statements and State not-yet
 
   @Override
@@ -443,35 +465,28 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //< Resolving and Binding not-yet
 //< Statements and State not-yet
-
-  private void checkNumberOperands(Token operator,
-                                   Object left, Object right) {
-    if (left instanceof Double && right instanceof Double) {
-      return;
-    }
-
-    throw new RuntimeError(operator, "Operands must be numbers.");
-  }
-
-  private void checkNumberOperand(Token operator, Object left) {
-    if (left instanceof Double) {
-      return;
-    }
-
+//> check-operand
+  private void checkNumberOperand(Token operator, Object operand) {
+    if (operand instanceof Double) return;
     throw new RuntimeError(operator, "Operand must be a number.");
   }
-
-  private Object print(Object argument) {
-    System.out.println(stringify(argument));
-    return argument;
+//< check-operand
+//> check-operands
+  private void checkNumberOperands(Token operator,
+                                   Object left, Object right) {
+    if (left instanceof Double && right instanceof Double) return;
+    // [operand]
+    throw new RuntimeError(operator, "Operands must be numbers.");
   }
-
+//< check-operands
+//> is-true
   private boolean isTrue(Object object) {
     if (object == null) return false;
     if (object instanceof Boolean) return (boolean)object;
     return true;
   }
-
+//< is-true
+//> is-equal
   private boolean isEqual(Object a, Object b) {
     // nil is only equal to nil.
     if (a == null && b == null) return true;
@@ -479,7 +494,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return a.equals(b);
   }
-
+//< is-equal
+//> stringify
   private String stringify(Object object) {
     if (object == null) return "nil";
 
@@ -494,4 +510,5 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return object.toString();
   }
+//< stringify
 }

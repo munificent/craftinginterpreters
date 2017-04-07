@@ -1,4 +1,4 @@
-//> Evaluating Expressions not-yet
+//> Evaluating Expressions runtime-error-class
 package com.craftinginterpreters.lox;
 
 class RuntimeError extends RuntimeException {

@@ -86,7 +86,7 @@ TOC = [
           'The Interpreter pattern', 'Tree-walk interpretation',
           'Subexpressions', 'Runtime errors', 'Type checking', 'Truthiness'
         ],
-        'done': False,
+        'design_note': 'Static and Dynamic Typing'
       },
       {
         'name': 'Statements and State',
