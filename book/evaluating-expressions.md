@@ -340,7 +340,7 @@ handling that error gracefully.
 
 We could simply not detect or report a type error at all. This is what C does if
 you cast a pointer to some type that doesn't match the data that is actually
-being pointed to. C gets gains flexibility and speed by allowing that, but is
+being pointed to. C gains flexibility and speed by allowing that, but is
 also famously dangerous. Once you misinterpret bits in memory, all bets are off.
 
 Few modern languages accept unsafe operations like this. Instead, most are
