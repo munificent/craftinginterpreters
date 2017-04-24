@@ -7,27 +7,24 @@ import java.util.ArrayList;
 //> Classes not-yet
 import java.util.HashMap;
 //< Classes not-yet
-//> Statements and State not-yet
+//> Statements and State import-list
 import java.util.List;
-//< Statements and State not-yet
+//< Statements and State import-list
 //> Resolving and Binding not-yet
 import java.util.Map;
 //< Resolving and Binding not-yet
-//> Statements and State not-yet
 
-//< Statements and State not-yet
-/* Evaluating Expressions interpreter-class < Statements and State not-yet
+/* Evaluating Expressions interpreter-class < Statements and State interpreter
 class Interpreter implements Expr.Visitor<Object> {
 */
-//> Statements and State not-yet
+//> Statements and State interpreter
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-//< Statements and State not-yet
-/* Statements and State not-yet < Functions not-yet
-
+//< Statements and State interpreter
+/* Statements and State environment-field < Functions not-yet
   private Environment environment = new Environment();
+
 */
 //> Functions not-yet
-
   final Environment globals = new Environment();
   private Environment environment = globals;
 //< Functions not-yet
@@ -51,7 +48,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     });
   }
 //< Functions not-yet
-/* Evaluating Expressions interpret < Statements and State not-yet
+/* Evaluating Expressions interpret < Statements and State interpret
   void interpret(Expr expression) {
     try {
       Object value = evaluate(expression);
@@ -61,10 +58,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/* Statements and State not-yet < Resolving and Binding not-yet
+/* Statements and State interpret < Resolving and Binding not-yet
   void interpret(List<Stmt> statements) {
 */
-//> Statements and State not-yet
+//> Statements and State interpret
 //> Resolving and Binding not-yet
   void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
     this.locals = locals;
@@ -78,19 +75,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       Lox.runtimeError(error);
     }
   }
-//< Statements and State not-yet
+//< Statements and State interpret
 //> evaluate
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }
 //< evaluate
-//> Statements and State not-yet
-
+//> Statements and State execute
   private void execute(Stmt stmt) {
     stmt.accept(this);
   }
-
-  void executeBody(List<Stmt> statements, Environment environment) {
+//< Statements and State execute
+//> Statements and State execute-block
+  void executeBlock(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
     try {
       this.environment = environment;
@@ -102,17 +99,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       this.environment = previous;
     }
   }
-
+//< Statements and State execute-block
+//> Statements and State visit-block
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
-    executeBody(stmt.statements, environment.enterScope());
+    executeBlock(stmt.statements, new Environment(environment));
     return null;
   }
+//< Statements and State visit-block
 //> Classes not-yet
 
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
-    environment.declare(stmt.name);
+    environment.define(stmt.name.lexeme, null);
 
     Map<String, LoxFunction> methods = new HashMap<>();
 //> Inheritance not-yet
@@ -124,7 +123,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             "Superclass must be a class.");
       }
 
-      environment = environment.enterScope();
+      environment = new Environment(environment);
       environment.define("super", superclass);
     }
 
@@ -151,17 +150,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Classes not-yet
-
+//> Statements and State visit-expression-stmt
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
     return null;
   }
+//< Statements and State visit-expression-stmt
 //> Functions not-yet
 
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
-    environment.declare(stmt.name);
+    environment.define(stmt.name.lexeme, null);
 /* Functions not-yet < Classes not-yet
     LoxFunction function = new LoxFunction(stmt, environment);
 */
@@ -184,14 +184,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Control Flow not-yet
-
+//> Statements and State visit-print
   @Override
   public Void visitPrintStmt(Stmt.Print stmt) {
     Object value = evaluate(stmt.expression);
     System.out.println(stringify(value));
     return null;
   }
-
+//< Statements and State visit-print
 //> Functions not-yet
 
   @Override
@@ -202,7 +202,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     throw new Return(value);
   }
 //< Functions not-yet
-
+//> Statements and State visit-var
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
     Object value = null;
@@ -213,8 +213,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     environment.define(stmt.name.lexeme, value);
     return null;
   }
+//< Statements and State visit-var
 //> Control Flow not-yet
-
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
     while (isTrue(evaluate(stmt.condition))) {
@@ -223,12 +223,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Control Flow not-yet
-
+//> Statements and State visit-assign
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-/* Statements and State not-yet < Resolving and Binding not-yet
+/* Statements and State visit-assign < Resolving and Binding not-yet
     environment.assign(expr.name, value);
 */
 //> Resolving and Binding not-yet
@@ -242,7 +242,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     return value;
   }
-//< Statements and State not-yet
+//< Statements and State visit-assign
 //> visit-binary
   @Override
   public Object visitBinaryExpr(Expr.Binary expr) {
@@ -442,11 +442,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< visit-unary
-//> Statements and State not-yet
-
+//> Statements and State visit-variable
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-/* Statements and State not-yet < Resolving and Binding not-yet
+/* Statements and State visit-variable < Resolving and Binding not-yet
     return environment.get(expr.name);
 */
 //> Resolving and Binding not-yet
@@ -464,7 +463,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 //< Resolving and Binding not-yet
-//< Statements and State not-yet
+//< Statements and State visit-variable
 //> check-operand
   private void checkNumberOperand(Token operator, Object operand) {
     if (operand instanceof Double) return;

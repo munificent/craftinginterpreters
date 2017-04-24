@@ -1,11 +1,10 @@
 //> Parsing Expressions parser
 package com.craftinginterpreters.lox;
-
-//> Statements and State not-yet
+//> Statements and State parser-imports
 
 import java.util.ArrayList;
 import java.util.Arrays;
-//< Statements and State not-yet
+//< Statements and State parser-imports
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -21,7 +20,7 @@ class Parser {
   Parser(List<Token> tokens) {
     this.tokens = tokens;
   }
-/* Parsing Expressions parse < Statements and State not-yet
+/* Parsing Expressions parse < Statements and State parse
   Expr parse() {
     try {
       return expression();
@@ -30,28 +29,32 @@ class Parser {
     }
   }
 */
-//> Statements and State not-yet
+//> Statements and State parse
   List<Stmt> parse() {
     List<Stmt> statements = new ArrayList<>();
     while (!isAtEnd()) {
+/* Statements and State parse < Statements and State parse-declaration
+      statements.add(statement());
+*/
+//> parse-declaration
       statements.add(declaration());
+//< parse-declaration
     }
 
     return statements;
   }
-//< Statements and State not-yet
+//< Statements and State parse
 //> expression
   private Expr expression() {
-/* Parsing Expressions expression < Statements and State not-yet
+/* Parsing Expressions expression < Statements and State expression
     return equality();
 */
-//> Statements and State not-yet
+//> Statements and State expression
     return assignment();
-//< Statements and State not-yet
+//< Statements and State expression
   }
 //< expression
-//> Statements and State not-yet
-
+//> Statements and State declaration
   private Stmt declaration() {
     try {
 //> Classes not-yet
@@ -60,7 +63,9 @@ class Parser {
 //> Functions not-yet
       if (match(FUN)) return function("function");
 //< Functions not-yet
+//> parse-var-decl
       if (match(VAR)) return varDeclaration();
+//< parse-var-decl
 
       return statement();
     } catch (ParseError error) {
@@ -68,6 +73,7 @@ class Parser {
       return null;
     }
   }
+//< Statements and State declaration
 //> Classes not-yet
 
   private Stmt classDeclaration() {
@@ -98,7 +104,7 @@ class Parser {
 //< Inheritance not-yet
   }
 //< Classes not-yet
-
+//> Statements and State parse-statement
   private Stmt statement() {
 //> Control Flow not-yet
     if (match(FOR)) return forStatement();
@@ -111,10 +117,13 @@ class Parser {
 //> Control Flow not-yet
     if (match(WHILE)) return whileStatement();
 //< Control Flow not-yet
-    if (check(LEFT_BRACE)) return new Stmt.Block(block());
+//> parse-block
+    if (match(LEFT_BRACE)) return new Stmt.Block(block());
+//< parse-block
 
     return expressionStatement();
   }
+//< Statements and State parse-statement
 //> Control Flow not-yet
 
   private Stmt forStatement() {
@@ -173,14 +182,14 @@ class Parser {
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
 //< Control Flow not-yet
-
+//> Statements and State parse-print-statement
   private Stmt printStatement() {
     Expr value = expression();
     consume(SEMICOLON, "Expect ';' after value.");
     return new Stmt.Print(value);
   }
+//< Statements and State parse-print-statement
 //> Functions not-yet
-
   private Stmt returnStatement() {
     Token keyword = previous();
     Expr value = null;
@@ -192,7 +201,7 @@ class Parser {
     return new Stmt.Return(keyword, value);
   }
 //< Functions not-yet
-
+//> Statements and State parse-var-declaration
   private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
 
@@ -205,6 +214,7 @@ class Parser {
 
     return new Stmt.Var(name, initializer);
   }
+//< Statements and State parse-var-declaration
 //> Control Flow not-yet
 
   private Stmt whileStatement() {
@@ -216,12 +226,13 @@ class Parser {
     return new Stmt.While(condition, body);
   }
 //< Control Flow not-yet
-
+//> Statements and State parse-expression-statement
   private Stmt expressionStatement() {
     Expr expr = expression();
     consume(SEMICOLON, "Expect ';' after expression.");
     return new Stmt.Expression(expr);
   }
+//< Statements and State parse-expression-statement
 //> Functions not-yet
 
   private Stmt.Function function(String kind) {
@@ -239,13 +250,13 @@ class Parser {
     }
     consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
+    consume(LEFT_BRACE, "Expect '{' before function body.");
     List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
   }
 //< Functions not-yet
-
+//> Statements and State block
   private List<Stmt> block() {
-    consume(LEFT_BRACE, "Expect '{' before block.");
     List<Stmt> statements = new ArrayList<>();
 
     while (!check(RIGHT_BRACE) && !isAtEnd()) {
@@ -256,9 +267,10 @@ class Parser {
 
     return statements;
   }
-
+//< Statements and State block
+//> Statements and State parse-assignment
   private Expr assignment() {
-/* Statements and State not-yet < Control Flow not-yet
+/* Statements and State parse-assignment < Control Flow not-yet
     Expr expr = equality();
 */
 //> Control Flow not-yet
@@ -284,7 +296,7 @@ class Parser {
 
     return expr;
   }
-//< Statements and State not-yet
+//< Statements and State parse-assignment
 //> Control Flow not-yet
 
   private Expr or() {
@@ -441,12 +453,12 @@ class Parser {
 
     if (match(THIS)) return new Expr.This(previous());
 //< Classes not-yet
-//> Statements and State not-yet
+//> Statements and State parse-identifier
 
     if (match(IDENTIFIER)) {
       return new Expr.Variable(previous());
     }
-//< Statements and State not-yet
+//< Statements and State parse-identifier
 
     if (match(LEFT_PAREN)) {
       Expr expr = expression();

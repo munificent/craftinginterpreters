@@ -1075,8 +1075,6 @@ void expression() {
 //> Local Variables not-yet
 
 static void block() {
-  consume(TOKEN_LEFT_BRACE, "Expect '{' before block.");
-
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     declaration();
   }
@@ -1108,6 +1106,7 @@ static void function(FunctionType type) {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
 
   // The body.
+  consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
   block();
 
   // Create the function object.
@@ -1466,7 +1465,7 @@ static void statement() {
     whileStatement();
 //< Jumping Forward and Back not-yet
 //> Local Variables not-yet
-  } else if (check(TOKEN_LEFT_BRACE)) {
+  } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
     endScope();

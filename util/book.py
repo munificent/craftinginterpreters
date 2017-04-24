@@ -94,7 +94,7 @@ TOC = [
           'Statement nodes', 'Blocks', 'Expression statements', 'Variables',
           'Assignment', 'Lexical scope', 'Environments'
         ],
-        'done': False,
+        'design_note': 'Implicit Variable Declaration'
       },
       {
         'name': 'Control Flow',
