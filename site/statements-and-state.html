@@ -37,12 +37,11 @@
 <h3><a href="#top">Statements and State<small>8</small></a></h3>
 
 <ul>
-    <li><a href="#statements"><small>8.1</small> statements</a></li>
-    <li><a href="#global-state"><small>8.2</small> global state</a></li>
-    <li><a href="#environment"><small>8.3</small> environment</a></li>
-    <li><a href="#interpreting-global-vars"><small>8.4</small> interpreting global vars</a></li>
-    <li><a href="#assignment"><small>8.5</small> assignment</a></li>
-    <li><a href="#scope"><small>8.6</small> scope</a></li>
+    <li><a href="#statements"><small>8.1</small> Statements</a></li>
+    <li><a href="#global-variables"><small>8.2</small> Global Variables</a></li>
+    <li><a href="#environments"><small>8.3</small> Environments</a></li>
+    <li><a href="#assignment"><small>8.4</small> Assignment</a></li>
+    <li><a href="#scope"><small>8.5</small> Scope</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
     <li class="end-part"><a href="#design-note"><small>note</small>Implicit Variable Declaration
@@ -72,12 +71,11 @@
 <h3><a href="#top">Statements and State<small>8</small></a></h3>
 
 <ul>
-    <li><a href="#statements"><small>8.1</small> statements</a></li>
-    <li><a href="#global-state"><small>8.2</small> global state</a></li>
-    <li><a href="#environment"><small>8.3</small> environment</a></li>
-    <li><a href="#interpreting-global-vars"><small>8.4</small> interpreting global vars</a></li>
-    <li><a href="#assignment"><small>8.5</small> assignment</a></li>
-    <li><a href="#scope"><small>8.6</small> scope</a></li>
+    <li><a href="#statements"><small>8.1</small> Statements</a></li>
+    <li><a href="#global-variables"><small>8.2</small> Global Variables</a></li>
+    <li><a href="#environments"><small>8.3</small> Environments</a></li>
+    <li><a href="#assignment"><small>8.4</small> Assignment</a></li>
+    <li><a href="#scope"><small>8.5</small> Scope</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
     <li class="end-part"><a href="#design-note"><small>note</small>Implicit Variable Declaration
@@ -117,73 +115,94 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
-<p><strong>todo: figure out illustrations</strong></p>
-<ul>
-<li>last chapter created interpreter</li>
-<li>can evaluate code like calculate</li>
-<li>doesn&rsquo;t really feel like programming</li>
-<li>can&rsquo;t build up program</li>
-<li>no abstraction</li>
-<li>can&rsquo;t define thing&#8202;&mdash;&#8202;function, value by name</li>
-<li>then use later</li>
-<li>for bindings need state</li>
-<li>between chunks of code&#8202;&mdash;&#8202;need to remember that certain names associated
-  with certain things</li>
+<blockquote>
+<p>&ldquo;Words are pegs to hang ideas on.&rdquo;
+<cite>Henry Ward Beecher</cite></p>
+</blockquote>
+<p>In the <a href="">last chapter</a>, we nominally created an interpreter, but, honestly it&rsquo;s
+more like a calculator. Using it doesn&rsquo;t quite feel like <em>programming</em>. You
+can&rsquo;t build up a larger program out of smaller pieces. There are no abstractions
+because there are no <em>names</em>. In order to define something&#8202;&mdash;&#8202;a function or
+piece of data&#8202;&mdash;&#8202;and use it later, you need a way to refer to it. You need a
+<strong>binding</strong> that associates the thing with some name.</p>
+<p>Bindings touch on <em>state</em>. When you define a variable at the beginning of the
+program and use it at the end, the interpreter must hold on to the value of that
+variable in the meantime. So in this chapter, we will begin giving our
+interpreter a brain that can not just think, but <em>remember</em>.</p>
+<p><strong>todo: illustrate brain</strong></p>
+<p>State and statements go hand in hand. When you are declaring a variable or
+defining a function, your goal is to create some binding that later code can
+use. The code doing the declaration itself doesn&rsquo;t exist to produce some
+immediately-consumed value. If you were going to use the value right then, you
+wouldn&rsquo;t need to give it a name.</p>
+<p><span name="expr">Statements</span> fit that. Unlike expressions, they don&rsquo;t
+produce values. Since they don&rsquo;t, in order to be useful at all, they need to do
+something else. That something is called a <strong>&ldquo;side effect&rdquo;</strong>. It could mean
+producing user-visible output or modifying some state in the interpreter that
+can be detected later.</p>
+<aside name="expr">
+<p>You could make a language that treats variable declarations as expressions that
+<em>both</em> create a binding and produce a value, but I&rsquo;m not aware of any
+widely-used languages that do. Scheme seems like a contender, but keep in mind
+that a <code>let</code> expression evaluates to the result of the <em>body where the variable
+is used</em>, not the declaration itself. Definitions in Scheme produced using
+<code>define</code> are not expressions.</p>
+</aside>
+<p>In this chapter, we&rsquo;ll do all of that. We&rsquo;ll add statements to the language, and
+define statements that produce output (<code>print</code>) as well as define state (<code>var</code>).
+We&rsquo;ll add expressions to access and assign to variables. While we&rsquo;re at it,
+we&rsquo;ll go ahead and add in blocks and block scoping too. That&rsquo;s a lot to get
+through, but, as ever, we&rsquo;ll chew our way through this meal one bite at a time.</p>
+<hr />
+<h2><a href="#statements" name="statements"><small>8&#8202;.&#8202;1</small> Statements</a></h2>
+<p>The simplest first step is extending Lox&rsquo;s grammar with statements. They aren&rsquo;t
+very different from expressions. We&rsquo;ll start with two of the simplest
+statements:</p>
+<ol>
+<li>An <strong>expression statement</strong> lets you place a single expression where a
+    statement is expected. Syntactically, it&rsquo;s an expression followed by a
+    semicolon. They exist mainly so that you can call functions that have side
+    effects. You may not notice them, but you use them all the time in C, Java,
+    and <span name="expr-stmt">other languages</span>. Any time you have a
+    function or method call followed by a <code>;</code>, you&rsquo;re looking at an expression
+    statement.</li>
+</ol>
+<p><span name="expr-stmt"></p>
+<p>Pascal is an interesting exception. It distinguishes between <em>procedures</em> and
+<em>functions</em>. The latter are routines that are called for their side effect, sort
+of like void functions in C. Functions are routines that return a value. Instead
+of a general &ldquo;expression statement&rdquo;, Pascal has a single statement form for
+calling procedures. Functions cannot be called where a statement is expected,
+and procedures cannot be called inside an expression.</p>
+<p>C does half of that&#8202;&mdash;&#8202;you usually can&rsquo;t call a void function in the middle of
+an expression&#8202;&mdash;&#8202;but it&rsquo;s happy to let you call a non-void function in statement
+position. The returned value is discarded.</p>
+<p></span></p>
+<ol>
 <li>
-<p>[don&rsquo;t necessarily mean mutable state]</p>
+<p>A <strong>print statement</strong> evaluates a single expression and then displays the
+    result to the user. I admit, it&rsquo;s weird to <span name="print">bake&lt;/ print
+    right into the language instead of just making it a library function.</p>
+<aside markdown="1" name="print">
+
+<p>I will note with only a modicum of defensiveness that BASIC and Python did
+the same thing and they are real languages.</p>
+</aside>
+
+<p>Doing so is a concession to the fact that we&rsquo;re hacking this interpreter
+together one piece at a time and want to be able to play with it before it&rsquo;s
+all done. If we make print a library function, then there&rsquo;s no way to test
+that side effects are working until we have all of the machinery in place to
+define and call functions, pass arguments, manage call stacks, etc.</p>
+<p>If Lox were a real language and not a teaching one, the more elegant
+solution is to handle IO at the library level.</p>
 </li>
-<li>
-<p>this chap, start introducing state so you can write bigger programs</p>
-</li>
-<li>start to make lox feel like real lang</li>
-<li>also good time to introduce statements</li>
-<li>when introducing binding like var decl, intent is to modify state, not
-  produce value</li>
-<li>[could have var decl be expr that produces value too]</li>
-<li>statements do that</li>
-<li>unlike exprs statements don&rsquo;t produce value</li>
-<li>to be useful, must do something else</li>
-<li>&ldquo;side effect&rdquo;</li>
-<li>change the world in some visible way</li>
-<li>produce output</li>
-<li>modify state</li>
-<li>since we are adding state, now good time to add statements</li>
-<li>lot to get through</li>
-<li>[expressions can have side effects too</li>
-<li>calling fn is expr, but function may produce output or do something else]</li>
-</ul>
-<h2><a href="#statements" name="statements"><small>8&#8202;.&#8202;1</small> statements</a></h2>
-<ul>
-<li>simplest part of chapter is adding statements as grammatical category</li>
-<li>
-<p>not really very diff from expr</p>
-</li>
-<li>
-<p>start with two simplest stmt types:</p>
-</li>
-<li>expr stmt lets you put single expr where stmt expected</li>
-<li>mainly so you can call fn for its side effect</li>
-<li>exists in java and c, though probably don&rsquo;t think about</li>
-<li>
-<p>[pascal func / proc sep]</p>
-</li>
-<li>
-<p>print evals expr and prints result</p>
-</li>
-<li>weird to bake into lang, but as see, let&rsquo;s us start testing that side effects
-  are working before we have functions implemented</li>
-<li>concession to book structure of building lang incrementally</li>
-<li>
-<p>in real lang, would make fn</p>
-</li>
-<li>
-<p>need new grammar rules for these</p>
-</li>
-<li>finally, can parse entire lox script</li>
-<li>since imperative, dynamic lang, top level is list of statements</li>
-<li>[top of static lang usually decls]</li>
-</ul>
-<div class="codehilite"><pre><span></span><span class="n">program</span>     <span class="o">=</span> <span class="n">statement</span><span class="o">*</span> <span class="n">eof</span> <span class="p">;</span>
+</ol>
+<p>We need some new grammar rules for these. Finally, they get us to a point where
+we can parse an entire Lox script. Since Lox is an imperative, dynamically-typed
+language, the &ldquo;top level&rdquo; of a script is simply a list of statements. The new
+grammar rules look like:</p>
+<div class="codehilite"><pre><span></span><span class="n">program</span>     <span class="o">=</span> <span class="n">statement</span><span class="o">*</span> <span class="vg">EOF</span> <span class="p">;</span>
 
 <span class="n">statement</span>   <span class="o">=</span> <span class="n">exprStmt</span>
             <span class="err">|</span> <span class="n">printStmt</span> <span class="p">;</span>
@@ -193,50 +212,38 @@
 </pre></div>
 
 
-<ul>
-<li>now entry rule is &ldquo;program&rdquo; which represents entire lox script</li>
-<li>(or single entry in repl)</li>
-<li>program is list of statements</li>
-<li>explicitly match EOF at end</li>
-<li>otherwise, could match a program that ends in unexpected tokens which would
-  then be ignored</li>
-<li>
-<p>want that to be an error</p>
-</li>
-<li>
-<p>right now, statement, either expr or print</p>
-</li>
-<li>both pretty similar: single expr followed by mandatory semicolon</li>
-<li>print stmt starts with &ldquo;print&rdquo; keyword</li>
-<li>next is representing in code</li>
-</ul>
-<h3><a href="#stmt-syntax-trees" name="stmt-syntax-trees"><small>8&#8202;.&#8202;1&#8202;.&#8202;1</small> stmt syntax trees</a></h3>
-<ul>
-<li>going to create separate family of syntax tree classes for statements
-  separate from expr, called stmt</li>
-<li>some impls unify and have single &ldquo;tree&rdquo; or &ldquo;node&rdquo; base class that covers both</li>
-<li>like keeping them separate</li>
-<li>grammar rules treat them separately</li>
-<li>no production that allows expr and stmt in same position</li>
-<li>ex: operands of binary are always expr, never stmt</li>
-<li>ex: then and else clauses of if always stmt, never expr</li>
-<li>
-<p>separate superclass lets syntax tree classes encode that</p>
-</li>
-<li>
-<p>also, diff operations apply to each</p>
-</li>
-<li>ex: when visiting expr, interpreter returns result value</li>
-<li>when visiting stmt, there is no result value, so visitor has different return
-  type</li>
-<li>
-<p>splitting out lets us rep that</p>
-</li>
-<li>
-<p>presciently, script to generate syntax tree classes anticipates that</p>
-</li>
-<li>add separate section to create stmt class and subclasses:</li>
-</ul>
+<p>The first rule is now <code>program</code>, which is the entry point for the grammar and
+represents an entire Lox script or REPL entry. A program is a list of statements
+followed by the special &ldquo;eof of file&rdquo; token. We require that explicitly to
+ensure the entire input is a complete Lox script. Otherwise, the parser could
+accept a script that <em>starts</em> with some valid statements followed by unparseable
+nonsense. We want that to be an error. Demanding an EOF ensure the parser eats
+the whole file.</p>
+<p>Right now, <code>statement</code> only has two cases for the two kinds of statements we&rsquo;ve
+described. We&rsquo;ll fill in more later in this chapter and in the following ones.
+The next step is turning this grammar into something we can store in memory&#8202;&mdash;&#8202;syntax trees.</p>
+<h3><a href="#statement-syntax-trees" name="statement-syntax-trees"><small>8&#8202;.&#8202;1&#8202;.&#8202;1</small> Statement syntax trees</a></h3>
+<p>I decided to create a separate class hierarchy for statements separate from Expr
+and its subclasses. As our elders did before us, we will use the cryptic
+incantation &ldquo;Stmt&rdquo; to refer to them.</p>
+<p>Some language front ends unify these into a single family of types with a base
+name like &ldquo;Tree&rdquo; or &ldquo;Node&rdquo;. I like keeping them separate. Uses of expressions
+and statements are disjoint in the grammar. There aren&rsquo;t any productions where
+either an expression or statement can appear in the same place. The operands of,
+say, <code>+</code> are always expressions, never statements. Meanwhile, the then and else
+clauses of an <code>if</code> are always statements.</p>
+<p>Since the two syntaxes don&rsquo;t overlap, we don&rsquo;t <em>need</em> a single type that covers
+both. Splitting them into separate class hierarchies encodes that in Java&rsquo;s type
+system so the compiler can help us find dumb mistakes like trying to pass a
+statement to a Java method that expects an expression.</p>
+<p>With great <span name="foresight">foresight</span>, I have conveniently designed
+our little AST metaprogramming script in anticipation of this. That&rsquo;s why we
+passed in &ldquo;Expr&rdquo; as a parameter to <code>defineAst()</code>. We add another call to that
+for defining Stmt and its subclasses:</p>
+<aside name="foresight">
+<p>Not really foresight: I wrote all the code for the whole book before I started
+slicing things into chapters and punching out prose.</p>
+</aside>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>
     <span class="o">));</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
@@ -248,17 +255,12 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>run generate ast now and get separate Stmt.java file with syntax tree classes</li>
-</ul>
-<h3><a href="#parsing-statements" name="parsing-statements"><small>8&#8202;.&#8202;1&#8202;.&#8202;2</small> parsing statements</a></h3>
-<ul>
-<li>have new syntax trees</li>
-<li>next step is get parser to produce</li>
-<li>old entrypoint to parser was temporary</li>
-<li>new entrypoint</li>
-<li>corresponds to &ldquo;program&rdquo; rule</li>
-</ul>
+<p>Run that script and you&rsquo;ll get a new &ldquo;Stmt.java&rdquo; file with the syntax tree
+classes we need for expression and print statements. Don&rsquo;t forgot to add that to your IDE project or makefile or whatever.</p>
+<h3><a href="#parsing-statements" name="parsing-statements"><small>8&#8202;.&#8202;1&#8202;.&#8202;2</small> Parsing statements</a></h3>
+<p>Our parser&rsquo;s main <code>parse()</code> method that parses and returns is a temporary hack
+to get the last chapter up and running. Now that our grammar has its correct
+starting rule, <code>program</code>, we can replace that with the real deal.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>Parser</em>()<br>
 replace 7 lines</div>
@@ -272,19 +274,15 @@ replace 7 lines</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>need java boilerplate for lists</li>
-</ul>
+<p>It parses a series of statements, as many as it can find until it hits the end
+of the input. This is a pretty direct translation of the <code>program</code> rule into recursive descent style. We must also chant a minor prayer to the Java verbosity Gods since we are using ArrayList now:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
 </pre><div class="source-file"><em>lox/Parser.java</em></div>
 <pre class="insert"><br><span></span><span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Arrays</span><span class="o">;</span>
 </pre><pre class="insert-after"><span></span><span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
 </pre></div>
 
-<ul>
-<li>typical recursive descent pattern of method for rule</li>
-</ul>
+<p><code>parse()</code> in turn relies on a method to parse a single statement:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">statement</span><span class="o">()</span> <span class="o">{</span>
@@ -294,19 +292,13 @@ add after <em>expression</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>will add more statement types later</li>
-<li>right now, really simple</li>
-<li>if see &ldquo;print&rdquo; keyword, must be print statement</li>
-<li>otherwise, assume it must be expr statement</li>
-<li>
-<p>typical to &ldquo;fallthrough&rdquo; to expr statement since it&rsquo;s hard to recognize
-  expr explicitly based on next token</p>
-</li>
-<li>
-<p>methods for each rule</p>
-</li>
-</ul>
+<p>It&rsquo;s a little bare bones, but we&rsquo;ll fill it in with more statement types later. It determines which specific statement rule matches by looking at the next token. If it&rsquo;s <code>print</code> it&rsquo;s obviously a print statement.</p>
+<p>If it doesn&rsquo;t look like any known Lox statement, it assumes it must be an
+expression statement. That&rsquo;s the typical final fallthrough case when parsing a
+statement, since it&rsquo;s hard to proactively recognize an expression the next token
+token. Instead, we tell if we hit an expression statement by the process of
+elimination.</p>
+<p>Then we add a couple more methods for the two statement kinds. First print:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>statement</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">printStatement</span><span class="o">()</span> <span class="o">{</span>
@@ -316,12 +308,19 @@ add after <em>statement</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>already matched and consumed &ldquo;print&rdquo; token</li>
-<li>require expression arg</li>
-<li>then semicolon</li>
-<li>produce tree</li>
-</ul>
+<p>Note that we&rsquo;ve <span name="consume">already</span> matched and consumed the
+<code>print</code> token itself, so we don&rsquo;t need to do that here. It parses the
+subsequent expression, consumes the terminating semicolon, and emits the syntax
+tree.</p>
+<aside name="consume">
+<p>Some parsers I&rsquo;ve seen have a naming convention of starting methods with
+&ldquo;finish&rdquo; or something like that if the method is called after a bit of its
+corresponding grammar rule has already been matched. In a giant parser with lots
+of methods calling each other, this can be handy to help maintainers keep track
+of what state the token stream is in when a specific parse method is called. For
+Lox&rsquo;s little parser, I didn&rsquo;t bother.</p>
+</aside>
+<p>If we didn&rsquo;t match a print statement, we must have one of these:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">expressionStatement</span><span class="o">()</span> <span class="o">{</span>
@@ -331,20 +330,16 @@ add after <em>printStatement</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>likewise, expr followed by semicolon</li>
-<li>wrap in Stmt syntax tree node so that we have obj of type Stmt</li>
-<li>if had single base class for both exprs and statements, could avoid this</li>
-<li>though might be useful if wanted syntax tree to have ref to semicolon token</li>
-</ul>
-<h3><a href="#visiting-statements" name="visiting-statements"><small>8&#8202;.&#8202;1&#8202;.&#8202;3</small> visiting statements</a></h3>
-<ul>
-<li>sort of running through previous few chapters in microcosm</li>
-<li>after parsing, ready to interpret</li>
-<li>again using visitor pattern</li>
-<li>separate visitor interface for statements since separate base type</li>
-<li>interp impls</li>
-</ul>
+<p>Similar to print, it parses an expression followed by a semicolon. It wraps that
+Expr in a Stmt, which mirrors in Java the reason expression statements exist.</p>
+<h3><a href="#executing-statements" name="executing-statements"><small>8&#8202;.&#8202;1&#8202;.&#8202;3</small> Executing statements</a></h3>
+<p>We&rsquo;re sorting of running through the previous couple of chapters in microcosm,
+working our way through the front end. Our parser is now ready to deliver some
+statements, so the next and final step is to interpret them.</p>
+<p>As in expressions, we are using the Visitor pattern, but we have a new visitor
+interface, Stmt.Visitor, to implement, since statements have their own base
+class.</p>
+<p>We add that to the interpreter&rsquo;s implements clause:</p>
 <div class="codehilite"><pre class="insert-before"><br><br><span></span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em><br>
@@ -353,17 +348,21 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>  <span class="kt">void</span> <span class="nf">interpret</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>
 </pre></div>
 
-<ul>
-<li>unlike exprs, stmt produce no value</li>
-<li>so return type of visitor void, not object</li>
-<li>
-<p>[capital Void in java]</p>
-</li>
-<li>
-<p>have two stmt types, so two visit methods</p>
-</li>
-<li>expr</li>
-</ul>
+<p>Unlike expressions, statements produce now value, so when the Interpreter class
+visits them, the return types of those methods will be <span
+name="void">Void</span>, not Object.</p>
+<aside name="void">
+<p>The capitalized &ldquo;Void&rdquo; might be unfamiliar. Java doesn&rsquo;t let you use the real
+lowercase &ldquo;void&rdquo; type as a type argument in a generic type for obscure reasons
+having to do with type erasure and what method calls leave on the stack.
+Instead, there is a separate &ldquo;Void&rdquo; type specifically for this use. You can
+think of it sort of like a &ldquo;boxed void&rdquo;, as &ldquo;Integer&rdquo; is to &ldquo;int&rdquo;. It permits
+only one value, <code>null</code>.</p>
+<p>Now that I think about it, I don&rsquo;t think I&rsquo;ve ever used it for anything but the
+return type of visit methods in the Visitor pattern.</p>
+</aside>
+<p>We have two statement types, and we need a visit method for each. The easiest
+is expression statements:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>evaluate</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -373,16 +372,13 @@ add after <em>evaluate</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>simply evaluates expr and discards result</li>
-<li>
-<p>[need explicit return null because of java weirdness around type erasure and
-  Void type]</p>
-</li>
-<li>
-<p>print</p>
-</li>
-</ul>
+<p>It simply evaluates the inner expression using our existing <code>evaluate()</code> method.
+Expression statements in Lox discard the expression&rsquo;s value, and we implement
+that in Java, appropriately enough, by calling <code>evaluate()</code> inside a <em>Java</em>
+expression statement.</p>
+<p>Then we have a silly <code>return null;</code> at the end. Java requires that to satisfy
+the special capitalized Void return type. Kind of annoying, but what can you do?</p>
+<p>The print statement&rsquo;s visit method isn&rsquo;t much different:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -393,16 +389,12 @@ add after <em>visitExpressionStmt</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>similar, but prints result to stdout first</li>
-<li>uses same stringify() method from last chapter to convert val to string</li>
-</ul>
-<h3><a href="#wiring-up-to-main" name="wiring-up-to-main"><small>8&#8202;.&#8202;1&#8202;.&#8202;4</small> wiring up to main</a></h3>
-<ul>
-<li>main lox class set up to interpret single expr at a time</li>
-<li>need to use new entrypoint for list of stmts</li>
-<li>add old expr interp method with</li>
-</ul>
+<p>Before discarding the expression&rsquo;s value, it prints it to standard out. Before
+it does that, it converts it to a string using the <code>stringify()</code> method we
+introduced in the last chapter.</p>
+<p>Our interpreter is ready to visit statements now, but we have some work to do to
+feed them to it. First, we&rsquo;ll add a new entrypoint method to the Interpreter
+class for accepting a list of statements&#8202;&mdash;&#8202;in other words, a program:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>interpret</em>()<br>
 replace 8 lines</div>
@@ -417,11 +409,8 @@ replace 8 lines</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>executes list of statements, one at a time</li>
-<li>like old interp method, catches and reports runtime error</li>
-<li>relies on</li>
-</ul>
+<p>This replaces the old temporary <code>interpret()</code> method which took a single
+expression. It relies on this tiny helper method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>evaluate</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">execute</span><span class="o">(</span><span class="n">Stmt</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
@@ -429,23 +418,17 @@ add after <em>evaluate</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>
-<p>similar to evaluate() but for stmt</p>
-</li>
-<li>
-<p>also need some java boilerplate to use List</p>
-</li>
-</ul>
+<p>That&rsquo;s the statement analogue to the <code>evaluate()</code> method we have for
+expressions.</p>
+<p>Since we&rsquo;re working with lists now, we need to let Java know:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
 <br></pre><div class="source-file"><em>lox/Interpreter.java</em></div>
 <pre class="insert"><span></span><span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
 </pre><pre class="insert-after"><br><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
 </pre></div>
 
-<ul>
-<li>over in main lox class, replace expr parsing code with:</li>
-</ul>
+<p>The main Lox class is still trying to parse a single expression and pass it to
+the interpreter. We can fix the parsing line like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">Parser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Parser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>run</em>()<br>
@@ -454,9 +437,7 @@ replace 1 line</div>
 </pre><pre class="insert-after"><br><span></span>    <span class="c1">// Stop if there was a syntax error.</span>
 </pre></div>
 
-<ul>
-<li>and interp line with</li>
-</ul>
+<p>And then replace the call to the interpreter with this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
 <br></pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>run</em>()<br>
@@ -465,116 +446,110 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>fire up interp and give it a try</li>
-<li>can now write scripts that look more like real progs, like:</li>
-</ul>
+<p>Basically just plumbing the new syntax through. OK, fire up the interpreter and
+give it a try. At this point, it&rsquo;s worth sketching out a little Lox program in a
+text file to run as a script. Something like:</p>
 <div class="codehilite"><pre><span></span><span class="n">print</span> <span class="s">&quot;one&quot;</span><span class="p">;</span>
 <span class="n">print</span> <span class="nb">true</span><span class="p">;</span>
-<span class="n">print</span> <span class="mi">3</span><span class="p">;</span>
+<span class="n">print</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>ok, not very useful, but making progress</li>
-<li>note from here on out, when using repl, have to give it full stmt instead of
-  expr</li>
-</ul>
-<h2><a href="#global-state" name="global-state"><small>8&#8202;.&#8202;2</small> global state</a></h2>
-<ul>
-<li>starting to have imperative lang where can do one thing after another with
-  side effects</li>
-<li>next step is side effects for defining state</li>
-<li>before get into lexical scope, blocks, etc. start simple</li>
-<li>giant bag of global scope</li>
-<li>even so, still have to think deeply about interesting semantic corners</li>
-<li>
-<p>[good enough for BASIC]</p>
-</li>
-<li>
-<p>syntactically, want to add two new forms to language:</p>
-</li>
-<li>var statements bring new variable into being</li>
-</ul>
+<p>It almost looks like a real program! Granted, not a super useful one, but we&rsquo;re
+making progress. Note that the REPL too now expects us to enter full statements
+instead of a simple expression. Don&rsquo;t forget your semicolons.</p>
+<h2><a href="#global-variables" name="global-variables"><small>8&#8202;.&#8202;2</small> Global Variables</a></h2>
+<p>Statements are a good first step, but those alone aren&rsquo;t enough to start
+building up programs out of smaller pieces. In order to store and reuse bits of
+data, we need variables. Before we get into all of the complexity of lexical
+scoping, we&rsquo;ll start off with the easiest kind of variables&#8202;&mdash;&#8202;<span
+name="globals">globals</span>.</p>
+<aside name="globals">
+<p>Global state has a bad rep. Sure, lots of global state&#8202;&mdash;&#8202;especially global
+<em>mutable</em> state&#8202;&mdash;&#8202;makes it hard to maintain large programs. It&rsquo;s a good
+software engineering practice to try to minimize how much you use.</p>
+<p>But when it comes to slapping together a simple programming language or, heck,
+even learning your first language, the flat simplicity of global variables is
+helpful. My first language was BASIC and, though I outgrew its simplicity
+eventually, I think it was a boon that I didn&rsquo;t have to wrap my head around
+scoping rules before I could start making a computer do fun stuff.</p>
+</aside>
+<p>Syntactically, we need two new constructs. We need variable statements to bring
+new variables into the world:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">beverage</span> <span class="o">=</span> <span class="s">&quot;espresso&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>define binding that associates name with some value</li>
-<li>variable expressions&#8202;&mdash;&#8202;identifier&#8202;&mdash;&#8202;access binding</li>
-<li>
-<p>look up value associated with name and return it</p>
-</li>
-<li>
-<p>will refine that later with assignment, lexical scope, etc. but start with
-  just those</p>
-</li>
-</ul>
-<h3><a href="#syntax" name="syntax"><small>8&#8202;.&#8202;2&#8202;.&#8202;1</small> syntax</a></h3>
-<ul>
-<li>as before, do this front to back</li>
-<li>syntax then semantics</li>
-<li>with addition of declarations, actually splitting statement grammar in two</li>
-<li>have sort of two &ldquo;levels&rdquo; of statements, almost like expression precedence</li>
-<li>there are &ldquo;declaration&rdquo; statements that introduce new names:</li>
-<li>obv &ldquo;var&rdquo; but later &ldquo;fun&rdquo; and &ldquo;class&rdquo; too</li>
-<li>then other statements like print, control flow, etc.</li>
-<li>make distinction because we don&rsquo;t allow declarations as clauses of control
-  flow statements</li>
-<li>this is error:</li>
-</ul>
+<p>This creates a new binding that associates a name (here &ldquo;beverage&rdquo;) with a value
+(here, the string <code>"espresso"</code>). Once that&rsquo;s been done, we need variable
+<em>expressions</em>&#8202;&mdash;&#8202;an identifier&#8202;&mdash;&#8202;to access that binding. When the name
+<code>beverage</code> is used as an expression, it looks up the value bound to that name
+and returns it.</p>
+<p>We&rsquo;ll refine and extend these to support assignment and block scope, but that&rsquo;s
+enough to start with.</p>
+<h3><a href="#variable-syntax" name="variable-syntax"><small>8&#8202;.&#8202;2&#8202;.&#8202;1</small> Variable syntax</a></h3>
+<p>As before, we&rsquo;re going to work through the implementation from front to back,
+starting with the syntax. Variable declarations are a kind of statement, but
+they are different from other statements, and we&rsquo;re going to split the statement
+grammar in two to handle them. That&rsquo;s because some kinds of statements aren&rsquo;t
+allowed in certain places.</p>
+<p>In particular, the clauses in control flow statements&#8202;&mdash;&#8202;think the &ldquo;then&rdquo; and
+&ldquo;else&rdquo; parts of an if statement&#8202;&mdash;&#8202;are not allowed be statements that declare a
+name. This is OK:</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">monday</span><span class="p">)</span> <span class="n">print</span> <span class="s">&quot;Ugh, already?&quot;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>But this is not:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">monday</span><span class="p">)</span> <span class="k">var</span> <span class="n">beverage</span> <span class="o">=</span> <span class="s">&quot;espresso&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>could allow this, but don&rsquo;t because scoping gets confusing</li>
-<li>does beverage go out of scope after if? if so, why allow at all</li>
-<li>c et al disallow this, so we do too</li>
-<li>
-<p>[can of course use block]</p>
-</li>
-<li>
-<p>grammar for statements looks like:</p>
-</li>
-</ul>
+<p>We <em>could</em> allow the latter, but it&rsquo;s kind of confusing. What is the scope of
+that <code>beverage</code> variable? If it goes <em>past</em> the if, then it means in some
+cases, the variable exists and others it doesn&rsquo;t. That makes it really hard for
+the compiler or a human to reason about the code. But if the variable <em>doesn&rsquo;t</em>
+live past the if, then what&rsquo;s the point of declaring it at all?</p>
+<p>It&rsquo;s just weird, so C, Java, and friends all disallow it. Instead, it&rsquo;s almost
+like there are two levels of <span name="brace">&ldquo;precedence&rdquo;</span> for
+statements. Some places where a statement is allowed&#8202;&mdash;&#8202;like inside a block or
+at the top level&#8202;&mdash;&#8202;allow any kind of statement, including declarations. Others
+only allow the &ldquo;higher&rdquo; precedence statements that don&rsquo;t declare names.</p>
+<aside name="brace">
+<p>In this analogy, a block statement, where you stuff a series of statements
+inside a pair of curly braces, works sort of like parentheses for expressions. A
+block statement is itself in the &ldquo;higher&rdquo; precedence level and can be used
+anywhere, like in the clauses of an if statement.</p>
+<p>But the statements it <em>contains</em> can be lower precedence. You&rsquo;re allowed to
+declare variables and other names inside the block. So the curlies let you
+escape back into the full statement grammar from a place where only some
+statements are allowed.</p>
+</aside>
+<p>To accommodate the distinction, we add another rule for statements that declare
+names:</p>
 <div class="codehilite"><pre><span></span><span class="n">program</span>     <span class="o">=</span> <span class="n">declaration</span><span class="o">*</span> <span class="n">eof</span> <span class="p">;</span>
 
-<span class="n">declaration</span> <span class="o">=</span> <span class="n">statement</span> <span class="p">;</span>
+<span class="n">declaration</span> <span class="o">=</span> <span class="n">varDecl</span>
+            <span class="err">|</span> <span class="n">statement</span> <span class="p">;</span>
 
 <span class="n">statement</span>   <span class="o">=</span> <span class="n">exprStmt</span>
             <span class="err">|</span> <span class="n">printStmt</span> <span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>so top level is list of decls</li>
-<li>
-<p>since decl falls back to statement as last option, allows statements there
-  too</p>
-</li>
-<li>
-<p>now extend grammar with var decls and use</p>
-</li>
-<li>decl becomes:</li>
-</ul>
-<div class="codehilite"><pre><span></span><span class="n">declaration</span> <span class="o">=</span> <span class="n">varDecl</span>
-            <span class="err">|</span> <span class="n">statement</span> <span class="p">;</span>
-
-<span class="n">varDecl</span>     <span class="o">=</span> <span class="s">&quot;var&quot;</span> <span class="n">identifier</span> <span class="p">(</span> <span class="s">&quot;=&quot;</span> <span class="n">expression</span> <span class="p">)</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+<p>Statements that declare names go under the new <code>declaration</code> rule. Right now,
+it&rsquo;s just variables, but later it will include functions and classes. Obviously,
+you can declare stuff at the top level of a script, so <code>program</code> routes to the
+new rule.</p>
+<p>The rule for declaring a variable looks like:</p>
+<div class="codehilite"><pre><span></span><span class="n">varDecl</span> <span class="o">=</span> <span class="s">&quot;var&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">(</span> <span class="s">&quot;=&quot;</span> <span class="n">expression</span> <span class="p">)</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>var declaration is &ldquo;var&rdquo; followed by name then semicolon</li>
-<li>
-<p>also allow optional initializer expression between name and &ldquo;;&rdquo;</p>
-</li>
-<li>
-<p>and add new clause to primary expr for accessing var</p>
-</li>
-</ul>
+<p>Like most statements it starts with a leading keyword. In this case, <code>var</code>. Then
+an identifier token for the name of the variable being declared, followed by an
+optional initializer expression. Finally, we put a bow on it with the semicolon.</p>
+<p>In order to <em>use</em> a variable, we add a new clause to primary expression:</p>
 <div class="codehilite"><pre><span></span><span class="n">primary</span>     <span class="o">=</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;null&quot;</span> <span class="err">|</span> <span class="s">&quot;this&quot;</span>
             <span class="err">|</span> <span class="vg">NUMBER</span> <span class="err">|</span> <span class="vg">STRING</span>
             <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span>
@@ -582,14 +557,10 @@ replace 1 line</div>
 </pre></div>
 
 
-<ul>
-<li>identifier at end matches single var name token</li>
-</ul>
-<h3><a href="#parsing-var-stmt" name="parsing-var-stmt"><small>8&#8202;.&#8202;2&#8202;.&#8202;2</small> parsing var stmt</a></h3>
-<ul>
-<li>two new grammar productions lead to new syntax trees</li>
-<li>new statement form for declaring variable</li>
-</ul>
+<p>That <code>IDENTIFIER</code> clause matches a single identifier token, which is understood
+to be the name of the variable being accessed.</p>
+<p>These new grammar rules need their corresponding syntax trees. We add a new
+statement tree for a variable declaration:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Print      : Expr expression&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -597,15 +568,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>    <span class="o">));</span>
 </pre></div>
 
-<ul>
-<li>
-<p>has a token for name of variable being declared, and then expression for
-  initializer</p>
-</li>
-<li>
-<p>expression form for accessing</p>
-</li>
-</ul>
+<p>It stores the name token so we know what it&rsquo;s declaring, along with the
+initializer expression. If there isn&rsquo;t an initializer, that&rsquo;s <code>null</code>.</p>
+<p>Then we add an expression node for accessing a variable:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -613,37 +578,33 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>    <span class="o">));</span>
 </pre></div>
 
-<ul>
-<li>simply wrapper around token for name of var being accessed</li>
-<li>
-<p>[aside about naming tree: &ldquo;var&rdquo;, &ldquo;identifier&rdquo;, &ldquo;name&rdquo;]</p>
-</li>
-<li>
-<p>don&rsquo;t forget to run ast generator</p>
-</li>
-<li>
-<p>to parse, need to add those, but also need to shift stuff around because of
-  new &ldquo;decl&rdquo; level</p>
-</li>
-<li>
-<p>top level program rule is now list of decls, so change parse to</p>
-</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>
+<p>It&rsquo;s simply a wrapper around the token for the variable name. That&rsquo;s it. As
+always, don&rsquo;t forget to run the AstGenerator script so that you get updated
+Expr.java and Stmt.java files.</p>
+<h3><a href="#parsing-variables" name="parsing-variables"><small>8&#8202;.&#8202;2&#8202;.&#8202;2</small> Parsing variables</a></h3>
+<p>Before we can start parsing the new syntax, we need to shift around a little
+code to make room for the new <code>declaration</code> rule in the grammar. The grammar
+for the top level of a program is now a list of declarations, so the entrypoint
+method to the parser becomes:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>parse</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>      <span class="n">statements</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">declaration</span><span class="o">());</span>
 </pre><pre class="insert-after"><span></span>    <span class="o">}</span>
+
+    <span class="k">return</span> <span class="n">statements</span><span class="o">;</span>
+  <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>calls</li>
-</ul>
+<p>That calls this new method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">declaration</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">try</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">VAR</span><span class="o">))</span> <span class="k">return</span> <span class="n">varDeclaration</span><span class="o">();</span>
 
       <span class="k">return</span> <span class="n">statement</span><span class="o">();</span>
     <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ParseError</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>
@@ -653,30 +614,24 @@ add after <em>expression</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>finally at point that we can do error sync introduced way back in previous
-  chapter</li>
-<li>
-<p>given chunk of code containing multiple statements, helps recover from error
-  in earlier statement before moving on to later ones</p>
-</li>
-<li>
-<p>falls back to calling statement, because anywhere we allow a decl, we also
-  allow regular statement</p>
-</li>
-<li>
-<p>now can add new bit of code to match and parse var decl</p>
-</li>
-</ul>
-<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
-in <em>declaration</em>()</div>
-<pre><span></span>      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">VAR</span><span class="o">))</span> <span class="k">return</span> <span class="n">varDeclaration</span><span class="o">();</span>
-</pre></div>
-
-<ul>
-<li>starts with &ldquo;var&rdquo; keyword</li>
-<li>if found, branches to</li>
-</ul>
+<p>Hey, do you remember way back in that <a href="parsing-expressions.html">earlier chapter</a> when we put the
+infrastructure in place to do error recovery? We are finally at the point where
+we can hook that up.</p>
+<p>This <code>declaration()</code> method is the method we call repeatedly when parsing a list
+of expressions in a block or a script, so it&rsquo;s the right point to synchronize to
+when the parser goes into panic mode. The whole body of the method is wrapped in
+a try block to catch the exception thrown when the parser begins error recovery.
+This gets it back to trying to parse the beginning of the next statement or
+declaration.</p>
+<p>Inside that block is where the real parsing happens. First it looks to see if
+we&rsquo;re at a variable declaration by looking for the leading <code>var</code> keyword. If
+not, it bubbles up to the &ldquo;higher precedence&rdquo; statement method. Anywhere a
+declaration statement is a allowed, a non-declaring statement is allowed too.</p>
+<p>Recall that <code>statement()</code> tries to parse an expression statement if no other
+statement matches. And <code>expression()</code> reports a syntax error if it can&rsquo;t parse
+an expression at the current token. So that chain of calls ensures we report an
+error if a valid declaration or statement isn&rsquo;t parsed.</p>
+<p>When it does match the <code>var</code> token, it branches to:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">varDeclaration</span><span class="o">()</span> <span class="o">{</span>
@@ -688,23 +643,19 @@ add after <em>printStatement</em>()</div>
     <span class="o">}</span>
 
     <span class="n">consume</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after variable declaration.&quot;</span><span class="o">);</span>
-
     <span class="k">return</span> <span class="k">new</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Var</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">initializer</span><span class="o">);</span>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>much like previous rule</li>
-<li>gets variable name following &ldquo;var&rdquo; token</li>
-<li>if we see &ldquo;=&rdquo;, must be initializer, so match that</li>
-<li>otherwise, leave null</li>
-<li>
-<p>interpreter will check that</p>
-</li>
-<li>
-<p>parsing variable use&#8202;&mdash;&#8202;identifier expr&#8202;&mdash;&#8202;easy</p>
-</li>
-</ul>
+<p>As always, the recursive descent code follows the grammar rule. We&rsquo;ve already
+matched the <code>var</code> token, so next it requires and consumes an identifier token
+for the variable name.</p>
+<p>Then, if it sees a <code>=</code> token, it knows there is an initializer expression. If
+so, it parses it. Otherwise, it leaves the initializer <code>null</code>. Finally, it
+consumes the required semicolon at the end of the statement. All this gets
+wrapped in a Stmt.Var syntax tree node and we&rsquo;re groovy.</p>
+<p>Parsing a variable expression is even easier. In the <code>primary()</code> method where
+primary expressions are handled, we just look for an identifier token:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="na">literal</span><span class="o">);</span>
     <span class="o">}</span>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
@@ -715,38 +666,34 @@ in <em>primary</em>()</div>
 </pre><pre class="insert-after"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>
 </pre></div>
 
-<ul>
-<li>
-<p>as in rule, simply adds another clause to primary expr parsing code</p>
-</li>
-<li>
-<p>have front end working</p>
-</li>
-<li>next feed it into interp</li>
-<li>new visit methods for var stmt and var expr</li>
-<li>before get to those, need infra</li>
-</ul>
-<h2><a href="#environment" name="environment"><small>8&#8202;.&#8202;3</small> environment</a></h2>
-<ul>
-<li>bindings need to be stored somewhere</li>
-<li>traditional term &ldquo;environment&rdquo;</li>
-<li>data structure that holds associations between variables and their
-  current values</li>
-<li>think of it like map where keys are var names and values are&hellip; values</li>
-<li>in fact, that&rsquo;s how we&rsquo;ll implement it</li>
-<li>could stuff environment directly in interp class, but cleaner to treat it
-  as separate concept</li>
-<li>[like to think of &ldquo;environment&rdquo; literally, as delightful woodland area where
-  variables frolic around with their values hovering above them like balloons
-  on strings]</li>
-<li>var stmt will add binding to environment</li>
-<li>
-<p>identifier expr will look it up</p>
-</li>
-<li>
-<p>make new file and enter</p>
-</li>
-</ul>
+<p>That gives us a working front end for declaring and using variables. All that&rsquo;s
+left is to feed it into the interpreter. As usual, that means a couple of new
+visit methods, but before we get to those, we need to talk about where the data
+for variables lives.</p>
+<h2><a href="#environments" name="environments"><small>8&#8202;.&#8202;3</small> Environments</a></h2>
+<p>The bindings that associate variables to values need to be stored somewhere.
+Ever since the Lisp folks invented parentheses, this data structure has been
+called an <span name="env">environment</span>. It&rsquo;s the ambient place that
+surrounds a chunk of code. When you execute the code, the environment is where
+you go when you have some variable and you need to find what it represents.</p>
+<aside name="env">
+<p>I like to imagine the environment literally, as a sylvan wonderland where
+variables and values frolic.</p>
+</aside>
+<p>You can think of it like a <span name="map">map</span> where the keys are
+variable names and the values are the variable&rsquo;s, uh, values. In fact, that&rsquo;s
+how we&rsquo;ll implement it in Java.</p>
+<p><span name="map"></p>
+<p>Java calls them &ldquo;maps&rdquo; or &ldquo;hashmaps&rdquo;. Other languages call them &ldquo;hash tables&rdquo;,
+&ldquo;dictionaries&rdquo; (Python and C#), &ldquo;hashes&rdquo; (Ruby and Perl), &ldquo;tables&rdquo; (Lua), or
+&ldquo;associative arrays&rdquo; (PHP). Way back when, they were called &ldquo;scatter tables&rdquo;.
+They have so many names, you&rsquo;d need some kind of data structure to keep track of
+them all!</p>
+<p>Ugh. I&rsquo;ll see myself out.</p>
+<p></span></p>
+<p>We could stuff the environment data and the code to manage it in the interpreter
+class, but it forms a nicely delineated concept with a simple interface, so
+we&rsquo;ll pull it out into its own neat little class.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 create new file</div>
 <pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
@@ -759,19 +706,14 @@ create new file</div>
 <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>like said, wraps map of variable names to values</li>
-<li>uses strings for names, not tokens</li>
-<li>want two references to same variable to have same hash key, so unwrap token
-  to get to actual name</li>
-<li>
-<p>not much here yet, but will grow</p>
-</li>
-<li>
-<p>two operations</p>
-</li>
-<li>var statement defines a variable</li>
-</ul>
+<p>Like I said, there&rsquo;s a Java Map in there to store the bindings. We use bare
+strings for the keys, not tokens. Remember, a token represents a unit of code at
+a specific place in the source text. But when it comes to looking up variables,
+all identifier tokens with the same lexeme should refer to the same variable
+(ignoring scope for now). Using the string itself ensures all of those tokens
+collapse to the same map key.</p>
+<p>There are two operations we need to support. First, a variable declaration binds
+a new name to a value:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 in <em>define</em>()</div>
 <pre><span></span>  <span class="kt">void</span> <span class="nf">define</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">,</span> <span class="n">Object</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
@@ -779,13 +721,9 @@ in <em>define</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>dead simple</li>
-<li>mainly just unwraps token</li>
-<li>interesting semantic choices sneaking in</li>
-<li>does no checking to see if var is already defined</li>
-<li>this is ok:</li>
-</ul>
+<p>OK, there&rsquo;s not a lot of magic here. There is one interesting semantic choice,
+though. When we add the key to the map, we don&rsquo;t check to see that it isn&rsquo;t
+already present. That means that this program works:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;before&quot;</span><span class="p">;</span>
 <span class="n">print</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// &quot;before&quot;.</span>
 <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;after&quot;</span><span class="p">;</span>
@@ -793,45 +731,28 @@ in <em>define</em>()</div>
 </pre></div>
 
 
-<ul>
-<li>var doesn&rsquo;t just define new var, but can redefine existing var</li>
-<li>could choose to make this error instead</li>
-<li>user may not intend to redefine previous var when they do this</li>
-<li>error would bring to attention</li>
-<li>could be runtime error, or even static error</li>
-<li>interacts poorly with repl</li>
-<li>handy to be able to redefine existing var in repl without yelling at you</li>
-<li>could require user to use assignment instead, but not friendly</li>
-<li>could allow in repl but disallow in scripts</li>
-<li>adds complexity, forces users to think about which mode in</li>
-<li>code copied from script and pasted into repl might behave diff</li>
-<li>
-<p>[once have closures, even more interesting question about whether redefining
-  existing var or defining new one]</p>
-<p>var a = &ldquo;before&rdquo;;
-fun f() {
-  print a;
-}
-var a = &ldquo;after&rdquo;;
-f(); // ???</p>
-</li>
-<li>
-<p>equivalent prog in scheme prints &ldquo;after&rdquo;</p>
-</li>
-<li>are redefining existing var</li>
-<li>var decl is treated exactly like assignment (at top level) if var exists</li>
-<li>in ml, prints &ldquo;before&rdquo;</li>
-<li>second &ldquo;var a&rdquo; introduces new a that is only visible to later code</li>
-<li>existing code, like f() still sees orig</li>
-<li>lox is friendly little scripting lang, so err on side of permissive</li>
-<li>will allow, and treat as same as assignment</li>
-<li>
-<p>(for globals)</p>
-</li>
-<li>
-<p>once var exists, need way to look it up</p>
-</li>
-</ul>
+<p>A variable statement doesn&rsquo;t just define a <em>new</em> variable, it can also be used
+to <em>re</em>define an existing variable. We could choose to make this an error
+instead. The user may not intend to be redefining a variable. (If they did
+intend to, they probably would have used assignment, not <code>var</code>.) Making
+redefinition an error would help them find that bug.</p>
+<p>However, doing so interacts poorly with the REPL. In the middle of a REPL
+session, it&rsquo;s nice to not have to mentally track which variables you&rsquo;ve already
+defined. We could allow redefinition in the REPL but not in scripts, but then
+users have to learn two sets of rules, and code copied and pasted from one form
+to the other might not work.</p>
+<p><span name="scheme">Making</span> it an error isn&rsquo;t an unreasonable choice, but
+Lox errs on the side of permissiveness, so we&rsquo;ll allow it (for global
+variables).</p>
+<aside name="scheme">
+<p>My rule about variables and scoping is, &ldquo;When in doubt, do what Scheme does.&rdquo;
+The Scheme folks have probably spent more time thinking about variable scope
+than we ever will&#8202;&mdash;&#8202;one of the main goals of Scheme was to introduce lexical
+scoping to the world&#8202;&mdash;&#8202;so it&rsquo;s hard to go wrong if you follow in their
+footsteps.</p>
+<p>Scheme allows redefining variables at the top level.</p>
+</aside>
+<p>Once a variable exists, we need a way to look it up.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 in <em>get</em>()</div>
 <pre><span></span>  <span class="n">Object</span> <span class="nf">get</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
@@ -844,33 +765,27 @@ in <em>get</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
+<p>This is a little more semantically interesting. If the variable is found, it
+simply returns the value bound to it. But what if it&rsquo;s not? Again, we have a
+choice.</p>
 <ul>
-<li>little more semantically interesting</li>
-<li>if var is found, simply returns value bound to it</li>
-<li>what if not found?</li>
-<li>again, have choice</li>
-<li>could be syntax error, runtime error</li>
-<li>could even allow it by returning some default value like nil</li>
-<li>lox permissive, but seems like asking for trouble</li>
-<li>syntax error seems like smart choice</li>
-<li>using a var not defined almost always mistake</li>
-<li>problem is <em>ref</em> var not same as <em>using</em></li>
-<li>can refer to var while not immediately using it by having it wrapped in fn</li>
-<li>
-<p>if we make it static error to refer to var not declared yet, recursive fns
-  much harder</p>
-</li>
-<li>
-<p>can handle <em>single</em> recursion by putting fn&rsquo;s own name in scope before looking
-  at body of fn</p>
-</li>
-<li>
-<p>doesn&rsquo;t help with mutual recursion</p>
-</li>
-<li>
-<p>consider:</p>
-</li>
+<li>Make it a syntax error.</li>
+<li>Make it a runtime error.</li>
+<li>Allow it and return some default value like <code>nil</code>.</li>
 </ul>
+<p>Lox is pretty lax, but the last option seems a little <em>too</em> permissive to me.
+Making it a syntax error&#8202;&mdash;&#8202;a compile time error&#8202;&mdash;&#8202;seems like a smart choice.
+Using a variable that isn&rsquo;t defined is an error, and the sooner you detect the
+error, the better.</p>
+<p>The problem is that <em>using</em> a variable isn&rsquo;t the same as <em>referring to it</em> it.
+You can refer to a variable in a chunk of code without immediately evaluating it
+if that chunk of code is wrapped inside a function. If we make it a static error
+to say the name of a variable before it&rsquo;s been declared, it becomes much harder
+to define recursive functions.</p>
+<p>We could accommodate single recursion&#8202;&mdash;&#8202;a function that calls <em>itself</em>&#8202;&mdash;&#8202;by
+defining the function&rsquo;s own name before we examine its body. But that doesn&rsquo;t
+help with mutually recursive procedures that call each other. Consider:</p>
+<p><span name="contrived"></span></p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">isOdd</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
   <span class="k">return</span> <span class="n">isEven</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
@@ -883,58 +798,47 @@ in <em>get</em>()</div>
 </pre></div>
 
 
-<ul>
-<li>[contrived, of course. and risky in lang without tail recursion.]</li>
-<li>
-<p>hypothesis: there are no recursive functions that only make single recursive call that do not look
-    constrived in imperative lang</p>
-</li>
-<li>
-<p>isEven isn&rsquo;t defined yet by time looking at body of isOdd where it&rsquo;s used</p>
-</li>
-<li>
-<p>if we move its definition before isOdd, run into same problem with isEven
-  in body of isOdd</p>
-</li>
-<li>
-<p>fully statically typed langs handle this by making top level purely contain
-  decls and no imperative code</p>
-</li>
-<li>decls can all be simultaneous&#8202;&mdash;&#8202;lang puts them all in scope before looking
-  inside any bodies</li>
-<li>how java and c# work</li>
-<li>[old langs like c and pascal don&rsquo;t work like]</li>
-<li>even though top level only decls, still require explicit forward decls</li>
-<li>tech limitation of time</li>
-<li>
-<p>wanted to compile in single pass through source file, so couldn&rsquo;t gather
-    all decls before compiling any bodies</p>
-</li>
-<li>
-<p>instead, make it runtime error</p>
-</li>
-<li>means it is fine to refer to variable that isn&rsquo;t defined yet, as long as code
-  containing ref isn&rsquo;t evaluated before definition occurs</li>
-<li>above isOdd() isEven() works fine</li>
-<li>but get runtime error here:</li>
-</ul>
+<aside name="contrived">
+<p>OK, granted, this is probably not the most efficient way to tell if a number is
+even or odd (not to mention the bad things that happen if you pass a non-integer
+or negative number to them). Bear with me.</p>
+</aside>
+<p>The <code>isEven()</code> function isn&rsquo;t defined by the time we are looking at the body of
+<code>isOdd()</code> where it&rsquo;s called. If we swap the order of the two functions, then
+<code>isOdd()</code> isn&rsquo;t defined when we&rsquo;re looking at <code>isEven()</code>&lsquo;s body.</p>
+<p>Some <span name="declare">statically-typed</span> languages like Java and C#
+solve this by specifying that the top level of a program isn&rsquo;t a sequence of
+imperative statements. Instead, a program is a set of declarations which all
+come into being simultaneously. The implementation declares all of the names
+before looking at the bodies of any of the functions.</p>
+<aside name="declare">
+<p>Older languages like C and Pascal don&rsquo;t work like this. Instead, they force you
+to add explicit <em>forward declarations</em> to declare a name before it&rsquo;s fully
+defined. That was a concession to the limited computers of the time. They wanted
+to be able to fully compile a source file in one single pass through the text,
+so those compilers couldn&rsquo;t gather up all of the declarations first before
+processing function bodies.</p>
+</aside>
+<p>Since making it a <em>static</em> error makes recursive declarations too difficult,
+we&rsquo;ll defer the error to runtime. It&rsquo;s OK to refer to a variable before it&rsquo;s
+defined as long as you don&rsquo;t execute the reference. <em>Evaluating</em> a variable
+expression before a variable with that name is defined is an error.</p>
+<p>That means the above program for even and odd numbers is fine (as long as you
+don&rsquo;t add a call to either of the functions <em>between</em> their two declarations),
+but you&rsquo;d get a runtime error in:</p>
 <div class="codehilite"><pre><span></span><span class="n">print</span> <span class="n">a</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;too late!&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>unlike define() which immediately yanks out lexeme, passing in token important
-  here</li>
-<li>when var isn&rsquo;t defined, use its position information to report runtime error
-  at right location</li>
-</ul>
-<h2><a href="#interpreting-global-vars" name="interpreting-global-vars"><small>8&#8202;.&#8202;4</small> interpreting global vars</a></h2>
-<ul>
-<li>that&rsquo;s very minimal env for global variables</li>
-<li>enough to add support to interp for new syntax</li>
-<li>first, interp needs to keep track of global env</li>
-</ul>
+<p>Just like with type errors in the expression evaluation code, we report a
+runtime error by throwing an exception. That exception wants a token so it can
+tell the user where in their code they messed up, which is why we pass a Token
+into <code>get()</code>.</p>
+<hr />
+<h3><a href="#interpreting-global-variables" name="interpreting-global-variables"><small>8&#8202;.&#8202;3&#8202;.&#8202;1</small> Interpreting global variables</a></h3>
+<p>Now our Interpreter class will keep one of these fancy environments to manage
+all of the global variables.</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
@@ -942,15 +846,9 @@ in class <em>Interpreter</em></div>
 <br></pre><pre class="insert-after"><span></span>  <span class="kt">void</span> <span class="nf">interpret</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span><span class="o">)</span> <span class="o">{</span>
 </pre></div>
 
-<ul>
-<li>add field to class</li>
-<li>
-<p>this way, globals live as long as interp does</p>
-</li>
-<li>
-<p>two new visit methods, one for var stmt, one for identifier</p>
-</li>
-</ul>
+<p>We store it as a field directly on the class so that the globals stay in memory
+as long as the interpreter is still around. We have two new syntax trees, so
+that&rsquo;s two new visit methods. The first is for declaration statements:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitPrintStmt</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -965,33 +863,25 @@ add after <em>visitPrintStmt</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>if var has initializer, evaluates it</li>
-<li>otherwise uses null, which is java rep for lox nil</li>
-<li>again, semantic choice appears</li>
-<li>decided that uninitialized var defaults to nil</li>
-</ul>
+<p>If the variable has an initializer, it evaluates it. If not, we have another
+choice to make. We could easily make it a syntax error by <em>requiring</em> an <code>=</code> and
+an initializer expression after the variable name. Most languages don&rsquo;t, though,
+so it feels a little harsh to do so in Lox.</p>
+<p>We could make it a runtime error. We&rsquo;d let you define an uninitialized variable,
+but if you accessed before assigning to it, a runtime error would occur. It&rsquo;s
+not a bad idea. It would make the interpreter a little more complex, and
+probably slower too. We&rsquo;d have to check on every access to see if the variable
+has a defined value.</p>
+<p>Instead, we&rsquo;ll keep it simple and say that Lox implicitly initializes a variable
+with <code>nil</code> if it isn&rsquo;t given an explicit initializer:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span><span class="p">;</span>
 <span class="n">print</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// &quot;nil&quot;.</span>
 </pre></div>
 
 
-<ul>
-<li>could easily make this syntax error</li>
-<li>simply <em>require</em> <code>=</code> and initializer expr</li>
-<li>most langs don&rsquo;t, so feels too harsh</li>
-<li>could make runtime error</li>
-<li>allow declaring uninitialized var, but require assigned value before used</li>
-<li>if not, access is runtime error</li>
-<li>not bad idea</li>
-<li>[might slow access to var, have to check if init]</li>
-<li>
-<p>for simplicity&rsquo;s sake, say uninitialized var is implicitly nil</p>
-</li>
-<li>
-<p>to access var:</p>
-</li>
-</ul>
+<p>Thus, if there isn&rsquo;t an initializer, we set the value to <code>null</code>, which is the
+Java representation of Lox&rsquo;s <code>nil</code> value.</p>
+<p>To evaluate a variable expression:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -1000,75 +890,56 @@ add after <em>visitUnaryExpr</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>
-<p>simply forward to env, which does heavy lifting to check for defined var</p>
-</li>
-<li>
-<p>try out interp</p>
-</li>
-<li>starting to feel like real lang</li>
-<li>can store values in vars and access them</li>
-</ul>
+<p>It simply forwards to the environment which, as you already say, does the heavy
+lifting around making sure the variable is defined. With that, we&rsquo;ve got
+rudimentary variables working. Try this out:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
 <span class="n">print</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>can&rsquo;t reuse code yet, but can start to build up programs by reusing data</li>
-</ul>
-<h2><a href="#assignment" name="assignment"><small>8&#8202;.&#8202;5</small> assignment</a></h2>
-<ul>
-<li>it&rsquo;s possible to make lang without any ability to assign to&#8202;&mdash;&#8202;mutate&#8202;&mdash;&#8202;vars</li>
-<li>haskell one example</li>
-<li>mutating existing var is side effect</li>
-<li>as name implies some think side effects are inelegant</li>
-<li>&ldquo;impure&rdquo; is other synonym</li>
-<li>both come from func comm which prefers computation to be like math</li>
-<li>[given many claim to hold logically superior position, funny how they can&rsquo;t
-  resist using emotionally loaded terms for things they don&rsquo;t like]</li>
-<li>lox not so austere</li>
-<li>
-<p>mutation typical part of imperative langs</p>
-</li>
-<li>
-<p>semantically, not much to do</p>
-</li>
-<li>only have global vars and already decided they can be redefined, which
-  reassigns</li>
-<li>machinery all there</li>
-<li>but want real syntax for explicit assignment to existing var</li>
-<li>when add local vars, will be semantic differences</li>
-<li>as see, assignment syntax more complex than might first seem</li>
-</ul>
-<h3><a href="#assign-syntax" name="assign-syntax"><small>8&#8202;.&#8202;5&#8202;.&#8202;1</small> assign syntax</a></h3>
-<ul>
-<li>like most c-derived langs, assignment is expression, not statement</li>
-<li>[is statement in python, expr in go but ++ is statement]</li>
-<li>as in c, lowest precedence expr form</li>
-<li>so change expr grammar to:</li>
-</ul>
+<p>We can&rsquo;t reuse code yet, but we can start to build up programs that reuse data.</p>
+<h2><a href="#assignment" name="assignment"><small>8&#8202;.&#8202;4</small> Assignment</a></h2>
+<p>It&rsquo;s possible to create a language that has variables but does not allow you to
+reassign&#8202;&mdash;&#8202;or <strong>&ldquo;mutate&rdquo;</strong>&#8202;&mdash;&#8202;them. Haskell is one example. SML forces you to
+explicitly opt in to mutation by using a ref or an array&#8202;&mdash;&#8202;normal variables
+cannot be re-assigned. Rust tries to steer you away from it by requiring a <code>mut</code>
+modifier to make a variable assignable.</p>
+<p>Mutating a variable is a side effect and, as the name suggests, some language
+folks think side effects are a <span name="pure">little dirty</span> or
+inelegant. Code should be pure math that produces values&#8202;&mdash;&#8202;crystalline,
+unchanging ones&#8202;&mdash;&#8202;like an act of divine creation. Not some grubby automaton
+that pushes data around and munges things together, one imperative grunt at a
+time.</p>
+<aside name="pure">
+<p>I find it delightful that the same group of people who pride themselves on being
+creatures of pure abstract reason are also the ones who couldn&rsquo;t resist
+appropriating such emotionally-loaded terms for their work: &ldquo;pure&rdquo;, &ldquo;side
+effect&rdquo;, &ldquo;lazy&rdquo;, &ldquo;persistent&rdquo;, &ldquo;first-class&rdquo;, &ldquo;higher-order&rdquo;.</p>
+<p>Are we talking programming languages, or a revolutionary manifesto?</p>
+</aside>
+<p>Lox is not so austere. Mutation is a typical imperative language, and mutation
+comes with the territory. Adding support for assignment doesn&rsquo;t require much work. Our global variables already support redefinition, so most of the machinery is already there.</p>
+<p>Mainly, we&rsquo;re missing an explicit assignment notation. But, as we&rsquo;ll see, that little <code>=</code> syntax is a little more complex than it might first seem. Like most <span name="assign">C-derived</span> languages, assignment is an expression and not a statement. As in C, it is the lowest precedence expression form.</p>
+<aside name="assign">
+<p>Assignment is a statement in Python. It&rsquo;s an expression in Go, but the increment and decrement operators <code>++</code> and <code>--</code>, which are syntactic sugar for an assignment, are statements.</p>
+</aside>
+<h3><a href="#assignment-syntax" name="assignment-syntax"><small>8&#8202;.&#8202;4&#8202;.&#8202;1</small> Assignment syntax</a></h3>
+<p>Because our grammar works from the lowest precedence up, that means we&rsquo;ll add it near the <em>top</em> of the rules:</p>
 <div class="codehilite"><pre><span></span><span class="n">expression</span>  <span class="o">=</span> <span class="n">assignment</span> <span class="p">;</span>
 <span class="n">assignment</span>  <span class="o">=</span> <span class="n">identifier</span> <span class="p">(</span> <span class="s">&quot;=&quot;</span> <span class="n">assignment</span> <span class="p">)</span><span class="err">?</span>
             <span class="err">|</span> <span class="n">equality</span> <span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>expr falls through to lowest prec rule, assign</li>
-<li>that can be var name followed by <code>=</code> and new value, or any higher prec op</li>
-<li>next level is equality, so falls to that</li>
-<li>later, will get more complex when support property setters on objects like</li>
-</ul>
+<p>The expression rule redirects to what is now the lowest precedence rule, <code>assignment</code>. That rule can be an identifier followed by an <code>=</code> and a new value. Or it can be an <code>equality</code> expression, which is the next higher precedence level and ultimately includes all of the other expression forms.</p>
+<p>Later, <code>assignment</code> will get a little more complex when we support property setters on objects, like:</p>
 <div class="codehilite"><pre><span></span><span class="n">instance</span><span class="p">.</span><span class="n">field</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>easy part is adding new syntax tree node</li>
-</ul>
+<p>The easy part is adding the new syntax tree node:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">defineAst</span><span class="o">(</span><span class="n">outputDir</span><span class="o">,</span> <span class="s">&quot;Expr&quot;</span><span class="o">,</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -1076,14 +947,8 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Binary   : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre></div>
 
-<ul>
-<li>
-<p>run the ast generator to output new Expr.Assign class</p>
-</li>
-<li>
-<p>swap out body of expr to call new assign method</p>
-</li>
-</ul>
+<p>After you run the AstGenerator to get the new Expr.Assign class, swap out the
+body of the parser&rsquo;s existing <code>expression()</code> method to match the updated rule:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">expression</span><span class="o">()</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>expression</em>()<br>
@@ -1092,54 +957,47 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>here where it gets tricky</li>
-<li>single token lookahead recursive descent parser isn&rsquo;t well set up for
-  handling assign exprs</li>
-<li>problem is that, unlike other operators, lhs of assignment isn&rsquo;t express that
-  evaluates to <em>value</em></li>
-<li>it&rsquo;s sort of pseudo-expression that evaluates to thing that can be assigned
-  to</li>
-<li>in:</li>
-</ul>
-<div class="codehilite"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="p">;</span>
+<p>Here is where it gets tricky. A single token lookahead recursive descent parser
+can&rsquo;t see far enough to tell when it&rsquo;s parsing the left-hand side of an
+assignment until <em>after</em> it&rsquo;s gone through it and stumbled onto the <code>=</code>. You
+might wonder why it even needs to. After all, we don&rsquo;t know we&rsquo;re parsing a <code>+</code>
+expression until after we&rsquo;ve finished parsing the left operand.</p>
+<p>The difference is that the left-hand side of an assignment isn&rsquo;t an expression
+that evaluates to a value. It&rsquo;s a sort of pseudo-expression that evaluates to a
+&ldquo;thing&rdquo; you can assign to. In:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;before&quot;</span><span class="p">;</span>
+<span class="n">a</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>we don&rsquo;t <em>evaluate</em> a by looking up its <em>value</em> before executing the <code>=</code></li>
-<li>we just want to know var being assigned to so know where to store &ldquo;value&rdquo;</li>
-<li>classic terms &ldquo;lvalue&rdquo; and &ldquo;rvalue&rdquo;
-https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue</li>
-<li>thing on lhs of assign &ldquo;evaluates&rdquo; to lvalue&#8202;&mdash;&#8202;destination that value can
-  be stored in</li>
-<li>rhs is normal expression&#8202;&mdash;&#8202;rvalue</li>
-<li>
-<p>names from them appearing on left and right side of <code>=</code></p>
-</li>
-<li>
-<p>right now, only kind of lvalues we have are simple var names</p>
-</li>
-<li>when add classes and fields will have lvalues that may contain complex
-  expressions like</li>
-</ul>
+<p>On the second line, we don&rsquo;t <em>evaluate</em> <code>a</code> (which would return the string
+&ldquo;before&rdquo;). We figure out what variable <code>a</code> refers to to determine where to store
+the right-hand side expression&rsquo;s value.</p>
+<p>The <a href="https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue">classic terms</a> for these two <span name="lvalue">halves</span> of
+an assignment are <strong>lvalue</strong> and <strong>rvalue</strong>. An expression that produces a value
+is an rvalue. An lvalue &ldquo;evaluates&rdquo; to a storage location that you can assign
+into.</p>
+<aside name="lvalue">
+<p>In fact, the names come from assignment expressions. <em>L</em>values appear on the
+<em>left</em> side of the <code>=</code> in an assignment, and <em>r</em>values on the <em>right</em>.</p>
+</aside>
+<p>Right now, the only kind of lvalues we have are simple variable names. We we add
+classes and fields, we&rsquo;ll have compound lvalue expressions like:</p>
 <div class="codehilite"><pre><span></span><span class="n">makeList</span><span class="p">().</span><span class="n">head</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">node</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>because lvalue isn&rsquo;t evaluated like normal expr, want different syntax tree
-  nodes</li>
-<li>(note how assign expr has <em>token</em> for lhs, not Expr)</li>
-<li>problem is parser doesn&rsquo;t know it&rsquo;s parsing lvalue until it hits <code>=</code> which
-  may occur much later</li>
-<li>
-<p>without arbitrary lookahead, how to tell?</p>
-</li>
-<li>
-<p>will use trick, looks like</p>
-</li>
-</ul>
+<p>Because an lvalue isn&rsquo;t evaluated line a normal expression, we want the syntax
+tree to reflect that. The problem is that the parser doesn&rsquo;t know it&rsquo;s parsing
+an lvalue until it hits the <code>=</code>. In a complex lvalue like the previous example,
+they may occur <span name="many">many</span> tokens later.</p>
+<aside name="many">
+<p>In fact, since the receiver of a field assignment can be any expression, and
+expressions can be as long as you want to make them, it may take an unbounded
+number of tokens of lookahead to find the <code>=</code>.</p>
+</aside>
+<p>We only have a single token of lookahead, so what do we do? We use a little
+trick, and it looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">assignment</span><span class="o">()</span> <span class="o">{</span>
@@ -1161,62 +1019,58 @@ add after <em>expressionStatement</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>code for assignment looks almost like other binary operators</li>
-<li>parse lhs, which can be any expr of lower prec</li>
-<li>if match <code>=</code>, then parse rhs and wrap both in expr for <code>=</code></li>
-<li>
-<p>[one diff from other binary ops is <code>=</code> is right assoc. note how in grammar,
-  assignment recursive production is on right side of <code>=</code>, not left as in, say
-  <code>+</code>. that&rsquo;s why recursively call assignment() for lhs instead of doing while
-  loop]</p>
-</li>
-<li>
-<p>trick is that before creating assign expr, look at lhs expr and figure out
-  what kind of assign target it is</p>
-</li>
-<li>since every valid assign target is also valid
-  expression, we know this works</li>
-<li>opposite is not true</li>
-<li>many expressions that are not valid assign target, like <code>1 + 2 = 3;</code></li>
-<li>so if valid target, produce appropriate assign expr</li>
-<li>otherwise, fail with syntax error</li>
-<li>
-<p>right now, only valid target is var expr, will add more later with fields on
-  classes</p>
-</li>
-<li>
-<p>this is why in first parsing chapter we made expr node for parentheses instead
-  of discarding during parse</p>
-</li>
-<li>
-<p>when get here, need to be able to tell that <code>a = 1;</code> is valid but <code>(a) = 1;</code>
-  is not</p>
-</li>
-<li>
-<p>[possible for lang to have assignment target syntax that is not also valid
-  expression</p>
-</li>
-<li>for ex, maybe we support multiple assignment like <code>a, b = 3, 4</code>, but don&rsquo;t
-  have any general &ldquo;comma&rdquo; expr</li>
-<li>in that case, we&rsquo;d get parse error on first <code>,</code> before reached <code>=</code></li>
-<li>can solve that by defining &ldquo;cover grammar&rdquo;</li>
-<li>parser first accepts looser faux grammar that covers both all exprs and all
-  possible assign targets</li>
-<li>make fake comma expr node</li>
-<li>
-<p>then later check that non-expr faux exprs only appear as assignment targets
-  like opposite of above check]</p>
-</li>
-<li>
-<p>end result is lhs expr node is discarded and we create assign node that knows
-  what it is assigning to and the expr for value being assigned</p>
-</li>
-</ul>
-<h3><a href="#assignment-semantics" name="assignment-semantics"><small>8&#8202;.&#8202;5&#8202;.&#8202;2</small> assignment semantics</a></h3>
-<ul>
-<li>to support new expr in interp, need new visit method</li>
-</ul>
+<p>Most of the code for parsing an assignment expression looks similar to the other
+binary operators like <code>+</code>. We parse the left-hand side, which can be any
+expression of higher precedence. If we find a <code>=</code>, we parse the right-hand side
+and then wrap it all up in an assignment expression tree node.</p>
+<p>One slight difference from binary operators is that we don&rsquo;t loop to build up a
+sequence of the same operator. Since assignment is right-associative, we instead
+recursively call <code>assignment()</code> to parse the right-hand side.</p>
+<p>The trick is that right before we create the assignment expression node, we look
+at the left-hand side expression and figure out what kind of assignment target
+it is. In other words, we convert it from an rvalue to an lvalue.</p>
+<p>This trick works because it turns out that every valid assignment target happens
+to also be <span name="converse">valid syntax</span> as a normal expression.
+Consider a complex field assignment like:</p>
+<aside name="converse">
+<p>Note that the converse is not true. While every assignment target is also a
+valid expression, there are many expressions that are not valid assignment
+targets. This is not syntactically valid:</p>
+<div class="codehilite"><pre><span></span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">=</span> <span class="n">c</span><span class="p">;</span>
+</pre></div>
+
+
+</aside>
+<div class="codehilite"><pre><span></span><span class="n">newPoint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">).</span><span class="n">y</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+</pre></div>
+
+
+<p>The left-hand side of that assignment could also work as a valid expression:</p>
+<div class="codehilite"><pre><span></span><span class="n">newPoint</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">).</span><span class="n">y</span><span class="p">;</span>
+</pre></div>
+
+
+<p>(Where the first example sets the field, the second gets it.)</p>
+<p>This means we can parse the left-hand side as if it were an expression and then
+after the fact produce a syntax tree for the corresponding assignment target. If
+the left-hand side expression isn&rsquo;t a <span name="paren">valid</span> assignment
+target, we fail with a syntax error.</p>
+<aside name="paren">
+<p>Do you remember way back in the parsing chapter when I said we represent
+parenthesized expressions in the syntax tree because we&rsquo;ll need them later. This
+is why. We need to keep track of them so that we can distinguish between:</p>
+<div class="codehilite"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>   <span class="c1">// OK.</span>
+<span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Error.</span>
+</pre></div>
+
+
+</aside>
+<p>Right now, the only valid target is a simple variable expression, but we&rsquo;ll add
+fields later. The end result of this trick is an assignment expression tree node
+that knows what it is assigning to and has an expression subtree for the value
+being assigned. All with only a single token of lookahead and no backtracking.</p>
+<h3><a href="#assignment-semantics" name="assignment-semantics"><small>8&#8202;.&#8202;4&#8202;.&#8202;2</small> Assignment semantics</a></h3>
+<p>We&rsquo;ve got a new syntax tree node, so our interpreter needs a new visit method.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -1224,21 +1078,13 @@ add after <em>visitVarStmt</em>()</div>
     <span class="n">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
 
     <span class="n">environment</span><span class="o">.</span><span class="na">assign</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
-
     <span class="k">return</span> <span class="n">value</span><span class="o">;</span>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>similar to var declaration (except always know have rhs now)</li>
-<li>evaluate rhs to value</li>
-<li>
-<p>store in variable</p>
-</li>
-<li>
-<p>can&rsquo;t use <code>environment.define()</code> as see soon, so add new method</p>
-</li>
-</ul>
+<p>For obvious reasons, it&rsquo;s similar to a variable declaration. We evaluate the
+right-hand side to get the value, then we store it in the named variable.
+Instead of using <code>define()</code> on Environment, it calls this new method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 add after <em>get</em>()</div>
 <pre><span></span>  <span class="kt">void</span> <span class="nf">assign</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Object</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
@@ -1252,100 +1098,129 @@ add after <em>get</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>like <code>define()</code> stores value in map under var&rsquo;s name</li>
-<li>main difference is assign cannot create new var</li>
-<li>key must be present, or is runtime error</li>
-<li>lox does not do implicit var decl</li>
-<li>
-<p>assign() handles that</p>
-</li>
-<li>
-<p>finally, back in visit method, last thing is to return rhs value</p>
-</li>
-<li>this is because assign is expr</li>
-<li>can be used as sub-expr of other expression so needs to produce value</li>
-<li>as in c, value is result of rhs</li>
-</ul>
+<p>The main difference between assignment and definition is that the former is not
+<span name="new">allowed</span> to create a <em>new</em> variable. In terms of our
+implementation, that means it&rsquo;s a runtime error if the key doesn&rsquo;t already exist
+in the environment&rsquo;s variable map.</p>
+<aside name="new">
+<p>Unlike Python and Ruby, Lox doesn&rsquo;t do implicit variable declaration.</p>
+</aside>
+<p>Then, back in the visit method, the last thing it does is return the assigned
+value. That&rsquo;s because assignment is an expression that can be nested inside
+other expressions, like:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="n">print</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// &quot;2&quot;.</span>
 </pre></div>
 
 
-<ul>
-<li>with only one flat set of global variables, state pretty simple</li>
-<li>but also pretty messy and hard to scale</li>
-<li>not many people remember writing big programs in old basics, but got hard to
-  not accidentally reuse existing var</li>
-<li>want local vars</li>
-<li>time for scope</li>
-</ul>
-<h2><a href="#scope" name="scope"><small>8&#8202;.&#8202;6</small> scope</a></h2>
-<ul>
-<li>scope&#8202;&mdash;&#8202;region of code where certain names refer to certain entities</li>
-<li>different from env</li>
-<li>env data structure storing actual values at runtime</li>
-<li>scope is more about textual understanding of code</li>
-<li>closely related</li>
-<li>as interpreted works through source, syntax that affects scope will change
-  environment</li>
-<li>in c-ish language, scopes introduce use blocks</li>
-<li>[hence &ldquo;block scope&rdquo;]</li>
-<li>fn bodies also introduce scopes, but c and lox conveniently use same curly
-  brace syntax for those too</li>
-<li>fns are real core motivation for having scope</li>
-<li>fns have parameters&#8202;&mdash;&#8202;variables that store values passed to fn</li>
-<li>if want to support recursion, may have multiple calls to same fn going on at
-  same time</li>
-<li>each needs its own set of parameters</li>
-<li>so really need some kind of fn scope at minimum</li>
-<li>[early fortran did no support recursive fn calls. early machines had no
-  concept of stack. without recursion, each fn&rsquo;s parameters could be statically
-  allocated (think like &ldquo;static&rdquo; modified on variable in c) at compile time.
-  was contentious when added to algol 60]</li>
-<li>much simpler, but really limiting</li>
-<li>
-<p>imagine trying to write recursive descent parser without recursion</p>
-</li>
-<li>
-<p>don&rsquo;t have functions yet, but can still do scope because lox is block scoped</p>
-</li>
-<li>curly braced block has two functions</li>
-<li>allows you to provide series of statements where one is expected<ul>
-<li>(mainly useful in control flow statements)</li>
-</ul>
-</li>
-<li>introduces new local scope for variables declared in block</li>
-<li>
-<p>variables declared inside block disappear &ldquo;go out of scope&rdquo; at end of block</p>
-<p><code>lox
-{
-  var a = "in block";
-}
-print a; // Error! No more "a".</code></p>
-</li>
-<li>
-<p>[some langs, like python and js until recently only have fn scope. blocks
-    let you group statements, but don&rsquo;t affect scope]</p>
-</li>
-</ul>
-<h3><a href="#nesting-and-shadowing" name="nesting-and-shadowing"><small>8&#8202;.&#8202;6&#8202;.&#8202;1</small> nesting and shadowing</a></h3>
-<ul>
-<li>
-<p>might think simple way to implement scope is to:</p>
-</li>
-<li>
-<p>as visit statements in block, build up list of variables that get declared</p>
-</li>
-<li>after last statement, tell environment to remove all those variables</li>
-<li>seems right, but recall key goal of local vars is to help encapsulate code</li>
-<li>
-<p>block of code in one place shouldn&rsquo;t interfer with another</p>
-</li>
-<li>
-<p>consider:</p>
-</li>
-</ul>
+<p>When you do that, the result of the assignment expression itself is the value
+being assigned.</p>
+<p>Now our interpreter&rsquo;s management of state is about as sophisticated as early
+<span name="basic">BASIC</span> implementations. Our implementation of variables
+as a single flat global scope is pretty simple, but it doesn&rsquo;t scale well.
+Writing a large program where any two chunks of code can accidentally step on
+each other&rsquo;s state is no fun.</p>
+<aside name="basic">
+<p>OK, maybe a little better than that. Lox can handle variable names longer than
+two characters, unlike some early BASICs.</p>
+</aside>
+<p>We want local variables, which means it&rsquo;s time for <em>scope</em>.</p>
+<h2><a href="#scope" name="scope"><small>8&#8202;.&#8202;5</small> Scope</a></h2>
+<p>A <strong>scope</strong> is a space where certain names are mapped to certain entities. By
+allowing multiple scopes, the same name can be used to refer to different things
+in different contexts. In my house, &ldquo;Bob&rdquo; usually refers to me. But maybe in
+your town you know a different Bob. Same name, but different named entities
+based on where you use the name.</p>
+<p><span name="lexical"><strong>Lexical scope</strong></span> (or the slightly less commonly
+used <strong>static scope</strong>) is a specific style of scope where the text of the
+program itself shows you where the scope begins and ends. In Lox, as in most
+modern languages, variables are lexically scoped. That means that when you see
+an expression that uses some variable, you can figure out which variable
+definition it&rsquo;s referred to just by statically analyzing the code.</p>
+<aside name="lexical">
+<p>&ldquo;Lexical&rdquo; comes from the Greek &ldquo;lexikos&rdquo; which means &ldquo;related to words&rdquo;. When we
+use it in programming languages, it usually means things you can figure out from
+source text itself without having to execute anything.</p>
+<p>Lexical scope came onto the scene with ALGOL. Languages before then often used
+dynamic scope. At the time, it was thought that dynamic scope was faster to
+execute. Today, thanks to early Scheme hackers, we know that isn&rsquo;t true. If
+anything, it&rsquo;s the opposite.</p>
+<p>Dynamic scope for variables lives on some corners. The <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with"><code>binding][binding] macro
+in Clojure provides it. Emacs Lisp defaults to dynamic scope for variables. The
+widely-disliked [</code>with` statement</a> in JavaScript turns properties on an
+object into dynamically-scoped variables.</p>
+</aside>
+<p>For example:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;first&quot;</span><span class="p">;</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// &quot;first&quot;.</span>
+<span class="p">}</span>
+
+<span class="p">}</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;second&quot;</span><span class="p">;</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// &quot;second&quot;.</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Here, we have two blocks and a variable <code>a</code> is declared in each of them. You and
+I can tell just from looking at the code that the use of <code>a</code> in the first print
+refers to the first <code>a</code>, and the second one refers to the second.</p>
+<p>This is in contrast with <strong>dynamic scope</strong> where you don&rsquo;t know what a name
+refers to until you execute the code. Lox doesn&rsquo;t have dynamically scoped
+variables, but methods and fields on objects are dynamically scoped:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Saxophone</span> <span class="p">{</span>
+  <span class="n">play</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">print</span> <span class="s">&quot;Doot doot doot&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="vg">Golf</span> <span class="p">{</span>
+  <span class="n">play</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">print</span> <span class="s">&quot;Bogey&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">fn</span> <span class="n">playIt</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">thing</span><span class="p">.</span><span class="n">play</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>In the call to <code>thing.play()</code>, we don&rsquo;t know if we&rsquo;re about to hear &ldquo;Careless
+Whisper&rdquo; or &ldquo;Fore!&rdquo;. It depends on whether you pass a Saxophone or a Golf to the
+function, and we don&rsquo;t know that until runtime.</p>
+<hr />
+<p>Scope and environments are close cousins. The former is the theoretical concept,
+and the latter is the machinery we use to make it go. As our interpreter
+evaluates its way through the source code, syntax tree nodes that affect scope
+will change the environment.</p>
+<p>In a C-like language like Lox, the relevant syntax is <span
+name="block"><em>blocks</em></span>&#8202;&mdash;&#8202;the thing you get when you use curly braces. The
+beginning of a block introduces a new local scope, and that scope ends when
+execution passes the closing <code>}</code>. Any variables declared inside the block
+disappear.</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;in block&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="n">print</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// Error! No more &quot;a&quot;.</span>
+</pre></div>
+
+
+<aside name="block">
+<p>Naturally, that&rsquo;s why some people call it <strong>block scope</strong>.</p>
+</aside>
+<h3><a href="#nesting-and-shadowing" name="nesting-and-shadowing"><small>8&#8202;.&#8202;5&#8202;.&#8202;1</small> Nesting and shadowing</a></h3>
+<p>You could imagine implementing block scope something like this:</p>
+<ol>
+<li>As we visit each statement inside the block, keep track of any variables
+    declared.</li>
+<li>After the last statement is executed, tell the environment to delete all of
+    those variables.</li>
+</ol>
+<p>That would do the right thing on the previous example. But, remember, I said one
+of the motivation for local scope is encapsulation&#8202;&mdash;&#8202;a block code in one corner
+of the program shouldn&rsquo;t interfere with some other one. Check this out:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
 <span class="c1">// Everytime this is called, increments and prints counter.</span>
@@ -1362,51 +1237,24 @@ print a; // Error! No more "a".</code></p>
 </pre></div>
 
 
-<ul>
-<li>with proposed behavior, if you call countToTen(), after its done, it will
-  delete <em>global</em> counter variable!</li>
-<li>not right</li>
-<li>variable in block should not interfere with variables in outer scope</li>
-<li>means inside block, shouldn&rsquo;t see them</li>
-<li>but code outside still can</li>
-<li>
-<p>need to keep them around</p>
-</li>
-<li>
-<p>called &ldquo;shadowing&rdquo;</p>
-</li>
-<li>if same variable is declared in multiple scopes, inner declaration shadows
-  outer one</li>
-</ul>
+<p>Let&rsquo;s walk through how that imagined implementation would go. If you called
+<code>countToTen()</code>, after the loop finishes, it will delete the <em>global</em> <code>counter</code>
+variable. That ain&rsquo;t right.</p>
+<p>When we exit the block, we should remove any variables declared inside the
+block, but if there is a variable with the same name declared outside of the
+block, <em>that&rsquo;s a different variable</em>. It doesn&rsquo;t get touched.</p>
+<p>This is called <strong>&ldquo;shadowing&rdquo;</strong>. When a local variable has the same name as a
+variable in an enclosing scope, it shadows the outer one. Code inside the block
+can&rsquo;t see it any more (it is hidden in the &ldquo;shadow&rdquo; cast by the inner one), but
+it&rsquo;s still there.</p>
 <p><strong>todo: illustrate</strong></p>
-<ul>
-<li>think of it as casting shadow that obscures outer ones</li>
-<li>uses of name always refer to innermost declaration</li>
-<li>but outer declarations are still there</li>
-<li>
-<p>later uses of same name outside inner block can still see and use outer
-  var</p>
-</li>
-<li>
-<p>interpreter has to keep around outer variables even when shadowed by inner
-  ones</p>
-</li>
-<li>to do that, instead of local scope <em>modifying</em> environment, it will create
-  new one</li>
-<li>new environment contains only variables declared in that local scope</li>
-<li>outer environment still exists</li>
-<li>when looking up var, use this local block to find it</li>
-<li>when we reach end of block, that local environment is discarded, but outer
-  one(s) remain</li>
-<li>
-<p>that way, var can be shadowed within local block and then reemerge at end of
-  it
-<strong>todo: illustrate</strong></p>
-</li>
-<li>
-<p>other piece is outer vars that are not shadowed:</p>
-</li>
-</ul>
+<p>When we enter a new block scope, we need to keep around any variables defined in
+outer scopes. When we later exit the block, those variables are still available.
+We do that by defining a fresh environment for each block. This environment
+contains only the variables defined in that block. When we exit the block, we
+discard its environment and restore the previous one.</p>
+<p><strong>todo: illustrate</strong></p>
+<p>We also need to handle enclosing variables that are <em>not</em> shadowed:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">global</span> <span class="o">=</span> <span class="s">&quot;outside&quot;</span><span class="p">;</span>
 <span class="p">{</span>
   <span class="k">var</span> <span class="n">local</span> <span class="o">=</span> <span class="s">&quot;inside&quot;</span><span class="p">;</span>
@@ -1415,40 +1263,39 @@ print a; // Error! No more "a".</code></p>
 </pre></div>
 
 
-<ul>
-<li>when block begins, create new env for it</li>
-<li>that&rsquo;s where local ends up</li>
-<li>but <code>print global</code> won&rsquo;t work if only look in that env</li>
-<li>global isn&rsquo;t defined there, it&rsquo;s in outer env</li>
-<li>so var lookup needs to be able to see not just innermost env but all
-  surrounding ones</li>
-<li>
-<p>keeps looking through them until finds var</p>
-</li>
-<li>
-<p>do this by chaining environments together</p>
-</li>
-<li>each env for local scope has reference to env of immediately surrounding
-  scope</li>
-<li>when looking up or assigning var, walk chain from innermost to outermost
-  until we find var</li>
-<li>if hit null ref, means we are at global scope</li>
-<li>if didn&rsquo;t find var there, it&rsquo;s unedefined</li>
-</ul>
-<p><strong>todo: illustrate</strong></p>
-<h3><a href="#nested-env" name="nested-env"><small>8&#8202;.&#8202;6&#8202;.&#8202;2</small> nested env</a></h3>
-<ul>
-<li>that&rsquo;s idea, now can beef up env class to handle all this</li>
-<li>first, give env ref to enclosing env</li>
-</ul>
+<p>When the block begins, we create a new environment. That&rsquo;s where <code>local</code> ends up
+getting defined. On a variable access, if we only look in that environment,
+we&rsquo;ll fail to find any variables declared in enclosing scopes, like <code>global</code>
+here. But those should be in scope too.</p>
+<p>This means when we look up a variable, we look in the environment of the current
+innermost block, and the environments for every enclosing block, all the way up
+to the outermost global environment. We implement this by <span
+name="cactus">chaining</span> the environments together.</p>
+<p>Each environment has a reference to the environment of the immediately enclosing
+scope. When we look up a variable, we walk that chain from innermost out until
+we find the variable. The fact that we start with the innermost scope is how we
+ensure local variables correctly shadow outer ones. If we walk all the way to
+the global environment (which has no reference to an outer environment) without
+finding the variable, it&rsquo;s undefined.</p>
+<aside name="cactus">
+<p>At any point in time while the interpreter is running, the environments form a
+singly-linked list of objects. But if you consider the full set of environments
+that are created during the entire execution, you end up with something like a
+tree. Any given outer scope may have multiple different blocks nested within it,
+and each will point to it.</p>
+<p>The boring name for this is a <a href="https://en.wikipedia.org/wiki/Parent_pointer_tree"><strong>&ldquo;parent-pointer tree&rdquo;</strong></a>, but I
+much prefer the evocative &ldquo;cactus stack&rdquo;.</p>
+</aside>
+<p><strong>todo: illustrate cactus stack</strong></p>
+<p>So before we start adding block syntax to the language, let&rsquo;s beef up our
+Environment class with support for nesting. First, we&rsquo;ll give each environment a
+reference to its enclosing one:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 in class <em>Environment</em></div>
 <pre><span></span>  <span class="kd">final</span> <span class="n">Environment</span> <span class="n">enclosing</span><span class="o">;</span>
 </pre></div>
 
-<ul>
-<li>now that have field, need constructors</li>
-</ul>
+<p>This field needs to be initialized, so we&rsquo;ll add a couple of constructors:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 in <em>Environment</em>()</div>
 <pre><span></span>  <span class="n">Environment</span><span class="o">()</span> <span class="o">{</span>
@@ -1460,17 +1307,13 @@ in <em>Environment</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>default no-arg ctor for global scope has null enclosing</li>
-<li>
-<p>other ctor is for creating local scope nested inside some outer one&#8202;&mdash;&#8202;either
-  global or other local</p>
-</li>
-<li>
-<p>now can tweak two env operations, lookup and assignment</p>
-</li>
-<li>first get</li>
-</ul>
+<p>The no-argument constructor is for the global scope, which uses <code>null</code> to
+indicate that the chain of environments stops there. The other constructor
+creates a new local scope nested inside the given outer one.</p>
+<p>We don&rsquo;t have to touch the <code>define()</code> method&#8202;&mdash;&#8202;a new variable is always
+declared in the current innermost scope. But variable lookup and assignment work
+with an existing variable and they need to walk the chain to find it. First,
+lookup:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">values</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>
     <span class="o">}</span>
 </pre><div class="source-file"><em>lox/Environment.java</em><br>
@@ -1479,16 +1322,15 @@ in <em>get</em>()</div>
 </pre><pre class="insert-after"><br><span></span>
 </pre></div>
 
-<ul>
-<li>if var isn&rsquo;t found in this env and there is outer one, try there instead</li>
-<li>
-<p>[could be faster to iterate instead of recurse, but this interp is about
-  clarity]</p>
-</li>
-<li>
-<p>likewise assignment</p>
-</li>
-</ul>
+<p>If the variable isn&rsquo;t found in this scope, we simply try the enclosing one. That
+will in turn do the same thing <span name="recurse">recursively</span>, so this
+will ultimately walk the entire chain.</p>
+<aside name="recurse">
+<p>It would probably be a little faster to iteratively walk the chain, but don&rsquo;t
+you think the recursive solution is prettier? We&rsquo;ll do something <em>much</em> faster
+in clox.</p>
+</aside>
+<p>Assignment proceeds in likewise fashion:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="o">}</span>
 <br></pre><div class="source-file"><em>lox/Environment.java</em><br>
 in <em>assign</em>()</div>
@@ -1499,20 +1341,14 @@ in <em>assign</em>()</div>
 <br></pre><pre class="insert-after"><span></span>    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">name</span><span class="o">,</span>
 </pre></div>
 
-<ul>
-<li>if didn&rsquo;t find var in this env map&rsquo;s keys, try the outer one</li>
-<li>this highlights difference between var decl and assigment</li>
-<li>when defining, always define in innermost</li>
-<li>with assign, may modify outer env if defined there</li>
-</ul>
-<h3><a href="#implementing-block-scope" name="implementing-block-scope"><small>8&#8202;.&#8202;6&#8202;.&#8202;3</small> implementing block scope</a></h3>
-<ul>
-<li>now env is ready, can add syntax and runtime support for locals</li>
-<li>as in c, block is series of statements (possibly zero), including var decls,
-  surrounded by curlies</li>
-<li>block is itself a statement and can appear wherever statement is allowed</li>
-<li>grammar</li>
-</ul>
+<p>Again, if the variable isn&rsquo;t in this environment, we try the outer one,
+recursively.</p>
+<h3><a href="#block-syntax-and-semantics" name="block-syntax-and-semantics"><small>8&#8202;.&#8202;5&#8202;.&#8202;2</small> Block syntax and semantics</a></h3>
+<p>Now that Environment handles scope, we&rsquo;re ready to surface it in the language.
+As in C, a block in Lox is a (possibly empty) series of statements or
+declarations surrounded by curly braces. A block is itself a statement and can
+appear anywhere a statement is allowed.</p>
+<p>In grammarese, that&rsquo;s:</p>
 <div class="codehilite"><pre><span></span><span class="n">statement</span>   <span class="o">=</span> <span class="n">exprStmt</span>
             <span class="err">|</span> <span class="n">printStmt</span>
             <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
@@ -1521,9 +1357,8 @@ in <em>assign</em>()</div>
 </pre></div>
 
 
-<ul>
-<li>before can parse, need to define syntax tree</li>
-</ul>
+<p>Pretty straightforward. As usual, before we can start parsing this, we need a
+syntax tree to parse it into:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">defineAst</span><span class="o">(</span><span class="n">outputDir</span><span class="o">,</span> <span class="s">&quot;Stmt&quot;</span><span class="o">,</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -1531,21 +1366,19 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>
 </pre></div>
 
-<ul>
-<li>simply contains list of inner stmts</li>
-<li>run generator</li>
-<li>like other statements, can tell if we hit block by first token</li>
-<li>in this case &ldquo;{&ldquo;</li>
-<li>in statement() method, add:</li>
-</ul>
+<p><span name="generate">It</span> contains the list of statements that are inside
+the block. Parsing is straightforward too. Like other statements, we can detect
+the beginning of a block by its leading token&#8202;&mdash;&#8202;in this case the <code>{</code>. In the
+<code>statement()</code> method, we add:</p>
+<aside name="generate">
+<p>As always, don&rsquo;t forget to run GenerateAst.java.</p>
+</aside>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_BRACE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Block</span><span class="o">(</span><span class="n">block</span><span class="o">());</span>
 </pre></div>
 
-<ul>
-<li>calls</li>
-</ul>
+<p>All the real work happens here:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="nf">block</span><span class="o">()</span> <span class="o">{</span>
@@ -1556,26 +1389,20 @@ add after <em>expressionStatement</em>()</div>
     <span class="o">}</span>
 
     <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span><span class="o">);</span>
-
     <span class="k">return</span> <span class="n">statements</span><span class="o">;</span>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>in separate helper method because also use it later for fn bodies</li>
-<li>it creates list and keeps adding statements to it until it hits the
-  closing &ldquo;}&rdquo;</li>
-<li>note also explicit check for isAtEnd()</li>
-<li>in recursive descent parser, have to be careful can&rsquo;t get stuck in loop with
-  bad code</li>
-<li>if missing &ldquo;}&rdquo;, still need to exit loop</li>
-<li>
-<p>every while loop we add to parser will usually have this check</p>
-</li>
-<li>
-<p>over in interp, as always, need corresponding visit method for syntax tree</p>
-</li>
-</ul>
+<p>It creates an empty list of statements and then keeps parsing statements and
+adding them to it until we reach the end of the block, marked by the closing
+<code>}</code>.</p>
+<p>Note that the loop also has an explicit check for <code>isAtEnd()</code>. In a recursive
+descent parser, we have to be careful to avoid infinite loops. If the user
+accidentally forgot a closing <code>}</code>, the parser would never exit the loop if we
+didn&rsquo;t check <code>isAtEnd()</code> too. Each time we add a loop in the parser, we&rsquo;ll
+usually add this same check.</p>
+<p>That&rsquo;s it for syntax, for semantics, we get to add another visit method to
+Interpreter:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -1585,16 +1412,9 @@ add after <em>execute</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>environment field in interpreter used to always store global scope</li>
-<li>
-<p>now, stores <em>current</em>, innermost scope</p>
-</li>
-<li>
-<p>first thing visit does is make new env nested inside current one</p>
-</li>
-<li>passes to this helper</li>
-</ul>
+<p>Up until now, the <code>environment</code> field in Interpreter always pointed to the same environment&#8202;&mdash;&#8202;the global one. Now, we are changing that to store the <em>current</em> environment. This will always be the innermost scope that contains the code we&rsquo;re currently executing. As the interpreter enters and exits scopes, it updates the <code>environment</code> field accordingly.</p>
+<p>To execute a block, the first thing we do is create a new environment for the block&rsquo;s local scope. The block&rsquo;s scope is nested inside the current scope, so we pass the current <code>environment</code> field to the Environment constructor to use as its enclosing environment.</p>
+<p>Then the rest of the work happens in this other method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre><span></span>  <span class="kt">void</span> <span class="nf">executeBlock</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span><span class="o">,</span> <span class="n">Environment</span> <span class="n">environment</span><span class="o">)</span> <span class="o">{</span>
@@ -1611,29 +1431,24 @@ add after <em>execute</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<ul>
-<li>that executes given list of statements in context of given environme</li>
-<li>it reassigns the env field to the new one temporarily</li>
-<li>executes all statements</li>
-<li>then restores the previous env</li>
-<li>
-<p>finally ensures does that even if excep is thrown</p>
-</li>
-<li>
-<p>[mutating field is little ugly way to do this]
-  instead, some tree-walk interps pass env as explicit parameter to each visit
-  method
-  then impl lang stack automatically handles setting and restoring nested
-  envs</p>
-</li>
-<li>
-<p>felt like a lot of tedious code for jlox, so set field instead</p>
-</li>
-<li>
-<p>now can nest vars arbitrarily deeply</p>
-</li>
-<li>try out:</li>
-</ul>
+<p>It executes a given list of statements in the context of the given <span
+name="param">environment</span>. All that means is that it updates the
+interpreter&rsquo;s <code>environment</code> field, visits all of the statements, and then
+restores the previous value.</p>
+<p>As is always good practice in Java, we restore the old field using a finally
+clause. That way it gets restored even if an exception is thrown.</p>
+<aside name="param">
+<p>Explicitly changing and restoring a mutable <code>environment</code> field that is used by
+the interpreter may seem a little inelegant. Another classic approach to this is
+to explicitly pass the environment as a parameter to each visit method. To
+&ldquo;change&rdquo; the enviroment, you pass a different one as you recurse down the tree.
+You don&rsquo;t have to restore the old one, since the new one lives on the Java stack
+and is implicitly discarded when the interpreter returns from the block&rsquo;s visit
+method.</p>
+<p>I considered that for jlox, but it&rsquo;s kind of tedious and verbose adding an
+environment parameter to every single visit method.</p>
+</aside>
+<p>Surprisingly, that&rsquo;s all we need to do in order to fully support local variables, nesting, and shadowing in the interpreter. Go ahead and try this out:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;global a&quot;</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="s">&quot;global b&quot;</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">c</span> <span class="o">=</span> <span class="s">&quot;global c&quot;</span><span class="p">;</span>
@@ -1656,32 +1471,42 @@ add after <em>execute</em>()</div>
 </pre></div>
 
 
-<ul>
-<li>starting to look like programming</li>
-<li>still more like recipes since code always runs top to bottom one time</li>
-<li>to do more than that, need control flow</li>
-<li>next chapter</li>
-</ul>
+<p>This is starting to look more like programming, and Lox is looking more like an almost-useful language. OK, maybe not <em>that</em> useful, but we&rsquo;re making progress!</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 
 <ol>
 <li>
-<p>make repl support both exprs and stmts. if expr, print result value.</p>
+<p>With the addition of statements, the REPL no longer supports entering a
+    single expression and automatically printing its result value. That&rsquo;s a
+    drag. Add support to the REPL to let users type in both statements and
+    expressions. If they enter a statement, execute it like the current code
+    does. If they enter an expression, evaluate it and display the result value.</p>
 </li>
 <li>
-<p>make it runtime error to access uninitialized var.</p>
+<p>Maybe you want Lox to be a little more explicit about variable
+    initialization. Make it a runtime error to access a variable that has not
+    been initialized or assigned to, as in:</p>
+<p>```lox
+// No initializers.
+var a;
+var b;</p>
+<p>a = &ldquo;assigned&rdquo;;
+print a; // OK, was assigned first.</p>
+<p>print b; // Error!
+```</p>
 </li>
 <li>
-<p>what does this do?</p>
+<p>What does the following program print?</p>
 <p><code>lox
 var a = 1;
 {
   var a = a + 2;
   print a;
 }</code></p>
-<p>what do you expect it to do? what does analogous code do in other languages
-you know? what do you think the user will expect it to do?</p>
+<p>What did you <em>expect</em> it to do? Is it what you think it should do? What
+does analogous code in other languages you are familiar with do? What do
+you think users will expect this to do?</p>
 </li>
 </ol>
 </div>
@@ -1689,141 +1514,110 @@ you know? what do you think the user will expect it to do?</p>
 <h2><a href="#design-note" name="design-note">Design Note: Implicit Variable Declaration
 </a></h2>
 
+<p>Lox has explicit distinct syntax for declaring a new variable and assigning to
+an existing one. Some languages collapse those together and only have assignment
+syntax. Assigning to a non-existent variable automatically brings it into
+existence. This is called <strong>implicit variable declaration</strong> and exists in
+Python, Ruby, CoffeeScript. JavaScript has an explicit syntax to declare
+variables, but can also create new variables on assignment. Visual BASIC has <a href="https://msdn.microsoft.com/en-us/library/xe53dz5w(v=vs.100).aspx">an
+option to enable or disable implicit variables</a>.</p>
+<p>When the same syntax can assign or create a variable, each language has to
+decide what that means when the context isn&rsquo;t clear about which behavior the
+user intends. In particular, each language has to decide how implicit
+declaration interacts with shadowing, and which scope an implicitly declared
+variable goes into.</p>
 <ul>
-<li>lox has different syntax for declaring new var and assigning value to
-  existing var</li>
-<li>(though former can be used as latter at top level)</li>
-<li>other langs collapse and just have assignment</li>
-<li>assigning to non-existing var implicitly declares it in current scope</li>
-<li>ex: python, ruby, coffeescript</li>
-<li>js has explicit var decl, but also allows assignment to implicitly create
-  global var</li>
 <li>
-<p>[vb has option to enable or disable!]</p>
+<p>In Python, assignment always creates a variable in the current function&rsquo;s
+    scope, even if there is a variable with the same name declared outside of
+    the function.</p>
 </li>
 <li>
-<p>because assignment is also used for decl, each lang decide handle how interact
-  with shadowing and what scope to put decl in</p>
-</li>
-<li>js, if var is defined in any outer scope, assigns to it</li>
-<li>otherwise, creates at global scope</li>
-<li>coffeescript assigns to existing var if in any outer scope. if not, goes in
-    innermost fn scope</li>
-<li>python says always local to function, even if surrounding fn has var with
-    same name</li>
-<li>ruby avoids some complexity by having different naming conventions for
-    local and global vars</li>
-<li>but ruby blocks have own scope, so still have to deal with it</li>
-<li>assignment to var inside block assigns to existing local in outer scope
-    if one</li>
-<li>otherwise, creates new var in block scope</li>
-<li>
-<p>similar to coffeescript [which is inspired by ruby in many ways]</p>
+<p>Ruby avoids some ambiguity by having different naming rules for local and
+    global variables. However, blocks (which are more like closures than like
+    &ldquo;blocks&rdquo; in C) in Ruby have their own scope, so it still has to deal with
+    it. Assignment in Ruby will assign to an existing variable outside of the
+    current block if there is one with the same name. Otherwise, it creates a
+    new variable in the current block&rsquo;s scope.</p>
 </li>
 <li>
-<p>main advantage less syntax, fewer concepts to learn, just assign away</p>
-</li>
-<li>more static langs like c benfit from explicit decl because place for user to
-  to specify var type, and for compiler to alloc storage</li>
-<li>dynamic, gc langs don&rsquo;t need either</li>
-<li>
-<p>implicit decl feels more lightweight and scripty, more &ldquo;do what i mean&rdquo;</p>
+<p>CoffeeScript, which takes after Ruby in many ways, is similar. It explicitly
+    disallows shadowing by saying that assignment always assigns to a variable
+    in an outer scope if there is one, all the way up to the outermost global
+    scope. Otherwise, it creates the variable in the current function scope.</p>
 </li>
 <li>
-<p>coffeescript deliberately does implicit to prevent shadowing, which creator
-  feels makes code harder to read and maintain</p>
-</li>
-<li>
-<p>implicit has some problems</p>
-</li>
-<li>
-<p>user may intend to assign to existing var and not create new one, but lang
-  can&rsquo;t see that intent</p>
-</li>
-<li>typo in var name in assignment will silently create new var</li>
-<li>
-<p>particularly nasty in js, because creates global var</p>
-</li>
-<li>
-<p>in some js, coffee, and ruby, creating var in outer scope can change behavior
-  of existing code</p>
-</li>
-<li>what was new local var becomes assignment to existing outer one</li>
-<li>
-<p>in python may want to assign to surrounding var instead of creating new local
-  one, but can&rsquo;t</p>
-</li>
-<li>
-<p>over time, langs with implic decl added more features to deal with problems</p>
-</li>
-<li>
-<p>vb has option to enable or disable implicit</p>
-</li>
-<li>
-<p>defaults to explicit
-  https://msdn.microsoft.com/en-us/library/xe53dz5w(v=vs.100).aspx</p>
-</li>
-<li>
-<p>implicit decl of globals widely considered mistake in js</p>
-</li>
-<li>strict mode completely disables</li>
-<li>
-<p>have to make it opt in to avoid potentially breaking existing</p>
-</li>
-<li>
-<p>[js also add &lsquo;let&rsquo; for true block scope var instead of &lsquo;var&rsquo; which is fn
-  scope]</p>
-</li>
-<li>
-<p>python added global statement to support assigning to global var from within
-  fn</p>
-</li>
-<li>
-<p>later, as nested fns and closures became more common, also added &lsquo;nonlocal&rsquo;</p>
-</li>
-<li>
-<p>ruby extends block syntax to allow declaring vars explicitly local to block
-  even if same name exists in outer scope</p>
+<p>JavaScript, if you don&rsquo;t use <code>var</code> (or the newer <code>let</code> syntax) explicitly
+    will assign to an existing variable in any enclosing scope, if found. If
+    not, it creates a new variable <em>in the global scope</em>.</p>
 </li>
 </ul>
-<p>|x;y|</p>
+<p>The main advantage to implicit declaration is simplicity. There&rsquo;s less syntax
+and no concept of &ldquo;declaration&rdquo;. Users can just start assigning stuff and the
+language figures it out.</p>
+<p>Older statically typed languages like C benefit from explicit declaration
+because they give the user a place to tell the compiler what type each variable
+has and how much storage to allocate for it. In a dynamically typed, garbage
+collected language, that isn&rsquo;t really necessary, so you can get away with making
+declarations implicit. It feels a little more &ldquo;scripty&rdquo;, more &ldquo;you know what I
+mean&rdquo;.</p>
+<p>But is that a good idea? Implicit declarations have some problems.</p>
 <ul>
-<li>simplicity argument mostly lost since almost every lang with impl ends up
-  adding more lang features later to let user be more explicit</li>
-<li>[coffee, which chooses impl for principled reasons interesting exception]</li>
-<li>granted, don&rsquo;t have to use &lsquo;global&rsquo;, &lsquo;nonlocal&rsquo; and block-level vars in
-    ruby as often as have to use explicit var decl in other langs</li>
 <li>
-<p>argument that they chose right default about what to force users to be
-    explicit about</p>
+<p>A user may be intending to assign to an existing variable, but maybe they
+    misspelled it. The interpreter doesn&rsquo;t know that, so it goes ahead and
+    silently creates some new variable and the variable the user intended to
+    assign to still has its old value. This is particularly heinous in
+    JavaScript where a typo will create a <em>global</em> variable, which may in turn
+    interfere with other code.</p>
 </li>
 <li>
-<p>implicit decl made more sense when code pretty flat, not lot of nested, and
-  especially not many nested fns</p>
+<p>JS, Ruby, and CoffeeScript use the presence of an existing variable with
+    some name&#8202;&mdash;&#8202;even in an outer scope&#8202;&mdash;&#8202;to determine whether or not an
+    assignment creates a new variable or assign to an existing one. That means
+    adding a new variable in a surrounding scope can change existing code. What
+    was once a local variable may silently turn into an assignment to that new
+    outer variable.</p>
 </li>
 <li>
-<p>as closures and fn style more common, nested fns and access to surrounding
-  vars more common</p>
-</li>
-<li>
-<p>broadly, one of main challenges in maintaining code is thinking about state,
-  especially mutated state</p>
-</li>
-<li>have to reason about not just what code does, but how current stuff in memory
-  affects that</li>
-<li>variables are state, so making them more explicit can help reader know what
-  to reason about</li>
-<li>
-<p>if deep in bowel of nested code, see:</p>
-<p>a = &ldquo;blah&rdquo;</p>
+<p>In Python, you may <em>want</em> to assign to some variable outside of the current
+    function instead of creating a new variable in the current one, but you
+    can&rsquo;t.</p>
 </li>
 </ul>
-<p>nice to quickly tell if this is declaring new local var or assigning to some
-  existing outer or global var</p>
+<p>Over time, all the languages I know with implicit variable declaration have
+ended up adding more features and complexity to deal with these problems.</p>
 <ul>
-<li>generally prefer explicit</li>
-<li>why lox does</li>
+<li>
+<p>Implicit declaration of global variables is unanimously considered a
+    mistake today. &ldquo;Strict mode&rdquo; in modern JavaScript completely disables it and
+    makes it a compile error. (JavaScript also added &ldquo;let&rdquo; for true
+    block-scoped variables, unlike &ldquo;var&rdquo; which create function-scoped ones.)</p>
+</li>
+<li>
+<p>Python added a <code>global</code> statement to let you explicitly assign to a
+    global variable from within a function. Later, as functional-styled
+    programming and nested functions became more popular, they added a similar
+    <code>nonlocal</code> statement to assign to variables in enclosing functions.</p>
+</li>
+<li>
+<p>Ruby extends its block syntax to allow declaring certain variables to be
+    explicitly local to the block even if the same name exists in an outer
+    scope.</p>
+</li>
 </ul>
+<p>Given that, I think the simplicity argument is mostly lost. There is an argument
+that implicit declaration is the right <em>default</em> but I personally find that less
+compelling.</p>
+<p>My opinion is that implicit declaration made more sense in years past when most
+scripting languages were heavily imperative and code was pretty flat. As
+programmers got more comfortable with deep nesting, functional programming, and
+closures, it&rsquo;s become much more common to want access to variables in outer
+scopes. That makes it more likely that users will run into the tricky cases
+where it&rsquo;s not clear what whether they intend their assignment to create a new
+variable or reuse a surrounding one.</p>
+<p>Given that, I generally prefer explicitly declaring variables, which is why Lox
+does.</p>
 </div>
 
 <footer>

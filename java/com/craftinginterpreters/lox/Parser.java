@@ -3,8 +3,10 @@ package com.craftinginterpreters.lox;
 //> Statements and State parser-imports
 
 import java.util.ArrayList;
-import java.util.Arrays;
 //< Statements and State parser-imports
+//> Control Flow not-yet
+import java.util.Arrays;
+//< Control Flow not-yet
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -63,9 +65,7 @@ class Parser {
 //> Functions not-yet
       if (match(FUN)) return function("function");
 //< Functions not-yet
-//> parse-var-decl
       if (match(VAR)) return varDeclaration();
-//< parse-var-decl
 
       return statement();
     } catch (ParseError error) {
@@ -211,7 +211,6 @@ class Parser {
     }
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
-
     return new Stmt.Var(name, initializer);
   }
 //< Statements and State parse-var-declaration
@@ -264,7 +263,6 @@ class Parser {
     }
 
     consume(RIGHT_BRACE, "Expect '}' after block.");
-
     return statements;
   }
 //< Statements and State block

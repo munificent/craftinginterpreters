@@ -238,8 +238,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     } else {
       globals.assign(expr.name, value);
     }
+    
 //< Resolving and Binding not-yet
-
     return value;
   }
 //< Statements and State visit-assign
