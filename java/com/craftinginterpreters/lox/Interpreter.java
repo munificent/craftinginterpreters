@@ -154,7 +154,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
-    return null;
+    return null; // [void]
   }
 //< Statements and State visit-expression-stmt
 //> Functions not-yet
@@ -238,7 +238,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     } else {
       globals.assign(expr.name, value);
     }
-    
+
 //< Resolving and Binding not-yet
     return value;
   }
