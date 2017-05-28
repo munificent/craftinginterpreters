@@ -879,8 +879,7 @@ precedence and associativity correctly? Not bad for less than 200 lines of code.
 
 [comma operator]: https://en.wikipedia.org/wiki/Comma_operator
 
-    Add support for comma expressions. (You will have to define a new syntax
-    tree node for a comma expression too.) Give them the same precedence and
+    Add support for comma expressions. Give them the same precedence and
     associativity as in C. Write the grammar, and then implement the necessary
     parsing code.
 

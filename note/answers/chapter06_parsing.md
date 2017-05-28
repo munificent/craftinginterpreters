@@ -15,11 +15,15 @@
                | "(" expression ")"
     ```
 
-    To define the new syntax tree node, we add a line to the `defineAst()` call:
+    We could define a new syntax tree node by adding this to the `defineAst()`
+    call:
 
     ```java
     "Comma    : Expr left, Expr right",
     ```
+
+    But a simpler choice is to treat it like any other binary operator and
+    reuse Expr.Binary.
 
     Parsing is similar to other infix operators (except that we don't bother to
     keep the operator token):
@@ -33,8 +37,9 @@
       Expr expr = equality();
 
       while (match(COMMA)) {
+        Token operator = previous();
         Expr right = equality();
-        expr = new Expr.Comma(expr, right);
+        expr = new Expr.Binary(expr, operator, right);
       }
 
       return expr;
