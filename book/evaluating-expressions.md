@@ -236,13 +236,44 @@ The other operator is `!`:
 
 ^code unary-bang (1 before, 1 after)
 
-Unlike `-`, it allows operands of any type. It uses Lox's rules for truthiness
-to determine what "true" means for the different types, and then complements
-that. We implement the truthiness rules like so:
+The implementation is simple, but what is this "truthy" thing about? We need to
+make a little side trip to one of the great questions of Western philosophy:
+*what is truth?*
+
+### Truthiness and falsiness
+
+OK, maybe we're not going to really get into the universal question, but at
+least inside the world of <span name="weird">Lox</span>, we need to decide what
+happens when you use something other than `true` or `false` in a logic operation
+like `!` or other place where a Boolean is expected.
+
+We *could* just say it's an error because we don't roll with implicit
+conversions, but most dynamically-typed languages aren't that ascetic. Instead,
+they take the universe of values of all types and partition them into two sets,
+one of which they define to be "true", or "truthful", or (my favorite) "truthy",
+and the rest which are "false" or "falsey". This partitioning is somewhat
+arbitrary and gets weird in some languages.
+
+<aside name="weird">
+
+In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
+but empty arrays are... also truthy. The number `0` is falsey, but the *string*
+`"0"` is truthy.
+
+In Python, empty strings are falsey like JS, but other empty sequences are
+falsey too.
+
+In PHP, both the number `0` and the string `"0"` are falsey. Most other
+non-empty strings are truthy.
+
+Get all that?
+
+</aside>
+
+Lox follows Ruby's simple rule: `false` and `nil` are falsey and everything else
+is truthy. We implement that like so:
 
 ^code is-truthy
-
-Pretty simple: `nil` and `false` are false, everything else is true.
 
 ### Evaluating binary operators
 

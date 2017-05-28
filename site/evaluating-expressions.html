@@ -342,9 +342,32 @@ in <em>visitUnaryExpr</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
 </pre></div>
 
-<p>Unlike <code>-</code>, it allows operands of any type. It uses Lox&rsquo;s rules for truthiness
-to determine what &ldquo;true&rdquo; means for the different types, and then complements
-that. We implement the truthiness rules like so:</p>
+<p>The implementation is simple, but what is this &ldquo;truthy&rdquo; thing about? We need to
+make a little side trip to one of the great questions of Western philosophy:
+<em>what is truth?</em></p>
+<h3><a href="#truthiness-and-falsiness" name="truthiness-and-falsiness"><small>7&#8202;.&#8202;2&#8202;.&#8202;4</small> Truthiness and falsiness</a></h3>
+<p>OK, maybe we&rsquo;re not going to really get into the universal question, but at
+least inside the world of <span name="weird">Lox</span>, we need to decide what
+happens when you use something other than <code>true</code> or <code>false</code> in a logic operation
+like <code>!</code> or other place where a Boolean is expected.</p>
+<p>We <em>could</em> just say it&rsquo;s an error because we don&rsquo;t roll with implicit
+conversions, but most dynamically-typed languages aren&rsquo;t that ascetic. Instead,
+they take the universe of values of all types and partition them into two sets,
+one of which they define to be &ldquo;true&rdquo;, or &ldquo;truthful&rdquo;, or (my favorite) &ldquo;truthy&rdquo;,
+and the rest which are &ldquo;false&rdquo; or &ldquo;falsey&rdquo;. This partitioning is somewhat
+arbitrary and gets weird in some languages.</p>
+<aside name="weird">
+<p>In JavaScript, strings are truthy, but empty strings are not. Arrays are truthy
+but empty arrays are&hellip; also truthy. The number <code>0</code> is falsey, but the <em>string</em>
+<code>"0"</code> is truthy.</p>
+<p>In Python, empty strings are falsey like JS, but other empty sequences are
+falsey too.</p>
+<p>In PHP, both the number <code>0</code> and the string <code>"0"</code> are falsey. Most other
+non-empty strings are truthy.</p>
+<p>Get all that?</p>
+</aside>
+<p>Lox follows Ruby&rsquo;s simple rule: <code>false</code> and <code>nil</code> are falsey and everything else
+is truthy. We implement that like so:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isTruthy</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
@@ -354,8 +377,7 @@ add after <em>visitUnaryExpr</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>Pretty simple: <code>nil</code> and <code>false</code> are false, everything else is true.</p>
-<h3><a href="#evaluating-binary-operators" name="evaluating-binary-operators"><small>7&#8202;.&#8202;2&#8202;.&#8202;4</small> Evaluating binary operators</a></h3>
+<h3><a href="#evaluating-binary-operators" name="evaluating-binary-operators"><small>7&#8202;.&#8202;2&#8202;.&#8202;5</small> Evaluating binary operators</a></h3>
 <p>Onto the last expression tree class, binary operators. There&rsquo;s a handful of
 them, and we&rsquo;ll start with the arithmetic ones:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
