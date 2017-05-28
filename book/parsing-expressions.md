@@ -258,9 +258,23 @@ name="div">division</span> are left-associative, it's:
 
 <aside name="div">
 
-Ignoring issues around floating-point roundoff and overflow, it doesn't really
-matter whether you treat multiplication as left- or right-associative -- you'll
-get the same result either way. Division definitely does matter.
+In principle, it doesn't matter whether you treat multiplication as left- or
+right-associative -- you get the same result either way. Alas, in the real world
+with limited precision, roundoff and overflow mean that associativity can affect
+the result of a sequence of multiplications. Consider:
+
+```lox
+0.1 + (0.2 + 0.3)
+(0.1 + 0.2) + 0.3
+```
+
+In languages like Lox that use [IEEE 754][754] double-precision floating-point
+numbers, the first evaluates to `0.6`, while the second yields
+`0.6000000000000001`. Sometimes that tiny difference matters.
+[This][float] is a good place to learn more.
+
+[754]: https://en.wikipedia.org/wiki/Double-precision_floating-point_format
+[float]: https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html
 
 </aside>
 

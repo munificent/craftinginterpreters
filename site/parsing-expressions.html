@@ -332,9 +332,19 @@ expressions at the <em>same</em> level. Which side we choose determines if the o
 is left- or right-associative. Since multiplication and <span
 name="div">division</span> are left-associative, it&rsquo;s:</p>
 <aside name="div">
-<p>Ignoring issues around floating-point roundoff and overflow, it doesn&rsquo;t really
-matter whether you treat multiplication as left- or right-associative&#8202;&mdash;&#8202;you&rsquo;ll
-get the same result either way. Division definitely does matter.</p>
+<p>In principle, it doesn&rsquo;t matter whether you treat multiplication as left- or
+right-associative&#8202;&mdash;&#8202;you get the same result either way. Alas, in the real world
+with limited precision, roundoff and overflow mean that associativity can affect
+the result of a sequence of multiplications. Consider:</p>
+<div class="codehilite"><pre><span></span><span class="mf">0.1</span> <span class="o">+</span> <span class="p">(</span><span class="mf">0.2</span> <span class="o">+</span> <span class="mf">0.3</span><span class="p">)</span>
+<span class="p">(</span><span class="mf">0.1</span> <span class="o">+</span> <span class="mf">0.2</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.3</span>
+</pre></div>
+
+
+<p>In languages like Lox that use <a href="https://en.wikipedia.org/wiki/Double-precision_floating-point_format">IEEE 754</a> double-precision floating-point
+numbers, the first evaluates to <code>0.6</code>, while the second yields
+<code>0.6000000000000001</code>. Sometimes that tiny difference matters.
+<a href="https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html">This</a> is a good place to learn more.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="n">factor</span> <span class="err">→</span> <span class="n">factor</span> <span class="p">(</span> <span class="s">&quot;*&quot;</span> <span class="err">|</span> <span class="s">&quot;/&quot;</span> <span class="p">)</span> <span class="n">unary</span>
 </pre></div>
