@@ -736,7 +736,7 @@ parsing the extra arguments instead of freaking out and going into panic mode.
 
 Another way to handle common syntax errors is with **error productions**. You
 augment the grammar with a rule that matches the erroneous syntax. The parser
-safely parses it but then reports it as an error instead of producting a syntax
+safely parses it but then reports it as an error instead of producing a syntax
 tree.
 
 For example, some languages have an unary `+` operator, like `+123`, but Lox
