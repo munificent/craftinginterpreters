@@ -338,7 +338,7 @@ subexpression. That means our interpreter is doing a <strong>post-order traversa
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitUnaryExpr</em>()</div>
 <pre class="insert"><span></span>      <span class="k">case</span> <span class="n">BANG</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">!</span><span class="n">isTrue</span><span class="o">(</span><span class="n">right</span><span class="o">);</span>
+        <span class="k">return</span> <span class="o">!</span><span class="n">isTruthy</span><span class="o">(</span><span class="n">right</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
 </pre></div>
 
@@ -347,7 +347,7 @@ to determine what &ldquo;true&rdquo; means for the different types, and then com
 that. We implement the truthiness rules like so:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isTrue</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isTruthy</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="k">instanceof</span> <span class="n">Boolean</span><span class="o">)</span> <span class="k">return</span> <span class="o">(</span><span class="kt">boolean</span><span class="o">)</span><span class="n">object</span><span class="o">;</span>
     <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
@@ -453,7 +453,7 @@ it.</p>
 </aside>
 <p>Like truthiness, the equality logic is hoisted out into a separate method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
-add after <em>isTrue</em>()</div>
+add after <em>isTruthy</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isEqual</span><span class="o">(</span><span class="n">Object</span> <span class="n">a</span><span class="o">,</span> <span class="n">Object</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
     <span class="c1">// nil is only equal to nil.</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
@@ -483,7 +483,7 @@ handling that error gracefully.</p>
 <aside name="fail">
 <p>We could simply not detect or report a type error at all. This is what C does if
 you cast a pointer to some type that doesn&rsquo;t match the data that is actually
-being pointed to. C gets gains flexibility and speed by allowing that, but is
+being pointed to. C gains flexibility and speed by allowing that, but is
 also famously dangerous. Once you misinterpret bits in memory, all bets are off.</p>
 <p>Few modern languages accept unsafe operations like this. Instead, most are
 <strong>memory safe</strong> and ensure&#8202;&mdash;&#8202;through a combination of static and runtime checks

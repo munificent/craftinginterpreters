@@ -176,7 +176,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
-    if (isTrue(evaluate(stmt.condition))) {
+    if (isTruthy(evaluate(stmt.condition))) {
       execute(stmt.thenBranch);
     } else if (stmt.elseBranch != null) {
       execute(stmt.elseBranch);
@@ -217,7 +217,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
-    while (isTrue(evaluate(stmt.condition))) {
+    while (isTruthy(evaluate(stmt.condition))) {
       execute(stmt.body);
     }
     return null;
@@ -369,11 +369,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitLogicalExpr(Expr.Logical expr) {
     Object left = evaluate(expr.left);
 
-    if (expr.operator.type == TokenType.OR && isTrue(left)) {
+    if (expr.operator.type == TokenType.OR && isTruthy(left)) {
       return left;
     }
 
-    if (expr.operator.type == TokenType.AND && !isTrue(left)) {
+    if (expr.operator.type == TokenType.AND && !isTruthy(left)) {
       return left;
     }
 
@@ -429,7 +429,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     switch (expr.operator.type) {
 //> unary-bang
       case BANG:
-        return !isTrue(right);
+        return !isTruthy(right);
 //< unary-bang
       case MINUS:
 //> check-unary-operand
@@ -479,13 +479,13 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     throw new RuntimeError(operator, "Operands must be numbers.");
   }
 //< check-operands
-//> is-true
-  private boolean isTrue(Object object) {
+//> is-truthy
+  private boolean isTruthy(Object object) {
     if (object == null) return false;
     if (object instanceof Boolean) return (boolean)object;
     return true;
   }
-//< is-true
+//< is-truthy
 //> is-equal
   private boolean isEqual(Object a, Object b) {
     // nil is only equal to nil.

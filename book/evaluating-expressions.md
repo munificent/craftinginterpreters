@@ -240,7 +240,7 @@ Unlike `-`, it allows operands of any type. It uses Lox's rules for truthiness
 to determine what "true" means for the different types, and then complements
 that. We implement the truthiness rules like so:
 
-^code is-true
+^code is-truthy
 
 Pretty simple: `nil` and `false` are false, everything else is true.
 
