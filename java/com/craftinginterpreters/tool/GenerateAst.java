@@ -39,8 +39,11 @@ public class GenerateAst {
 //> Classes not-yet
       "This     : Token keyword",
 //< Classes not-yet
-      "Unary    : Token operator, Expr right",
+/* Representing Code call-define-ast < Statements and State not-yet
+      "Unary    : Token operator, Expr right"
+*/
 //> Statements and State not-yet
+      "Unary    : Token operator, Expr right",
       "Variable : Token name"
 //< Statements and State not-yet
     ));
