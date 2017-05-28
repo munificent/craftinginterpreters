@@ -432,7 +432,7 @@ few thousand lines of code.
 
 ## Challenges
 
-1. There are least six domain-specific languages used in the [little system I
+1. There are at least six domain-specific languages used in the [little system I
    cobbled together][repo] to write and publish this book. What are they?
 
 1. Get a "Hello, world!" program written and running in Java. Set up whatever
