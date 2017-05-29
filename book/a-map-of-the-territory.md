@@ -31,7 +31,7 @@ hard, and we enlisted their help. I find it fascinating that even though today's
 machines are literally a million times faster and have orders of magnitude more
 storage, the way we build programming languages is virtually unchanged.
 
-Though the territory covered by languages designers is vast, the trails they've
+Though the territory covered by language designers is vast, the trails they've
 carved through it are <span name="dead">few</span>. Not every language takes the
 exact same path -- some take a shortcut or two -- but otherwise they are
 reassuringly similar from Rear Admiral Grace Hopper's first COBOL compiler all
@@ -112,7 +112,7 @@ often just **"trees"**.
 <img src="image/a-map-of-the-territory/ast.png" alt="An abstract syntax tree." />
 
 Parsing has a long, rich history in computer science that is closely tied to the
-artifical intelligence community. Many of the techniques used today to parse
+artificial intelligence community. Many of the techniques used today to parse
 programming languages were originally conceived to parse *human* languages by AI
 researchers who were trying to get computers to talk to us.
 
@@ -213,8 +213,8 @@ match those to get every combination.
 
 If you've ever wondered how [GCC][] supports so many crazy languages and
 architectures, like Modula-3 on Motorola 68k, now you know. Language front ends
-target one of a handful of IRs, mainly [GIMPLE][] and [RTL][]. Then target
-backends like the one for 68k take those IRs and produce native code.
+target one of a handful of IRs, mainly [GIMPLE][] and [RTL][]. Target backends
+like the one for 68k then take those IRs and produce native code.
 
 [gcc]: https://en.wikipedia.org/wiki/GNU_Compiler_Collection
 [gimple]: https://gcc.gnu.org/onlinedocs/gccint/GIMPLE.html
@@ -339,7 +339,7 @@ which should be target-specific is an art.
 
 </aside>
 
-Or you can write a **virtual machine** (**"VM"**), a program that emulates a
+Or you can write a **virtual machine** (**VM**), a program that emulates a
 hypothetical chip supporting your virtual architecture at runtime. Running
 bytecode in a VM is slower than translating it to native code ahead of time
 because every instruction must be simulated at runtime each time it executes. In
@@ -421,7 +421,7 @@ name="ruby">Ruby</span> which was a tree walker prior to version 1.9.
 
 At 1.9, the canonical implementation of Ruby switched from the original MRI
 ("Matz' Ruby Interpreter") to Koichi Sasada's YARV ("Yet Another Ruby VM"). YARV
-is A Bytecode Virtual Machine.
+is a bytecode virtual machine.
 
 </aside>
 
