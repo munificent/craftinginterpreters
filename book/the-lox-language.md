@@ -55,10 +55,10 @@ their virtues.
 <aside name="c">
 
 I'm surely biased, but I think Lox's syntax is pretty clean. C's most egregious
-grammar problems are around types. Ritchie had this idea called "[declaration
-reflects use][use]" where variable declarations mirror the operations you would
-have to perform on the variable to get to a value of the base type. Clever idea,
-but I don't think it worked out great in practice.
+grammar problems are around types. Dennis Ritchie had this idea called
+"[declaration reflects use][use]" where variable declarations mirror the
+operations you would have to perform on the variable to get to a value of the
+base type. Clever idea, but I don't think it worked out great in practice.
 
 [use]: http://softwareengineering.stackexchange.com/questions/117024/why-was-the-c-syntax-for-arrays-pointers-and-functions-designed-this-way
 
@@ -602,7 +602,7 @@ See, I told you `nil` would sneak in when we weren't looking.
 
 ### Closures
 
-Functions are *first-class* in Lox, which just means they are real values that
+Functions are *first class* in Lox, which just means they are real values that
 you can get a reference to, store in variables, pass around, etc. This works:
 
 ```lox
@@ -630,7 +630,7 @@ fun outerFunction() {
 }
 ```
 
-If you combine local functions, first class functions, and block scope, you run
+If you combine local functions, first-class functions, and block scope, you run
 into this interesting situation:
 
 ```lox
