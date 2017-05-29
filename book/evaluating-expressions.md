@@ -609,8 +609,8 @@ reuse the same interpreter. That doesn't make a difference now, but it will
 later when the interpreter stores state like global variables. That state needs
 to persist throughout the entire REPL session.
 
-Finally, we remove the temporary code from the [last chapter][] for printing the
-syntax tree and replace it with this:
+Finally, we remove the line of temporary code from the [last chapter][] for
+printing the syntax tree and replace it with this:
 
 [last chapter]: parsing-expressions.html
 
