@@ -92,10 +92,10 @@ But regular languages aren't powerful enough to handle expressions which can
 nest arbitrarily deeply.
 
 We need a bigger hammer, and that hammer is a **context-free grammar**
-(**CFG**). It's the next heavier tool in the toolbox of **[formal grammars][]**.
-A formal grammar takes a set of atomic pieces it calls its "alphabet". Then it
-defines a (usually infinite) set of "strings" that are "in" the grammar. Each
-string is a sequence of "letters" in the alphabet.
+(**CFG**). It's the next heaviest tool in the toolbox of **[formal
+grammars][]**. A formal grammar takes a set of atomic pieces it calls its
+"alphabet". Then it defines a (usually infinite) set of "strings" that are "in"
+the grammar. Each string is a sequence of "letters" in the alphabet.
 
 [formal grammars]: https://en.wikipedia.org/wiki/Formal_grammar
 
@@ -106,10 +106,43 @@ consists of individual characters and the strings are the valid lexemes, roughly
 level of granularity. Now each "letter" in the alphabet is an entire token and a
 "string" is a sequence of *tokens* -- an entire expression.
 
+Oof. Maybe a table will help:
+
+<table>
+<thead>
+<tr>
+  <td>Context-free grammar</td>
+  <td></td>
+  <td>Lexical grammar</td>
+  <td>Syntactic grammar</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>The &ldquo;alphabet&rdquo; is&hellip;</td>
+  <td>&rarr;&ensp;</td>
+  <td>Characters</td>
+  <td>Tokens</td>
+</tr>
+<tr>
+  <td>A &ldquo;string&rdquo; is&hellip;</td>
+  <td>&rarr;&ensp;</td>
+  <td>Lexeme or token</td>
+  <td>Expression</td>
+</tr>
+<tr>
+  <td>It&apos;s implemented by the&hellip;</td>
+  <td>&rarr;&ensp;</td>
+  <td>Scanner</td>
+  <td>Parser</td>
+</tr>
+</tbody>
+</table>
+
 A formal grammar's job is to specify which strings are valid and which aren't.
 If we were defining a grammar for English sentences, "eggs are tasty for
-breakfast" would be in the grammar, but "tasty breakfast for are eggs"...
-probably not.
+breakfast" would be in the grammar, but "tasty breakfast for are eggs" would
+probably not be.
 
 ### Rules for grammars
 
@@ -191,18 +224,18 @@ breakfast → protein "with" bread
 breakfast → protein
 breakfast → bread
 
-protein → protein "and" protein
-protein → "bacon"
-protein → "sausage"
-protein → cooked "eggs"
+protein   → protein "and" protein
+protein   → "bacon"
+protein   → "sausage"
+protein   → cooked "eggs"
 
-cooked → "scrambled"
-cooked → "poached"
-cooked → "fried"
+cooked    → "scrambled"
+cooked    → "poached"
+cooked    → "fried"
 
-bread → "toast"
-bread → "biscuits"
-bread → "English muffin"
+bread     → "toast"
+bread     → "biscuits"
+bread     → "English muffin"
 ```
 
 We can use that grammar to generate random breakfasts. Let's play a round and
@@ -303,20 +336,22 @@ recursion.
 With all of that sugar, our breakfast grammar condenses down to:
 
 ```lox
-breakfast → protein ( "with" bread )?
+breakfast → protein ( "and" protein )* ( "with" bread )?
           | bread
 
-protein   → protein "and" protein
-          | "bacon"
+protein   → "bacon"
           | "sausage"
           | ( "scrambled" | "poached" | "fried" ) "eggs"
 
 bread     → "toast" | "biscuits" | "English muffin"
 ```
 
-Not too bad, I hope. If you're used to grep or using regular expressions in your
-text editor, most of the punctuation should be familiar. The main difference is
-that symbols here represent entire words, not single characters.
+Not too bad, I hope. If you're used to grep or using [regular
+expressions][regex] in your text editor, most of the punctuation should be
+familiar. The main difference is that symbols here represent entire words, not
+single characters.
+
+[regex]: https://en.wikipedia.org/wiki/Regular_expression#Standards
 
 We'll use this notation throughout the rest of the book to precisely describe
 Lox's grammar. As you work on programming languages, you'll find context-free
@@ -402,7 +437,7 @@ name="ast">**"syntax tree"**</span>.
 
 <aside name="ast">
 
-In particular, we're defining an ***abstract* syntax tree** (or **AST**). In a
+In particular, we're defining an ***abstract* syntax tree** (**AST**). In a
 **parse tree**, every single grammar production becomes a node in the tree. An
 AST elides productions that aren't needed by later phases.
 
@@ -472,9 +507,10 @@ You'll note that, much like the Token class, there aren't any methods here. It's
 a dumb structure. Nicely typed, but merely a bag of data. This feels strange in
 an object-oriented language like Java. Shouldn't the class *do stuff?*
 
-The problem is that these tree classes aren't owned by any single domain. Would
-they have methods related to parsing, where the trees are produced? Or
-interpreting, where they are consumed? Trees span the border between those territories, which mean they are really owned by *neither.*
+The problem is that these tree classes aren't owned by any single domain. Should
+they have methods for parsing since that's where the trees are created? Or
+interpreting since that's where they are consumed? Trees span the border between
+those territories, which mean they are really owned by *neither.*
 
 In fact, these types exist to enable the parser and interpreter to
 *communicate*. That lends itself to types that are simply data with no
@@ -710,17 +746,17 @@ can bring to bear on it.
 
 ### The Visitor pattern
 
-The Visitor pattern is the most widely misunderstood pattern in all of Design
-Patterns, which is really saying something when you look at the software
+The **Visitor pattern** is the most widely misunderstood pattern in all of
+Design Patterns, which is really saying something when you look at the software
 architecture excesses of the past couple of decades.
 
-The trouble starts with terminology. The pattern isn't about "visiting" and
-"accept" doesn't really conjure up any helpful imagery either. Many think the
-pattern has to do with traversing trees, which isn't the case at all. We *are*
-going to use it on a set of classes that are tree-like, but that's a
+The trouble starts with terminology. The pattern isn't about "visiting" and the
+"accept" method in it doesn't conjure up any helpful imagery either. Many think
+the pattern has to do with traversing trees, which isn't the case at all. We
+*are* going to use it on a set of classes that are tree-like, but that's a
 coincidence. As you'll see, the pattern works as well on a single object.
 
-The visitor pattern is really about approximating the functional style within an
+The Visitor pattern is really about approximating the functional style within an
 OOP language. It lets us add new columns to that table easily. We can define all
 of the behavior for a new operation on a set of types in one place, without
 having to touch the types themselves. It does this the same way we solve almost
@@ -902,7 +938,7 @@ tree.
 
 <aside name="tree">
 
-This recursion is also why people think the visitor pattern itself has to do
+This recursion is also why people think the Visitor pattern itself has to do
 with trees.
 
 </aside>
@@ -941,7 +977,7 @@ when we start parsing Lox code into syntax trees.
 
     Bonus: What kind of expression does this bit of grammar encode?
 
-1.  The visitor pattern lets you emulate the functional style in an
+1.  The Visitor pattern lets you emulate the functional style in an
     object-oriented language. Devise a corresponding pattern in a functional
     language. It should let you bundle all of the operations on one type
     together and let you define new types easily.
@@ -949,11 +985,11 @@ when we start parsing Lox code into syntax trees.
     (SML or Haskell would be ideal for this exercise, but Scheme or another Lisp
     works as well.)
 
-1.  In Reverse Polish Notation, the operands to an arithmetic operator are both
-    placed before the operator, so `1 + 2` becomes `1 2 +`. Evaluation proceeds
-    from left to right. Numbers are pushed onto an implicit stack. An arithmetic
-    operator pops the top two numbers, performs the operation, and pushes the
-    result. Thus, this:
+1.  In [Reverse Polish Notation][rpn] (RPN), the operands to an arithmetic
+    operator are both placed before the operator, so `1 + 2` becomes `1 2 +`.
+    Evaluation proceeds from left to right. Numbers are pushed onto an implicit
+    stack. An arithmetic operator pops the top two numbers, performs the
+    operation, and pushes the result. Thus, this:
 
         :::lox
         (1 + 2) * (4 - 3)
@@ -965,5 +1001,7 @@ when we start parsing Lox code into syntax trees.
 
     Define a visitor class for our syntax tree classes that takes an expression,
     converts it to RPN, and returns the resulting string.
+
+[rpn]: https://en.wikipedia.org/wiki/Reverse_Polish_notation
 
 </div>

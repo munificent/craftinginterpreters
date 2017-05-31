@@ -170,20 +170,52 @@ language</em>. That was fine for our scanner, which emits a flat sequence of tok
 But regular languages aren&rsquo;t powerful enough to handle expressions which can
 nest arbitrarily deeply.</p>
 <p>We need a bigger hammer, and that hammer is a <strong>context-free grammar</strong>
-(<strong>CFG</strong>). It&rsquo;s the next heavier tool in the toolbox of <strong><a href="https://en.wikipedia.org/wiki/Formal_grammar">formal grammars</a></strong>.
-A formal grammar takes a set of atomic pieces it calls its &ldquo;alphabet&rdquo;. Then it
-defines a (usually infinite) set of &ldquo;strings&rdquo; that are &ldquo;in&rdquo; the grammar. Each
-string is a sequence of &ldquo;letters&rdquo; in the alphabet.</p>
+(<strong>CFG</strong>). It&rsquo;s the next heaviest tool in the toolbox of <strong><a href="https://en.wikipedia.org/wiki/Formal_grammar">formal
+grammars</a></strong>. A formal grammar takes a set of atomic pieces it calls its
+&ldquo;alphabet&rdquo;. Then it defines a (usually infinite) set of &ldquo;strings&rdquo; that are &ldquo;in&rdquo;
+the grammar. Each string is a sequence of &ldquo;letters&rdquo; in the alphabet.</p>
 <p>I&rsquo;m using all those quotes because the terms get a little confusing as you move
 from lexical to syntactic grammars. In our scanner&rsquo;s grammar, the alphabet
 consists of individual characters and the strings are the valid lexemes, roughly
 &ldquo;words&rdquo;. In the syntactic grammar we&rsquo;re talking about now, we&rsquo;re at a different
 level of granularity. Now each &ldquo;letter&rdquo; in the alphabet is an entire token and a
 &ldquo;string&rdquo; is a sequence of <em>tokens</em>&#8202;&mdash;&#8202;an entire expression.</p>
+<p>Oof. Maybe a table will help:</p>
+<table>
+<thead>
+<tr>
+  <td>Context-free grammar</td>
+  <td></td>
+  <td>Lexical grammar</td>
+  <td>Syntactic grammar</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>The &ldquo;alphabet&rdquo; is&hellip;</td>
+  <td>&rarr;&ensp;</td>
+  <td>Characters</td>
+  <td>Tokens</td>
+</tr>
+<tr>
+  <td>A &ldquo;string&rdquo; is&hellip;</td>
+  <td>&rarr;&ensp;</td>
+  <td>Lexeme or token</td>
+  <td>Expression</td>
+</tr>
+<tr>
+  <td>It&apos;s implemented by the&hellip;</td>
+  <td>&rarr;&ensp;</td>
+  <td>Scanner</td>
+  <td>Parser</td>
+</tr>
+</tbody>
+</table>
+
 <p>A formal grammar&rsquo;s job is to specify which strings are valid and which aren&rsquo;t.
 If we were defining a grammar for English sentences, &ldquo;eggs are tasty for
-breakfast&rdquo; would be in the grammar, but &ldquo;tasty breakfast for are eggs&rdquo;&hellip;
-probably not.</p>
+breakfast&rdquo; would be in the grammar, but &ldquo;tasty breakfast for are eggs&rdquo; would
+probably not be.</p>
 <h3><a href="#rules-for-grammars" name="rules-for-grammars"><small>5&#8202;.&#8202;1&#8202;.&#8202;1</small> Rules for grammars</a></h3>
 <p>How do we write down a grammar that contains an infinite number of valid
 strings? We obviously can&rsquo;t list them all out. Instead, we create a finite set
@@ -246,18 +278,18 @@ book. Sorry.</p>
 <span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span>
 <span class="n">breakfast</span> <span class="err">→</span> <span class="n">bread</span>
 
-<span class="n">protein</span> <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span>
-<span class="n">protein</span> <span class="err">→</span> <span class="s">&quot;bacon&quot;</span>
-<span class="n">protein</span> <span class="err">→</span> <span class="s">&quot;sausage&quot;</span>
-<span class="n">protein</span> <span class="err">→</span> <span class="n">cooked</span> <span class="s">&quot;eggs&quot;</span>
+<span class="n">protein</span>   <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span>
+<span class="n">protein</span>   <span class="err">→</span> <span class="s">&quot;bacon&quot;</span>
+<span class="n">protein</span>   <span class="err">→</span> <span class="s">&quot;sausage&quot;</span>
+<span class="n">protein</span>   <span class="err">→</span> <span class="n">cooked</span> <span class="s">&quot;eggs&quot;</span>
 
-<span class="n">cooked</span> <span class="err">→</span> <span class="s">&quot;scrambled&quot;</span>
-<span class="n">cooked</span> <span class="err">→</span> <span class="s">&quot;poached&quot;</span>
-<span class="n">cooked</span> <span class="err">→</span> <span class="s">&quot;fried&quot;</span>
+<span class="n">cooked</span>    <span class="err">→</span> <span class="s">&quot;scrambled&quot;</span>
+<span class="n">cooked</span>    <span class="err">→</span> <span class="s">&quot;poached&quot;</span>
+<span class="n">cooked</span>    <span class="err">→</span> <span class="s">&quot;fried&quot;</span>
 
-<span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;toast&quot;</span>
-<span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;biscuits&quot;</span>
-<span class="n">bread</span> <span class="err">→</span> <span class="s">&quot;English muffin&quot;</span>
+<span class="n">bread</span>     <span class="err">→</span> <span class="s">&quot;toast&quot;</span>
+<span class="n">bread</span>     <span class="err">→</span> <span class="s">&quot;biscuits&quot;</span>
+<span class="n">bread</span>     <span class="err">→</span> <span class="s">&quot;English muffin&quot;</span>
 </pre></div>
 
 
@@ -357,11 +389,10 @@ recursion.</p>
 </li>
 </ul>
 <p>With all of that sugar, our breakfast grammar condenses down to:</p>
-<div class="codehilite"><pre><span></span><span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span> <span class="p">(</span> <span class="s">&quot;with&quot;</span> <span class="n">bread</span> <span class="p">)</span><span class="err">?</span>
+<div class="codehilite"><pre><span></span><span class="n">breakfast</span> <span class="err">→</span> <span class="n">protein</span> <span class="p">(</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span> <span class="p">)</span><span class="o">*</span> <span class="p">(</span> <span class="s">&quot;with&quot;</span> <span class="n">bread</span> <span class="p">)</span><span class="err">?</span>
           <span class="err">|</span> <span class="n">bread</span>
 
-<span class="n">protein</span>   <span class="err">→</span> <span class="n">protein</span> <span class="s">&quot;and&quot;</span> <span class="n">protein</span>
-          <span class="err">|</span> <span class="s">&quot;bacon&quot;</span>
+<span class="n">protein</span>   <span class="err">→</span> <span class="s">&quot;bacon&quot;</span>
           <span class="err">|</span> <span class="s">&quot;sausage&quot;</span>
           <span class="err">|</span> <span class="p">(</span> <span class="s">&quot;scrambled&quot;</span> <span class="err">|</span> <span class="s">&quot;poached&quot;</span> <span class="err">|</span> <span class="s">&quot;fried&quot;</span> <span class="p">)</span> <span class="s">&quot;eggs&quot;</span>
 
@@ -369,9 +400,10 @@ recursion.</p>
 </pre></div>
 
 
-<p>Not too bad, I hope. If you&rsquo;re used to grep or using regular expressions in your
-text editor, most of the punctuation should be familiar. The main difference is
-that symbols here represent entire words, not single characters.</p>
+<p>Not too bad, I hope. If you&rsquo;re used to grep or using <a href="https://en.wikipedia.org/wiki/Regular_expression#Standards">regular
+expressions</a> in your text editor, most of the punctuation should be
+familiar. The main difference is that symbols here represent entire words, not
+single characters.</p>
 <p>We&rsquo;ll use this notation throughout the rest of the book to precisely describe
 Lox&rsquo;s grammar. As you work on programming languages, you&rsquo;ll find context-free
 grammars (using this or <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">EBNF</a> or some other notation) help you crystallize
@@ -445,7 +477,7 @@ skeleton. Since the grammar is recursive&#8202;&mdash;&#8202;note how <code>grou
 Since this structure represents the syntax of our language, it&rsquo;s called a <span
 name="ast"><strong>&ldquo;syntax tree&rdquo;</strong></span>.</p>
 <aside name="ast">
-<p>In particular, we&rsquo;re defining an <strong><em>abstract</em> syntax tree</strong> (or <strong>AST</strong>). In a
+<p>In particular, we&rsquo;re defining an <strong><em>abstract</em> syntax tree</strong> (<strong>AST</strong>). In a
 <strong>parse tree</strong>, every single grammar production becomes a node in the tree. An
 AST elides productions that aren&rsquo;t needed by later phases.</p>
 </aside>
@@ -500,9 +532,10 @@ lets us cram all of the classes into a single file.</p>
 <p>You&rsquo;ll note that, much like the Token class, there aren&rsquo;t any methods here. It&rsquo;s
 a dumb structure. Nicely typed, but merely a bag of data. This feels strange in
 an object-oriented language like Java. Shouldn&rsquo;t the class <em>do stuff?</em></p>
-<p>The problem is that these tree classes aren&rsquo;t owned by any single domain. Would
-they have methods related to parsing, where the trees are produced? Or
-interpreting, where they are consumed? Trees span the border between those territories, which mean they are really owned by <em>neither.</em></p>
+<p>The problem is that these tree classes aren&rsquo;t owned by any single domain. Should
+they have methods for parsing since that&rsquo;s where the trees are created? Or
+interpreting since that&rsquo;s where they are consumed? Trees span the border between
+those territories, which mean they are really owned by <em>neither.</em></p>
 <p>In fact, these types exist to enable the parser and interpreter to
 <em>communicate</em>. That lends itself to types that are simply data with no
 associated behavior. This style is very natural in functional languages like
@@ -753,15 +786,15 @@ program we&rsquo;re writing.</p>
 classes rub against the grain of Java. Fortunately, there&rsquo;s a design pattern we
 can bring to bear on it.</p>
 <h3><a href="#the-visitor-pattern" name="the-visitor-pattern"><small>5&#8202;.&#8202;3&#8202;.&#8202;2</small> The Visitor pattern</a></h3>
-<p>The Visitor pattern is the most widely misunderstood pattern in all of Design
-Patterns, which is really saying something when you look at the software
+<p>The <strong>Visitor pattern</strong> is the most widely misunderstood pattern in all of
+Design Patterns, which is really saying something when you look at the software
 architecture excesses of the past couple of decades.</p>
-<p>The trouble starts with terminology. The pattern isn&rsquo;t about &ldquo;visiting&rdquo; and
-&ldquo;accept&rdquo; doesn&rsquo;t really conjure up any helpful imagery either. Many think the
-pattern has to do with traversing trees, which isn&rsquo;t the case at all. We <em>are</em>
-going to use it on a set of classes that are tree-like, but that&rsquo;s a
+<p>The trouble starts with terminology. The pattern isn&rsquo;t about &ldquo;visiting&rdquo; and the
+&ldquo;accept&rdquo; method in it doesn&rsquo;t conjure up any helpful imagery either. Many think
+the pattern has to do with traversing trees, which isn&rsquo;t the case at all. We
+<em>are</em> going to use it on a set of classes that are tree-like, but that&rsquo;s a
 coincidence. As you&rsquo;ll see, the pattern works as well on a single object.</p>
-<p>The visitor pattern is really about approximating the functional style within an
+<p>The Visitor pattern is really about approximating the functional style within an
 OOP language. It lets us add new columns to that table easily. We can define all
 of the behavior for a new operation on a set of types in one place, without
 having to touch the types themselves. It does this the same way we solve almost
@@ -1011,7 +1044,7 @@ parentheses, yielding a string like:</p>
 is the <span name="tree">recursive</span> step that lets us print an entire
 tree.</p>
 <aside name="tree">
-<p>This recursion is also why people think the visitor pattern itself has to do
+<p>This recursion is also why people think the Visitor pattern itself has to do
 with trees.</p>
 </aside>
 <p>We don&rsquo;t have a parser yet, so it&rsquo;s hard to see this in action. For now, we&rsquo;ll
@@ -1060,7 +1093,7 @@ that notational sugar.</p>
 <p>Bonus: What kind of expression does this bit of grammar encode?</p>
 </li>
 <li>
-<p>The visitor pattern lets you emulate the functional style in an
+<p>The Visitor pattern lets you emulate the functional style in an
     object-oriented language. Devise a corresponding pattern in a functional
     language. It should let you bundle all of the operations on one type
     together and let you define new types easily.</p>
@@ -1068,11 +1101,11 @@ that notational sugar.</p>
 works as well.)</p>
 </li>
 <li>
-<p>In Reverse Polish Notation, the operands to an arithmetic operator are both
-    placed before the operator, so <code>1 + 2</code> becomes <code>1 2 +</code>. Evaluation proceeds
-    from left to right. Numbers are pushed onto an implicit stack. An arithmetic
-    operator pops the top two numbers, performs the operation, and pushes the
-    result. Thus, this:</p>
+<p>In <a href="https://en.wikipedia.org/wiki/Reverse_Polish_notation">Reverse Polish Notation</a> (RPN), the operands to an arithmetic
+    operator are both placed before the operator, so <code>1 + 2</code> becomes <code>1 2 +</code>.
+    Evaluation proceeds from left to right. Numbers are pushed onto an implicit
+    stack. An arithmetic operator pops the top two numbers, performs the
+    operation, and pushes the result. Thus, this:</p>
 <div class="codehilite"><pre><span></span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">4</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 
