@@ -1,6 +1,7 @@
 //> Chunks of Bytecode not-yet
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 /* Chunks of Bytecode not-yet < Scanning on Demand not-yet
@@ -24,6 +25,7 @@ static void repl() {
       break;
     }
 
+    line[strlen(line) - 1] = '\0';
     interpret(line);
   }
 }
