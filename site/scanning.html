@@ -354,11 +354,11 @@ Things like:</p>
 <h3><a href="#lexeme-type" name="lexeme-type"><small>4&#8202;.&#8202;2&#8202;.&#8202;1</small> Lexeme type</a></h3>
 <p>Keywords are part of the shape of the language&rsquo;s grammar, so the parser often
 has code like, &ldquo;If the next token is <code>while</code> then do&hellip;&rdquo; That means the parser
-wants to know not just that it has a lexeme for some identifier, but that it has
-a <em>reserved</em> word, and <em>which</em> keyword it is.</p>
-<p>The <span name="ugly">parser</span> could determine that from the raw lexeme by
-comparing the strings, but that&rsquo;s slow and kind of ugly. Instead, at the point
-that we recognize a lexeme, we also remember which <em>kind</em> of lexeme it
+wants to know not just that it has a lexeme for some word, but that it has a
+<em>reserved</em> word, and <em>which</em> keyword it is.</p>
+<p>The <span name="ugly">parser</span> could categorize tokens from the raw lexeme
+by comparing the strings, but that&rsquo;s slow and kind of ugly. Instead, at the
+point that we recognize a lexeme, we also remember which <em>kind</em> of lexeme it
 represents. We have a different type for each keyword, operator, bit of
 punctuation, and literal type:</p>
 <aside name="ugly">
@@ -456,8 +456,8 @@ excreting tokens, until it runs out of characters.</p>
 <p>The part of the loop where we look at a handful of characters to figure out
 which kind of lexeme it &ldquo;matches&rdquo; may sound familiar. If you know regular
 expressions, you might consider defining a regex for each kind of lexeme and use
-those to match characters. For example, Lox has the same identifier rules as C.
-This regex matches one:</p>
+those to match characters. For example, Lox has the same rules as C for
+identifiers (variable names and the like). This regex matches one:</p>
 <div class="codehilite"><pre><span></span>[a-zA-Z_][a-zA-Z_0-9]*
 </pre></div>
 
@@ -533,9 +533,9 @@ add after <em>Scanner</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>It works its way through the source code, adding tokens, until it runs out of
-characters. When it&rsquo;s done, it appends one final &ldquo;end of file&rdquo; token. That isn&rsquo;t
-strictly needed, but it makes our parser a little cleaner.</p>
+<p>The scanner works its way through the source code, adding tokens, until it runs
+out of characters. When it&rsquo;s done, it appends one final &ldquo;end of file&rdquo; token.
+That isn&rsquo;t strictly needed, but it makes our parser a little cleaner.</p>
 <p>This loop depends on a couple of fields to keep track of where in the source
 code we are:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
@@ -907,7 +907,7 @@ upcoming programming interview, it&rsquo;s not worth your time.</p>
 which gets us to&hellip;</p>
 <h2><a href="#reserved-words-and-identifiers" name="reserved-words-and-identifiers"><small>4&#8202;.&#8202;7</small> Reserved Words and Identifiers</a></h2>
 <p>Our scanner is almost done. The only remaining pieces of the lexical grammar to
-implement are identifiers and their close cousins the reserved words. You might
+implement are identifiers and their close cousins, the reserved words. You might
 think we could match keywords like <code>or</code> in the same way we handle
 multiple-character operators like <code>&lt;=</code>:</p>
 <div class="codehilite"><pre><span></span><span class="k">case</span> <span class="sc">&#39;o&#39;</span><span class="o">:</span>
@@ -1096,7 +1096,7 @@ no value followed by an expression statement containing a string literal?</p>
 <li>
 <p>A parenthesized expression on the next line:</p>
 <div class="codehilite"><pre><span></span><span class="nx">func</span>
-<span class="p">(</span><span class="nx">parenthsized</span><span class="p">)</span>
+<span class="p">(</span><span class="nx">parenthesized</span><span class="p">)</span>
 </pre></div>
 
 

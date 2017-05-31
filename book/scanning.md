@@ -205,12 +205,12 @@ Things like:
 
 Keywords are part of the shape of the language's grammar, so the parser often
 has code like, "If the next token is `while` then do..." That means the parser
-wants to know not just that it has a lexeme for some identifier, but that it has
-a *reserved* word, and *which* keyword it is.
+wants to know not just that it has a lexeme for some word, but that it has a
+*reserved* word, and *which* keyword it is.
 
-The <span name="ugly">parser</span> could determine that from the raw lexeme by
-comparing the strings, but that's slow and kind of ugly. Instead, at the point
-that we recognize a lexeme, we also remember which *kind* of lexeme it
+The <span name="ugly">parser</span> could categorize tokens from the raw lexeme
+by comparing the strings, but that's slow and kind of ugly. Instead, at the
+point that we recognize a lexeme, we also remember which *kind* of lexeme it
 represents. We have a different type for each keyword, operator, bit of
 punctuation, and literal type:
 
@@ -285,8 +285,8 @@ Lexical analygator.
 The part of the loop where we look at a handful of characters to figure out
 which kind of lexeme it "matches" may sound familiar. If you know regular
 expressions, you might consider defining a regex for each kind of lexeme and use
-those to match characters. For example, Lox has the same identifier rules as C.
-This regex matches one:
+those to match characters. For example, Lox has the same rules as C for
+identifiers (variable names and the like). This regex matches one:
 
 ```text
 [a-zA-Z_][a-zA-Z_0-9]*
@@ -356,9 +356,9 @@ looks like this:
 
 ^code scan-tokens
 
-It works its way through the source code, adding tokens, until it runs out of
-characters. When it's done, it appends one final "end of file" token. That isn't
-strictly needed, but it makes our parser a little cleaner.
+The scanner works its way through the source code, adding tokens, until it runs
+out of characters. When it's done, it appends one final "end of file" token.
+That isn't strictly needed, but it makes our parser a little cleaner.
 
 This loop depends on a couple of fields to keep track of where in the source
 code we are:
@@ -634,7 +634,7 @@ which gets us to...
 ## Reserved Words and Identifiers
 
 Our scanner is almost done. The only remaining pieces of the lexical grammar to
-implement are identifiers and their close cousins the reserved words. You might
+implement are identifiers and their close cousins, the reserved words. You might
 think we could match keywords like `or` in the same way we handle
 multiple-character operators like `<=`:
 
@@ -776,7 +776,7 @@ detect, but there are a handful of nasty ones:
 
         :::js
         func
-        (parenthsized)
+        (parenthesized)
 
     Is this a call to `func(parenthesized)`, or two expression statements, one
     for `func` and one for a parenthesized expression?
