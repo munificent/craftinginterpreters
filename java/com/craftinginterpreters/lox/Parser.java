@@ -210,7 +210,7 @@ class Parser {
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
     Expr condition = expression();
-    consume(RIGHT_PAREN, "Expect '(' after condition.");
+    consume(RIGHT_PAREN, "Expect ')' after condition.");
     Stmt body = statement();
 
     return new Stmt.While(condition, body);
