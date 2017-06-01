@@ -961,7 +961,7 @@ For example:
   print a; // "first".
 }
 
-}
+{
   var a = "second";
   print a; // "second".
 }
