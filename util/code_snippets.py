@@ -115,8 +115,8 @@ class SourceCode:
         return snippet
 
       snippet = snippets[name]
-      if name != 'not-yet' and snippet.file.path != file.path:
-        print('Error: "{}" appears in two files, {} and {}.'.format(
+      if name != 'not-yet' and name != 'omit' and snippet.file.path != file.path:
+        print('Error: "{} {}" appears in two files, {} and {}.'.format(
                 chapter, name, snippet.file.path, file.path),
             file=sys.stderr)
 

@@ -1,13 +1,15 @@
-//> Statements and State not-yet
+//> Statements and State environment-class
 package com.craftinginterpreters.lox;
 
 import java.util.HashMap;
 import java.util.Map;
 
 class Environment {
+//> enclosing-field
   final Environment enclosing;
+//< enclosing-field
   private final Map<String, Object> values = new HashMap<>();
-
+//> environment-constructors
   Environment() {
     enclosing = null;
   }
@@ -15,45 +17,44 @@ class Environment {
   Environment(Environment enclosing) {
     this.enclosing = enclosing;
   }
-
-  void declare(Token name) {
-    // Note: Can't just use define(name, null). That will overwrite a
-    // previously defined global value.
-    if (!values.containsKey(name.lexeme)) {
-      values.put(name.lexeme, null);
-    }
-  }
-
+//< environment-constructors
+//> environment-get
   Object get(Token name) {
     if (values.containsKey(name.lexeme)) {
       return values.get(name.lexeme);
     }
+//> environment-get-enclosing
 
     if (enclosing != null) return enclosing.get(name);
+//< environment-get-enclosing
 
     throw new RuntimeError(name,
         "Undefined variable '" + name.lexeme + "'.");
   }
-
+//< environment-get
+//> environment-assign
   void assign(Token name, Object value) {
     if (values.containsKey(name.lexeme)) {
       values.put(name.lexeme, value);
       return;
     }
 
+//> environment-assign-enclosing
     if (enclosing != null) {
       enclosing.assign(name, value);
       return;
     }
 
+//< environment-assign-enclosing
     throw new RuntimeError(name,
         "Undefined variable '" + name.lexeme + "'.");
   }
-
+//< environment-assign
+//> environment-define
   void define(String name, Object value) {
     values.put(name, value);
   }
-
+//< environment-define
 //> Resolving and Binding not-yet
   Object getAt(int distance, String name) {
     Environment environment = this;
@@ -73,11 +74,7 @@ class Environment {
     environment.values.put(name.lexeme, value);
   }
 //< Resolving and Binding not-yet
-
-  Environment enterScope() {
-    return new Environment(this);
-  }
-
+//> omit
   @Override
   public String toString() {
     String result = values.toString();
@@ -87,4 +84,5 @@ class Environment {
 
     return result;
   }
+//< omit
 }

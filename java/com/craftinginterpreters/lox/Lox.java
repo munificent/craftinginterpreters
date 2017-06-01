@@ -73,14 +73,12 @@ public class Lox {
 */
 //> Parsing Expressions print-ast
     Parser parser = new Parser(tokens);
-//< Parsing Expressions print-ast
-/* Parsing Expressions print-ast < Statements and State not-yet
+/* Parsing Expressions print-ast < Statements and State parse-statements
     Expr expression = parser.parse();
 */
-//> Statements and State not-yet
+//> Statements and State parse-statements
     List<Stmt> statements = parser.parse();
-//< Statements and State not-yet
-//> Parsing Expressions print-ast
+//< Statements and State parse-statements
 
     // Stop if there was a syntax error.
     if (hadError) return;
@@ -96,10 +94,10 @@ public class Lox {
 /* Parsing Expressions print-ast < Evaluating Expressions interpreter-interpret
     System.out.println(new AstPrinter().print(expression));
 */
-/* Evaluating Expressions interpreter-interpret < Statements and State not-yet
+/* Evaluating Expressions interpreter-interpret < Statements and State interpret-statements
     interpreter.interpret(expression);
 */
-/* Statements and State not-yet < Resolving and Binding not-yet
+/* Statements and State interpret-statements < Resolving and Binding not-yet
     interpreter.interpret(statements);
 */
     interpreter.interpret(statements, locals);

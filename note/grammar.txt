@@ -1,6 +1,6 @@
 TODO: super.
 
-program    = declaration* eof ;
+program     = declaration* EOF ;
 
 declaration = classDecl
             | funDecl
@@ -10,27 +10,29 @@ declaration = classDecl
 statement   = exprStmt
             | forStmt
             | ifStmt
+            | printStmt
             | returnStmt
             | whileStmt
             | block ;
 
-classDecl   = "class" identifier ( "<" identifier )? "{" function* "}" ;
+classDecl   = "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 funDecl     = "fun" function ;
-varDecl     = "var" identifier ( "=" expression )? ";" ;
+varDecl     = "var" IDENTIFIER ( "=" expression )? ";" ;
 
 exprStmt    = expression ";" ;
 forStmt     = "for" "(" ( varDecl | exprStmt ) expression? ";" expression? ")"
               statement ;
 ifStmt      = "if" "(" expression ")" statement ( "else" statement )? ;
+printStmt   = "print" expression ";" ;
 returnStmt  = "return" expression? ";" ;
 whileStmt   = "while" "(" expression ")" statement ;
 
 block       = "{" declaration* "}" ;
-function    = identifier "(" parameters? ")" block ;
-parameters  = identifier ( "," identifier )* ;
+function    = IDENTIFIER "(" parameters? ")" block ;
+parameters  = IDENTIFIER ( "," IDENTIFIER )* ;
 
 expression  = assignment ;
-assignment  = ( call "." )? identifier ( "=" assignment )? ;
+assignment  = ( call "." )? IDENTIFIER ( "=" assignment )? ;
 or          = and ( "or" and )* ;
 and         = equality ( "and" equality )* ;
 equality    = comparison ( ( "!=" | "==" ) comparison )* ;
@@ -38,15 +40,16 @@ comparison  = term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term        = factor ( ( "-" | "+" ) factor )* ;
 factor      = unary ( ( "/" | "*" ) unary )* ;
 unary       = ( "!" | "-" ) unary | call ;
-call        = primary ( "(" arguments? ")" | "." identifier )* ;
+call        = primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 primary     = "true" | "false" | "null" | "this"
-            | number | string | identifier | "(" expression ")" ;
+            | NUMBER | STRING | IDENTIFIER | "(" expression ")" ;
 
 arguments   = expression ( "," expression )* ;
 
-number      = digit+ ( "." digit* )? | "." digit+ ;
-string      = '"' <any char except '"'>* '"' ;
-identifier  = alpha ( alpha | digit )* ;
-alpha       = 'a' ... 'z' | 'A' ... 'Z' | '_' ;
-digit       = '0' ... '9' ;
-eof         = <special token indicating end of input>
+lexical:
+
+NUMBER      = DIGIT+ ( "." DIGIT* )? | "." DIGIT+ ;
+STRING      = '"' <any char except '"'>* '"' ;
+IDENTIFIER  = ALPHA ( ALPHA | DIGIT )* ;
+ALPHA       = 'a' ... 'z' | 'A' ... 'Z' | '_' ;
+DIGIT       = '0' ... '9' ;

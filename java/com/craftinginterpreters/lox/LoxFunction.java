@@ -26,7 +26,7 @@ LoxFunction(Stmt.Function declaration, Environment closure) {
 
 //> Classes not-yet
   LoxFunction bind(LoxInstance self) {
-    Environment environment = closure.enterScope();
+    Environment environment = new Environment(closure);
     environment.define("this", self);
     return new LoxFunction(declaration, environment, isInitializer);
   }
@@ -47,13 +47,13 @@ LoxFunction(Stmt.Function declaration, Environment closure) {
     Object result = null;
 
     try {
-      Environment environment = closure.enterScope();
+      Environment environment = new Environment(closure);
       for (int i = 0; i < declaration.parameters.size(); i++) {
         environment.define(declaration.parameters.get(i).lexeme,
             arguments.get(i));
       }
 
-      interpreter.executeBody(declaration.body, environment);
+      interpreter.executeBlock(declaration.body, environment);
     } catch (Return returnValue) {
       result = returnValue.value;
     }

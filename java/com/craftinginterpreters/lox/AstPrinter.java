@@ -2,23 +2,23 @@
 package com.craftinginterpreters.lox;
 
 // Creates an unambiguous, if ugly, string representation of AST nodes.
-/* Representing Code ast-printer < Statements and State not-yet
+/* Representing Code ast-printer < Statements and State omit
 class AstPrinter implements Expr.Visitor<String> {
 */
-//> Statements and State not-yet
+//> Statements and State omit
 class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
-//< Statements and State not-yet
+//< Statements and State omit
   String print(Expr expr) {
     return expr.accept(this);
   }
-//> Statements and State not-yet
+//> Statements and State omit
 
   String print(Stmt stmt) {
     return stmt.accept(this);
   }
-//< Statements and State not-yet
+//< Statements and State omit
 //> visit-methods
-//> Statements and State not-yet
+//> Statements and State omit
   @Override
   public String visitBlockStmt(Stmt.Block stmt) {
     StringBuilder builder = new StringBuilder();
@@ -31,7 +31,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-//< Statements and State not-yet
+//< Statements and State omit
 //> Classes not-yet
 
   @Override
@@ -53,13 +53,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return builder.toString();
   }
 //< Classes not-yet
-//> Statements and State not-yet
+//> Statements and State omit
 
   @Override
   public String visitExpressionStmt(Stmt.Expression stmt) {
     return parenthesize(";", stmt.expression);
   }
-//< Statements and State not-yet
+//< Statements and State omit
 //> Functions not-yet
 
   @Override
@@ -94,13 +94,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
         stmt.elseBranch);
   }
 //< Control Flow not-yet
-//> Statements and State not-yet
+//> Statements and State omit
 
   @Override
   public String visitPrintStmt(Stmt.Print stmt) {
     return parenthesize("print", stmt.expression);
   }
-//< Statements and State not-yet
+//< Statements and State omit
 //> Functions not-yet
 
   @Override
@@ -109,7 +109,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize("return", stmt.value);
   }
 //< Functions not-yet
-//> Statements and State not-yet
+//> Statements and State omit
 
   @Override
   public String visitVarStmt(Stmt.Var stmt) {
@@ -119,7 +119,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
     return parenthesize2("var", stmt.name, "=", stmt.initializer);
   }
-//< Statements and State not-yet
+//< Statements and State omit
 //> Control Flow not-yet
 
   @Override
@@ -127,13 +127,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize2("while", stmt.condition, stmt.body);
   }
 //< Control Flow not-yet
-//> Statements and State not-yet
+//> Statements and State omit
 
   @Override
   public String visitAssignExpr(Expr.Assign expr) {
     return parenthesize2("=", expr.name.lexeme, expr.value);
   }
-//< Statements and State not-yet
+//< Statements and State omit
 
   @Override
   public String visitBinaryExpr(Expr.Binary expr) {
@@ -196,13 +196,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitUnaryExpr(Expr.Unary expr) {
     return parenthesize(expr.operator.lexeme, expr.right);
   }
-//> Statements and State not-yet
+//> Statements and State omit
 
   @Override
   public String visitVariableExpr(Expr.Variable expr) {
     return expr.name.lexeme;
   }
-//< Statements and State not-yet
+//< Statements and State omit
 //< visit-methods
 //> print-utilities
   private String parenthesize(String name, Expr... exprs) {
@@ -232,10 +232,10 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
 
       if (part instanceof Expr) {
         builder.append(((Expr)part).accept(this));
-//> Statements and State not-yet
+//> Statements and State omit
       } else if (part instanceof Stmt) {
         builder.append(((Stmt) part).accept(this));
-//< Statements and State not-yet
+//< Statements and State omit
       } else if (part instanceof Token) {
         builder.append(((Token) part).lexeme);
       } else {

@@ -15,9 +15,9 @@ public class GenerateAst {
     String outputDir = args[0];
 //> call-define-ast
     defineAst(outputDir, "Expr", Arrays.asList(
-//> Statements and State not-yet
+//> Statements and State assign-expr
       "Assign   : Token name, Expr value",
-//< Statements and State not-yet
+//< Statements and State assign-expr
       "Binary   : Expr left, Token operator, Expr right",
 //> Functions not-yet
       "Call     : Expr callee, Token paren, List<Expr> arguments",
@@ -39,18 +39,20 @@ public class GenerateAst {
 //> Classes not-yet
       "This     : Token keyword",
 //< Classes not-yet
-/* Representing Code call-define-ast < Statements and State not-yet
+/* Representing Code call-define-ast < Statements and State var-expr
       "Unary    : Token operator, Expr right"
 */
-//> Statements and State not-yet
+//> Statements and State var-expr
       "Unary    : Token operator, Expr right",
       "Variable : Token name"
-//< Statements and State not-yet
+//< Statements and State var-expr
     ));
-//> Statements and State not-yet
+//> Statements and State stmt-ast
 
     defineAst(outputDir, "Stmt", Arrays.asList(
+//> block-ast
       "Block      : List<Stmt> statements",
+//< block-ast
 /* Classes not-yet < Inheritance not-yet
       "Class      : Token name, List<Stmt.Function> methods",
 */
@@ -68,12 +70,14 @@ public class GenerateAst {
 //> Functions not-yet
       "Return     : Token keyword, Expr value",
 //< Functions not-yet
+//> var-stmt-ast
       "Var        : Token name, Expr initializer",
+//< var-stmt-ast
 //> Control Flow not-yet
       "While      : Expr condition, Stmt body"
 //< Control Flow not-yet
     ));
-//< Statements and State not-yet
+//< Statements and State stmt-ast
 //< call-define-ast
   }
 //> define-ast

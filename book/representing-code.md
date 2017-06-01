@@ -570,7 +570,7 @@ trying not to throw too many languages at you.
 Note that this file is in a different package, `.tool` instead of `.lox`. This
 script isn't part of the interpreter itself. It's a tool *we*, the people
 hacking on the interpreter, run ourselves to generate the syntax tree classes.
-When it's done, we treat `Expr.java` like any other file in the implementation.
+When it's done, we treat "Expr.java" like any other file in the implementation.
 We are merely automating how that file gets authored.
 
 To generate the classes, it needs to have some description of each type and its

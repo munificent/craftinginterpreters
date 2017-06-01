@@ -469,7 +469,7 @@ def build_sass(skip_up_to_date):
 def run_server():
   port = 8000
   handler = RootedHTTPRequestHandler
-  server = RootedHTTPServer("site", ('', port), handler)
+  server = RootedHTTPServer("site", ('localhost', port), handler)
 
   print('Serving at port', port)
   server.serve_forever()
