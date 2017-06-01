@@ -58,7 +58,7 @@ perspective, the terms are synonymous.
 </aside>
 
 So how do we want to implement Lox values? Aside from the basic "pass around and
-store in variables", we need to do a few things with one:
+store in variables", we need to do a few things with a given value:
 
 *   **Determine its type.** Since Lox is dynamically typed, we need to be able
     to check the type of a value at runtime to make sure you don't do things
