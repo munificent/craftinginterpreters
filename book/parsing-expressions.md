@@ -126,7 +126,7 @@ is by defining rules for precedence and associativity.
 *   <span name="nonassociative">**Precedence**</span> determines which operator
     is evaluated first in an expression containing a mixture of different
     operators. Precedence rules tell us that we evaluate the `/` before the `-`
-    in the above example. Operators with *higher* precedence are evaluated
+    in the above example. Operators with higher precedence are evaluated
     before operators with lower precedence. Equivalently, higher precedence
     operators are said to "bind tighter".
 
@@ -160,7 +160,8 @@ operators have *no* relative precedence. That makes it a syntax error to mix
 those operators in an expression without using explicit grouping.
 
 Likewise, some operators are **non-associative**. That means it's an error to
-use that operator more than once in a sequence.
+use that operator more than once in a sequence. For example, Perl's range
+operator isn't associative, so `a .. b` is OK, but `a .. b .. c` is an error.
 
 </aside>
 
@@ -283,7 +284,7 @@ factor → factor ( "*" | "/" ) unary
 ```
 
 This is correct, but the fact that the first nonterminal in the body of the rule
-is the same as the head of the rule means this production is **left recursive**.
+is the same as the head of the rule means this production is **left-recursive**.
 Some parsing techniques, including the one we're going to use, have trouble with
 left recursion. Instead, we'll use this other style:
 
@@ -353,7 +354,7 @@ Recursive descent is the simplest way to build a parser, and doesn't require
 using complex parser generator tools like Yacc, Bison or ANTLR. All you need is
 straightforward hand-written code. Don't be fooled by its simplicity, though.
 Recursive descent parsers are fast, robust, and can support sophisticated
-error-handling. In fact, GCC, V8 (The JavaScript VM in Chrome), Roslyn (the C#
+error-handling. In fact, GCC, V8 (the JavaScript VM in Chrome), Roslyn (the C#
 compiler written in C#) and many other heavyweight production language
 implementations use recursive descent. It kicks ass.
 
@@ -369,7 +370,7 @@ and larger chunks of syntax.
 It's called "recursive *descent*" because it walks *down* the grammar.
 Confusingly, we also use direction metaphorically when talking about "high" and
 "low" precedence, but the orientation is reversed. In a top-down grammar, you
-reach the lowest precedence expressions first because they may in turn contain
+reach the lowest-precedence expressions first because they may in turn contain
 subexpressions of higher precedence.
 
 ![Top-down grammar rules in order of increasing precedence.](image/parsing-expressions/direction.png)
@@ -379,9 +380,9 @@ even get me started on which direction the stack is supposed to grow.
 
 </aside>
 
-A recursive descent parser is a transliteration of the grammar's rules straight
-into imperative code. Each rule becomes a function. The body of the rule
-translates to code roughly like:
+A recursive descent parser is a literal translation of the grammar's rules
+straight into imperative code. Each rule becomes a function. The body of the
+rule translates to code roughly like:
 
 <table>
 <thead>
@@ -426,8 +427,8 @@ method.
 <aside name="left">
 
 This is why left recursion is problematic for recursive descent. The function
-for a left recursive rule would immediately call itself, which would call itself
-again, and so on, until the parser hit a stack overflow and died.
+for a left-recursive rule immediately calls itself, which calls itself again,
+and so on, until the parser hits a stack overflow and dies.
 
 </aside>
 
@@ -447,7 +448,7 @@ variable.
 
 Then, the `( ... )*` loop in the rule is mapped to a while loop. We need to know
 when to exit that loop. We can see that inside the rule, we must first find
-either a `!=` or `==` token. So, if *don't* see one of those, we must be done
+either a `!=` or `==` token. So, if we *don't* see one of those, we must be done
 with the sequence of equality operators. We express that check using a handy
 `match()` method:
 
@@ -502,8 +503,8 @@ expression using the previous one as the left operand.
 </aside>
 
 The parser falls out of the loop once it hits a token that's not an equality
-operator. Finally it returns the expression. Note that if it doesn't encounter a
-single equality operator, then it never enters the loop. In that case, the
+operator. Finally, it returns the expression. Note that if it doesn't encounter
+a single equality operator, then it never enters the loop. In that case, the
 `equality()` method effectively calls and returns `comparison()`. In that way,
 this method matches an equality operator *or anything of higher precedence*.
 
@@ -517,10 +518,11 @@ Translated to Java:
 
 ^code comparison
 
-The grammar rule is virtually identical and so is the code. The only <span
-name="handle">differences</span> are the token types for the operators we match,
-and the method we call for the operands, now `term()`. The remaining two binary
-operator rules follow the same pattern:
+The grammar rule is virtually identical to `equality` and so is the
+corresponding code. The only <span name="handle">differences</span> are the
+token types for the operators we match, and the method we call for the operands,
+now `term()` instead of `comparison()`. The remaining two binary operator rules
+follow the same pattern:
 
 <aside name="handle">
 
@@ -553,7 +555,7 @@ operand. Wrap that all up in a unary expression syntax tree and we're done.
 <aside name="current">
 
 The fact that the parser looks ahead at upcoming tokens to decide how to parse
-lumps recursive descent into the category of **predictive parsers**.
+puts recursive descent into the category of **predictive parsers**.
 
 </aside>
 
@@ -819,8 +821,8 @@ expression. We need to handle that error too:
 
 ^code primary-error (5 before, 1 after)
 
-With that, all that remains in the parser is to define an entrypoint method to
-kick it off. It's called, naturally enough, `parse()`:
+With that, all that remains in the parser is to define an initial method to kick
+it off. It's called, naturally enough, `parse()`:
 
 ^code parse
 
@@ -908,23 +910,23 @@ if (flags & FLAG_MASK == SOME_FLAG) { ... } // Wrong.
 if ((flags & FLAG_MASK) == SOME_FLAG) { ... } // Right.
 ```
 
+Should we fix this for Lox and put bitwise operators higher up the precedence
+table than C does? There are two strategies we can take.
+
 You almost never want to use the result of an `==` expression as the operand to
-a bitwise operator, so bitwise should bind tighter. Should we fix this for Lox
-and put bitwise operators higher up the precedence table than C does?
+a bitwise operator. By making bitwise bind tighter, users don't need to
+parenthesize as often. So if we do that, and users assume the precedence is
+chose logically to minimize parentheses, they're likely to infer it correctly.
 
-One way to design language features is by seeing how they interact with the rest
-of the language how users will use it. If your language has a coherent internal
-logic, that makes it easier for people to learn. When they guess that a feature
-works the way they *hope* it works, they will often be right. There are fewer
-edge cases and exceptions to learn.
-
-All of that's good, because before users can use your language, they have to
+This kind of internal consistency makes the language easier to learn because
+there are fewer edge cases and exceptions users have to stumble into and then
+correct. That's good, because before users can use our language, they have to
 load all of that syntax and semantics into their heads. A simpler, more rational
-language is less to load.
+language *makes sense*.
 
-But, for many users there is an even faster shortcut to getting your language's
+But, for many users there is an even faster shortcut to getting our language's
 ideas into their wetware -- *use concepts they already know.* Many newcomers to
-your language will be coming from some other language or languages. If your
+our language will be coming from some other language or languages. If our
 language uses some of the same syntax or semantics as those, there is much less
 for the user to learn (and *unlearn*).
 

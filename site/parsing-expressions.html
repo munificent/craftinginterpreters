@@ -214,7 +214,7 @@ is by defining rules for precedence and associativity.</p>
 <p><span name="nonassociative"><strong>Precedence</strong></span> determines which operator
     is evaluated first in an expression containing a mixture of different
     operators. Precedence rules tell us that we evaluate the <code>/</code> before the <code>-</code>
-    in the above example. Operators with <em>higher</em> precedence are evaluated
+    in the above example. Operators with higher precedence are evaluated
     before operators with lower precedence. Equivalently, higher precedence
     operators are said to &ldquo;bind tighter&rdquo;.</p>
 </li>
@@ -249,7 +249,8 @@ is by defining rules for precedence and associativity.</p>
 operators have <em>no</em> relative precedence. That makes it a syntax error to mix
 those operators in an expression without using explicit grouping.</p>
 <p>Likewise, some operators are <strong>non-associative</strong>. That means it&rsquo;s an error to
-use that operator more than once in a sequence.</p>
+use that operator more than once in a sequence. For example, Perl&rsquo;s range
+operator isn&rsquo;t associative, so <code>a .. b</code> is OK, but <code>a .. b .. c</code> is an error.</p>
 </aside>
 <p>Without well-defined precedence and associativity, an expression that uses
 multiple operators is ambiguous&#8202;&mdash;&#8202;it can be parsed into different syntax trees,
@@ -351,7 +352,7 @@ numbers, the first evaluates to <code>0.6</code>, while the second yields
 
 
 <p>This is correct, but the fact that the first nonterminal in the body of the rule
-is the same as the head of the rule means this production is <strong>left recursive</strong>.
+is the same as the head of the rule means this production is <strong>left-recursive</strong>.
 Some parsing techniques, including the one we&rsquo;re going to use, have trouble with
 left recursion. Instead, we&rsquo;ll use this other style:</p>
 <div class="codehilite"><pre><span></span><span class="n">factor</span> <span class="err">→</span> <span class="n">unary</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="p">)</span> <span class="n">unary</span> <span class="p">)</span><span class="o">*</span>
@@ -401,7 +402,7 @@ one technique is more than sufficient: <strong>recursive descent</strong>.</p>
 using complex parser generator tools like Yacc, Bison or ANTLR. All you need is
 straightforward hand-written code. Don&rsquo;t be fooled by its simplicity, though.
 Recursive descent parsers are fast, robust, and can support sophisticated
-error-handling. In fact, GCC, V8 (The JavaScript VM in Chrome), Roslyn (the C#
+error-handling. In fact, GCC, V8 (the JavaScript VM in Chrome), Roslyn (the C#
 compiler written in C#) and many other heavyweight production language
 implementations use recursive descent. It kicks ass.</p>
 <p>It is considered a <strong>top-down parser</strong> because it starts from the top or
@@ -414,15 +415,15 @@ and larger chunks of syntax.</p>
 <p>It&rsquo;s called &ldquo;recursive <em>descent</em>&rdquo; because it walks <em>down</em> the grammar.
 Confusingly, we also use direction metaphorically when talking about &ldquo;high&rdquo; and
 &ldquo;low&rdquo; precedence, but the orientation is reversed. In a top-down grammar, you
-reach the lowest precedence expressions first because they may in turn contain
+reach the lowest-precedence expressions first because they may in turn contain
 subexpressions of higher precedence.</p>
 <p><img alt="Top-down grammar rules in order of increasing precedence." src="image/parsing-expressions/direction.png" /></p>
 <p>CS people really need to get together and straighten out their metaphors. Don&rsquo;t
 even get me started on which direction the stack is supposed to grow.</p>
 </aside>
-<p>A recursive descent parser is a transliteration of the grammar&rsquo;s rules straight
-into imperative code. Each rule becomes a function. The body of the rule
-translates to code roughly like:</p>
+<p>A recursive descent parser is a literal translation of the grammar&rsquo;s rules
+straight into imperative code. Each rule becomes a function. The body of the
+rule translates to code roughly like:</p>
 <table>
 <thead>
 <tr>
@@ -480,8 +481,8 @@ reference to another rule&#8202;&mdash;&#8202;we <span name="left">call</span> t
 method.</p>
 <aside name="left">
 <p>This is why left recursion is problematic for recursive descent. The function
-for a left recursive rule would immediately call itself, which would call itself
-again, and so on, until the parser hit a stack overflow and died.</p>
+for a left-recursive rule immediately calls itself, which calls itself again,
+and so on, until the parser hits a stack overflow and dies.</p>
 </aside>
 <p>The rule for equality is a little more complex:</p>
 <div class="codehilite"><pre><span></span><span class="n">equality</span> <span class="err">→</span> <span class="n">comparison</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="p">)</span> <span class="n">comparison</span> <span class="p">)</span><span class="o">*</span>
@@ -509,7 +510,7 @@ translated to the first call to <code>comparison()</code> and we store that in a
 variable.</p>
 <p>Then, the <code>( ... )*</code> loop in the rule is mapped to a while loop. We need to know
 when to exit that loop. We can see that inside the rule, we must first find
-either a <code>!=</code> or <code>==</code> token. So, if <em>don&rsquo;t</em> see one of those, we must be done
+either a <code>!=</code> or <code>==</code> token. So, if we <em>don&rsquo;t</em> see one of those, we must be done
 with the sequence of equality operators. We express that check using a handy
 <code>match()</code> method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
@@ -587,8 +588,8 @@ operator nodes.</p>
 expression using the previous one as the left operand.</p>
 </aside>
 <p>The parser falls out of the loop once it hits a token that&rsquo;s not an equality
-operator. Finally it returns the expression. Note that if it doesn&rsquo;t encounter a
-single equality operator, then it never enters the loop. In that case, the
+operator. Finally, it returns the expression. Note that if it doesn&rsquo;t encounter
+a single equality operator, then it never enters the loop. In that case, the
 <code>equality()</code> method effectively calls and returns <code>comparison()</code>. In that way,
 this method matches an equality operator <em>or anything of higher precedence</em>.</p>
 <p>Moving on to the next rule&hellip;</p>
@@ -612,10 +613,11 @@ add after <em>equality</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>The grammar rule is virtually identical and so is the code. The only <span
-name="handle">differences</span> are the token types for the operators we match,
-and the method we call for the operands, now <code>term()</code>. The remaining two binary
-operator rules follow the same pattern:</p>
+<p>The grammar rule is virtually identical to <code>equality</code> and so is the
+corresponding code. The only <span name="handle">differences</span> are the
+token types for the operators we match, and the method we call for the operands,
+now <code>term()</code> instead of <code>comparison()</code>. The remaining two binary operator rules
+follow the same pattern:</p>
 <aside name="handle">
 <p>If you wanted to do some clever Java 8, you could create a helper method for
 parsing a left-associative series of binary operators given a list of token
@@ -676,7 +678,7 @@ grab the token, and then recursively call <code>unary()</code> again to the pars
 operand. Wrap that all up in a unary expression syntax tree and we&rsquo;re done.</p>
 <aside name="current">
 <p>The fact that the parser looks ahead at upcoming tokens to decide how to parse
-lumps recursive descent into the category of <strong>predictive parsers</strong>.</p>
+puts recursive descent into the category of <strong>predictive parsers</strong>.</p>
 </aside>
 <p>Otherwise, we must have reached the highest level of precedence, primary
 expressions.</p>
@@ -970,8 +972,8 @@ in <em>primary</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>
 </pre></div>
 
-<p>With that, all that remains in the parser is to define an entrypoint method to
-kick it off. It&rsquo;s called, naturally enough, <code>parse()</code>:</p>
+<p>With that, all that remains in the parser is to define an initial method to kick
+it off. It&rsquo;s called, naturally enough, <code>parse()</code>:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>Parser</em>()</div>
 <pre><span></span>  <span class="n">Expr</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>
@@ -1066,20 +1068,20 @@ it means common operations like testing a flag require parentheses:</p>
 </pre></div>
 
 
+<p>Should we fix this for Lox and put bitwise operators higher up the precedence
+table than C does? There are two strategies we can take.</p>
 <p>You almost never want to use the result of an <code>==</code> expression as the operand to
-a bitwise operator, so bitwise should bind tighter. Should we fix this for Lox
-and put bitwise operators higher up the precedence table than C does?</p>
-<p>One way to design language features is by seeing how they interact with the rest
-of the language how users will use it. If your language has a coherent internal
-logic, that makes it easier for people to learn. When they guess that a feature
-works the way they <em>hope</em> it works, they will often be right. There are fewer
-edge cases and exceptions to learn.</p>
-<p>All of that&rsquo;s good, because before users can use your language, they have to
+a bitwise operator. By making bitwise bind tighter, users don&rsquo;t need to
+parenthesize as often. So if we do that, and users assume the precedence is
+chose logically to minimize parentheses, they&rsquo;re likely to infer it correctly.</p>
+<p>This kind of internal consistency makes the language easier to learn because
+there are fewer edge cases and exceptions users have to stumble into and then
+correct. That&rsquo;s good, because before users can use our language, they have to
 load all of that syntax and semantics into their heads. A simpler, more rational
-language is less to load.</p>
-<p>But, for many users there is an even faster shortcut to getting your language&rsquo;s
+language <em>makes sense</em>.</p>
+<p>But, for many users there is an even faster shortcut to getting our language&rsquo;s
 ideas into their wetware&#8202;&mdash;&#8202;<em>use concepts they already know.</em> Many newcomers to
-your language will be coming from some other language or languages. If your
+our language will be coming from some other language or languages. If our
 language uses some of the same syntax or semantics as those, there is much less
 for the user to learn (and <em>unlearn</em>).</p>
 <p>This is particularly helpful with syntax. You may not remember it well today,
