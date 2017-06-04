@@ -400,7 +400,14 @@ generator, we add a new statement tree for a variable declaration:
 It stores the name token so we know what it's declaring, along with the
 initializer expression. (If there isn't an initializer, that's `null`.)
 
-Then we add an expression node for accessing a variable:
+Then we add an expression node for accessing a <span name="comma">variable</span>:
+
+<aside name="comma">
+
+Also, we need a comma after the Unary line, which is why that one is changed
+too.
+
+</aside>
 
 ^code var-expr (1 before, 1 after)
 
