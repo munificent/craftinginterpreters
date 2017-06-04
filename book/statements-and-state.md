@@ -108,9 +108,9 @@ allowed. The operands of, say, `+` are always expressions, never statements. The
 body of a while loop is always a statement.
 
 Since the two syntaxes are disjoint, we don't need a single base class that they
-all inherit from. Splitting them into separate class hierarchies let's us use
-the Java compiler to help us find dumb mistakes like passing a statement to a
-Java method that expects an expression.
+all inherit from. Splitting them into separate class hierarchies enables the
+Java compiler to help us find dumb mistakes like passing a statement to a Java
+method that expects an expression.
 
 That means a new base class for statements. As our elders did before us, we will
 use the cryptic name "Stmt". With great <span name="foresight">foresight</span>,
