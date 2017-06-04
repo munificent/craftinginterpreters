@@ -134,6 +134,8 @@ java_interpreter('chap08_statements', {
   'test/operator/not.lox': 'skip',
   'test/return': 'skip',
   'test/unexpected_character.lox': 'skip',
+  
+  'test/regression': 'skip',
 
   # Broken because we haven't fixed it yet by detecting the error.
   'test/return/at_top_level.lox': 'skip',
