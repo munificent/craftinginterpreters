@@ -132,10 +132,9 @@ java_interpreter('chap08_statements', {
   'test/closure': 'skip',
   'test/function': 'skip',
   'test/operator/not.lox': 'skip',
+  'test/regression/40.lox': 'skip',
   'test/return': 'skip',
   'test/unexpected_character.lox': 'skip',
-  
-  'test/regression': 'skip',
 
   # Broken because we haven't fixed it yet by detecting the error.
   'test/return/at_top_level.lox': 'skip',
@@ -194,6 +193,7 @@ java_interpreter('chap09_control', {
   'test/for/syntax.lox': 'skip',
   'test/function': 'skip',
   'test/operator/not.lox': 'skip',
+  'test/regression/40.lox': 'skip',
   'test/return': 'skip',
   'test/unexpected_character.lox': 'skip',
   'test/while/closure_in_body.lox': 'skip',
@@ -402,6 +402,7 @@ c_interpreter('chap21_global', {
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
+  'test/regression/40.lox': 'skip',
   'test/return': 'skip',
   'test/unexpected_character.lox': 'skip',
   'test/variable/collide_with_parameter.lox': 'skip',
@@ -450,6 +451,7 @@ c_interpreter('chap22_local', {
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
+  'test/regression/40.lox': 'skip',
   'test/return': 'skip',
   'test/unexpected_character.lox': 'skip',
   'test/variable/collide_with_parameter.lox': 'skip',
@@ -493,6 +495,7 @@ c_interpreter('chap23_jumping', {
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
+  'test/regression/40.lox': 'skip',
   'test/return': 'skip',
   'test/unexpected_character.lox': 'skip',
   'test/variable/collide_with_parameter.lox': 'skip',
@@ -532,6 +535,7 @@ c_interpreter('chap24_calls', {
   'test/for/return_closure.lox': 'skip',
   'test/function/local_recursion.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
+  'test/regression/40.lox': 'skip',
   'test/while/closure_in_body.lox': 'skip',
   'test/while/return_closure.lox': 'skip',
 
