@@ -711,8 +711,8 @@ Mainly, we're missing an explicit assignment notation.
 
 ### Assignment syntax
 
-That little `=` syntax is more complex than it might seem. Like most <span
-name="assign">C-derived</span> languages, assignment is an expression and not a
+That little `=` syntax is more complex than it might seem. Like most C-derived
+languages, assignment is an <span name="assign">expression</span> and not a
 statement. As in C, it is the lowest precedence expression form. That means the
 rule slots between `expression` and `equality`, the next lowest precedence
 expression:
@@ -720,9 +720,7 @@ expression:
 
 <aside name="assign">
 
-Assignment is a statement in Python. It's an expression in Go, but the increment
-and decrement operators `++` and `--`, which are syntactic sugar for an
-assignment, are statements.
+In some other languages, like Pascal, Python, and Go, assignment is a statement.
 
 </aside>
 
