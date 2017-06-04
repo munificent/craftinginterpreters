@@ -103,7 +103,7 @@ syntax trees.
 
 ### Statement syntax trees
 
-There are no places in the grammar whether both an expression or a statement is
+There are no places in the grammar where both an expression and a statement is
 allowed. The operands of, say, `+` are always expressions, never statements. The
 body of a while loop is always a statement.
 
