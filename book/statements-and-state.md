@@ -720,9 +720,9 @@ expression:
 
 <aside name="assign">
 
-Assignment is a statement in Python. It's an expression in Go, but the increment
+Assignment is a statement in Python. In Go too, plus the increment
 and decrement operators `++` and `--`, which are syntactic sugar for an
-assignment, are statements.
+assignment, are also statements.
 
 </aside>
 
