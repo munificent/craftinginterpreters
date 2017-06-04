@@ -978,13 +978,13 @@ refers to until you execute the code. Lox doesn't have dynamically scoped
 ```lox
 class Saxophone {
   play() {
-    print "Doot doot doot";
+    print "Careless Whisper";
   }
 }
 
 class GolfClub {
   play() {
-    print "Bogey";
+    print "Fore!";
   }
 }
 
