@@ -383,7 +383,7 @@ That's the expression forms (except for a couple related to specific features
 that we'll get to later), so let's move up a level. Now we're at statements.
 Where an expression's main job is to produce a *value*, a statement's job is to
 produce an *effect*. Since, by definition, statements don't evaluate to a value,
-to be useful they have to otherwise change the world in same way -- usually
+to be useful they have to otherwise change the world in some way -- usually
 modifying some state, reading input, or producing output.
 
 You've seen a couple of kinds of statements already. The first one was:
