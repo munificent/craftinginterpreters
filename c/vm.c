@@ -5,6 +5,7 @@
 #include <stdio.h>
 //> Strings not-yet
 #include <string.h>
+#include <stdlib.h>
 //< Strings not-yet
 //> Calls and Functions not-yet
 #include <time.h>
@@ -407,6 +408,30 @@ static void concatenate() {
 }
 //< Strings not-yet
 
+unsigned numDigits(const unsigned n) {
+    if (n < 10) return 1;
+    return 1 + numDigits(n / 10);
+}
+
+static void concatenateStringAndNumber(ObjString *string, double number) {
+  int length = string->length + numDigits(number);
+  char* chars = ALLOCATE(char, length + 1);
+  memcpy(chars, string->chars, string->length);
+  char snum[numDigits(number)];
+
+  sprintf(snum, "%f", number);
+
+  memcpy(chars + string->length, snum, numDigits(number));
+  chars[length] = '\0';
+
+  ObjString* result = takeString(chars, length);
+
+  pop();
+  pop();
+  
+  push(OBJ_VAL(result));
+}
+
 static bool run() {
 //> Calls and Functions not-yet
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
@@ -635,6 +660,14 @@ static bool run() {
           double b = AS_NUMBER(pop());
           double a = AS_NUMBER(pop());
           push(NUMBER_VAL(a + b));
+        } else if(IS_STRING(peek(0)) && IS_NUMBER(peek(1))) {  
+          ObjString *b = AS_STRING(pop());
+          double a = AS_NUMBER(pop());
+          concatenateStringAndNumber(b, a);
+        } else if(IS_NUMBER(peek(0)) && IS_STRING(peek(1))) {
+          double b = AS_NUMBER(pop());
+          ObjString *a = AS_STRING(pop());
+          concatenateStringAndNumber(a, b);
         } else {
           runtimeError("Operands must be two numbers or two strings.");
           return false;
