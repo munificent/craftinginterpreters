@@ -919,9 +919,9 @@ methods for each of the expression types we have so far:
 
 ^code visit-methods (2 before, 1 after)
 
-Literal expressions are easy -- they just convert the value to a string. The
-other expressions have subexpressions, so they use this `parenthesize()` helper
-method:
+Literal expressions are easy -- they convert the value to a string with a little
+check to handle Java's `null` standing in for Lox's `nil`. The other expressions
+have subexpressions, so they use this `parenthesize()` helper method:
 
 ^code print-utilities
 
