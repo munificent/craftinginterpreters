@@ -265,16 +265,26 @@ class Snippet:
 
   def location(self):
     """Describes where in the file this snippet appears."""
-
     if len(self.context_before) == 0:
       # No lines before the snippet, it must be a new file.
       return 'create new file'
 
-    if self.preceding_function and self.function != self.preceding_function:
-      return 'add after <em>{}</em>()'.format(self.preceding_function)
-    elif self.function:
+    if self.preceding_function and self.function == self.preceding_function:
+      # The function before the snippet is the same one, so we must be in the
+      # middle of it.
       return 'in <em>{}</em>()'.format(self.function)
+    elif self.removed and self.function:
+      # We don't appear to be in the middle of a function, but we are replacing
+      # lines, so assume we're replacing the entire function.
+      function = 'method' if self.file.path.endswith('.java') else 'function'
+      return '{} <em>{}</em>()'.format(function, self.function)
+    elif self.preceding_function:
+      # If we get here, we aren't inside any function, but we do know the
+      # preceding one.
+      return 'add after <em>{}</em>()'.format(self.preceding_function)
     elif self.clas:
+      # If we get here, all we know is that we're adding something at the top
+      # of a class.
       return 'in class <em>{}</em>'.format(self.clas)
 
     return None
@@ -301,6 +311,7 @@ def load_file(source_code, source_dir, path):
   state = ParseState(None, None)
   handled = False
 
+  function_before_block = None
   current_function = None
   current_class = None
 
@@ -349,17 +360,19 @@ def load_file(source_code, source_dir, path):
       if match:
         current_class = match.group(2)
 
-
       match = BLOCK_PATTERN.match(line)
       if match:
         push(match.group(1), match.group(2), match.group(3), match.group(4))
+        function_before_block = current_function
 
       match = BLOCK_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
         push(state.start.chapter, state.start.name, state.start.chapter, name)
+        function_before_block = current_function
 
       if line.strip() == '*/' and state.end:
+        current_function = function_before_block
         pop()
 
       match = BEGIN_SNIPPET_PATTERN.match(line)
@@ -463,3 +476,8 @@ def load():
   walk("c", lambda path: load_file(source_code, "c", path))
 
   return source_code
+
+
+source_code = SourceCode()
+load_file(source_code, "/Users/rnystrom", "/Users/rnystrom/Interp.java")
+source_code.find_all("Evaluating Expressions")
