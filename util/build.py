@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import codecs
+import datetime
 import glob
 import os
 import posixpath
@@ -499,5 +500,14 @@ else:
   estimated_word_count = total_words + (empty_chapters * average_word_count)
   percent_finished = total_words * 100 // estimated_word_count
 
-  print("{}/~{} words ({}%)".format(
-    total_words, estimated_word_count, percent_finished))
+  first_writing_day = datetime.date(2016, 9, 30)
+  today = datetime.date.today()
+  writing_days = (today - first_writing_day).days
+  estimated_writing_days = int(writing_days / (percent_finished / 100))
+  estimated_end_date = today + datetime.timedelta(days=estimated_writing_days)
+
+  print("{}/~{} words, {}% done ({})".format(
+      total_words,
+      estimated_word_count,
+      percent_finished,
+      estimated_end_date))

@@ -102,7 +102,7 @@ TOC = [
           'If statements', 'While statements', 'For statements', 'Desugaring',
           'Logical operators', 'Short-circuit evaluation'
         ],
-        'done': False,
+        'design_note': 'Spoonfuls of Syntactic Sugar'
       },
       {
         'name': 'Functions',

@@ -27,9 +27,9 @@ public class GenerateAst {
 //< Classes not-yet
       "Grouping : Expr expression",
       "Literal  : Object value",
-//> Control Flow not-yet
+//> Control Flow logical-ast
       "Logical  : Expr left, Token operator, Expr right",
-//< Control Flow not-yet
+//< Control Flow logical-ast
 //> Classes not-yet
       "Set      : Expr object, Token name, Expr value",
 //< Classes not-yet
@@ -63,9 +63,9 @@ public class GenerateAst {
 //> Functions not-yet
       "Function   : Token name, List<Token> parameters, List<Stmt> body",
 //< Functions not-yet
-//> Control Flow not-yet
+//> Control Flow if-ast
       "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
-//< Control Flow not-yet
+//< Control Flow if-ast
       "Print      : Expr expression",
 //> Functions not-yet
       "Return     : Token keyword, Expr value",
@@ -73,9 +73,9 @@ public class GenerateAst {
 //> var-stmt-ast
       "Var        : Token name, Expr initializer",
 //< var-stmt-ast
-//> Control Flow not-yet
+//> Control Flow while-ast
       "While      : Expr condition, Stmt body"
-//< Control Flow not-yet
+//< Control Flow while-ast
     ));
 //< Statements and State stmt-ast
 //< call-define-ast
