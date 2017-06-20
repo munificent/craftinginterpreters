@@ -161,22 +161,26 @@ class Parser {
 //< for-increment
 //> for-body
     Stmt body = statement();
-//> for-desugar
 
+//> for-desugar-increment
     if (increment != null) {
       body = new Stmt.Block(Arrays.asList(
           body,
           new Stmt.Expression(increment)));
     }
 
+//< for-desugar-increment
+//> for-desugar-condition
     if (condition == null) condition = new Expr.Literal(true);
     body = new Stmt.While(condition, body);
 
+//< for-desugar-condition
+//> for-desugar-initializer
     if (initializer != null) {
       body = new Stmt.Block(Arrays.asList(initializer, body));
     }
 
-//< for-desugar
+//< for-initializer
     return body;
 //< for-body
   }
