@@ -1227,7 +1227,7 @@ variable</em>. It doesn&rsquo;t get touched.</p>
 hidden in the &ldquo;shadow&rdquo; cast by the inner one), but it&rsquo;s still there.</p>
 <p>When we enter a new block scope, we need to preserve variables defined in outer
 scopes so they are still around when we exit the inner block. We do that by
-defining a fresh <span name="cactus">environment</span> for each block
+defining a fresh environment for each block
 containing only the variables defined in that scope. When we exit the block, we
 discard its environment and restore the previous one.</p>
 <p>We also need to handle enclosing variables that are <em>not</em> shadowed:</p>
@@ -1244,20 +1244,20 @@ inside the block&rsquo;s environment. In that <code>print</code> statement, both
 variables are in scope. In order to find them, the interpreter must search not
 only the current innermost environment, but also any enclosing ones.</p>
 <p><img src="image/statements-and-state/chaining.png" alt="Environments for each scope, linked together." /></p>
-<p>We implement this by chaining the environments together. Each environment has a
-reference to the environment of the immediately enclosing scope. When we look up
-a variable, we walk that chain from innermost out until we find the variable.
-Starting at the inner scope is how we make local variables shadow outer ones.</p>
+<p>We implement this by <span name="cactus">chaining</span> the environments
+together. Each environment has a reference to the environment of the immediately
+enclosing scope. When we look up a variable, we walk that chain from innermost
+out until we find the variable. Starting at the inner scope is how we make local
+variables shadow outer ones.</p>
 <aside name="cactus">
-<p>At any point in time while the interpreter is running, the environments form a
-linear list of objects. But consider the full set of environments that are
-created during the entire execution. An outer scope may have multiple blocks
-nested within it, and each will point to the outer one, giving a tree-like
-structure, even though only a single path through the tree exists at any point
-in time.</p>
+<p>While the interpreter is running, the environments form a linear list of
+objects, but consider the full set of environments created during the entire
+execution. An outer scope may have multiple blocks nested within it, and each
+will point to the outer one, giving a tree-like structure, though only one path
+through the tree exists at a time.</p>
 <p>The boring name for this is a <a href="https://en.wikipedia.org/wiki/Parent_pointer_tree"><strong>&ldquo;parent-pointer tree&rdquo;</strong></a>, but I
 much prefer the evocative &ldquo;cactus stack&rdquo;.</p>
-<p><img alt="Each branch points to its parent. The root is global scope." src="image/statements-and-state/cactus.png" /></p>
+<p><img class="above" src="image/statements-and-state/cactus.png" alt="Each branch points to its parent. The root is global scope."></p>
 </aside>
 <p>Before we add block syntax to the grammar, we&rsquo;ll beef up our Environment class
 with support for this nesting. First, we give each environment a reference to

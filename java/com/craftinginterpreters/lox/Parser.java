@@ -180,7 +180,7 @@ class Parser {
       body = new Stmt.Block(Arrays.asList(initializer, body));
     }
 
-//< for-initializer
+//< for-desugar-initializer
     return body;
 //< for-body
   }

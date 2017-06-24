@@ -668,13 +668,11 @@ You know you want to push it.
 
 </aside>
 
-<span name="panic"></span>
-
 Of all the recovery techniques devised in yesteryear, the one that best stood
-the test of time is called -- somewhat alarmingly -- "panic mode". As soon as
-the parser detects an error, it enters panic mode. It knows at least one token
-doesn't make sense given its current state in the middle of some stack of
-grammar productions.
+the test of time is called -- somewhat alarmingly -- <span name="panic">"panic
+mode"</span>. As soon as the parser detects an error, it enters panic mode. It
+knows at least one token doesn't make sense given its current state in the
+middle of some stack of grammar productions.
 
 Before it can get back to parsing, it needs to get its state and the sequence of
 forthcoming tokens aligned such that the next token does match the rule being
