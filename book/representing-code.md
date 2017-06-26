@@ -610,8 +610,8 @@ There we go. All of that glorious Java boilerplate is done. It declares each
 field in the class body. It defines a constructor for the class with parameters
 for each field and initializes them in the body.
 
-Run this script now and it blasts out almost a hundred lines of code. That's
-about to get even longer.
+Run this script now and it blasts out a few dozen lines of code. That's about to
+get even longer.
 
 ## Working with Trees
 
