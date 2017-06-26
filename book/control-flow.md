@@ -54,9 +54,9 @@ the more general question, "What do we mean when we claim a function is
 [compute]: https://en.wikipedia.org/wiki/Computable_function
 
 They hoped the answer to the first two questions would be "yes". All that
-remained was to prove it. It turns out that the answer to both is "no" and, in
+remained was to prove it. It turns out that the answer to both is "no" and, 
 astonishingly, the two questions are deeply intertwined. This is a fascinating
-corner mathematics that touches fundamental questions about what brains are able
+corner of mathematics that touches fundamental questions about what brains are able
 to do and how the universe works. I can't do it justice here.
 
 What I do want to note is that in the process of proving that those questions
