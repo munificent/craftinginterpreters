@@ -66,13 +66,19 @@ public class GenerateAst {
 //> Control Flow not-yet
       "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 //< Control Flow not-yet
+/* Statements and State stmt-ast < Statements and State var-stmt-ast
+      "Print      : Expr expression"
+*/
+//> var-stmt-ast
       "Print      : Expr expression",
+//< var-stmt-ast
 //> Functions not-yet
       "Return     : Token keyword, Expr value",
-//< Functions not-yet
-//> var-stmt-ast
+/* Statements and State var-stmt-ast < Control Flow not-yet
+      "Var        : Token name, Expr initializer"
+*/
       "Var        : Token name, Expr initializer",
-//< var-stmt-ast
+//< Functions not-yet
 //> Control Flow not-yet
       "While      : Expr condition, Stmt body"
 //< Control Flow not-yet
