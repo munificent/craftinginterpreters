@@ -172,8 +172,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Functions not-yet
-//> Control Flow not-yet
-
+//> Control Flow visit-if
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
     if (isTruthy(evaluate(stmt.condition))) {
@@ -183,7 +182,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return null;
   }
-//< Control Flow not-yet
+//< Control Flow visit-if
 //> Statements and State visit-print
   @Override
   public Void visitPrintStmt(Stmt.Print stmt) {
@@ -214,7 +213,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Statements and State visit-var
-//> Control Flow not-yet
+//> Control Flow visit-while
   @Override
   public Void visitWhileStmt(Stmt.While stmt) {
     while (isTruthy(evaluate(stmt.condition))) {
@@ -222,7 +221,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     return null;
   }
-//< Control Flow not-yet
+//< Control Flow visit-while
 //> Statements and State visit-assign
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
@@ -313,7 +312,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //< visit-binary
 //> Functions not-yet
-
   @Override
   public Object visitCallExpr(Expr.Call expr) {
     Object callee = evaluate(expr.callee);
@@ -339,7 +337,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //< Functions not-yet
 //> Classes not-yet
-
   @Override
   public Object visitGetExpr(Expr.Get expr) {
     Object object = evaluate(expr.object);
@@ -363,23 +360,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return expr.value;
   }
 //< visit-literal
-//> Control Flow not-yet
-
+//> Control Flow visit-logical
   @Override
   public Object visitLogicalExpr(Expr.Logical expr) {
     Object left = evaluate(expr.left);
 
-    if (expr.operator.type == TokenType.OR && isTruthy(left)) {
-      return left;
-    }
-
-    if (expr.operator.type == TokenType.AND && !isTruthy(left)) {
-      return left;
+    if (expr.operator.type == TokenType.OR) {
+      if (isTruthy(left)) return left;
+    } else {
+      if (!isTruthy(left)) return left;
     }
 
     return evaluate(expr.right);
   }
-//< Control Flow not-yet
+//< Control Flow visit-logical
 //> Classes not-yet
 
   @Override

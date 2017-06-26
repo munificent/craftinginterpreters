@@ -476,8 +476,3 @@ def load():
   walk("c", lambda path: load_file(source_code, "c", path))
 
   return source_code
-
-
-source_code = SourceCode()
-load_file(source_code, "/Users/rnystrom", "/Users/rnystrom/Interp.java")
-source_code.find_all("Evaluating Expressions")

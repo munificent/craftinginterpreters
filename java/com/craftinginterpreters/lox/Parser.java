@@ -4,9 +4,9 @@ package com.craftinginterpreters.lox;
 //> Statements and State parser-imports
 import java.util.ArrayList;
 //< Statements and State parser-imports
-//> Control Flow not-yet
+//> Control Flow import-arrays
 import java.util.Arrays;
-//< Control Flow not-yet
+//< Control Flow import-arrays
 import java.util.List;
 
 import static com.craftinginterpreters.lox.TokenType.*;
@@ -106,17 +106,19 @@ class Parser {
 //< Classes not-yet
 //> Statements and State parse-statement
   private Stmt statement() {
-//> Control Flow not-yet
+//> Control Flow match-for
     if (match(FOR)) return forStatement();
+//< Control Flow match-for
+//> Control Flow match-if
     if (match(IF)) return ifStatement();
-//< Control Flow not-yet
+//< Control Flow match-if
     if (match(PRINT)) return printStatement();
 //> Functions not-yet
     if (match(RETURN)) return returnStatement();
 //< Functions not-yet
-//> Control Flow not-yet
+//> Control Flow match-while
     if (match(WHILE)) return whileStatement();
-//< Control Flow not-yet
+//< Control Flow match-while
 //> parse-block
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
 //< parse-block
@@ -124,12 +126,14 @@ class Parser {
     return expressionStatement();
   }
 //< Statements and State parse-statement
-//> Control Flow not-yet
-
+//> Control Flow for-statement
   private Stmt forStatement() {
-    // Parse it.
     consume(LEFT_PAREN, "Expect '(' after 'for'.");
 
+/* Control Flow for-statement < Control Flow for-initializer
+    // More here...
+*/
+//> for-initializer
     Stmt initializer;
     if (match(SEMICOLON)) {
       initializer = null;
@@ -138,40 +142,54 @@ class Parser {
     } else {
       initializer = expressionStatement();
     }
+//< for-initializer
+//> for-condition
 
     Expr condition = null;
     if (!check(SEMICOLON)) {
       condition = expression();
     }
     consume(SEMICOLON, "Expect ';' after loop condition.");
+//< for-condition
+//> for-increment
 
-    Stmt increment = null;
+    Expr increment = null;
     if (!check(RIGHT_PAREN)) {
-      increment = new Stmt.Expression(expression());
+      increment = expression();
     }
     consume(RIGHT_PAREN, "Expect ')' after for clauses.");
-
+//< for-increment
+//> for-body
     Stmt body = statement();
 
-    // Desugar to a while loop.
+//> for-desugar-increment
     if (increment != null) {
-      body = new Stmt.Block(Arrays.asList(body, increment));
+      body = new Stmt.Block(Arrays.asList(
+          body,
+          new Stmt.Expression(increment)));
     }
 
+//< for-desugar-increment
+//> for-desugar-condition
     if (condition == null) condition = new Expr.Literal(true);
     body = new Stmt.While(condition, body);
 
+//< for-desugar-condition
+//> for-desugar-initializer
     if (initializer != null) {
       body = new Stmt.Block(Arrays.asList(initializer, body));
     }
 
+//< for-desugar-initializer
     return body;
+//< for-body
   }
-
+//< Control Flow for-statement
+//> Control Flow if-statement
   private Stmt ifStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'if'.");
     Expr condition = expression();
-    consume(RIGHT_PAREN, "Expect ')' after if condition.");
+    consume(RIGHT_PAREN, "Expect ')' after if condition."); // [parens]
 
     Stmt thenBranch = statement();
     Stmt elseBranch = null;
@@ -181,7 +199,7 @@ class Parser {
 
     return new Stmt.If(condition, thenBranch, elseBranch);
   }
-//< Control Flow not-yet
+//< Control Flow if-statement
 //> Statements and State parse-print-statement
   private Stmt printStatement() {
     Expr value = expression();
@@ -214,8 +232,7 @@ class Parser {
     return new Stmt.Var(name, initializer);
   }
 //< Statements and State parse-var-declaration
-//> Control Flow not-yet
-
+//> Control Flow while-statement
   private Stmt whileStatement() {
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
     Expr condition = expression();
@@ -224,7 +241,7 @@ class Parser {
 
     return new Stmt.While(condition, body);
   }
-//< Control Flow not-yet
+//< Control Flow while-statement
 //> Statements and State parse-expression-statement
   private Stmt expressionStatement() {
     Expr expr = expression();
@@ -268,12 +285,12 @@ class Parser {
 //< Statements and State block
 //> Statements and State parse-assignment
   private Expr assignment() {
-/* Statements and State parse-assignment < Control Flow not-yet
+/* Statements and State parse-assignment < Control Flow or-in-assignment
     Expr expr = equality();
 */
-//> Control Flow not-yet
+//> Control Flow or-in-assignment
     Expr expr = or();
-//< Control Flow not-yet
+//< Control Flow or-in-assignment
 
     if (match(EQUAL)) {
       Token equals = previous();
@@ -295,8 +312,7 @@ class Parser {
     return expr;
   }
 //< Statements and State parse-assignment
-//> Control Flow not-yet
-
+//> Control Flow or
   private Expr or() {
     Expr expr = and();
 
@@ -308,7 +324,8 @@ class Parser {
 
     return expr;
   }
-
+//< Control Flow or
+//> Control Flow and
   private Expr and() {
     Expr expr = equality();
 
@@ -320,7 +337,7 @@ class Parser {
 
     return expr;
   }
-//< Control Flow not-yet
+//< Control Flow and
 //> equality
   private Expr equality() {
     Expr expr = comparison();

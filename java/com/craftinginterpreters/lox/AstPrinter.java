@@ -82,7 +82,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return builder.toString();
   }
 //< Functions not-yet
-//> Control Flow not-yet
+//> Control Flow omit
 
   @Override
   public String visitIfStmt(Stmt.If stmt) {
@@ -93,7 +93,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize2("if-else", stmt.condition, stmt.thenBranch,
         stmt.elseBranch);
   }
-//< Control Flow not-yet
+//< Control Flow omit
 //> Statements and State omit
 
   @Override
@@ -120,13 +120,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize2("var", stmt.name, "=", stmt.initializer);
   }
 //< Statements and State omit
-//> Control Flow not-yet
+//> Control Flow omit
 
   @Override
   public String visitWhileStmt(Stmt.While stmt) {
     return parenthesize2("while", stmt.condition, stmt.body);
   }
-//< Control Flow not-yet
+//< Control Flow omit
 //> Statements and State omit
 
   @Override
@@ -164,13 +164,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     if (expr.value == null) return "nil";
     return expr.value.toString();
   }
-//> Control Flow not-yet
+//> Control Flow omit
 
   @Override
   public String visitLogicalExpr(Expr.Logical expr) {
     return parenthesize(expr.operator.lexeme, expr.left, expr.right);
   }
-//< Control Flow not-yet
+//< Control Flow omit
 //> Classes not-yet
 
   @Override
