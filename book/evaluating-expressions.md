@@ -537,7 +537,7 @@ rely on:
 
 ^code stringify
 
-This is another of those pieces of code like `isTrue()` that crosses the
+This is another of those pieces of code like `isTruthy()` that crosses the
 membrane between the user's view of Lox objects and their internal
 representation in Java.
 
