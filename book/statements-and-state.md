@@ -571,11 +571,11 @@ Making it a syntax error -- a compile time error -- seems like a smart choice.
 Using an undefined variable is a bug, and the sooner you detect the mistake, the
 better.
 
-The problem is that *using* a variable isn't the same as *referring to it* it.
-You can refer to a variable in a chunk of code without immediately evaluating it
-if that chunk of code is wrapped inside a function. If we make it a static error
-to *mention* a variable before it's been declared, it becomes much harder to
-define recursive functions.
+The problem is that *using* a variable isn't the same as *referring to it*. You
+can refer to a variable in a chunk of code without immediately evaluating it if
+that chunk of code is wrapped inside a function. If we make it a static error to
+*mention* a variable before it's been declared, it becomes much harder to define
+recursive functions.
 
 We could accommodate single recursion -- a function that calls itself -- by
 declaring the function's own name before we examine its body. But that doesn't
