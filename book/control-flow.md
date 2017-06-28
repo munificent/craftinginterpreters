@@ -47,17 +47,17 @@ Cue mind exploding.
 </aside>
 
 They wanted to rigorously answer questions like, "Can all true statements be
-proven?", "Are there functions that we can define but not [compute][]?", or even
-the more general question, "What do we mean when we claim a function is
+proven?", "Can we [compute][] all functions that we can define?", or even the
+more general question, "What do we mean when we claim a function is
 'computable'?".
 
 [compute]: https://en.wikipedia.org/wiki/Computable_function
 
 They hoped the answer to the first two questions would be "yes". All that
-remained was to prove it. It turns out that the answer to both is "no" and, 
+remained was to prove it. It turns out that the answer to both is "no" and,
 astonishingly, the two questions are deeply intertwined. This is a fascinating
-corner of mathematics that touches fundamental questions about what brains are able
-to do and how the universe works. I can't do it justice here.
+corner of mathematics that touches fundamental questions about what brains are
+able to do and how the universe works. I can't do it justice here.
 
 What I do want to note is that in the process of proving that those questions
 are false, Alan Turing and Alonzo Church devised a precise answer to the last
@@ -69,8 +69,8 @@ minimum set of machinery that is still powerful enough to compute any of a
 <aside name="uncomputable">
 
 They proved the answer to the first question is "no" by showing that the
-function to compute the truth value of a given proof is *not* a computable
-function.
+function that returns the truth value of a given statement is *not* a computable
+one.
 
 </aside>
 
@@ -99,7 +99,7 @@ powerful enough compute *any* computable function.
 
 You can prove that by writing a simulator for a Turing machine in your language.
 Since Turing proved his machine can compute any computable function, by
-induction, that means your language can too. All you need to do is translate the
+extension, that means your language can too. All you need to do is translate the
 function into a Turing machine, and then run that on your simulator.
 
 If your language is expressive enough to do that, it's considered
@@ -251,7 +251,7 @@ if there is an else branch, it executes that.
 
 If you compare this code to how the interpreter handles other syntax we've
 implemented, the part that makes control flow special is that Java if statement.
-Most other syntax trees always evaluate their subtress. Here, we may not
+Most other syntax trees always evaluate their subtrees. Here, we may not
 evaluate the then or else statement. If either of those has a side effect, the
 choice not to evaluate it becomes user-visible.
 
@@ -353,12 +353,12 @@ of the operands itself. So we use those. For example:
 
 ```lox
 print "hi" or 2; // "hi".
-print nil and "nope"; // nil.
+print nil or "yes"; // "yes".
 ```
 
 On the first line, `"hi"` is truthy, so the `or` short-circuits and returns
 that. On the second line, `nil` is falsey, so it evaluates and returns the
-second operand, `"nope"`.
+second operand, `"yes"`.
 
 That covers all of the branching primitives in Lox. We're ready to jump ahead to
 loops. You see what I did there? *Jump. Ahead.* Get it? See, it's like a
