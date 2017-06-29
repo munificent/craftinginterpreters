@@ -32,7 +32,7 @@ impenetrable foundation.
 <aside name="paradox">
 
 The most famous of those is [**Russell's paradox**][russell]. Initially, set
-theory allowed you define any sort of set. If you could describe it in English,
+theory allowed you to define any sort of set. If you could describe it in English,
 it was valid. Naturally, given mathematicians' predilection for self reference,
 sets can contain other sets. So Russell, rascal that he was, came up with:
 
@@ -93,7 +93,7 @@ for him. That's how you get famous while still retaining some modesty.
 Turing machines have better name recognition -- there's no Hollywood film about
 Alonzo Church yet -- but the two formalisms are [equivalent in power][thesis].
 In fact, any programming language with some minimal level of expressiveness is
-powerful enough compute *any* computable function.
+powerful enough to compute *any* computable function.
 
 [thesis]: https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis
 
@@ -122,7 +122,7 @@ to access parts of a string.
 Enough history, let's jazz up our language. We can divide control flow roughly
 into two kinds:
 
-*   **Conditional** or **branching** control flow is used to *not* to execute
+*   **Conditional** or **branching** control flow is used to *not* execute
     some piece of code. Imperatively, you can think of it as jumping *ahead*
     over a region of code.
 
