@@ -207,7 +207,7 @@ affects how the code executes.
     called if `first` is falsey, regardless of what value `second` has.
 
 *   If we attach it to the second if statement, then `whenFalse()` is only
-    called if both `first` and `second` are falsey.
+    called if `first` is truthy and `second` is falsey.
 
 Since else clauses are optional, and there is no explicit delimiter marking the
 end of the if statement, the grammar is ambiguous when you nest ifs in this way.
