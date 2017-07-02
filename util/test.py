@@ -200,6 +200,8 @@ java_interpreter('chap09_control', {
   'test/while/return_closure.lox': 'skip',
   'test/while/return_inside.lox': 'skip',
 
+  'test/regression': 'skip',
+  
   # Broken because we haven't fixed it yet by detecting the error.
   'test/return/at_top_level.lox': 'skip',
   'test/variable/use_local_in_initializer.lox': 'skip',
