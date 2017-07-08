@@ -60,7 +60,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize(";", stmt.expression);
   }
 //< Statements and State omit
-//> Functions not-yet
+//> Functions omit
 
   @Override
   public String visitFunctionStmt(Stmt.Function stmt) {
@@ -81,7 +81,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-//< Functions not-yet
+//< Functions omit
 //> Control Flow omit
 
   @Override
@@ -101,14 +101,14 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize("print", stmt.expression);
   }
 //< Statements and State omit
-//> Functions not-yet
+//> Functions omit
 
   @Override
   public String visitReturnStmt(Stmt.Return stmt) {
     if (stmt.value == null) return "(return)";
     return parenthesize("return", stmt.value);
   }
-//< Functions not-yet
+//< Functions omit
 //> Statements and State omit
 
   @Override
@@ -139,13 +139,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
   public String visitBinaryExpr(Expr.Binary expr) {
     return parenthesize(expr.operator.lexeme, expr.left, expr.right);
   }
-//> Functions not-yet
+//> Functions omit
 
   @Override
   public String visitCallExpr(Expr.Call expr) {
     return parenthesize2("call", expr.callee, expr.arguments);
   }
-//< Functions not-yet
+//< Functions omit
 //> Classes not-yet
 
   @Override

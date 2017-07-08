@@ -37,7 +37,14 @@
 <h3><a href="#top">Functions<small>10</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#calling-fns"><small>10.1</small> calling fns</a></li>
+    <li><a href="#native-fns"><small>10.2</small> native fns</a></li>
+    <li><a href="#function-declaration-syntax"><small>10.3</small> function declaration syntax</a></li>
+    <li><a href="#function-objects"><small>10.4</small> function objects</a></li>
+    <li><a href="#returning-values"><small>10.5</small> returning values</a></li>
+    <li><a href="#local-functions-and-closures"><small>10.6</small> local functions and closures</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -63,7 +70,14 @@
 <h3><a href="#top">Functions<small>10</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#calling-fns"><small>10.1</small> calling fns</a></li>
+    <li><a href="#native-fns"><small>10.2</small> native fns</a></li>
+    <li><a href="#function-declaration-syntax"><small>10.3</small> function declaration syntax</a></li>
+    <li><a href="#function-objects"><small>10.4</small> function objects</a></li>
+    <li><a href="#returning-values"><small>10.5</small> returning values</a></li>
+    <li><a href="#local-functions-and-closures"><small>10.6</small> local functions and closures</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -81,9 +95,10 @@
   <div class="number">10</div>
   <h1>Functions</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +113,1106 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<ul>
+<li>this chapter culmination of all of our hard work</li>
+<li>previous added useful features, but each one also prereq for this one</li>
+<li>finally have enough in place can add support for defining and calling fns</li>
+<li>use almost every feature of interpreter from earlier chapters</li>
+</ul>
+<h2><a href="#calling-fns" name="calling-fns"><small>10&#8202;.&#8202;1</small> calling fns</a></h2>
+<ul>
+<li>chicken egg problem</li>
+<li>if add calls first, nothing to call</li>
+<li>if add fns first, can&rsquo;t call them</li>
+<li>
+<p>have to pick, so start with calls</p>
+</li>
+<li>
+<p>familiar with syntax, but both complex and more subtle than may realize</p>
+</li>
+<li>whiel typically calling things by name, like <code>foo(arg)</code>, name isn&rsquo;t part of
+  call syntax</li>
+<li>thing being called&#8202;&mdash;&#8202;callee&#8202;&mdash;&#8202;can be any expression</li>
+<li>(well, any high enough precedence expr)</li>
+<li>it&rsquo;s parentheses after callee that indicate fn call</li>
+<li>fn call is a postfix operator</li>
+<li>highest precedence operator</li>
+<li>higher than unary</li>
+<li>if unary op doesn&rsquo;t match, instead of primary, bubbles up to call now</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">unary</span>     <span class="o">=</span> <span class="p">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="p">)</span> <span class="n">unary</span> <span class="err">|</span> <span class="n">call</span> <span class="p">;</span>
+<span class="n">call</span>      <span class="o">=</span> <span class="n">primary</span> <span class="p">(</span> <span class="s">&quot;(&quot;</span> <span class="n">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
 
+<span class="o">-</span> <span class="n">that</span> <span class="n">is</span> <span class="n">primary</span> <span class="n">expr</span> <span class="n">followed</span> <span class="n">by</span> <span class="n">zero</span> <span class="k">or</span> <span class="n">more</span> <span class="n">fn</span> <span class="n">calls</span>
+<span class="o">-</span> <span class="k">if</span> <span class="n">there</span> <span class="n">are</span> <span class="n">none</span><span class="p">,</span> <span class="n">is</span> <span class="n">equivalent</span> <span class="n">to</span> <span class="n">plain</span> <span class="n">primary</span> <span class="n">expr</span>
+<span class="o">-</span> <span class="n">otherwise</span><span class="p">,</span> <span class="n">is</span> <span class="n">pair</span> <span class="n">of</span> <span class="n">parens</span> <span class="n">with</span> <span class="n">optional</span> <span class="n">argument</span> <span class="n">list</span> <span class="n">inside</span>
+<span class="o">-</span> <span class="n">can</span> <span class="n">have</span> <span class="n">multiple</span> <span class="n">calls</span><span class="p">,</span> <span class="n">as</span> <span class="n">in</span> <span class="err">`</span><span class="n">foo</span><span class="p">(</span><span class="mi">1</span><span class="p">)(</span><span class="mi">2</span><span class="p">)</span><span class="err">`</span>
+<span class="o">-</span> <span class="n">not</span> <span class="n">common</span><span class="p">,</span> <span class="n">but</span> <span class="n">does</span> <span class="n">happen</span> <span class="k">if</span> <span class="n">fn</span> <span class="n">returns</span> <span class="n">other</span> <span class="n">fn</span>
+<span class="o">-</span> <span class="err">[</span><span class="n">currying</span><span class="err">]</span>
+
+<span class="o">-</span> <span class="n">arg</span> <span class="n">list</span> <span class="n">is</span>
+
+<span class="err">```</span><span class="n">lox</span>
+<span class="n">arguments</span> <span class="o">=</span> <span class="n">expression</span> <span class="p">(</span> <span class="s">&quot;,&quot;</span> <span class="n">expression</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+</pre></div>
+
+
+<ul>
+<li>at least one expr</li>
+<li>followed my zero or more others separated by commas</li>
+<li>call rule itself makes <code>arguments</code> optional to allow calls with no args</li>
+<li>wish there was clean notation in bnf for comma-separated list of zero or more</li>
+<li>
+<p>always seems awkward</p>
+</li>
+<li>
+<p>corresponding ast node</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>main</em>()</div>
+<pre><span></span>      <span class="s">&quot;Call     : Expr callee, Token paren, List&lt;Expr&gt; arguments&quot;</span><span class="o">,</span>
+</pre></div>
+
+<ul>
+<li>has expr for callee, thing to left of parens</li>
+<li>then list of exprs for arguments</li>
+<li>also stores token of left paren</li>
+<li>
+<p>use that for location when reporting runtime errors</p>
+</li>
+<li>
+<p>over in parser, first wire into unary</p>
+</li>
+<li>instead of calling primary, call&hellip; call</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Unary</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
+    <span class="o">}</span>
+<br></pre><div class="source-file"><em>lox/Parser.java</em><br>
+in <em>unary</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="k">return</span> <span class="n">call</span><span class="o">();</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>calls</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+add after <em>unary</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">call</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">primary</span><span class="o">();</span>
+
+    <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">finishCall</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="k">break</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>parses primary expression</li>
+<li>then starts looking for calls</li>
+<li>as long as it sees <code>(</code>, parses arg list and wraps in call ast node</li>
+<li>similar to infix ops</li>
+<li>except arg list on &ldquo;right&rdquo; instead of single right operand</li>
+<li>code could be simpler, using <code>while (match(LEFT_PAREN))</code></li>
+<li>did it this way because when get to method calls, will add other else case to
+  that if</li>
+<li>
+<p>thinking ahead!</p>
+</li>
+<li>
+<p>work to handle arg list is in this method</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+add after <em>unary</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">finishCall</span><span class="o">(</span><span class="n">Expr</span> <span class="n">callee</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Expr</span><span class="o">&gt;</span> <span class="n">arguments</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>
+      <span class="k">do</span> <span class="o">{</span>
+        <span class="n">arguments</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">expression</span><span class="o">());</span>
+      <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">COMMA</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="n">Token</span> <span class="n">paren</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span><span class="o">);</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Call</span><span class="o">(</span><span class="n">callee</span><span class="o">,</span> <span class="n">paren</span><span class="o">,</span> <span class="n">arguments</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>similar to <code>arguments</code> rule, but also handles zero-arg case</li>
+<li>look for right paren to see if in zero-arg case</li>
+<li>if so, don&rsquo;t parse any args</li>
+<li>otherwise, keep parsing args as long as we see commas</li>
+<li>
+<p>then consume final &ldquo;)&rdquo; and wrap in call node</p>
+</li>
+<li>
+<p>in theory, could keep parsing args forever</p>
+</li>
+<li>is there limit to how many args can pass to fn?</li>
+<li>c says impl must support at least 127, but free to handle more</li>
+<li>java says 255 (254 for instance methods) is max</li>
+<li>for lox, pick smaller upper limit</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">do</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Parser.java</em><br>
+in <em>finishCall</em>()</div>
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(</span><span class="n">arguments</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Cannot have more than 8 arguments.&quot;</span><span class="o">);</span>
+        <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>        <span class="n">arguments</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">expression</span><span class="o">());</span>
+</pre></div>
+
+<ul>
+<li>java interp doesn&rsquo;t care</li>
+<li>
+<p>but when get to c interp, small limit keeps code simpler</p>
+</li>
+<li>
+<p>note report error, but don&rsquo;t <em>throw</em> it</p>
+</li>
+<li>don&rsquo;t want to go into panic mode here</li>
+<li>if user has too many args, parser isn&rsquo;t in weird confused state</li>
+<li>so simply parse them all then report error and continue</li>
+</ul>
+<h3><a href="#interpreting-calls" name="interpreting-calls"><small>10&#8202;.&#8202;1&#8202;.&#8202;1</small> interpreting calls</a></h3>
+<ul>
+<li>don&rsquo;t have anything can call yet, but worry about then when get there</li>
+<li>
+<p>see how to interpret</p>
+</li>
+<li>
+<p>need an import first</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em></div>
+<pre class="insert"><span></span><span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span><span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+</pre></div>
+
+<ul>
+<li>new expr gets visit method</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+add after <em>visitBinaryExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitCallExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Call</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Object</span> <span class="n">callee</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">callee</span><span class="o">);</span>
+
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Expr</span> <span class="n">argument</span> <span class="o">:</span> <span class="n">expr</span><span class="o">.</span><span class="na">arguments</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">arguments</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">evaluate</span><span class="o">(</span><span class="n">argument</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="n">Callable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">Callable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>
+    <span class="k">return</span> <span class="n">function</span><span class="o">.</span><span class="na">call</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">arguments</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>first, evaluate callee</li>
+<li>typically just variable name expr that refers to fn, but could be other expr</li>
+<li>then evaluate list of arguments passed to fn</li>
+<li>[evaluation order]</li>
+<li>
+<p>finally, to call, cast callee to &ldquo;callable&rdquo; and invoke &ldquo;call&rdquo; method on that</p>
+</li>
+<li>
+<p>not java std lib &ldquo;callable&rdquo; interface</p>
+</li>
+<li>[lot of good names taken]</li>
+<li>our own interface for object that can be called like fn</li>
+<li>use abstraction here because have couple of callable things</li>
+<li>user-defined fns, naturally</li>
+<li>but when add classes, class object can be called to to create instance</li>
+<li>
+<p>also use for &ldquo;native&rdquo; fns, see soon</p>
+</li>
+<li>
+<p>interface is simple</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Callable.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="kd">interface</span> <span class="nc">Callable</span> <span class="o">{</span>
+  <span class="n">Object</span> <span class="nf">call</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>takes in interpret so class implementing this can access interp state</li>
+<li>takes list of arguments passed to callable</li>
+<li>
+<p>returns result value</p>
+</li>
+<li>
+<p>before see class that implements this, need to be more robust</p>
+</li>
+<li>swept lot of potential problems under rug</li>
+<li>first, what if thing being called isn&rsquo;t callable?</li>
+<li>what if do:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="s">&quot;totally not a function&quot;</span><span class="p">()</span>
+</pre></div>
+
+
+<ul>
+<li>java string doesn&rsquo;t implement callable, so cast will fail</li>
+<li>don&rsquo;t want interp to die with nasty java callstack</li>
+<li>can&rsquo;t rely on static type checker to catch this before program runs</li>
+<li>check dynamically</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="o">}</span>
+<br></pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in <em>visitCallExpr</em>()</div>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(!(</span><span class="n">callee</span> <span class="k">instanceof</span> <span class="n">Callable</span><span class="o">))</span> <span class="o">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">paren</span><span class="o">,</span>
+          <span class="s">&quot;Can only call functions and classes.&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">Callable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">Callable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>
+</pre></div>
+
+<ul>
+<li>if try to call lox object that isn&rsquo;t callable, generate runtime error</li>
+</ul>
+<h3><a href="#checking-arity" name="checking-arity"><small>10&#8202;.&#8202;1&#8202;.&#8202;2</small> checking arity</a></h3>
+<ul>
+<li>another problem related to <em>arity</em></li>
+<li>arity is number of arguments or operands an operation expects</li>
+<li>here:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<ul>
+<li>defines three parameters, <code>a</code>, <code>b</code>, and <code>c</code>, so expects three arguments</li>
+<li>arity is three</li>
+<li>what if do:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span> <span class="c1">// Too many.</span>
+<span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>       <span class="c1">// Too few.</span>
+</pre></div>
+
+
+<ul>
+<li>different langs take different approaches</li>
+<li>static types ones, of course, check at compile time</li>
+<li>js ignores extra arguments</li>
+<li>if too few arguments, parameters for missing arguments get &ldquo;undefined&rdquo;</li>
+<li>python raises runtime error if too many or two few</li>
+<li>find passing too many or two few arguments is common source of bugs</li>
+<li>don&rsquo;t want lox to be lax</li>
+<li>take python approach</li>
+<li>before calling, check argument list against callable&rsquo;s expected arity</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">Callable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">Callable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in <em>visitCallExpr</em>()</div>
+<pre class="insert"><span></span>   <span class="k">if</span> <span class="o">(</span><span class="n">arguments</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">!=</span> <span class="n">function</span><span class="o">.</span><span class="na">arity</span><span class="o">())</span> <span class="o">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">paren</span><span class="o">,</span> <span class="s">&quot;Expected &quot;</span> <span class="o">+</span>
+          <span class="n">function</span><span class="o">.</span><span class="na">arity</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arguments but got &quot;</span> <span class="o">+</span>
+          <span class="n">arguments</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="n">function</span><span class="o">.</span><span class="na">call</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">arguments</span><span class="o">);</span>
+</pre></div>
+
+<ul>
+<li>requires new method in interface</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">interface</span> <span class="nc">Callable</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Callable.java</em></div>
+<pre class="insert"><span></span>  <span class="kt">int</span> <span class="nf">arity</span><span class="o">();</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">Object</span> <span class="nf">call</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span><span class="o">);</span>
+</pre></div>
+
+<ul>
+<li>[could have implementor of callable be reponsible for checking arity</li>
+<li>would then only need one method</li>
+<li>but redundant code across impls of interface</li>
+<li>doing in call expr lets us do it in one place</li>
+</ul>
+<h2><a href="#native-fns" name="native-fns"><small>10&#8202;.&#8202;2</small> native fns</a></h2>
+<ul>
+<li>before get to user defined fns, now good time to introduce very important
+  aspect of interp</li>
+<li><strong>native functions</strong> are functions interpreter exposes to user code but that
+  aren&rsquo;t implemented in interpreter&rsquo;s own implementation language, not lang
+  being impl</li>
+<li>here, means native fn can be called from lox but is impl in java</li>
+<li>sometimes called &ldquo;primitive&rdquo;, &ldquo;external&rdquo;, or &ldquo;foreign&rdquo;</li>
+<li>[&ldquo;foreign&rdquo; versus &ldquo;native&rdquo; is interesting</li>
+<li>depends on perspective of who coins term</li>
+<li>if think of self as living within lang being implemented, then fns not
+    impl in that lang are &ldquo;foreign&rdquo;</li>
+<li>
+<p>if think of self as living inside lang implementation outside of lang&rsquo;s
+    own bubble, then these fns are in same lang as rest of impl, so are
+    &ldquo;native&rdquo;</p>
+</li>
+<li>
+<p>these fns form part of language&rsquo;s runtime, set of facilities impl provides
+  that can be used while program is running</p>
+</li>
+<li>
+<p>many langs also allow user-defined native fns</p>
+</li>
+<li>lets you interface with code and libraries not written in same lang</li>
+<li>
+<p>system for doing so called &ldquo;foreign function interface&rdquo;, &ldquo;native extension&rdquo;,
+  &ldquo;native interface&rdquo;, etc.</p>
+</li>
+<li>
+<p>won&rsquo;t define full ffi for jlox, but will define one native fn to give idea</p>
+</li>
+<li>when get to part three and care about perf, need to write <strong>benchmark</strong></li>
+<li>program that does exercises some language feature and whose exec time measure</li>
+<li>could measure from outside of lox by seeing how long entire executable run
+  takes</li>
+<li>but exec time of actual code obscured by os app startup, jvm startup etc.</li>
+<li>nice to be able to time region of code within lox</li>
+<li>currently, no way to tell time in lox program</li>
+<li>can&rsquo;t implement in lox&#8202;&mdash;&#8202;need access to os&rsquo;s clock</li>
+<li>add clock(), native fn that returns number of seconds app has been running</li>
+<li>
+<p>can use difference between two calls to tell how much time elapsed</p>
+</li>
+<li>
+<p>when create new interp, automatically register function in global scope:</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+in class <em>Interpreter</em></div>
+<pre><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">globals</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="s">&quot;clock&quot;</span><span class="o">,</span> <span class="k">new</span> <span class="n">Callable</span><span class="o">()</span> <span class="o">{</span>
+      <span class="nd">@Override</span>
+      <span class="kd">public</span> <span class="kt">int</span> <span class="nf">arity</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+      <span class="o">}</span>
+
+      <span class="nd">@Override</span>
+      <span class="kd">public</span> <span class="n">Object</span> <span class="nf">call</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">,</span>
+                         <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">()</span> <span class="o">/</span> <span class="mf">1000.0</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">});</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>defines variable named &ldquo;clock&rdquo;</li>
+<li>functions live in same namespace as other variables</li>
+<li>[unlike some langs where fns and vars have different namespaces]</li>
+<li>value of variable is java anonymous class that implements callable</li>
+<li>interface is handy now</li>
+<li>clock takes no args, so arity is zero</li>
+<li>
+<p>call method uses corresponding java function and converts to double and
+  seconds</p>
+</li>
+<li>
+<p>now have one function can call</p>
+</li>
+<li>but no fair for interp to have all fun</li>
+<li>users want to define fns too</li>
+</ul>
+<h2><a href="#function-declaration-syntax" name="function-declaration-syntax"><small>10&#8202;.&#8202;3</small> function declaration syntax</a></h2>
+<ul>
+<li>finally get to add new production to <code>declaration</code> rule</li>
+<li>functions, like variables, bind a new name</li>
+<li>[just sugar for lambda + var]</li>
+<li>only allowed in places where declaration is allowed</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">declaration</span> <span class="o">=</span> <span class="n">funDecl</span>
+            <span class="err">|</span> <span class="n">varDecl</span>
+            <span class="err">|</span> <span class="n">statement</span> <span class="p">;</span>
+</pre></div>
+
+
+<ul>
+<li>new rule is</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">funDecl</span>     <span class="o">=</span> <span class="s">&quot;fun&quot;</span> <span class="n">function</span> <span class="p">;</span>
+<span class="n">function</span>    <span class="o">=</span> <span class="vg">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="n">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="n">block</span> <span class="p">;</span>
+</pre></div>
+
+
+<ul>
+<li><code>funDecl</code> uses helper rule <code>function</code></li>
+<li>declaration is <code>fun</code> keyword followed by function declaration itself</li>
+<li>will later use <code>function</code> for class methods, which are not preceded by <code>fun</code></li>
+<li>[too classy to be fun]</li>
+<li>function itself is named followed by parenthesized parameter list</li>
+<li>then body</li>
+<li>body is always braced block, using same rule as for block statement</li>
+<li><code>parameters</code> is similar to <code>arguments</code> expect each param is an identifier,
+  not an expr</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">parameters</span>  <span class="o">=</span> <span class="vg">IDENTIFIER</span> <span class="p">(</span> <span class="s">&quot;,&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+</pre></div>
+
+
+<ul>
+<li>lot of new grammar to chew through</li>
+<li>ast not too complex, though</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>
+</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>main</em>()</div>
+<pre class="insert"><span></span>      <span class="s">&quot;Function   : Token name, List&lt;Token&gt; parameters, List&lt;Stmt&gt; body&quot;</span><span class="o">,</span>
+</pre><pre class="insert-after"><span></span>      <span class="s">&quot;If         : Expr condition, Stmt thenBranch, Stmt elseBranch&quot;</span><span class="o">,</span>
+</pre></div>
+
+<ul>
+<li>
+<p>has name, list of parameters (their names), body statement</p>
+</li>
+<li>
+<p>to parse, add new clause in <code>declaration()</code></p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">try</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Parser.java</em><br>
+in <em>declaration</em>()</div>
+<pre class="insert"><span></span>      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">FUN</span><span class="o">))</span> <span class="k">return</span> <span class="n">function</span><span class="o">(</span><span class="s">&quot;function&quot;</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">VAR</span><span class="o">))</span> <span class="k">return</span> <span class="n">varDeclaration</span><span class="o">();</span>
+</pre></div>
+
+<ul>
+<li>that calls</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+add after <em>expressionStatement</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="nf">function</span><span class="o">(</span><span class="n">String</span> <span class="n">kind</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect &quot;</span> <span class="o">+</span> <span class="n">kind</span> <span class="o">+</span> <span class="s">&quot; name.&quot;</span><span class="o">);</span>
+    <span class="n">consume</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &quot;</span> <span class="o">+</span> <span class="n">kind</span> <span class="o">+</span> <span class="s">&quot; name.&quot;</span><span class="o">);</span>
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">parameters</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>
+      <span class="k">do</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">parameters</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Cannot have more than 8 parameters.&quot;</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="n">parameters</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect parameter name.&quot;</span><span class="o">));</span>
+      <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">COMMA</span><span class="o">));</span>
+    <span class="o">}</span>
+    <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span><span class="o">);</span>
+
+    <span class="n">consume</span><span class="o">(</span><span class="n">LEFT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;{&#39; before function body.&quot;</span><span class="o">);</span>
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">body</span> <span class="o">=</span> <span class="n">block</span><span class="o">();</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">parameters</span><span class="o">,</span> <span class="n">body</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>corresponds to <code>function</code> grammar rule since we already matched <code>fun</code></li>
+<li>lot in there, but straightforward</li>
+<li>first, consume required identifier for name</li>
+<li>then parameter list surrounded by parens</li>
+<li>have that goofy if wrapped around a do-while pattern to handle zero or
+  more comma-separated items, like in arg list</li>
+<li>here, though, params is list of tokens, one for each param name, not exprs</li>
+<li>then consume <code>{</code> before parsing rest of block body</li>
+<li>have to do that here since <code>block()</code> assumes <code>{</code> has already been consumed</li>
+<li>
+<p>[also lets us show good error message]</p>
+</li>
+<li>
+<p>also pass in &ldquo;kind&rdquo;</p>
+</li>
+<li>will later use this method for parsing methods, and want error message to
+  adjust for that</li>
+</ul>
+<h2><a href="#function-objects" name="function-objects"><small>10&#8202;.&#8202;4</small> function objects</a></h2>
+<ul>
+<li>before can interpret fn decl statement, need to think about object rep for
+  fns</li>
+<li>what does a user-defined lox fn look like in java?</li>
+<li>needs to keep track of parameters so we can bind them to args</li>
+<li>needs to keep track of code for fn&#8202;&mdash;&#8202;ast of body so can execute it</li>
+<li>basically what Stmt.Function class itself is</li>
+<li>just use that?</li>
+<li>not quite, also needs to implement callable so can actually call</li>
+<li>so wrap in new class:</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">LoxFunction</span> <span class="kd">implements</span> <span class="n">Callable</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">declaration</span><span class="o">;</span>
+
+  <span class="n">LoxFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">declaration</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">declaration</span> <span class="o">=</span> <span class="n">declaration</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>here&rsquo;s how implement call</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+add after <em>LoxFunction</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Object</span> <span class="nf">call</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">(</span><span class="n">interpreter</span><span class="o">.</span><span class="na">globals</span><span class="o">);</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">declaration</span><span class="o">.</span><span class="na">parameters</span><span class="o">.</span><span class="na">size</span><span class="o">();</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="n">declaration</span><span class="o">.</span><span class="na">parameters</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">lexeme</span><span class="o">,</span>
+          <span class="n">arguments</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="n">interpreter</span><span class="o">.</span><span class="na">executeBlock</span><span class="o">(</span><span class="n">declaration</span><span class="o">.</span><span class="na">body</span><span class="o">,</span> <span class="n">environment</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>one of most fundamental pieces of code interp</li>
+<li>as saw in statements and state and will see even more in next chapter,
+  managing environments core part of lang impl</li>
+<li>
+<p>fns deeply tied to that</p>
+</li>
+<li>
+<p>when execute fn, some magic needs to happen with environments</p>
+</li>
+<li>create a new environment</li>
+<li>in that environment, each fn parameter gets bound to corresponding arg</li>
+<li>fn parameters are like local variables that are implicitly initialized to
+  the values you pass to fn</li>
+<li>
+<p>then body of fn is executed in that environment</p>
+</li>
+<li>
+<p>this is key reason why we even have local scope</p>
+</li>
+<li>parameters need to be in scope inside body of fn, but not elsewhere</li>
+<li>likewise, need to create environment for fn call <em>dynamically</em></li>
+<li>otherwise, can&rsquo;t have recursion</li>
+<li>
+<p>each recursive call needs own unique environment at runtime, even though all
+  for same fn declaration</p>
+</li>
+<li>
+<p>[early fortran did no support recursive fn calls. early machines had no
+  concept of stack. without recursion, each fn&rsquo;s parameters could be statically
+  allocated (think like &ldquo;static&rdquo; modified on variable in c) at compile time.
+  was contentious when added to algol 60]</p>
+</li>
+<li>
+<p>little method does that</p>
+</li>
+<li>creates new environment empty environment, whose parent is global scope</li>
+<li>
+<p>[will refine later]</p>
+</li>
+<li>
+<p>walks through arg and param lists in lockstep</p>
+</li>
+<li>for each one, creates new binding in env with param name and arg value</li>
+<li>then tell interp to execute fn body in that new env</li>
+<li>
+<p>after that&rsquo;s done, environment is discarded</p>
+</li>
+<li>
+<p>assume param and arg lists same length</p>
+</li>
+<li>remember, can do that because <code>visitCallExpr()</code> checks that before calling
+  <code>call()</code></li>
+<li>need to implement <code>arity()</code> for that</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+add after <em>LoxFunction</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">int</span> <span class="nf">arity</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">declaration</span><span class="o">.</span><span class="na">parameters</span><span class="o">.</span><span class="na">size</span><span class="o">();</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>finally, make fns little nicer if you print them</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+add after <em>LoxFunction</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="s">&quot;&lt;fn &quot;</span> <span class="o">+</span> <span class="n">declaration</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span> <span class="o">+</span> <span class="s">&quot;&gt;&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>will refine soon but enough to get started interpreting</li>
+<li>over in interp, need to keep track of global env independent of current env</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in class <em>Interpreter</em><br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="kd">final</span> <span class="n">Environment</span> <span class="n">globals</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">();</span>
+  <span class="kd">private</span> <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="n">globals</span><span class="o">;</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>
+</pre></div>
+
+<ul>
+<li>
+<p>where <code>environment</code> will get assigned as enter and exit scopes, <code>globals</code>
+  always points to outermost env</p>
+</li>
+<li>
+<p>now can interp decl</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+add after <em>visitExpressionStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitFunctionStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">LoxFunction</span> <span class="n">function</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LoxFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">);</span>
+    <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">function</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>basic idea is simple, similar to other literals</li>
+<li>take fn <em>syntax node</em> and convert to runtime object rep</li>
+<li>here, LoxObject</li>
+<li>fns little different from other literals because decl also implicitly binds
+  it to name</li>
+<li>
+<p>so after creating LoxObject, create new binding in current env and store
+  ref to fn</p>
+</li>
+<li>
+<p>now can define and call our own fns</p>
+</li>
+<li>try:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">sayHi</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">last</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">print</span> <span class="s">&quot;Hi, &quot;</span> <span class="o">+</span> <span class="n">first</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">last</span> <span class="o">+</span> <span class="s">&quot;!&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">sayHi</span><span class="p">(</span><span class="s">&quot;Dear&quot;</span><span class="p">,</span> <span class="s">&quot;Reader&quot;</span><span class="p">);</span>
+</pre></div>
+
+
+<ul>
+<li>like a real programming language!</li>
+</ul>
+<h2><a href="#returning-values" name="returning-values"><small>10&#8202;.&#8202;5</small> returning values</a></h2>
+<ul>
+<li>we can pass data into fns using parameters, but no way to get data out</li>
+<li>since body of fn is statement, <code>call()</code> on LoxFunction just executes then
+  returns nil</li>
+<li>if lox was expression-oriented like ruby or scheme, body would implicitly
+  evaluate to value and we&rsquo;d return that</li>
+<li>because have statements, need return statements</li>
+<li>
+<p>do that now</p>
+</li>
+<li>
+<p>grammar simple</p>
+</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">statement</span>   <span class="o">=</span> <span class="n">exprStmt</span>
+            <span class="err">|</span> <span class="n">forStmt</span>
+            <span class="err">|</span> <span class="n">ifStmt</span>
+            <span class="err">|</span> <span class="n">printStmt</span>
+            <span class="err">|</span> <span class="n">returnStmt</span>
+            <span class="err">|</span> <span class="n">whileStmt</span>
+            <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
+
+<span class="n">returnStmt</span>  <span class="o">=</span> <span class="s">&quot;return&quot;</span> <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+</pre></div>
+
+
+<ul>
+<li>get one more&#8202;&mdash;&#8202;final in fact&#8202;&mdash;&#8202;statement production</li>
+<li>return statement itself is <code>return</code> keyword followed by return value, then <code>;</code></li>
+<li>like most languages, make return value optional</li>
+<li>in statically typed languages, &ldquo;void&rdquo; fns that don&rsquo;t return a value must use
+  return without value expression and non-void fns must provide a value</li>
+<li>since lox dynamically typed, little looser</li>
+<li>every fn implicitly returns some value even if doesn&rsquo;t have return</li>
+<li>use nil</li>
+<li>
+<p>so return statement without value follows same path, implicitly returns nil</p>
+</li>
+<li>
+<p>syntax tree node keeps token for &ldquo;return&rdquo; keyword for error reporting</p>
+</li>
+<li>then has value</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Print      : Expr expression&quot;</span><span class="o">,</span>
+</pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
+in <em>main</em>()</div>
+<pre class="insert"><span></span>      <span class="s">&quot;Return     : Token keyword, Expr value&quot;</span><span class="o">,</span>
+</pre><pre class="insert-after"><span></span>      <span class="s">&quot;Var        : Token name, Expr initializer&quot;</span><span class="o">,</span>
+</pre></div>
+
+<ul>
+<li>parse it like other statements, starting with the keyword</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">PRINT</span><span class="o">))</span> <span class="k">return</span> <span class="n">printStatement</span><span class="o">();</span>
+</pre><div class="source-file"><em>lox/Parser.java</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">RETURN</span><span class="o">))</span> <span class="k">return</span> <span class="n">returnStatement</span><span class="o">();</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">WHILE</span><span class="o">))</span> <span class="k">return</span> <span class="n">whileStatement</span><span class="o">();</span>
+</pre></div>
+
+<ul>
+<li>that calls</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
+add after <em>printStatement</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">returnStatement</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">Token</span> <span class="n">keyword</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>
+    <span class="n">Expr</span> <span class="n">value</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">value</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="n">consume</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span><span class="o">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Return</span><span class="o">(</span><span class="n">keyword</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>since lots of tokens may begin expr, hard to tell if return value is <em>present</em></li>
+<li>instead, check if <em>absent</em></li>
+<li>if token after <code>return</code> is semicolon, must not have return value</li>
+<li>
+<p>in that case, use null</p>
+</li>
+<li>
+<p>when executing, little trickier</p>
+</li>
+<li>return stmt can occur anywhere inside fn, even nested inside other statements</li>
+<li>when executed, needs to jump all the way out and cause fn to return</li>
+<li>when you hear &ldquo;jump all the way out&rdquo; in java, think exceptions</li>
+<li>
+<p>use exception to unwind past containing statements and get back code where
+  began exec body</p>
+</li>
+<li>
+<p>here&rsquo;s how to interp</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+add after <em>visitPrintStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitReturnStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Return</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
+
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">Return</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>if we have return value, evaluate it</li>
+<li>then wrap in exception and throw it</li>
+<li>exception class is</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/Return.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">Return</span> <span class="kd">extends</span> <span class="n">RuntimeException</span> <span class="o">{</span>
+  <span class="kd">final</span> <span class="n">Object</span> <span class="n">value</span><span class="o">;</span>
+
+  <span class="n">Return</span><span class="o">(</span><span class="n">Object</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">super</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<ul>
+<li>mostly wraps return value in custom type we can catch</li>
+<li>super constructor call with booleans disables some stuff to make it a little
+  faster</li>
+<li>
+<p>we&rsquo;re using except for control flow, not real error handling, so don&rsquo;t need
+  stack trace</p>
+</li>
+<li>
+<p>back in loxfn where impl call, catch exception</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>          <span class="n">arguments</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">));</span>
+    <span class="o">}</span>
+<br></pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
+in <em>call</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="k">try</span> <span class="o">{</span>
+      <span class="n">interpreter</span><span class="o">.</span><span class="na">executeBlock</span><span class="o">(</span><span class="n">declaration</span><span class="o">.</span><span class="na">body</span><span class="o">,</span> <span class="n">environment</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Return</span> <span class="n">returnValue</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">returnValue</span><span class="o">.</span><span class="na">value</span><span class="o">;</span>
+    <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</pre></div>
+
+<ul>
+<li>when we catch return, unwrap return value and return that from <code>call()</code></li>
+<li>if never catch return, then reached end of fn without encountering return
+  stmt</li>
+<li>in that case, still implicitly return nil</li>
+</ul>
+<hr />
+<ul>
+<li>give it a try</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">average</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">print</span> <span class="n">average</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
+<span class="n">print</span> <span class="n">average</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span>
+</pre></div>
+
+
+<h2><a href="#local-functions-and-closures" name="local-functions-and-closures"><small>10&#8202;.&#8202;6</small> local functions and closures</a></h2>
+<ul>
+<li>made lot of progress</li>
+<li>one loose end to tie up</li>
+<li>will need to revisit it again in next chapter</li>
+<li>when first added support for exec fn, made sure it created new env</li>
+<li>glossed over important point</li>
+<li>what is parent env?</li>
+<li>in above code, simply said &ldquo;globals&rdquo;</li>
+<li>but consider:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">outer</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="p">;</span>
+
+  <span class="k">fun</span> <span class="n">inner</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">inner</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">outer</span><span class="p">();</span>
+</pre></div>
+
+
+<ul>
+<li>in lox, fn decl is statement and can occur both at top level and in block</li>
+<li>can have nested or local fns</li>
+<li>this code is allowed</li>
+<li>what happens if you run this with interp have so far?</li>
+<li>
+<p>what should happen?</p>
+</li>
+<li>
+<p>when call inner(), parent env is globals</p>
+</li>
+<li>does not include a</li>
+<li>users do expect this to work</li>
+<li>
+<p>when fn is declared inside some scope, should have access to surrounding scope</p>
+</li>
+<li>
+<p>note that fn may need to hang on to that scope even after execution has left
+  scope</p>
+</li>
+<li>classic example:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">makeCounter</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">fun</span> <span class="n">count</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="n">print</span> <span class="n">i</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">count</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">var</span> <span class="n">counter</span> <span class="o">=</span> <span class="n">makeCounter</span><span class="p">();</span>
+<span class="n">counter</span><span class="p">();</span> <span class="c1">// &quot;1&quot;.</span>
+<span class="n">counter</span><span class="p">();</span> <span class="c1">// &quot;2&quot;.</span>
+</pre></div>
+
+
+<ul>
+<li>here <code>count()</code> refers to <code>i</code>, which is declared outside in containing
+  <code>makeCounter()</code></li>
+<li><code>makeCounter()</code> then returns reference to count fn</li>
+<li>(remember, fns are first-class and can be passed around, returned, etc.)</li>
+<li>we take that returned fn and call it</li>
+<li>
+<p>that assigns an accesses <code>i</code>, even though <code>makeCounter()</code> has already returned</p>
+</li>
+<li>
+<p>for this to work, <code>count</code> needs to hang on to environment where <code>i</code> is
+  declared even after code that creates environment has discarded it</p>
+</li>
+<li>the runtime rep of a fn needs to have both the code for the fn, and that
+  environment</li>
+<li>this data structure is called &ldquo;closure&rdquo; because it &ldquo;closes over&rdquo; and holds on
+  to surrounding variables it uses</li>
+<li>lots of ways to implement</li>
+<li>do something much more efficient in part 3</li>
+<li>for now, do simplest thing</li>
+<li>loxfn will also store ref to env where fn is declared</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">declaration</span><span class="o">;</span>
+</pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
+in class <em>LoxFunction</em></div>
+<pre class="insert"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Environment</span> <span class="n">closure</span><span class="o">;</span>
+</pre></div>
+
+<ul>
+<li>add field to store environment</li>
+<li>need ctor to init</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+method <em>LoxFunction</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="n">LoxFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">declaration</span><span class="o">,</span> <span class="n">Environment</span> <span class="n">closure</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">closure</span> <span class="o">=</span> <span class="n">closure</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">this</span><span class="o">.</span><span class="na">declaration</span> <span class="o">=</span> <span class="n">declaration</span><span class="o">;</span>
+</pre></div>
+
+<ul>
+<li>when create loxfn, pass in current env</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitFunctionStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in <em>visitFunctionStmt</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">LoxFunction</span> <span class="n">function</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LoxFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">,</span> <span class="n">environment</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>    <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">function</span><span class="o">);</span>
+</pre></div>
+
+<ul>
+<li>
+<p>note that this is env in scope when fn is <em>declared</em> not when <em>called</em></p>
+</li>
+<li>
+<p>finally, when call fn, create env for funtion scope where params bound</p>
+</li>
+<li>parent of that is now env containing fn decl instead of hard-coding to global
+  scope</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
+in <em>call</em>()<br>
+replace 1 line</div>
+<pre><span></span>    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">(</span><span class="n">closure</span><span class="o">);</span>
+</pre></div>
+
+<ul>
+<li>now try running previous <code>makeCounter()</code> example</li>
+<li>
+<p>works!</p>
+</li>
+<li>
+<p>means we have made lox much more powerful</p>
+</li>
+<li>fns let us abstract over, reuse, and compose code</li>
+<li>but closures mean fn can also abstract and reuse data</li>
+<li>surprising, but can use closure to rep data structure</li>
+<li>
+<p>since it contains env, <em>is</em> data structure</p>
+</li>
+<li>
+<p>will add direct support for data comp later when add classes</p>
+</li>
+<li>but even now can make fns that work like objects</li>
+<li>[poor man&rsquo;s]</li>
+<li>cogitate on</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">makePoint</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="n">closure</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">method</span> <span class="o">==</span> <span class="s">&quot;x&quot;</span><span class="p">)</span> <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">method</span> <span class="o">==</span> <span class="s">&quot;y&quot;</span><span class="p">)</span> <span class="k">return</span> <span class="n">y</span><span class="p">;</span>
+    <span class="n">print</span> <span class="s">&quot;unknown method &quot;</span> <span class="o">+</span> <span class="n">method</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">closure</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">var</span> <span class="n">point</span> <span class="o">=</span> <span class="n">makePoint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+<span class="n">print</span> <span class="n">point</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">);</span> <span class="c1">// &quot;2&quot;.</span>
+<span class="n">print</span> <span class="n">point</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">);</span> <span class="c1">// &quot;3&quot;.</span>
+</pre></div>
+
+
+<ul>
+<li>have crossed real threshold</li>
+<li>lox much more powerful than simple calculator used to be</li>
+<li>alas, in rush to cram closures in, have let slip in tiny bit of dynamic
+  scoping</li>
+<li>next chapter we&rsquo;ll look more closely at scope and fix</li>
+</ul>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>Our interpreter carefully checks that the number of arguments passed to a
+    function matches the number of parameters it expects. Since this check is
+    done at runtime on every call, it has a real performance cost. Smalltalk
+    implementations don&rsquo;t have that problem. Why not?</p>
+</li>
+<li>
+<p>Lox&rsquo;s function declaration syntax performs two independent operations. It
+    creates a function and also binds it to a name. This improves usability for
+    the common case where you do want to associate a name with the function.
+    But in functional-styled code, you often want to create a function to
+    immediately pass it to some other function or return it. In that case, it
+    doesn&rsquo;t need a name.</p>
+<p>Languages that encourage a functional style usually support &ldquo;anonymous
+functions&rdquo; or &ldquo;lambdas&rdquo;&#8202;&mdash;&#8202;an expression syntax that creates a function
+without binding it to a name. Add anonymous function syntax to Lox so that
+this works:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">count</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fn</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">count</span><span class="p">(</span><span class="k">fun</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">});</span>
+<span class="c1">// &quot;1&quot;.</span>
+<span class="c1">// &quot;2&quot;.</span>
+<span class="c1">// &quot;3&quot;.</span>
+</pre></div>
+
+
+</li>
+<li>
+<p>Is this program valid?</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">scope</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;local&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>In other words, are a function&rsquo;s parameters in the same scope as its local
+variables, or in an outer scope? What does Lox do? What about other
+languages you are familiar with? What do you think a language <em>should</em> do?</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="resolving-and-binding.html" class="next">

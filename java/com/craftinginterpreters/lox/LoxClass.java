@@ -55,10 +55,10 @@ class LoxClass implements Callable {
   }
 
   @Override
-  public int requiredArguments() {
+  public int arity() {
     LoxFunction initializer = methods.get("init");
     if (initializer == null) return 0;
-    return initializer.requiredArguments();
+    return initializer.arity();
   }
 
   @Override

@@ -62,9 +62,9 @@ class Parser {
 //> Classes not-yet
       if (match(CLASS)) return classDeclaration();
 //< Classes not-yet
-//> Functions not-yet
+//> Functions match-fun
       if (match(FUN)) return function("function");
-//< Functions not-yet
+//< Functions match-fun
       if (match(VAR)) return varDeclaration();
 
       return statement();
@@ -113,9 +113,9 @@ class Parser {
     if (match(IF)) return ifStatement();
 //< Control Flow match-if
     if (match(PRINT)) return printStatement();
-//> Functions not-yet
+//> Functions match-return
     if (match(RETURN)) return returnStatement();
-//< Functions not-yet
+//< Functions match-return
 //> Control Flow match-while
     if (match(WHILE)) return whileStatement();
 //< Control Flow match-while
@@ -207,7 +207,7 @@ class Parser {
     return new Stmt.Print(value);
   }
 //< Statements and State parse-print-statement
-//> Functions not-yet
+//> Functions parse-return-statement
   private Stmt returnStatement() {
     Token keyword = previous();
     Expr value = null;
@@ -218,7 +218,7 @@ class Parser {
     consume(SEMICOLON, "Expect ';' after return value.");
     return new Stmt.Return(keyword, value);
   }
-//< Functions not-yet
+//< Functions parse-return-statement
 //> Statements and State parse-var-declaration
   private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
@@ -249,8 +249,7 @@ class Parser {
     return new Stmt.Expression(expr);
   }
 //< Statements and State parse-expression-statement
-//> Functions not-yet
-
+//> Functions parse-function
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
     consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
@@ -270,7 +269,7 @@ class Parser {
     List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
   }
-//< Functions not-yet
+//< Functions parse-function
 //> Statements and State block
   private List<Stmt> block() {
     List<Stmt> statements = new ArrayList<>();
@@ -397,33 +396,34 @@ class Parser {
       return new Expr.Unary(operator, right);
     }
 
-/* Parsing Expressions unary < Functions not-yet
+/* Parsing Expressions unary < Functions unary-call
     return primary();
 */
-//> Functions not-yet
+//> Functions unary-call
     return call();
-//< Functions not-yet
+//< Functions unary-call
   }
 //< unary
-//> Functions not-yet
+//> Functions finish-call
   private Expr finishCall(Expr callee) {
     List<Expr> arguments = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
       do {
+//> check-max-arity
         if (arguments.size() >= 8) {
           error(peek(), "Cannot have more than 8 arguments.");
         }
-
+//< check-max-arity
         arguments.add(expression());
       } while (match(COMMA));
     }
 
-    Token paren = consume(RIGHT_PAREN,
-        "Expect ')' after arguments.");
+    Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
     return new Expr.Call(callee, paren, arguments);
   }
-
+//< Functions finish-call
+//> Functions call
   private Expr call() {
     Expr expr = primary();
 
@@ -443,7 +443,7 @@ class Parser {
 
     return expr;
   }
-//< Functions not-yet
+//< Functions call
 //> primary
 
   private Expr primary() {

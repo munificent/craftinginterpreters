@@ -21,10 +21,12 @@ static void printObject(Value value) {
 //< Methods and Initializers not-yet
 //> Closures not-yet
     case OBJ_CLOSURE:
+      printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
+      break;
 //< Closures not-yet
 //> Calls and Functions not-yet
     case OBJ_FUNCTION:
-      printf("<fn %p>", (void*)AS_FUNCTION(value));
+      printf("<fn %s>", AS_FUNCTION(value)->name->chars);
       break;
 //< Calls and Functions not-yet
 //> Classes and Instances not-yet
