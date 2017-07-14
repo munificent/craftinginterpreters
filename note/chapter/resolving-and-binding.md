@@ -1,3 +1,8 @@
+“Once in a while you find yourself in an odd situation. You get into it by degrees and in the most natural way but, when you are right in the midst of it, you are suddenly astonished and ask yourself how in the world it all came about.”
+― Thor Heyerdahl
+
+--
+
 When talking about early and late binding, use an example like this:
 
 if (false) {
