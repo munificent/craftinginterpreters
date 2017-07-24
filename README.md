@@ -61,7 +61,7 @@ In order to get syntax highlighting for Lox itself working, you need to plug in
 its custom Pygments lexer:
 
 ```sh
-$ python3 util/pygments/setup.py develop
+$ (cd util/pygments && python3 setup.py develop)
 ```
 
 In order to compile the two interpreters, you need some C compiler on your path

@@ -252,6 +252,7 @@ class Parser {
 //> Functions parse-function
   private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+//> parse-parameters
     consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
     List<Token> parameters = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
@@ -264,10 +265,13 @@ class Parser {
       } while (match(COMMA));
     }
     consume(RIGHT_PAREN, "Expect ')' after parameters.");
+//< parse-parameters
+//> parse-body
 
-    consume(LEFT_BRACE, "Expect '{' before function body.");
+    consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
     List<Stmt> body = block();
     return new Stmt.Function(name, parameters, body);
+//< parse-body
   }
 //< Functions parse-function
 //> Statements and State block
