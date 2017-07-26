@@ -4,8 +4,13 @@ package com.craftinginterpreters.lox;
 import java.util.*;
 
 class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
+  private final Interpreter interpreter;
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
-  private final Map<Expr, Integer> locals = new HashMap<>();
+//  private final Map<Expr, Integer> locals = new HashMap<>();
+
+  Resolver(Interpreter interpreter) {
+    this.interpreter = interpreter;
+  }
 
   private enum FunctionType {
     NONE,
@@ -36,12 +41,10 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private ClassType currentClass = ClassType.NONE;
 
 //< Classes not-yet
-  Map<Expr, Integer> resolve(List<Stmt> statements) {
+  void resolve(List<Stmt> statements) {
     for (Stmt statement : statements) {
       resolve(statement);
     }
-
-    return locals;
   }
 
   @Override
@@ -321,8 +324,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private void resolveLocal(Expr expr, Token name) {
     for (int i = scopes.size() - 1; i >= 0; i--) {
       if (scopes.get(i).containsKey(name.lexeme)) {
-
-        locals.put(expr, scopes.size() - 1 - i);
+        interpreter.resolve(expr, scopes.size() - 1 - i);
         return;
       }
     }

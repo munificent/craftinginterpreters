@@ -4,9 +4,9 @@ package com.craftinginterpreters.lox;
 //> Functions import-array-list
 import java.util.ArrayList;
 //< Functions import-array-list
-//> Classes not-yet
+//> Resolving and Binding not-yet
 import java.util.HashMap;
-//< Classes not-yet
+//< Resolving and Binding not-yet
 //> Statements and State import-list
 import java.util.List;
 //< Statements and State import-list
@@ -31,11 +31,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< Functions global-environment
 //> Resolving and Binding not-yet
 
-  private Map<Expr, Integer> locals;
+  private final Map<Expr, Integer> locals = new HashMap<>();
 //< Resolving and Binding not-yet
 //> Functions interpreter-constructor
   Interpreter() {
-    globals.define("clock", new Callable() {
+    globals.define("clock", new LoxCallable() {
       @Override
       public int arity() {
         return 0;
@@ -59,15 +59,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/* Statements and State interpret < Resolving and Binding not-yet
-  void interpret(List<Stmt> statements) {
-*/
 //> Statements and State interpret
-//> Resolving and Binding not-yet
-  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
-    this.locals = locals;
-
-//< Resolving and Binding not-yet
+  void interpret(List<Stmt> statements) {
     try {
       for (Stmt statement : statements) {
         execute(statement);
@@ -87,6 +80,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     stmt.accept(this);
   }
 //< Statements and State execute
+//> Resolving and Binding not-yet
+  void resolve(Expr expr, int depth) {
+    locals.put(expr, depth);
+  }
+//< Resolving and Binding not-yet
 //> Statements and State execute-block
   void executeBlock(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
@@ -318,18 +316,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object callee = evaluate(expr.callee);
 
     List<Object> arguments = new ArrayList<>();
-    for (Expr argument : expr.arguments) {
+    for (Expr argument : expr.arguments) { // [in-order]
       arguments.add(evaluate(argument));
     }
 
 //> check-is-callable
-    if (!(callee instanceof Callable)) {
+    if (!(callee instanceof LoxCallable)) {
       throw new RuntimeError(expr.paren,
           "Can only call functions and classes.");
     }
 
 //< check-is-callable
-    Callable function = (Callable)callee;
+    LoxCallable function = (LoxCallable)callee;
 //> check-arity
    if (arguments.size() != function.arity()) {
       throw new RuntimeError(expr.paren, "Expected " +

@@ -1,17 +1,19 @@
 ^title Functions
 ^part A Tree-Walk Interpreter
 
-> And that is also the way the human mind works -- by the compounding of old ideas into new structures that become new ideas that can themselves be used in compounds, and round and round endlessly, growing ever more remote from the basic earthbound imagery that is each language's soil.
+> And that is also the way the human mind works -- by the compounding of old
+> ideas into new structures that become new ideas that can themselves be used in
+> compounds, and round and round endlessly, growing ever more remote from the
+> basic earthbound imagery that is each language's soil.
 >
 > <cite>Douglas R. Hofstadter</cite>
 
-We aren't done yet, but this chapter marks the culmination of a lot of hard
-work. The previous chapters add useful functionality in their own right, but
-each also supplies a piece of the <span name="lambda">puzzle</span> that we need
-to assemble in order to support functions in Lox. We finally have enough of
-those pieces ready -- expressions, statements, variables, control flow, and
-lexical scope -- that we can make the jump and add real functions to our little
-language.
+This chapter marks the culmination of a lot of hard work. The previous chapters
+add useful functionality in their own right, but each also supplies a piece of a
+<span name="lambda">puzzle</span>. We'll take those pieces -- expressions,
+statements, variables, control flow, and lexical scope -- add a couple more, and
+assemble them all into support for real user-defined functions and function
+calls.
 
 <aside name="lambda">
 
@@ -20,11 +22,6 @@ language.
 </aside>
 
 ## Function Calls
-
-Here's our chicken and egg problem: If we add function call expressions first,
-we don't have any functions to call using them. If we add function declarations,
-we can't call them. Fortunately, we can take a shortcut for defining functions,
-so we'll start with calls.
 
 You're certainly familiar with C-style function call syntax, but the grammar is
 more subtle than you may realize. Calls are typically to named functions like:
@@ -41,8 +38,8 @@ example:
 
 <aside name="pascal">
 
-The name is part of the call syntax in Pascal. You can only call named functions
-or functions stored directly in variables.
+The name *is* part of the call syntax in Pascal. You can only call named
+functions or functions stored directly in variables.
 
 </aside>
 
@@ -50,18 +47,19 @@ or functions stored directly in variables.
 getCallback()();
 ```
 
-Here, we call `getCallback()`, which returns a function. Then we call *that*
-using the second pair of parentheses. So it is the *parentheses* after the
-callee that indicate a function call. You can think of it sort of like a postfix
-operator that starts with `(`.
+There are two call expressions here. The first pair of parentheses has
+`getCallback` as its callee. But the second call has the entire `getCallback()`
+expression as its callee. It is the parentheses following an expression that
+indicate a function call. You can think of it sort of like a postfix operator
+that starts with `(`.
 
 This "operator" has higher precedence than any other operator, even the unary
 ones. So we slot it into the grammar by having the `unary` rule bubble up to a
 new `call` rule:
 
 ```lox
-unary     = ( "!" | "-" ) unary | call ;
-call      = primary ( "(" arguments? ")" )* ;
+unary = ( "!" | "-" ) unary | call ;
+call  = primary ( "(" arguments? ")" )* ;
 ```
 
 This rule matches a primary expression followed by zero or <span
@@ -71,17 +69,17 @@ of parentheses with an optional list of arguments inside. The argument list gram
 
 <aside name="curry">
 
-This rule can match a series of function calls like `fn(1)(2)(3)`. Code like
-this isn't common in C-style languages, but it is in the family of languages
-derived from ML. There, the normal way of defining a function that takes
-multiple arguments is as a series of nested functions. Each function takes one
-argument and returns a new function. That function consumes the next argument,
-returns yet another function, and so on. Eventually, once all of the arguments
-are consumed, the last function completes the operation.
+The rule uses `*` to allow matching a series of calls like `fn(1)(2)(3)`. Code
+like that isn't common in C-style languages, but it is in the family of
+languages derived from ML. There, the normal way of defining a function that
+takes multiple arguments is as a series of nested functions. Each function takes
+one argument and returns a new function. That function consumes the next
+argument, returns yet another function, and so on. Eventually, once all of the
+arguments are consumed, the last function completes the operation.
 
 This style, called **currying**, after Haskell Curry (the same guy whose first
 name graces that *other* well-known functional language), is baked directly into
-the language syntax so it's not as cumbersome as it sounds.
+the language syntax so it's not as cumbersome as it would be here.
 
 </aside>
 
@@ -89,9 +87,9 @@ the language syntax so it's not as cumbersome as it sounds.
 arguments = expression ( "," expression )* ;
 ```
 
-This rule requires at least one expression, followed by zero or more other
-expressions, each preceded by a comma. To handle zero-argument calls, the `call`
-rule itself makes the entire `arguments` production optional.
+This rule requires at least one argument expression, followed by zero or more
+other expressions, each preceded by a comma. To handle zero-argument calls, the
+`call` rule itself considers the entire `arguments` production optional.
 
 I admit, this seems more grammatically awkward than you'd expect for the
 incredibly common "zero or more comma-separated things" pattern. There are some
@@ -102,8 +100,8 @@ Over in our syntax tree generator, we add a new node:
 
 ^code call-expr (1 before, 1 after)
 
-It stores the callee expression, then a list of expressions for the arguments.
-It also stores the token for the closing parenthesis. We'll use that token's
+It stores the callee expression and a list of expressions for the arguments. It
+also stores the token for the closing parenthesis. We'll use that token's
 location when we report a runtime error caused by a function call.
 
 Crack open the parser. Where `unary()` used to go straight to `primary()`,
@@ -111,7 +109,7 @@ change it to call, well, `call()`:
 
 ^code unary-call (3 before, 1 after)
 
-That looks like:
+That looks like this:
 
 ^code call
 
@@ -119,14 +117,13 @@ It doesn't quite line up with the grammar rules. I moved a few things around to
 make the code cleaner -- one of the luxuries we have with a hand-written parser.
 But it's roughly similar to how we parse infix operators. First, it parses a
 primary expression, the "left operand" to the call. Then, each time it sees a
-`(`, it calls `finishCall()` to parse the call expression with that expression
-as the callee. The returned expression becomes the new `expr` and it loops to
-see if the result is itself called.
+`(`, it calls `finishCall()` to parse the call expression using the previously
+parsed expression as the callee. The returned expression becomes the new `expr`
+and it loops to see if the result is itself called.
 
-I know the `while (true)` and the explicit `break` is funny looking. It would be
-simpler as `while (match(LEFT_PAREN))`. I wrote it this way because later we'll
-add some more code before that `else` when we add support for properties on
-objects.
+The `while (true)` and the explicit `break` look dumb. It would be simpler as
+`while (match(LEFT_PAREN))`. It will make sense later when we add more code to
+this function to handle properties on objects.
 
 The code to parse the argument list is in this helper:
 
@@ -151,7 +148,7 @@ with it. Do we want to limit that?
 Other languages have different approaches. The C standard says a comforming
 implementation has to support *at least* 127 arguments to a function, but
 doesn't say there's any upper limit. The Java specification says a method can
-accept no *more* than <span name="254">255</span> arguments.
+accept *no more than* <span name="254">255</span> arguments.
 
 <aside name="254">
 
@@ -162,11 +159,9 @@ implicitly passed to the method, so it claims one of the slots.
 </aside>
 
 Our Java interpreter for Lox doesn't really need a limit, but having a maximum
-number of arguments will simplify our bytecode interpreter in part three. It
-ensures we can encode the number of arguments to a call in a fixed number of
-bits in the bytecode. We want our two interpreters to be compatible with each
-other, even in weird corner cases like this, so we'll add the same limit to
-jlox.
+number of arguments will simplify our bytecode interpreter in part three. We
+want our two interpreters to be compatible with each other, even in weird corner
+cases like this, so we'll add the same limit to jlox.
 
 ^code check-max-arity (1 before, 1 after)
 
@@ -194,36 +189,33 @@ expression node:
 
 ^code visit-call
 
-First, it evaluates the expression for the <span name="in-order">callee</span>.
-Typically, this expression is just an identifier that looks up the function by
-its name, but it could be any kind of expression. Then it evaluates each of the
-argument expressions in order and stores the resulting values in a list.
+First, it evaluates the expression for the callee. Typically, this expression is
+just an identifier that looks up the function by its name, but it could be
+anything. Then it evaluates each of the argument expressions in order and stores
+the resulting values in a list.
 
 <aside name="in-order">
 
-The "in order" bit is another one of those subtle semantic choices. The callee
-and argument expressions may have side effects, so the order that they are
-evaluated may be user visible. Even so, some languages like Scheme and C don't
-specify an order. This gives compilers freedom to reorder them for efficiency,
-but means users may be unpleasantly surprised if arguments aren't evaluated in
-the order they expect.
+This is another one of those subtle semantic choices. Since argument expressions
+may have side effects, the order they are evaluated may be user visible. Even
+so, some languages like Scheme and C don't specify an order. This gives
+compilers freedom to reorder them for efficiency, but means users may be
+unpleasantly surprised if arguments aren't evaluated in the order they expect.
 
 </aside>
 
 Once we've got the callee and the arguments ready, all that remains is to
-perform the call. We do that by casting the callee to a Callable and then
-invoking a `call()` method on it.
-
-This is our own interface, not the Java standard library's <span
-name="callable">Callable</span> type. The Java representation of any Lox object
-that can be called like a function will implement this interface. That's
-user-defined functions, naturally, but also includes class objects since classes
-can be "called" to construct an instance of the class. We'll also use it for one
-more purpose shortly.
+perform the call. We do that by casting the callee to a <span
+name="callable">LoxCallable</span> and then invoking a `call()` method on it.
+The Java representation of any Lox object that can be called like a function
+will implement this interface. That includes user-defined functions, naturally,
+but also class objects since classes are "called" to construct new instances.
+We'll also use it for one more purpose shortly.
 
 <aside name="callable">
 
-Alas, all the good names are already taken, so I had to reuse one.
+I stuck "Lox" before the name to distinguish it from the Java standard library's
+own Callable interface. Alas, all the good simple names are already taken.
 
 </aside>
 
@@ -231,27 +223,25 @@ There isn't too much to it:
 
 ^code callable
 
-It is passed the interpreter so that the class implementing the call can access
-state on the interpreter if it needs to. It also receives the list of evaluated
-argument values. The value returned by `call()` is the result that the call
-expression produces.
+We pass it the interpreter in case the class implementing `call()` needs it. We
+also give it the list of evaluated argument values. The implementer's job is
+then to return the value that the call expression produces.
 
 ### Call type errors
 
-Before we get to actually implementing this interface, we need to make the visit
-method a little more robust. I ignored a couple of failure modes that we can't
+Before we get to implementing LoxCallable, we need to make the visit method a
+little more robust. It currently ignores a couple of failure modes that we can't
 pretend won't occur. First, what happens if the callee isn't actually something
-you can call? What if you do:
+you can call? What if you try to do this:
 
 ```lox
 "totally not a function"();
 ```
 
-The runtime representation of a Lox string is a Java string, so when we cast
-that to Callable, the JVM will throw a ClassCastException. We don't want our
-interpreter to vomit out some nasty Java stack trace and die. Because Lox isn't
-statically-typed, we can't rely on some type checker to prevent errors like this
-from happening. Instead, we need to check the type dynamically ourselves:
+Strings aren't callable in Lox. The runtime representation of a Lox string is a
+Java string, so when we cast that to LoxCallable, the JVM will throw a
+ClassCastException. We don't want our interpreter to vomit out some nasty Java
+stack trace and die. Instead, we need to check the type ourselves first:
 
 ^code check-is-callable (2 before, 1 after)
 
@@ -271,7 +261,7 @@ fun add(a, b, c) {
 }
 ```
 
-This function defines three parameters, `a`, `b`, and `c`, so it's arity is
+This function defines three parameters, `a`, `b`, and `c`, so its arity is
 three and it expects three arguments. So what if you try to call it like this:
 
 ```lox
@@ -288,44 +278,43 @@ missing parameters with the magic sort-of-like-null-but-not really value
 is too short or too long.
 
 I think the latter is a better approach. Passing the wrong number of arguments
-is almost always a bug, and I find it a common mistake in practice. Given that,
-the sooner the implementation draws your attention it, the better. So for Lox,
-we'll take Python's approach.
-
-Before invoking the callable, we check to see if the argument list's length
-matches the callable's arity:
+is almost always a bug, and it's a mistake I do make in practice. Given that,
+the sooner the implementation draws my attention it, the better. So for Lox,
+we'll take Python's approach. Before invoking the callable, we check to see if
+the argument list's length matches the callable's arity:
 
 ^code check-arity (2 before, 1 after)
 
-That requires a new method on the Callable interface to query its arity:
+That requires a new method on the LoxCallable interface to ask it its arity:
 
 ^code callable-arity (1 before, 1 after)
 
 We *could* push the arity checking into the concrete implementation of `call()`.
-But, since we'll have multiple classes implementing Callable, that would end up
-with redundant arity checking spread across a few classes. Hoisting it up into
+But, since we'll have multiple classes implementing LoxCallable, that would end
+up with redundant validation spread across a few classes. Hoisting it up into
 the visit method lets us do it in one place.
 
 ## Native Functions
 
-We can theoretically call functions now, but we have no functions to call. This
-is a good time to introduce a vital but often ignored facet of language
-implementations -- <span name="native">**native functions**</span>. These are
-functions that the interpreter exposes to user code but that are implemented in
-the host language (in our case Java), not the language being implemented (Lox).
+We can theoretically call functions, but we have no functions to call. Before we
+get to user-defined functions, now is a good time to introduce a vital but often
+overlooked facet of language implementations -- <span name="native">**native
+functions**</span>. These are functions that the interpreter exposes to user
+code but that are implemented in the host language (in our case Java), not the
+language being implemented (Lox).
 
 Sometimes these functions are called **primitives**, **external functions**, or
 **foreign functions**. Since these functions can be called while the user's
 program is running, they form part of the implementation's runtime. A lot of
-programming language books ignore these, because they aren't very theoretically
+programming language books gloss over these, because they aren't conceptually
 interesting. They're mostly grunt work.
 
 <aside name="native">
 
-Curiously, two names for these functions -- "natives" and "foreign" -- are
+Curiously, two names for these functions -- "native" and "foreign" -- are
 antonyms. Maybe it depends on the perspective of the person choosing the term.
-If you think of your "home territory" as within the runtime's implementation (in
-our case, Java) then functions written in that are "native". But if you have the
+If you think of yourself as "living" within the runtime's implementation (in our
+case, Java) then functions written in that are "native". But if you have the
 mindset of a *user* of your language, then the runtime is implemented in some
 other "foreign" language.
 
@@ -337,19 +326,19 @@ compiled to native machine code.
 
 </aside>
 
-But when it comes to making your language actually useful for doing useful
-stuff, the native functions your implementation provides are vital. They provide
-access to the fundamental services that all programs are defined in terms of. If
-you don't provide native functions to access the file system, a user's going to
-have a hell of a time writing a program that reads and <span
+But when it comes to making your language actually good at doing useful stuff,
+the native functions your implementation provides are key. They provide access
+to the fundamental services that all programs are defined in terms of. If you
+don't provide native functions to access the file system, a user's going to have
+a hell of a time writing a program that reads and <span
 name="print">displays</span> a file.
 
 <aside name="print">
 
 A classic native function almost every language provides is one to print text to
-stdout. We could have made our print statement a native function instead, but
+stdout. We could have made our print *statement* a print *function* instead, but
 then the last several chapters would have been a slog with no way to tell if our
-code is doing anything useful.
+in-progress interpreter is working.
 
 </aside>
 
@@ -357,14 +346,17 @@ Many languages also allow users to provide their own native functions. The
 mechanism for doing so is called a **foreign function interface** (FFI),
 **native extension**, **native interface**, or something along those lines.
 These are nice because they free the language implementer from providing access
-to every single capability the underlying platform supports.
+to every single capability the underlying platform supports. We won't define an
+FFI for jlox, but we will add one native function to give you an idea of what it
+looks like.
 
-We won't define an FFI for jlox, but we will add one native function to give you
-an idea of what it looks like. When we get to part three and start working on a
-much more efficient implementation of Lox, we're going to care a lot about
-performance. Performance work requires measurement and that in turn means
-**benchmarks**. These are programs that measure the time it takes to exercise
-some corner of the language.
+### Telling time
+
+When we get to part three and start working on a much more efficient
+implementation of Lox, we're going to care deeply about performance. Performance
+work requires measurement and that in turn means **benchmarks**. These are
+programs that measure the time it takes to exercise some corner of the
+interpreter.
 
 We could measure the time it takes to start up the interpreter, run the
 benchmark, and exit, but that adds a lot of overhead -- JVM startup time, OS
@@ -377,39 +369,41 @@ between two points in the code. To do that, a Lox program needs to be able to
 tell time. There's no way to do that now -- you can't implement a useful clock
 "from scratch" without access to the underlying clock on the computer.
 
-So we'll add `clock()`, a native function that returns how many seconds the
-interpreter has been running. The difference between two calls to this will tell
-you how much time elapsed.
+So we'll add `clock()`, a native function that returns how many seconds -- as a
+floating point value -- the interpreter has been running. The difference between
+two calls to this tell you how much time elapsed.
 
-When we create a new interpreter, we define this function and jam it into the
-global scope:
+When we instantiate an Interpreter, we stuff it in the global scope:
 
 ^code interpreter-constructor
 
 This defines a <span name="lisp-1">variable</span> named "clock". Its value is a
-Java anonymous class that implements Callable. The `clock()` function takes no
+Java anonymous class that implements LoxCallable. The `clock()` function takes no
 arguments, so its arity is zero. The implementation of `call()` calls the
 corresponding Java function and converts the result to a double value in
 seconds.
 
 <aside name="lisp-1">
 
-In Lox, functions and variables occupy the same namespace. In Common Lisp,
-functions and variables live in their own worlds and you can have functions and
-variables with the same name without collision. The way the name is used
-determines which it refers to, though it requires jumping through some hoops
-when you do want to use a function as a first-class value.
+In Lox, functions and variables occupy the same namespace. In Common Lisp, the
+two live in their own worlds. A function and variable with the same name don't
+collide. If you call the name, it looks up the function. If you refer to it, it
+looks up the variable. This does requires jumping through some hoops when you do
+want to refer to a function as a first-class value.
 
 Richard P. Gabriel and Kent Pitman coined the terms "Lisp-1" to refer to
-languages like Scheme and Lox that put functions and variables in the same
-namespace and "Lisp-2" for languages like Common Lisp that partition them.
-Despite being totally opaque, those names have since stuck.
+languages like Scheme that put functions and variables in the same namespace and
+"Lisp-2" for languages like Common Lisp that partition them. Despite being
+totally opaque, those names have since stuck. Lox is a Lisp-1.
 
 </aside>
 
-So now you can write a Lox program that calls a function, but only that one
-since function. And you can't even accept any arguments! That's no fun. It's
-time to let users define functions too.
+If we wanted to add other native functions -- reading input from the user,
+working with files, etc. -- we could add them each as their own anonymous class
+that implements LoxCallable. But for the book, this one is really all we need.
+
+Let's get ourselves out of the function-defining business and let our users
+take over...
 
 ## Function Declarations
 
@@ -422,8 +416,8 @@ a declaration is permitted.
 
 A named function declaration isn't really a single primitive operation. It's
 syntactic sugar for two distinct steps (1) creating a new function object and
-(2) declaring a variable and storing it in it. If Lox had syntax for anonymous
-functions, we wouldn't need function declaration statements. You could just do:
+(2) binding a new variable to it. If Lox had syntax for anonymous functions, we
+wouldn't need function declaration statements. You could just do:
 
 ```lox
 var add = fun (a, b) {
@@ -431,8 +425,8 @@ var add = fun (a, b) {
 };
 ```
 
-Since named functions are the common case, I went ahead and gave Lox nice syntax
-for them.
+However, since named functions are the common case, I went ahead and gave Lox
+nice syntax for them.
 
 </aside>
 
@@ -451,9 +445,9 @@ function    = IDENTIFIER "(" parameters? ")" block ;
 
 The main `funDecl` rule uses a separate helper rule `function`. A function
 *declaration statement* is the `fun` keyword followed by the actual function-y
-stuff. When we get to classes, we'll reuse that same `function` rule for
-declaring methods. Those look similar to function declarations, but aren't
-preceded by <span name="fun">`fun`</span>.
+stuff. When we get to classes, we'll reuse that `function` rule for declaring
+methods. Those look similar to function declarations, but aren't preceded by
+<span name="fun">`fun`</span>.
 
 <aside name="fun">
 
@@ -469,45 +463,46 @@ block statements use. The parameter list uses this rule:
 parameters  = IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
-It's like the earlier `arguments` rule, except that a parameter is a single
-identifier, not an expression.
-
-That's a lot of new syntax for the parser to chew through, but the resulting
-syntax tree node isn't too bad:
+It's like the earlier `arguments` rule, except that each parameter is an
+identifier, not an expression. That's a lot of new syntax for the parser to chew
+through, but the resulting AST node isn't too bad:
 
 ^code function-ast (1 before, 1 after)
 
 It has a name, a list of parameters -- their names -- and then the body. We
 store the body as the list of statements contained inside the curly braces.
 
-Over in the parser, we kick off recognizing the new statement by adding a line
-to `declaration()`:
+Over in the parser, we weave the new grammar into `declaration()`:
 
 ^code match-fun (1 before, 1 after)
 
 Like other statements, a function is recognized by the leading keyword. When we
-encounter `fun`, we call `function`. It corresponds to the `function` grammar
-rule since we already matched and consumed the `fun` keyword. We'll build it up
-a piece at a time, starting with:
+encounter `fun`, we call `function`. That corresponds to the `function` grammar
+rule since we already matched and consumed the `fun` keyword. We'll build that
+method up a piece at a time, starting with:
 
 ^code parse-function
 
-Right now, it only consumes the expected identifier token for the function's
-name. You might be wondering about that funny little `kind` parameter. Just like
-we reuse the grammar rule, we'll reuse the `function()` method later to parse
-methods inside classes. When we do that, we'll pass in "method" for `kind` so
-that the error messages are specific to the kind of declaration being parsed.
+Right now, it only consumes the identifier token for the function's name. You
+might be wondering about that funny little `kind` parameter. Just like we reuse
+the grammar rule, we'll reuse the `function()` method later to parse methods
+inside classes. When we do that, we'll pass in "method" for `kind` so that the
+error messages are specific to the kind of declaration being parsed.
 
 Next, we parse the parameter list and the pair of parentheses wrapped around it:
 
 ^code parse-parameters (1 before, 1 after)
 
-This is like the code for handling arguments in a call, except not split across
-two Java methods. The outer if statement handles the zero parameter case, and
-the inner while loop parses parameters as long we find commas to separate them.
-The result is the list of tokens for each parameter's name.
+This is like the code for handling arguments in a call, except not split out
+into a helper method. The outer if statement handles the zero parameter case,
+and the inner while loop parses parameters as long we find commas to separate
+them. The result is the list of tokens for each parameter's name.
 
-Finally, we parse the body and wrap everything in a function node:
+Just like with do with arguments at function calls, we validate at parse time
+that you don't exceed the maximum number of parameters a function is allowed to
+have.
+
+Finally, we parse the body and wrap it all up in a function node:
 
 ^code parse-body (1 before, 1 after)
 
@@ -520,29 +515,29 @@ context of a function declaration.
 ## Function Objects
 
 We've got some syntax parsed so usually we're ready to interpret, but first we
-need to think about how to represent a Lox function in Java. It needs to keep
+need to think about how to represent a Lox function in Java. We need to keep
 track of the parameters so that we can bind them to argument values when the
-function is called. And, of course, it needs to keep around the code for the
-body of the function so that it can execute it.
+function is called. And, of course, we need to keep around the code for the
+body of the function so that we can execute it.
 
-That's basically what the Stmt.Function class itself is. Can we just use that?
-Almost, but not quite. We also need a class that implements Callable so that we
-can call it. That's a runtime behavior, so it would violate our architecture
-sensibilities around separation of concerns if we slapped that on the syntax
-node class itself.
-
-Instead, we wrap the node in a new class:
+That's basically what the Stmt.Function class is. Could we just use that?
+Almost, but not quite. We also need a class that implements LoxCallable so that
+we can call it. We don't want the runtime phase of the interpreter to bleed into
+the front-end's syntax classes so we don't want Stmt.Function itself to
+implement that. Instead, we wrap it in a new class:
 
 ^code lox-function
 
-Here's how it implements `call()`:
+Then it implements `call()`:
 
 ^code function-call
 
 This handful of lines of code is one of the most fundamental, powerful pieces of
-our interpreter. As we saw in the chapter on statements and <span
+our interpreter. As we saw in [the chapter on statements][statements] and <span
 name="env">state</span>, managing name environments is a core part of a language
 implementation. Functions are deeply tied to that.
+
+[statements]: statements-and-state.html
 
 <aside name="env">
 
@@ -552,16 +547,15 @@ We'll dig even deeper into environments in the [next chapter][].
 
 </aside>
 
-A key property of a function is that it has parameters, and that it
-*encapsulates* those parameters -- no other code outside of the function can see
-them. This means each function gets its own environment where it defines its
-parameters.
+Core to functions are the idea of parameters, and that a function *encapsulates*
+those parameters -- no other code outside of the function can see them. This
+means each function gets its own environment where it stores those variables.
 
 Further, this environment must be created dynamically. Each function *call* gets
 its own environment. Otherwise, <span name="fortran">recursion</span> would
 break. If there are multiple calls to the same function in play at the same
-time, each call needs its *own* environment, even though they are all calls to
-the same function.
+time, each needs its *own* environment, even though they are all calls to the
+same function.
 
 <aside name="fortran">
 
@@ -593,39 +587,49 @@ innermost, like:
 
 <img src="image/functions/recursion.png" alt="A separate environment for each recursive call." />
 
-That's why we create a new environment at each *call*, not at the each function
-*declaration*. The `call()` method takes care of that. At the beginning of the
+That's why we create a new environment at each *call*, not at the function
+*declaration*. The `call()` method above does that. At the beginning of the
 call, it creates a new environment. Then it walks the parameter and argument
 lists in lockstep. For each pair, it creates a new variable with the parameter's
 name and binds it to the argument's value.
 
+So for a program like this:
+
+```lox
+fun add(a, b, c) {
+  print a + b + c;
+}
+
+add(1, 2, 3);
+```
+
+The interpreter creates something like this:
 
 <img src="image/functions/binding.png" alt="Binding arguments to their parameters." />
 
-Then it tells the interpreter to execute the body of the function in this new
-function-local environment. Before doing so, the current environment is the
-environment where the function is being called. We teleport from there inside
-the new parameter space we've created for the function.
+Then `call()` tells the interpreter to execute the body of the function in this
+new function-local environment. Up until now, the current environment was the
+environment where the function was being called. Now, we teleport from there
+inside the new parameter space we've created for the function.
 
-This is all that's required to pass data into the function. By controlling the
-ambient environment surrounding the function's body, calls to the same function
-with the same code can produce different results.
+This is all that's required to pass data into the function. By using different
+environments when we execute the body, calls to the same function with the
+same code can produce different results.
 
 Once the body of the function has finished executing, `executeBlock()` discards
-the environment and restores the previous one. In this case, that's the
-environment that was active at the point of our call. Finally, it returns
-`null`, which returns `nil` to the caller. We'll add return values later.
+that function-local environment and restores the previous one that was active
+back at the callsite. Finally, `call()` returns `null`, which returns `nil` to
+the caller. We'll add return values later.
 
 Mechanically, the code is pretty simple. Walk a couple of lists. Bind some new
 variables. Call a method. But this is where the crystalline *code* of the
-function declaration becomes a leaving, breathing *invocation*. This is one of
-my favorite pieces of code in this entire book. Feel free to take a moment to
-meditate on it if you're so inclined.
+function declaration becomes a living, breathing *invocation*. This is one of my
+favorite snippets in this entire book. Feel free to take a moment to meditate on
+it if you're so inclined.
 
 Done? OK. Note when we bind the parameters, we assume the parameter and argument
-lists have the same length. This is safe because `visitCallExpr()` validates
-that before calling `call()`.  We help it do that by telling it the arity of the
-function:
+lists have the same length. This is safe because `visitCallExpr()` checks the
+arity before calling `call()`. It needs to know the function's arity to do that:
 
 ^code function-arity
 
@@ -634,7 +638,7 @@ implement `toString()`:
 
 ^code function-to-string
 
-This will give nicer output if you decide to print a function value:
+This gives nicer output if a user decides to print a function value:
 
 ```lox
 fun add(a, b) {
@@ -644,13 +648,15 @@ fun add(a, b) {
 print add; // "<fn add>".
 ```
 
+### Interpreting function declarations
+
 We'll come back and refine LoxFunction soon, but that's enough to get started.
 Over in the interpreter, we add a field to track the global environment:
 
 ^code global-environment (1 before, 1 after)
 
 The `environment` field changes as we enter and exit local scopes. It tracks the
-*current* environment. The new `globals` field always holds a reference to the
+*current* environment. The new `globals` field holds a fixed reference to the
 outermost global environment.
 
 Now we can visit a function declaration:
@@ -659,11 +665,11 @@ Now we can visit a function declaration:
 
 This is similar to how we interpret other literal expressions. We take a
 function *syntax node* -- a compile time representation of the function -- and
-convert it to its runtime representation. Here, that's a LoxObject that wraps
+convert it to its runtime representation. Here, that's a LoxFunction that wraps
 the syntax node.
 
-Function declarations are a little different from other literal nodes in that
-the declaration *also* binds the resulting object to a new variable. So, after
+Function declarations are different from other literal nodes in that the
+declaration *also* binds the resulting object to a new variable. So, after
 creating the LoxFunction, we create a new binding in the current environment and
 store a reference to it there.
 
@@ -684,15 +690,12 @@ me.
 ## Return Statements
 
 We can get data into functions by passing parameters, but we've got no way to
-get results back <span name="hotel">*out*</span>. Since the body of a function
-is a list of statements, which don't produce values, the implementation of
-`call()` in LoxFunction merely executes them and then returns `nil`.
-
-If Lox was an expression-oriented language like Ruby or Scheme, the body would
-be an expression that implicitly evaluated to a value and that would be the
-function's result. Because we have statements, we need dedicated syntax for
-emitted the result value. In other words, return statements. I'm sure you can
-guess the grammar already:
+get results back <span name="hotel">*out*</span>. If Lox was an
+expression-oriented language like Ruby or Scheme, the body would be an
+expression whose value is implicitly the function's result. But in Lox, the body
+of a function is a list of statements which don't produce values, so we need
+dedicated syntax for emitting a result. In other words, return statements. I'm
+sure you can guess the grammar already:
 
 <aside name="hotel">
 
@@ -716,20 +719,32 @@ We've got one more -- the final, in fact -- production under the venerable
 `statement` rule. A return statement is the `return` keyword followed by an
 optional expression and terminated with a semicolon.
 
-In statically-typed languages, "void" functions that don't return a value *must*
-use return without a value expression and non-void functions that do return a
-value must provide one in the return statement. Since Lox is dynamically typed,
-any function may be called in a position where it is expected to return a value
-and it has to return *something*. There are no "void" functions. Instead, like
-we already implemented, a function that reaches the end of its body without
-hitting a return statement implicitly returns `nil`. Correspondingly, we treat a
-return statement without a value as equivalent to:
+The return value is optional to support exiting early from a function that
+doesn't return a useful value. In statically-typed languages, "void" functions
+don't return a value and non-void ones do. Since Lox is dynamically typed, there
+are no true void functions. The compiler has no way of preventing you from
+taking the result value of a call to a function that doesn't contain a return
+statement:
+
+```lox
+fun procedure() {
+  print "don't return anything";
+}
+
+var result = procedure();
+print result; // ?
+```
+
+This means every Lox function must return *something*, even if it contains no
+return statements at all. We use `nil` for this, which is why LoxFunction's
+implementation of `call()` returns `null` at the end. In that same vein, if you
+omit the value in a return statement, we simply treat it as:
 
 ```lox
 return nil;
 ```
 
-Over in our AST generator, the new node looks like:
+Over in our AST generator, add a new node:
 
 ^code return-ast (1 before, 1 after)
 
@@ -751,11 +766,11 @@ that, we know there must not be a value.
 
 ### Returning from calls
 
-Interpreting a return statement is trickier than many other statements. You can
-return statement from anywhere within the body of a function, even deeply nested
-inside other statements. When the return is executed, the interpreter needs to
-jump all the way out of whatever context it's currently in and cause the
-function call to exit, like some kind of jacked up control flow construct.
+Interpreting a return statement is tricky. You can return from anywhere within
+the body of a function, even deeply nested inside other statements. When the
+return is executed, the interpreter needs to jump all the way out of whatever
+context it's currently in and cause the function call to complete, like some
+kind of jacked up control flow construct.
 
 For example, say we're running this program and we're about to execute the
 return statement:
@@ -763,7 +778,7 @@ return statement:
 ```lox
 fun count(n) {
   while (n < 100) {
-    if (n == 3) return n;
+    if (n == 3) return n; // <--
     print n;
   }
 }
@@ -786,16 +801,16 @@ Interpreter.visitCallExpr()
 
 We need to get from the top of the stack all the way back to `call()`. I don't
 know about you, but to me that sounds like exceptions. When we execute a return
-statement, we'll use an exception to unwind the interpreter past all of the
-containing statements back to the code that began executing the body.
+statement, we'll use an exception to unwind the interpreter past the visit
+methods of all of the containing statements back to the code that began
+executing the body.
 
 The new visit method looks like this:
 
 ^code visit-return
 
-If we have a return value, we evaluate it. (Otherwise, we fill in `null` for it,
-which is the Java representation of `nil`.) Then we take that value and wrap it
-in a custom exception class and throw it. That class is:
+If we have a return value, we evaluate it, otherwise, we use `nil`. Then we take
+that value and wrap it in a custom exception class and throw it. That class is:
 
 ^code return-exception
 
@@ -820,13 +835,14 @@ We want this to unwind all the way to where the function call began, the
 
 ^code catch-return (3 before, 1 after)
 
-When we catch a return exception, we pull out the value and make that the return
-value from `call()`. If we never catch one of these exceptions, it means the
-function reached the end of its body without hitting a return statement. In that
-case, we implicitly return `nil`.
+We wrap the call to `executeBlock()` is a try-catch block. When it catches a
+return exception, it pulls out the value and makes that the return value from
+`call()`. If it never catches one of these exceptions, it means the function
+reached the end of its body without hitting a return statement. In that case, it
+implicitly returns `nil`.
 
-Go ahead and give it a try. A fun example that we finally have enough power to
-support is a recursive function to calculate Fibonacci numbers:
+Let's try it out. We finally have enough power to support this classic
+example -- a recursive function to calculate Fibonacci numbers:
 
 <span name="slow"></span>
 
@@ -860,10 +876,10 @@ be faster.
 
 Our functions are pretty full-featured, but there is one loose end to tie up.
 In fact, it's a big enough tangle that we'll spend most of the [next chapter][]
-unknotting it. But we can get started here.
+unknotting it, but we can get started here.
 
-LoxFunction's implementation of `call()` creates a new environment that it uses
-to bind the parameters in. When I showed you that code, I glossed over one
+LoxFunction's implementation of `call()` creates a new environment where it
+binds the function's parameters. When I showed you that code, I glossed over one
 important point: What is the *parent* of that environment?
 
 Right now, it is always `globals`, the top level global environment. That way,
@@ -872,41 +888,12 @@ can look outside the function in the global scope to find it. In the Fibonacci
 example, that's how the interpreter is able to look up the recursive call to
 `fibonacci` inside the function's own body -- `fibonacci` is a global variable.
 
-**todo: remove this example?**
+But recall that in Lox, function declarations are allowed *anywhere* a name can
+be bound. That includes the top level of a Lox script, but also the inside of
+blocks or other functions. Lox supports **local functions** that are defined
+inside another function, or nested inside a block.
 
-But consider:
-
-```lox
-fun outer() {
-  var a = "value";
-
-  fun inner() {
-    print a;
-  }
-
-  inner();
-}
-
-outer();
-```
-
-In Lox, function declarations are allowed anywhere a name can be bound. That
-includes the top level of a Lox script, but also the inside of blocks. Lox
-supports **local functions** that are defined inside another function, or nested
-inside a block. So the above code is *allowed*. The question now is what should
-it *do?*
-
-With our current implementation, when the interpreter handles the call to
-`inner()`, it creates a new environment for the body of `inner`. The parent of
-that environment is the global environment.
-
-The environment chain skips past the environment where `a` is defined, so
-`print a;` will fail. Users expect this code to work -- the lexical scope
-surrounding the function declaration should be available from inside the
-function body.
-
-In fact, that scope should be available even after we've exited the block that
-defines it. Witness this classic example:
+Consider this classic example:
 
 ```lox
 fun makeCounter() {
@@ -932,19 +919,21 @@ Meanwhile, the top level code invokes the returned `count()` function. That
 executes the body of `count()`, which assigns to and reads `i`, even though the
 function where `i` was defined has already exited.
 
-If you run this now, you'll get an undefined variable error in the call to
-`counter()` when the body of `count()` tries to look up `i`. That's because the
-environment chain in effect looks like this:
+If you've never encountered a language with nested functions before, this might
+seem crazy, but users do expect it to work. Alas, if run it now, you get an
+undefined variable error in the call to `counter()` when the body of `count()`
+tries to look up `i`. That's because the environment chain in effect looks like
+this:
 
 <img src="image/functions/global.png" alt="The environment chain from count()'s body to the global scope." />
 
 When we call `count()` (through the reference to it stored in `counter`), we
 create a new empty environment for the function body. The parent of that is the
 global environment. We lost the environment for `makeCounter()` where `i` is
-declared.
+bound.
 
-Here's what the environment chain looks like when we declare `count()` inside
-the body of `makeCounter()`:
+Let's go back in time a bit. Here's what the environment chain looks like right
+when we declare `count()` inside the body of `makeCounter()`:
 
 <img src="image/functions/body.png" alt="The environment chain inside the body of makeCounter()." />
 
@@ -957,7 +946,7 @@ This data structure is called a <span name="closure">"closure"</span> because it
 "closes over" and holds onto the surrounding variables where the function is
 declared. Closures have been around since the early Lisp days, and language
 hackers have come up with all manner of ways to implement them. For jlox, we'll
-do the simplest thing that works. In LoxFunction, we add a field to store the
+do the simplest thing that works. In LoxFunction, we add a field to store an
 environment:
 
 <aside name="closure">
@@ -970,29 +959,29 @@ grunts and pawing hand gestures.
 
 ^code closure-field (1 before)
 
-We pass that into the constructor:
+We initialize that in the constructor:
 
 ^code closure-constructor (1 after)
 
-When we execute a function declaration statement and create a LoxFunction for
-the function, we capture the current environment:
+When we create a LoxFunction, we capture the current environment:
 
 ^code visit-closure (1 before, 1 after)
 
 This is the environment that is active when the function is *declared* not when
-it's *called*, which is what we want. Finally, when we call a function, we use
-that environment:
+it's *called*, which is what we want. It represents the lexical scope
+surrounding the function declaration. Finally, when we call the function, we use
+that environment instead of going straight to `globals`:
 
 ^code call-closure (1 before, 1 after)
 
-This way, the parent environment for the function's body is the environment
-surrounding its declaration, which in turn chains all the way out to the global
+This creates an environment chain that goes from the function's body out through
+the environments where the function is declared all the way out to the global
 scope. The runtime environment chain matches the textual nesting of the source
 code like we want. The end result looks like this:
 
 <img src="image/functions/closure.png" alt="The environment chain with the closure." />
 
-Now, as you can see, the interpreter can still find `i` when it needs it because
+Now, as you can see, the interpreter can still find `i` when it needs to because
 it's in the middle of the environment chain.
 
 Try running that `makeCounter()` example now. It works! We have made Lox
@@ -1015,8 +1004,8 @@ koan][koan] from none other than Guy Steele.
 </aside>
 
 Of course, we will add more natural support for first-class data structures when
-we added classes. But even now, it's possible to define functions that work
-something like objects. Cogitate on this:
+we added classes. But even now, it's possible to define a function that works
+like an object. Cogitate on this:
 
 ```lox
 fun makePoint(x, y) {
@@ -1037,7 +1026,7 @@ print point("y"); // "3".
 We have crossed a real threshold today. Lox is much more powerful than the
 rudimentary arithmetic calculator it used to be. Alas, in our rush to cram
 closures in, we have let a tiny bit of dynamic scoping leak into the
-interpreter. In the next chapter, we will meditate more deeply on lexical scope
+interpreter. In the next chapter, we will explore more deeply into lexical scope
 and close that hole.
 
 <div class="challenges">

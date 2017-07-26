@@ -3,7 +3,7 @@ package com.craftinginterpreters.lox;
 
 import java.util.List;
 
-interface Callable {
+interface LoxCallable {
 //> callable-arity
   int arity();
 //< callable-arity

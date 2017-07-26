@@ -4,7 +4,7 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 import java.util.Map;
 
-class LoxClass implements Callable {
+class LoxClass implements LoxCallable {
   final String name;
 //> Inheritance not-yet
   final LoxClass superclass;
