@@ -47,6 +47,7 @@
     someFunction () -> someLambda
     # Means the same as:
     someFunction(() -> someLambda)
+    ```
 
     Ruby has similar corner cases because it also allow omitting the parentheses
     in method calls (which is where CoffeeScript gets it from).
