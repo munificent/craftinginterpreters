@@ -220,22 +220,22 @@ book. Sorry.
 </aside>
 
 ```lox
-breakfast → protein "with" bread
-breakfast → protein
-breakfast → bread
+breakfast → protein "with" bread ;
+breakfast → protein ;
+breakfast → bread ;
 
-protein   → protein "and" protein
-protein   → "bacon"
-protein   → "sausage"
-protein   → cooked "eggs"
+protein   → protein "and" protein ;
+protein   → "bacon" ;
+protein   → "sausage" ;
+protein   → cooked "eggs" ;
 
-cooked    → "scrambled"
-cooked    → "poached"
-cooked    → "fried"
+cooked    → "scrambled" ;
+cooked    → "poached" ;
+cooked    → "fried" ;
 
-bread     → "toast"
-bread     → "biscuits"
-bread     → "English muffin"
+bread     → "toast" ;
+bread     → "biscuits" ;
+bread     → "English muffin" ;
 ```
 
 We can use that grammar to generate random breakfasts. Let's play a round and
@@ -251,7 +251,7 @@ We need to expand that first nonterminal, `protein`, so we pick a production for
 that. Let's pick:
 
 ```lox
-protein → protein "and" protein
+protein → protein "and" protein ;
 ```
 
 Note that the production refers to its own rule. This is the key difference
@@ -270,7 +270,7 @@ Now we pop back out to the first `protein "and" protein`. The next symbol is
 time, we pick:
 
 ```lox
-protein → cooked "eggs"
+protein → cooked "eggs" ;
 ```
 
 We need a production for `cooked` and pick `"poached"`. That's a terminal, so
@@ -299,13 +299,13 @@ expressions in the body of a rule:
     production for it, we'll allow a series of productions separated by `|`:
 
         :::lox
-        bread → "toast" | "biscuits" | "English muffin"
+        bread → "toast" | "biscuits" | "English muffin" ;
 
 *   Further, we'll allow `(` and `)` for grouping and then allow `|` within that
     to select one from a series of options within the middle of a production:
 
         :::lox
-        protein → ( "scrambled" | "poached" | "fried" ) "eggs"
+        protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
 
 *   Using <span name="recursion">recursion</span> to support repeated sequences
     of symbols has a certain appealing <span name="purity">purity</span>, but
@@ -314,7 +314,7 @@ expressions in the body of a rule:
     may be repeated zero or more times.
 
         :::lox
-        protein → protein ( "and" protein )*
+        protein → protein ( "and" protein )* ;
 
 <aside name="purity">
 
@@ -331,19 +331,19 @@ recursion.
     zero or one time, but not more.
 
         :::lox
-        breakfast → protein ( "with" bread )?
+        breakfast → protein ( "with" bread )? ;
 
 With all of that sugar, our breakfast grammar condenses down to:
 
 ```lox
 breakfast → protein ( "and" protein )* ( "with" bread )?
-          | bread
+          | bread ;
 
 protein   → "bacon"
           | "sausage"
-          | ( "scrambled" | "poached" | "fried" ) "eggs"
+          | ( "scrambled" | "poached" | "fried" ) "eggs" ;
 
-bread     → "toast" | "biscuits" | "English muffin"
+bread     → "toast" | "biscuits" | "English muffin" ;
 ```
 
 Not too bad, I hope. If you're used to grep or using [regular
@@ -400,14 +400,14 @@ Using our handy dandy new notation, here's a grammar for those:
 expression → literal
            | unary
            | binary
-           | grouping
+           | grouping ;
 
-literal    → NUMBER | STRING | "true" | "false" | "nil"
-grouping   → "(" expression ")"
-unary      → ( "-" | "!" ) expression
-binary     → expression operator expression
+literal    → NUMBER | STRING | "true" | "false" | "nil" ;
+grouping   → "(" expression ")" ;
+unary      → ( "-" | "!" ) expression ;
+binary     → expression operator expression ;
 operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
-           | "+"  | "-"  | "*" | "/"
+           | "+"  | "-"  | "*" | "/" ;
 ```
 
 There's one bit of extra <span name="play">metasyntax</span> here. In addition

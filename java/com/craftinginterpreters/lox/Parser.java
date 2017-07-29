@@ -353,31 +353,31 @@ class Parser {
 //< equality
 //> comparison
   private Expr comparison() {
-    Expr expr = term();
+    Expr expr = addition();
 
     while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
       Token operator = previous();
-      Expr right = term();
+      Expr right = addition();
       expr = new Expr.Binary(expr, operator, right);
     }
 
     return expr;
   }
 //< comparison
-//> term-and-factor
-  private Expr term() {
-    Expr expr = factor();
+//> addition-and-multiplication
+  private Expr addition() {
+    Expr expr = multiplication();
 
     while (match(MINUS, PLUS)) {
       Token operator = previous();
-      Expr right = factor();
+      Expr right = multiplication();
       expr = new Expr.Binary(expr, operator, right);
     }
 
     return expr;
   }
 
-  private Expr factor() {
+  private Expr multiplication() {
     Expr expr = unary();
 
     while (match(SLASH, STAR)) {
@@ -388,7 +388,7 @@ class Parser {
 
     return expr;
   }
-//< term-and-factor
+//< addition-and-multiplication
 //> unary
   private Expr unary() {
     if (match(BANG, MINUS)) {

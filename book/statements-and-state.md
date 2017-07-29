@@ -81,13 +81,13 @@ language, the "top level" of a script is simply a list of statements. The new
 rules are:
 
 ```lox
-program     = statement* EOF ;
+program   → statement* EOF ;
 
-statement   = exprStmt
-            | printStmt ;
+statement → exprStmt
+          | printStmt ;
 
-exprStmt    = expression ";" ;
-printStmt   = "print" expression ";" ;
+exprStmt  → expression ";" ;
+printStmt → "print" expression ";" ;
 ```
 
 The first rule is now `program`, which is the starting point for the grammar and
@@ -355,12 +355,12 @@ To accommodate the distinction, we add another rule for kinds of statements that
 declare names:
 
 ```lox
-program     = declaration* eof ;
+program     → declaration* eof ;
 
-declaration = varDecl
+declaration → varDecl
             | statement ;
 
-statement   = exprStmt
+statement   → exprStmt
             | printStmt ;
 ```
 
@@ -373,7 +373,7 @@ stuff at the top level of a script, so `program` routes to the new rule.
 The rule for declaring a variable looks like:
 
 ```lox
-varDecl = "var" IDENTIFIER ( "=" expression )? ";" ;
+varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
 ```
 
 Like most statements it starts with a leading keyword. In this case, `var`. Then
@@ -383,10 +383,10 @@ optional initializer expression. Finally, we put a bow on it with the semicolon.
 To access a variable, we define a new kind of primary expression:
 
 ```lox
-primary     = "true" | "false" | "null" | "this"
-            | NUMBER | STRING
-            | "(" expression ")"
-            | IDENTIFIER ;
+primary → "true" | "false" | "null" | "this"
+        | NUMBER | STRING
+        | "(" expression ")"
+        | IDENTIFIER ;
 ```
 
 That `IDENTIFIER` clause matches a single identifier token, which is understood
@@ -732,9 +732,9 @@ In some other languages, like Pascal, Python, and Go, assignment is a statement.
 </aside>
 
 ```lox
-expression  = assignment ;
-assignment  = identifier "=" assignment
-            | equality ;
+expression → assignment ;
+assignment → identifier "=" assignment
+           | equality ;
 ```
 
 This says an `assignment` is either an identifier followed by an `=` and an
@@ -1158,11 +1158,11 @@ Now that Environments nest, we're ready to add blocks to the language. Behold
 the grammar:
 
 ```lox
-statement   = exprStmt
-            | printStmt
-            | block ;
+statement → exprStmt
+          | printStmt
+          | block ;
 
-block       = "{" declaration* "}" ;
+block     → "{" declaration* "}" ;
 ```
 
 It's a (possibly empty) series of statements or declarations surrounded by curly
