@@ -425,22 +425,6 @@ code.
 We're down to the last flow control construct, <span name="for">Ye Olde</span>
 C-style for loop. I probably don't need to remind you, but it looks like this:
 
-<aside name="for">
-
-Most modern languages have a higher-level looping statement for iterating over
-arbitrary user-defined sequences. C# has `foreach`, Java has "enhanced for",
-even C++ has range-based for statements now. Those offer cleaner syntax than C's
-for statement by implicitly calling into a iteration protocol that the object
-being looped over supports.
-
-Those are great. For Lox, though, we're limited by building up the interpreter a
-chapter at a time. We don't have objects and methods yet, so we have no way of
-defining an iteration protocol that the for loop could use. So we'll stick with
-the old school C for loop. Think of it as "vintage". The fixie of flow control
-statements.
-
-</aside>
-
 ```lox
 for (var i = 0; i < 10; i = i + 1) print i;
 ```
@@ -459,6 +443,22 @@ forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
                       expression? ";"
                       expression? ")" statement ;
 ```
+
+<aside name="for">
+
+Most modern languages have a higher-level looping statement for iterating over
+arbitrary user-defined sequences. C# has `foreach`, Java has "enhanced for",
+even C++ has range-based for statements now. Those offer cleaner syntax than C's
+for statement by implicitly calling into a iteration protocol that the object
+being looped over supports.
+
+Those are great. For Lox, though, we're limited by building up the interpreter a
+chapter at a time. We don't have objects and methods yet, so we have no way of
+defining an iteration protocol that the for loop could use. So we'll stick with
+the old school C for loop. Think of it as "vintage". The fixie of flow control
+statements.
+
+</aside>
 
 Inside the parentheses, you have three clauses separated by semicolons:
 
