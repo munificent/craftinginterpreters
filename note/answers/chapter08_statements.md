@@ -44,6 +44,21 @@
     }
     ```
 
+    And change expressionStatement() to:
+
+    ```java
+    private Stmt expressionStatement() {
+      Expr expr = expression();
+
+      if (allowExpression && isAtEnd()) {
+        foundExpression = true;
+      } else {
+        consume(SEMICOLON, "Expect ';' after expression.");
+      }
+      return new Stmt.Expression(expr);
+    }
+    ```
+
     In Interpreter, add:
 
     ```java
