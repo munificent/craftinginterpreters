@@ -84,14 +84,14 @@ Here's the Lox expression grammar we put together in the last chapter:
 expression → literal
            | unary
            | binary
-           | grouping
+           | grouping ;
 
-literal    → NUMBER | STRING | "false" | "true" | "nil"
-grouping   → "(" expression ")"
-unary      → ( "-" | "!" ) expression
-binary     → expression operator expression
+literal    → NUMBER | STRING | "false" | "true" | "nil" ;
+grouping   → "(" expression ")" ;
+unary      → ( "-" | "!" ) expression ;
+binary     → expression operator expression ;
 operator   → "==" | "!=" | "<" | "<=" | ">" | ">="
-           | "+"  | "-"  | "*" | "/"
+           | "+"  | "-"  | "*" | "/" ;
 ```
 
 This is a valid string in that grammar:
@@ -185,12 +185,12 @@ precedence rules as C, going from highest to lowest:
   <td>Right</td>
 </tr>
 <tr>
-  <td>Factor</td>
+  <td>Multiplication</td>
   <td><code>/</code> <code>*</code></td>
   <td>Left</td>
 </tr>
 <tr>
-  <td>Term</td>
+  <td>Addition</td>
   <td><code>-</code> <code>+</code></td>
   <td>Left</td>
 </tr>
@@ -222,7 +222,7 @@ disambiguate.
 </aside>
 
 ```lox
-binary → expression operator expression
+binary → expression operator expression ;
 ```
 
 The `expression` nonterminal allows us to pick any kind of expression as an
@@ -241,20 +241,20 @@ For the multiplication operands, we need a nonterminal that means "any kind of
 expression of higher precedence than `*`". Something like:
 
 ```lox
-multiply → higherThanMultiply "*" higherThanMultiply
+multiplication → higherThanMultiply "*" higherThanMultiply ;
 ```
 
-Since `*` and `/` ("factors" in math lingo) have the same precedence and the
-level above them is unary operators, a better approximation is:
+Since `*` and `/` have the same precedence and the level above them is unary
+operators, a better approximation is:
 
 ```lox
-factor → unary ( "*" | "/" ) unary
+multiplication → unary ( "*" | "/" ) unary ;
 ```
 
-Except that's not *quite* right. We broke associativity. This `factor` rule
-doesn't allow `1 * 2 * 3`. To support associativity, we make one side permit
-expressions at the *same* level. Which side we choose determines if the operator
-is left- or right-associative. Since multiplication and <span
+Except that's not *quite* right. We broke associativity. This `multiplication`
+rule doesn't allow `1 * 2 * 3`. To support associativity, we make one side
+permit expressions at the *same* level. Which side we choose determines if the
+operator is left- or right-associative. Since multiplication and <span
 name="div">division</span> are left-associative, it's:
 
 <aside name="div">
@@ -265,8 +265,8 @@ with limited precision, roundoff and overflow mean that associativity can affect
 the result of a sequence of multiplications. Consider:
 
 ```lox
-0.1 + (0.2 + 0.3)
-(0.1 + 0.2) + 0.3
+print 0.1 + (0.2 + 0.3);
+print (0.1 + 0.2) + 0.3;
 ```
 
 In languages like Lox that use [IEEE 754][754] double-precision floating-point
@@ -280,7 +280,7 @@ numbers, the first evaluates to `0.6`, while the second yields
 </aside>
 
 ```lox
-factor → factor ( "*" | "/" ) unary
+multiplication → multiplication ( "*" | "/" ) unary ;
 ```
 
 This is correct, but the fact that the first nonterminal in the body of the rule
@@ -289,25 +289,25 @@ Some parsing techniques, including the one we're going to use, have trouble with
 left recursion. Instead, we'll use this other style:
 
 ```lox
-factor → unary ( ( "/" | "*" ) unary )*
+multiplication → unary ( ( "/" | "*" ) unary )* ;
 ```
 
-At the grammar level, this sidesteps left recursion by saying a factor is a flat
-*sequence* of multiplications and divisions. This mirrors the code we'll use to
-parse a sequence of factors.
+At the grammar level, this sidesteps left recursion by saying a multiplication
+expression is a flat *sequence* of multiplications and divisions. This mirrors
+the code we'll use to parse a sequence of multiplications.
 
 If we rejigger all of the binary operator rules in the same way, we get:
 
 ```lox
-expression → equality
-equality   → comparison ( ( "!=" | "==" ) comparison )*
-comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
-term       → factor ( ( "-" | "+" ) factor )*
-factor     → unary ( ( "/" | "*" ) unary )*
-unary      → ( "!" | "-" ) unary
-           | primary
-primary    → NUMBER | STRING | "false" | "true" | "nil"
-           | "(" expression ")"
+expression     → equality ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
+multiplication → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary ;
+               | primary ;
+primary        → NUMBER | STRING | "false" | "true" | "nil"
+               | "(" expression ")" ;
 ```
 
 Instead of a single `binary` rule, there are now four separate rules for each binary operator precedence level. The main `expression` rule is no longer a flat series of `|` branches for each kind of expression. Instead, it is simply an alias for the lowest-precedence expression form, <span name="equality">`equality`</span>, because that includes all higher-precedence expressions too.
@@ -435,7 +435,7 @@ and so on, until the parser hits a stack overflow and dies.
 The rule for equality is a little more complex:
 
 ```lox
-equality → comparison ( ( "!=" | "==" ) comparison )*
+equality → comparison ( ( "!=" | "==" ) comparison )* ;
 ```
 
 In Java, that becomes:
@@ -511,7 +511,7 @@ this method matches an equality operator *or anything of higher precedence*.
 Moving on to the next rule...
 
 ```lox
-comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
+comparison → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 ```
 
 Translated to Java:
@@ -521,8 +521,8 @@ Translated to Java:
 The grammar rule is virtually identical to `equality` and so is the
 corresponding code. The only <span name="handle">differences</span> are the
 token types for the operators we match, and the method we call for the operands,
-now `term()` instead of `comparison()`. The remaining two binary operator rules
-follow the same pattern:
+now `addition()` instead of `comparison()`. The remaining two binary operator
+rules follow the same pattern:
 
 <aside name="handle">
 
@@ -532,7 +532,7 @@ types and an operand method handle and unify some of this redundant code.
 
 </aside>
 
-^code term-and-factor
+^code addition-and-multiplication
 
 That's all of the binary operators, parsed with the correct precedence and
 associativity. We're crawling up the precedence hierarchy and now we've reached
@@ -540,7 +540,7 @@ the unary operators:
 
 ```lox
 unary → ( "!" | "-" ) unary
-      | primary
+      | primary ;
 ```
 
 The code for this is a little different:
@@ -564,7 +564,7 @@ expressions.
 
 ```lox
 primary → NUMBER | STRING | "false" | "true" | "nil"
-        | "(" expression ")"
+        | "(" expression ")" ;
 ```
 
 Most of the cases for the rule are single terminals, so it's pretty
@@ -581,6 +581,7 @@ we don't, that's an error.
 A parser really has two jobs:
 
 1.  Given a valid sequence of tokens, produce a corresponding syntax tree.
+
 2.  Given an *invalid* sequence of tokens, detect any errors and tell the
     user about their mistakes.
 
@@ -745,7 +746,7 @@ beginning of an expression, we could extend the unary rule to allow it:
 
 ```lox
 unary → ( "!" | "-" | "+" ) unary
-        | primary
+        | primary ;
 ```
 
 This lets the parser consume `+` without going into panic mode or leaving the

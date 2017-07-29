@@ -2,17 +2,17 @@
     and equality:
 
     ```lox
-    expression → comma
-    comma      → equality ( "," equality )*
-    equality   → comparison ( ( "!=" | "==" ) comparison )*
-    comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
-    term       → factor ( ( "-" | "+" ) factor )*
-    factor     → unary ( ( "/" | "*" ) unary )*
-    unary      → ( "!" | "-" | "--" | "++" ) unary
-               | postfix
-    postfix    → primary ( "--" | ++" )*
-    primary    → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")"
+    expression     → comma ;
+    comma          → equality ( "," equality )* ;
+    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+    addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
+    multiplication → unary ( ( "/" | "*" ) unary )* ;
+    unary          → ( "!" | "-" | "--" | "++" ) unary
+                   | postfix ;
+    postfix        → primary ( "--" | ++" )* ;
+    primary        → NUMBER | STRING | "true" | "false" | "nil"
+                   | "(" expression ")" ;
     ```
 
     We could define a new syntax tree node by adding this to the `defineAst()`
@@ -49,8 +49,8 @@
 2.  We just need one new rule.
 
     ```lox
-    expression  → conditional
-    conditional → equality ( "?" expression ":" conditional )?
+    expression  → conditional ;
+    conditional → equality ( "?" expression ":" conditional )? ;
     // Other rules...
     ```
 
@@ -84,21 +84,21 @@
     these productions are errors. The parser handles that.
 
     ```lox
-    expression → equality
-    equality   → comparison ( ( "!=" | "==" ) comparison )*
-    comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
-    term       → factor ( ( "-" | "+" ) factor )*
-    factor     → unary ( ( "/" | "*" ) unary )*
-    unary      → ( "!" | "-" | "--" | "++" ) unary
-               | postfix
-    postfix    → primary ( "--" | ++" )*
-    primary    → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")"
-               // Error productions...
-               | ( "!=" | "==" ) equality
-               | ( ">" | ">=" | "<" | "<=" ) comparison
-               | ( "+" ) term
-               | ( "/" | "*" ) factor
+    expression     → equality ;
+    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
+    addition       → multiplication ( ( "-" | "+" ) multiplication )* ;
+    multiplication → unary ( ( "/" | "*" ) unary )* ;
+    unary          → ( "!" | "-" | "--" | "++" ) unary
+                   | postfix ;
+    postfix        → primary ( "--" | ++" )* ;
+    primary        → NUMBER | STRING | "true" | "false" | "nil"
+                   | "(" expression ")"
+                   // Error productions...
+                   | ( "!=" | "==" ) equality
+                   | ( ">" | ">=" | "<" | "<=" ) comparison
+                   | ( "+" ) addition
+                   | ( "/" | "*" ) multiplication ;
     ```
 
     Things to note:
@@ -141,13 +141,13 @@
 
       if (match(PLUS)) {
         error(previous(), "Missing left-hand operand.");
-        term();
+        addition();
         return null;
       }
 
       if (match(SLASH, STAR)) {
         error(previous(), "Missing left-hand operand.");
-        factor();
+        multiplication();
         return null;
       }
 
