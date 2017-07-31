@@ -4,7 +4,7 @@ package com.craftinginterpreters.lox;
 import java.util.List;
 import java.util.Map;
 
-class LoxClass implements Callable {
+class LoxClass implements LoxCallable {
   final String name;
 //> Inheritance not-yet
   final LoxClass superclass;
@@ -55,10 +55,10 @@ class LoxClass implements Callable {
   }
 
   @Override
-  public int requiredArguments() {
+  public int arity() {
     LoxFunction initializer = methods.get("init");
     if (initializer == null) return 0;
-    return initializer.requiredArguments();
+    return initializer.arity();
   }
 
   @Override

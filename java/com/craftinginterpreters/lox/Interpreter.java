@@ -1,12 +1,12 @@
 //> Evaluating Expressions interpreter-class
 package com.craftinginterpreters.lox;
 
-//> Functions not-yet
+//> Functions import-array-list
 import java.util.ArrayList;
-//< Functions not-yet
-//> Classes not-yet
+//< Functions import-array-list
+//> Resolving and Binding not-yet
 import java.util.HashMap;
-//< Classes not-yet
+//< Resolving and Binding not-yet
 //> Statements and State import-list
 import java.util.List;
 //< Statements and State import-list
@@ -20,23 +20,24 @@ class Interpreter implements Expr.Visitor<Object> {
 //> Statements and State interpreter
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< Statements and State interpreter
-/* Statements and State environment-field < Functions not-yet
+/* Statements and State environment-field < Functions global-environment
   private Environment environment = new Environment();
 
 */
-//> Functions not-yet
+//> Functions global-environment
   final Environment globals = new Environment();
   private Environment environment = globals;
-//< Functions not-yet
+
+//< Functions global-environment
 //> Resolving and Binding not-yet
 
-  private Map<Expr, Integer> locals;
+  private final Map<Expr, Integer> locals = new HashMap<>();
 //< Resolving and Binding not-yet
-//> Functions not-yet
+//> Functions interpreter-constructor
   Interpreter() {
-    globals.define("clock", new Callable() {
+    globals.define("clock", new LoxCallable() {
       @Override
-      public int requiredArguments() {
+      public int arity() {
         return 0;
       }
 
@@ -47,7 +48,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       }
     });
   }
-//< Functions not-yet
+//< Functions interpreter-constructor
 /* Evaluating Expressions interpret < Statements and State interpret
   void interpret(Expr expression) {
     try {
@@ -58,15 +59,8 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
   }
 */
-/* Statements and State interpret < Resolving and Binding not-yet
-  void interpret(List<Stmt> statements) {
-*/
 //> Statements and State interpret
-//> Resolving and Binding not-yet
-  void interpret(List<Stmt> statements, Map<Expr, Integer> locals) {
-    this.locals = locals;
-
-//< Resolving and Binding not-yet
+  void interpret(List<Stmt> statements) {
     try {
       for (Stmt statement : statements) {
         execute(statement);
@@ -86,6 +80,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     stmt.accept(this);
   }
 //< Statements and State execute
+//> Resolving and Binding not-yet
+  void resolve(Expr expr, int depth) {
+    locals.put(expr, depth);
+  }
+//< Resolving and Binding not-yet
 //> Statements and State execute-block
   void executeBlock(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
@@ -157,21 +156,22 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null; // [void]
   }
 //< Statements and State visit-expression-stmt
-//> Functions not-yet
-
+//> Functions visit-function
   @Override
   public Void visitFunctionStmt(Stmt.Function stmt) {
-    environment.define(stmt.name.lexeme, null);
-/* Functions not-yet < Classes not-yet
+/* Functions visit-function < Functions visit-closure
+    LoxFunction function = new LoxFunction(stmt);
+*/
+/* Functions visit-closure < Classes not-yet
     LoxFunction function = new LoxFunction(stmt, environment);
 */
 //> Classes not-yet
     LoxFunction function = new LoxFunction(stmt, environment, false);
 //< Classes not-yet
-    environment.assign(stmt.name, function);
+    environment.define(stmt.name.lexeme, function);
     return null;
   }
-//< Functions not-yet
+//< Functions visit-function
 //> Control Flow visit-if
   @Override
   public Void visitIfStmt(Stmt.If stmt) {
@@ -191,8 +191,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Statements and State visit-print
-//> Functions not-yet
-
+//> Functions visit-return
   @Override
   public Void visitReturnStmt(Stmt.Return stmt) {
     Object value = null;
@@ -200,7 +199,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     throw new Return(value);
   }
-//< Functions not-yet
+//< Functions visit-return
 //> Statements and State visit-var
   @Override
   public Void visitVarStmt(Stmt.Var stmt) {
@@ -311,31 +310,35 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< visit-binary
-//> Functions not-yet
+//> Functions visit-call
   @Override
   public Object visitCallExpr(Expr.Call expr) {
     Object callee = evaluate(expr.callee);
 
     List<Object> arguments = new ArrayList<>();
-    for (Expr argument : expr.arguments) {
+    for (Expr argument : expr.arguments) { // [in-order]
       arguments.add(evaluate(argument));
     }
 
-    if (!(callee instanceof Callable)) {
-      // TODO: Change error message to not mention classes explicitly
-      // since this shows up before classes are implemented.
+//> check-is-callable
+    if (!(callee instanceof LoxCallable)) {
       throw new RuntimeError(expr.paren,
           "Can only call functions and classes.");
     }
 
-    Callable function = (Callable)callee;
-    if (arguments.size() < function.requiredArguments()) {
-      throw new RuntimeError(expr.paren, "Not enough arguments.");
+//< check-is-callable
+    LoxCallable function = (LoxCallable)callee;
+//> check-arity
+   if (arguments.size() != function.arity()) {
+      throw new RuntimeError(expr.paren, "Expected " +
+          function.arity() + " arguments but got " +
+          arguments.size() + ".");
     }
 
+//< check-arity
     return function.call(this, arguments);
   }
-//< Functions not-yet
+//< Functions visit-call
 //> Classes not-yet
   @Override
   public Object visitGetExpr(Expr.Get expr) {

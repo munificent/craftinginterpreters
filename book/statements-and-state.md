@@ -103,7 +103,7 @@ syntax trees.
 
 ### Statement syntax trees
 
-There are no places in the grammar where both an expression and a statement is
+There is no place in the grammar where both an expression and a statement is
 allowed. The operands of, say, `+` are always expressions, never statements. The
 body of a while loop is always a statement.
 
@@ -169,7 +169,7 @@ expression, consumes the terminating semicolon, and emits the syntax tree.
 
 <aside name="consume">
 
-Some parsers writers prefix a method name with "finish" if it is called after
+Some parser writers prefix a method name with "finish" if it is called after
 some of its corresponding grammar rule has already been consumed. In a big
 complex parser, this helps maintainers keep track of what state the token stream
 is in when a method is called. For Lox's little parser, I didn't bother.
@@ -283,8 +283,8 @@ constructs.
     value (here, the string `"espresso"`).
 
 2.  Once that's done, a **variable expression** accesses that binding. When the
-    identifier `beverage` is used as an expression, it looks up the value bound
-    to that name and returns it.
+    identifier "beverage" is used as an expression, it looks up the value bound
+    to that name and returns it:
 
         :::lox
         print beverage; // "espresso".
@@ -376,9 +376,10 @@ The rule for declaring a variable looks like:
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
 ```
 
-Like most statements it starts with a leading keyword. In this case, `var`. Then
-an identifier token for the name of the variable being declared, followed by an
-optional initializer expression. Finally, we put a bow on it with the semicolon.
+Like most statements, it starts with a leading keyword. In this case, `var`.
+Then an identifier token for the name of the variable being declared, followed
+by an optional initializer expression. Finally, we put a bow on it with the
+semicolon.
 
 To access a variable, we define a new kind of primary expression:
 
@@ -463,7 +464,7 @@ so, it parses it. Otherwise, it leaves the initializer `null`. Finally, it
 consumes the required semicolon at the end of the statement. All this gets
 wrapped in a Stmt.Var syntax tree node and we're groovy.
 
-Parsing a variable expression is even easier. In the `primary()`, we look for an
+Parsing a variable expression is even easier. In `primary()`, we look for an
 identifier token:
 
 ^code parse-identifier (2 before, 2 after)
@@ -606,7 +607,7 @@ negative number to them). Bear with me.
 The `isEven()` function isn't defined by the <span name="declare">time</span> we
 are looking at the body of `isOdd()` where it's called. If we swap the order of
 the two functions, then `isOdd()` isn't defined when we're looking at
-`isEven()`'s body.
+`isEven()`&rsquo;s body.
 
 <aside name="declare">
 
@@ -618,9 +619,9 @@ of the functions.
 
 Older languages like C and Pascal don't work like this. Instead, they force you
 to add explicit *forward declarations* to declare a name before it's fully
-defined. That was a concession to the limited computers of the time. They wanted
-to be able to compile a source file in one single pass through the text, so
-those compilers couldn't gather up all of the declarations first before
+defined. That was a concession to the limited computing power at the time. They
+wanted to be able to compile a source file in one single pass through the text,
+so those compilers couldn't gather up all of the declarations first before
 processing function bodies.
 
 </aside>
@@ -774,25 +775,25 @@ a = "value";
 
 On the second line, we don't *evaluate* `a` (which would return the string
 "before"). We figure out what variable `a` refers to so we know where to store
-the right-hand side expression's value. The [classic terms][lvalue] for these
-two <span name="lvalue">constructs</span> are **"lvalue"** and **"rvalue"**. All
-of the expressions that we've seen so far that produce values are rvalues. An
-lvalue "evaluates" to a storage location that you can assign into.
+the right-hand side expression's value. The [classic terms][l-value] for these
+two <span name="l-value">constructs</span> are **"l-value"** and **"r-value"**.
+All of the expressions that we've seen so far that produce values are r-values.
+An l-value "evaluates" to a storage location that you can assign into.
 
-[lvalue]: https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue
+[l-value]: https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue
 
-<aside name="lvalue">
+<aside name="l-value">
 
-In fact, the names come from assignment expressions. *L*-values appear on the
+In fact, the names come from assignment expressions: *l*-values appear on the
 *left* side of the `=` in an assignment, and *r*-values on the *right*.
 
 </aside>
 
-Because an lvalue isn't evaluated like a normal expression, the syntax tree must
-reflect that. That's why the Expr.Assign node has a *Token* for the left-hand
-side, not an Expr. The problem is that the parser doesn't know it's parsing an
-lvalue until it hits the `=`. In a complex lvalue, that may occur <span
-name="many">many</span> tokens later:
+Because an l-value isn't evaluated like a normal expression, the syntax tree
+must reflect that. That's why the Expr.Assign node has a *Token* for the
+left-hand side, not an Expr. The problem is that the parser doesn't know it's
+parsing an l-value until it hits the `=`. In a complex l-value, that may occur
+<span name="many">many</span> tokens later:
 
 ```lox
 makeList().head.next = node;
@@ -813,7 +814,7 @@ trick, and it looks like this:
 
 Most of the code for parsing an assignment expression looks similar to the other
 binary operators like `+`. We parse the left-hand side, which can be any
-expression of higher precedence. If we find a `=`, we parse the right-hand side
+expression of higher precedence. If we find an `=`, we parse the right-hand side
 and then wrap it all up in an assignment expression tree node.
 
 One slight difference from binary operators is that we don't loop to build up a
@@ -822,7 +823,7 @@ recursively call `assignment()` to parse the right-hand side.
 
 The trick is that right before we create the assignment expression node, we look
 at the left-hand side expression and figure out what kind of assignment target
-it is. We convert the rvalue expression node into an lvalue representation.
+it is. We convert the r-value expression node into an l-value representation.
 
 This trick works because it turns out that every valid assignment target happens
 to also be <span name="converse">valid syntax</span> as a normal expression.
@@ -930,9 +931,9 @@ enable the same name to refer to different things in different contexts. In my
 house, "Bob" usually refers to me. But maybe in your town you know a different
 Bob. Same name, but different entities based on where you use it.
 
-<span name="lexical">**Lexical scope**</span> (or the less common **"static
-scope"**) is a specific style of scope where the text of the program itself
-shows where a scope begins and ends. In Lox, as in most modern languages,
+<span name="lexical">**Lexical scope**</span> (or the less commonly heard
+**"static scope"**) is a specific style of scope where the text of the program
+itself shows where a scope begins and ends. In Lox, as in most modern languages,
 variables are lexically scoped. When you see an expression that uses some
 variable, you can figure out which variable declaration it refers to just by
 statically reading the code.
@@ -1008,13 +1009,7 @@ Scope and environments are close cousins. The former is the theoretical concept,
 and the latter machinery implements it. As our interpreter works its way through
 code, syntax tree nodes that affect scope will change the environment. In a
 C-ish syntax like Lox's, scope is controlled by curly-braced <span
-name="block">blocks</span>.
-
-<aside name="block">
-
-That's why some call it **"block scope"**.
-
-</aside>
+name="block">blocks</span>. (That's why it's called **"block scope"**.)
 
 ```lox
 {
@@ -1042,28 +1037,25 @@ local scope is encapsulation -- a block of code in one corner of the program
 shouldn't interfere with some other one. Check this out:
 
 ```lox
-var count = 0;
+// How loud?
+var volume = 11;
 
-// Everytime this is called, increments and prints count.
-fun increment() {
-  count = count + 1;
-  print count;
-}
+// Silence.
+volume = 0;
 
-fun sumToTen() {
-  var sum = 0;
-  for (var count = 1; count <= 10; count = count + 1) {
-    sum = sum + count;
-  }
-  print sum;
+// Calculate size of 3x4x5 cuboid.
+{
+  var volume = 3 * 4 * 5;
+  print volume;
 }
 ```
 
-Now imagine calling `sumToTen()`. After the loop finishes, the interpreter
-will delete the *global* `count` variable. That ain't right. When we exit the
-block, we should remove any variables declared inside the block, but if there is
-a variable with the same name declared outside of the block, *that's a different
-variable*. It doesn't get touched.
+Look at the block where we calculate the volume of the cuboid using a local
+declaration of `volume`. After the block exits, the interpreter will delete the
+*global* `volume` variable. That ain't right. When we exit the block, we should
+remove any variables declared inside the block, but if there is a variable with
+the same name declared outside of the block, *that's a different variable*. It
+doesn't get touched.
 
 When a local variable has the same name as a variable in an enclosing scope, it
 **shadows** the outer one. Code inside the block can't see it any more (it is

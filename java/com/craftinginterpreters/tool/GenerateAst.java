@@ -19,9 +19,9 @@ public class GenerateAst {
       "Assign   : Token name, Expr value",
 //< Statements and State assign-expr
       "Binary   : Expr left, Token operator, Expr right",
-//> Functions not-yet
+//> Functions call-expr
       "Call     : Expr callee, Token paren, List<Expr> arguments",
-//< Functions not-yet
+//< Functions call-expr
 //> Classes not-yet
       "Get      : Expr object, Token name",
 //< Classes not-yet
@@ -60,9 +60,9 @@ public class GenerateAst {
       "Class      : Token name, Expr superclass, List<Stmt.Function> methods",
 //< Inheritance not-yet
       "Expression : Expr expression",
-//> Functions not-yet
+//> Functions function-ast
       "Function   : Token name, List<Token> parameters, List<Stmt> body",
-//< Functions not-yet
+//< Functions function-ast
 //> Control Flow if-ast
       "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 //< Control Flow if-ast
@@ -72,9 +72,9 @@ public class GenerateAst {
 //> var-stmt-ast
       "Print      : Expr expression",
 //< var-stmt-ast
-//> Functions not-yet
+//> Functions return-ast
       "Return     : Token keyword, Expr value",
-//< Functions not-yet
+//< Functions return-ast
 /* Statements and State var-stmt-ast < Control Flow while-ast
       "Var        : Token name, Expr initializer"
 */
