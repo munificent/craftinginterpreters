@@ -147,15 +147,18 @@ static Value peek(int distance) {
 /* Calls and Functions not-yet < Closures not-yet
 
 static bool call(ObjFunction* function, int argCount) {
-  if (argCount < function->arity) {
+  if (argCount != function->arity) {
+    runtimeError("Expected %d arguments but got %d.",
+        function->arity, argCount);
 */
 //> Calls and Functions not-yet
 //> Closures not-yet
 
 static bool call(ObjClosure* closure, int argCount) {
-  if (argCount < closure->function->arity) {
+  if (argCount != closure->function->arity) {
+    runtimeError("Expected %d arguments but got %d.",
+        closure->function->arity, argCount);
 //< Closures not-yet
-    runtimeError("Not enough arguments.");
     return false;
   }
 
@@ -204,11 +207,12 @@ static bool callValue(Value callee, int argCount) {
         Value initializer;
         if (tableGet(&klass->methods, vm.initString, &initializer)) {
           return call(AS_CLOSURE(initializer), argCount);
+        } else if (argCount != 0) {
+          runtimeError("Expected 0 arguments but got %d.", argCount);
+          return false;
         }
 
 //< Methods and Initializers not-yet
-        // Ignore the arguments.
-        vm.stackTop -= argCount;
         return true;
       }
 //< Classes and Instances not-yet

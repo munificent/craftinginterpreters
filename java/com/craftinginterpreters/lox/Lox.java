@@ -85,23 +85,22 @@ public class Lox {
 
 //< Parsing Expressions print-ast
 //> Resolving and Binding not-yet
-    Resolver resolver = new Resolver();
-    Map<Expr, Integer> locals = resolver.resolve(statements);
+    Resolver resolver = new Resolver(interpreter);
+    resolver.resolve(statements);
 
     // Stop if there was a resolution error.
     if (hadError) return;
 
+//< Resolving and Binding not-yet
 /* Parsing Expressions print-ast < Evaluating Expressions interpreter-interpret
     System.out.println(new AstPrinter().print(expression));
 */
 /* Evaluating Expressions interpreter-interpret < Statements and State interpret-statements
     interpreter.interpret(expression);
 */
-/* Statements and State interpret-statements < Resolving and Binding not-yet
+//> Statements and State interpret-statements
     interpreter.interpret(statements);
-*/
-    interpreter.interpret(statements, locals);
-//< Resolving and Binding not-yet
+//< Statements and State interpret-statements
   }
 //< run
 //> lox-error

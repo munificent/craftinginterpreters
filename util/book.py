@@ -111,7 +111,6 @@ TOC = [
           'Arguments', 'Return statements', 'Function objects', 'Closures',
           'Arity', 'Native functions'
         ],
-        'done': False,
       },
       {
         'name': 'Resolving and Binding',

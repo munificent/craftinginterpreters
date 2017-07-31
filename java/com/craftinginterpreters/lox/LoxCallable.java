@@ -1,11 +1,11 @@
-//> Functions not-yet
+//> Functions callable
 package com.craftinginterpreters.lox;
 
 import java.util.List;
 
-interface Callable {
-  // The number of arguments this function requires.
-  int requiredArguments();
-
+interface LoxCallable {
+//> callable-arity
+  int arity();
+//< callable-arity
   Object call(Interpreter interpreter, List<Object> arguments);
 }
