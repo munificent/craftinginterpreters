@@ -205,7 +205,7 @@ erroneous unconsumed tokens at the end of a script.</p>
 described. We&rsquo;ll fill in more later in this chapter and in the following ones.
 The next step is turning this grammar into something we can store in memory&#8202;&mdash;&#8202;syntax trees.</p>
 <h3><a href="#statement-syntax-trees" name="statement-syntax-trees"><small>8&#8202;.&#8202;1&#8202;.&#8202;1</small> Statement syntax trees</a></h3>
-<p>There are no places in the grammar where both an expression and a statement is
+<p>There is no place in the grammar where both an expression and a statement is
 allowed. The operands of, say, <code>+</code> are always expressions, never statements. The
 body of a while loop is always a statement.</p>
 <p>Since the two syntaxes are disjoint, we don&rsquo;t need a single base class that they
@@ -293,7 +293,7 @@ add after <em>statement</em>()</div>
 token itself, it doesn&rsquo;t need to do that here. It parses the subsequent
 expression, consumes the terminating semicolon, and emits the syntax tree.</p>
 <aside name="consume">
-<p>Some parsers writers prefix a method name with &ldquo;finish&rdquo; if it is called after
+<p>Some parser writers prefix a method name with &ldquo;finish&rdquo; if it is called after
 some of its corresponding grammar rule has already been consumed. In a big
 complex parser, this helps maintainers keep track of what state the token stream
 is in when a method is called. For Lox&rsquo;s little parser, I didn&rsquo;t bother.</p>
@@ -445,8 +445,8 @@ value (here, the string <code>"espresso"</code>).</p>
 </li>
 <li>
 <p>Once that&rsquo;s done, a <strong>variable expression</strong> accesses that binding. When the
-    identifier <code>beverage</code> is used as an expression, it looks up the value bound
-    to that name and returns it.</p>
+    identifier &ldquo;beverage&rdquo; is used as an expression, it looks up the value bound
+    to that name and returns it:</p>
 <div class="codehilite"><pre><span></span><span class="n">print</span> <span class="n">beverage</span><span class="p">;</span> <span class="c1">// &quot;espresso&quot;.</span>
 </pre></div>
 
@@ -523,9 +523,10 @@ stuff at the top level of a script, so <code>program</code> routes to the new ru
 </pre></div>
 
 
-<p>Like most statements it starts with a leading keyword. In this case, <code>var</code>. Then
-an identifier token for the name of the variable being declared, followed by an
-optional initializer expression. Finally, we put a bow on it with the semicolon.</p>
+<p>Like most statements, it starts with a leading keyword. In this case, <code>var</code>.
+Then an identifier token for the name of the variable being declared, followed
+by an optional initializer expression. Finally, we put a bow on it with the
+semicolon.</p>
 <p>To access a variable, we define a new kind of primary expression:</p>
 <div class="codehilite"><pre><span></span><span class="n">primary</span>     <span class="o">=</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;null&quot;</span> <span class="err">|</span> <span class="s">&quot;this&quot;</span>
             <span class="err">|</span> <span class="vg">NUMBER</span> <span class="err">|</span> <span class="vg">STRING</span>
@@ -637,7 +638,7 @@ for the variable name.</p>
 so, it parses it. Otherwise, it leaves the initializer <code>null</code>. Finally, it
 consumes the required semicolon at the end of the statement. All this gets
 wrapped in a Stmt.Var syntax tree node and we&rsquo;re groovy.</p>
-<p>Parsing a variable expression is even easier. In the <code>primary()</code>, we look for an
+<p>Parsing a variable expression is even easier. In <code>primary()</code>, we look for an
 identifier token:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="na">literal</span><span class="o">);</span>
     <span class="o">}</span>
@@ -787,7 +788,7 @@ negative number to them). Bear with me.</p>
 <p>The <code>isEven()</code> function isn&rsquo;t defined by the <span name="declare">time</span> we
 are looking at the body of <code>isOdd()</code> where it&rsquo;s called. If we swap the order of
 the two functions, then <code>isOdd()</code> isn&rsquo;t defined when we&rsquo;re looking at
-<code>isEven()</code>&lsquo;s body.</p>
+<code>isEven()</code>&rsquo;s body.</p>
 <aside name="declare">
 <p>Some statically-typed languages like Java and C# solve this by specifying that
 the top level of a program isn&rsquo;t a sequence of imperative statements. Instead, a
@@ -796,9 +797,9 @@ implementation declares <em>all</em> of the names before looking at the bodies o
 of the functions.</p>
 <p>Older languages like C and Pascal don&rsquo;t work like this. Instead, they force you
 to add explicit <em>forward declarations</em> to declare a name before it&rsquo;s fully
-defined. That was a concession to the limited computers of the time. They wanted
-to be able to compile a source file in one single pass through the text, so
-those compilers couldn&rsquo;t gather up all of the declarations first before
+defined. That was a concession to the limited computing power at the time. They
+wanted to be able to compile a source file in one single pass through the text,
+so those compilers couldn&rsquo;t gather up all of the declarations first before
 processing function bodies.</p>
 </aside>
 <p>Since making it a <em>static</em> error makes recursive declarations too difficult,
@@ -955,18 +956,18 @@ that evaluates to a value. It&rsquo;s a sort of pseudo-expression that evaluates
 <p>On the second line, we don&rsquo;t <em>evaluate</em> <code>a</code> (which would return the string
 &ldquo;before&rdquo;). We figure out what variable <code>a</code> refers to so we know where to store
 the right-hand side expression&rsquo;s value. The <a href="https://en.wikipedia.org/wiki/Value_(computer_science)#lrvalue">classic terms</a> for these
-two <span name="lvalue">constructs</span> are <strong>&ldquo;lvalue&rdquo;</strong> and <strong>&ldquo;rvalue&rdquo;</strong>. All
-of the expressions that we&rsquo;ve seen so far that produce values are rvalues. An
-lvalue &ldquo;evaluates&rdquo; to a storage location that you can assign into.</p>
-<aside name="lvalue">
-<p>In fact, the names come from assignment expressions. <em>L</em>-values appear on the
+two <span name="l-value">constructs</span> are <strong>&ldquo;l-value&rdquo;</strong> and <strong>&ldquo;r-value&rdquo;</strong>.
+All of the expressions that we&rsquo;ve seen so far that produce values are r-values.
+An l-value &ldquo;evaluates&rdquo; to a storage location that you can assign into.</p>
+<aside name="l-value">
+<p>In fact, the names come from assignment expressions: <em>l</em>-values appear on the
 <em>left</em> side of the <code>=</code> in an assignment, and <em>r</em>-values on the <em>right</em>.</p>
 </aside>
-<p>Because an lvalue isn&rsquo;t evaluated like a normal expression, the syntax tree must
-reflect that. That&rsquo;s why the Expr.Assign node has a <em>Token</em> for the left-hand
-side, not an Expr. The problem is that the parser doesn&rsquo;t know it&rsquo;s parsing an
-lvalue until it hits the <code>=</code>. In a complex lvalue, that may occur <span
-name="many">many</span> tokens later:</p>
+<p>Because an l-value isn&rsquo;t evaluated like a normal expression, the syntax tree
+must reflect that. That&rsquo;s why the Expr.Assign node has a <em>Token</em> for the
+left-hand side, not an Expr. The problem is that the parser doesn&rsquo;t know it&rsquo;s
+parsing an l-value until it hits the <code>=</code>. In a complex l-value, that may occur
+<span name="many">many</span> tokens later:</p>
 <div class="codehilite"><pre><span></span><span class="n">makeList</span><span class="p">().</span><span class="n">head</span><span class="p">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">node</span><span class="p">;</span>
 </pre></div>
 
@@ -1001,14 +1002,14 @@ add after <em>expressionStatement</em>()</div>
 
 <p>Most of the code for parsing an assignment expression looks similar to the other
 binary operators like <code>+</code>. We parse the left-hand side, which can be any
-expression of higher precedence. If we find a <code>=</code>, we parse the right-hand side
+expression of higher precedence. If we find an <code>=</code>, we parse the right-hand side
 and then wrap it all up in an assignment expression tree node.</p>
 <p>One slight difference from binary operators is that we don&rsquo;t loop to build up a
 sequence of the same operator. Since assignment is right-associative, we instead
 recursively call <code>assignment()</code> to parse the right-hand side.</p>
 <p>The trick is that right before we create the assignment expression node, we look
 at the left-hand side expression and figure out what kind of assignment target
-it is. We convert the rvalue expression node into an lvalue representation.</p>
+it is. We convert the r-value expression node into an l-value representation.</p>
 <p>This trick works because it turns out that every valid assignment target happens
 to also be <span name="converse">valid syntax</span> as a normal expression.
 Consider a complex field assignment like:</p>
@@ -1108,9 +1109,9 @@ names longer than two characters</p>
 enable the same name to refer to different things in different contexts. In my
 house, &ldquo;Bob&rdquo; usually refers to me. But maybe in your town you know a different
 Bob. Same name, but different entities based on where you use it.</p>
-<p><span name="lexical"><strong>Lexical scope</strong></span> (or the less common <strong>&ldquo;static
-scope&rdquo;</strong>) is a specific style of scope where the text of the program itself
-shows where a scope begins and ends. In Lox, as in most modern languages,
+<p><span name="lexical"><strong>Lexical scope</strong></span> (or the less commonly heard
+<strong>&ldquo;static scope&rdquo;</strong>) is a specific style of scope where the text of the program
+itself shows where a scope begins and ends. In Lox, as in most modern languages,
 variables are lexically scoped. When you see an expression that uses some
 variable, you can figure out which variable declaration it refers to just by
 statically reading the code.</p>
@@ -1172,10 +1173,7 @@ GolfClub to the function, and we don&rsquo;t know that until runtime.</p>
 and the latter machinery implements it. As our interpreter works its way through
 code, syntax tree nodes that affect scope will change the environment. In a
 C-ish syntax like Lox&rsquo;s, scope is controlled by curly-braced <span
-name="block">blocks</span>.</p>
-<aside name="block">
-<p>That&rsquo;s why some call it <strong>&ldquo;block scope&rdquo;</strong>.</p>
-</aside>
+name="block">blocks</span>. (That&rsquo;s why it&rsquo;s called <strong>&ldquo;block scope&rdquo;</strong>.)</p>
 <div class="codehilite"><pre><span></span><span class="p">{</span>
   <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;in block&quot;</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1201,29 +1199,26 @@ disappear.</p>
 <p>That would work for the previous example. But, remember, one motivation for
 local scope is encapsulation&#8202;&mdash;&#8202;a block of code in one corner of the program
 shouldn&rsquo;t interfere with some other one. Check this out:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="c1">// How loud?</span>
+<span class="k">var</span> <span class="n">volume</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
 
-<span class="c1">// Everytime this is called, increments and prints count.</span>
-<span class="k">fun</span> <span class="n">increment</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="n">print</span> <span class="n">count</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="c1">// Silence.</span>
+<span class="n">volume</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 
-<span class="k">fun</span> <span class="n">sumToTen</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">var</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">count</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">;</span> <span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">count</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="n">print</span> <span class="n">sum</span><span class="p">;</span>
+<span class="c1">// Calculate size of 3x4x5 cuboid.</span>
+<span class="p">{</span>
+  <span class="k">var</span> <span class="n">volume</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">*</span> <span class="mi">5</span><span class="p">;</span>
+  <span class="n">print</span> <span class="n">volume</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>Now imagine calling <code>sumToTen()</code>. After the loop finishes, the interpreter
-will delete the <em>global</em> <code>count</code> variable. That ain&rsquo;t right. When we exit the
-block, we should remove any variables declared inside the block, but if there is
-a variable with the same name declared outside of the block, <em>that&rsquo;s a different
-variable</em>. It doesn&rsquo;t get touched.</p>
+<p>Look at the block where we calculate the volume of the cuboid using a local
+declaration of <code>volume</code>. After the block exits, the interpreter will delete the
+<em>global</em> <code>volume</code> variable. That ain&rsquo;t right. When we exit the block, we should
+remove any variables declared inside the block, but if there is a variable with
+the same name declared outside of the block, <em>that&rsquo;s a different variable</em>. It
+doesn&rsquo;t get touched.</p>
 <p>When a local variable has the same name as a variable in an enclosing scope, it
 <strong>shadows</strong> the outer one. Code inside the block can&rsquo;t see it any more (it is
 hidden in the &ldquo;shadow&rdquo; cast by the inner one), but it&rsquo;s still there.</p>
