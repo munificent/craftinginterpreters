@@ -58,8 +58,8 @@ ones. So we slot it into the grammar by having the `unary` rule bubble up to a
 new `call` rule:
 
 ```lox
-unary = ( "!" | "-" ) unary | call ;
-call  = primary ( "(" arguments? ")" )* ;
+unary → ( "!" | "-" ) unary | call ;
+call  → primary ( "(" arguments? ")" )* ;
 ```
 
 This rule matches a primary expression followed by zero or <span
@@ -84,7 +84,7 @@ the language syntax so it's not as cumbersome as it would be here.
 </aside>
 
 ```lox
-arguments = expression ( "," expression )* ;
+arguments → expression ( "," expression )* ;
 ```
 
 This rule requires at least one argument expression, followed by zero or more
@@ -431,7 +431,7 @@ nice syntax for them.
 </aside>
 
 ```lox
-declaration = funDecl
+declaration → funDecl
             | varDecl
             | statement ;
 ```
@@ -439,8 +439,8 @@ declaration = funDecl
 That references this new rule:
 
 ```lox
-funDecl     = "fun" function ;
-function    = IDENTIFIER "(" parameters? ")" block ;
+funDecl  → "fun" function ;
+function → IDENTIFIER "(" parameters? ")" block ;
 ```
 
 The main `funDecl` rule uses a separate helper rule `function`. A function
@@ -460,7 +460,7 @@ the body. The body is always a braced block, using the same grammar rule that
 block statements use. The parameter list uses this rule:
 
 ```lox
-parameters  = IDENTIFIER ( "," IDENTIFIER )* ;
+parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
 It's like the earlier `arguments` rule, except that each parameter is an
@@ -704,15 +704,15 @@ The Hotel California of data.
 </aside>
 
 ```lox
-statement   = exprStmt
-            | forStmt
-            | ifStmt
-            | printStmt
-            | returnStmt
-            | whileStmt
-            | block ;
+statement  → exprStmt
+           | forStmt
+           | ifStmt
+           | printStmt
+           | returnStmt
+           | whileStmt
+           | block ;
 
-returnStmt  = "return" expression? ";" ;
+returnStmt → "return" expression? ";" ;
 ```
 
 We've got one more -- the final, in fact -- production under the venerable
