@@ -279,7 +279,7 @@ is too short or too long.
 
 I think the latter is a better approach. Passing the wrong number of arguments
 is almost always a bug, and it's a mistake I do make in practice. Given that,
-the sooner the implementation draws my attention it, the better. So for Lox,
+the sooner the implementation draws my attention to it, the better. So for Lox,
 we'll take Python's approach. Before invoking the callable, we check to see if
 the argument list's length matches the callable's arity:
 
@@ -364,7 +364,7 @@ shenanigans, etc. That stuff does matter, of course, but if you're just trying
 to tell if your optimization to, say, arithmetic made a difference, it's all
 noise.
 
-A nicer solution is have the benchmark script itself measure the time elapsed
+A nicer solution is to have the benchmark script itself measure the time elapsed
 between two points in the code. To do that, a Lox program needs to be able to
 tell time. There's no way to do that now -- you can't implement a useful clock
 "from scratch" without access to the underlying clock on the computer.
@@ -495,10 +495,10 @@ Next, we parse the parameter list and the pair of parentheses wrapped around it:
 
 This is like the code for handling arguments in a call, except not split out
 into a helper method. The outer if statement handles the zero parameter case,
-and the inner while loop parses parameters as long we find commas to separate
+and the inner while loop parses parameters as long as we find commas to separate
 them. The result is the list of tokens for each parameter's name.
 
-Just like with do with arguments at function calls, we validate at parse time
+Just like we do with arguments at function calls, we validate at parse time
 that you don't exceed the maximum number of parameters a function is allowed to
 have.
 
@@ -684,8 +684,8 @@ fun sayHi(first, last) {
 sayHi("Dear", "Reader");
 ```
 
-I don't about you, but that looks like an honest-to-God programming language to
-me.
+I don't know about you, but that looks like an honest-to-God programming
+language to me.
 
 ## Return Statements
 
@@ -835,7 +835,7 @@ We want this to unwind all the way to where the function call began, the
 
 ^code catch-return (3 before, 1 after)
 
-We wrap the call to `executeBlock()` is a try-catch block. When it catches a
+We wrap the call to `executeBlock()` in a try-catch block. When it catches a
 return exception, it pulls out the value and makes that the return value from
 `call()`. If it never catches one of these exceptions, it means the function
 reached the end of its body without hitting a return statement. In that case, it
@@ -920,7 +920,7 @@ executes the body of `count()`, which assigns to and reads `i`, even though the
 function where `i` was defined has already exited.
 
 If you've never encountered a language with nested functions before, this might
-seem crazy, but users do expect it to work. Alas, if run it now, you get an
+seem crazy, but users do expect it to work. Alas, if you run it now, you get an
 undefined variable error in the call to `counter()` when the body of `count()`
 tries to look up `i`. That's because the environment chain in effect looks like
 this:
@@ -1004,7 +1004,7 @@ koan][koan] from none other than Guy Steele.
 </aside>
 
 Of course, we will add more natural support for first-class data structures when
-we added classes. But even now, it's possible to define a function that works
+we add classes. But even now, it's possible to define a function that works
 like an object. Cogitate on this:
 
 ```lox
