@@ -62,7 +62,7 @@
 
     Again, I won't bother showing the scanner and token changes since they're
     pretty obvious.
-
+    ```
     private Expr expression() {
       return conditional();
     }
@@ -79,7 +79,7 @@
 
       return expr;
     }
-
+    ```
 3.  Here's an updated grammar. The grammar itself doesn't "know" that some of
     these productions are errors. The parser handles that.
 
@@ -110,7 +110,7 @@
       normal correct. We also don't parse a sequence, just a single RHS. Using
       the same precedence level handles a sequence for us and helps us only
       show the error once?
-
+    ```
     private Expr primary() {
       if (match(FALSE)) return new Expr.Literal(false);
       if (match(TRUE)) return new Expr.Literal(true);
@@ -153,3 +153,4 @@
 
       throw error(peek(), "Expect expression.");
     }
+   ```
