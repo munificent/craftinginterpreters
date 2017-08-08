@@ -115,7 +115,6 @@ TOC = [
       {
         'name': 'Resolving and Binding',
         'topics': ['Name resolution', 'Early binding', 'Static errors'],
-        'done': False,
       },
       {
         'name': 'Classes',

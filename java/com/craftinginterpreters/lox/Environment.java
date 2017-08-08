@@ -55,7 +55,7 @@ class Environment {
     values.put(name, value);
   }
 //< environment-define
-//> Resolving and Binding not-yet
+//> Resolving and Binding get-at
   Object getAt(int distance, String name) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -64,7 +64,8 @@ class Environment {
 
     return environment.values.get(name);
   }
-
+//< Resolving and Binding get-at
+//> Resolving and Binding assign-at
   void assignAt(int distance, Token name, Object value) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
@@ -73,7 +74,7 @@ class Environment {
 
     environment.values.put(name.lexeme, value);
   }
-//< Resolving and Binding not-yet
+//< Resolving and Binding assign-at
 //> omit
   @Override
   public String toString() {
