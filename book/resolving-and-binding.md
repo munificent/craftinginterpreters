@@ -17,41 +17,217 @@
 
 ## static scope
 
-- explain lexical scope
-- can resolve var access by looking at text
-- "resolution": finding what decl var refers to
-- explain resolution as single textual pass
-- var always refer to same decl
-- show problem example
+- lexical scope means can tell what declaration use of variable refers to just
+  by looking at source text
+- so in:
+
+```lox
+var a = "outer";
+{
+  var a = "inner";
+  print a;
+}
+```
+
+- can figure out that the `a` being printed is `a` declared on previous line
+  and not global one
+- don't need to run program to figure that out
+- shouldn't be able to write a program, no matter how weird or complex, where
+  that isn't true
+
+- rule for what var decl var expr refers to is
+- var expr refers to preceding declared var in innermost scope
+  enclosing var expr
+
+- preceding means
+
+```lox
+var a = "outer";
+{
+  print a;
+  var a = "inner";
+}
+```
+
+- here printed a is outer one
+- [unlike js with hoisting]
+- "preceding" means in text, not time
+
+```lox
+var a = "outer";
+for (var i = 1; i <= 2; i = i + 1) {
+  if (a == 2) print a;
+  var a = "inner";
+}
+
+- here, inner a decl will execute before print a execs
+- but inner a does not precede print stmt
+
+- "innermost" is for shadowing
+
+```lox
+var a = "outer";
+{
+  var a = "inner";
+  print a;
+}
+```
+
+- here a is inner
+
+- implies variable expression always refers to same declaration throughout
+  entire execution of program
+- why it's called "static scope"
+
+- [not very precise, real spec would define scope precisely, precede, etc.]
+
+- mostly impl rule right
+- but when we added closures, poked hole
+- it is possible to write program that breaks preceding rule:
+
+```lox
+var a = "global";
+{
+  fun showA() {
+    print a;
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}
+```
+
+- before run, think about what *should* print
+- expect to print "global" twice
+- first call to `showA()` should definitely print "global" since haven't even
+  reached declaration of inner `a` and evaluated initializer expr yet
+- [js hoisting]
+- by rule of static scope that variable expr always refers to same decl, then
+  second print should be same
+
+- run this now, prints
+
+```
+global
+block
+```
+
+- program never reassigns variable
+- only contains one print
+- same print for never-assigned var prints two different values
+- oops
+
+---
 
 ### scopes and mutable environments
 
-- static scopes correspond to dynamic envs
-- but way interp visits is different from textual res pass
+- env is dynamic sister of static scopes
+- exec order in interp follows textual order often
 - control flow changes order var visited
 - closure really changes
+- when out of sync, problem
 - interp looks up var every time used, not just once
-- problem is between look-ups env itself may be mutated
+
+- prob because of how chose to impl environments
+- chose that because of informal thinking about scope of block
+- walk through prog and see what envs look like at each step
+
+**todo illustrate**
+
+- when declare `showA()`, create closure
+- captures reference to env for block surrounding fn
+- java reference to actual env object
+- env is mutable hash table
+- when variables later declared in same block, add to same hash table
+- means closure can then "see" new vars even though declared after closure
 
 ### persistent env
 
 - block not all same scope
 - scope after var decl different from before
 - contains var
+
+- style of data struct called "persistent"
+- immutable
+- any time "change", orig left alone produces new one
+
 - could have var decl produce new env
 - closure would ref prev one, not see later change
 - would work, but require changing lot of code
 - instead
+
+- each time declare local variable, produces *new* env
+- original env left unchanged
+- closure captured previous one where a not declared
+- doesn't see new one
+- since every time declare var produce new env, each env only contains single
+  decl
+- instead of chain of maps, have chain of vars
+- many schemes work this way
+
+**todo: illustrate**
+
+- little different since lox has block syntax unlike scheme
+- at end of "}", need to discard all vars declared in block
+- since now spread across multiple env, need to track somehow how many envs
+  to pop
+
+- did implement this for lox
+- works fine
+- one problem and one opportunity
+
+- problem is would have had to implement persistent env way back when vars
+  first added
+- back then, not clear why need that
+- hashmap for env seems more intuitive
+- and do want hashmap for global vars which special
+- so would have needed more complex impl of envs for locals with no clear
+  motivation until much later when add closures
+
+- opportunity is that can solve this problem another way
+- solution is example of general technique fundamental part of compiler impl
+- lets us keep intuitive impl of envs
+- and also teach you new tool
 
 ## static resolution
 
 - interp does var resolution each time var used
 - always resolves to same decl (should!)
 - static scope means can do it textually, why we doing it dynamic?
-- pull out of interp
-- resolve each var expr once before running any code
-- when?
+
+- instead, "bake" resolution of each var expr to var decl refers to
+- lots of ways could represent this association
+- could redo entire env rep
+- [will for clox]
+- try to minimize collatoral damage
+- in current lookup code, problem is that doesn't always go same number of hops
+  as walks env chain
+- if could ensure always hopped three before looking for 'a' would find same
+- even though `a` would be in block scope, would skip past it as counted to
+  three
+- find same `a` every time
+
+- only need to calculate how many envs away variable decl is from var expr
+  once, not each time var expr is evaluated
+- in other words, static property of var, not dynamic
+- which is what want for static scope
+
+- can't calculate which actual env has var because remember envs created
+  dynamically during exec
+- in recursive fn, may even have multiple envs that contain same var decl but
+  for different invocations
+- but given some var expr, relative distance from it to var decl is always
+  fixed
+
+**todo: illustrate**
+
+- so if can calc how many envs away var is from current env, then can ensure
+  always access same var
+
+- interesting q is when to resolve
 - in parser (do clox)
+- traditional approach
 - want excuse to show other technique
 - separate pass
 
@@ -63,10 +239,30 @@
   - type checker
   - optimization
   - any work doesn't depend on dynamic execution can be done here
+
+- resolver or other analysis pass much like simple interp
+- [abstract interp really blurs line between dynamic exec and static analysis]
+- walks ast tree visiting each node
+
+- couple things make static instead of dynamic
+
+1. no side effects. doesn't execute statements or native fns. prints don't print
+2. no control flow. when resolving if, look at both branches once. only look at
+   loop body once. not turing complete!
+
+- [more adv analysis may visit code multiple times for fixpoint. too complex for this book. important part is those algs reliably terminate.]
+
+- single pass, no control flow or side effects
+
 - new visitor
 - impls lexical scope resolution rules
-- like mini-interp
-- single pass, no control flow or side effects
+- work much like portion of interpreter for vars
+- when block entered, create new scope
+- when var decl add to scope
+- when var used, look it up
+- "look it up" now means resolve
+- figure out which decl var refers to
+- store that somewhere
 
 ## resolver class
 
@@ -397,3 +593,22 @@ return "at top level";
 
 - imagine doing other analysis
 - track which fns don't access outer vars and use cheaper rep
+
+---
+
+- [once have closures, even more interesting question about whether redefining
+  existing var or defining new one]
+
+    var a = "before";
+    fun f() {
+      print a;
+    }
+    var a = "after";
+    f(); // ???
+
+  - equivalent prog in scheme prints "after"
+  - are redefining existing var
+  - var decl is treated exactly like assignment (at top level) if var exists
+  - in ml, prints "before"
+  - second "var a" introduces new a that is only visible to later code
+  - existing code, like f() still sees orig
