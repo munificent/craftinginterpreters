@@ -62,7 +62,7 @@ class Environment {
       environment = environment.enclosing;
     }
 
-    return environment.values.get(name);
+    return environment.values.get(name); // [coupled]
   }
 //< Resolving and Binding get-at
 //> Resolving and Binding assign-at
