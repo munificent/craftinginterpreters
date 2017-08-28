@@ -145,7 +145,7 @@ Right now, the loop where we parse arguments has no bound. If you want to call a
 function and pass a million arguments to it, the parser would have no problem
 with it. Do we want to limit that?
 
-Other languages have different approaches. The C standard says a comforming
+Other languages have different approaches. The C standard says a conforming
 implementation has to support *at least* 127 arguments to a function, but
 doesn't say there's any upper limit. The Java specification says a method can
 accept *no more than* <span name="254">255</span> arguments.
