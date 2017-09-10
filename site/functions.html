@@ -267,7 +267,7 @@ the callee and those arguments up into a call expression.</p>
 <p>Right now, the loop where we parse arguments has no bound. If you want to call a
 function and pass a million arguments to it, the parser would have no problem
 with it. Do we want to limit that?</p>
-<p>Other languages have different approaches. The C standard says a comforming
+<p>Other languages have different approaches. The C standard says a conforming
 implementation has to support <em>at least</em> 127 arguments to a function, but
 doesn&rsquo;t say there&rsquo;s any upper limit. The Java specification says a method can
 accept <em>no more than</em> <span name="254">255</span> arguments.</p>
@@ -409,12 +409,12 @@ three and it expects three arguments. So what if you try to call it like this:</
 statically-typed languages check this at compile time and refuse to compile the
 code if the argument count doesn&rsquo;t match the function&rsquo;s arity. JavaScript
 discards any extra arguments you pass. If you don&rsquo;t pass enough, it fills in the
-missing parameters with the magic sort-of-like-null-but-not really value
+missing parameters with the magic sort-of-like-null-but-not-really value
 <code>undefined</code>. Python is stricter. It raises a runtime error if the argument list
 is too short or too long.</p>
 <p>I think the latter is a better approach. Passing the wrong number of arguments
 is almost always a bug, and it&rsquo;s a mistake I do make in practice. Given that,
-the sooner the implementation draws my attention it, the better. So for Lox,
+the sooner the implementation draws my attention to it, the better. So for Lox,
 we&rsquo;ll take Python&rsquo;s approach. Before invoking the callable, we check to see if
 the argument list&rsquo;s length matches the callable&rsquo;s arity:</p>
 <div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">LoxCallable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">LoxCallable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>
@@ -493,13 +493,13 @@ benchmark, and exit, but that adds a lot of overhead&#8202;&mdash;&#8202;JVM sta
 shenanigans, etc. That stuff does matter, of course, but if you&rsquo;re just trying
 to tell if your optimization to, say, arithmetic made a difference, it&rsquo;s all
 noise.</p>
-<p>A nicer solution is have the benchmark script itself measure the time elapsed
+<p>A nicer solution is to have the benchmark script itself measure the time elapsed
 between two points in the code. To do that, a Lox program needs to be able to
 tell time. There&rsquo;s no way to do that now&#8202;&mdash;&#8202;you can&rsquo;t implement a useful clock
 &ldquo;from scratch&rdquo; without access to the underlying clock on the computer.</p>
-<p>So we&rsquo;ll add <code>clock()</code>, a native function that returns how many seconds&#8202;&mdash;&#8202;as a
-floating point value&#8202;&mdash;&#8202;the interpreter has been running. The difference between
-two calls to this tell you how much time elapsed.</p>
+<p>So we&rsquo;ll add <code>clock()</code>, a native function that returns the number of seconds
+that have passed since some fixed point in time. The difference between two
+calls to this tell you how much time elapsed between the two calls.</p>
 <p>When we instantiate an Interpreter, we stuff it in the global scope:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
@@ -520,8 +520,8 @@ in class <em>Interpreter</em></div>
 </pre></div>
 
 <p>This defines a <span name="lisp-1">variable</span> named &ldquo;clock&rdquo;. Its value is a
-Java anonymous class that implements LoxCallable. The <code>clock()</code> function takes no
-arguments, so its arity is zero. The implementation of <code>call()</code> calls the
+Java anonymous class that implements LoxCallable. The <code>clock()</code> function takes
+no arguments, so its arity is zero. The implementation of <code>call()</code> calls the
 corresponding Java function and converts the result to a double value in
 seconds.</p>
 <aside name="lisp-1">
@@ -643,9 +643,9 @@ in <em>function</em>()</div>
 
 <p>This is like the code for handling arguments in a call, except not split out
 into a helper method. The outer if statement handles the zero parameter case,
-and the inner while loop parses parameters as long we find commas to separate
+and the inner while loop parses parameters as long as we find commas to separate
 them. The result is the list of tokens for each parameter&rsquo;s name.</p>
-<p>Just like with do with arguments at function calls, we validate at parse time
+<p>Just like we do with arguments at function calls, we validate at parse time
 that you don&rsquo;t exceed the maximum number of parameters a function is allowed to
 have.</p>
 <p>Finally, we parse the body and wrap it all up in a function node:</p>
@@ -849,8 +849,8 @@ try:</p>
 </pre></div>
 
 
-<p>I don&rsquo;t about you, but that looks like an honest-to-God programming language to
-me.</p>
+<p>I don&rsquo;t know about you, but that looks like an honest-to-God programming
+language to me.</p>
 <h2><a href="#return-statements" name="return-statements"><small>10&#8202;.&#8202;5</small> Return Statements</a></h2>
 <p>We can get data into functions by passing parameters, but we&rsquo;ve got no way to
 get results back <span name="hotel"><em>out</em></span>. If Lox was an
@@ -1029,7 +1029,7 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
 </pre></div>
 
-<p>We wrap the call to <code>executeBlock()</code> is a try-catch block. When it catches a
+<p>We wrap the call to <code>executeBlock()</code> in a try-catch block. When it catches a
 return exception, it pulls out the value and makes that the return value from
 <code>call()</code>. If it never catches one of these exceptions, it means the function
 reached the end of its body without hitting a return statement. In that case, it
@@ -1098,7 +1098,7 @@ function and then its own body finishes executing completely.</p>
 executes the body of <code>count()</code>, which assigns to and reads <code>i</code>, even though the
 function where <code>i</code> was defined has already exited.</p>
 <p>If you&rsquo;ve never encountered a language with nested functions before, this might
-seem crazy, but users do expect it to work. Alas, if run it now, you get an
+seem crazy, but users do expect it to work. Alas, if you run it now, you get an
 undefined variable error in the call to <code>counter()</code> when the body of <code>count()</code>
 tries to look up <code>i</code>. That&rsquo;s because the environment chain in effect looks like
 this:</p>
@@ -1181,7 +1181,7 @@ structure.</p>
 koan</a> from none other than Guy Steele.</p>
 </aside>
 <p>Of course, we will add more natural support for first-class data structures when
-we added classes. But even now, it&rsquo;s possible to define a function that works
+we add classes. But even now, it&rsquo;s possible to define a function that works
 like an object. Cogitate on this:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">makePoint</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">fun</span> <span class="n">closure</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="p">{</span>

@@ -369,17 +369,17 @@ between two points in the code. To do that, a Lox program needs to be able to
 tell time. There's no way to do that now -- you can't implement a useful clock
 "from scratch" without access to the underlying clock on the computer.
 
-So we'll add `clock()`, a native function that returns how many seconds -- as a
-floating point value -- the interpreter has been running. The difference between
-two calls to this tell you how much time elapsed.
+So we'll add `clock()`, a native function that returns the number of seconds
+that have passed since some fixed point in time. The difference between two
+calls to this tell you how much time elapsed between the two calls.
 
 When we instantiate an Interpreter, we stuff it in the global scope:
 
 ^code interpreter-constructor
 
 This defines a <span name="lisp-1">variable</span> named "clock". Its value is a
-Java anonymous class that implements LoxCallable. The `clock()` function takes no
-arguments, so its arity is zero. The implementation of `call()` calls the
+Java anonymous class that implements LoxCallable. The `clock()` function takes
+no arguments, so its arity is zero. The implementation of `call()` calls the
 corresponding Java function and converts the result to a double value in
 seconds.
 
