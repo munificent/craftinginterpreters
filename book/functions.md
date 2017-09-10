@@ -997,7 +997,9 @@ structure.
 <aside name="poor">
 
 One of my favorite nuggets of programming language lore is [this delightful
-koan][koan] from none other than Guy Steele.
+koan][koan] from Anton van Straaten that perfectly sums up the eternal debate
+between object-oriented and functional programmers about whose model is most
+fundamental.
 
 [koan]: http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html
 
