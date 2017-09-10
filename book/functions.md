@@ -273,7 +273,7 @@ Different languages take different approaches to this problem. Of course, most
 statically-typed languages check this at compile time and refuse to compile the
 code if the argument count doesn't match the function's arity. JavaScript
 discards any extra arguments you pass. If you don't pass enough, it fills in the
-missing parameters with the magic sort-of-like-null-but-not really value
+missing parameters with the magic sort-of-like-null-but-not-really value
 `undefined`. Python is stricter. It raises a runtime error if the argument list
 is too short or too long.
 
