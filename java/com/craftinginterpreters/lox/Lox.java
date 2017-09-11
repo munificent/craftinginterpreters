@@ -8,9 +8,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-//> Resolving and Binding not-yet
-import java.util.Map;
-//< Resolving and Binding not-yet
 
 public class Lox {
 //> Evaluating Expressions interpreter-instance
@@ -84,14 +81,16 @@ public class Lox {
     if (hadError) return;
 
 //< Parsing Expressions print-ast
-//> Resolving and Binding not-yet
+//> Resolving and Binding create-resolver
     Resolver resolver = new Resolver(interpreter);
     resolver.resolve(statements);
-
+//> resolution-error
+    
     // Stop if there was a resolution error.
     if (hadError) return;
+//< resolution-error
 
-//< Resolving and Binding not-yet
+//< Resolving and Binding create-resolver
 /* Parsing Expressions print-ast < Evaluating Expressions interpreter-interpret
     System.out.println(new AstPrinter().print(expression));
 */

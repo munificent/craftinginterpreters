@@ -4,15 +4,15 @@ package com.craftinginterpreters.lox;
 //> Functions import-array-list
 import java.util.ArrayList;
 //< Functions import-array-list
-//> Resolving and Binding not-yet
+//> Resolving and Binding import-hash-map
 import java.util.HashMap;
-//< Resolving and Binding not-yet
+//< Resolving and Binding import-hash-map
 //> Statements and State import-list
 import java.util.List;
 //< Statements and State import-list
-//> Resolving and Binding not-yet
+//> Resolving and Binding import-map
 import java.util.Map;
-//< Resolving and Binding not-yet
+//< Resolving and Binding import-map
 
 /* Evaluating Expressions interpreter-class < Statements and State interpreter
 class Interpreter implements Expr.Visitor<Object> {
@@ -27,13 +27,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //> Functions global-environment
   final Environment globals = new Environment();
   private Environment environment = globals;
-
 //< Functions global-environment
-//> Resolving and Binding not-yet
-
+//> Resolving and Binding locals-field
   private final Map<Expr, Integer> locals = new HashMap<>();
-//< Resolving and Binding not-yet
+//< Resolving and Binding locals-field
 //> Functions interpreter-constructor
+
   Interpreter() {
     globals.define("clock", new LoxCallable() {
       @Override
@@ -80,11 +79,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     stmt.accept(this);
   }
 //< Statements and State execute
-//> Resolving and Binding not-yet
+//> Resolving and Binding resolve
   void resolve(Expr expr, int depth) {
     locals.put(expr, depth);
   }
-//< Resolving and Binding not-yet
+//< Resolving and Binding resolve
 //> Statements and State execute-block
   void executeBlock(List<Stmt> statements, Environment environment) {
     Environment previous = this.environment;
@@ -226,10 +225,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
 
-/* Statements and State visit-assign < Resolving and Binding not-yet
+/* Statements and State visit-assign < Resolving and Binding resolved-assign
     environment.assign(expr.name, value);
 */
-//> Resolving and Binding not-yet
+//> Resolving and Binding resolved-assign
     Integer distance = locals.get(expr);
     if (distance != null) {
       environment.assignAt(distance, expr.name, value);
@@ -237,7 +236,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       globals.assign(expr.name, value);
     }
 
-//< Resolving and Binding not-yet
+//< Resolving and Binding resolved-assign
     return value;
   }
 //< Statements and State visit-assign
@@ -442,15 +441,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //> Statements and State visit-variable
   @Override
   public Object visitVariableExpr(Expr.Variable expr) {
-/* Statements and State visit-variable < Resolving and Binding not-yet
+/* Statements and State visit-variable < Resolving and Binding call-look-up-variable
     return environment.get(expr.name);
 */
-//> Resolving and Binding not-yet
+//> Resolving and Binding call-look-up-variable
     return lookUpVariable(expr.name, expr);
-//< Resolving and Binding not-yet
+//< Resolving and Binding call-look-up-variable
   }
-//> Resolving and Binding not-yet
-
+//> Resolving and Binding look-up-variable
   private Object lookUpVariable(Token name, Expr expr) {
     Integer distance = locals.get(expr);
     if (distance != null) {
@@ -459,7 +457,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       return globals.get(name);
     }
   }
-//< Resolving and Binding not-yet
+//< Resolving and Binding look-up-variable
 //< Statements and State visit-variable
 //> check-operand
   private void checkNumberOperand(Token operator, Object operand) {

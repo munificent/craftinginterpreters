@@ -37,7 +37,13 @@
 <h3><a href="#top">Resolving and Binding<small>11</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#static-scope"><small>11.1</small> Static Scope</a></li>
+    <li><a href="#semantic-analysis"><small>11.2</small> Semantic Analysis</a></li>
+    <li><a href="#a-resolver-class"><small>11.3</small> A Resolver Class</a></li>
+    <li><a href="#interpreting-resolved-variables"><small>11.4</small> Interpreting Resolved Variables</a></li>
+    <li><a href="#resolution-errors"><small>11.5</small> Resolution Errors</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -63,7 +69,13 @@
 <h3><a href="#top">Resolving and Binding<small>11</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#static-scope"><small>11.1</small> Static Scope</a></li>
+    <li><a href="#semantic-analysis"><small>11.2</small> Semantic Analysis</a></li>
+    <li><a href="#a-resolver-class"><small>11.3</small> A Resolver Class</a></li>
+    <li><a href="#interpreting-resolved-variables"><small>11.4</small> Interpreting Resolved Variables</a></li>
+    <li><a href="#resolution-errors"><small>11.5</small> Resolution Errors</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -81,9 +93,10 @@
   <div class="number">11</div>
   <h1>Resolving and Binding</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +111,1151 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<blockquote>
+<p>Once in a while you find yourself in an odd situation. You get into it by
+degrees and in the most natural way but, when you are right in the midst of
+it, you are suddenly astonished and ask yourself how in the world it all came
+about.</p>
+<p><cite>Thor Heyerdahl</cite></p>
+</blockquote>
+<p>Oh, no! Our language implementation is taking on water! Way back when we <a href="statements-and-state.html">added
+variables and blocks</a>, we had scoping nice and tight. But when we
+<a href="functions.html">later added closures</a>, a hole opened in our formerly waterproof
+interpreter. Most real programs are unlikely to slip through this hole, but as
+language implementers, we take a sacred vow to care about correctness even in
+the deepest, dampest corners of the semantics.</p>
+<p>We will spend this entire chapter exploring that leak, and then carefully
+patching it up. In the process, we will gain a more rigorous understanding of
+lexical scoping as used by Lox and other languages in the C tradition. We&rsquo;ll
+also get a chance to learn about <em>semantic analysis</em>&#8202;&mdash;&#8202;a powerful technique for
+extracting meaning from the user&rsquo;s source code without having to run it.</p>
+<h2><a href="#static-scope" name="static-scope"><small>11&#8202;.&#8202;1</small> Static Scope</a></h2>
+<p>A quick refresher: Lox, like most modern languages, uses <em>lexical</em> scoping. This
+means that you can figure out which declaration a variable name refers to just
+by reading the text of the program. For example:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
+<span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;inner&quot;</span><span class="p">;</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
 
+
+<p>Here, we know that the <code>a</code> being printed is the variable declared on the
+previous line, and not the global one. Running the program doesn&rsquo;t&#8202;&mdash;&#8202;<em>can&rsquo;t</em>&#8202;&mdash;&#8202;affect this. The scope rules are part of the <em>static</em> semantics of the language,
+which is why they&rsquo;re also called <strong>&ldquo;static scope&rdquo;</strong>.</p>
+<p>I haven&rsquo;t spelled out those scope rules, but now is the time for <span
+name="precise">precision</span>:</p>
+<aside name="precise">
+<p>This is still nowhere near as precise as a real language specification. Those
+docs must be so explicit that even a Martian or an outright malicious programmer
+would be forced to implement the correct semantics provided they followed the
+letter of the spec.</p>
+<p>That exactitude is important when a language may be implemented by competing
+companies who want their product to be incompatible with the others to lock
+customers onto their platform. For this book, we can thankfully ignore those
+kinds of shady shenanigans.</p>
+</aside>
+<p><strong>A variable usage refers to the preceding declaration with the same name in the
+innermost scope that encloses the expression where the variable is used.</strong></p>
+<p>There&rsquo;s a lot to unpack in that:</p>
+<ul>
+<li>
+<p>I say &ldquo;variable usage&rdquo; instead of &ldquo;variable expression&rdquo; to cover both
+    variable expressions and assignments. Likewise &ldquo;expression where the
+    variable is used&rdquo;.</p>
+</li>
+<li>
+<p>&ldquo;Preceding&rdquo; means appearing before <em>in the program text</em>. Given:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
+<span class="p">{</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;inner&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Here, the <code>a</code> being printed is the outer one since it appears <span
+name="hoisting">before</span> the print statement that uses it. In most
+cases, in straight line code, the declaration preceding in <em>text</em> will also
+precede the usage in <em>time</em>. But that&rsquo;s not <em>always</em> true. As we&rsquo;ll see,
+functions may defer a chunk of code such that its <em>dynamic temporal</em>
+execution no longer mirrors the <em>static textual</em> ordering.</p>
+<aside markdown="1" name="hoisting">
+
+<p>In JavaScript, variables declared using <code>var</code> are implicitly &ldquo;hoisted&rdquo; to
+the beginning of the block. Any use of that name in the block will refer to
+that variable, even if the use appears before the declaration. When you
+write this in JavaScript:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">a</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>It behaves like:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">a</span><span class="p">;</span> <span class="c1">// Hoist.</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">a</span><span class="p">);</span>
+  <span class="nx">a</span> <span class="o">=</span> <span class="s2">&quot;value&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>That means that in some cases you can read a variable before its initializer
+has run&#8202;&mdash;&#8202;an annoying source of bugs. The alternate <code>let</code> syntax for
+declaring variables was added later to address this problem.</p>
+</aside>
+
+</li>
+<li>
+<p>&ldquo;Innermost&rdquo; is there because of our good friend shadowing. There may be more
+    than one variable with the given name in enclosing scopes, as in:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
+<span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;inner&quot;</span><span class="p">;</span>
+  <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Our rule disambiguates this case by saying the innermost scope wins.</p>
+</li>
+</ul>
+<p>Since this rule makes no mention of any runtime behavior, it implies that a
+variable expression always refers to the same declaration through the entire
+execution of the program. Our interpreter so far <em>mostly</em> implements the above
+rule correctly. But when we added closures, an error snuck in:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;global&quot;</span><span class="p">;</span>
+<span class="p">{</span>
+  <span class="k">fun</span> <span class="n">showA</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">print</span> <span class="n">a</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">showA</span><span class="p">();</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;block&quot;</span><span class="p">;</span>
+  <span class="n">showA</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p><span name="tricky">Before</span> you type this in and run it, decide what you
+think it <em>should</em> print.</p>
+<aside name="tricky">
+<p>I know, it&rsquo;s a totally pathological, contrived program. It&rsquo;s just <em>weird</em>. No
+reasonable person would ever write code like this. Alas, more of your life than
+you&rsquo;d expect will be spent dealing with bizarro snippets of code like this if
+you stay in the programming language game for long.</p>
+</aside>
+<p>OK&hellip; got it? If you&rsquo;re familiar with closures in other languages, you&rsquo;ll expect
+it to print &ldquo;global&rdquo; twice. The first call to <code>showA()</code> should definitely print
+&ldquo;global&rdquo; since we haven&rsquo;t even reached the declaration if the inner <code>a</code> yet. And
+by our rule that a variable expression always resolves to the same variable,
+that implies the second call to <code>showA()</code> should print the same thing.</p>
+<p>Alas, it prints:</p>
+<div class="codehilite"><pre><span></span>global
+block
+</pre></div>
+
+
+<p>Let me stress that this program never reassigns any variable and only contains a
+single print statement. Yet, somehow, that print statement for a never-assigned
+variable prints two different values at different points in time. We definitely
+broke something somewhere.</p>
+<h3><a href="#scopes-and-mutable-environments" name="scopes-and-mutable-environments"><small>11&#8202;.&#8202;1&#8202;.&#8202;1</small> Scopes and mutable environments</a></h3>
+<p>In our interpreter, environments are the dynamic manifestation of static scopes.
+The two mostly stay in sync with each other&#8202;&mdash;&#8202;we create a new environment when
+we enter a new scope, and discard it when we leave the scope. There is one other
+operation we perform on environments: binding a variable in one. This is where
+our bug lies.</p>
+<p>Let&rsquo;s walk through that problematic example and see what the environments look
+like at each step. First, we declare <code>a</code> in the global scope:</p>
+<p><img src="image/resolving-and-binding/environment-1.png" alt="The global environment with 'a' defined in it." /></p>
+<p>That gives us a single environment with a single variable in it. Then we enter
+the block and execute the declaration of <code>showA()</code>:</p>
+<p><img src="image/resolving-and-binding/environment-2.png" alt="A block environment linking to the global one." /></p>
+<p>We get a new environment for the block. In that, we declare one name <code>showA</code>,
+which is bound to the LoxFunction object we create to represent the function.
+That object has a <code>closure</code> field that captures the environment where the
+function was declared, so it has a reference back to the environment for the
+block.</p>
+<p>Now we call <code>showA()</code>:</p>
+<p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." /></p>
+<p>The interpreter dynamically creates a new environment for the function body of
+<code>showA()</code>. It&rsquo;s empty since that function doesn&rsquo;t declare any variables. The
+parent of that environment is the function&rsquo;s closure&#8202;&mdash;&#8202;the outer block
+environment.</p>
+<p>Inside the body of <code>showA()</code>, we print the value of <code>a</code>. The interpreter looks
+up <code>a</code>&rsquo;s value by walking the chain of environments. It gets all the way to the
+global environment before finding it there and printing <code>"global"</code>. Great.</p>
+<p>Next, we declare the second <code>a</code>, this time inside the block:</p>
+<p><img src="image/resolving-and-binding/environment-4.png" alt="The block environment has both 'a' and 'showA' now." /></p>
+<p>It&rsquo;s in the same block as <code>showA()</code>, so it goes into the same environment, which
+is also the same environment <code>showA()</code>&rsquo;s closure refers to. This is where
+it gets interesting. We call <code>showA()</code> again:</p>
+<p><img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." /></p>
+<p>We create a new empty environment for the body of <code>showA()</code> again, wire it up to
+that closure, and run the body. When the interpreter walks the chain of
+environments to find <code>a</code>, it now discovers the <em>new</em> <code>a</code> in the block
+environment. Boo.</p>
+<p>I chose to implement environments in a way that I hoped would agree with your
+informal intuition around scopes. We tend to think consider all of the code
+within a block as being within the same scope, so our interpreter uses a single
+environment to represent that. Each environment is a mutable hash table. When a
+new local variable is declared, it gets added to the existing environment for
+that scope.</p>
+<p>That intuition, like many in life, isn&rsquo;t quite right. A block is <em>not</em> all
+actually the same scope. Consider:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span><span class="p">;</span>
+  <span class="c1">// 1.</span>
+  <span class="k">var</span> <span class="n">b</span><span class="p">;</span>
+  <span class="c1">// 2.</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>At the first marked line, only <code>a</code> is in scope. At the second line, both <code>a</code> and
+<code>b</code> are. If you define a &ldquo;scope&rdquo; to be a set of declarations, then those are
+clearly not the same scope&#8202;&mdash;&#8202;they don&rsquo;t contain the same declarations. It&rsquo;s
+like each variable statement <span name="split">splits</span> the block into two
+separate scopes, the scope before the variable is declared and the one after,
+which includes the new variable.</p>
+<aside name="split">
+<p>Some languages make this split explicit. In Scheme and ML, when you declare a
+local variable using <code>let</code>, you also delineate the subsequent code where the new
+variable is in scope. There is no implicit &ldquo;rest of the block&rdquo;.</p>
+</aside>
+<p>But in our implementation, environments do act like the entire block is one
+scope, just a scope that changes over time. Closures do not like that. When a
+function is declared, it captures a reference to the current environment. The
+function <em>should</em> capture a frozen snapshot of the environment <em>as it existed at
+the moment the function was declared</em>. But, instead, in the Java code, it has a
+reference to the actual mutable environment object. When a variable is later
+declared in the scope that environment corresponds to, the closure sees the new
+variable, even though the declaration does <em>not</em> precede the function.</p>
+<h3><a href="#persistent-environments" name="persistent-environments"><small>11&#8202;.&#8202;1&#8202;.&#8202;2</small> Persistent environments</a></h3>
+<p>There is a style of programming that uses what are called <strong>&ldquo;persistent data
+structures&rdquo;</strong>. Unlike the squishy data structures you&rsquo;re familiar with in
+imperative programming, a persistent data structure can never be directly
+modified. Instead, any &ldquo;modification&rdquo; to an existing structure produces a <span
+name="copy">brand</span> new object that contains all of the original data and
+the new modification. The original is left unchanged.</p>
+<aside name="copy">
+<p>This sounds like it might waste tons of memory and time copying the structure
+each time. In practice, persistent data structures share most of their data
+between the different &ldquo;copies&rdquo;.</p>
+</aside>
+<p>If we were to apply that technique to Environment, then every time you declared
+a variable it would return a <em>new</em> environment that contained all of the
+previously-declared variables along with the one new name. Declaring a variable
+would do the implicit &ldquo;split&rdquo; where you have an environment before the variable
+is declared and one after:</p>
+<p><img src="image/resolving-and-binding/split.png" alt="Seperate environments before and after the variable is declared." /></p>
+<p>A closure retains a reference to the Environment in play when the function was
+declared. Since any later declarations in that block would produce new
+environment objects, the closure wouldn&rsquo;t see the new variables and our bug
+would be fixed.</p>
+<p>This is a legit way to solve the problem, and it&rsquo;s the classic way to implement
+environments in Scheme interpreters. We could do that for Lox, but it would mean
+going back and changing a pile of existing code.</p>
+<p>I won&rsquo;t drag you through that. We&rsquo;ll keep the way we represent environments the
+same. Instead of making the data more statically structured, we&rsquo;ll bake the
+static resolution into the access <em>operation</em> itself.</p>
+<h2><a href="#semantic-analysis" name="semantic-analysis"><small>11&#8202;.&#8202;2</small> Semantic Analysis</a></h2>
+<p>Our interpreter resolves a variable&#8202;&mdash;&#8202;tracks down which declaration it refers
+to&#8202;&mdash;&#8202;each and every time the variable expression is evaluated. If that variable
+is swaddled inside a loop that runs a thousand times, that variable gets
+re-resolved a thousand times.</p>
+<p>We know static scope means that a variable usage always resolves to the same
+declaration, which can be determined just by looking at the text. Given that,
+why are we doing it dynamically every time? Doing so doesn&rsquo;t just open the hole
+that leads to our annoying bug, it&rsquo;s also needlessly slow.</p>
+<p>A better solution is to resolve each variable use <em>once</em>. Write a chunk of code
+that inspects the user&rsquo;s program, finds every variable mentioned, and figures
+out which declaration each refers to. This process is an example of a <strong>semantic
+analysis</strong>. Where a parser only tells if a program is grammatically correct&#8202;&mdash;&#8202;a
+<em>syntactic</em> analysis&#8202;&mdash;&#8202;semantic analysis goes farther and starts to figure out
+what pieces of the program actually mean. In this case, our analysis will
+resolve variable bindings. We&rsquo;ll know not just that an expression <em>is</em> a
+variable, but <em>which</em> variable it is.</p>
+<p>There are a lot of ways we could store the binding between a variable and its
+declaration. When we get to the C interpreter for Lox, we&rsquo;ll have a <em>much</em> more
+efficient way of storing and accessing local variables. But for jlox, I want to
+minimize the collatoral damage we inflict on our existing codebase. I&rsquo;d hate to
+throw out a bunch of mostly-fine code.</p>
+<p>Instead, we&rsquo;ll store the resolution in a way that makes the most out of our
+existing Environment structure. Recall how the accesses of <code>a</code> are interpreted
+in the problematic example:</p>
+<p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." /></p>
+<p>In the first (correct) evaluation, we seek through three environments in the
+chain before finding the global declaration of <code>a</code>. Then, when the inner <code>a</code> is
+later declared in a block scope, it shadows the global one:</p>
+<p><img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." /></p>
+<p>The next look up walks the chain, finds <code>a</code> in the <em>second</em> environment and
+stops there. Each environment corresponds to a single lexical scope where
+variables are declared. If we could ensure a variable lookup always walked the
+<em>same</em> number of links in the environment chain, that would ensure that it
+found the same variable in the same scope every time.</p>
+<p>To &ldquo;resolve&rdquo; a variable usage, we only need to calculate how many &ldquo;hops&rdquo; away
+the declared variable will be in the environment chain. The interesting question
+is <em>when</em> to do this calculation&#8202;&mdash;&#8202;or, put differently, where in our
+interpreter&rsquo;s implementation do we stuff the code for it?</p>
+<p>Since we&rsquo;re calcuting a static property based on the structure of the source
+code, the obvious answer is in the parser. That is the traditional home, and is
+where we&rsquo;ll do it later in clox. It would work here too, but I want an excuse to
+show you another technique. We&rsquo;ll write our resolver as a separate pass.</p>
+<h3><a href="#a-variable-resolution-pass" name="a-variable-resolution-pass"><small>11&#8202;.&#8202;2&#8202;.&#8202;1</small> A variable resolution pass</a></h3>
+<p>After the parser produces the syntax tree, but before the interpreter starts
+executing it, we&rsquo;ll do a single walk over the tree to resolve all of the
+variables it contains. Additional passes between parsing and execution are
+common. If Lox had static types, we could slide a type checker in there.
+Optimizations are often implemented in separate passes like this too. Basically,
+any work that doesn&rsquo;t rely on state that&rsquo;s only available at runtime can be done
+in this way.</p>
+<p>Out variable resolution pass works like a sort of mini-interpreter. It walks the
+tree, visiting each node, but a static analysis is different from a dynamic
+execution:</p>
+<ul>
+<li>
+<p><strong>There are no side effects.</strong> When the static analysis visits a print
+    statement, it doesn&rsquo;t actually print anything. Calls to native functions or
+    other operations that reach out to the outside world are stubbed out and
+    have no effect.</p>
+</li>
+<li>
+<p><strong>There is no control flow.</strong> Loops are only visited <span
+    name="fix">once</>. Both branches are visited in if statements. Logic
+    operators are not short-circuited.</p>
+</li>
+</ul>
+<aside name="fix">
+<p>Variable resolution touches each node once, so its performance is <code>O(n)</code> where
+<code>n</code> is the number of syntax tree nodes. More sophisticated analyses may have
+greater complexity, but most are carefully designed to be linear or not far from
+it. It&rsquo;s an embarrassing faux pas if your compiler gets exponentially slower as
+the user&rsquo;s program grows.</p>
+</aside>
+<h2><a href="#a-resolver-class" name="a-resolver-class"><small>11&#8202;.&#8202;3</small> A Resolver Class</a></h2>
+<p>Like everything in Java, our variable resolution pass lives nestled in a class:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Stack</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">Resolver</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">;</span>
+
+  <span class="n">Resolver</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">interpreter</span> <span class="o">=</span> <span class="n">interpreter</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Since the resolver needs to visit every node in the syntax tree, it will
+implement the handy Visitor abstraction we already have in place. Only a couple
+of nodes are interesting when it comes to resolving variables:</p>
+<ul>
+<li>
+<p>A block statement introduces a new scope for the statements it contains.</p>
+</li>
+<li>
+<p>A function declaration introduces a new scope for its body and binds its
+    parameters in that scope.</p>
+</li>
+<li>
+<p>A variable declaration adds a new variable to the current scope.</p>
+</li>
+<li>
+<p>Variable and assignment expressions need to have their variables resolved.</p>
+</li>
+</ul>
+<p>The rest of the nodes don&rsquo;t do anything special, but we still need to implement
+visit methods for them that traverse into their subtrees. Even though a <code>+</code>
+expression doesn&rsquo;t <em>itself</em> have any variables to resolve, either of its
+operands might.</p>
+<h3><a href="#resolving-blocks" name="resolving-blocks"><small>11&#8202;.&#8202;3&#8202;.&#8202;1</small> Resolving blocks</a></h3>
+<p>We&rsquo;ll start with blocks since they create the local scopes where all the magic
+happens:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>Resolver</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitBlockStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Block</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">beginScope</span><span class="o">();</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">statements</span><span class="o">);</span>
+    <span class="n">endScope</span><span class="o">();</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This begins a new scope, traverses into the statements inside the block, and
+then discards the scope. The fun stuff lives in those helper methods. We&rsquo;ll
+start with the simple one:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>Resolver</em>()</div>
+<pre><span></span>  <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Stmt</span> <span class="n">statement</span> <span class="o">:</span> <span class="n">statements</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">resolve</span><span class="o">(</span><span class="n">statement</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This walks a list of statements and resolves each one. It in turn calls:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitBlockStmt</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">Stmt</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">stmt</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This is similar to the <code>evaluate()</code> and <code>execute()</code> methods in Interpreter&#8202;&mdash;&#8202;it
+turns around and applies the Visitor pattern to the given syntax tree node.</p>
+<p>The real interesting behavior is around scopes. A new block scope is created
+like so:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>resolve</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">beginScope</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">scopes</span><span class="o">.</span><span class="na">push</span><span class="o">(</span><span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;());</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Lexical scopes nest and in both the interpreter and the resolver, they are
+treated like a stack. The interpreter implements that stack using a linked
+list&#8202;&mdash;&#8202;the chain of Environment objects. In the resolver, we use an actual
+Java Stack:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">;</span>
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in class <em>Resolver</em></div>
+<pre class="insert"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Stack</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;&gt;</span> <span class="n">scopes</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Stack</span><span class="o">&lt;&gt;();</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">Resolver</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">)</span> <span class="o">{</span>
+</pre></div>
+
+<p>This field keeps track of the stack of scopes currently&hellip; uh&hellip; in scope. Each
+element in the stack is a Map representing a single block scope. Keys, as in
+Environment, are variable names. (We&rsquo;ll get to why the values are Booleans
+soon.)</p>
+<p>The scope stack is only used for local block scopes. Variables declared at the
+top level in the global scope are not tracked by the resolver since they are
+more dynamic in Lox. When resolving a variable, if we can&rsquo;t find it in the stack
+of local scopes, we assume it must be global.</p>
+<p>Since scopes are stored in an explicit stack, exiting one is straightforward:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>beginScope</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">endScope</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">scopes</span><span class="o">.</span><span class="na">pop</span><span class="o">();</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This gives us a stack of empty scopes. Let&rsquo;s put some things in them.</p>
+<h3><a href="#resolving-variable-declarations" name="resolving-variable-declarations"><small>11&#8202;.&#8202;3&#8202;.&#8202;2</small> Resolving variable declarations</a></h3>
+<p>Resolving a variable declaration adds a new entry to the current innermost
+scope&rsquo;s map. That seems simple, but there&rsquo;s a little dance we need to do:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitBlockStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitVarStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Var</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">initializer</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">initializer</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>We split binding into to separate steps&#8202;&mdash;&#8202;declaring and defining&#8202;&mdash;&#8202;in order to
+handle this funny edge case:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
+<span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>What happens when the initializer for a local variable refers to a variable with
+the same name as what&rsquo;s being declared? We have a couple of options:</p>
+<ul>
+<li>
+<p><strong>Run the initializer, then put the new variable in scope.</strong> That means here
+    the new local <code>a</code> would be initialized with &ldquo;outer&rdquo;, the value of the
+    <em>global</em> one. In other words, the above declaration desugars to:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// Run the initializer.</span>
+<span class="k">var</span> <span class="n">a</span><span class="p">;</span>        <span class="c1">// Declare the variable.</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">temp</span><span class="p">;</span>     <span class="c1">// Initialize it.</span>
+</pre></div>
+
+
+</li>
+<li>
+<p><strong>Put the new variable in scope, then run the initializer.</strong> This means you
+    can observe a variable before it&rsquo;s initialized, so we need to figure out
+    what value it would have then. Probably <code>nil</code>. That means the new local <code>a</code>
+    would be re-initialized to its own implicitly initialized value, <code>nil</code>. Now
+    the desugaring looks like:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// Define the variable.</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// Run the initializer.</span>
+</pre></div>
+
+
+</li>
+<li>
+<p><strong>Make it an error to reference a variable in its initializer.</strong> Have the
+    interpreter fail either at compile time or runtime if an initializer
+    mentions the variable being initialized.</p>
+</li>
+</ul>
+<p>Do either of those first two options look like something a user actually
+<em>wants</em>? Shadowing is rare and often an error so initializing a shadowing
+variable based on the value of the shadowed one seems unilkely to be deliberate.</p>
+<p>The second option is even less useful. The new variable will <em>always</em> have the
+value <code>nil</code>. There is never any point in mentioning it by name. You could use an
+explicit <code>nil</code> instead.</p>
+<p>Since the first two options are likely to mask user errors, we&rsquo;ll take the
+third. Further, we&rsquo;ll make it a compile error instead of a runtime one. That
+way, the user is alerted to the problem before any code is run.</p>
+<p>In order to do that, as we visit expressions, we need to know if we&rsquo;re inside
+the initializer for some variable. We do that by splitting binding into two
+steps. The first is <em>declaring</em> it:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>endScope</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">declare</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">scopes</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="k">return</span><span class="o">;</span>
+
+    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;</span> <span class="n">scope</span> <span class="o">=</span> <span class="n">scopes</span><span class="o">.</span><span class="na">peek</span><span class="o">();</span>
+    <span class="n">scope</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This adds the variable to the innermost scope so that it shadows any outer one
+and so that we know the variable exists. We mark it as &ldquo;not ready yet&rdquo; by
+binding its name to <code>false</code> in the scope map. Each value in the scope map means
+&ldquo;is finished being initialized&rdquo;.</p>
+<p>Then we resolve the variable&rsquo;s initializer expression itself in the scope where
+the new variable is declared but unavailable. Once the initializer expression is
+done, the variable is ready for prime time. We do that by <em>defining</em> it:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>declare</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">define</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">scopes</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="k">return</span><span class="o">;</span>
+    <span class="n">scopes</span><span class="o">.</span><span class="na">peek</span><span class="o">().</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="kc">true</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>We set the variable&rsquo;s value in the scope map to <code>true</code> to mark it as fully
+initialized and available for use. It&rsquo;s alive!</p>
+<h3><a href="#resolving-variable-expressions" name="resolving-variable-expressions"><small>11&#8202;.&#8202;3&#8202;.&#8202;3</small> Resolving variable expressions</a></h3>
+<p>Variable declarations&#8202;&mdash;&#8202;and function declarations, which we&rsquo;ll get to&#8202;&mdash;&#8202;write
+to the scope maps. Those maps are read when we resolve variable expressions:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitVarStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitVariableExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Variable</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">scopes</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">()</span> <span class="o">&amp;&amp;</span>
+        <span class="n">scopes</span><span class="o">.</span><span class="na">peek</span><span class="o">().</span><span class="na">get</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">)</span> <span class="o">==</span> <span class="n">Boolean</span><span class="o">.</span><span class="na">FALSE</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">,</span>
+          <span class="s">&quot;Cannot read local variable in its own initializer.&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="n">resolveLocal</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>First, we check to see if the variable is being accessed inside its own
+initializer. This is where the values in the scope map come into play. If the
+variable exists in the current scope but its value is <code>false</code>, that means we
+have declared it but not yet defined it. We report that error.</p>
+<p>After that check, we actually resolve the variable itself using this helper:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>define</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveLocal</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">,</span> <span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">scopes</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">--)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">scopes</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="na">containsKey</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">))</span> <span class="o">{</span>
+        <span class="n">interpreter</span><span class="o">.</span><span class="na">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">scopes</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="o">);</span>
+        <span class="k">return</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="c1">// Not found. Assume it is global.</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This looks, for good reason, a lot like the code in Environment for evaluating a
+variable. We start at the innermost scope and work outwards, looking in each map
+for a matching name. If we find the variable, we tell the interpreter it has
+been resolved, passing in the number of scopes between the current innermost
+scope and the scope where the variable was found. So, if the variable was found
+in the current scope, it passes in 0. If it&rsquo;s in the immediately enclosing
+scope,
+1. You get the idea.</p>
+<p>We&rsquo;ll get to the implementation of that method a little later. For now, let&rsquo;s
+keep on cranking through the other syntax nodes.</p>
+<h3><a href="#resolving-assignment-expressions" name="resolving-assignment-expressions"><small>11&#8202;.&#8202;3&#8202;.&#8202;4</small> Resolving assignment expressions</a></h3>
+<p>The other expression that mentions a variable is assignment. Resolving one looks
+like this:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitVarStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitAssignExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Assign</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
+    <span class="n">resolveLocal</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>First, we resolve the expression for the assigned value in case it also contains
+references to other variables using this helper:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>resolve</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Then we use our existing <code>resolveLocal()</code> method to resolve the variable that&rsquo;s
+being assigned to.</p>
+<h3><a href="#resolving-function-declarations" name="resolving-function-declarations"><small>11&#8202;.&#8202;3&#8202;.&#8202;5</small> Resolving function declarations</a></h3>
+<p>Finally, functions. Functions both bind names and introduce a scope. The name of
+the function itself is bound in the scope where the function is declared. When
+we step into the function&rsquo;s body, we also bind its parameter into that scope.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitBlockStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitFunctionStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+
+    <span class="n">resolveFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">,</span> <span class="n">FunctionType</span><span class="o">.</span><span class="na">FUNCTION</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Similar to <code>visitVariableStmt()</code>, we declare and define the name of the function
+in the current scope. Unlike variables, though, we define the name eagerly,
+before resolving the function&rsquo;s body. This lets a function recursively refer to
+itself inside its own body.</p>
+<p>Then we handle the function&rsquo;s body using this:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>resolve</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">function</span><span class="o">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">beginScope</span><span class="o">();</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">Token</span> <span class="n">param</span> <span class="o">:</span> <span class="n">function</span><span class="o">.</span><span class="na">parameters</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">declare</span><span class="o">(</span><span class="n">param</span><span class="o">);</span>
+      <span class="n">define</span><span class="o">(</span><span class="n">param</span><span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">function</span><span class="o">.</span><span class="na">body</span><span class="o">);</span>
+    <span class="n">endScope</span><span class="o">();</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>It&rsquo;s a separate method since we will also use it for resolving Lox methods when
+we add classes later. It creates a new scope for the body and then binds
+variables for each of the function&rsquo;s parameters.</p>
+<p>Once that&rsquo;s ready, it resolves the function body in that scope. This is
+different from how the interpreter handles function declarations. At <em>runtime</em>
+declaring a function doesn&rsquo;t do anything with the function&rsquo;s body. That doesn&rsquo;t
+get touched until later when the function is called. In a <em>static</em> analysis, we
+immediately traverse into the body right then and there.</p>
+<h3><a href="#resolving-the-other-syntax-tree-nodes" name="resolving-the-other-syntax-tree-nodes"><small>11&#8202;.&#8202;3&#8202;.&#8202;6</small> Resolving the other syntax tree nodes</a></h3>
+<p>That covers the interesting corners of the grammars. We handle every place where
+a variable is declared, read or written, and every place where a scope is
+created or destroyed.</p>
+<p>All that remains is visit methods for the other syntax tree nodes to recurse
+into their subtrees. <span name="boring">Sorry</span> this is boring, but bear
+with me. We&rsquo;ll go kind of &ldquo;top down&rdquo; and start with statements.</p>
+<aside name="boring">
+<p>I did say the book would have every single line of code for these interpreters.
+I didn&rsquo;t say they&rsquo;d all be exciting.</p>
+</aside>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitBlockStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitExpressionStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Expression</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">expression</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>An expression statement contains a single expression to traverse.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitFunctionStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitIfStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">If</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">condition</span><span class="o">);</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">thenBranch</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">elseBranch</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">elseBranch</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Here, we can see how resolution is different from interpretation. When we
+resolve an if statement, there is no control flow. We resolve the condition and
+<em>both</em> branches. Where a dynamic execution only steps into the branch that <em>is</em>
+run, a static analysis is conservative&#8202;&mdash;&#8202;it analyzes any branch that <em>could</em> be
+run. Since either one could be reached at runtime, it resolves both.</p>
+<p>Moving along&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitIfStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitPrintStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Print</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">expression</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Like expression statements, a print statement contains a single subexpression.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitPrintStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitReturnStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Return</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Same deal for return.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitVarStmt</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitWhileStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">While</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">condition</span><span class="o">);</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">body</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>As in if statements, with a while statement, we resolve its condition and
+resolve the body exactly once.</p>
+<p>That covers all the statements. Onto expressions&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitAssignExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitBinaryExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">left</span><span class="o">);</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Our old friend the binary expression. We traverse into and resolve both
+operands.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitBinaryExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitCallExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Call</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">callee</span><span class="o">);</span>
+
+    <span class="k">for</span> <span class="o">(</span><span class="n">Expr</span> <span class="n">argument</span> <span class="o">:</span> <span class="n">expr</span><span class="o">.</span><span class="na">arguments</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">resolve</span><span class="o">(</span><span class="n">argument</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Calls are similar&#8202;&mdash;&#8202;we walk the argument list and resolve them all. The thing
+being called is also an expression (usually a variable expression) so that gets
+resolved too.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitCallExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitGroupingExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">expression</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Parentheses are easy.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitGroupingExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitLiteralExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Literals are easiest of all. Since a literal expression doesn&rsquo;t mention any
+variables and doesn&rsquo;t contain any subexpressions, there is no work to do.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitLiteralExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitLogicalExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Logical</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">left</span><span class="o">);</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Since a static analysis does no control flow or short-circuiting, logical
+expressions are exactly the same as other binary operators.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>visitLogicalExpr</em>()</div>
+<pre><span></span>  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitUnaryExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Unary</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>And, finally, the last node. We resolve its one operand. With all of these visit
+methods, the Java compiler should be satisfied that we&rsquo;ve fully implemented
+Stmt.Visitor and Expr.Visitor. Now is a good time to take a break, have a snack,
+maybe a little nap.</p>
+<h2><a href="#interpreting-resolved-variables" name="interpreting-resolved-variables"><small>11&#8202;.&#8202;4</small> Interpreting Resolved Variables</a></h2>
+<p>Let&rsquo;s see what what our resolver is good for. Each time it visits a variable,
+it tells the interpreter how many scopes there are between the current scope and
+the scope where the variable is defined. At runtime, this corresponds exactly to
+the number of <em>environments</em> between the current one and the enclosing one where
+interpreter can find the variable&rsquo;s value. The resolver hands that number to the
+interpreter by calling this:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+add after <em>execute</em>()</div>
+<pre><span></span>  <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">,</span> <span class="kt">int</span> <span class="n">depth</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">locals</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">depth</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>We want to store the resolution information somewhere so we can use it when the
+variable or assignment expression is later executed, but where? One obvious
+place is right in the syntax tree node itself. That&rsquo;s a fine approach, and
+that&rsquo;s where many compilers store the results of analyses like this.</p>
+<p>We could do that, but it would require mucking around with our syntax tree
+generator. Instead, we&rsquo;ll take another common approach and store it off to the
+<span name="side">side</span> in a map that associates each syntax tree node
+with its resolved data:</p>
+<aside name="side">
+<p>I <em>think</em> I&rsquo;ve heard this map called a &ldquo;side table&rdquo; since it&rsquo;s a tabular data
+structure that stores data separately from the objects it relates to. But
+whenever I try to Google for more usages of the term, I get pages about
+furniture.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="n">globals</span><span class="o">;</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in class <em>Interpreter</em></div>
+<pre class="insert"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">Expr</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">locals</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>
+</pre></div>
+
+<p>You might think we&rsquo;d need some sort of <span name="discard">nested</span> tree
+structure to avoid getting confused when there are multiple expressions that
+reference the same variable, but each expression node is its own Java object
+with its own unique identity. A single monolithic map doesn&rsquo;t have any trouble
+keeping them separated.</p>
+<aside name="discard">
+<p>Interactive tools like IDEs often incrementally reparse and re-resolve parts of
+the user&rsquo;s program. It may be hard to find all of the bits of state that need
+recalculating when they&rsquo;re hiding in the foliage of the syntax tree. A benefit
+of storing this data outside of the nodes is that it makes it easy to <em>discard</em>
+it&#8202;&mdash;&#8202;simply clear the map.</p>
+</aside>
+<p>As usual, using a collection requires us to import a couple of names:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em></div>
+<pre class="insert"><span></span><span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span><span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+</pre></div>
+
+<p>And:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em></div>
+<pre class="insert"><span></span><span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
+</pre><pre class="insert-after"><br><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+</pre></div>
+
+<h3><a href="#accessing-a-resolved-variable" name="accessing-a-resolved-variable"><small>11&#8202;.&#8202;4&#8202;.&#8202;1</small> Accessing a resolved variable</a></h3>
+<p>Our interpreter now has access to each variable&rsquo;s resolved location. Finally, we
+get to make use of that. We replace the visit method for variable expressions
+with this:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitVariableExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Variable</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in <em>visitVariableExpr</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="k">return</span> <span class="n">lookUpVariable</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">,</span> <span class="n">expr</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<p>That delegates to:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+add after <em>visitVariableExpr</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Object</span> <span class="nf">lookUpVariable</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Integer</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">locals</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">distance</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">environment</span><span class="o">.</span><span class="na">getAt</span><span class="o">(</span><span class="n">distance</span><span class="o">,</span> <span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">globals</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>There&rsquo;s a couple of things going on here. First, we look up the resolved
+distance in the map. Remember that we only resolved <em>local</em> variables. Globals
+are treated specially and don&rsquo;t end up in the map (hence the name <code>locals</code>). So,
+if we don&rsquo;t find the distance in the map, it must be global. In that case, we
+look it up, dynamically, directly in the global environment. That throws a
+runtime error if the variable isn&rsquo;t defined.</p>
+<p>If we <em>did</em> get a distance, we have a local variable, and we get to take
+advantage of the results of our static analysis. Instead of calling <code>get()</code>, we
+call this new method on Environment:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+add after <em>define</em>()</div>
+<pre><span></span>  <span class="n">Object</span> <span class="nf">getAt</span><span class="o">(</span><span class="kt">int</span> <span class="n">distance</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="na">enclosing</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="k">return</span> <span class="n">environment</span><span class="o">.</span><span class="na">values</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span> <span name="coupled"></span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>The old <code>get()</code> method dynamically walks the chain of enclosing environments,
+scouring each one to see if the variable might be hiding in there somewhere. But
+now we know exactly which environment in the chain will have the variable. We
+simply walk that many hops, and return the variable&rsquo;s value in that map. We
+don&rsquo;t even have to check to see if the variable is there&#8202;&mdash;&#8202;we know it will be
+because the resolver already found it before.</p>
+<aside name="coupled">
+<p>The way the interpreter assumes the variable is in that map feels like flying
+blind. The interpreter code trusts that the resolver did its job and resolved
+the variable correctly. This implies is a deep coupling between these two
+classes. Each line of code in the resolver that touches a scope must have its
+exact match in the interpreter for modifying an environment.</p>
+<p>I felt that coupling that first-hand because as I wrote the code for the book, I
+ran into a couple of subtle bugs where the resolver and interpreter code were
+slightly out of sync. Tracking those down was difficult. One tool to make that
+easier is to have the interpreter explicitly assert&#8202;&mdash;&#8202;using Java&rsquo;s assert
+statements or some other validation tool&#8202;&mdash;&#8202;the contract it expects the resolver
+to have already upheld.</p>
+</aside>
+<h3><a href="#assigning-to-a-resolved-variable" name="assigning-to-a-resolved-variable"><small>11&#8202;.&#8202;4&#8202;.&#8202;2</small> Assigning to a resolved variable</a></h3>
+<p>We can also use a variable by assigning to it. The changes to visiting an
+assignment expression are similar:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
+<br></pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in <em>visitAssignExpr</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">Integer</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">locals</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">distance</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">environment</span><span class="o">.</span><span class="na">assignAt</span><span class="o">(</span><span class="n">distance</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="n">globals</span><span class="o">.</span><span class="na">assign</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+    <span class="o">}</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="n">value</span><span class="o">;</span>
+</pre></div>
+
+<p>Again, we look up the variable&rsquo;s scope distance. If not found, we assume it&rsquo;s
+global and handle it the same way as before. Otherwise, we call this new method:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+add after <em>getAt</em>()</div>
+<pre><span></span>  <span class="kt">void</span> <span class="nf">assignAt</span><span class="o">(</span><span class="kt">int</span> <span class="n">distance</span><span class="o">,</span> <span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Object</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="na">enclosing</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="n">environment</span><span class="o">.</span><span class="na">values</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>As <code>getAt()</code> is to <code>get()</code>, this is to <code>assign()</code>. It walks a fixed number of
+enviroments, and then stuffs the new value in that map.</p>
+<p>Those are the only changes to Interpreter. This is why I chose a representation
+for our resolved data that was minimally invasive. All of the rest of the nodes
+continue working as they did before. Even the code for modifying environments is
+unchanged.</p>
+<h3><a href="#running-the-resolver" name="running-the-resolver"><small>11&#8202;.&#8202;4&#8202;.&#8202;3</small> Running the resolver</a></h3>
+<p>We do need to actually <em>run</em> the resolver, though. We insert the new pass after
+the the parser does its magic:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="c1">// Stop if there was a syntax error.</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
+<br></pre><div class="source-file"><em>lox/Lox.java</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>    <span class="n">Resolver</span> <span class="n">resolver</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Resolver</span><span class="o">(</span><span class="n">interpreter</span><span class="o">);</span>
+    <span class="n">resolver</span><span class="o">.</span><span class="na">resolve</span><span class="o">(</span><span class="n">statements</span><span class="o">);</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">interpreter</span><span class="o">.</span><span class="na">interpret</span><span class="o">(</span><span class="n">statements</span><span class="o">);</span>
+</pre></div>
+
+<p>We don&rsquo;t run the resolver if there are any parse errors. If the code has a
+syntax error, it&rsquo;s never going to run, so there&rsquo;s little value in resolving it.
+If the syntax is clean, we tell the resolver to do its thing. The resolver has a
+reference to the interpreter and pokes the resolution data directly into it as
+it walks over variables. When we next run the interpreter, it has everything it
+needs.</p>
+<p>At least, that&rsquo;s true if the resolver <em>succeeds</em>. But what about errors during
+resolution?</p>
+<h2><a href="#resolution-errors" name="resolution-errors"><small>11&#8202;.&#8202;5</small> Resolution Errors</a></h2>
+<p>Since we are doing a semantic analysis pass, we have an opportunity to make
+Lox&rsquo;s semantics more precise, and to help users catch bugs early before running
+their code. Take a look at this bad boy:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">bad</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;first&quot;</span><span class="p">;</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;second&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>We do allow declaring multiple variables with the same name in the <em>global</em>
+scope, but doing so in a local scope is probably a mistake. If they knew the
+variable already existed, they would assign to it instead of using <code>var</code>. And if
+they <em>didn&rsquo;t</em> know it existed, they probably don&rsquo;t intend to overwrite the
+previous one.</p>
+<p>We can detect this mistake statically while resolving:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;</span> <span class="n">scope</span> <span class="o">=</span> <span class="n">scopes</span><span class="o">.</span><span class="na">peek</span><span class="o">();</span>
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>declare</em>()</div>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">scope</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">name</span><span class="o">,</span>
+          <span class="s">&quot;Variable with this name already declared in this scope.&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">scope</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>
+</pre></div>
+
+<p>When we declare a variable in a local scope, we already know the names of every
+variable previously declared in that same scope. If we see a collision, we
+report an error.</p>
+<h3><a href="#invalid-return-errors" name="invalid-return-errors"><small>11&#8202;.&#8202;5&#8202;.&#8202;1</small> Invalid return errors</a></h3>
+<p>Here&rsquo;s a another nasty little script:</p>
+<div class="codehilite"><pre><span></span><span class="k">return</span> <span class="s">&quot;at top level&quot;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>This executes a return statement but it&rsquo;s not even inside a function at all.
+It&rsquo;s top level code. I don&rsquo;t know what the user <em>thinks</em> is going to happen, but
+I don&rsquo;t think we want Lox to allow this.</p>
+<p>We can extend the resolver to detect this statically. Much like it tracks scopes
+as it walks the tree, it can track whether or not the current code is inside a
+function declaration or not:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Stack</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;&gt;</span> <span class="n">scopes</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Stack</span><span class="o">&lt;&gt;();</span>
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in class <em>Resolver</em></div>
+<pre class="insert"><span></span><span class="kd">private</span> <span class="n">FunctionType</span> <span class="n">currentFunction</span> <span class="o">=</span> <span class="n">FunctionType</span><span class="o">.</span><span class="na">NONE</span><span class="o">;</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">Resolver</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">)</span> <span class="o">{</span>
+</pre></div>
+
+<p>Instead of a bare Boolean, it uses this funny enum:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+add after <em>Resolver</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kd">enum</span> <span class="n">FunctionType</span> <span class="o">{</span>
+    <span class="n">NONE</span><span class="o">,</span>
+    <span class="n">FUNCTION</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>It seems kind of dumb now, but we&rsquo;ll add a couple more cases to it later and
+then it will make more sense. When we resolve a function declaration, we set
+that field before resolving the body.</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">function</span><span class="o">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>resolveFunction</em>()</div>
+<pre class="insert"><span></span>    <span class="n">FunctionType</span> <span class="n">enclosingFunction</span> <span class="o">=</span> <span class="n">currentFunction</span><span class="o">;</span>
+    <span class="n">currentFunction</span> <span class="o">=</span> <span class="n">type</span><span class="o">;</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">beginScope</span><span class="o">();</span>
+</pre></div>
+
+<p>We stash the previous value of the field in a local variable first. Remember,
+Lox has local functions, so you can nest function declarations arbitrarily
+deeply. We need to keep track not just that we&rsquo;re in a function, but <em>how many</em>
+we&rsquo;re in.</p>
+<p>We could use an explicit stack of FunctionType values for that, but instead
+we&rsquo;ll piggyback on the JVM. We store the previous value in a local on the Java
+stack. When we&rsquo;re done resolving the function body, we restore the field to that
+value:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">endScope</span><span class="o">();</span>
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>resolveFunction</em>()</div>
+<pre class="insert"><span></span>    <span class="n">currentFunction</span> <span class="o">=</span> <span class="n">enclosingFunction</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre></div>
+
+<p>Now that we can always tell whether or not we&rsquo;re inside a function declaration,
+we check that when resolving a return statement:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitReturnStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Return</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>visitReturnStmt</em>()</div>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">currentFunction</span> <span class="o">==</span> <span class="n">FunctionType</span><span class="o">.</span><span class="na">NONE</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">keyword</span><span class="o">,</span> <span class="s">&quot;Cannot return from top-level code.&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+</pre></div>
+
+<p>Neat, right?</p>
+<p>There&rsquo;s one more piece. Back in the main Lox class that stitches everything
+together, we are careful to not run the interpreter if any parse errors are
+encountered. That check runs <em>before</em> the resolver so that we don&rsquo;t try to
+resolve syntactically invalid code.</p>
+<p>But we also need to skip the interpreter if there are resolution errors, so we
+add <em>another</em> check:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">resolver</span><span class="o">.</span><span class="na">resolve</span><span class="o">(</span><span class="n">statements</span><span class="o">);</span>
+</pre><div class="source-file"><em>lox/Lox.java</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>    <span class="c1">// Stop if there was a resolution error.</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
+</pre><pre class="insert-after"><br><span></span>    <span class="n">interpreter</span><span class="o">.</span><span class="na">interpret</span><span class="o">(</span><span class="n">statements</span><span class="o">);</span>
+</pre></div>
+
+<p>You could imagine doing lots of other analysis in here. For example, if we added
+break statements to Lox, we probably want to ensure they are only used inside
+loops.</p>
+<p>We could go farther and report warnings for code that isn&rsquo;t necessarily <em>wrong</em>
+but probably isn&rsquo;t useful. For example, many IDEs will warn if you have
+unreachable code after a return statement, or a local variable whose value is
+never read. All of that would be pretty easy to add to our static visiting pass,
+or as <span name="separate">separate</span> passes.</p>
+<aside name="separate">
+<p>The choice of how many different analyses to lump into a single pass is
+difficult. Many small isolated passes, each with their own responsibility, are
+simpler to implement and maintain. However, there is a real runtime cost to
+traversing the syntax tree itself, so bundling multiple analyses into a single
+pass is usually faster.</p>
+</aside>
+<p>But, for now, we&rsquo;ll stick with that limited amount of analysis. The important
+part is that we fixed that one weird annoying edge case bug, though it might be
+surprising that it took this much work to do it.</p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>Why is it safe to eagerly define the variable bound to a function&rsquo;s name
+    when other variables must wait until after they are initialized before they
+    can be used?</p>
+</li>
+<li>
+<p>How do other languages you know handle local variables that refer to the
+    same name in their initializer, like:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
+<span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Is it a runtime error? Compile error? Allowed? Do they treat global
+variables differently? Do you agree with their choices? Justify your answer.</p>
+</li>
+<li>
+<p>Extend the resolver to report an error if a local variable is never used.</p>
+</li>
+<li>
+<p>Our resolver calculates <em>which</em> environment the variable is found in, but
+    it&rsquo;s still looked up by name in that map. A more efficient environment
+    representation would store local variables in an array and look them up by
+    index.</p>
+<p>Extend the resolver to associate a unique index for each local variable
+declared in a scope. When resolving a variable access, look up both the
+scope the variable is in and its index and store that. In the interpreter,
+use that to quickly access a variable by its index instead of using a map.</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="classes.html" class="next">
