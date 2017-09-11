@@ -373,7 +373,17 @@ So we'll add `clock()`, a native function that returns the number of seconds
 that have passed since some fixed point in time. The difference between two
 calls to this tell you how much time elapsed between the two calls.
 
-When we instantiate an Interpreter, we stuff it in the global scope:
+This function is defined in the global scope, so lets ensure the interpreter has
+access to that:
+
+^code global-environment (1 before, 1 after)
+
+The `environment` field in the interpreter changes as we enter and exit local
+scopes. It tracks the *current* environment. This new `globals` field holds a
+fixed reference to the outermost global environment.
+
+When we instantiate an Interpreter, we stuff the native function in that global
+scope:
 
 ^code interpreter-constructor
 
@@ -651,14 +661,6 @@ print add; // "<fn add>".
 ### Interpreting function declarations
 
 We'll come back and refine LoxFunction soon, but that's enough to get started.
-Over in the interpreter, we add a field to track the global environment:
-
-^code global-environment (1 before, 1 after)
-
-The `environment` field changes as we enter and exit local scopes. It tracks the
-*current* environment. The new `globals` field holds a fixed reference to the
-outermost global environment.
-
 Now we can visit a function declaration:
 
 ^code visit-function

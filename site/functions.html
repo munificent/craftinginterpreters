@@ -500,7 +500,22 @@ tell time. There&rsquo;s no way to do that now&#8202;&mdash;&#8202;you can&rsquo
 <p>So we&rsquo;ll add <code>clock()</code>, a native function that returns the number of seconds
 that have passed since some fixed point in time. The difference between two
 calls to this tell you how much time elapsed between the two calls.</p>
-<p>When we instantiate an Interpreter, we stuff it in the global scope:</p>
+<p>This function is defined in the global scope, so lets ensure the interpreter has
+access to that:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+in class <em>Interpreter</em><br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="kd">final</span> <span class="n">Environment</span> <span class="n">globals</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">();</span>
+  <span class="kd">private</span> <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="n">globals</span><span class="o">;</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>
+</pre></div>
+
+<p>The <code>environment</code> field in the interpreter changes as we enter and exit local
+scopes. It tracks the <em>current</em> environment. This new <code>globals</code> field holds a
+fixed reference to the outermost global environment.</p>
+<p>When we instantiate an Interpreter, we stuff the native function in that global
+scope:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>
@@ -807,20 +822,7 @@ add after <em>LoxFunction</em>()</div>
 
 <h3><a href="#interpreting-function-declarations" name="interpreting-function-declarations"><small>10&#8202;.&#8202;4&#8202;.&#8202;1</small> Interpreting function declarations</a></h3>
 <p>We&rsquo;ll come back and refine LoxFunction soon, but that&rsquo;s enough to get started.
-Over in the interpreter, we add a field to track the global environment:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
-</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
-in class <em>Interpreter</em><br>
-replace 2 lines</div>
-<pre class="insert"><span></span>  <span class="kd">final</span> <span class="n">Environment</span> <span class="n">globals</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">();</span>
-  <span class="kd">private</span> <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="n">globals</span><span class="o">;</span>
-<br></pre><pre class="insert-after"><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>
-</pre></div>
-
-<p>The <code>environment</code> field changes as we enter and exit local scopes. It tracks the
-<em>current</em> environment. The new <code>globals</code> field holds a fixed reference to the
-outermost global environment.</p>
-<p>Now we can visit a function declaration:</p>
+Now we can visit a function declaration:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
