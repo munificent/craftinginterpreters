@@ -371,7 +371,7 @@ Optimizations are often implemented in separate passes like this too. Basically,
 any work that doesn't rely on state that's only available at runtime can be done
 in this way.
 
-Out variable resolution pass works like a sort of mini-interpreter. It walks the
+Our variable resolution pass works like a sort of mini-interpreter. It walks the
 tree, visiting each node, but a static analysis is different from a dynamic
 execution:
 
@@ -473,7 +473,7 @@ scope's map. That seems simple, but there's a little dance we need to do:
 
 ^code visit-var-stmt
 
-We split binding into to separate steps -- declaring and defining -- in order to
+We split binding into two separate steps -- declaring and defining -- in order to
 handle this funny edge case:
 
 ```lox
@@ -511,7 +511,7 @@ the same name as what's being declared? We have a couple of options:
 
 Do either of those first two options look like something a user actually
 *wants*? Shadowing is rare and often an error so initializing a shadowing
-variable based on the value of the shadowed one seems unilkely to be deliberate.
+variable based on the value of the shadowed one seems unlikely to be deliberate.
 
 The second option is even less useful. The new variable will *always* have the
 value `nil`. There is never any point in mentioning it by name. You could use an
