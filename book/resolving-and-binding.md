@@ -371,7 +371,7 @@ Optimizations are often implemented in separate passes like this too. Basically,
 any work that doesn't rely on state that's only available at runtime can be done
 in this way.
 
-Out variable resolution pass works like a sort of mini-interpreter. It walks the
+Our variable resolution pass works like a sort of mini-interpreter. It walks the
 tree, visiting each node, but a static analysis is different from a dynamic
 execution:
 
@@ -473,8 +473,8 @@ scope's map. That seems simple, but there's a little dance we need to do:
 
 ^code visit-var-stmt
 
-We split binding into to separate steps -- declaring and defining -- in order to
-handle this funny edge case:
+We split binding into two separate steps -- declaring and defining -- in order
+to handle this funny edge case:
 
 ```lox
 var a = "outer";
@@ -511,7 +511,7 @@ the same name as what's being declared? We have a couple of options:
 
 Do either of those first two options look like something a user actually
 *wants*? Shadowing is rare and often an error so initializing a shadowing
-variable based on the value of the shadowed one seems unilkely to be deliberate.
+variable based on the value of the shadowed one seems unlikely to be deliberate.
 
 The second option is even less useful. The new variable will *always* have the
 value `nil`. There is never any point in mentioning it by name. You could use an
@@ -691,12 +691,12 @@ maybe a little nap.
 
 ## Interpreting Resolved Variables
 
-Let's see what what our resolver is good for. Each time it visits a variable,
+Let's see what our resolver is good for. Each time it visits a variable,
 it tells the interpreter how many scopes there are between the current scope and
 the scope where the variable is defined. At runtime, this corresponds exactly to
 the number of *environments* between the current one and the enclosing one where
-interpreter can find the variable's value. The resolver hands that number to the
-interpreter by calling this:
+the interpreter can find the variable's value. The resolver hands that number to
+the interpreter by calling this:
 
 ^code resolve
 
@@ -781,11 +781,11 @@ because the resolver already found it before.
 
 The way the interpreter assumes the variable is in that map feels like flying
 blind. The interpreter code trusts that the resolver did its job and resolved
-the variable correctly. This implies is a deep coupling between these two
+the variable correctly. This implies a deep coupling between these two
 classes. Each line of code in the resolver that touches a scope must have its
 exact match in the interpreter for modifying an environment.
 
-I felt that coupling that first-hand because as I wrote the code for the book, I
+I felt that coupling first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
 slightly out of sync. Tracking those down was difficult. One tool to make that
 easier is to have the interpreter explicitly assert -- using Java's assert
@@ -817,7 +817,7 @@ unchanged.
 ### Running the resolver
 
 We do need to actually *run* the resolver, though. We insert the new pass after
-the the parser does its magic:
+the parser does its magic:
 
 ^code create-resolver (3 before, 1 after)
 
