@@ -330,7 +330,7 @@ variable, but *which* variable it is.
 There are a lot of ways we could store the binding between a variable and its
 declaration. When we get to the C interpreter for Lox, we'll have a *much* more
 efficient way of storing and accessing local variables. But for jlox, I want to
-minimize the collatoral damage we inflict on our existing codebase. I'd hate to
+minimize the collateral damage we inflict on our existing codebase. I'd hate to
 throw out a bunch of mostly-fine code.
 
 Instead, we'll store the resolution in a way that makes the most out of our
@@ -371,7 +371,7 @@ Optimizations are often implemented in separate passes like this too. Basically,
 any work that doesn't rely on state that's only available at runtime can be done
 in this way.
 
-Out variable resolution pass works like a sort of mini-interpreter. It walks the
+Our variable resolution pass works like a sort of mini-interpreter. It walks the
 tree, visiting each node, but a static analysis is different from a dynamic
 execution:
 
@@ -588,7 +588,7 @@ being assigned to.
 
 Finally, functions. Functions both bind names and introduce a scope. The name of
 the function itself is bound in the scope where the function is declared. When
-we step into the function's body, we also bind its parameter into that scope.
+we step into the function's body, we also bind its parameters into that scope.
 
 ^code visit-function-stmt
 
