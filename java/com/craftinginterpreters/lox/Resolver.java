@@ -21,21 +21,21 @@ private FunctionType currentFunction = FunctionType.NONE;
 //> function-type
   private enum FunctionType {
     NONE,
-/* Resolving and Binding function-type < Classes not-yet
+/* Resolving and Binding function-type < Classes function-types
     FUNCTION
 */
-//> Classes not-yet
+//> Classes function-types
     FUNCTION,
     METHOD,
     INITIALIZER
-//< Classes not-yet
+//< Classes function-types
   }
 //< function-type
-//> Classes not-yet
+//> Classes class-type
 
   private enum ClassType {
     NONE,
-/* Classes not-yet < Inheritance not-yet
+/* Classes class-type < Inheritance not-yet
     CLASS
  */
 //> Inheritance not-yet
@@ -46,7 +46,7 @@ private FunctionType currentFunction = FunctionType.NONE;
 
   private ClassType currentClass = ClassType.NONE;
 
-//< Classes not-yet
+//< Classes class-type
 //> resolve-statements
   void resolve(List<Stmt> statements) {
     for (Stmt statement : statements) {
@@ -63,7 +63,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 //< visit-block-stmt
-//> Classes not-yet
+//> Classes resolver-visit-class
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
     declare(stmt.name);
@@ -82,21 +82,25 @@ private FunctionType currentFunction = FunctionType.NONE;
 //< Inheritance not-yet
 
     for (Stmt.Function method : stmt.methods) {
-      // Push the implicit scope that binds "this" and "class".
+//> resolver-begin-this-scope
       beginScope();
       scopes.peek().put("this", true);
 
+//< resolver-begin-this-scope
       FunctionType declaration = FunctionType.METHOD;
+//> resolver-initializer-type
       if (method.name.lexeme.equals("init")) {
         declaration = FunctionType.INITIALIZER;
       }
 
+//< resolver-initializer-type
       resolveFunction(method, declaration);
+//> resolver-end-this-scope
       endScope();
+//< resolver-end-this-scope
     }
 
 //> Inheritance not-yet
-
     if (currentClass == ClassType.SUBCLASS) endScope();
 
 //< Inheritance not-yet
@@ -104,7 +108,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-class
 //> visit-expression-stmt
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -148,13 +152,13 @@ private FunctionType currentFunction = FunctionType.NONE;
 
 //< return-from-top
     if (stmt.value != null) {
-//> Classes not-yet
+//> Classes return-in-initializer
       if (currentFunction == FunctionType.INITIALIZER) {
         Lox.error(stmt.keyword,
             "Cannot return a value from an initializer.");
       }
 
-//< Classes not-yet
+//< Classes return-in-initializer
       resolve(stmt.value);
     }
 
@@ -208,14 +212,14 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 //< visit-call-expr
-//> Classes not-yet
+//> Classes resolver-visit-get
   @Override
   public Void visitGetExpr(Expr.Get expr) {
     resolve(expr.object);
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-get
 //> visit-grouping-expr
   @Override
   public Void visitGroupingExpr(Expr.Grouping expr) {
@@ -237,7 +241,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 //< visit-logical-expr
-//> Classes not-yet
+//> Classes resolver-visit-set
   @Override
   public Void visitSetExpr(Expr.Set expr) {
     resolve(expr.value);
@@ -245,7 +249,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-set
 //> Inheritance not-yet
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
@@ -262,7 +266,7 @@ private FunctionType currentFunction = FunctionType.NONE;
   }
 
 //< Inheritance not-yet
-//> Classes not-yet
+//> Classes resolver-visit-this
   @Override
   public Void visitThisExpr(Expr.This expr) {
     if (currentClass == ClassType.NONE) {
@@ -274,7 +278,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-this
 //> visit-unary-expr
   @Override
   public Void visitUnaryExpr(Expr.Unary expr) {

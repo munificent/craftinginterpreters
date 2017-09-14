@@ -123,7 +123,6 @@ TOC = [
           'Get and set expressions', 'Constructors', 'Initializers', 'this',
           'Method references'
         ],
-        'done': False,
       },
       {
         'name': 'Inheritance',

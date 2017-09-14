@@ -8,35 +8,35 @@ class LoxFunction implements LoxCallable {
 //> closure-field
   private final Environment closure;
 //< closure-field
-//> Classes not-yet
+//> Classes is-initializer-field
   private final boolean isInitializer;
-//< Classes not-yet
+//< Classes is-initializer-field
 
 /* Functions lox-function < Functions closure-constructor
   LoxFunction(Stmt.Function declaration) {
 */
-/* Functions closure-constructor < Classes not-yet
+/* Functions closure-constructor < Classes lox-function-constructor
   LoxFunction(Stmt.Function declaration, Environment closure) {
 */
-//> Classes not-yet
+//> Classes lox-function-constructor
   LoxFunction(Stmt.Function declaration, Environment closure,
               boolean isInitializer) {
-//< Classes not-yet
+//< Classes lox-function-constructor
 //> closure-constructor
     this.closure = closure;
 //< closure-constructor
     this.declaration = declaration;
-//> Classes not-yet
+//> Classes initialize-is-initializer
     this.isInitializer = isInitializer;
-//< Classes not-yet
+//< Classes initialize-is-initializer
   }
-//> Classes not-yet
+//> Classes bind-self
   LoxFunction bind(LoxInstance self) {
     Environment environment = new Environment(closure);
     environment.define("this", self);
     return new LoxFunction(declaration, environment, isInitializer);
   }
-//< Classes not-yet
+//< Classes bind-self
 //> function-to-string
   @Override
   public String toString() {
@@ -73,9 +73,9 @@ class LoxFunction implements LoxCallable {
       return returnValue.value;
     }
 //< catch-return
-//> Classes not-yet
+//> Classes return-this
     if (isInitializer) return closure.getAt(0, "this");
-//< Classes not-yet
+//< Classes return-this
     return null;
   }
 //< function-call

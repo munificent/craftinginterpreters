@@ -1,4 +1,4 @@
-//> Classes not-yet
+//> Classes lox-instance
 package com.craftinginterpreters.lox;
 
 import java.util.HashMap;
@@ -11,7 +11,7 @@ class LoxInstance {
   LoxInstance(LoxClass klass) {
     this.klass = klass;
   }
-
+//> lox-instance-get-property
   Object getProperty(Token name) {
     if (fields.containsKey(name.lexeme)) {
       return fields.get(name.lexeme);
@@ -23,6 +23,7 @@ class LoxInstance {
     throw new RuntimeError(name,
         "Undefined property '" + name.lexeme + "'.");
   }
+//< lox-instance-get-property
 
   @Override
   public String toString() {

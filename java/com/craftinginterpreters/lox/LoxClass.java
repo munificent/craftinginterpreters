@@ -1,4 +1,4 @@
-//> Classes not-yet
+//> Classes lox-class
 package com.craftinginterpreters.lox;
 
 import java.util.List;
@@ -11,7 +11,7 @@ class LoxClass implements LoxCallable {
 //< Inheritance not-yet
   private final Map<String, LoxFunction> methods;
 
-/* Classes not-yet < Inheritance not-yet
+/* Classes lox-class < Inheritance not-yet
   LoxClass(String name, Map<String, LoxFunction> methods) {
 */
 //> Inheritance not-yet
@@ -24,9 +24,9 @@ class LoxClass implements LoxCallable {
 //< Inheritance not-yet
     this.methods = methods;
   }
-
+//> lox-class-find-method
   LoxFunction findMethod(LoxInstance instance, String name) {
-/* Classes not-yet < Inheritance not-yet
+/* Classes lox-class-find-method < Inheritance not-yet
     if (methods.containsKey(name)) {
       return methods.get(name).bind(instance);
     }
@@ -48,19 +48,21 @@ class LoxClass implements LoxCallable {
     return null;
 //< Inheritance not-yet
   }
+//< lox-class-find-method
 
   @Override
   public String toString() {
     return name;
   }
-
+//> lox-class-arity
   @Override
   public int arity() {
     LoxFunction initializer = methods.get("init");
     if (initializer == null) return 0;
     return initializer.arity();
   }
-
+//< lox-class-arity
+//> lox-class-call
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
     LoxInstance instance = new LoxInstance(this);
@@ -72,4 +74,5 @@ class LoxClass implements LoxCallable {
 
     return instance;
   }
+//< lox-class-call
 }

@@ -59,9 +59,9 @@ class Parser {
 //> Statements and State declaration
   private Stmt declaration() {
     try {
-//> Classes not-yet
+//> Classes match-class
       if (match(CLASS)) return classDeclaration();
-//< Classes not-yet
+//< Classes match-class
 //> Functions match-fun
       if (match(FUN)) return function("function");
 //< Functions match-fun
@@ -74,7 +74,7 @@ class Parser {
     }
   }
 //< Statements and State declaration
-//> Classes not-yet
+//> Classes parse-class-declaration
 
   private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
@@ -96,14 +96,14 @@ class Parser {
 
     consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-/* Classes not-yet < Inheritance not-yet
+/* Classes parse-class-declaration < Inheritance not-yet
     return new Stmt.Class(name, methods);
 */
 //> Inheritance not-yet
     return new Stmt.Class(name, superclass, methods);
 //< Inheritance not-yet
   }
-//< Classes not-yet
+//< Classes parse-class-declaration
 //> Statements and State parse-statement
   private Stmt statement() {
 //> Control Flow match-for
@@ -302,11 +302,11 @@ class Parser {
       if (expr instanceof Expr.Variable) {
         Token name = ((Expr.Variable)expr).name;
         return new Expr.Assign(name, value);
-//> Classes not-yet
+//> Classes assign-set
       } else if (expr instanceof Expr.Get) {
         Expr.Get get = (Expr.Get)expr;
         return new Expr.Set(get.object, get.name, value);
-//< Classes not-yet
+//< Classes assign-set
       }
 
       error(equals, "Invalid assignment target.");
@@ -434,12 +434,12 @@ class Parser {
     while (true) {
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
-//> Classes not-yet
+//> Classes parse-property
       } else if (match(DOT)) {
         Token name = consume(IDENTIFIER,
             "Expect property name after '.'.");
         expr = new Expr.Get(expr, name);
-//< Classes not-yet
+//< Classes parse-property
       } else {
         break;
       }
@@ -468,10 +468,10 @@ class Parser {
       return new Expr.Super(keyword, method);
     }
 //< Inheritance not-yet
-//> Classes not-yet
+//> Classes parse-this
 
     if (match(THIS)) return new Expr.This(previous());
-//< Classes not-yet
+//< Classes parse-this
 //> Statements and State parse-identifier
 
     if (match(IDENTIFIER)) {
