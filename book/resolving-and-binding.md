@@ -511,7 +511,7 @@ the same name as what's being declared? We have a couple of options:
 
 Do either of those first two options look like something a user actually
 *wants*? Shadowing is rare and often an error so initializing a shadowing
-variable based on the value of the shadowed one seems unilkely to be deliberate.
+variable based on the value of the shadowed one seems unlikely to be deliberate.
 
 The second option is even less useful. The new variable will *always* have the
 value `nil`. There is never any point in mentioning it by name. You could use an
