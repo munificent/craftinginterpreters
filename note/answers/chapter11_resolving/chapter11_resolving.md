@@ -158,3 +158,6 @@
       }
     ```
 
+4. This challenge is a real challenge and involves even more code changes.
+   I went ahead and made a copy of the interpreter with the relevant changes
+   in the "4" directory here.
