@@ -14,7 +14,7 @@ import code_snippets
 source_code = code_snippets.load()
 
 
-def split_file(chapter_name, path, snippet=None):
+def split_file(chapter_name, path, snippet=None, index=None):
   chapter_number = book.chapter_number(chapter_name)
 
   source_dir = book.get_language(chapter_name)
@@ -25,7 +25,9 @@ def split_file(chapter_name, path, snippet=None):
   if relative == "com/craftinginterpreters/lox/Expr.java": return
   if relative == "com/craftinginterpreters/lox/Stmt.java": return
 
-  package = "snippet_test" if snippet else book.get_short_name(chapter_name)
+  package = book.get_short_name(chapter_name)
+  if snippet:
+    package = os.path.join("snippets", package, "{:02}-{}".format(index, snippet))
   output_path = os.path.join("gen", package, relative)
 
   # If we're generating the split for an entire chapter, include all its
@@ -59,7 +61,7 @@ def ensure_dir(path):
       os.makedirs(path)
 
 
-def split_chapter(chapter, snippet=None):
+def split_chapter(chapter, snippet=None, index=None):
   source_dir = book.get_language(chapter)
 
   def walk(dir):
@@ -69,7 +71,7 @@ def split_chapter(chapter, snippet=None):
       if os.path.isdir(nfile):
         walk(nfile)
       elif os.path.splitext(path)[1] in [".java", ".h", ".c"]:
-        split_file(chapter, nfile, snippet)
+        split_file(chapter, nfile, snippet, index)
 
   walk(source_dir)
 
@@ -86,6 +88,8 @@ else:
     # TODO: Need to also pass snippet to chapter_to_package() to generate
     # directory name.
     # snippets = source_code.find_all(chapter)
+    # index = 1
     # for snippet in snippets.values():
-    #   split_chapter(chapter, snippet)
+    #   split_chapter(chapter, snippet.name, index)
+    #   index += 1
     split_chapter(chapter)

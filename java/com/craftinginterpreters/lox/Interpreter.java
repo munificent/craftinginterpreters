@@ -106,11 +106,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   }
 //< Statements and State visit-block
 //> Classes interpreter-visit-class
-
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
     environment.define(stmt.name.lexeme, null);
-
+//> interpret-methods
     Map<String, LoxFunction> methods = new HashMap<>();
 //> Inheritance not-yet
     Object superclass = null;
@@ -127,7 +126,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 //< Inheritance not-yet
     for (Stmt.Function method : stmt.methods) {
-/* Classes interpreter-visit-class < Classes interpreter-method-initializer
+/* Classes interpret-methods < Classes interpreter-method-initializer
       LoxFunction function = new LoxFunction(method, environment);
 */
 //> interpreter-method-initializer
@@ -137,7 +136,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       methods.put(method.name.lexeme, function);
     }
 
-/* Classes interpreter-visit-class < Inheritance not-yet
+/* Classes interpret-methods < Inheritance not-yet
     LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
 */
 //> Inheritance not-yet
@@ -149,6 +148,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
 //< Inheritance not-yet
+//< interpret-methods
+/* Classes interpreter-visit-class < Classes interpret-methods
+    LoxClass klass = new LoxClass(stmt.name.lexeme);
+*/
     environment.assign(stmt.name, klass);
     return null;
   }
@@ -348,7 +351,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   public Object visitGetExpr(Expr.Get expr) {
     Object object = evaluate(expr.object);
     if (object instanceof LoxInstance) {
-      return ((LoxInstance) object).getProperty(expr.name);
+      return ((LoxInstance) object).get(expr.name);
     }
 
     throw new RuntimeError(expr.name,
@@ -388,7 +391,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     Object object = evaluate(expr.object);
 
     if (object instanceof LoxInstance) {
-      ((LoxInstance)object).fields.put(expr.name.lexeme, value);
+      ((LoxInstance)object).set(expr.name, value);
       return value;
     }
 

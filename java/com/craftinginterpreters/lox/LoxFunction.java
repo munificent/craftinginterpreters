@@ -8,33 +8,34 @@ class LoxFunction implements LoxCallable {
 //> closure-field
   private final Environment closure;
 //< closure-field
-//> Classes is-initializer-field
-  private final boolean isInitializer;
-//< Classes is-initializer-field
-
 /* Functions lox-function < Functions closure-constructor
   LoxFunction(Stmt.Function declaration) {
 */
-/* Functions closure-constructor < Classes lox-function-constructor
+/* Functions closure-constructor < Classes is-initializer-field
   LoxFunction(Stmt.Function declaration, Environment closure) {
 */
-//> Classes lox-function-constructor
+//> Classes is-initializer-field
+  private final boolean isInitializer;
+
   LoxFunction(Stmt.Function declaration, Environment closure,
               boolean isInitializer) {
-//< Classes lox-function-constructor
+    this.isInitializer = isInitializer;
+//< Classes is-initializer-field
 //> closure-constructor
     this.closure = closure;
 //< closure-constructor
     this.declaration = declaration;
-//> Classes initialize-is-initializer
-    this.isInitializer = isInitializer;
-//< Classes initialize-is-initializer
   }
 //> Classes bind-self
   LoxFunction bind(LoxInstance self) {
     Environment environment = new Environment(closure);
     environment.define("this", self);
+/* Classes bind-self < Classes lox-function-bind-with-initializer
+    return new LoxFunction(declaration, environment);
+*/
+//> lox-function-bind-with-initializer
     return new LoxFunction(declaration, environment, isInitializer);
+//< lox-function-bind-with-initializer
   }
 //< Classes bind-self
 //> function-to-string

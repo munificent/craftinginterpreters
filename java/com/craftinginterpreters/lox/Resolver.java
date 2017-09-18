@@ -21,14 +21,16 @@ private FunctionType currentFunction = FunctionType.NONE;
 //> function-type
   private enum FunctionType {
     NONE,
-/* Resolving and Binding function-type < Classes function-types
+/* Resolving and Binding function-type < Classes function-type-method
     FUNCTION
 */
-//> Classes function-types
+//> Classes function-type-method
     FUNCTION,
-    METHOD,
-    INITIALIZER
-//< Classes function-types
+//> function-type-initializer
+    INITIALIZER,
+//< function-type-initializer
+    METHOD
+//< Classes function-type-method
   }
 //< function-type
 //> Classes class-type
@@ -68,9 +70,10 @@ private FunctionType currentFunction = FunctionType.NONE;
   public Void visitClassStmt(Stmt.Class stmt) {
     declare(stmt.name);
     define(stmt.name);
-
+//> set-current-class
     ClassType enclosingClass = currentClass;
     currentClass = ClassType.CLASS;
+//< set-current-class
 //> Inheritance not-yet
 
     if (stmt.superclass != null) {
@@ -80,6 +83,7 @@ private FunctionType currentFunction = FunctionType.NONE;
       scopes.peek().put("super", true);
     }
 //< Inheritance not-yet
+//> resolve-methods
 
     for (Stmt.Function method : stmt.methods) {
 //> resolver-begin-this-scope
@@ -100,11 +104,14 @@ private FunctionType currentFunction = FunctionType.NONE;
 //< resolver-end-this-scope
     }
 
+//< resolve-methods
 //> Inheritance not-yet
     if (currentClass == ClassType.SUBCLASS) endScope();
 
 //< Inheritance not-yet
+//> restore-current-class
     currentClass = enclosingClass;
+//< restore-current-class
     return null;
   }
 
@@ -269,12 +276,15 @@ private FunctionType currentFunction = FunctionType.NONE;
 //> Classes resolver-visit-this
   @Override
   public Void visitThisExpr(Expr.This expr) {
+//> this-outside-of-class
     if (currentClass == ClassType.NONE) {
       Lox.error(expr.keyword,
           "Cannot use 'this' outside of a class.");
-    } else {
-      resolveLocal(expr, expr.keyword);
+      return null;
     }
+
+//< this-outside-of-class
+    resolveLocal(expr, expr.keyword);
     return null;
   }
 
