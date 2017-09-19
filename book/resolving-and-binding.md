@@ -226,7 +226,7 @@ environments to find `a`, it now discovers the *new* `a` in the block
 environment. Boo.
 
 I chose to implement environments in a way that I hoped would agree with your
-informal intuition around scopes. We tend to think consider all of the code
+informal intuition around scopes. We tend to consider all of the code
 within a block as being within the same scope, so our interpreter uses a single
 environment to represent that. Each environment is a mutable hash table. When a
 new local variable is declared, it gets added to the existing environment for
@@ -371,7 +371,7 @@ Optimizations are often implemented in separate passes like this too. Basically,
 any work that doesn't rely on state that's only available at runtime can be done
 in this way.
 
-Out variable resolution pass works like a sort of mini-interpreter. It walks the
+Our variable resolution pass works like a sort of mini-interpreter. It walks the
 tree, visiting each node, but a static analysis is different from a dynamic
 execution:
 
@@ -695,8 +695,8 @@ Let's see what what our resolver is good for. Each time it visits a variable,
 it tells the interpreter how many scopes there are between the current scope and
 the scope where the variable is defined. At runtime, this corresponds exactly to
 the number of *environments* between the current one and the enclosing one where
-interpreter can find the variable's value. The resolver hands that number to the
-interpreter by calling this:
+the interpreter can find the variable's value. The resolver hands that number to
+the interpreter by calling this:
 
 ^code resolve
 
@@ -781,9 +781,9 @@ because the resolver already found it before.
 
 The way the interpreter assumes the variable is in that map feels like flying
 blind. The interpreter code trusts that the resolver did its job and resolved
-the variable correctly. This implies is a deep coupling between these two
-classes. Each line of code in the resolver that touches a scope must have its
-exact match in the interpreter for modifying an environment.
+the variable correctly. This implies a deep coupling between these two classes.
+Each line of code in the resolver that touches a scope must have its exact match
+in the interpreter for modifying an environment.
 
 I felt that coupling that first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
@@ -807,7 +807,7 @@ global and handle it the same way as before. Otherwise, we call this new method:
 ^code assign-at
 
 As `getAt()` is to `get()`, this is to `assign()`. It walks a fixed number of
-enviroments, and then stuffs the new value in that map.
+environments, and then stuffs the new value in that map.
 
 Those are the only changes to Interpreter. This is why I chose a representation
 for our resolved data that was minimally invasive. All of the rest of the nodes
