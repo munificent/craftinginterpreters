@@ -473,7 +473,7 @@ scope's map. That seems simple, but there's a little dance we need to do:
 
 ^code visit-var-stmt
 
-We split binding into to separate steps -- declaring and defining -- in order to
+We split binding into two separate steps -- declaring and defining -- in order to
 handle this funny edge case:
 
 ```lox
@@ -785,7 +785,7 @@ the variable correctly. This implies is a deep coupling between these two
 classes. Each line of code in the resolver that touches a scope must have its
 exact match in the interpreter for modifying an environment.
 
-I felt that coupling that first-hand because as I wrote the code for the book, I
+I felt that coupling first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
 slightly out of sync. Tracking those down was difficult. One tool to make that
 easier is to have the interpreter explicitly assert -- using Java's assert

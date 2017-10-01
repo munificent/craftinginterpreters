@@ -449,7 +449,7 @@ forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
 Most modern languages have a higher-level looping statement for iterating over
 arbitrary user-defined sequences. C# has `foreach`, Java has "enhanced for",
 even C++ has range-based for statements now. Those offer cleaner syntax than C's
-for statement by implicitly calling into a iteration protocol that the object
+for statement by implicitly calling into an iteration protocol that the object
 being looped over supports.
 
 Those are great. For Lox, though, we're limited by building up the interpreter a
