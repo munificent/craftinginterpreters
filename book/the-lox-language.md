@@ -96,7 +96,7 @@ web pages. JavaScript has grown up since then, but it was once a cute little
 language.
 
 Because Eich slapped JS together with roughly the same raw materials and time as
-an episode of MacGuyver, it has some weird semantic corners where the duct tape
+an episode of MacGyver, it has some weird semantic corners where the duct tape
 and paper clips show through. Things like variable hoisting, dynamically-bound
 `this`, holes in arrays, and implicit conversions.
 
