@@ -26,18 +26,18 @@ class LoxFunction implements LoxCallable {
 //< closure-constructor
     this.declaration = declaration;
   }
-//> Classes bind-self
-  LoxFunction bind(LoxInstance self) {
+//> Classes bind-instance
+  LoxFunction bind(LoxInstance instance) {
     Environment environment = new Environment(closure);
-    environment.define("this", self);
-/* Classes bind-self < Classes lox-function-bind-with-initializer
+    environment.define("this", instance);
+/* Classes bind-instance < Classes lox-function-bind-with-initializer
     return new LoxFunction(declaration, environment);
 */
 //> lox-function-bind-with-initializer
     return new LoxFunction(declaration, environment, isInitializer);
 //< lox-function-bind-with-initializer
   }
-//< Classes bind-self
+//< Classes bind-instance
 //> function-to-string
   @Override
   public String toString() {
@@ -75,6 +75,7 @@ class LoxFunction implements LoxCallable {
     }
 //< catch-return
 //> Classes return-this
+
     if (isInitializer) return closure.getAt(0, "this");
 //< Classes return-this
     return null;

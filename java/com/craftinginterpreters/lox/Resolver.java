@@ -85,13 +85,13 @@ private FunctionType currentFunction = FunctionType.NONE;
 //< Inheritance not-yet
 //> resolve-methods
 
-    for (Stmt.Function method : stmt.methods) {
 //> resolver-begin-this-scope
-      beginScope();
-      scopes.peek().put("this", true);
+    beginScope();
+    scopes.peek().put("this", true);
 
 //< resolver-begin-this-scope
-      FunctionType declaration = FunctionType.METHOD;
+    for (Stmt.Function method : stmt.methods) {
+      FunctionType declaration = FunctionType.METHOD; // [local]
 //> resolver-initializer-type
       if (method.name.lexeme.equals("init")) {
         declaration = FunctionType.INITIALIZER;
@@ -99,11 +99,12 @@ private FunctionType currentFunction = FunctionType.NONE;
 
 //< resolver-initializer-type
       resolveFunction(method, declaration);
-//> resolver-end-this-scope
-      endScope();
-//< resolver-end-this-scope
     }
 
+//> resolver-end-this-scope
+    endScope();
+
+//< resolver-end-this-scope
 //< resolve-methods
 //> Inheritance not-yet
     if (currentClass == ClassType.SUBCLASS) endScope();

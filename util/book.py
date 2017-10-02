@@ -123,6 +123,7 @@ TOC = [
           'Get and set expressions', 'Constructors', 'Initializers', 'this',
           'Method references'
         ],
+        'design_note': 'Prototypes and Power'
       },
       {
         'name': 'Inheritance',

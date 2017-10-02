@@ -87,9 +87,9 @@ class Parser {
     }
 //< Inheritance not-yet
 
-    List<Stmt.Function> methods = new ArrayList<>();
     consume(LEFT_BRACE, "Expect '{' before class body.");
 
+    List<Stmt.Function> methods = new ArrayList<>();
     while (!check(RIGHT_BRACE) && !isAtEnd()) {
       methods.add(function("method"));
     }

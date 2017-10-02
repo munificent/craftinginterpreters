@@ -24,7 +24,7 @@ class LoxInstance {
     if (method != null) return method;
 
 //< lox-instance-get-method
-    throw new RuntimeError(name,
+    throw new RuntimeError(name, // [hidden]
         "Undefined property '" + name.lexeme + "'.");
   }
 //< lox-instance-get-property
