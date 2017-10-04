@@ -532,11 +532,17 @@ This program creates an instance and then stores a function in a field on it.
 Then it calls that function using the same syntax as a method call. Does that
 work?
 
-Different languages take different approaches here. One could write a treatise on it. For Lox, we'll say the answer to all of these is that, yes, it does work. We have a couple of reasons to justify that.
+Different languages take different approaches here. One could write a treatise
+on it. For Lox, we'll say the answer to both of these is that, yes, it does
+work. We have a couple of reasons to justify that.
 
-For the second example, calling a function stored in a field, we want to support that because first class functions are useful and storing them in fields is a perfectly normal thing to do.
+For the second example, calling a function stored in a field, we want to support
+that because first class functions are useful and storing them in fields is a
+perfectly normal thing to do.
 
-The first example is more complex. One motivation is because users generally expect to be able to hoist a subexpression out into a local variable without changing the meaning of the program. You can take this:
+The first example is more complex. One motivation is because users generally
+expect to be able to hoist a subexpression out into a local variable without
+changing the meaning of the program. You can take this:
 
 ```lox
 var average = (3 + 4) / 2;
@@ -1137,15 +1143,15 @@ enterprise language.
 
         print Math.square(3); // Prints "9".
 
-    *Hint: The property access expression requires the left operand to be a
-    LoxInstance. Consider making LoxClass extend that so that the existing code
-    works as it is.*
+    You can solve this however you like, but the "metaclasses" used by Smalltalk
+    and Ruby will give you a simple, elegant solution. *Hint: Make LoxClass
+    extend LoxInstance and go from there.*
 
 2.  Most modern languages let you define "getters" and "setters" -- members on
     a class that appear to be field reads and writes but that actually perform
     user-defined computation. Extend Lox to support getter methods. These are
     declared without a parameter list. The body of the getter is executed when
-    a property with that is accessed:
+    a property with that name is accessed:
 
         :::lox
         class Circle {
@@ -1161,7 +1167,16 @@ enterprise language.
         var circle = Circle(4);
         print circle.area; // Prints roughly "50.2655".
 
-**todo: something around privacy?**
+3.  Python and JavaScript allow you to freely access the fields on an object
+    from outside of the methods on that object. Ruby and Smalltalk encapsulate
+    instance state. Only methods on the class can access the raw fields, and it
+    is up to the class to decide which state is exposed using getters and
+    setters. Most statically typed languages offer access control modifiers
+    like `private` and `public` to explicitly control on a per-member basis
+    which parts of a class are externally accesible.
+
+    What are the trade-offs between these approaches and why might a language
+    might prefer one or the other?
 
 </div>
 
