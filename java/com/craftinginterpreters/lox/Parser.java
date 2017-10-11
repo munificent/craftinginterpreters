@@ -85,8 +85,8 @@ class Parser {
       consume(IDENTIFIER, "Expect superclass name.");
       superclass = new Expr.Variable(previous());
     }
-//< Inheritance not-yet
 
+//< Inheritance not-yet
     consume(LEFT_BRACE, "Expect '{' before class body.");
 
     List<Stmt.Function> methods = new ArrayList<>();

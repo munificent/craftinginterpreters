@@ -91,14 +91,14 @@ private FunctionType currentFunction = FunctionType.NONE;
 
 //< resolver-begin-this-scope
     for (Stmt.Function method : stmt.methods) {
-      FunctionType declaration = FunctionType.METHOD; // [local]
+      FunctionType declaration = FunctionType.METHOD;
 //> resolver-initializer-type
       if (method.name.lexeme.equals("init")) {
         declaration = FunctionType.INITIALIZER;
       }
 
 //< resolver-initializer-type
-      resolveFunction(method, declaration);
+      resolveFunction(method, declaration); // [local]
     }
 
 //> resolver-end-this-scope
