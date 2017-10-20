@@ -226,7 +226,7 @@ environments to find `a`, it now discovers the *new* `a` in the block
 environment. Boo.
 
 I chose to implement environments in a way that I hoped would agree with your
-informal intuition around scopes. We tend to think consider all of the code
+informal intuition around scopes. We tend to consider all of the code
 within a block as being within the same scope, so our interpreter uses a single
 environment to represent that. Each environment is a mutable hash table. When a
 new local variable is declared, it gets added to the existing environment for
@@ -473,8 +473,8 @@ scope's map. That seems simple, but there's a little dance we need to do:
 
 ^code visit-var-stmt
 
-We split binding into two separate steps -- declaring and defining -- in order to
-handle this funny edge case:
+We split binding into two separate steps -- declaring and defining -- in order
+to handle this funny edge case:
 
 ```lox
 var a = "outer";
@@ -691,12 +691,12 @@ maybe a little nap.
 
 ## Interpreting Resolved Variables
 
-Let's see what what our resolver is good for. Each time it visits a variable,
-it tells the interpreter how many scopes there are between the current scope and
+Let's see what our resolver is good for. Each time it visits a variable, it
+tells the interpreter how many scopes there are between the current scope and
 the scope where the variable is defined. At runtime, this corresponds exactly to
 the number of *environments* between the current one and the enclosing one where
-interpreter can find the variable's value. The resolver hands that number to the
-interpreter by calling this:
+the interpreter can find the variable's value. The resolver hands that number to
+the interpreter by calling this:
 
 ^code resolve
 
@@ -781,11 +781,11 @@ because the resolver already found it before.
 
 The way the interpreter assumes the variable is in that map feels like flying
 blind. The interpreter code trusts that the resolver did its job and resolved
-the variable correctly. This implies is a deep coupling between these two
+the variable correctly. This implies a deep coupling between these two
 classes. Each line of code in the resolver that touches a scope must have its
 exact match in the interpreter for modifying an environment.
 
-I felt that coupling that first-hand because as I wrote the code for the book, I
+I felt that coupling first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
 slightly out of sync. Tracking those down was difficult. One tool to make that
 easier is to have the interpreter explicitly assert -- using Java's assert
@@ -817,7 +817,7 @@ unchanged.
 ### Running the resolver
 
 We do need to actually *run* the resolver, though. We insert the new pass after
-the the parser does its magic:
+the parser does its magic:
 
 ^code create-resolver (3 before, 1 after)
 
