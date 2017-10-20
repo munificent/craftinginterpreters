@@ -2,24 +2,26 @@
 ^part A Tree-Walk Interpreter
 
 We're eleven chapters in, and the interpreter sitting on your machine is nearly
-a full-fledged scripting language. It could use a couple of built-in data
-structures like lists and maps, and it certainly needs a core library for file
-IO, user input etc. But the language itself is adequate. We've got a little
-procedural language in the same vein as BASIC, TCL, Scheme (minus macros), and
-early versions of Python and Lua.
+a complete scripting language. It could use a couple of built-in data structures
+like lists and maps, and it certainly needs a core library for file IO, user
+input etc. But the language itself is adequate. We've got a little procedural
+language in the same vein as BASIC, TCL, Scheme (minus macros), and early
+versions of Python and Lua.
 
 If this was the 80's, we'd be done. But, today, many popular languages support
 "object-oriented programming". Adding that to Lox will give users a familiar set
 of tools for writing larger programs. Even if you personally don't <span
-name="hate">like</span> OOP, this chapter and the next will help you understand
-how some language creators design and implement object systems.
+name="hate">like</span> OOP, this chapter and [the next][inheritance] will help
+you understand how some language creators design and implement object systems.
+
+[inheritance]: inheritance.html
 
 <aside name="hate">
 
 If you *really* hate classes, though, you can skip these chapters. They are
 fairly separate from the rest of the book. Personally, I find it's good to learn
-more about the things I dislike. I find things only seem all bad when viewed
-from a distance. Once details emerge, I gain a more nuanced perspective.
+more about the things I dislike. Things only seem all bad when viewed from a
+distance. Once details emerge, I gain a more nuanced perspective.
 
 </aside>
 
@@ -54,6 +56,8 @@ assuming you don't need a detailed introduction to object-orientation. The main
 goal is to bundle data with the operations that act on it. Users do that by
 declaring a **class** that:
 
+<span name="circle"></span>
+
 1. Exposes a **constructor** to create and initialize new **instances** of the
    class.
 
@@ -68,6 +72,14 @@ We'll add that in the [next chapter][inheritance]. Even kicking that out, we
 still have a lot to get through. This is a big chapter and everything doesn't
 quite come together until we have all of the above pieces, so gather your
 stamina.
+
+<aside name="circle">
+
+![The relationships between classes, methods, instances, constructors, and fields.](image/classes/circle.png)
+
+It's like the circle of life, minus Elton John.
+
+</aside>
 
 [inheritance]: inheritance.html
 
@@ -331,11 +343,11 @@ method:
 
 The outer while loop there corresponds to the `*` in the grammar rule. We zip
 along the tokens building up a chain of calls and gets as we find parentheses
-and dots.
+and dots, like so:
 
-**todo: illustrate**
+<img src="image/classes/zip.png" alt="Parsing a series of '.' and '()' expressions to an AST." />
 
-That new node feeds into the resolver:
+Instances of the new Expr.Get node feed into the resolver:
 
 ^code resolver-visit-get
 
@@ -429,14 +441,10 @@ We don't need to explicitly allow a chain of setters. The reference to `call`
 allows any high precedence expression before the last `.`, including a series of
 other `.`, as in:
 
-```lox
-a.b.c.d = e;
-```
+<img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" />
 
-**todo: illustrate mapped to grammar?**
-
-Note here that only the *last* part, the `.d` is the *setter*. The `.b` and `.c`
-are both *get* expressions.
+Note here that only the *last* part, the `.meat` is the *setter*. The
+`.omelette` and `.filling` parts are both *get* expressions.
 
 Like we have two separate AST nodes for variable access and variable assignment,
 we need a second node for property assignment:
@@ -485,8 +493,6 @@ This is another semantic edge case. There are three distinct operations:
 
 The order that those are performed could be user visible, which means we need to
 carefully specify it and ensure our implementations do these in the same order.
-Otherwise an implementation that, say, evaluated the value before the object
-could break a user's program.
 
 </aside>
 
@@ -501,7 +507,6 @@ You can create instances of classes and stuff data into them. But the class
 itself doesn't really *do* anything. Instances are just maps and all instances
 are more or less the same. To make them feel like instances *of classes*, we
 need behavior -- methods.
-
 
 Our helpful parser already parses method declarations, so we're good there. We
 also don't need to add any new parser support for method *calls*. We already
@@ -717,10 +722,9 @@ yet. Inside a method, there is no way to access the fields of the "current"
 object -- the instance that the method was called on -- nor can you call other
 methods on that same object.
 
-We need a <span name="i">name</span> to use to refer that current object.
-Smalltalk, Ruby, and Swift use "self". Simula, C++, Java, and others use "this".
-Python uses "self" by convention, but you can technically use whatever name your
-like.
+To get at it, we need to give it a <span name="i">name</span>. Smalltalk, Ruby,
+and Swift use "self". Simula, C++, Java, and others use "this". Python uses
+"self" by convention, but you can technically use whatever name your like.
 
 <aside name="i">
 
@@ -735,46 +739,75 @@ method body, a `this` expression evaluates to the instance that the method was
 called on. Or, more specifically, since methods are accessed and then invoked as
 two steps, it will refer to the object that the method was *accessed* from.
 
-The interpreter's challenge is to remember current instance when the method is
-looked up and hang onto it for later when the method object is called. It's
-almost like `this` is a special hidden argument that gets passed to the method
-when you call it. That analogy breaks down, though, since `this` needs to be
-"passed in" and pinned down even before the method is actually *called*.
-
-But that intuition hints at a promising approach. We already have environments
-and closures that let a function hang onto some state as long its needs it. If
-we could stuff `this` into that surrounding environment, the function would be
-able to find it when called later.
-
-**todo: illustrate**
-
-The trick is that we "pass in `this`" when the method is looked up while
-evaluating the `.` expression. That creates a closure for the method that binds
-`this` to the current receiver. When the closure is later called, any uses of
-`this` inside its body find that bound receiver.
-
-Reusing our existing machinery for managing environments to handle `this` also
-takes care of interesting cases where methods and functions nest and interact,
-like:
+That's makes our job harder. Peep at:
 
 ```lox
-class Outer {
-  method() {
-    class Inner {
-      method() {
-        // Inner this should shadow outer this.
-        print this;
-      }
-    }
+class Egotist {
+  speak() {
+    print this;
   }
 }
+
+var method = Egotist().speak;
+method(argument);
 ```
 
-Since class declarations are statements, they can nest (though realistic code
-rarely does this). When that happens, we need to make sure the two different
-uses of `this` shadow each other correctly.
+On the second-to-last line, we grab a reference to the `speak()` method off an
+instance of the class. That returns a function, and that function needs to
+remember the instance it was pulled off of so that *later*, on the last line, it
+can still find it when the function is called.
 
-A more useful tricky example is:
+We need to take `this` at the point that the method is accessed and attach it to
+the function somehow so that it stays around as long as we need it to. Hmm... a
+way to store some extra data that hangs around a function, eh? That sounds an
+awful lot like a *closure*, doesn't it?
+
+If we defined `this` as a sort of hidden variable in an environment that
+surrounds the function returned when looking up a method, then uses of `this` in
+the body would be able to find it later. LoxFunction already has the ability to
+hold onto a surrounding environment, so we have the machinery we need.
+
+Let's walk through an example to see how it works:
+
+```lox
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+```
+
+When we first evaluate the class definition, we create a LoxFunction for
+`taste()`. Its closure is the environment surrounding the class definition, the
+global one. So the LoxFunction we store in the class's method map looks like:
+
+<img src="image/classes/closure.png" alt="The initial closure for the method." />
+
+When we evaluate the `.` expression in `cake.taste`, we create a *new*
+environment that binds `this` to the object the method is accessed from (here,
+`cake`). Then we make a new LoxFunction with the same code as the original one,
+but that using that new environment as its closure:
+
+<img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
+
+This is the LoxFunction that gets returned when evaluating the get expression
+for the method name. When that function is later called by the `()` expression,
+we create a new environment for the method body as usual:
+
+<img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." />
+
+The parent of that environment is now the new enviroment where `this` is bound,
+so any accesses of `this` inside the body successfully resolve to the correct
+object.
+
+Reusing our existing machinery for managing environments to handle `this` also
+takes care of interesting cases where methods and functions and interact,
+like:
 
 ```lox
 class Thing {
@@ -792,9 +825,9 @@ callback();
 ```
 
 In, say, JavaScript, it's common to return a callback from inside a method. That
-callback may want to hang onto and retain access to the original object the
-method was associated with. Our existing support for closures and environment
-chains should do all this correctly.
+callback may want to hang onto and retain access to the original object -- the
+`this` value -- that the method was associated with. Our existing support for
+closures and environment chains should do all this correctly.
 
 The first step is adding new syntax for `this`:
 
@@ -840,8 +873,6 @@ Now, whenever a `this` expression is encountered (at least inside a method) it
 will resolve to a "local variable" defined in an implicit scope just outside of
 the block for the method body.
 
-**todo: illustrate**
-
 The resolver has a new *scope* for `this`, so the interpreter needs to create a
 corresponding environment for it at runtime. Remember, we always have to keep
 the resolver's scope chains and the interpreter's linked environments in sync
@@ -859,16 +890,10 @@ There isn't much to it. We create a new environment nestled inside the method's
 original closure environment. Sort of a closure-within-a-closure. When the
 method is called, that will become the parent method body's environment.
 
-**todo: illustrate**
-
 We declare "this" as a variable in that environment and bind it to the given
 instance, the same instance that the method is being accessed from. *Et voilà*,
 the returned LoxFunction now carries around its own little persistent world
 where "this" is bound to the object.
-
----
-
-**todo: spelling**
 
 The remaining task is interpreting those `this` expressions. Similar to the
 resolver, interpreting a `this` expression is the same as interpreting a
@@ -881,22 +906,24 @@ Go ahead and give it a try:
 ```lox
 class Cake {
   taste() {
-    print "The " + this.flavor + " cake is delicious!";
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
   }
 }
 
 var cake = Cake();
 cake.flavor = "German chocolate";
-
-var taste = cake.taste;
-taste(); // Prints "The German chocolate cake is delicious!".
+cake.taste(); // Prints "The German chocolate cake is delicious!".
 ```
 
 Virtual high fives all-around. Our interpreter handles `this` inside methods
 even in all of the weird ways it can interact with nested classes, functions
 inside methods, handles to methods, etc.
 
-But what happens if you try to use `this` *outside* of a method? What about:
+### Invalid uses of this
+
+Wait a minute. What happens if you try to use `this` *outside* of a method? What
+about:
 
 ```lox
 print this;
@@ -909,8 +936,6 @@ fun notAMethod() {
   print this;
 }
 ```
-
-### Invalid uses of this
 
 There is no instance for `this` to point to if you're not in a method. We could
 give it some default value like `nil` or make it a runtime error, but the user

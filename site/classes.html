@@ -118,21 +118,21 @@
 </div>
 
 <p>We&rsquo;re eleven chapters in, and the interpreter sitting on your machine is nearly
-a full-fledged scripting language. It could use a couple of built-in data
-structures like lists and maps, and it certainly needs a core library for file
-IO, user input etc. But the language itself is adequate. We&rsquo;ve got a little
-procedural language in the same vein as BASIC, TCL, Scheme (minus macros), and
-early versions of Python and Lua.</p>
+a complete scripting language. It could use a couple of built-in data structures
+like lists and maps, and it certainly needs a core library for file IO, user
+input etc. But the language itself is adequate. We&rsquo;ve got a little procedural
+language in the same vein as BASIC, TCL, Scheme (minus macros), and early
+versions of Python and Lua.</p>
 <p>If this was the 80&rsquo;s, we&rsquo;d be done. But, today, many popular languages support
 &ldquo;object-oriented programming&rdquo;. Adding that to Lox will give users a familiar set
 of tools for writing larger programs. Even if you personally don&rsquo;t <span
-name="hate">like</span> OOP, this chapter and the next will help you understand
-how some language creators design and implement object systems.</p>
+name="hate">like</span> OOP, this chapter and <a href="inheritance.html">the next</a> will help
+you understand how some language creators design and implement object systems.</p>
 <aside name="hate">
 <p>If you <em>really</em> hate classes, though, you can skip these chapters. They are
 fairly separate from the rest of the book. Personally, I find it&rsquo;s good to learn
-more about the things I dislike. I find things only seem all bad when viewed
-from a distance. Once details emerge, I gain a more nuanced perspective.</p>
+more about the things I dislike. Things only seem all bad when viewed from a
+distance. Once details emerge, I gain a more nuanced perspective.</p>
 </aside>
 <h3><a href="#oop-and-classes" name="oop-and-classes"><small>12&#8202;.&#8202;0&#8202;.&#8202;1</small> OOP and classes</a></h3>
 <p>There are three broad paths to object-oriented programming: classes,
@@ -152,6 +152,7 @@ Dylan, Julia, or Perl 6.</p>
 assuming you don&rsquo;t need a detailed introduction to object-orientation. The main
 goal is to bundle data with the operations that act on it. Users do that by
 declaring a <strong>class</strong> that:</p>
+<p><span name="circle"></span></p>
 <ol>
 <li>
 <p>Exposes a <strong>constructor</strong> to create and initialize new <strong>instances</strong> of the
@@ -171,6 +172,10 @@ We&rsquo;ll add that in the <a href="inheritance.html">next chapter</a>. Even ki
 still have a lot to get through. This is a big chapter and everything doesn&rsquo;t
 quite come together until we have all of the above pieces, so gather your
 stamina.</p>
+<aside name="circle">
+<p><img alt="The relationships between classes, methods, instances, constructors, and fields." src="image/classes/circle.png" /></p>
+<p>It&rsquo;s like the circle of life, minus Elton John.</p>
+</aside>
 <h2><a href="#class-declarations" name="class-declarations"><small>12&#8202;.&#8202;1</small> Class Declarations</a></h2>
 <p>Like we do, we&rsquo;re gonna start with syntax. Classes introduce a new named
 declaration, so they get another clause in that grammar rule:</p>
@@ -495,9 +500,9 @@ in <em>call</em>()</div>
 
 <p>The outer while loop there corresponds to the <code>*</code> in the grammar rule. We zip
 along the tokens building up a chain of calls and gets as we find parentheses
-and dots.</p>
-<p><strong>todo: illustrate</strong></p>
-<p>That new node feeds into the resolver:</p>
+and dots, like so:</p>
+<p><img src="image/classes/zip.png" alt="Parsing a series of '.' and '()' expressions to an AST." /></p>
+<p>Instances of the new Expr.Get node feed into the resolver:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitCallExpr</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -600,13 +605,9 @@ identifiers on the left-hand side:</p>
 <p>We don&rsquo;t need to explicitly allow a chain of setters. The reference to <code>call</code>
 allows any high precedence expression before the last <code>.</code>, including a series of
 other <code>.</code>, as in:</p>
-<div class="codehilite"><pre><span></span><span class="n">a</span><span class="p">.</span><span class="n">b</span><span class="p">.</span><span class="n">c</span><span class="p">.</span><span class="n">d</span> <span class="o">=</span> <span class="n">e</span><span class="p">;</span>
-</pre></div>
-
-
-<p><strong>todo: illustrate mapped to grammar?</strong></p>
-<p>Note here that only the <em>last</em> part, the <code>.d</code> is the <em>setter</em>. The <code>.b</code> and <code>.c</code>
-are both <em>get</em> expressions.</p>
+<p><img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" /></p>
+<p>Note here that only the <em>last</em> part, the <code>.meat</code> is the <em>setter</em>. The
+<code>.omelette</code> and <code>.filling</code> parts are both <em>get</em> expressions.</p>
 <p>Like we have two separate AST nodes for variable access and variable assignment,
 we need a second node for property assignment:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
@@ -678,9 +679,7 @@ being set and store it on the instance. That relies on:</p>
 <li>Evaluate the value.</li>
 </ol>
 <p>The order that those are performed could be user visible, which means we need to
-carefully specify it and ensure our implementations do these in the same order.
-Otherwise an implementation that, say, evaluated the value before the object
-could break a user&rsquo;s program.</p>
+carefully specify it and ensure our implementations do these in the same order.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/LoxInstance.java</em><br>
 add after <em>get</em>()</div>
@@ -929,10 +928,9 @@ to your taste.</p>
 yet. Inside a method, there is no way to access the fields of the &ldquo;current&rdquo;
 object&#8202;&mdash;&#8202;the instance that the method was called on&#8202;&mdash;&#8202;nor can you call other
 methods on that same object.</p>
-<p>We need a <span name="i">name</span> to use to refer that current object.
-Smalltalk, Ruby, and Swift use &ldquo;self&rdquo;. Simula, C++, Java, and others use &ldquo;this&rdquo;.
-Python uses &ldquo;self&rdquo; by convention, but you can technically use whatever name your
-like.</p>
+<p>To get at it, we need to give it a <span name="i">name</span>. Smalltalk, Ruby,
+and Swift use &ldquo;self&rdquo;. Simula, C++, Java, and others use &ldquo;this&rdquo;. Python uses
+&ldquo;self&rdquo; by convention, but you can technically use whatever name your like.</p>
 <aside name="i">
 <p>&ldquo;I&rdquo; would have been a great choice, but using &ldquo;i&rdquo; for loop variables predates
 OOP and goes all the way back to Fortran. We are victims of the incidental
@@ -942,40 +940,63 @@ choices of our forebears.</p>
 method body, a <code>this</code> expression evaluates to the instance that the method was
 called on. Or, more specifically, since methods are accessed and then invoked as
 two steps, it will refer to the object that the method was <em>accessed</em> from.</p>
-<p>The interpreter&rsquo;s challenge is to remember current instance when the method is
-looked up and hang onto it for later when the method object is called. It&rsquo;s
-almost like <code>this</code> is a special hidden argument that gets passed to the method
-when you call it. That analogy breaks down, though, since <code>this</code> needs to be
-&ldquo;passed in&rdquo; and pinned down even before the method is actually <em>called</em>.</p>
-<p>But that intuition hints at a promising approach. We already have environments
-and closures that let a function hang onto some state as long its needs it. If
-we could stuff <code>this</code> into that surrounding environment, the function would be
-able to find it when called later.</p>
-<p><strong>todo: illustrate</strong></p>
-<p>The trick is that we &ldquo;pass in <code>this</code>&rdquo; when the method is looked up while
-evaluating the <code>.</code> expression. That creates a closure for the method that binds
-<code>this</code> to the current receiver. When the closure is later called, any uses of
-<code>this</code> inside its body find that bound receiver.</p>
-<p>Reusing our existing machinery for managing environments to handle <code>this</code> also
-takes care of interesting cases where methods and functions nest and interact,
-like:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Outer</span> <span class="p">{</span>
-  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">class</span> <span class="vg">Inner</span> <span class="p">{</span>
-      <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
-        <span class="c1">// Inner this should shadow outer this.</span>
-        <span class="k">print</span> <span class="nb">this</span><span class="p">;</span>
-      <span class="p">}</span>
-    <span class="p">}</span>
+<p>That&rsquo;s makes our job harder. Peep at:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Egotist</span> <span class="p">{</span>
+  <span class="n">speak</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="nb">this</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
+
+<span class="k">var</span> <span class="n">method</span> <span class="o">=</span> <span class="vg">Egotist</span><span class="p">().</span><span class="n">speak</span><span class="p">;</span>
+<span class="n">method</span><span class="p">(</span><span class="n">argument</span><span class="p">);</span>
 </pre></div>
 
 
-<p>Since class declarations are statements, they can nest (though realistic code
-rarely does this). When that happens, we need to make sure the two different
-uses of <code>this</code> shadow each other correctly.</p>
-<p>A more useful tricky example is:</p>
+<p>On the second-to-last line, we grab a reference to the <code>speak()</code> method off an
+instance of the class. That returns a function, and that function needs to
+remember the instance it was pulled off of so that <em>later</em>, on the last line, it
+can still find it when the function is called.</p>
+<p>We need to take <code>this</code> at the point that the method is accessed and attach it to
+the function somehow so that it stays around as long as we need it to. Hmm&hellip; a
+way to store some extra data that hangs around a function, eh? That sounds an
+awful lot like a <em>closure</em>, doesn&rsquo;t it?</p>
+<p>If we defined <code>this</code> as a sort of hidden variable in an environment that
+surrounds the function returned when looking up a method, then uses of <code>this</code> in
+the body would be able to find it later. LoxFunction already has the ability to
+hold onto a surrounding environment, so we have the machinery we need.</p>
+<p>Let&rsquo;s walk through an example to see how it works:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Cake</span> <span class="p">{</span>
+  <span class="n">taste</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="n">adjective</span> <span class="o">=</span> <span class="s">&quot;delicious&quot;</span><span class="p">;</span>
+    <span class="k">print</span> <span class="s">&quot;The &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">flavor</span> <span class="o">+</span> <span class="s">&quot; cake is &quot;</span> <span class="o">+</span> <span class="n">adjective</span> <span class="o">+</span> <span class="s">&quot;!&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">var</span> <span class="n">cake</span> <span class="o">=</span> <span class="vg">Cake</span><span class="p">();</span>
+<span class="n">cake</span><span class="p">.</span><span class="n">flavor</span> <span class="o">=</span> <span class="s">&quot;German chocolate&quot;</span><span class="p">;</span>
+<span class="n">cake</span><span class="p">.</span><span class="n">taste</span><span class="p">();</span> <span class="c1">// Prints &quot;The German chocolate cake is delicious!&quot;.</span>
+</pre></div>
+
+
+<p>When we first evaluate the class definition, we create a LoxFunction for
+<code>taste()</code>. Its closure is the environment surrounding the class definition, the
+global one. So the LoxFunction we store in the class&rsquo;s method map looks like:</p>
+<p><img src="image/classes/closure.png" alt="The initial closure for the method." /></p>
+<p>When we evaluate the <code>.</code> expression in <code>cake.taste</code>, we create a <em>new</em>
+environment that binds <code>this</code> to the object the method is accessed from (here,
+<code>cake</code>). Then we make a new LoxFunction with the same code as the original one,
+but that using that new environment as its closure:</p>
+<p><img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." /></p>
+<p>This is the LoxFunction that gets returned when evaluating the get expression
+for the method name. When that function is later called by the <code>()</code> expression,
+we create a new environment for the method body as usual:</p>
+<p><img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." /></p>
+<p>The parent of that environment is now the new enviroment where <code>this</code> is bound,
+so any accesses of <code>this</code> inside the body successfully resolve to the correct
+object.</p>
+<p>Reusing our existing machinery for managing environments to handle <code>this</code> also
+takes care of interesting cases where methods and functions and interact,
+like:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Thing</span> <span class="p">{</span>
   <span class="n">getCallback</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">fun</span> <span class="n">localFunction</span><span class="p">()</span> <span class="p">{</span>
@@ -992,9 +1013,9 @@ uses of <code>this</code> shadow each other correctly.</p>
 
 
 <p>In, say, JavaScript, it&rsquo;s common to return a callback from inside a method. That
-callback may want to hang onto and retain access to the original object the
-method was associated with. Our existing support for closures and environment
-chains should do all this correctly.</p>
+callback may want to hang onto and retain access to the original object&#8202;&mdash;&#8202;the
+<code>this</code> value&#8202;&mdash;&#8202;that the method was associated with. Our existing support for
+closures and environment chains should do all this correctly.</p>
 <p>The first step is adding new syntax for <code>this</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Set      : Expr object, Token name, Expr value&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
@@ -1060,7 +1081,6 @@ in <em>visitClassStmt</em>()</div>
 <p>Now, whenever a <code>this</code> expression is encountered (at least inside a method) it
 will resolve to a &ldquo;local variable&rdquo; defined in an implicit scope just outside of
 the block for the method body.</p>
-<p><strong>todo: illustrate</strong></p>
 <p>The resolver has a new <em>scope</em> for <code>this</code>, so the interpreter needs to create a
 corresponding environment for it at runtime. Remember, we always have to keep
 the resolver&rsquo;s scope chains and the interpreter&rsquo;s linked environments in sync
@@ -1088,13 +1108,10 @@ add after <em>LoxFunction</em>()</div>
 <p>There isn&rsquo;t much to it. We create a new environment nestled inside the method&rsquo;s
 original closure environment. Sort of a closure-within-a-closure. When the
 method is called, that will become the parent method body&rsquo;s environment.</p>
-<p><strong>todo: illustrate</strong></p>
 <p>We declare &ldquo;this&rdquo; as a variable in that environment and bind it to the given
 instance, the same instance that the method is being accessed from. <em>Et voil&agrave;</em>,
 the returned LoxFunction now carries around its own little persistent world
 where &ldquo;this&rdquo; is bound to the object.</p>
-<hr />
-<p><strong>todo: spelling</strong></p>
 <p>The remaining task is interpreting those <code>this</code> expressions. Similar to the
 resolver, interpreting a <code>this</code> expression is the same as interpreting a
 variable expression:</p>
@@ -1109,22 +1126,23 @@ add after <em>visitSetExpr</em>()</div>
 <p>Go ahead and give it a try:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Cake</span> <span class="p">{</span>
   <span class="n">taste</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;The &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">flavor</span> <span class="o">+</span> <span class="s">&quot; cake is delicious!&quot;</span><span class="p">;</span>
+    <span class="k">var</span> <span class="n">adjective</span> <span class="o">=</span> <span class="s">&quot;delicious&quot;</span><span class="p">;</span>
+    <span class="k">print</span> <span class="s">&quot;The &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">flavor</span> <span class="o">+</span> <span class="s">&quot; cake is &quot;</span> <span class="o">+</span> <span class="n">adjective</span> <span class="o">+</span> <span class="s">&quot;!&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="k">var</span> <span class="n">cake</span> <span class="o">=</span> <span class="vg">Cake</span><span class="p">();</span>
 <span class="n">cake</span><span class="p">.</span><span class="n">flavor</span> <span class="o">=</span> <span class="s">&quot;German chocolate&quot;</span><span class="p">;</span>
-
-<span class="k">var</span> <span class="n">taste</span> <span class="o">=</span> <span class="n">cake</span><span class="p">.</span><span class="n">taste</span><span class="p">;</span>
-<span class="n">taste</span><span class="p">();</span> <span class="c1">// Prints &quot;The German chocolate cake is delicious!&quot;.</span>
+<span class="n">cake</span><span class="p">.</span><span class="n">taste</span><span class="p">();</span> <span class="c1">// Prints &quot;The German chocolate cake is delicious!&quot;.</span>
 </pre></div>
 
 
 <p>Virtual high fives all-around. Our interpreter handles <code>this</code> inside methods
 even in all of the weird ways it can interact with nested classes, functions
 inside methods, handles to methods, etc.</p>
-<p>But what happens if you try to use <code>this</code> <em>outside</em> of a method? What about:</p>
+<h3><a href="#invalid-uses-of-this" name="invalid-uses-of-this"><small>12&#8202;.&#8202;5&#8202;.&#8202;1</small> Invalid uses of this</a></h3>
+<p>Wait a minute. What happens if you try to use <code>this</code> <em>outside</em> of a method? What
+about:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="nb">this</span><span class="p">;</span>
 </pre></div>
 
@@ -1136,7 +1154,6 @@ inside methods, handles to methods, etc.</p>
 </pre></div>
 
 
-<h3><a href="#invalid-uses-of-this" name="invalid-uses-of-this"><small>12&#8202;.&#8202;5&#8202;.&#8202;1</small> Invalid uses of this</a></h3>
 <p>There is no instance for <code>this</code> to point to if you&rsquo;re not in a method. We could
 give it some default value like <code>nil</code> or make it a runtime error, but the user
 has clearly made a mistake. The sooner they find and fix that mistake, the
@@ -1412,7 +1429,6 @@ in <em>visitReturnStmt</em>()</div>
 <p>Phew! That was a whole list of task but our reward is that our little
 interpreter has grown an entire programming paradigm. Classes, methods, fields,
 <code>this</code>, and constructors. Our baby language is looking awfully grown-up.</p>
-<hr />
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 
