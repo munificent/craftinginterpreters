@@ -287,8 +287,9 @@ block.</p>
 parent of that environment is the function&rsquo;s closure&#8202;&mdash;&#8202;the outer block
 environment.</p>
 <p>Inside the body of <code>showA()</code>, we print the value of <code>a</code>. The interpreter looks
-up <code>a</code>&rsquo;s value by walking the chain of environments. It gets all the way to the
-global environment before finding it there and printing <code>"global"</code>. Great.</p>
+up <code>a</code>&rsquo;s value by walking the chain of environments. It gets all the way
+to the global environment before finding it there and printing <code>"global"</code>.
+Great.</p>
 <p>Next, we declare the second <code>a</code>, this time inside the block:</p>
 <p><img src="image/resolving-and-binding/environment-4.png" alt="The block environment has both 'a' and 'showA' now." /></p>
 <p>It&rsquo;s in the same block as <code>showA()</code>, so it goes into the same environment, which
@@ -300,7 +301,7 @@ that closure, and run the body. When the interpreter walks the chain of
 environments to find <code>a</code>, it now discovers the <em>new</em> <code>a</code> in the block
 environment. Boo.</p>
 <p>I chose to implement environments in a way that I hoped would agree with your
-informal intuition around scopes. We tend to think consider all of the code
+informal intuition around scopes. We tend to consider all of the code
 within a block as being within the same scope, so our interpreter uses a single
 environment to represent that. Each environment is a mutable hash table. When a
 new local variable is declared, it gets added to the existing environment for
@@ -353,9 +354,9 @@ previously-declared variables along with the one new name. Declaring a variable
 would do the implicit &ldquo;split&rdquo; where you have an environment before the variable
 is declared and one after:</p>
 <p><img src="image/resolving-and-binding/split.png" alt="Seperate environments before and after the variable is declared." /></p>
-<p>A closure retains a reference to the Environment in play when the function was
-declared. Since any later declarations in that block would produce new
-environment objects, the closure wouldn&rsquo;t see the new variables and our bug
+<p>A closure retains a reference to the Environment instance in play when the
+function was declared. Since any later declarations in that block would produce
+new Environment objects, the closure wouldn&rsquo;t see the new variables and our bug
 would be fixed.</p>
 <p>This is a legit way to solve the problem, and it&rsquo;s the classic way to implement
 environments in Scheme interpreters. We could do that for Lox, but it would mean
@@ -383,11 +384,11 @@ variable, but <em>which</em> variable it is.</p>
 <p>There are a lot of ways we could store the binding between a variable and its
 declaration. When we get to the C interpreter for Lox, we&rsquo;ll have a <em>much</em> more
 efficient way of storing and accessing local variables. But for jlox, I want to
-minimize the collatoral damage we inflict on our existing codebase. I&rsquo;d hate to
+minimize the collateral damage we inflict on our existing codebase. I&rsquo;d hate to
 throw out a bunch of mostly-fine code.</p>
 <p>Instead, we&rsquo;ll store the resolution in a way that makes the most out of our
-existing Environment structure. Recall how the accesses of <code>a</code> are interpreted
-in the problematic example:</p>
+existing Environment class. Recall how the accesses of <code>a</code> are interpreted in
+the problematic example:</p>
 <p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." /></p>
 <p>In the first (correct) evaluation, we seek through three environments in the
 chain before finding the global declaration of <code>a</code>. Then, when the inner <code>a</code> is
@@ -414,7 +415,7 @@ common. If Lox had static types, we could slide a type checker in there.
 Optimizations are often implemented in separate passes like this too. Basically,
 any work that doesn&rsquo;t rely on state that&rsquo;s only available at runtime can be done
 in this way.</p>
-<p>Out variable resolution pass works like a sort of mini-interpreter. It walks the
+<p>Our variable resolution pass works like a sort of mini-interpreter. It walks the
 tree, visiting each node, but a static analysis is different from a dynamic
 execution:</p>
 <ul>
@@ -568,8 +569,8 @@ add after <em>visitBlockStmt</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>We split binding into to separate steps&#8202;&mdash;&#8202;declaring and defining&#8202;&mdash;&#8202;in order to
-handle this funny edge case:</p>
+<p>We split binding into two separate steps&#8202;&mdash;&#8202;declaring and defining&#8202;&mdash;&#8202;in order
+to handle this funny edge case:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
 <span class="p">{</span>
   <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
@@ -721,8 +722,9 @@ in <em>resolve</em>()</div>
 being assigned to.</p>
 <h3><a href="#resolving-function-declarations" name="resolving-function-declarations"><small>11&#8202;.&#8202;3&#8202;.&#8202;5</small> Resolving function declarations</a></h3>
 <p>Finally, functions. Functions both bind names and introduce a scope. The name of
-the function itself is bound in the scope where the function is declared. When
-we step into the function&rsquo;s body, we also bind its parameter into that scope.</p>
+the function itself is bound in the surrounding scope where the function is
+declared. When we step into the function&rsquo;s body, we also bind its parameters
+into that inner scope.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>
@@ -910,12 +912,12 @@ methods, the Java compiler should be satisfied that we&rsquo;ve fully implemente
 Stmt.Visitor and Expr.Visitor. Now is a good time to take a break, have a snack,
 maybe a little nap.</p>
 <h2><a href="#interpreting-resolved-variables" name="interpreting-resolved-variables"><small>11&#8202;.&#8202;4</small> Interpreting Resolved Variables</a></h2>
-<p>Let&rsquo;s see what what our resolver is good for. Each time it visits a variable,
-it tells the interpreter how many scopes there are between the current scope and
+<p>Let&rsquo;s see what our resolver is good for. Each time it visits a variable, it
+tells the interpreter how many scopes there are between the current scope and
 the scope where the variable is defined. At runtime, this corresponds exactly to
 the number of <em>environments</em> between the current one and the enclosing one where
-interpreter can find the variable&rsquo;s value. The resolver hands that number to the
-interpreter by calling this:</p>
+the interpreter can find the variable&rsquo;s value. The resolver hands that number to
+the interpreter by calling this:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>execute</em>()</div>
 <pre><span></span>  <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">,</span> <span class="kt">int</span> <span class="n">depth</span><span class="o">)</span> <span class="o">{</span>
@@ -1025,10 +1027,10 @@ because the resolver already found it before.</p>
 <aside name="coupled">
 <p>The way the interpreter assumes the variable is in that map feels like flying
 blind. The interpreter code trusts that the resolver did its job and resolved
-the variable correctly. This implies is a deep coupling between these two
-classes. Each line of code in the resolver that touches a scope must have its
-exact match in the interpreter for modifying an environment.</p>
-<p>I felt that coupling that first-hand because as I wrote the code for the book, I
+the variable correctly. This implies a deep coupling between these two classes.
+Each line of code in the resolver that touches a scope must have its exact match
+in the interpreter for modifying an environment.</p>
+<p>I felt that coupling first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
 slightly out of sync. Tracking those down was difficult. One tool to make that
 easier is to have the interpreter explicitly assert&#8202;&mdash;&#8202;using Java&rsquo;s assert
@@ -1066,14 +1068,14 @@ add after <em>getAt</em>()</div>
 </pre></div>
 
 <p>As <code>getAt()</code> is to <code>get()</code>, this is to <code>assign()</code>. It walks a fixed number of
-enviroments, and then stuffs the new value in that map.</p>
+environments, and then stuffs the new value in that map.</p>
 <p>Those are the only changes to Interpreter. This is why I chose a representation
 for our resolved data that was minimally invasive. All of the rest of the nodes
 continue working as they did before. Even the code for modifying environments is
 unchanged.</p>
 <h3><a href="#running-the-resolver" name="running-the-resolver"><small>11&#8202;.&#8202;4&#8202;.&#8202;3</small> Running the resolver</a></h3>
 <p>We do need to actually <em>run</em> the resolver, though. We insert the new pass after
-the the parser does its magic:</p>
+the parser does its magic:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="c1">// Stop if there was a syntax error.</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
 <br></pre><div class="source-file"><em>lox/Lox.java</em><br>

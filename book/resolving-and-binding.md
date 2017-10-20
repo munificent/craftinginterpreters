@@ -207,8 +207,9 @@ parent of that environment is the function's closure -- the outer block
 environment.
 
 Inside the body of `showA()`, we print the value of `a`. The interpreter looks
-up `a`&rsquo;s value by walking the chain of environments. It gets all the way to the
-global environment before finding it there and printing `"global"`. Great.
+up `a`&rsquo;s value by walking the chain of environments. It gets all the way
+to the global environment before finding it there and printing `"global"`.
+Great.
 
 Next, we declare the second `a`, this time inside the block:
 
@@ -293,9 +294,9 @@ is declared and one after:
 
 <img src="image/resolving-and-binding/split.png" alt="Seperate environments before and after the variable is declared." />
 
-A closure retains a reference to the Environment in play when the function was
-declared. Since any later declarations in that block would produce new
-environment objects, the closure wouldn't see the new variables and our bug
+A closure retains a reference to the Environment instance in play when the
+function was declared. Since any later declarations in that block would produce
+new Environment objects, the closure wouldn't see the new variables and our bug
 would be fixed.
 
 This is a legit way to solve the problem, and it's the classic way to implement
@@ -334,8 +335,8 @@ minimize the collateral damage we inflict on our existing codebase. I'd hate to
 throw out a bunch of mostly-fine code.
 
 Instead, we'll store the resolution in a way that makes the most out of our
-existing Environment structure. Recall how the accesses of `a` are interpreted
-in the problematic example:
+existing Environment class. Recall how the accesses of `a` are interpreted in
+the problematic example:
 
 <img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." />
 
@@ -587,8 +588,9 @@ being assigned to.
 ### Resolving function declarations
 
 Finally, functions. Functions both bind names and introduce a scope. The name of
-the function itself is bound in the scope where the function is declared. When
-we step into the function's body, we also bind its parameters into that scope.
+the function itself is bound in the surrounding scope where the function is
+declared. When we step into the function's body, we also bind its parameters
+into that inner scope.
 
 ^code visit-function-stmt
 
