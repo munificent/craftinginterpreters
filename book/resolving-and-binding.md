@@ -781,9 +781,9 @@ because the resolver already found it before.
 
 The way the interpreter assumes the variable is in that map feels like flying
 blind. The interpreter code trusts that the resolver did its job and resolved
-the variable correctly. This implies a deep coupling between these two
-classes. Each line of code in the resolver that touches a scope must have its
-exact match in the interpreter for modifying an environment.
+the variable correctly. This implies a deep coupling between these two classes.
+Each line of code in the resolver that touches a scope must have its exact match
+in the interpreter for modifying an environment.
 
 I felt that coupling first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
@@ -807,7 +807,7 @@ global and handle it the same way as before. Otherwise, we call this new method:
 ^code assign-at
 
 As `getAt()` is to `get()`, this is to `assign()`. It walks a fixed number of
-enviroments, and then stuffs the new value in that map.
+environments, and then stuffs the new value in that map.
 
 Those are the only changes to Interpreter. This is why I chose a representation
 for our resolved data that was minimally invasive. All of the rest of the nodes
