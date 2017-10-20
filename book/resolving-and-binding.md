@@ -371,7 +371,7 @@ Optimizations are often implemented in separate passes like this too. Basically,
 any work that doesn't rely on state that's only available at runtime can be done
 in this way.
 
-Out variable resolution pass works like a sort of mini-interpreter. It walks the
+Our variable resolution pass works like a sort of mini-interpreter. It walks the
 tree, visiting each node, but a static analysis is different from a dynamic
 execution:
 
@@ -473,7 +473,7 @@ scope's map. That seems simple, but there's a little dance we need to do:
 
 ^code visit-var-stmt
 
-We split binding into to separate steps -- declaring and defining -- in order to
+We split binding into two separate steps -- declaring and defining -- in order to
 handle this funny edge case:
 
 ```lox
