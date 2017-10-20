@@ -862,7 +862,7 @@ a + b = c;
 <aside name="paren">
 
 Do you remember way back in the parsing chapter when I said we represent
-parenthesized expressions in the syntax tree because we'll need them later. This
+parenthesized expressions in the syntax tree because we'll need them later? This
 is why. We need to keep track of them so that we can distinguish between:
 
 ```lox
