@@ -1009,21 +1009,31 @@ call this new method on Environment:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 add after <em>define</em>()</div>
 <pre><span></span>  <span class="n">Object</span> <span class="nf">getAt</span><span class="o">(</span><span class="kt">int</span> <span class="n">distance</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
-    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-      <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="na">enclosing</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="k">return</span> <span class="n">environment</span><span class="o">.</span><span class="na">values</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span> <span name="coupled"></span>
+    <span class="k">return</span> <span class="n">ancestor</span><span class="o">(</span><span class="n">distance</span><span class="o">).</span><span class="na">values</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
   <span class="o">}</span>
 </pre></div>
 
 <p>The old <code>get()</code> method dynamically walks the chain of enclosing environments,
 scouring each one to see if the variable might be hiding in there somewhere. But
 now we know exactly which environment in the chain will have the variable. We
-simply walk that many hops, and return the variable&rsquo;s value in that map. We
-don&rsquo;t even have to check to see if the variable is there&#8202;&mdash;&#8202;we know it will be
-because the resolver already found it before.</p>
+reach it using this helper method:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
+add after <em>define</em>()</div>
+<pre><span></span>  <span class="n">Environment</span> <span class="nf">ancestor</span><span class="o">(</span><span class="kt">int</span> <span class="n">distance</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+      <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="na">enclosing</span><span class="o">;</span> <span name="coupled"></span>
+    <span class="o">}</span>
+
+    <span class="k">return</span> <span class="n">environment</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>This walks a fixed number of hops up the parent chain and returns the
+environment there. Once we have that, <code>getAt()</code> simply returns the value of the
+variable in that environment&rsquo;s map. It doesn&rsquo;t even have to check to see if the
+variable is there&#8202;&mdash;&#8202;we know it will be because the resolver already found it
+before.</p>
 <aside name="coupled">
 <p>The way the interpreter assumes the variable is in that map feels like flying
 blind. The interpreter code trusts that the resolver did its job and resolved
@@ -1058,12 +1068,7 @@ global and handle it the same way as before. Otherwise, we call this new method:
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 add after <em>getAt</em>()</div>
 <pre><span></span>  <span class="kt">void</span> <span class="nf">assignAt</span><span class="o">(</span><span class="kt">int</span> <span class="n">distance</span><span class="o">,</span> <span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Object</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>
-    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-      <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="na">enclosing</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="n">environment</span><span class="o">.</span><span class="na">values</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+    <span class="n">ancestor</span><span class="o">(</span><span class="n">distance</span><span class="o">).</span><span class="na">values</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
   <span class="o">}</span>
 </pre></div>
 

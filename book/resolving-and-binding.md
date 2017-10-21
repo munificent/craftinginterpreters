@@ -775,9 +775,15 @@ call this new method on Environment:
 The old `get()` method dynamically walks the chain of enclosing environments,
 scouring each one to see if the variable might be hiding in there somewhere. But
 now we know exactly which environment in the chain will have the variable. We
-simply walk that many hops, and return the variable's value in that map. We
-don't even have to check to see if the variable is there -- we know it will be
-because the resolver already found it before.
+reach it using this helper method:
+
+^code ancestor
+
+This walks a fixed number of hops up the parent chain and returns the
+environment there. Once we have that, `getAt()` simply returns the value of the
+variable in that environment's map. It doesn't even have to check to see if the
+variable is there -- we know it will be because the resolver already found it
+before.
 
 <aside name="coupled">
 

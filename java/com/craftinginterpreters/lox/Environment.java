@@ -55,24 +55,24 @@ class Environment {
     values.put(name, value);
   }
 //< environment-define
-//> Resolving and Binding get-at
-  Object getAt(int distance, String name) {
+//> Resolving and Binding ancestor
+  Environment ancestor(int distance) {
     Environment environment = this;
     for (int i = 0; i < distance; i++) {
-      environment = environment.enclosing;
+      environment = environment.enclosing; // [coupled]
     }
 
-    return environment.values.get(name); // [coupled]
+    return environment;
+  }
+//< Resolving and Binding ancestor
+//> Resolving and Binding get-at
+  Object getAt(int distance, String name) {
+    return ancestor(distance).values.get(name);
   }
 //< Resolving and Binding get-at
 //> Resolving and Binding assign-at
   void assignAt(int distance, Token name, Object value) {
-    Environment environment = this;
-    for (int i = 0; i < distance; i++) {
-      environment = environment.enclosing;
-    }
-
-    environment.values.put(name.lexeme, value);
+    ancestor(distance).values.put(name.lexeme, value);
   }
 //< Resolving and Binding assign-at
 //> omit
