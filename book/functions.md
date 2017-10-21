@@ -336,9 +336,16 @@ name="print">displays</span> a file.
 <aside name="print">
 
 A classic native function almost every language provides is one to print text to
-stdout. We could have made our print *statement* a print *function* instead, but
-then the last several chapters would have been a slog with no way to tell if our
-in-progress interpreter is working.
+stdout. In Lox, I made `print` a built-in statement so that we could get stuff
+on screen in the chapters before this one.
+
+Now that we have functions, we could simplify the language by tearing out the
+old print syntax now and replacing it with a native function. But that would
+mean that examples early in the book wouldn't run on the interpreter from later
+chapters and vice versa. So, for the book, I'll leave it alone.
+
+If you're building an interpreter for your *own* language, though, you may want
+to consider it.
 
 </aside>
 
