@@ -732,7 +732,7 @@ add after <em>visitBlockStmt</em>()</div>
     <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
     <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
 
-    <span class="n">resolveFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">,</span> <span class="n">FunctionType</span><span class="o">.</span><span class="na">FUNCTION</span><span class="o">);</span>
+    <span class="n">resolveFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">);</span>
     <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
   <span class="o">}</span>
 </pre></div>
@@ -744,7 +744,7 @@ itself inside its own body.</p>
 <p>Then we handle the function&rsquo;s body using this:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>resolve</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">function</span><span class="o">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">function</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">beginScope</span><span class="o">();</span>
     <span class="k">for</span> <span class="o">(</span><span class="n">Token</span> <span class="n">param</span> <span class="o">:</span> <span class="n">function</span><span class="o">.</span><span class="na">parameters</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">declare</span><span class="o">(</span><span class="n">param</span><span class="o">);</span>
@@ -1157,12 +1157,24 @@ add after <em>Resolver</em>()</div>
 </pre></div>
 
 <p>It seems kind of dumb now, but we&rsquo;ll add a couple more cases to it later and
-then it will make more sense. When we resolve a function declaration, we set
-that field before resolving the body.</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveFunction</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">function</span><span class="o">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>
-</pre><div class="source-file"><em>lox/Resolver.java</em><br>
-in <em>resolveFunction</em>()</div>
-<pre class="insert"><span></span>    <span class="n">FunctionType</span> <span class="n">enclosingFunction</span> <span class="o">=</span> <span class="n">currentFunction</span><span class="o">;</span>
+then it will make more sense. When we resolve a function declaration, we pass
+that in:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+<br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>visitFunctionStmt</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">resolveFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">,</span> <span class="n">FunctionType</span><span class="o">.</span><span class="na">FUNCTION</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+</pre></div>
+
+<p>Over in <code>resolveFunction()</code>, we take that parameter and store it in the field
+before resolving the body:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+method <em>resolveFunction</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolveFunction</span><span class="o">(</span>
+      <span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">function</span><span class="o">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">FunctionType</span> <span class="n">enclosingFunction</span> <span class="o">=</span> <span class="n">currentFunction</span><span class="o">;</span>
     <span class="n">currentFunction</span> <span class="o">=</span> <span class="n">type</span><span class="o">;</span>
 <br></pre><pre class="insert-after"><span></span>    <span class="n">beginScope</span><span class="o">();</span>
 </pre></div>

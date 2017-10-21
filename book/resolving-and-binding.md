@@ -889,10 +889,15 @@ Instead of a bare Boolean, it uses this funny enum:
 ^code function-type
 
 It seems kind of dumb now, but we'll add a couple more cases to it later and
-then it will make more sense. When we resolve a function declaration, we set
-that field before resolving the body.
+then it will make more sense. When we resolve a function declaration, we pass
+that in:
 
-^code set-current-function (1 before, 1 after)
+^code pass-function-type (2 before, 1 after)
+
+Over in `resolveFunction()`, we take that parameter and store it in the field
+before resolving the body:
+
+^code set-current-function (1 after)
 
 We stash the previous value of the field in a local variable first. Remember,
 Lox has local functions, so you can nest function declarations arbitrarily

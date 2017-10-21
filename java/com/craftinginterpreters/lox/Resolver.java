@@ -118,7 +118,12 @@ private FunctionType currentFunction = FunctionType.NONE;
     declare(stmt.name);
     define(stmt.name);
 
+/* Resolving and Binding visit-function-stmt < Resolving and Binding pass-function-type
+    resolveFunction(stmt);
+*/
+//> pass-function-type
     resolveFunction(stmt, FunctionType.FUNCTION);
+//< pass-function-type
     return null;
   }
 //< visit-function-stmt
@@ -306,8 +311,12 @@ private FunctionType currentFunction = FunctionType.NONE;
   }
 //< resolve-expr
 //> resolve-function
-  private void resolveFunction(Stmt.Function function, FunctionType type) {
+/* Resolving and Binding resolve-function < Resolving and Binding set-current-function
+  private void resolveFunction(Stmt.Function function) {
+*/
 //> set-current-function
+  private void resolveFunction(
+      Stmt.Function function, FunctionType type) {
     FunctionType enclosingFunction = currentFunction;
     currentFunction = type;
 
