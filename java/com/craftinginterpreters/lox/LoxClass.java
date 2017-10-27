@@ -62,20 +62,7 @@ class LoxClass implements LoxCallable {
   public String toString() {
     return name;
   }
-//> lox-class-arity
-  @Override
-  public int arity() {
-/* Classes lox-class-arity < Classes lox-initializer-arity
-    return 0;
-*/
-//> lox-initializer-arity
-    LoxFunction initializer = methods.get("init");
-    if (initializer == null) return 0;
-    return initializer.arity();
-//< lox-initializer-arity
-  }
-//< lox-class-arity
-//> lox-class-call
+//> lox-class-call-arity
   @Override
   public Object call(Interpreter interpreter, List<Object> arguments) {
     LoxInstance instance = new LoxInstance(this);
@@ -88,5 +75,17 @@ class LoxClass implements LoxCallable {
 //< lox-class-call-initializer
     return instance;
   }
-//< lox-class-call
+
+  @Override
+  public int arity() {
+/* Classes lox-class-call-arity < Classes lox-initializer-arity
+    return 0;
+*/
+//> lox-initializer-arity
+    LoxFunction initializer = methods.get("init");
+    if (initializer == null) return 0;
+    return initializer.arity();
+//< lox-initializer-arity
+  }
+//< lox-class-call-arity
 }

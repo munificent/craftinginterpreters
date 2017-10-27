@@ -4,24 +4,24 @@
 We're eleven chapters in, and the interpreter sitting on your machine is nearly
 a complete scripting language. It could use a couple of built-in data structures
 like lists and maps, and it certainly needs a core library for file IO, user
-input etc. But the language itself is adequate. We've got a little procedural
+input etc. But the language itself is sufficient. We've got a little procedural
 language in the same vein as BASIC, TCL, Scheme (minus macros), and early
 versions of Python and Lua.
 
-If this was the 80's, we'd be done. But, today, many popular languages support
+If this was the 80's, we'd stop here. But, today, many popular languages support
 "object-oriented programming". Adding that to Lox will give users a familiar set
 of tools for writing larger programs. Even if you personally don't <span
 name="hate">like</span> OOP, this chapter and [the next][inheritance] will help
-you understand how some language creators design and implement object systems.
+you understand how others design and build object systems.
 
 [inheritance]: inheritance.html
 
 <aside name="hate">
 
-If you *really* hate classes, though, you can skip these chapters. They are
-fairly separate from the rest of the book. Personally, I find it's good to learn
-more about the things I dislike. Things only seem all bad when viewed from a
-distance. Once details emerge, I gain a more nuanced perspective.
+If you *really* hate classes, though, you can skip these two chapters. They are
+fairly isolated from the rest of the book. Personally, I find it's good to learn
+more about the things I dislike. Things look simple at a distance, but as I get
+closer, details emerge and I gain a more nuanced perspective.
 
 </aside>
 
@@ -44,17 +44,21 @@ approach.
 Multimethods are the one you're least likely to be familiar with. I'd love to
 talk more about them -- I designed [a hobby language][magpie] around them once
 and they are *super rad* -- but there are only so many pages I can fit in. If
-you'd like to learn more, take a look a CLOS (the object system in Common Lisp),
-Dylan, Julia, or Perl 6.
+you'd like to learn more, take a look a [CLOS][] (the object system in Common
+Lisp), [Dylan][], [Julia][], or [Perl 6][].
 
+[clos]: https://en.wikipedia.org/wiki/Common_Lisp_Object_System
 [magpie]: http://magpie-lang.org/
+[dylan]: https://opendylan.org/
+[julia]: https://julialang.org/
+[perl 6]: https://docs.perl6.org/language/functions#Multi-dispatch
 
 </aside>
 
 Since you've written about a thousand lines of Java code with me already, I'm
-assuming you don't need a detailed introduction to object-orientation. The main
-goal is to bundle data with the operations that act on it. Users do that by
-declaring a **class** that:
+assuming you don't need a detailed introduction to object orientation. The main
+goal is to bundle data with the code that acts on it. Users do that by declaring
+a **class** that:
 
 <span name="circle"></span>
 
@@ -64,10 +68,10 @@ declaring a **class** that:
 1. Provides a way to store and access **fields** on instances.
 
 1. Defines a set of **methods** shared by all instances of the class that
-   operate on their state.
+   operate on the instances' state.
 
-That's about as minimal as you can get. Most object-oriented languages, all the
-way back to Simula, also do inheritance to share behavior across *classes*.
+That's about as minimal as it gets. Most object-oriented languages, all the
+way back to Simula, also do inheritance to reuse behavior across *classes*.
 We'll add that in the [next chapter][inheritance]. Even kicking that out, we
 still have a lot to get through. This is a big chapter and everything doesn't
 quite come together until we have all of the above pieces, so gather your
@@ -77,7 +81,7 @@ stamina.
 
 ![The relationships between classes, methods, instances, constructors, and fields.](image/classes/circle.png)
 
-It's like the circle of life, minus Elton John.
+It's like the circle of life, *sans* Sir Elton John.
 
 </aside>
 
@@ -85,35 +89,33 @@ It's like the circle of life, minus Elton John.
 
 ## Class Declarations
 
-Like we do, we're gonna start with syntax. Classes introduce a new named
-declaration, so they get another clause in that grammar rule:
+Like we do, we're gonna start with syntax. A class statement introduces a new
+name, so it lives in the `declaration` grammar rule:
 
 ```lox
 declaration → classDecl
             | funDecl
             | varDecl
             | statement ;
-```
 
-That's this new rule:
-
-```lox
 classDecl   → "class" IDENTIFIER "{" function* "}" ;
 ```
 
-That's the only new grammar. That rule relies on the `function` rule we defined
-earlier. To refresh your memory:
+The new `classDecl` rule relies on the `function` rule we defined
+[earlier][function rule]. To refresh your memory:
+
+[function rule]: functions.html#function-declarations
 
 ```lox
 function    → IDENTIFIER "(" parameters? ")" block ;
 parameters  → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
-We also use that for named function declarations. Those wrap the `function` rule
-in a `funDecl` one that requires a preceding `fun` keyword. <span
-name="fun">Methods</span> skip that leading keyword. In plain English, a class
-declaration is the `class` keyword, followed by the class's name, then a list of
-method declarations surrounded by curly braces. Here's one:
+In plain English, a class declaration is the `class` keyword, followed by the
+class's name, then a curly brace body. Inside that body is a list of method
+declarations. Unlike function declarations, methods don't have a leading <span
+name="fun">`fun`</span> keyword. Each method is a name, parameter list, and
+body. Here's an example:
 
 <aside name="fun">
 
@@ -137,18 +139,18 @@ Like most dynamically-typed languages, fields are not explicitly listed in the
 class declaration. Instances are loose bags of data and you can freely add
 fields to them as you see fit in the middle of normal imperative code.
 
-Over in our AST generator, the `classDecl` grammar rule becomes a statement
+Over in our AST generator, the `classDecl` grammar rule gets its own statement
 node:
 
 ^code class-ast (1 before, 1 after)
 
-It stores the name and the methods inside the body. We reuse the existing
-Stmt.Function class that we use for function declaration AST nodes to represent
-method declarations too since they have all the bits of state that we need --
-method name, parameter list, and body.
+It stores the name and the methods inside the body. Methods are represented by
+the existing Stmt.Function class that we use for function declaration AST nodes.
+It has all the bits of state that we need for a method: name, parameter list,
+and body.
 
-We can parse a class declaration anywhere a named declaration is allowed,
-triggered by the leading `class` keyword:
+A class can appear anywhere a named declaration is allowed, triggered by the
+leading `class` keyword:
 
 ^code match-class (1 before, 1 after)
 
@@ -156,13 +158,12 @@ That calls out to:
 
 ^code parse-class-declaration
 
-It's a little bigger than the parsing methods for most of our productions, but
-it roughly corresponds to the grammar. We've already consumed the `class`
-keyword, so we look for the expected class name next, followed by the opening
-curly brace for the class body. Then we keep parsing method declarations until
-we hit the closing brace. Each method declaration is parsed by a call to
-`function()`, which we defined back in the [chapter where functions were
-introduced][functions].
+There's more meat to this than most of the other parsing methods, but it roughly
+follows the grammar. We've already consumed the `class` keyword, so we look for
+the expected class name next, followed by the opening curly brace. Once inside
+the body, we keep parsing method declarations until we hit the closing brace.
+Each method declaration is parsed by a call to `function()`, which we defined
+back in the [chapter where functions were introduced][functions].
 
 [functions]: functions.html
 
@@ -173,34 +174,33 @@ infinite loop if the user has a syntax error and forgets to correctly end the
 class body.
 
 We wrap the name and list of methods up in a Stmt.Class node and we're done.
-Usually, the next step would be interpretation, but now that we have that
-resolution pass we need to go through that first:
+Usually, this would feed into the interpreter, but now we need to plumb it
+through the resolver first:
 
 ^code resolver-visit-class
 
-We aren't going to worry about resolving the methods themselves just yet, so for
-now all we need to do is declare the class name itself. It's not common to
-declare a class as a *local* variable, but Lox permits it, so we need to handle
-that correctly.
+We aren't going to worry about resolving the methods themselves yet, so for now
+all we need to do is declare the class name itself. It's not common to declare a
+class as a local variable, but Lox permits it, so we need to handle it
+correctly.
 
-After that, we interpret it:
+*Now* we interpret it:
 
 ^code interpreter-visit-class
 
-This looks similar to how we interpret function declarations. We declare the
+This looks similar to how we execute function declarations. We declare the
 class's name in the current environment. Then we turn the class *syntax node*
 into a LoxClass, the *runtime* representation of a class. We circle back and
-store the class object in the variable we already declared. As with function
-declarations, that two-stage variable binding process allows referring to a
-class inside the bodies of its methods.
+store the class object in the variable we previously declared. That two-stage
+variable binding process allows references to the class inside its own methods.
 
-It will grow throughout this chapter, but the first draft of our class's runtime
-manifestation looks like so:
+We will refine it throughout the chapter, but the first draft of LoxClass looks
+like:
 
 ^code lox-class
 
 Literally a wrapper around a name. We don't even store the methods yet. Not
-super useful, but it does have a `toString()` method so we can write a little
+super useful, but it does have a `toString()` method so we can write a trivial
 script and test that class objects are actually being parsed and executed:
 
 ```lox
@@ -217,11 +217,11 @@ print DevonshireCream; // Prints "DevonshireCream".
 
 We have classes, but they don't *do* anything yet. Lox doesn't have "static"
 methods that you can call right on the class itself, so without actual
-instances, classes are pretty useless. Thus instances are the next step.
+instances, classes are useless. Thus instances are the next step.
 
 While some syntax and semantics are fairly standard across OOP languages, the
-way you create new instances isn't. Ruby, following Smalltalk, places
-construction as a method on the class object itself, a <span
+way you create new instances isn't. Ruby, following Smalltalk, creates instances
+by calling a method on the class object itself, a <span
 name="turtles">recursively</span> graceful approach. Some, like C++ and Java
 have a `new` keyword dedicated to birthing a new object. Python has you "call"
 the class itself like a function. (JavaScript, ever weird, sort of does both of
@@ -240,7 +240,7 @@ I took a minimal approach with Lox. We already have class objects, and we
 already have function calls, so we'll use call expressions on class objects to
 create new instances. It's as if a class is a factory function that generates
 instances of itself. This feels elegant to me, and also spares us the need to
-introduce syntax like `new`. Therefore, we can skip past the front end right
+introduce syntax like `new`. Therefore, we can skip past the front end straight
 into the runtime.
 
 Right now, if you try this:
@@ -256,21 +256,18 @@ that is:
 
 ^code lox-class-callable (2 before, 1 after)
 
-That interface requires two methods. The interesting one is `call()`:
+That interface requires two methods:
 
-^code lox-class-call
+^code lox-class-call-arity
 
-When you "call" a class, it instantiates a new LoxInstance for the called class
-and returns it. LoxCallable also requires one other helper method:
+The interesting one is `call()`. When you "call" a class, it instantiates a new
+LoxInstance for the called class and returns it. The `arity()` method is how the
+interpreter validates that you passed the right number of arguments to a
+callable. For now, we'll say you can't pass any. When we get to user-defined
+constructors, we'll revisit this.
 
-^code lox-class-arity
-
-This is how `visitCallExpr()` checks to see if you passed the right number of
-arguments to it. For now, we'll say that you can't pass any. When we get to
-user-defined constructors, we'll revisit this.
-
-The remaining piece is LoxInstance, our runtime representation of an instance of
-a Lox class. Again, our first iteration starts small:
+That leads us to LoxInstance, the runtime representation of an instance of a Lox
+class. Again, our first iteration starts small:
 
 ^code lox-instance
 
@@ -294,17 +291,16 @@ entangled in an interesting way and it will be easier to make sense of them if
 we get properties working first.
 
 Lox follows JavaScript and Python in how it handles state. Every instance is a
-loose bag of named data. Methods on the instance's class can access and modify
-those properties, but so can <span name="outside">outside</span> code.
+open collection of named values. Methods on the instance's class can access and
+modify properties, but so can <span name="outside">outside</span> code.
 Properties are accessed using a `.` syntax:
 
 <aside name="outside">
 
-Allowing code outside of the class to directly modify an object's state goes
+Allowing code outside of the class to directly modify an object's fields goes
 against the object-oriented credo that a class *encapsulates* state. Some
-languages take a more principled state. In Smalltalk, there is no syntax for
-directly modifying the state of an object. Instead, fields are accessed using
-simple identifiers, essentially variables that are only in scope inside the
+languages take a more principled stance. In Smalltalk, fields are accessed using
+simple identifiers -- essentially variables that are only in scope inside a
 class's methods. Ruby uses `@` followed by a name to access a field in an
 object. That syntax is only meaningful inside a method and always accesses state
 on the current object.
@@ -351,15 +347,15 @@ Instances of the new Expr.Get node feed into the resolver:
 
 ^code resolver-visit-get
 
-OK, not much to that. Since properties are themselves looked up <span
-name="dispatch">dynamically</span>, they don't get resolved. All we do is
-recurse into the expression to the left of the dot. The actual work happens in
-the interpreter:
+OK, not much to that. Since properties are looked up <span
+name="dispatch">dynamically</span>, they don't get resolved. During resolution,
+we only recurse into the expression to the left of the dot. The actual property
+access happens in the interpreter:
 
 <aside name="dispatch">
 
-Here you can literally see that property dispatch in Lox is dynamic since we
-don't process any of it here in the static resolution pass.
+You can literally see that property dispatch in Lox is dynamic since we don't
+process it during the static resolution pass.
 
 </aside>
 
@@ -367,16 +363,15 @@ don't process any of it here in the static resolution pass.
 
 First, we evaluate the expression whose property is being accessed. In Lox, only
 instances of classes have properties. If the object is some other type like a
-number, trying to access a property on it is a runtime error.
+number, invoking a getter on it is a runtime error.
 
-If the object *is* a LoxInstance, then we ask it to look up the property
-property. Looks like it's time to give LoxInstance some actual state. A map will
-do fine:
+If the object is a LoxInstance, then we ask it to look up the property. Looks
+like it's time to give LoxInstance some actual state. A map will do fine:
 
 ^code lox-instance-fields (1 before, 2 after)
 
-Each key in the map is the name of a property name and the corresponding value
-is the property's value. To look up a property on an instance:
+Each key in the map is a property name and the corresponding value is the
+property's value. To look up a property on an instance:
 
 ^code lox-instance-get-property
 
@@ -387,10 +382,9 @@ language implementations, but not ideal. High performance VMs for languages like
 JavaScript use sophisticated optimizations like "[hidden classes][]" to avoid
 that overhead.
 
-Interestingly, many of the optimizations invented to make highly dynamic
-languages fast rest on the observation that -- even in those languages -- most
-code is fairly static in terms of the types of objects it works with and their
-shapes.
+Paradoxically, many of the optimizations invented to make dynamic languages fast
+rest on the observation that -- even in those languages -- most code is fairly
+static in terms of the types of objects it works with and their fields.
 
 [hidden classes]: http://richardartoul.github.io/jekyll/update/2015/04/26/hidden-classes.html
 
@@ -398,16 +392,16 @@ shapes.
 
 An interesting edge case we need to handle is what happens if the instance
 doesn't *have* a property with the given name. We could silently return some
-dummy value like `nil`, but my feeling is that that to mask bugs more often than
-it does something useful. Instead, we'll make it a runtime error.
+dummy value like `nil`, but my from languages like JavaScript is that masks bugs
+more often than it does anything useful. Instead, we'll make it a runtime error.
 
 So the first thing we do is see if the instance actually has a field with the
 given name. Only then does it return it. Otherwise, it raises an error.
 
 Note how I switched from talking about "properties" to "fields". There is a
 subtle difference between the two. Fields are named bits of state stored
-directly in an instance. Properties are the named, uh, *things*, that you can
-access on an instance. Every field is a property, but as we'll see <span
+directly in an instance. Properties are the named, uh, *things*, that a get
+expression may return. Every field is a property, but as we'll see <span
 name="foreshadowing">later</span>, not every property is a field.
 
 <aside name="foreshadowing">
@@ -429,17 +423,17 @@ an assignment:
 someObject.someProperty = value;
 ```
 
-To keep grammar up to date, we extend rule for assignment to allow dotted
-identifiers on the left-hand side:
+In grammar land, we extend the rule for assignment to allow dotted identifiers
+on the left-hand side:
 
 ```lox
 assignment → ( call "." )? IDENTIFIER "=" assignment
            | logic_or;
 ```
 
-We don't need to explicitly allow a chain of setters. The reference to `call`
-allows any high precedence expression before the last `.`, including a series of
-other `.`, as in:
+Unlike getters, setters don't chain. The reference to `call` allows any high
+precedence expression before the last `.`, including a series of property
+accesses, as in:
 
 <img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" />
 
@@ -447,7 +441,7 @@ Note here that only the *last* part, the `.meat` is the *setter*. The
 `.omelette` and `.filling` parts are both *get* expressions.
 
 Like we have two separate AST nodes for variable access and variable assignment,
-we need a second node for property assignment:
+we need a second setter node to complement our getter node:
 
 ^code set-ast (1 before, 1 after)
 
@@ -455,11 +449,13 @@ In case you don't remember, the way we handle assignment in the parser is a
 little funny. We can't easily tell that a series of tokens is the left-hand side
 of an assignment until we reach the `=`. Now that our assignment grammar rule
 has `call` on the left side, which can expand to arbitrarily large expressions,
-that is hard for the parser to predict.
+that final `=` may be many tokens away from the point where we need to know
+we're parsing an assignment.
 
 Instead, the trick we do is to parse the left hand side as a normal expression.
-Then, when we stumble onto the equals sign, we take the expression we already
-parsed and transform it into the correct syntax tree node for the assignment.
+Then, when we stumble onto the equals sign after it, we take the expression we
+already parsed and transform it into the correct syntax tree node for the
+assignment.
 
 We add another clause to that transformation to handle turning an Expr.Get
 expression on the left into the corresponding Expr.Set:
@@ -488,7 +484,9 @@ being set and store it on the instance. That relies on:
 This is another semantic edge case. There are three distinct operations:
 
 1. Evaluate the object.
+
 2. Raise a runtime error if it's not an instance of a class.
+
 3. Evaluate the value.
 
 The order that those are performed could be user visible, which means we need to
@@ -499,11 +497,12 @@ carefully specify it and ensure our implementations do these in the same order.
 ^code lox-instance-set-property
 
 No real magic here. We go straight to the Java map in the instance where fields
-are stored.
+are stored. Since we allow freely creating new fields on instances, there's no
+need to see if the key is already present.
 
 ## Methods on Classes
 
-You can create instances of classes and stuff data into them. But the class
+You can create instances of classes and stuff data into them, but the class
 itself doesn't really *do* anything. Instances are just maps and all instances
 are more or less the same. To make them feel like instances *of classes*, we
 need behavior -- methods.
@@ -513,13 +512,11 @@ also don't need to add any new parser support for method *calls*. We already
 have `.` (getters) and `()` (function calls). A "method call" simply chains
 those together:
 
-```lox
-object.method(argument);
-```
+<img src="image/classes/method.png" alt="The syntax tree for 'object.method(argument)" />
 
 That raises an interesting question. What happens when those two expressions are
 pulled apart? Assuming `method` is a method on the class of `object` and not a
-field on the instance, what would this do:
+field on the instance, what should this do:
 
 ```lox
 var m = object.method;
@@ -550,30 +547,55 @@ work?
 
 Different languages have different answers to these questions. One could write a
 treatise on it. For Lox, we'll say the answer to both of these is that, yes, it
-does work. We have a couple of reasons to justify that. For the second example,
-calling a function stored in a field, we want to support that because first
-class functions are useful and storing them in fields is a perfectly normal
-thing to do.
+does work. We have a couple of reasons to justify that. For the second
+example -- calling a function stored in a field -- we want to support that
+because first class functions are useful and storing them in fields is a
+perfectly normal thing to do.
 
-The first example is more complex. One motivation to support it is that users
-generally expect to be able to hoist a subexpression out into a local variable
-without changing the meaning of the program. You can take this:
+The first example is more obscure. One motivation is that users generally expect
+to be able to hoist a subexpression out into a local variable without changing
+the meaning of the program. You can take this:
 
 ```lox
-var average = (3 + 4) / 2;
+breakfast(omelette.filledWith(cheese), sausage);
 ```
 
 And turn it into this:
 
 ```lox
-var sum = 3 + 4;
-var average = sum / 2;
+var eggs = omelette.filledWith(cheese);
+breakfast(eggs, sausage);
 ```
 
-And it does the same thing. Likewise, we'd like to let you hoist the method
-*lookup* part of a method call out into a variable and then use that to call it
-later. We need to think carefully about what the *thing* you get when you look
-up a method is, and how it behaves. Stuff like this:
+And it does the same thing. Likewise, since the `.` and the `()` in a method
+call *are* two separate expressions, it seems you should be able hoist the
+*lookup* part into a variable and then call it <span
+name="callback">later</span>. We need to think carefully about what the *thing*
+you get when you look up a method is, and how it behaves, even in weird cases
+like:
+
+<aside name="callback">
+
+A motivating use for this is callbacks. Often, you want to pass a callback whose
+body simply invokes a method on some object. Being able to lookup the method and
+pass it directly saves you the chore of manually declaring a function to wrap
+it. Compare this:
+
+```lox
+fun callback(a, b, c) {
+  object.method(a, b, c);
+}
+
+takeCallback(callback);
+```
+
+Versus this:
+
+```lox
+takeCallback(object.method);
+```
+
+</aside>
 
 ```lox
 class Person {
@@ -583,7 +605,7 @@ class Person {
 }
 
 var jane = Person();
-jane.name "jane";
+jane.name "Jane";
 
 var method = jane.sayName;
 method(); // ?
@@ -591,9 +613,9 @@ method(); // ?
 
 If you grab a handle to a method on some instance and call it later, does it
 "remember" the instance it was pulled off from? Does `this` inside the method
-still refer to that original instance?
+still refer to that original object?
 
-Here's a more pathological example to wrap your head around:
+Here's a more pathological example to bend your brain:
 
 ```lox
 class Person {
@@ -603,32 +625,38 @@ class Person {
 }
 
 var jane = Person();
-jane.name "jane";
+jane.name "Jane";
 
 var bill = Person();
-bill.name = "bill";
+bill.name = "Bill";
 
 bill.sayName = jane.sayName;
 bill.sayName(); // ?
 ```
 
-Does that last line print "bill" because that's the instance that we *called*
-the method through, or "jane" because it's the instance where we first grabbed
+Does that last line print "Bill" because that's the instance that we *called*
+the method through, or "Jane" because it's the instance where we first grabbed
 the method?
 
-Equivalent code in Lua and JavaScript would print "bill". Those languages don't
+Equivalent code in Lua and JavaScript would print "Bill". Those languages don't
 really have a notion of "methods". Everything is sort of functions-in-fields, so
 it's not clear that `jane` "owns" `sayName` any more than `bill` does.
 
 Lox, though, has real class syntax so we do know which callable things are
 methods and which are functions. Thus, like Python, C#, and others, we will have
 methods "bind" `this` to the original instance when the method is first grabbed.
-Python calls these "bound methods".
+Python calls <span name="bound">these</span> "bound methods".
+
+<aside name="bound">
+
+I know, imaginative name, right?
+
+</aside>
 
 In practice, that's usually what you want. If you take a reference to a method
-on some object so you can use it as a callback later, you want that call to
-remember the instance it belonged to, even if that callback happens to be stored
-in a field in some other random object.
+on some object so you can use it as a callback later, you want to remember the
+instance it belonged to, even if that callback happens to be stored in a field
+on some other object.
 
 OK, that's a lot of semantics to load into your head. Forget about the edge
 cases for a bit. We'll get back to those. For now, let's get basic method calls
@@ -666,10 +694,8 @@ That gets stored in LoxClass:
 ^code lox-class-methods (1 before, 3 after)
 
 Where an instance stores state, the class stores behavior. LoxInstance has its
-map of fields. LoxClass gets a map of methods.
-
-Even though methods are defined on the class, they are still accessed through
-the instances of that class:
+map of fields, and LoxClass gets a map of methods. Even though methods are
+owned by the class, they are still accessed through instances of that class:
 
 ^code lox-instance-get-method (5 before, 2 after)
 
@@ -680,11 +706,12 @@ between "field" and "property" becomes meaningful. When accessing a property,
 you might get a field -- a bit of state stored on the instance -- or you could
 hit a method defined on the instance's class.
 
-The method is looked up using:
+The method is looked up using this:
 
 <aside name="shadow">
 
-This implies that fields shadow methods, a subtle but important semantic point.
+Looking for a field first implies that fields shadow methods, a subtle but
+important semantic point.
 
 </aside>
 
@@ -692,9 +719,7 @@ This implies that fields shadow methods, a subtle but important semantic point.
 
 You can probably guess this method is going to get more interesting later. We
 pass in the instance, but we aren't using it yet. For now, a simple map lookup
-on the class's method table is enough to get us started.
-
-Give it a try:
+on the class's method table is enough to get us started. Give it a try:
 
 <span name="crunch"></span>
 
@@ -718,13 +743,13 @@ to your taste.
 ## This
 
 We can define both behavior and state on objects, but they aren't tied together
-yet. Inside a method, there is no way to access the fields of the "current"
-object -- the instance that the method was called on -- nor can you call other
+yet. Inside a method, we have no way to access the fields of the "current"
+object -- the instance that the method was called on -- nor can we call other
 methods on that same object.
 
-To get at it, we need to give it a <span name="i">name</span>. Smalltalk, Ruby,
-and Swift use "self". Simula, C++, Java, and others use "this". Python uses
-"self" by convention, but you can technically use whatever name your like.
+To get at that instance, it needs a <span name="i">name</span>. Smalltalk,
+Ruby, and Swift use "self". Simula, C++, Java, and others use "this". Python
+uses "self" by convention, but you can technically call it whatever you like.
 
 <aside name="i">
 
@@ -734,8 +759,8 @@ choices of our forebears.
 
 </aside>
 
-For Lox, since we generally hew to Java-ish style, we'll do "this". Inside a
-method body, a `this` expression evaluates to the instance that the method was
+For Lox, since we generally hew to Java-ish style, we'll go with "this". Inside
+a method body, a `this` expression evaluates to the instance that the method was
 called on. Or, more specifically, since methods are accessed and then invoked as
 two steps, it will refer to the object that the method was *accessed* from.
 
@@ -783,31 +808,31 @@ cake.taste(); // Prints "The German chocolate cake is delicious!".
 ```
 
 When we first evaluate the class definition, we create a LoxFunction for
-`taste()`. Its closure is the environment surrounding the class definition, the
-global one. So the LoxFunction we store in the class's method map looks like:
+`taste()`. Its closure is the environment surrounding the class, in this case
+the global one. So the LoxFunction we store in the class's method map looks
+like so:
 
 <img src="image/classes/closure.png" alt="The initial closure for the method." />
 
-When we evaluate the `.` expression in `cake.taste`, we create a *new*
-environment that binds `this` to the object the method is accessed from (here,
-`cake`). Then we make a new LoxFunction with the same code as the original one,
-but that using that new environment as its closure:
+When we evaluate the `.` expression in `cake.taste`, we create a new environment
+that binds `this` to the object the method is accessed from (here, `cake`). Then
+we make a *new* LoxFunction with the same code as the original one, but that
+using that new environment as its closure:
 
 <img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
 
 This is the LoxFunction that gets returned when evaluating the get expression
-for the method name. When that function is later called by the `()` expression,
-we create a new environment for the method body as usual:
+for the method name. When that function is later called by a `()` expression,
+we create an environment for the method body as usual:
 
 <img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." />
 
-The parent of that environment is now the new enviroment where `this` is bound,
-so any accesses of `this` inside the body successfully resolve to the correct
-object.
+The parent of the body environment is the enviroment we created earlier to bind
+`this` to the current object. Thus any accesses of `this` inside the body
+successfully resolve to that instance.
 
-Reusing our existing machinery for managing environments to handle `this` also
-takes care of interesting cases where methods and functions and interact,
-like:
+Reusing our environment code for implementing `this` also takes care of
+interesting cases where methods and functions and interact, like:
 
 ```lox
 class Thing {
@@ -829,26 +854,12 @@ callback may want to hang onto and retain access to the original object -- the
 `this` value -- that the method was associated with. Our existing support for
 closures and environment chains should do all this correctly.
 
-The first step is adding new syntax for `this`:
+Let's code it up. The first step is adding new syntax for `this`:
 
 ^code this-ast (1 before, 1 after)
 
-Instead of making it a reserved word, we could treat `this` as simply an
-identifier that gets a predefined value. However, that would allow bad code
-like:
-
-```lox
-var this = "wat"; // Declare a variable with that name.
-this = // Assign to it.
-fun this() {} // Use it as a function name?!
-```
-
-The simplest way to rule all of that out is to make it a keyword so that it
-can't be parsed as an identifier. Then we add a new syntax node for an
-expression that *accesses* `this`, which is the only thing we want to allow you
-to do with it.
-
-Parsing is simple since it's a single token:
+Parsing is simple since it's a single token (which our lexer already
+recognizes as a reserved word):
 
 ^code parse-this (2 before, 2 after)
 
@@ -874,51 +885,36 @@ will resolve to a "local variable" defined in an implicit scope just outside of
 the block for the method body.
 
 The resolver has a new *scope* for `this`, so the interpreter needs to create a
-corresponding environment for it at runtime. Remember, we always have to keep
-the resolver's scope chains and the interpreter's linked environments in sync
-with each other. At runtime, we create the environment when the method is looked
-up on the instance. We replace the previous line of code that simply returned
-the LoxFunction with this:
+corresponding environment for it. Remember, we always have to keep the
+resolver's scope chains and the interpreter's linked environments in sync with
+each other. At runtime, we create the environment when the method is looked up
+on the instance. We replace the previous line of code that simply returned the
+method's LoxFunction with this:
 
 ^code lox-class-find-method-bind (1 before, 1 after)
 
-Note the new call to `bind()`. That looks like this:
+Note the new call to `bind()`. That looks like so:
 
 ^code bind-instance
 
 There isn't much to it. We create a new environment nestled inside the method's
-original closure environment. Sort of a closure-within-a-closure. When the
-method is called, that will become the parent method body's environment.
+original closure. Sort of a closure-within-a-closure. When the method is called,
+that will become the parent of the method body's environment.
 
 We declare "this" as a variable in that environment and bind it to the given
-instance, the same instance that the method is being accessed from. *Et voilà*,
-the returned LoxFunction now carries around its own little persistent world
-where "this" is bound to the object.
+instance, the instance that the method is being accessed from. *Et voilà*, the
+returned LoxFunction now carries around its own little persistent world where
+"this" is bound to the object.
 
 The remaining task is interpreting those `this` expressions. Similar to the
-resolver, interpreting a `this` expression is the same as interpreting a
-variable expression:
+resolver, it is the same as interpreting a variable expression:
 
 ^code interpreter-visit-this
 
-Go ahead and give it a try:
-
-```lox
-class Cake {
-  taste() {
-    var adjective = "delicious";
-    print "The " + this.flavor + " cake is " + adjective + "!";
-  }
-}
-
-var cake = Cake();
-cake.flavor = "German chocolate";
-cake.taste(); // Prints "The German chocolate cake is delicious!".
-```
-
-Virtual high fives all-around. Our interpreter handles `this` inside methods
-even in all of the weird ways it can interact with nested classes, functions
-inside methods, handles to methods, etc.
+Go ahead and give it a try using that cake example from earlier. With less than
+twenty lines of code, our interpreter handles `this` inside methods even in all
+of the weird ways it can interact with nested classes, functions inside methods,
+handles to methods, etc.
 
 ### Invalid uses of this
 
@@ -952,20 +948,19 @@ one:
 Yes, it could be a Boolean. When we get to inheritance, it will get a third
 value, hence the enum right now. We also add a corresponding field,
 `currentClass`. Its value tells us if we are currently inside a class while
-traversing the syntax tree. It starts out `NONE` which means we aren't inside a
-class.
+traversing the syntax tree. It starts out `NONE` which means we aren't in one.
 
-We change that before resolving the method bodies in a class declaration:
+Right before resolving the method bodies in a class declaration, that changes:
 
 ^code set-current-class (1 before, 2 after)
 
 As with `currentFunction`, we store the previous value of the field in a local
 variable. This lets us piggyback onto the JVM to keep a stack of `currentClass`
-values. That way we don't lose track of the earlier state when one class nests
+values. That way we don't lose track of the previous value if one class nests
 inside another.
 
-Once the methods have been resolved, we "pop" that stack by restoring the
-previous value:
+Once the methods have been resolved, we "pop" that stack by restoring the old
+value:
 
 ^code restore-current-class (3 before, 1 after)
 
@@ -977,18 +972,20 @@ report an error if the expression doesn't occur nestled inside a method body:
 That should help users use `this` correctly and saves us from having to handle
 misuse at runtime in the interpreter.
 
+---
+
 ## Constructors and Initializers
 
-We can do almost everything with classes now, and all that remains as we near
-the end of the chapter is the beginning. Methods and fields let us encapsulate
-state and behavior together so that an object always *stays* in a valid
-configuration. But how do we ensure a brand new object *begins* in a meaningful
-state?
+We can do almost everything with classes now, and as we near the end of the
+chapter we find ourselves strangely focused on a beginning. Methods and fields
+let us encapsulate state and behavior together so that an object always *stays*
+in a valid configuration. But how do we ensure a brand new object *starts* in a
+good state?
 
 For that, we need constructors. I find them one of the trickiest parts of a
 language to design and if you peer closely at other most languages, you'll see
 <span name="cracks">cracks</span> around object construction where the seams of
-the design don't quite hang together perfectly. Maybe there's something
+the design don't quite fit together perfectly. Maybe there's something
 intrinsically messy about the moment of birth.
 
 <aside name="cracks">
@@ -996,7 +993,6 @@ intrinsically messy about the moment of birth.
 A few examples: In Java, even though final fields must be initialized, it is
 still possible to read one *before* it has been. Exceptions -- a huge, complex
 feature -- were added to C++ mainly as a way to emit errors from constructors.
-Take a look at how weird the original syntaxes in Python and JavaScript were.
 
 </aside>
 
@@ -1009,7 +1005,7 @@ Take a look at how weird the original syntaxes in Python and JavaScript were.
     <aside name="allocate">
 
     C++'s "[placement new][]" is a rare example where the bowels of allocation
-    are laid bare for the programmer to poke and prod.
+    are laid bare for the programmer to prod.
 
     </aside>
 
@@ -1018,8 +1014,8 @@ Take a look at how weird the original syntaxes in Python and JavaScript were.
 
 [placement new]: https://en.wikipedia.org/wiki/Placement_syntax
 
-The latter is what we tend to think of when we think of "constructors", but the
-language itself has usually done some ground work for us first before we get to
+The latter is what we tend to think of when we hear "constructor", but the
+language itself has usually done some groundwork for us first before we get to
 that point. In fact, our Lox interpreter already has that covered when it
 creates a new LoxInstance object.
 
@@ -1028,37 +1024,32 @@ have a variety of notations for the chunk of code that sets up a new object for
 a class. C++, Java, and C# use a method whose name matches the class name. Ruby
 and Python call it `init()`. That's nice and short, so we'll do that.
 
-The basic idea is that when you call a class, the interpreter allocates a new
-instance. Then, if the class has defined a method named "init", it calls that.
-Any arguments passed when calling the class are forwarded on to this
-initializer:
+In LoxClass's implementation of LoxCallable, we add a few more lines:
 
-^code lox-class-call-initializer (1 before, 1 after)
+^code lox-class-call-initializer (2 before, 1 after)
 
-When a class is called, after the LoxInstance is created, we look for an <span
-name="reserve">"init"</span> method. If we find one, we immediately bind and
-invoke it just like a normal method call. The argument list is forwarded along.
-
-<aside name="reserve">
-
-Unlike, "this", we are not going to make "init" a reserved word since allowing
-user to use it as an identifier doesn't open up the same pitfalls that treating
-"this" like an identifier does.
-
-</aside>
+When a class is called, after the LoxInstance is created, we look for an "init"
+method. If we find one, we immediately bind and invoke it just like a normal
+method call. The argument list is forwarded along.
 
 That argument list means we also need to tweak how a class declares its arity:
 
 ^code lox-initializer-arity (1 before, 1 after)
 
-If there is an initializer, that method's arity determines the class's. We don't
-*require* a class to define an initializer, though, as a convenience. If you
-don't have one, the arity is still zero.
+If there is an initializer, that method's arity determines how many arguments
+you must pass when you call the class itself. We don't *require* a class to
+define an initializer, though, as a convenience. If you don't have an
+initializer, the arity is still zero.
+
+That's basically it. Since we bind the `init()` method before we call it, it has
+access to `this` inside its body. That, along with the arguments passed to the
+class, are all you need to be able to set up the new instance however you
+desire.
 
 ### Invoking init() directly
 
-As ever, exploring this new semantic territory rustles up a few weird creatures.
-Consider:
+As usual, exploring this new semantic territory rustles up a few weird
+creatures. Consider:
 
 ```lox
 class Foo {
@@ -1073,10 +1064,13 @@ print foo.init();
 
 Can you "re-initialize" an object by directly calling its `init()` method? If
 you do, what does it return? A <span name="compromise">reasonable</span> answer
-would be `nil` since that's what it appears the body does. However -- and I
-usually dislike compromising to satisfy the implementation -- it will make
-clox's implementation of constructors much easier if we say that `init()`
-methods implicitly return `this`, even when directly called.
+would be `nil` since that's what it appears the body returns.
+
+However -- and I generally dislike compromising to satisfy the
+implementation -- it will make clox's implementation of constructors much
+easier if we say that `init()` methods always return `this`, even when
+directly called. In order to keep jlox compatible with that, we add a little
+special case code in LoxFunction:
 
 <aside name="compromise">
 
@@ -1085,12 +1079,9 @@ and resources of your implementation affect the design of the language. There
 are only so many hours in the day and if a cut corner here or there lets you get
 more features to users in less time, it may very well be a net win for their
 happiness and productivity. The trick is figuring out *which* corners to cut
-that won't cause your future self to curse your short-sightedness.
+that won't cause your users and future self to curse your short-sightedness.
 
 </aside>
-
-In order to keep jlox compatible with that, we add a little special case code in
-LoxFunction:
 
 ^code return-this (2 before, 1 after)
 
@@ -1101,14 +1092,14 @@ forcibly return `this`. That relies on a new `isInitializer` field:
 
 We can't simply see if the name of the LoxFunction is "init" because the user
 could have defined a *function* with that name. In that case, there *is* no
-`this` to return. Instead, we'll directly store whether the LoxFunction
-represents an initializer method. That means we need to go back and fix the few
-places where we create a LoxFunction:
+`this` to return. To avoid *that* weird edge case, we'll directly store whether
+the LoxFunction represents an initializer method. That means we need to go back
+and fix the few places where we create LoxFunctions:
 
 ^code construct-function (1 before, 1 after)
 
-For actual functions, `isInitializer` is always false. For methods, we check the
-name:
+For actual function declarations, `isInitializer` is always false. For methods,
+we check the name:
 
 ^code interpreter-method-initializer (1 before, 1 after)
 
@@ -1116,6 +1107,8 @@ And then in `bind()` where we create the closure that binds `this` to a method,
 we pass along the original method's value:
 
 ^code lox-function-bind-with-initializer (1 before, 1 after)
+
+---
 
 ### Returning from init()
 
@@ -1141,8 +1134,8 @@ initializer or some other normal method:
 
 ^code resolver-initializer-type (1 before, 1 after)
 
-We check that field and make it an error to have a return statement with a value
-inside an `init()` method:
+When we later resolve a return statement, we check that field and make it an
+error to return a value inside an `init()` method:
 
 ^code return-in-initializer (1 before, 1 after)
 
