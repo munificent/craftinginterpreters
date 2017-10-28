@@ -496,8 +496,8 @@ interpreter.</p>
 <p>We could measure the time it takes to start up the interpreter, run the
 benchmark, and exit, but that adds a lot of overhead&#8202;&mdash;&#8202;JVM startup time, OS
 shenanigans, etc. That stuff does matter, of course, but if you&rsquo;re just trying
-to tell if your optimization to, say, arithmetic made a difference, it&rsquo;s all
-noise.</p>
+to validate an optimization to some corner of the interpreter, you don&rsquo;t want
+that overhead obscuring your results.</p>
 <p>A nicer solution is to have the benchmark script itself measure the time elapsed
 between two points in the code. To do that, a Lox program needs to be able to
 tell time. There&rsquo;s no way to do that now&#8202;&mdash;&#8202;you can&rsquo;t implement a useful clock
@@ -567,7 +567,7 @@ back when we added variables. Function declarations, like variables, bind a new
 a declaration is permitted.</p>
 <aside name="name">
 <p>A named function declaration isn&rsquo;t really a single primitive operation. It&rsquo;s
-syntactic sugar for two distinct steps (1) creating a new function object and
+syntactic sugar for two distinct steps: (1) creating a new function object and
 (2) binding a new variable to it. If Lox had syntax for anonymous functions, we
 wouldn&rsquo;t need function declaration statements. You could just do:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">add</span> <span class="o">=</span> <span class="k">fun</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
@@ -764,8 +764,8 @@ store the fact that <code>n</code> is bound to 3 in one context, 2 in another, a
 innermost, like:</p>
 <p><img src="image/functions/recursion.png" alt="A separate environment for each recursive call." /></p>
 <p>That&rsquo;s why we create a new environment at each <em>call</em>, not at the function
-<em>declaration</em>. The <code>call()</code> method above does that. At the beginning of the
-call, it creates a new environment. Then it walks the parameter and argument
+<em>declaration</em>. The <code>call()</code> method we saw earlier does that. At the beginning of
+the call, it creates a new environment. Then it walks the parameter and argument
 lists in lockstep. For each pair, it creates a new variable with the parameter&rsquo;s
 name and binds it to the argument&rsquo;s value.</p>
 <p>So for a program like this:</p>
@@ -1066,9 +1066,9 @@ a good job of stress testing how fast our interpreter implements function calls.
 be faster.</p>
 </aside>
 <h2><a href="#local-functions-and-closures" name="local-functions-and-closures"><small>10&#8202;.&#8202;6</small> Local Functions and Closures</a></h2>
-<p>Our functions are pretty full-featured, but there is one loose end to tie up.
-In fact, it&rsquo;s a big enough tangle that we&rsquo;ll spend most of the <a href="resolving-and-binding.html">next chapter</a>
-unknotting it, but we can get started here.</p>
+<p>Our functions are pretty full-featured, but there is one hole to patch. In fact,
+it&rsquo;s a big enough gap that we&rsquo;ll spend most of the <a href="resolving-and-binding.html">next chapter</a> sealing it
+up, but we can get started here.</p>
 <p>LoxFunction&rsquo;s implementation of <code>call()</code> creates a new environment where it
 binds the function&rsquo;s parameters. When I showed you that code, I glossed over one
 important point: What is the <em>parent</em> of that environment?</p>

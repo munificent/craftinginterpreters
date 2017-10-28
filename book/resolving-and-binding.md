@@ -127,8 +127,8 @@ There's a lot to unpack in that:
 
 Since this rule makes no mention of any runtime behavior, it implies that a
 variable expression always refers to the same declaration through the entire
-execution of the program. Our interpreter so far *mostly* implements the above
-rule correctly. But when we added closures, an error snuck in:
+execution of the program. Our interpreter so far *mostly* implements the rule
+correctly. But when we added closures, an error snuck in:
 
 ```lox
 var a = "global";
@@ -489,7 +489,7 @@ the same name as what's being declared? We have a couple of options:
 
 *   **Run the initializer, then put the new variable in scope.** That means here
     the new local `a` would be initialized with "outer", the value of the
-    *global* one. In other words, the above declaration desugars to:
+    *global* one. In other words, the previous declaration desugars to:
 
         :::lox
         var temp = a; // Run the initializer.

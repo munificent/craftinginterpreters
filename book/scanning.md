@@ -654,8 +654,8 @@ match a chunk of code that the scanner is looking at, *whichever one matches the
 most characters wins*.
 
 That rule states that if we can match `orchid` as an identifier and `or` as a
-keyword, then the former wins. This is also why we tacitly assumed above that
-`<=` should be scanned as a single `<=` token and not `<` followed by `=`.
+keyword, then the former wins. This is also why we tacitly assumed previously
+that `<=` should be scanned as a single `<=` token and not `<` followed by `=`.
 
 <aside name="maximal">
 
@@ -802,12 +802,12 @@ are separators. Here are a couple:
         :::lua
         a = 1 b = 2
 
-    Lua avoids the `return` problem above by requiring a `return` statement to
-    be the very last statement in a block. If there is a value after `return`
-    before the keyword `end`, it *must* be for the return. For the other two
-    cases, they allow an explicit `;` and expect users to use that. In practice,
-    that almost never happens because there's no point in a parenthesized or
-    unary negation expression statement.
+    Lua avoids the `return` problem by requiring a `return` statement to be the
+    very last statement in a block. If there is a value after `return` before
+    the keyword `end`, it *must* be for the return. For the other two cases,
+    they allow an explicit `;` and expect users to use that. In practice, that
+    almost never happens because there's no point in a parenthesized or unary
+    negation expression statement.
 
 *   [Go][] handles newlines in the scanner. If a newline appears following one
     of a handful of token types that are known to potentially end a statement,

@@ -368,8 +368,8 @@ interpreter.
 We could measure the time it takes to start up the interpreter, run the
 benchmark, and exit, but that adds a lot of overhead -- JVM startup time, OS
 shenanigans, etc. That stuff does matter, of course, but if you're just trying
-to tell if your optimization to, say, arithmetic made a difference, it's all
-noise.
+to validate an optimization to some corner of the interpreter, you don't want
+that overhead obscuring your results.
 
 A nicer solution is to have the benchmark script itself measure the time elapsed
 between two points in the code. To do that, a Lox program needs to be able to
@@ -432,7 +432,7 @@ a declaration is permitted.
 <aside name="name">
 
 A named function declaration isn't really a single primitive operation. It's
-syntactic sugar for two distinct steps (1) creating a new function object and
+syntactic sugar for two distinct steps: (1) creating a new function object and
 (2) binding a new variable to it. If Lox had syntax for anonymous functions, we
 wouldn't need function declaration statements. You could just do:
 
@@ -605,8 +605,8 @@ innermost, like:
 <img src="image/functions/recursion.png" alt="A separate environment for each recursive call." />
 
 That's why we create a new environment at each *call*, not at the function
-*declaration*. The `call()` method above does that. At the beginning of the
-call, it creates a new environment. Then it walks the parameter and argument
+*declaration*. The `call()` method we saw earlier does that. At the beginning of
+the call, it creates a new environment. Then it walks the parameter and argument
 lists in lockstep. For each pair, it creates a new variable with the parameter's
 name and binds it to the argument's value.
 
@@ -883,9 +883,9 @@ be faster.
 
 ## Local Functions and Closures
 
-Our functions are pretty full-featured, but there is one loose end to tie up.
-In fact, it's a big enough tangle that we'll spend most of the [next chapter][]
-unknotting it, but we can get started here.
+Our functions are pretty full-featured, but there is one hole to patch. In fact,
+it's a big enough gap that we'll spend most of the [next chapter][] sealing it
+up, but we can get started here.
 
 LoxFunction's implementation of `call()` creates a new environment where it
 binds the function's parameters. When I showed you that code, I glossed over one
