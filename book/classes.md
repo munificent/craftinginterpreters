@@ -972,8 +972,6 @@ report an error if the expression doesn't occur nestled inside a method body:
 That should help users use `this` correctly and saves us from having to handle
 misuse at runtime in the interpreter.
 
----
-
 ## Constructors and Initializers
 
 We can do almost everything with classes now, and as we near the end of the
@@ -1108,13 +1106,11 @@ we pass along the original method's value:
 
 ^code lox-function-bind-with-initializer (1 before, 1 after)
 
----
-
 ### Returning from init()
 
-We aren't out of the woods yet. We've been assuming here that a user-written
+We aren't out of the woods yet. We've been assuming that a user-written
 initializer doesn't explicitly return a value because most constructors don't.
-What happens if a user tries:
+What should happen if a user tries:
 
 ```lox
 class Foo {
@@ -1129,17 +1125,17 @@ static error. Back in the resolver, we add another case to FunctionType:
 
 ^code function-type-initializer (1 before, 1 after)
 
-When resolving a method, we look at the name to determine if we're resolving an
-initializer or some other normal method:
+When visiting a method, we use its name to determine if we're resolving an
+initializer or not:
 
 ^code resolver-initializer-type (1 before, 1 after)
 
-When we later resolve a return statement, we check that field and make it an
-error to return a value inside an `init()` method:
+When we later traverse into a return statement, we check that field and make it
+an error to return a value from inside an `init()` method:
 
 ^code return-in-initializer (1 before, 1 after)
 
-Phew! That was a whole list of task but our reward is that our little
+Phew! That was a whole list of tasks but our reward is that our little
 interpreter has grown an entire programming paradigm. Classes, methods, fields,
 `this`, and constructors. Our baby language is looking awfully grown-up.
 
@@ -1149,8 +1145,8 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 
 1.  We have methods on instances, but there is no way to define "static" methods
     that can be called directly on the class object itself. Add support for
-    "class methods" defined inside a class body using a preceding `class`
-    keyword, like so:
+    them. Use a `class` keyword preceding the method to indicate a static method
+    that hangs off the class object:
 
         :::lox
         class Math {
@@ -1161,9 +1157,11 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 
         print Math.square(3); // Prints "9".
 
-    You can solve this however you like, but the "metaclasses" used by Smalltalk
-    and Ruby are an elegant approach. *Hint: Make LoxClass extend LoxInstance
-    and go from there.*
+    You can solve this however you like, but the "[metaclasses][]" used by
+    Smalltalk and Ruby are a particularly elegant approach. *Hint: Make LoxClass
+    extend LoxInstance and go from there.*
+
+[metaclasses]: https://en.wikipedia.org/wiki/Metaclass
 
 2.  Most modern languages support "getters" and "setters" -- members on a class
     that look like field reads and writes but that actually execute user-defined
@@ -1193,7 +1191,7 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
     class are externally accessible on a per-member basis.
 
     What are the trade-offs between these approaches and why might a language
-    might prefer one or the other?
+    prefer one or the other?
 
 </div>
 
@@ -1203,28 +1201,29 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 
 In this chapter, we introduced two new runtime entities, LoxClass and
 LoxInstance. The former is where behavior for objects lives and the latter is
-for state. What if you could define methods right on a single object inside
+for state. What if you could define methods right on a single object, inside
 LoxInstance? In that case, we wouldn't need LoxClass at all. LoxInstance would
 be a complete package for defining the behavior and state of an object.
 
 We'd still want some way to reuse behavior across multiple instances. Since
-there are no classes, we'll let a LoxInstance delegate directly to another
-LoxInstance to reuse its fields and methods, sort of like inheritance. The end
-result is a simpler runtime with only a single internal construct, LoxInstance.
+there are no classes, we'll let a LoxInstance [*delegate*][delegate] directly to
+another LoxInstance to reuse its fields and methods, sort of like inheritance.
+The end result is a simpler runtime with only a single internal construct,
+LoxInstance.
 
 Users would model their program as a constellation of objects, some of which
 delegate to each other to reflect commonality. There are no longer classes.
 Instead, individual objects that are delegated to represent "canonical" or
-"prototypical" objects that many others are similar to.
+"prototypical" objects that others refine.
 
 That's where the name "[prototypes][proto]" comes from for this paradigm. It was
 invented by David Ungar and Randall Smith in a language called [Self][]. They
 came up with it by starting with Smalltalk and following the above mental
-exercise to see how much they could simplify it.
+exercise to see how much they could pare it down.
 
 Prototypes were an academic curiosity for a long time, a fascinating one that
 generated interesting research but didn't make a dent in the larger world of
-programming. That is until Brendan took crammed prototypes into JavaScript which
+programming. That is until Brendan Eich crammed prototypes into JavaScript which
 then promptly took over the world. Many (many) <span name="words">words</span>
 have been written about prototypes in JavaScript. Whether that shows that
 prototypes are brilliant or confusing -- or both! -- is an open question.
@@ -1235,6 +1234,7 @@ Including [more than a handful][prototypes] by yours truly.
 
 </aside>
 
+[delegate]: https://en.wikipedia.org/wiki/Prototype-based_programming#Delegation
 [prototypes]: http://gameprogrammingpatterns.com/prototype.html
 [self]: http://www.selflanguage.org/
 
@@ -1248,9 +1248,9 @@ is the role of *simplicity* in a language.
 
 Prototypes are simpler than classes -- less code for the language implementer to
 write, and fewer concepts for the user to learn and understand. Does that make
-them better? We language nerds have a tendency to fetishize simplicity.
-Personally, I think simplicity is only part of the equation. What we really to
-give the user is *power*, which I define as:
+them better? We language nerds have a tendency to fetishize minimalism.
+Personally, I think simplicity is only part of the equation. What we really want
+to give the user is *power*, which I define as:
 
     power = breadth × ease ÷ complexity
 
@@ -1270,11 +1270,11 @@ actual quantification.
     lower-level ones. Most languages have a "grain" to them where some things
     feel easier to express than others.
 
-*   **Complexity** is how big and complex the language is (and its runtime, core
-    libraries, tools, and ecosystem, etc.). People talk about how many pages are
-    in a language's spec, or how many keywords it has. It's how much the user
-    has to load into their wetware before they can be productive in the system.
-    It is the antonym to simplicity.
+*   **Complexity** is how big the language is (and its runtime, core libraries,
+    tools, ecosystem, etc.). People talk about how many pages are in a
+    language's spec, or how many keywords it has. It's how much the user has to
+    load into their wetware before they can be productive in the system. It is
+    the antonym to simplicity.
 
 Reducing complexity *does* increase power. The smaller the denominator, the
 larger the resulting value, so our intuition that simplicity is good is valid.

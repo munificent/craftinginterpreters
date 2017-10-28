@@ -1208,7 +1208,6 @@ in <em>visitThisExpr</em>()</div>
 
 <p>That should help users use <code>this</code> correctly and saves us from having to handle
 misuse at runtime in the interpreter.</p>
-<hr />
 <h2><a href="#constructors-and-initializers" name="constructors-and-initializers"><small>12&#8202;.&#8202;6</small> Constructors and Initializers</a></h2>
 <p>We can do almost everything with classes now, and as we near the end of the
 chapter we find ourselves strangely focused on a beginning. Methods and fields
@@ -1373,9 +1372,9 @@ replace 1 line</div>
 </pre></div>
 
 <h3><a href="#returning-from-init()" name="returning-from-init()"><small>12&#8202;.&#8202;6&#8202;.&#8202;2</small> Returning from init()</a></h3>
-<p>We aren&rsquo;t out of the woods yet. We&rsquo;ve been assuming here that a user-written
+<p>We aren&rsquo;t out of the woods yet. We&rsquo;ve been assuming that a user-written
 initializer doesn&rsquo;t explicitly return a value because most constructors don&rsquo;t.
-What happens if a user tries:</p>
+What should happen if a user tries:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Foo</span> <span class="p">{</span>
   <span class="n">init</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">return</span> <span class="s">&quot;something else&quot;</span><span class="p">;</span>
@@ -1393,8 +1392,8 @@ add after <em>Resolver</em>()</div>
 </pre><pre class="insert-after"><span></span>    <span class="n">METHOD</span>
 </pre></div>
 
-<p>When resolving a method, we look at the name to determine if we&rsquo;re resolving an
-initializer or some other normal method:</p>
+<p>When visiting a method, we use its name to determine if we&rsquo;re resolving an
+initializer or not:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">FunctionType</span> <span class="n">declaration</span> <span class="o">=</span> <span class="n">FunctionType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">;</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
@@ -1404,8 +1403,8 @@ in <em>visitClassStmt</em>()</div>
 <br></pre><pre class="insert-after"><span></span>      <span class="n">resolveFunction</span><span class="o">(</span><span class="n">method</span><span class="o">,</span> <span class="n">declaration</span><span class="o">);</span> <span name="local"></span>
 </pre></div>
 
-<p>When we later resolve a return statement, we check that field and make it an
-error to return a value inside an <code>init()</code> method:</p>
+<p>When we later traverse into a return statement, we check that field and make it
+an error to return a value from inside an <code>init()</code> method:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitReturnStmt</em>()</div>
@@ -1416,7 +1415,7 @@ in <em>visitReturnStmt</em>()</div>
 <br></pre><pre class="insert-after"><span></span>      <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
 </pre></div>
 
-<p>Phew! That was a whole list of task but our reward is that our little
+<p>Phew! That was a whole list of tasks but our reward is that our little
 interpreter has grown an entire programming paradigm. Classes, methods, fields,
 <code>this</code>, and constructors. Our baby language is looking awfully grown-up.</p>
 <div class="challenges">
@@ -1426,8 +1425,8 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 <li>
 <p>We have methods on instances, but there is no way to define &ldquo;static&rdquo; methods
     that can be called directly on the class object itself. Add support for
-    &ldquo;class methods&rdquo; defined inside a class body using a preceding <code>class</code>
-    keyword, like so:</p>
+    them. Use a <code>class</code> keyword preceding the method to indicate a static method
+    that hangs off the class object:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Math</span> <span class="p">{</span>
   <span class="k">class</span> <span class="n">square</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="n">n</span> <span class="o">*</span> <span class="n">n</span><span class="p">;</span>
@@ -1438,9 +1437,9 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 </pre></div>
 
 
-<p>You can solve this however you like, but the &ldquo;metaclasses&rdquo; used by Smalltalk
-and Ruby are an elegant approach. <em>Hint: Make LoxClass extend LoxInstance
-and go from there.</em></p>
+<p>You can solve this however you like, but the &ldquo;<a href="https://en.wikipedia.org/wiki/Metaclass">metaclasses</a>&rdquo; used by
+Smalltalk and Ruby are a particularly elegant approach. <em>Hint: Make LoxClass
+extend LoxInstance and go from there.</em></p>
 </li>
 <li>
 <p>Most modern languages support &ldquo;getters&rdquo; and &ldquo;setters&rdquo;&#8202;&mdash;&#8202;members on a class
@@ -1472,7 +1471,7 @@ and go from there.</em></p>
     offer modifiers like <code>private</code> and <code>public</code> to control which parts of a
     class are externally accessible on a per-member basis.</p>
 <p>What are the trade-offs between these approaches and why might a language
-might prefer one or the other?</p>
+prefer one or the other?</p>
 </li>
 </ol>
 </div>
@@ -1482,24 +1481,25 @@ might prefer one or the other?</p>
 
 <p>In this chapter, we introduced two new runtime entities, LoxClass and
 LoxInstance. The former is where behavior for objects lives and the latter is
-for state. What if you could define methods right on a single object inside
+for state. What if you could define methods right on a single object, inside
 LoxInstance? In that case, we wouldn&rsquo;t need LoxClass at all. LoxInstance would
 be a complete package for defining the behavior and state of an object.</p>
 <p>We&rsquo;d still want some way to reuse behavior across multiple instances. Since
-there are no classes, we&rsquo;ll let a LoxInstance delegate directly to another
-LoxInstance to reuse its fields and methods, sort of like inheritance. The end
-result is a simpler runtime with only a single internal construct, LoxInstance.</p>
+there are no classes, we&rsquo;ll let a LoxInstance <a href="https://en.wikipedia.org/wiki/Prototype-based_programming#Delegation"><em>delegate</em></a> directly to
+another LoxInstance to reuse its fields and methods, sort of like inheritance.
+The end result is a simpler runtime with only a single internal construct,
+LoxInstance.</p>
 <p>Users would model their program as a constellation of objects, some of which
 delegate to each other to reflect commonality. There are no longer classes.
 Instead, individual objects that are delegated to represent &ldquo;canonical&rdquo; or
-&ldquo;prototypical&rdquo; objects that many others are similar to.</p>
+&ldquo;prototypical&rdquo; objects that others refine.</p>
 <p>That&rsquo;s where the name &ldquo;<a href="https://en.wikipedia.org/wiki/Prototype-based_programming">prototypes</a>&rdquo; comes from for this paradigm. It was
 invented by David Ungar and Randall Smith in a language called <a href="http://www.selflanguage.org/">Self</a>. They
 came up with it by starting with Smalltalk and following the above mental
-exercise to see how much they could simplify it.</p>
+exercise to see how much they could pare it down.</p>
 <p>Prototypes were an academic curiosity for a long time, a fascinating one that
 generated interesting research but didn&rsquo;t make a dent in the larger world of
-programming. That is until Brendan took crammed prototypes into JavaScript which
+programming. That is until Brendan Eich crammed prototypes into JavaScript which
 then promptly took over the world. Many (many) <span name="words">words</span>
 have been written about prototypes in JavaScript. Whether that shows that
 prototypes are brilliant or confusing&#8202;&mdash;&#8202;or both!&#8202;&mdash;&#8202;is an open question.</p>
@@ -1512,9 +1512,9 @@ language. I&rsquo;ve made languages that are <a href="http://finch.stuffwithstuf
 is the role of <em>simplicity</em> in a language.</p>
 <p>Prototypes are simpler than classes&#8202;&mdash;&#8202;less code for the language implementer to
 write, and fewer concepts for the user to learn and understand. Does that make
-them better? We language nerds have a tendency to fetishize simplicity.
-Personally, I think simplicity is only part of the equation. What we really to
-give the user is <em>power</em>, which I define as:</p>
+them better? We language nerds have a tendency to fetishize minimalism.
+Personally, I think simplicity is only part of the equation. What we really want
+to give the user is <em>power</em>, which I define as:</p>
 <div class="codehilite"><pre><span></span>power = breadth × ease ÷ complexity
 </pre></div>
 
@@ -1536,11 +1536,11 @@ actual quantification.</p>
     feel easier to express than others.</p>
 </li>
 <li>
-<p><strong>Complexity</strong> is how big and complex the language is (and its runtime, core
-    libraries, tools, and ecosystem, etc.). People talk about how many pages are
-    in a language&rsquo;s spec, or how many keywords it has. It&rsquo;s how much the user
-    has to load into their wetware before they can be productive in the system.
-    It is the antonym to simplicity.</p>
+<p><strong>Complexity</strong> is how big the language is (and its runtime, core libraries,
+    tools, ecosystem, etc.). People talk about how many pages are in a
+    language&rsquo;s spec, or how many keywords it has. It&rsquo;s how much the user has to
+    load into their wetware before they can be productive in the system. It is
+    the antonym to simplicity.</p>
 </li>
 </ul>
 <p>Reducing complexity <em>does</em> increase power. The smaller the denominator, the
