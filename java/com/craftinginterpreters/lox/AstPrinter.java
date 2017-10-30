@@ -32,7 +32,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return builder.toString();
   }
 //< Statements and State omit
-//> Classes not-yet
+//> Classes omit
 
   @Override
   public String visitClassStmt(Stmt.Class stmt) {
@@ -52,7 +52,7 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     builder.append(")");
     return builder.toString();
   }
-//< Classes not-yet
+//< Classes omit
 //> Statements and State omit
 
   @Override
@@ -146,13 +146,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize2("call", expr.callee, expr.arguments);
   }
 //< Functions omit
-//> Classes not-yet
+//> Classes omit
 
   @Override
   public String visitGetExpr(Expr.Get expr) {
     return parenthesize2(".", expr.object, expr.name.lexeme);
   }
-//< Classes not-yet
+//< Classes omit
 
   @Override
   public String visitGroupingExpr(Expr.Grouping expr) {
@@ -171,13 +171,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize(expr.operator.lexeme, expr.left, expr.right);
   }
 //< Control Flow omit
-//> Classes not-yet
+//> Classes omit
 
   @Override
   public String visitSetExpr(Expr.Set expr) {
     return parenthesize2("=", expr.object, expr.name.lexeme, expr.value);
   }
-//< Classes not-yet
+//< Classes omit
 //> Inheritance not-yet
 
   @Override
@@ -185,13 +185,13 @@ class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<String> {
     return parenthesize2("super", expr.method);
   }
 //< Inheritance not-yet
-//> Classes not-yet
+//> Classes omit
 
   @Override
   public String visitThisExpr(Expr.This expr) {
     return "this";
   }
-//< Classes not-yet
+//< Classes omit
 
   @Override
   public String visitUnaryExpr(Expr.Unary expr) {

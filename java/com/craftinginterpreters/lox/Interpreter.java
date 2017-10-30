@@ -105,12 +105,11 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return null;
   }
 //< Statements and State visit-block
-//> Classes not-yet
-
+//> Classes interpreter-visit-class
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
     environment.define(stmt.name.lexeme, null);
-
+//> interpret-methods
     Map<String, LoxFunction> methods = new HashMap<>();
 //> Inheritance not-yet
     Object superclass = null;
@@ -127,12 +126,17 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 //< Inheritance not-yet
     for (Stmt.Function method : stmt.methods) {
+/* Classes interpret-methods < Classes interpreter-method-initializer
+      LoxFunction function = new LoxFunction(method, environment);
+*/
+//> interpreter-method-initializer
       LoxFunction function = new LoxFunction(method, environment,
           method.name.lexeme.equals("init"));
-        methods.put(method.name.lexeme, function);
+//< interpreter-method-initializer
+      methods.put(method.name.lexeme, function);
     }
 
-/* Classes not-yet < Inheritance not-yet
+/* Classes interpret-methods < Inheritance not-yet
     LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
 */
 //> Inheritance not-yet
@@ -144,10 +148,14 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
 //< Inheritance not-yet
+//< interpret-methods
+/* Classes interpreter-visit-class < Classes interpret-methods
+    LoxClass klass = new LoxClass(stmt.name.lexeme);
+*/
     environment.assign(stmt.name, klass);
     return null;
   }
-//< Classes not-yet
+//< Classes interpreter-visit-class
 //> Statements and State visit-expression-stmt
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -161,12 +169,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 /* Functions visit-function < Functions visit-closure
     LoxFunction function = new LoxFunction(stmt);
 */
-/* Functions visit-closure < Classes not-yet
+/* Functions visit-closure < Classes construct-function
     LoxFunction function = new LoxFunction(stmt, environment);
 */
-//> Classes not-yet
+//> Classes construct-function
     LoxFunction function = new LoxFunction(stmt, environment, false);
-//< Classes not-yet
+//< Classes construct-function
     environment.define(stmt.name.lexeme, function);
     return null;
   }
@@ -338,18 +346,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return function.call(this, arguments);
   }
 //< Functions visit-call
-//> Classes not-yet
+//> Classes interpreter-visit-get
   @Override
   public Object visitGetExpr(Expr.Get expr) {
     Object object = evaluate(expr.object);
     if (object instanceof LoxInstance) {
-      return ((LoxInstance) object).getProperty(expr.name);
+      return ((LoxInstance) object).get(expr.name);
     }
 
     throw new RuntimeError(expr.name,
         "Only instances have properties.");
   }
-//< Classes not-yet
+//< Classes interpreter-visit-get
 //> visit-grouping
   @Override
   public Object visitGroupingExpr(Expr.Grouping expr) {
@@ -376,23 +384,21 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return evaluate(expr.right);
   }
 //< Control Flow visit-logical
-//> Classes not-yet
-
+//> Classes interpreter-visit-set
   @Override
   public Object visitSetExpr(Expr.Set expr) {
-    Object value = evaluate(expr.value);
     Object object = evaluate(expr.object);
 
-    if (object instanceof LoxInstance) {
-      ((LoxInstance)object).fields.put(expr.name.lexeme, value);
-      return value;
+    if (!(object instanceof LoxInstance)) { // [order]
+      throw new RuntimeError(expr.name, "Only instances have fields.");
     }
 
-    throw new RuntimeError(expr.name, "Only instances have fields.");
+    Object value = evaluate(expr.value);
+    ((LoxInstance)object).set(expr.name, value);
+    return value;
   }
-//< Classes not-yet
+//< Classes interpreter-visit-set
 //> Inheritance not-yet
-
   @Override
   public Object visitSuperExpr(Expr.Super expr) {
     int distance = locals.get(expr);
@@ -410,13 +416,12 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     return method;
   }
 //< Inheritance not-yet
-//> Classes not-yet
-
+//> Classes interpreter-visit-this
   @Override
   public Object visitThisExpr(Expr.This expr) {
     return lookUpVariable(expr.keyword, expr);
   }
-//< Classes not-yet
+//< Classes interpreter-visit-this
 //> visit-unary
   @Override
   public Object visitUnaryExpr(Expr.Unary expr) {

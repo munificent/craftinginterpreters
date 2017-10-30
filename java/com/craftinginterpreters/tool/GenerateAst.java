@@ -22,23 +22,23 @@ public class GenerateAst {
 //> Functions call-expr
       "Call     : Expr callee, Token paren, List<Expr> arguments",
 //< Functions call-expr
-//> Classes not-yet
+//> Classes get-ast
       "Get      : Expr object, Token name",
-//< Classes not-yet
+//< Classes get-ast
       "Grouping : Expr expression",
       "Literal  : Object value",
 //> Control Flow logical-ast
       "Logical  : Expr left, Token operator, Expr right",
 //< Control Flow logical-ast
-//> Classes not-yet
+//> Classes set-ast
       "Set      : Expr object, Token name, Expr value",
-//< Classes not-yet
+//< Classes set-ast
 //> Inheritance not-yet
       "Super    : Token keyword, Token method",
 //< Inheritance not-yet
-//> Classes not-yet
+//> Classes this-ast
       "This     : Token keyword",
-//< Classes not-yet
+//< Classes this-ast
 /* Representing Code call-define-ast < Statements and State var-expr
       "Unary    : Token operator, Expr right"
 */
@@ -53,7 +53,7 @@ public class GenerateAst {
 //> block-ast
       "Block      : List<Stmt> statements",
 //< block-ast
-/* Classes not-yet < Inheritance not-yet
+/* Classes class-ast < Inheritance not-yet
       "Class      : Token name, List<Stmt.Function> methods",
 */
 //> Inheritance not-yet

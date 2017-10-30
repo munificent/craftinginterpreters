@@ -21,21 +21,23 @@ private FunctionType currentFunction = FunctionType.NONE;
 //> function-type
   private enum FunctionType {
     NONE,
-/* Resolving and Binding function-type < Classes not-yet
+/* Resolving and Binding function-type < Classes function-type-method
     FUNCTION
 */
-//> Classes not-yet
+//> Classes function-type-method
     FUNCTION,
-    METHOD,
-    INITIALIZER
-//< Classes not-yet
+//> function-type-initializer
+    INITIALIZER,
+//< function-type-initializer
+    METHOD
+//< Classes function-type-method
   }
 //< function-type
-//> Classes not-yet
+//> Classes class-type
 
   private enum ClassType {
     NONE,
-/* Classes not-yet < Inheritance not-yet
+/* Classes class-type < Inheritance not-yet
     CLASS
  */
 //> Inheritance not-yet
@@ -46,7 +48,7 @@ private FunctionType currentFunction = FunctionType.NONE;
 
   private ClassType currentClass = ClassType.NONE;
 
-//< Classes not-yet
+//< Classes class-type
 //> resolve-statements
   void resolve(List<Stmt> statements) {
     for (Stmt statement : statements) {
@@ -63,14 +65,15 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 //< visit-block-stmt
-//> Classes not-yet
+//> Classes resolver-visit-class
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
     declare(stmt.name);
     define(stmt.name);
-
+//> set-current-class
     ClassType enclosingClass = currentClass;
     currentClass = ClassType.CLASS;
+//< set-current-class
 //> Inheritance not-yet
 
     if (stmt.superclass != null) {
@@ -80,31 +83,40 @@ private FunctionType currentFunction = FunctionType.NONE;
       scopes.peek().put("super", true);
     }
 //< Inheritance not-yet
+//> resolve-methods
 
+//> resolver-begin-this-scope
+    beginScope();
+    scopes.peek().put("this", true);
+
+//< resolver-begin-this-scope
     for (Stmt.Function method : stmt.methods) {
-      // Push the implicit scope that binds "this" and "class".
-      beginScope();
-      scopes.peek().put("this", true);
-
       FunctionType declaration = FunctionType.METHOD;
+//> resolver-initializer-type
       if (method.name.lexeme.equals("init")) {
         declaration = FunctionType.INITIALIZER;
       }
 
-      resolveFunction(method, declaration);
-      endScope();
+//< resolver-initializer-type
+      resolveFunction(method, declaration); // [local]
     }
 
-//> Inheritance not-yet
+//> resolver-end-this-scope
+    endScope();
 
+//< resolver-end-this-scope
+//< resolve-methods
+//> Inheritance not-yet
     if (currentClass == ClassType.SUBCLASS) endScope();
 
 //< Inheritance not-yet
+//> restore-current-class
     currentClass = enclosingClass;
+//< restore-current-class
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-class
 //> visit-expression-stmt
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
@@ -153,13 +165,13 @@ private FunctionType currentFunction = FunctionType.NONE;
 
 //< return-from-top
     if (stmt.value != null) {
-//> Classes not-yet
+//> Classes return-in-initializer
       if (currentFunction == FunctionType.INITIALIZER) {
         Lox.error(stmt.keyword,
             "Cannot return a value from an initializer.");
       }
 
-//< Classes not-yet
+//< Classes return-in-initializer
       resolve(stmt.value);
     }
 
@@ -213,14 +225,14 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 //< visit-call-expr
-//> Classes not-yet
+//> Classes resolver-visit-get
   @Override
   public Void visitGetExpr(Expr.Get expr) {
     resolve(expr.object);
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-get
 //> visit-grouping-expr
   @Override
   public Void visitGroupingExpr(Expr.Grouping expr) {
@@ -242,7 +254,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 //< visit-logical-expr
-//> Classes not-yet
+//> Classes resolver-visit-set
   @Override
   public Void visitSetExpr(Expr.Set expr) {
     resolve(expr.value);
@@ -250,7 +262,7 @@ private FunctionType currentFunction = FunctionType.NONE;
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-set
 //> Inheritance not-yet
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
@@ -267,19 +279,22 @@ private FunctionType currentFunction = FunctionType.NONE;
   }
 
 //< Inheritance not-yet
-//> Classes not-yet
+//> Classes resolver-visit-this
   @Override
   public Void visitThisExpr(Expr.This expr) {
+//> this-outside-of-class
     if (currentClass == ClassType.NONE) {
       Lox.error(expr.keyword,
           "Cannot use 'this' outside of a class.");
-    } else {
-      resolveLocal(expr, expr.keyword);
+      return null;
     }
+
+//< this-outside-of-class
+    resolveLocal(expr, expr.keyword);
     return null;
   }
 
-//< Classes not-yet
+//< Classes resolver-visit-this
 //> visit-unary-expr
   @Override
   public Void visitUnaryExpr(Expr.Unary expr) {

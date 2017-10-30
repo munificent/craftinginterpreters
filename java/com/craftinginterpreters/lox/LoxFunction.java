@@ -8,35 +8,36 @@ class LoxFunction implements LoxCallable {
 //> closure-field
   private final Environment closure;
 //< closure-field
-//> Classes not-yet
-  private final boolean isInitializer;
-//< Classes not-yet
-
 /* Functions lox-function < Functions closure-constructor
   LoxFunction(Stmt.Function declaration) {
 */
-/* Functions closure-constructor < Classes not-yet
+/* Functions closure-constructor < Classes is-initializer-field
   LoxFunction(Stmt.Function declaration, Environment closure) {
 */
-//> Classes not-yet
+//> Classes is-initializer-field
+  private final boolean isInitializer;
+
   LoxFunction(Stmt.Function declaration, Environment closure,
               boolean isInitializer) {
-//< Classes not-yet
+    this.isInitializer = isInitializer;
+//< Classes is-initializer-field
 //> closure-constructor
     this.closure = closure;
 //< closure-constructor
     this.declaration = declaration;
-//> Classes not-yet
-    this.isInitializer = isInitializer;
-//< Classes not-yet
   }
-//> Classes not-yet
-  LoxFunction bind(LoxInstance self) {
+//> Classes bind-instance
+  LoxFunction bind(LoxInstance instance) {
     Environment environment = new Environment(closure);
-    environment.define("this", self);
+    environment.define("this", instance);
+/* Classes bind-instance < Classes lox-function-bind-with-initializer
+    return new LoxFunction(declaration, environment);
+*/
+//> lox-function-bind-with-initializer
     return new LoxFunction(declaration, environment, isInitializer);
+//< lox-function-bind-with-initializer
   }
-//< Classes not-yet
+//< Classes bind-instance
 //> function-to-string
   @Override
   public String toString() {
@@ -73,9 +74,10 @@ class LoxFunction implements LoxCallable {
       return returnValue.value;
     }
 //< catch-return
-//> Classes not-yet
+//> Classes return-this
+
     if (isInitializer) return closure.getAt(0, "this");
-//< Classes not-yet
+//< Classes return-this
     return null;
   }
 //< function-call

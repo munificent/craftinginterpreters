@@ -60,7 +60,8 @@ static void runtimeError(const char* format, ...) {
 //> Closures not-yet
     ObjFunction* function = frame->closure->function;
 //< Closures not-yet
-    size_t instruction = frame->ip - function->chunk.code;
+    // -1 because the IP is sitting on the next instruction to be executed.
+    size_t instruction = frame->ip - function->chunk.code - 1;
     fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
     if (function->name == NULL) {
       fprintf(stderr, "script\n");

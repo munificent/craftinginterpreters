@@ -26,7 +26,7 @@ class LoxLexer(RegexLexer):
       (r'"[^"]*"', String),
 
       # Reserved words.
-      (r'\b(and|class|else|for|fun|if|or|return|super|var|while)\b', Keyword),
+      (r'\b(and|class|else|for|fun|if|or|print|return|super|var|while)\b', Keyword),
       (r'\b(false|nil|this|true)\b', Name.Builtin),
 
       # Identifiers.
