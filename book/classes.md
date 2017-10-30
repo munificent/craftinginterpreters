@@ -392,8 +392,9 @@ static in terms of the types of objects it works with and their fields.
 
 An interesting edge case we need to handle is what happens if the instance
 doesn't *have* a property with the given name. We could silently return some
-dummy value like `nil`, but my from languages like JavaScript is that masks bugs
-more often than it does anything useful. Instead, we'll make it a runtime error.
+dummy value like `nil`, but my experience from languages like JavaScript is that
+this behavior masks bugs more often than it does anything useful. Instead, we'll
+make it a runtime error.
 
 So the first thing we do is see if the instance actually has a field with the
 given name. Only then does it return it. Otherwise, it raises an error.
@@ -774,7 +775,7 @@ class Egotist {
 }
 
 var method = Egotist().speak;
-method(argument);
+method();
 ```
 
 On the second-to-last line, we grab a reference to the `speak()` method off an
