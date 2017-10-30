@@ -605,7 +605,7 @@ class Person {
 }
 
 var jane = Person();
-jane.name "Jane";
+jane.name = "Jane";
 
 var method = jane.sayName;
 method(); // ?
@@ -625,7 +625,7 @@ class Person {
 }
 
 var jane = Person();
-jane.name "Jane";
+jane.name = "Jane";
 
 var bill = Person();
 bill.name = "Bill";
