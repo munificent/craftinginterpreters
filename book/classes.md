@@ -775,7 +775,7 @@ class Egotist {
 }
 
 var method = Egotist().speak;
-method(argument);
+method();
 ```
 
 On the second-to-last line, we grab a reference to the `speak()` method off an
