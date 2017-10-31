@@ -392,7 +392,7 @@ static in terms of the types of objects it works with and their fields.
 
 An interesting edge case we need to handle is what happens if the instance
 doesn't *have* a property with the given name. We could silently return some
-dummy value like `nil`, but my experience from languages like JavaScript is that
+dummy value like `nil`, but in my experience (from languages like JavaScript)
 this behavior masks bugs more often than it does anything useful. Instead, we'll
 make it a runtime error.
 
