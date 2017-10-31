@@ -290,7 +290,7 @@ properties. We're going to take the latter because, as we'll see, the two get
 entangled in an interesting way and it will be easier to make sense of them if
 we get properties working first.
 
-Lox follows JavaScript and Python in how it handles state. Every instance is a
+Lox follows JavaScript and Python in how it handles state. Every instance is an
 open collection of named values. Methods on the instance's class can access and
 modify properties, but so can <span name="outside">outside</span> code.
 Properties are accessed using a `.` syntax:
@@ -817,8 +817,8 @@ like so:
 
 When we evaluate the `.` expression in `cake.taste`, we create a new environment
 that binds `this` to the object the method is accessed from (here, `cake`). Then
-we make a *new* LoxFunction with the same code as the original one, but that
-using that new environment as its closure:
+we make a *new* LoxFunction with the same code as the original one, except now
+it's using that new environment as its closure:
 
 <img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
 
@@ -833,7 +833,7 @@ The parent of the body environment is the enviroment we created earlier to bind
 successfully resolve to that instance.
 
 Reusing our environment code for implementing `this` also takes care of
-interesting cases where methods and functions and interact, like:
+interesting cases where methods and functions interact, like:
 
 ```lox
 class Thing {
@@ -982,7 +982,7 @@ in a valid configuration. But how do we ensure a brand new object *starts* in a
 good state?
 
 For that, we need constructors. I find them one of the trickiest parts of a
-language to design and if you peer closely at other most languages, you'll see
+language to design and if you peer closely at most other languages, you'll see
 <span name="cracks">cracks</span> around object construction where the seams of
 the design don't quite fit together perfectly. Maybe there's something
 intrinsically messy about the moment of birth.
@@ -1288,7 +1288,7 @@ The art, then is finding *accidental* complexity that can be omitted. Language
 features and interactions that don't carry their weight by increasing the
 breadth or ease of using the language.
 
-If users want to express their program in terms of catergories of objects, then
+If users want to express their program in terms of categories of objects, then
 baking classes into the language increases the ease of doing that, hopefully by
 a large enough margin to pay for the added complexity. But if that isn't how
 users are using your language, then by all means leave classes out.
