@@ -37,13 +37,13 @@ private FunctionType currentFunction = FunctionType.NONE;
 
   private enum ClassType {
     NONE,
-/* Classes class-type < Inheritance not-yet
+/* Classes class-type < Inheritance class-type-subclass
     CLASS
  */
-//> Inheritance not-yet
+//> Inheritance class-type-subclass
     CLASS,
     SUBCLASS
-//< Inheritance not-yet
+//< Inheritance class-type-subclass
   }
 
   private ClassType currentClass = ClassType.NONE;
@@ -74,15 +74,19 @@ private FunctionType currentFunction = FunctionType.NONE;
     ClassType enclosingClass = currentClass;
     currentClass = ClassType.CLASS;
 //< set-current-class
-//> Inheritance not-yet
+//> Inheritance resolve-superclass
 
     if (stmt.superclass != null) {
+//> set-current-subclass
       currentClass = ClassType.SUBCLASS;
+//< set-current-subclass
       resolve(stmt.superclass);
+//> begin-super-scope
       beginScope();
       scopes.peek().put("super", true);
+//< begin-super-scope
     }
-//< Inheritance not-yet
+//< Inheritance resolve-superclass
 //> resolve-methods
 
 //> resolver-begin-this-scope
@@ -106,10 +110,10 @@ private FunctionType currentFunction = FunctionType.NONE;
 
 //< resolver-end-this-scope
 //< resolve-methods
-//> Inheritance not-yet
-    if (currentClass == ClassType.SUBCLASS) endScope();
+//> Inheritance end-super-scope
+    if (stmt.superclass != null) endScope();
 
-//< Inheritance not-yet
+//< Inheritance end-super-scope
 //> restore-current-class
     currentClass = enclosingClass;
 //< restore-current-class
@@ -263,22 +267,23 @@ private FunctionType currentFunction = FunctionType.NONE;
   }
 
 //< Classes resolver-visit-set
-//> Inheritance not-yet
+//> Inheritance resolve-super-expr
   @Override
   public Void visitSuperExpr(Expr.Super expr) {
+//> invalid-super
     if (currentClass == ClassType.NONE) {
       Lox.error(expr.keyword,
           "Cannot use 'super' outside of a class.");
     } else if (currentClass != ClassType.SUBCLASS) {
       Lox.error(expr.keyword,
           "Cannot use 'super' in a class with no superclass.");
-    } else {
-      resolveLocal(expr, expr.keyword);
     }
+
+//< invalid-super
+    resolveLocal(expr, expr.keyword);
     return null;
   }
-
-//< Inheritance not-yet
+//< Inheritance resolve-super-expr
 //> Classes resolver-visit-this
   @Override
   public Void visitThisExpr(Expr.This expr) {

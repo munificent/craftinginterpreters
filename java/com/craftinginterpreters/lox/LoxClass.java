@@ -11,9 +11,9 @@ class LoxClass {
 class LoxClass implements LoxCallable {
 //< lox-class-callable
   final String name;
-//> Inheritance not-yet
+//> Inheritance lox-class-superclass-field
   final LoxClass superclass;
-//< Inheritance not-yet
+//< Inheritance lox-class-superclass-field
 /* Classes lox-class < Classes lox-class-methods
 
   LoxClass(String name) {
@@ -23,17 +23,15 @@ class LoxClass implements LoxCallable {
 //> lox-class-methods
   private final Map<String, LoxFunction> methods;
 
-/* Classes lox-class-methods < Inheritance not-yet
+/* Classes lox-class-methods < Inheritance lox-class-constructor
   LoxClass(String name, Map<String, LoxFunction> methods) {
 */
-//> Inheritance not-yet
+//> Inheritance lox-class-constructor
   LoxClass(String name, LoxClass superclass,
            Map<String, LoxFunction> methods) {
-//< Inheritance not-yet
-    this.name = name;
-//> Inheritance not-yet
     this.superclass = superclass;
-//< Inheritance not-yet
+//< Inheritance lox-class-constructor
+    this.name = name;
     this.methods = methods;
   }
 //< lox-class-methods
@@ -48,12 +46,12 @@ class LoxClass implements LoxCallable {
 //< lox-class-find-method-bind
     }
 
-//> Inheritance not-yet
+//> Inheritance find-method-recurse-superclass
     if (superclass != null) {
       return superclass.findMethod(instance, name);
     }
 
-//< Inheritance not-yet
+//< Inheritance find-method-recurse-superclass
     return null;
   }
 //< lox-class-find-method

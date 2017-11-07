@@ -33,9 +33,9 @@ public class GenerateAst {
 //> Classes set-ast
       "Set      : Expr object, Token name, Expr value",
 //< Classes set-ast
-//> Inheritance not-yet
+//> Inheritance super-expr
       "Super    : Token keyword, Token method",
-//< Inheritance not-yet
+//< Inheritance super-expr
 //> Classes this-ast
       "This     : Token keyword",
 //< Classes this-ast
@@ -53,12 +53,13 @@ public class GenerateAst {
 //> block-ast
       "Block      : List<Stmt> statements",
 //< block-ast
-/* Classes class-ast < Inheritance not-yet
+/* Classes class-ast < Inheritance superclass-ast
       "Class      : Token name, List<Stmt.Function> methods",
 */
-//> Inheritance not-yet
-      "Class      : Token name, Expr superclass, List<Stmt.Function> methods",
-//< Inheritance not-yet
+//> Inheritance superclass-ast
+      "Class      : Token name, Expr superclass," +
+                  " List<Stmt.Function> methods",
+//< Inheritance superclass-ast
       "Expression : Expr expression",
 //> Functions function-ast
       "Function   : Token name, List<Token> parameters, List<Stmt> body",

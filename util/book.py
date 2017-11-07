@@ -128,7 +128,6 @@ TOC = [
       {
         'name': 'Inheritance',
         'topics': ['Superclasses', 'Overriding', 'Calling superclass methods'],
-        'done': False,
       }
     ]
   },
