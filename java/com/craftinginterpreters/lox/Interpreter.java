@@ -407,20 +407,26 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     int distance = locals.get(expr);
     LoxClass superclass = (LoxClass)environment.getAt(
         distance, "super");
+//> super-find-this
 
     // "this" is always one level nearer than "super"'s environment.
     LoxInstance object = (LoxInstance)environment.getAt(
         distance - 1, "this");
+//< super-find-this
+//> super-find-method
 
     LoxFunction method = superclass.findMethod(
         object, expr.method.lexeme);
+//> super-no-method
 
     if (method == null) {
       throw new RuntimeError(expr.method,
           "Undefined property '" + expr.method.lexeme + "'.");
     }
+//< super-no-method
 
     return method;
+//< super-find-method
   }
 //< Inheritance interpreter-visit-super
 //> Classes interpreter-visit-this
