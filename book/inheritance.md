@@ -627,7 +627,7 @@ ready to come back, we'll embark on our next adventure.
           cook() {
             print "Fry until golden brown.";
             inner();
-            print "Place in a nice box."
+            print "Place in a nice box.";
           }
         }
 
