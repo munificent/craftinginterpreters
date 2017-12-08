@@ -1,6 +1,13 @@
 ^title Classes
 ^part A Tree-Walk Interpreter
 
+> One has no right to love or hate anything if one has not acquired a thorough
+> knowledge of its nature. Great love springs from great knowledge of the
+> beloved object, and if you know it but little you will be able to love it only
+> a little or not at all.
+>
+> <cite>Leonardo da Vinci</cite>
+
 We're eleven chapters in, and the interpreter sitting on your machine is nearly
 a complete scripting language. It could use a couple of built-in data structures
 like lists and maps, and it certainly needs a core library for file IO, user

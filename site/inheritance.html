@@ -109,15 +109,30 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<blockquote>
+<p>Once we were blobs in the sea, and then fishes, and then lizards and rats and
+then monkeys, and hundreds of things in between. This hand was once a fin,
+this hand once had claws! In my human mouth I have the pointy teeth of a wolf
+and the chisel teeth of a rabbit and the grinding teeth of a cow! Our blood is
+as salty as the sea we used to live in! When we&rsquo;re frightened, the hair on our
+skin stands up, just like it did when we had fur. We are history! Everything
+we&rsquo;ve ever been on the way to becoming us, we still are.</p>
+<p><cite>Terry Pratchett</cite></p>
+</blockquote>
 <p>Can you believe it? We&rsquo;ve reached the last chapter of <a href="a-tree-walk-interpreter.html">Part II</a>. We&rsquo;re almost
 done with our first Lox interpreter. The <a href="classes.html">previous chapter</a> was a big ball of
 intertwined stuff because most features around object-orientation are hard to
 separate, but I did manage to untangle one aspect. In this chapter, we&rsquo;ll finish
 off Lox&rsquo;s class support by adding inheritance.</p>
 <p>Inheritance has been a feature of object-oriented languages all the way back to
-the first one, <a href="https://en.wikipedia.org/wiki/Simula">Simula</a>. Early on, Kristen Nygaard and Ole-Johan Dahl noticed
-commonalities across classes in the simulation programs they wrote. Inheritance
-gave them a way to reuse the code for those similar parts.</p>
+the <span name="inherited">first</span> one, <a href="https://en.wikipedia.org/wiki/Simula">Simula</a>. Early on, Kristen
+Nygaard and Ole-Johan Dahl noticed commonalities across classes in the
+simulation programs they wrote. Inheritance gave them a way to reuse the code
+for those similar parts.</p>
+<aside name="inherited">
+<p>You could say all those other languages <em>inherited</em> it from Simula. Hey-ooo!
+I&rsquo;ll, uh, see myself out.</p>
+</aside>
 <h2><a href="#superclasses-and-subclasses" name="superclasses-and-subclasses"><small>13&#8202;.&#8202;1</small> Superclasses and Subclasses</a></h2>
 <p>Given that the concept is <em>inheritance</em>, you would think they would pick a
 consistent metaphor and call them &ldquo;parent&rdquo; and &ldquo;child&rdquo; classes, but that would
@@ -139,13 +154,14 @@ the elements of the subset and possibly more. Set theory and programming
 languages directly collide in type theory. There, you have &ldquo;supertypes&rdquo; and
 &ldquo;subtypes&rdquo;.</p>
 <p>In statically-typed object-oriented languages, a subclass is also often a
-subtype of its superclass. Say we have a Bread superclass and a Rye subclass.
-Every instance of Rye is also an instance of Bread, but there may be Bread
-objects that are not Ryes.</p>
-<p>Think of a type as a set of values. The set of all Bread instances contains the
-set of all Rye instances since every Rye is also a Bread. So Rye is a subclass,
-and a subtype, and its instances are a subset. It all lines up.</p>
-<p><strong>todo illustrate</strong></p>
+subtype of its superclass. Say we have a Doughnut superclass and a BostonCream
+subclass. Every BostonCream is also an instance of Doughnut, but there may be
+doughnut objects that are not BostonCreams (like crullers).</p>
+<p>Think of a type as a set of values. The set of all Doughnut instances contains
+the set of all BostonCream instances since every BostonCream is also a Doughnut.
+So BostonCream is a subclass, and a subtype, and its instances are a subset. It
+all lines up.</p>
+<p><img alt="Boston cream &lt;: doughnut." src="image/inheritance/doughnuts.png" /></p>
 </aside>
 <p>Our first step towards supporting inheritance in Lox is a way to specify a
 superclass when declaring a class. There&rsquo;s a lot of variety in syntax for this.
@@ -483,10 +499,27 @@ is what we want Lox to do too. When this program runs, inside the body of
 <p>Instead, lookup should start on the superclass of <em>the class containing the
 super expression</em>. In this case, since <code>test()</code> is defined inside B, the super
 expression inside it should start the lookup on <em>B</em>&rsquo;s superclass&#8202;&mdash;&#8202;A.</p>
-<p><strong>todo: illustrate</strong></p>
-<p>So, in order to evaluate a super expression, we need access to the superclass of
-the class definition surrounding the call. Alack and alas, at the point in the
-interpreter where we are executing a super expression, we don&rsquo;t have that
+<p><span name="flow"></span></p>
+<p><img src="image/inheritance/classes.png" alt="The call chain flowing through the classes." /></p>
+<aside name="flow">
+<p>The execution flow looks something like this</p>
+<ol>
+<li>
+<p>We call <code>test()</code> on an instance of C.</p>
+</li>
+<li>
+<p>That enters the <code>test()</code> method inherited from B. That calls
+   <code>super.method()</code>.</p>
+</li>
+<li>
+<p>The superclass of B is A, so that chains to <code>method()</code> on A, and the program
+   prints &ldquo;A method&rdquo;.</p>
+</li>
+</ol>
+</aside>
+<p>Thus, in order to evaluate a super expression, we need access to the superclass
+of the class definition surrounding the call. Alack and alas, at the point in
+the interpreter where we are executing a super expression, we don&rsquo;t have that
 easily available.</p>
 <p>We <em>could</em> add a field to LoxFunction to store a reference to the LoxClass that
 owns that method. The interpreter would keep a reference to the
@@ -508,13 +541,15 @@ multiple instances and each needs its own <code>this</code>. With super expressi
 superclass is a fixed property of the <em>class declaration itself</em>. Every time you
 evaluate some super expression, the superclass is always the same class.</p>
 <p>So for super expressions, we want to create the environment and bind the
-superclass in it <em>once</em>, when the class definition is first executed. The
-resulting environment chain looks like this:</p>
-<p><strong>todo: illustrate</strong></p>
-<p>We need a name to store the reference in the environment. As with <code>this</code>, we use
-a reserved word, now <code>super</code>, to ensure the name doesn&rsquo;t collide with a
-user-defined variable.</p>
-<p>Before we can get to creating the environment at runtime, we need to handle the
+superclass in it <em>once</em>, when the class definition is first executed. We need a
+name for the binding. We&rsquo;ll use <code>super</code> because, as with <code>this</code>, it&rsquo;s a reserved
+word so we don&rsquo;t have to worry about it being shadowed by a user-defined
+variable.</p>
+<p>When a method is invoked, the superclass environment then becomes the parent for
+the method&rsquo;s closure, like so:</p>
+<p><img src="image/inheritance/environments.png" alt="The environment chain including the superclass environment." /></p>
+<p>That&rsquo;s a lot of machinery, but we&rsquo;ll get through it a step at a time. Before we
+can get to creating the environment at runtime, we need to handle the
 corresponding scope chain in the resolver:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">);</span>
@@ -727,9 +762,10 @@ in <em>visitSuperExpr</em>()</div>
 <p>If not&#8202;&mdash;&#8202;oopsie!&#8202;&mdash;&#8202;the user made a mistake.</p>
 <h2><a href="#conclusion" name="conclusion"><small>13&#8202;.&#8202;4</small> Conclusion</a></h2>
 <p>We made it! That final bit of error-handling is the last chunk of code needed to
-complete our Java implementation of Lox. This is a real accomplishment and one
-you should be proud of. In the past dozen chapters and a thousand or so lines of
-code, we have learned and implemented&hellip;</p>
+complete our Java implementation of Lox. This is a real <span
+name="superhero">accomplishment</span> and one you should be proud of. In the
+past dozen chapters and a thousand or so lines of code, we have learned and
+implemented&hellip;</p>
 <ul>
 <li><a href="scanning.html">tokens and lexing</a>,</li>
 <li><a href="representing-code.html">abstract syntax trees</a>,</li>
@@ -749,6 +785,9 @@ code, we have learned and implemented&hellip;</p>
 <li>methods,</li>
 <li>and finally inheritance.</li>
 </ul>
+<aside name="superhero">
+<p><img alt="You, being your bad self." src="image/inheritance/superhero.png" /></p>
+</aside>
 <p>We did all of that from scratch, with no external dependencies or magic tools.
 Just you and I, our respective text editors, a couple of collection classes in
 the Java standard library, and the JVM runtime.</p>
@@ -800,7 +839,7 @@ BETA&rsquo;s semantics. In short:</p>
   <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="p">;</span>
     <span class="n">inner</span><span class="p">();</span>
-    <span class="k">print</span> <span class="s">&quot;Place in a nice box.&quot;</span>
+    <span class="k">print</span> <span class="s">&quot;Place in a nice box.&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 <span class="p">}</span>
 

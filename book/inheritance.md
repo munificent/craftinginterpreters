@@ -1,6 +1,16 @@
 ^title Inheritance
 ^part A Tree-Walk Interpreter
 
+> Once we were blobs in the sea, and then fishes, and then lizards and rats and
+> then monkeys, and hundreds of things in between. This hand was once a fin,
+> this hand once had claws! In my human mouth I have the pointy teeth of a wolf
+> and the chisel teeth of a rabbit and the grinding teeth of a cow! Our blood is
+> as salty as the sea we used to live in! When we're frightened, the hair on our
+> skin stands up, just like it did when we had fur. We are history! Everything
+> we've ever been on the way to becoming us, we still are.
+>
+> <cite>Terry Pratchett</cite>
+
 Can you believe it? We've reached the last chapter of [Part II][]. We're almost
 done with our first Lox interpreter. The [previous chapter][] was a big ball of
 intertwined stuff because most features around object-orientation are hard to
@@ -11,11 +21,19 @@ off Lox's class support by adding inheritance.
 [previous chapter]: classes.html
 
 Inheritance has been a feature of object-oriented languages all the way back to
-the first one, [Simula][]. Early on, Kristen Nygaard and Ole-Johan Dahl noticed
-commonalities across classes in the simulation programs they wrote. Inheritance
-gave them a way to reuse the code for those similar parts.
+the <span name="inherited">first</span> one, [Simula][]. Early on, Kristen
+Nygaard and Ole-Johan Dahl noticed commonalities across classes in the
+simulation programs they wrote. Inheritance gave them a way to reuse the code
+for those similar parts.
 
 [simula]: https://en.wikipedia.org/wiki/Simula
+
+<aside name="inherited">
+
+You could say all those other languages *inherited* it from Simula. Hey-ooo!
+I'll, uh, see myself out.
+
+</aside>
 
 ## Superclasses and Subclasses
 
@@ -43,15 +61,16 @@ languages directly collide in type theory. There, you have "supertypes" and
 "subtypes".
 
 In statically-typed object-oriented languages, a subclass is also often a
-subtype of its superclass. Say we have a Bread superclass and a Rye subclass.
-Every instance of Rye is also an instance of Bread, but there may be Bread
-objects that are not Ryes.
+subtype of its superclass. Say we have a Doughnut superclass and a BostonCream
+subclass. Every BostonCream is also an instance of Doughnut, but there may be
+doughnut objects that are not BostonCreams (like crullers).
 
-Think of a type as a set of values. The set of all Bread instances contains the
-set of all Rye instances since every Rye is also a Bread. So Rye is a subclass,
-and a subtype, and its instances are a subset. It all lines up.
+Think of a type as a set of values. The set of all Doughnut instances contains
+the set of all BostonCream instances since every BostonCream is also a Doughnut.
+So BostonCream is a subclass, and a subtype, and its instances are a subset. It
+all lines up.
 
-**todo illustrate**
+![Boston cream <: doughnut.](image/inheritance/doughnuts.png)
 
 </aside>
 
@@ -349,11 +368,27 @@ Instead, lookup should start on the superclass of *the class containing the
 super expression*. In this case, since `test()` is defined inside B, the super
 expression inside it should start the lookup on *B*&rsquo;s superclass -- A.
 
-**todo: illustrate**
+<span name="flow"></span>
 
-So, in order to evaluate a super expression, we need access to the superclass of
-the class definition surrounding the call. Alack and alas, at the point in the
-interpreter where we are executing a super expression, we don't have that
+<img src="image/inheritance/classes.png" alt="The call chain flowing through the classes." />
+
+<aside name="flow">
+
+The execution flow looks something like this
+
+1. We call `test()` on an instance of C.
+
+2. That enters the `test()` method inherited from B. That calls
+   `super.method()`.
+
+3. The superclass of B is A, so that chains to `method()` on A, and the program
+   prints "A method".
+
+</aside>
+
+Thus, in order to evaluate a super expression, we need access to the superclass
+of the class definition surrounding the call. Alack and alas, at the point in
+the interpreter where we are executing a super expression, we don't have that
 easily available.
 
 We *could* add a field to LoxFunction to store a reference to the LoxClass that
@@ -384,16 +419,18 @@ superclass is a fixed property of the *class declaration itself*. Every time you
 evaluate some super expression, the superclass is always the same class.
 
 So for super expressions, we want to create the environment and bind the
-superclass in it *once*, when the class definition is first executed. The
-resulting environment chain looks like this:
+superclass in it *once*, when the class definition is first executed. We need a
+name for the binding. We'll use `super` because, as with `this`, it's a reserved
+word so we don't have to worry about it being shadowed by a user-defined
+variable.
 
-**todo: illustrate**
+When a method is invoked, the superclass environment then becomes the parent for
+the method's closure, like so:
 
-We need a name to store the reference in the environment. As with `this`, we use
-a reserved word, now `super`, to ensure the name doesn't collide with a
-user-defined variable.
+<img src="image/inheritance/environments.png" alt="The environment chain including the superclass environment." />
 
-Before we can get to creating the environment at runtime, we need to handle the
+That's a lot of machinery, but we'll get through it a step at a time. Before we
+can get to creating the environment at runtime, we need to handle the
 corresponding scope chain in the resolver:
 
 ^code begin-super-scope (2 before, 1 after)
@@ -541,9 +578,10 @@ If not -- oopsie! -- the user made a mistake.
 ## Conclusion
 
 We made it! That final bit of error-handling is the last chunk of code needed to
-complete our Java implementation of Lox. This is a real accomplishment and one
-you should be proud of. In the past dozen chapters and a thousand or so lines of
-code, we have learned and implemented...
+complete our Java implementation of Lox. This is a real <span
+name="superhero">accomplishment</span> and one you should be proud of. In the
+past dozen chapters and a thousand or so lines of code, we have learned and
+implemented...
 
 * [tokens and lexing][4],
 * [abstract syntax trees][5],
@@ -572,6 +610,12 @@ code, we have learned and implemented...
 [10]: functions.html
 [11]: resolving-and-binding.html
 [12]: classes.html
+
+<aside name="superhero">
+
+![You, being your bad self.](image/inheritance/superhero.png)
+
+</aside>
 
 We did all of that from scratch, with no external dependencies or magic tools.
 Just you and I, our respective text editors, a couple of collection classes in
