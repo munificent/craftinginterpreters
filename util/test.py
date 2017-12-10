@@ -1023,23 +1023,30 @@ def run_suites(names):
     sys.exit(1)
 
 
-if len(sys.argv) < 2 or len(sys.argv) > 3:
-  print('Usage: test.py <interpreter> [filter]')
-  sys.exit(1)
+def main(argv):
+  global filter_path
 
-if len(sys.argv) == 3:
-  filter_path = sys.argv[2]
-
-if sys.argv[1] == 'all':
-  run_suites(sorted(INTERPRETERS.keys()))
-elif sys.argv[1] == 'c':
-  run_suites(C_SUITES)
-elif sys.argv[1] == 'java':
-  run_suites(JAVA_SUITES)
-elif sys.argv[1] not in INTERPRETERS:
-  print('Unknown interpreter "{}"'.format(sys.argv[1]))
-  sys.exit(1)
-
-else:
-  if not run_suite(sys.argv[1]):
+  if len(argv) < 2 or len(argv) > 3:
+    print('Usage: test.py <interpreter> [filter]')
     sys.exit(1)
+
+  if len(argv) == 3:
+    filter_path = argv[2]
+
+  if argv[1] == 'all':
+    run_suites(sorted(INTERPRETERS.keys()))
+  elif argv[1] == 'c':
+    run_suites(C_SUITES)
+  elif argv[1] == 'java':
+    run_suites(JAVA_SUITES)
+  elif argv[1] not in INTERPRETERS:
+    print('Unknown interpreter "{}"'.format(argv[1]))
+    sys.exit(1)
+
+  else:
+    if not run_suite(argv[1]):
+      sys.exit(1)
+
+
+if __name__ == '__main__':
+  main(sys.argv)
