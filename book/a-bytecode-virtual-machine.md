@@ -11,7 +11,7 @@ for granted that things like `instanceof` in Java work *somehow*. And we never
 for a second worry about memory management because the JVM's garbage collector
 takes care of it for us.
 
-Those were useful training wheels while we were getting using to the basic
-concepts in interpreters. But now that we have those concepts down, it's time
-for us to take those wheels off and build our own virtual machine from scratch
-using nothing more than the C standard library...
+Those were useful training wheels while we were learning the basic concepts
+around interpreters. But now that we have those concepts down, it's time for us
+to take those wheels off and build our own virtual machine from scratch using
+nothing more than the C standard library...

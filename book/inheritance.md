@@ -13,18 +13,18 @@
 
 Can you believe it? We've reached the last chapter of [Part II][]. We're almost
 done with our first Lox interpreter. The [previous chapter][] was a big ball of
-intertwined stuff because most features around object-orientation are hard to
-separate, but I did manage to untangle one aspect. In this chapter, we'll finish
-off Lox's class support by adding inheritance.
+intertwined object-orientation features. I couldn't separate those from each
+other, but I did manage to untangle one piece. In this chapter, we'll finish
+off Lox's class support by adding **inheritance.**
 
 [part ii]: a-tree-walk-interpreter.html
 [previous chapter]: classes.html
 
-Inheritance has been a feature of object-oriented languages all the way back to
-the <span name="inherited">first</span> one, [Simula][]. Early on, Kristen
-Nygaard and Ole-Johan Dahl noticed commonalities across classes in the
-simulation programs they wrote. Inheritance gave them a way to reuse the code
-for those similar parts.
+Inheritance appears in object-oriented languages all the way back to the <span
+name="inherited">first</span> one, [Simula][]. Early on, Kristen Nygaard and
+Ole-Johan Dahl noticed commonalities across classes in the simulation programs
+they wrote. Inheritance gave them a way to reuse the code for those similar
+parts.
 
 [simula]: https://en.wikipedia.org/wiki/Simula
 
@@ -37,7 +37,7 @@ I'll, uh, see myself out.
 
 ## Superclasses and Subclasses
 
-Given that the concept is *inheritance*, you would think they would pick a
+Given that the concept is "inheritance", you would hope they would pick a
 consistent metaphor and call them "parent" and "child" classes, but that would
 be too easy. Way back when, C.A.R. Hoare coined the term "<span
 name="subclass">subclass</span>" to refer to a record type that refines another
@@ -55,20 +55,19 @@ below their superclasses on the diagram. More generally, "sub-" refers to things
 that refine or are contained by some more general concept. In zoology, a
 subclass is a finer categorization of a larger class of living things.
 
-In set theory, a subset is contained by a larger superset which contains all of
-the elements of the subset and possibly more. Set theory and programming
-languages directly collide in type theory. There, you have "supertypes" and
-"subtypes".
+In set theory, a subset is contained by a larger superset which has all of the
+elements of the subset and possibly more. Set theory and programming languages
+directly collide in type theory. There, you have "supertypes" and "subtypes".
 
 In statically-typed object-oriented languages, a subclass is also often a
 subtype of its superclass. Say we have a Doughnut superclass and a BostonCream
 subclass. Every BostonCream is also an instance of Doughnut, but there may be
 doughnut objects that are not BostonCreams (like crullers).
 
-Think of a type as a set of values. The set of all Doughnut instances contains
-the set of all BostonCream instances since every BostonCream is also a Doughnut.
-So BostonCream is a subclass, and a subtype, and its instances are a subset. It
-all lines up.
+Think of a type as the set of values of that type. The set of all Doughnut
+instances contains the set of all BostonCream instances since every BostonCream
+is also a Doughnut. So BostonCream is a subclass, and a subtype, and its
+instances are a subset. It all lines up.
 
 ![Boston cream <: doughnut.](image/inheritance/doughnuts.png)
 
@@ -76,52 +75,53 @@ all lines up.
 
 Our first step towards supporting inheritance in Lox is a way to specify a
 superclass when declaring a class. There's a lot of variety in syntax for this.
-C++ and C# follow the subclass's name with a colon then the superclass name.
-Java uses `extends` instead of `:`. Python puts the superclass(es) in
-parentheses after the class name. Simula puts the superclass's name *before* the
-`class` keyword.
+C++ and C# place a `:` after the subclass's name, followed by the superclass
+name. Java uses `extends` instead of the colon. Python puts the superclass(es)
+in parentheses after the class name. Simula puts the superclass's name *before*
+the `class` keyword.
 
 This late in the game, I'd rather not add a new reserved word or token to the
-lexer. We don't have `extends` or even `:`, so follow Ruby and use `<`:
+lexer. We don't have `extends` or even `:`, so we'll follow Ruby and use `<`:
 
 ```lox
-class Bread {
-  // General bread stuff...
+class Doughnut {
+  // General doughnut stuff...
 }
 
-class Rye < Bread {
-  // Rye-specific stuff...
+class BostonCream < Doughnut {
+  // Boston Cream-specific stuff...
 }
 ```
 
-This becomes a new optional clause in our existing `classDecl` rule:
+To work this into the grammar, we add a new optional clause in our existing
+`classDecl` rule:
 
 ```lox
 classDecl → "class" IDENTIFIER ( "<" IDENTIFIER )?
             "{" function* "}" ;
 ```
 
-So, after the class name, you can have a `<` followed by the superclass's name.
-The superclass clause is optional because you don't *have* to have a superclass.
+After the class name, you can have a `<` followed by the superclass's name. The
+superclass clause is optional because you don't *have* to have a superclass.
 Unlike some other object-oriented languages like Java, Lox has no root "Object"
 class that everything inherits from, so when you omit the superclass clause, the
 class has *no* superclass, not even an implicit one.
 
-This gets stored in the class declaration's syntax tree:
+We want to capture this new syntax in the class declaration's AST node:
 
 ^code superclass-ast (1 before, 1 after)
 
-You might be surprised that it's stored as an Expr, not a Token. The grammar
-limits it to a single identifier, but at runtime, that identifier is evaluated
-as a variable expression. Wrapping the name in an Expr early on in the parser
-gives us an object that the resolver can have the resolution information off of.
+You might be surprised that we store the superclass name as an Expr, not a
+Token. The grammar restricts the superclass clause to a single identifier, but
+at runtime, that identifier is evaluated as a variable access. Wrapping the
+name in an Expr early on in the parser gives us an object that the resolver can
+hang the resolution information off of.
 
 The new parser code follows the grammar directly:
 
 ^code parse-superclass (1 before, 1 after)
 
-Once we've (possibly) parsed a superclass declaration, we need to store it in
-the AST:
+Once we've (possibly) parsed a superclass declaration, we store it in the AST:
 
 ^code construct-class-ast (2 before, 1 after)
 
@@ -160,64 +160,39 @@ that too. We pass it through the constructor:
 
 ^code interpreter-construct-class (3 before, 1 after)
 
-...which initializes it:
+...which store it:
 
 ^code lox-class-constructor (1 after)
 
-...and stores it in a new field:
+...in a new field:
 
 ^code lox-class-superclass-field (1 before, 1 after)
 
-That's our foundation. We can now define classes that are subclasses of other
-classes:
-
-```lox
-class Bread {
-  // General bread stuff...
-}
-
-class Rye < Bread {
-  // Rye-specific stuff...
-}
-```
-
-Now, what does having a superclass actually *do?*
+That's our foundation -- the syntax and runtime representation the semantics
+will build on. We can define classes that are subclasses of other classes. Now,
+what does having a superclass actually *do?*
 
 ## Inheriting Methods
 
 Inheriting from another class means that everything that's <span
 name="liskov">true</span> of the superclass should be true, more or less, of the
-subclass. In more rigid languages, that carries a lot of implications. If the
-language has static types, that usually means a sub-*class* also needs to be a
-sub-*type*. Otherwise it would be a type error to pass a subclass where its
-superclass is expected. It often places restrictions on the memory layout of
-subclass instances relative to superclass ones so that accessing a field
-declared on the superclass still works given an instance of the subclass.
+subclass. In statically-typed languages that carries a lot of implications. The
+sub-*class* must also be a sub-*type* and the memory layout is controlled so
+that you can pass an instance of a subclass to a function expecting a superclass
+and it can still access the inherited fields correctly.
 
 <aside name="liskov">
 
 A fancier name for this hand-wavey guideline is the [**Liskov substitution
-principle**][liskov]. Barbara Liskov introduced it in a seminal keynote speech
-during the formative period of object-oriented programming. She states it as:
-
-[liskov]: https://en.wikipedia.org/wiki/Liskov_substitution_principle
-
-> If for each object `o1` of type `S` there is an object `o2` of type `T` such
-> that for all programs `P` defined in terms of `T`, the behavior of `P` is
-> unchanged when `o1` is substituted for `o2`, then `S` is a subtype of `T`.
-
-In other words, if the user says some type is a subtype of another, then you
-should be able to replace every object of the supertype with an object of the
-subtype and the program will be "unchanged". I put that in quotes because
-there's endless debate about to what degree a subtype should be able to behave
-differently from its supertype.
+principle**][liskov]. Barbara Liskov introduced it in a keynote during the
+formative period of object-oriented programming.
 
 </aside>
 
 Lox is a dynamically-typed language, so our requirements are much simpler.
 Basically, it means that if you can call some method on an instance of the
 superclass, you should be able to call that method when given an instance of the
-superclass. In other words, methods are inherited from the superclass.
+subclass. In other words, methods are inherited from the superclass.
 
 This lines up with one of the goals of inheritance -- to give users a way to
 reuse code across classes. Implementing this is in our interpreter is
@@ -226,8 +201,8 @@ astonishingly easy:
 ^code find-method-recurse-superclass (3 before, 1 after)
 
 That's literally all there is to it. When we are looking up a method on an
-instance, if we don't find it on the instance's class, we walk up to the
-superclass if there is one and try again there (recursively). Give it a try:
+instance, if we don't find it on the instance's class, we recurse up through the
+superclass chain and look there. Give it a try:
 
 ```lox
 class Doughnut {
@@ -241,8 +216,8 @@ class BostonCream < Doughnut {}
 BostonCream().cook();
 ```
 
-There we go, half of our inheritance features are done with only three lines of
-code.
+There we go, half of our inheritance features are complete with only three lines
+of Java code.
 
 ## Calling Superclass Methods
 
@@ -254,7 +229,7 @@ superclass method. Sort of like how variables in inner scopes shadow outer ones.
 That's great if the subclass wants to *replace* some superclass behavior
 completely. But, in practice, subclasses often want to *refine* the superclass's
 behavior. They want to do a little work specific to the subclass, but also
-invoke the original superclass behavior too.
+execute the original superclass behavior too.
 
 However, since the subclass has overridden the method, there's no way to refer
 to the original one. If the subclass method tries to call it by name, it will
@@ -289,8 +264,8 @@ that name. Unlike calls on `this`, the search starts at the superclass.
 
 With `this`, the keyword works sort of like a magic variable and the expression
 is that one lone token. But with `super`, the subsequent `.` and property name
-are inseparable parts of the super expression. You can't have a bare `super` all
-by itself:
+are inseparable parts of the super expression. You can't have a bare `super`
+token all by itself:
 
 ```lox
 print super; // Syntax error.
@@ -306,7 +281,7 @@ primary → "true" | "false" | "null" | "this"
 ```
 
 Typically, a super expression is used for a method call, but, as with regular
-methods, the *argument list* is not part of the expression. Instead, a super
+methods, the argument list is *not* part of the expression. Instead, a super
 *call* is a super *access* followed by a function call. Like other method calls,
 you can get a handle to a superclass method and invoke it separately:
 
@@ -419,10 +394,11 @@ superclass is a fixed property of the *class declaration itself*. Every time you
 evaluate some super expression, the superclass is always the same class.
 
 So for super expressions, we want to create the environment and bind the
-superclass in it *once*, when the class definition is first executed. We need a
-name for the binding. We'll use `super` because, as with `this`, it's a reserved
-word so we don't have to worry about it being shadowed by a user-defined
-variable.
+superclass in it *once*, when the class definition is executed. We need a name
+for the binding. We'll use `super` because, as with `this`, it's a reserved word
+so we don't have to worry about it being shadowed by a user-defined variable.
+
+**todo: show environment chain of each method after class decl is executed?**
 
 When a method is invoked, the superclass environment then becomes the parent for
 the method's closure, like so:
@@ -462,8 +438,8 @@ definition, we create a new environment:
 Inside that environment, we store a reference to the superclass -- the actual
 LoxClass object for the superclass which we have now that we are in the runtime.
 Then we create the LoxFunctions for each method. Those will capture the current
-environment as their closure, holding onto the superclass like we need. Once
-that's done, we pop the environment:
+environment -- the one where we just bound "super" -- as their closure, holding
+onto the superclass like we need. Once that's done, we pop the environment:
 
 ^code end-superclass-environment (2 before, 2 after)
 
@@ -482,11 +458,10 @@ current object is implicitly the *same* current object that we're using. In
 other words, `this`. Even though we are looking up the *method* on the
 superclass, the *instance* is still `this`.
 
-Unfortunately, inside the super expression, we don't have a convenient
-expression for the resolver to hang the number of hops to `this` on.
-Fortunately, we do control the layout of the environment chains. The environment
-where "this" is bound is always right inside the environment where we store
-"super":
+Unfortunately, inside the super expression, we don't have a convenient node for
+the resolver to hang the number of hops to `this` on. Fortunately, we do control
+the layout of the environment chains. The environment where "this" is bound is
+always right inside the environment where we store "super":
 
 ^code super-find-this (2 before, 1 after)
 
@@ -506,7 +481,7 @@ Now we're ready to look up and bind the method, starting at the superclass:
 
 ^code super-find-method (2 before, 1 after)
 
-This is almost exactly like the code for looking up a method for a get
+This is almost exactly like the code for looking up a method of a get
 expression, except that we call `findMethod()` on the superclass instead of on
 the class of the current object.
 
@@ -540,7 +515,7 @@ will be found in the environment. That's going to fail here because there is no
 surrounding environment for the superclass since there is no superclass. The JVM
 will throw an exception and bring our interpreter to its knees.
 
-Heck, there are even simpler bad uses of super:
+Heck, there are even simpler broken uses of super:
 
 ```lox
 super.notEvenInAClass();
@@ -564,12 +539,12 @@ is surrounding the current code being visited:
 
 We'll use that to distinguish when we're inside a class that has a superclass
 versus one that doesn't. When we resolve a class declaration, we set that if the
-class has a superclass:
+class is a subclass:
 
 ^code set-current-subclass (1 before, 1 after)
 
 Then, when we resolve a super expression, we check to see that we are currently
-inside a class that has a superclass:
+inside a scope where that's allowed:
 
 ^code invalid-super (1 before, 1 after)
 
@@ -624,7 +599,9 @@ the Java standard library, and the JVM runtime.
 This marks the end of Part II, but not the end of the book. Take a break. Maybe
 write a few fun Lox programs and run them in your interpreter. (You may want to
 add a few more native methods for things like reading user input.) When you're
-ready to come back, we'll embark on our next adventure.
+refreshed and ready, we'll embark on our [next adventure][].
+
+[next adventure]: a-bytecode-virtual-machine.html
 
 <div class="challenges">
 
@@ -636,22 +613,26 @@ ready to come back, we'll embark on our next adventure.
     capabilities across classes: mixins, traits, multiple inheritance, virtual
     inheritance, extension methods, etc.
 
-    If you were to add one to Lox, which would you pick and why? If you're
-    feeling courageous (and you should be at this point), go ahead and add it.
+    If you were to add some feature along these lines to Lox, which would you
+    pick and why? If you're feeling courageous (and you should be at this
+    point), go ahead and add it.
 
 1.  In Lox, as in most other object-oriented languages, when looking up a
     method, we start at the bottom of the class hierarchy and work our way up --
-    a subclass's method is preferred over a superclass method of the same name.
-    This means subclasses override superclass methods. In order to get to the
+    a subclass's method is preferred over a superclass's. In order to get to the
     superclass method from within an overriding method, you use `super`.
 
-    The language [BETA][] takes the opposite approach. When you call a method,
-    it starts at the *top* of the class hierarchy and works *down*. A superclass
-    method wins over a subclass method. In order to get to the subclass method,
-    the superclass method can call `inner`, which is sort of like the inverse of
-    `super`. It chains to the next method down the hierarchy. If the superclass
-    method doesn't call `inner`, then the subclass has no way of overriding or
-    modifying the superclass's behavior.
+    The language [BETA][] takes the [opposite approach][inner]. When you call a
+    method, it starts at the *top* of the class hierarchy and works *down*. A
+    superclass method wins over a subclass method. In order to get to the
+    subclass method, the superclass method can call `inner`, which is sort of
+    like the inverse of `super`. It chains to the next method down the
+    hierarchy.
+
+    The superclass method controls when and where the subclass is allowed to
+    refine its behavior. If the superclass method doesn't call `inner` at all,
+    then the subclass has no way of overriding or modifying the superclass's
+    behavior.
 
     Take out Lox's current overriding and `super` behavior and replace it with
     BETA's semantics. In short:
@@ -690,14 +671,12 @@ ready to come back, we'll embark on our next adventure.
         Pipe full of custard and coat with chocolate.
         Place in a nice box.
 
-    Note how `inner()` lets the subclass refine the superclass's method while
-    giving the superclass control over *when* the refinement happens.
-
 1.  In the chapter where I introduced Lox, [I challenged you][challenge] to
     come up with a couple of features you think the language is missing. Now
-    that you know how to build an interpreter, implement one.
+    that you know how to build an interpreter, implement one of those features.
 
 [challenge]: the-lox-language.html#challenges
+[inner]: http://journal.stuffwithstuff.com/2012/12/19/the-impoliteness-of-overriding-methods/
 [beta]: http://cs.au.dk/~beta/
 
 </div>
