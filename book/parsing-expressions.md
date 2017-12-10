@@ -336,7 +336,7 @@ for it.
 
 ## Recursive Descent Parsing
 
-There are a whole pack of parsing techniques whose names mostly seem to be
+There is a whole pack of parsing techniques whose names mostly seem to be
 combinations of "L" and "R" -- [LL(k)][], [LR(1)][lr], [LALR][] -- along with
 more exotic beasts like [parser combinators][], [Earley parsers][], [the
 shunting yard algorithm][], and [packrat parsing][]. For our first interpreter,
