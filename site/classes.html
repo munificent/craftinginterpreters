@@ -435,7 +435,7 @@ want to give it a try, here&rsquo;s a script to run:</p>
 We could add behavior first&#8202;&mdash;&#8202;methods&#8202;&mdash;&#8202;or we could start with state&#8202;&mdash;&#8202;properties. We&rsquo;re going to take the latter because, as we&rsquo;ll see, the two get
 entangled in an interesting way and it will be easier to make sense of them if
 we get properties working first.</p>
-<p>Lox follows JavaScript and Python in how it handles state. Every instance is a
+<p>Lox follows JavaScript and Python in how it handles state. Every instance is an
 open collection of named values. Methods on the instance&rsquo;s class can access and
 modify properties, but so can <span name="outside">outside</span> code.
 Properties are accessed using a <code>.</code> syntax:</p>
@@ -563,8 +563,9 @@ static in terms of the types of objects it works with and their fields.</p>
 </aside>
 <p>An interesting edge case we need to handle is what happens if the instance
 doesn&rsquo;t <em>have</em> a property with the given name. We could silently return some
-dummy value like <code>nil</code>, but my from languages like JavaScript is that masks bugs
-more often than it does anything useful. Instead, we&rsquo;ll make it a runtime error.</p>
+dummy value like <code>nil</code>, but my experience with languages like JavaScript is that
+this behavior masks bugs more often than it does anything useful. Instead, we&rsquo;ll
+make it a runtime error.</p>
 <p>So the first thing we do is see if the instance actually has a field with the
 given name. Only then does it return it. Otherwise, it raises an error.</p>
 <p>Note how I switched from talking about &ldquo;properties&rdquo; to &ldquo;fields&rdquo;. There is a
@@ -776,7 +777,7 @@ it. Compare this:</p>
 <span class="p">}</span>
 
 <span class="k">var</span> <span class="n">jane</span> <span class="o">=</span> <span class="vg">Person</span><span class="p">();</span>
-<span class="n">jane</span><span class="p">.</span><span class="n">name</span> <span class="s">&quot;Jane&quot;</span><span class="p">;</span>
+<span class="n">jane</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Jane&quot;</span><span class="p">;</span>
 
 <span class="k">var</span> <span class="n">method</span> <span class="o">=</span> <span class="n">jane</span><span class="p">.</span><span class="n">sayName</span><span class="p">;</span>
 <span class="n">method</span><span class="p">();</span> <span class="c1">// ?</span>
@@ -794,7 +795,7 @@ still refer to that original object?</p>
 <span class="p">}</span>
 
 <span class="k">var</span> <span class="n">jane</span> <span class="o">=</span> <span class="vg">Person</span><span class="p">();</span>
-<span class="n">jane</span><span class="p">.</span><span class="n">name</span> <span class="s">&quot;Jane&quot;</span><span class="p">;</span>
+<span class="n">jane</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Jane&quot;</span><span class="p">;</span>
 
 <span class="k">var</span> <span class="n">bill</span> <span class="o">=</span> <span class="vg">Person</span><span class="p">();</span>
 <span class="n">bill</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Bill&quot;</span><span class="p">;</span>
@@ -967,7 +968,7 @@ two steps, it will refer to the object that the method was <em>accessed</em> fro
 <span class="p">}</span>
 
 <span class="k">var</span> <span class="n">method</span> <span class="o">=</span> <span class="vg">Egotist</span><span class="p">().</span><span class="n">speak</span><span class="p">;</span>
-<span class="n">method</span><span class="p">(</span><span class="n">argument</span><span class="p">);</span>
+<span class="n">method</span><span class="p">();</span>
 </pre></div>
 
 
@@ -1004,8 +1005,8 @@ like so:</p>
 <p><img src="image/classes/closure.png" alt="The initial closure for the method." /></p>
 <p>When we evaluate the <code>.</code> expression in <code>cake.taste</code>, we create a new environment
 that binds <code>this</code> to the object the method is accessed from (here, <code>cake</code>). Then
-we make a <em>new</em> LoxFunction with the same code as the original one, but that
-using that new environment as its closure:</p>
+we make a <em>new</em> LoxFunction with the same code as the original one but using
+that new environment as its closure:</p>
 <p><img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." /></p>
 <p>This is the LoxFunction that gets returned when evaluating the get expression
 for the method name. When that function is later called by a <code>()</code> expression,
@@ -1015,7 +1016,7 @@ we create an environment for the method body as usual:</p>
 <code>this</code> to the current object. Thus any accesses of <code>this</code> inside the body
 successfully resolve to that instance.</p>
 <p>Reusing our environment code for implementing <code>this</code> also takes care of
-interesting cases where methods and functions and interact, like:</p>
+interesting cases where methods and functions interact, like:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Thing</span> <span class="p">{</span>
   <span class="n">getCallback</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">fun</span> <span class="n">localFunction</span><span class="p">()</span> <span class="p">{</span>
@@ -1215,7 +1216,7 @@ let us encapsulate state and behavior together so that an object always <em>stay
 in a valid configuration. But how do we ensure a brand new object <em>starts</em> in a
 good state?</p>
 <p>For that, we need constructors. I find them one of the trickiest parts of a
-language to design and if you peer closely at other most languages, you&rsquo;ll see
+language to design and if you peer closely at most other languages, you&rsquo;ll see
 <span name="cracks">cracks</span> around object construction where the seams of
 the design don&rsquo;t quite fit together perfectly. Maybe there&rsquo;s something
 intrinsically messy about the moment of birth.</p>
@@ -1552,7 +1553,7 @@ manipulation tasks well, nor would it be as easy to get things done.</p>
 <p>The art, then is finding <em>accidental</em> complexity that can be omitted. Language
 features and interactions that don&rsquo;t carry their weight by increasing the
 breadth or ease of using the language.</p>
-<p>If users want to express their program in terms of catergories of objects, then
+<p>If users want to express their program in terms of categories of objects, then
 baking classes into the language increases the ease of doing that, hopefully by
 a large enough margin to pay for the added complexity. But if that isn&rsquo;t how
 users are using your language, then by all means leave classes out.</p>
