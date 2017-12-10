@@ -392,7 +392,7 @@ static in terms of the types of objects it works with and their fields.
 
 An interesting edge case we need to handle is what happens if the instance
 doesn't *have* a property with the given name. We could silently return some
-dummy value like `nil`, but in my experience (from languages like JavaScript)
+dummy value like `nil`, but my experience with languages like JavaScript is that
 this behavior masks bugs more often than it does anything useful. Instead, we'll
 make it a runtime error.
 
@@ -817,8 +817,8 @@ like so:
 
 When we evaluate the `.` expression in `cake.taste`, we create a new environment
 that binds `this` to the object the method is accessed from (here, `cake`). Then
-we make a *new* LoxFunction with the same code as the original one, except now
-it's using that new environment as its closure:
+we make a *new* LoxFunction with the same code as the original one but using
+that new environment as its closure:
 
 <img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
 
