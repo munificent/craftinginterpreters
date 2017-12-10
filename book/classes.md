@@ -951,7 +951,8 @@ value, hence the enum right now. We also add a corresponding field,
 `currentClass`. Its value tells us if we are currently inside a class while
 traversing the syntax tree. It starts out `NONE` which means we aren't in one.
 
-Right before resolving the method bodies in a class declaration, that changes:
+Right before we resolve the method bodies in a class declaration, we change
+that:
 
 ^code set-current-class (1 before, 2 after)
 
