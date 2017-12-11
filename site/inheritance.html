@@ -352,7 +352,6 @@ superclass chain and look there. Give it a try:</p>
 
 <p>There we go, half of our inheritance features are complete with only three lines
 of Java code.</p>
-<hr />
 <h2><a href="#calling-superclass-methods" name="calling-superclass-methods"><small>13&#8202;.&#8202;3</small> Calling Superclass Methods</a></h2>
 <p>In <code>findMethod()</code> we look for a method on the current class <em>before</em> walking up
 the superclass chain. If a method with the same name exists in both the subclass
@@ -514,18 +513,19 @@ answer was &ldquo;no&rdquo;, so&hellip; yes.</p>
 <aside name="rhetorical">
 <p>Does anyone even like rhetorical questions?</p>
 </aside>
-<p>One important difference is that with <code>this</code>, we created its environment right
-when the method was looked up. That&rsquo;s because the same method can be called on
-multiple instances and each needs its own <code>this</code>. With super expressions, the
-superclass is a fixed property of the <em>class declaration itself</em>. Every time you
-evaluate some super expression, the superclass is always the same class.</p>
-<p>So for super expressions, we want to create the environment and bind the
-superclass in it <em>once</em>, when the class definition is executed. We need a name
-for the binding. We&rsquo;ll use <code>super</code> because, as with <code>this</code>, it&rsquo;s a reserved word
-so we don&rsquo;t have to worry about it being shadowed by a user-defined variable.</p>
-<p><strong>todo: show environment chain of each method after class decl is executed?</strong></p>
-<p>When a method is invoked, the superclass environment then becomes the parent for
-the method&rsquo;s closure, like so:</p>
+<p>One important difference is that we bound <code>this</code> when the method was <em>accessed</em>.
+The same method can be called on difference instances and each needs its own
+<code>this</code>. With super expressions, the superclass is a fixed property of the <em>class
+declaration itself</em>. Every time you evaluate some super expression, the
+superclass is always the same.</p>
+<p>That means we can create the environment for the superclass once, when the class
+definition is executed. Immediately before we define the methods, we make a new
+environment to bind the class&rsquo;s superclass to the name <code>super</code>:</p>
+<p><img src="image/inheritance/superclass.png" alt="The superclass environment." /></p>
+<p>When we create the LoxFunction runtime representation for each method, that is
+the environment they will capture in their closure. Later, when a method is
+invoked and <code>this</code> is bound, the superclass environment becomes the parent for
+the method&rsquo;s environment, like so:</p>
 <p><img src="image/inheritance/environments.png" alt="The environment chain including the superclass environment." /></p>
 <p>That&rsquo;s a lot of machinery, but we&rsquo;ll get through it a step at a time. Before we
 can get to creating the environment at runtime, we need to handle the

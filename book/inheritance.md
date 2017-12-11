@@ -387,21 +387,22 @@ Does anyone even like rhetorical questions?
 
 [last chapter]: classes.html
 
-One important difference is that with `this`, we created its environment right
-when the method was looked up. That's because the same method can be called on
-multiple instances and each needs its own `this`. With super expressions, the
-superclass is a fixed property of the *class declaration itself*. Every time you
-evaluate some super expression, the superclass is always the same class.
+One important difference is that we bound `this` when the method was *accessed*.
+The same method can be called on difference instances and each needs its own
+`this`. With super expressions, the superclass is a fixed property of the *class
+declaration itself*. Every time you evaluate some super expression, the
+superclass is always the same.
 
-So for super expressions, we want to create the environment and bind the
-superclass in it *once*, when the class definition is executed. We need a name
-for the binding. We'll use `super` because, as with `this`, it's a reserved word
-so we don't have to worry about it being shadowed by a user-defined variable.
+That means we can create the environment for the superclass once, when the class
+definition is executed. Immediately before we define the methods, we make a new
+environment to bind the class's superclass to the name `super`:
 
-**todo: show environment chain of each method after class decl is executed?**
+<img src="image/inheritance/superclass.png" alt="The superclass environment." />
 
-When a method is invoked, the superclass environment then becomes the parent for
-the method's closure, like so:
+When we create the LoxFunction runtime representation for each method, that is
+the environment they will capture in their closure. Later, when a method is
+invoked and `this` is bound, the superclass environment becomes the parent for
+the method's environment, like so:
 
 <img src="image/inheritance/environments.png" alt="The environment chain including the superclass environment." />
 
