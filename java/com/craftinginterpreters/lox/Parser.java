@@ -78,7 +78,7 @@ class Parser {
 
   private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
-//> Inheritance not-yet
+//> Inheritance parse-superclass
 
     Expr superclass = null;
     if (match(LESS)) {
@@ -86,7 +86,7 @@ class Parser {
       superclass = new Expr.Variable(previous());
     }
 
-//< Inheritance not-yet
+//< Inheritance parse-superclass
     consume(LEFT_BRACE, "Expect '{' before class body.");
 
     List<Stmt.Function> methods = new ArrayList<>();
@@ -96,12 +96,12 @@ class Parser {
 
     consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-/* Classes parse-class-declaration < Inheritance not-yet
+/* Classes parse-class-declaration < Inheritance construct-class-ast
     return new Stmt.Class(name, methods);
 */
-//> Inheritance not-yet
+//> Inheritance construct-class-ast
     return new Stmt.Class(name, superclass, methods);
-//< Inheritance not-yet
+//< Inheritance construct-class-ast
   }
 //< Classes parse-class-declaration
 //> Statements and State parse-statement
@@ -458,7 +458,7 @@ class Parser {
     if (match(NUMBER, STRING)) {
       return new Expr.Literal(previous().literal);
     }
-//> Inheritance not-yet
+//> Inheritance parse-super
 
     if (match(SUPER)) {
       Token keyword = previous();
@@ -467,7 +467,7 @@ class Parser {
           "Expect superclass method name.");
       return new Expr.Super(keyword, method);
     }
-//< Inheritance not-yet
+//< Inheritance parse-super
 //> Classes parse-this
 
     if (match(THIS)) return new Expr.This(previous());
