@@ -160,7 +160,7 @@ that too. We pass it through the constructor:
 
 ^code interpreter-construct-class (3 before, 1 after)
 
-...which store it:
+...which stores it:
 
 ^code lox-class-constructor (1 after)
 
