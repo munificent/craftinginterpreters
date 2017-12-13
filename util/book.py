@@ -386,6 +386,13 @@ def get_file_name(title):
   if title == "Table of Contents":
     return "contents"
 
+  # Hack. The introduction has a *subheader* named "Challenges" distinct from
+  # the challenges section. This function here is also used to generate the
+  # anchor names for the links, so handle that one specially so it doesn't
+  # collide with the real "Challenges" section.
+  if title == "Challenges":
+    return "challenges_"
+
   title = title.lower().replace(" ", "-")
   title = re.sub(r'[,.?!:/"]', '', title)
   return title
