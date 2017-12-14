@@ -355,7 +355,7 @@ To accommodate the distinction, we add another rule for kinds of statements that
 declare names:
 
 ```lox
-program     → declaration* eof ;
+program     → declaration* EOF ;
 
 declaration → varDecl
             | statement ;
