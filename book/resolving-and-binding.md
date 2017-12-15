@@ -157,7 +157,7 @@ you stay in the programming language game for long.
 
 OK... got it? If you're familiar with closures in other languages, you'll expect
 it to print "global" twice. The first call to `showA()` should definitely print
-"global" since we haven't even reached the declaration if the inner `a` yet. And
+"global" since we haven't even reached the declaration of the inner `a` yet. And
 by our rule that a variable expression always resolves to the same variable,
 that implies the second call to `showA()` should print the same thing.
 
@@ -227,8 +227,8 @@ environments to find `a`, it now discovers the *new* `a` in the block
 environment. Boo.
 
 I chose to implement environments in a way that I hoped would agree with your
-informal intuition around scopes. We tend to consider all of the code
-within a block as being within the same scope, so our interpreter uses a single
+informal intuition around scopes. We tend to consider all of the code within a
+block as being within the same scope, so our interpreter uses a single
 environment to represent that. Each environment is a mutable hash table. When a
 new local variable is declared, it gets added to the existing environment for
 that scope.
