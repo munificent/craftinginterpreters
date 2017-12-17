@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+<title>Appendix I &middot; Crafting Interpreters</title>
+
+<!-- Tell mobile browsers we're optimized for them and they don't need to crop
+     the viewport. -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="style.css" />
+
+<!-- Oh, God, Source Code Pro is so beautiful it makes me want to cry. -->
+<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link rel="icon" type="image/png" href="image/favicon.png" />
+<script src="jquery-1.10.1.min.js"></script>
+<script src="script.js"></script>
+
+<!-- Google analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-42804721-2', 'auto');
+  ga('send', 'pageview');
+</script>
+
+</head>
+<body id="top">
+
+<!-- <div class="scrim"></div> -->
+<nav class="wide">
+  <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+  <div class="contents">
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top">Appendix I<small>A1</small></a></h3>
+
+<ul>
+    <li><a href="#syntax-grammar"><small>A1.1</small> Syntax Grammar</a></li>
+    <li><a href="#lexical-grammar"><small>A1.2</small> Lexical Grammar</a></li>
+</ul>
+
+
+<div class="prev-next">
+    <a href="backmatter.html" title="Backmatter" class="left">&larr;&nbsp;Previous</a>
+    <a href="backmatter.html" title="Backmatter">&uarr;&nbsp;Up</a>
+    <a href="appendix-ii.html" title="Appendix II" class="right">Next&nbsp;&rarr;</a>
+</div>  </div>
+</nav>
+
+<nav class="narrow">
+<a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+<a href="backmatter.html" title="Backmatter" class="prev">←</a>
+<a href="appendix-ii.html" title="Appendix II" class="next">→</a>
+</nav>
+
+<div class="page">
+<div class="nav-wrapper">
+<nav class="floating">
+  <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+  <div class="expandable">
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top">Appendix I<small>A1</small></a></h3>
+
+<ul>
+    <li><a href="#syntax-grammar"><small>A1.1</small> Syntax Grammar</a></li>
+    <li><a href="#lexical-grammar"><small>A1.2</small> Lexical Grammar</a></li>
+</ul>
+
+
+<div class="prev-next">
+    <a href="backmatter.html" title="Backmatter" class="left">&larr;&nbsp;Previous</a>
+    <a href="backmatter.html" title="Backmatter">&uarr;&nbsp;Up</a>
+    <a href="appendix-ii.html" title="Appendix II" class="right">Next&nbsp;&rarr;</a>
+</div>  </div>
+  <a id="expand-nav">≡</a>
+</nav>
+</div>
+
+<article class="chapter">
+
+  <div class="number">A1</div>
+  <h1>Appendix I</h1>
+
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
+
+  <!-- Begin MailChimp Signup Form -->
+  <div id="mc_embed_signup">
+  <form action="//gameprogrammingpatterns.us7.list-manage.com/subscribe/post?u=0952ca43ed2536d6717766b88&amp;id=6e96334109" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Your email address" required>
+    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0952ca43ed2536d6717766b88_6e96334109" tabindex="-1" value=""></div>
+    <input type="submit" value="Sign me up!" name="subscribe" id="mc-embedded-subscribe" class="button">
+  </form>
+  </div>
+  <!--End mc_embed_signup-->
+  <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
+</div>
+
+<p>Here is a complete grammar for Lox. The chapters that introduce each part of the
+language include the grammar rules there, but this collects them all into one
+place.</p>
+<h2><a href="#syntax-grammar" name="syntax-grammar"><small>A1&#8202;.&#8202;1</small> Syntax Grammar</a></h2>
+<p>The syntactic grammar is used to parse the linear sequence of tokens into the
+nested syntax tree structure. It starts with the first rule, that matches an
+entire Lox program (or an single REPL entry):</p>
+<div class="codehilite"><pre><span></span><span class="n">program</span>        <span class="err">→</span> <span class="n">declaration</span><span class="o">*</span> <span class="vg">EOF</span> <span class="p">;</span>
+</pre></div>
+
+
+<h3><a href="#declarations" name="declarations"><small>A1&#8202;.&#8202;1&#8202;.&#8202;1</small> Declarations</a></h3>
+<p>A program is a series of declarations, which are the statements that bind new
+identifiers or any of the other statement types:</p>
+<div class="codehilite"><pre><span></span><span class="n">declaration</span>    <span class="err">→</span> <span class="n">classDecl</span>
+               <span class="err">|</span> <span class="n">funDecl</span>
+               <span class="err">|</span> <span class="n">varDecl</span>
+               <span class="err">|</span> <span class="n">statement</span> <span class="p">;</span>
+
+<span class="n">classDecl</span>      <span class="err">→</span> <span class="s">&quot;class&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">(</span> <span class="s">&quot;&lt;&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">)</span><span class="err">?</span>
+                 <span class="s">&quot;{&quot;</span> <span class="n">function</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="p">;</span>
+<span class="n">funDecl</span>        <span class="err">→</span> <span class="s">&quot;fun&quot;</span> <span class="n">function</span> <span class="p">;</span>
+<span class="n">varDecl</span>        <span class="err">→</span> <span class="s">&quot;var&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">(</span> <span class="s">&quot;=&quot;</span> <span class="n">expression</span> <span class="p">)</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+</pre></div>
+
+
+<h3><a href="#statements" name="statements"><small>A1&#8202;.&#8202;1&#8202;.&#8202;2</small> Statements</a></h3>
+<p>The remaining statement rules produce side effects, but do not introduce
+bindings:</p>
+<div class="codehilite"><pre><span></span><span class="n">statement</span>      <span class="err">→</span> <span class="n">exprStmt</span>
+               <span class="err">|</span> <span class="n">forStmt</span>
+               <span class="err">|</span> <span class="n">ifStmt</span>
+               <span class="err">|</span> <span class="n">printStmt</span>
+               <span class="err">|</span> <span class="n">returnStmt</span>
+               <span class="err">|</span> <span class="n">whileStmt</span>
+               <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
+
+<span class="n">exprStmt</span>       <span class="err">→</span> <span class="n">expression</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+<span class="n">forStmt</span>        <span class="err">→</span> <span class="s">&quot;for&quot;</span> <span class="s">&quot;(&quot;</span> <span class="p">(</span> <span class="n">varDecl</span> <span class="err">|</span> <span class="n">exprStmt</span> <span class="p">)</span>
+                 <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="p">;</span>
+<span class="n">ifStmt</span>         <span class="err">→</span> <span class="s">&quot;if&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="p">(</span> <span class="s">&quot;else&quot;</span> <span class="n">statement</span> <span class="p">)</span><span class="err">?</span> <span class="p">;</span>
+<span class="n">printStmt</span>      <span class="err">→</span> <span class="s">&quot;print&quot;</span> <span class="n">expression</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+<span class="n">returnStmt</span>     <span class="err">→</span> <span class="s">&quot;return&quot;</span> <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+<span class="n">whileStmt</span>      <span class="err">→</span> <span class="s">&quot;while&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="p">;</span>
+<span class="n">block</span>          <span class="err">→</span> <span class="s">&quot;{&quot;</span> <span class="n">declaration</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="p">;</span>
+</pre></div>
+
+
+<p>Note that <code>block</code> is a statement rule, but is also used as a nonterminal in a
+couple of other rules for things like function bodies.</p>
+<h3><a href="#expressions" name="expressions"><small>A1&#8202;.&#8202;1&#8202;.&#8202;3</small> Expressions</a></h3>
+<p>Expressions evaluate to produce values. Lox has a number of unary and binary
+operators with different levels of precedence. Some grammars for languages do
+not directly encode the precedence relationships and specify that elsewhere.
+Here, we use a separate rule for each precedence level to make it explicit:</p>
+<div class="codehilite"><pre><span></span><span class="n">expression</span>     <span class="err">→</span> <span class="n">assignment</span> <span class="p">;</span>
+
+<span class="n">assignment</span>     <span class="err">→</span> <span class="p">(</span> <span class="n">call</span> <span class="s">&quot;.&quot;</span> <span class="p">)</span><span class="err">?</span> <span class="vg">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="n">assignment</span>
+               <span class="err">|</span> <span class="n">logic_or</span><span class="p">;</span>
+
+<span class="n">logic_or</span>       <span class="err">→</span> <span class="n">logic_and</span> <span class="p">(</span> <span class="s">&quot;or&quot;</span> <span class="n">logic_and</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">logic_and</span>      <span class="err">→</span> <span class="n">equality</span> <span class="p">(</span> <span class="s">&quot;and&quot;</span> <span class="n">equality</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">equality</span>       <span class="err">→</span> <span class="n">comparison</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="p">)</span> <span class="n">comparison</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">comparison</span>     <span class="err">→</span> <span class="n">addition</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="p">)</span> <span class="n">addition</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">addition</span>       <span class="err">→</span> <span class="n">multiplication</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&quot;-&quot;</span> <span class="err">|</span> <span class="s">&quot;+&quot;</span> <span class="p">)</span> <span class="n">multiplication</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">multiplication</span> <span class="err">→</span> <span class="n">unary</span> <span class="p">(</span> <span class="p">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="p">)</span> <span class="n">unary</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+
+<span class="n">unary</span>          <span class="err">→</span> <span class="p">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="p">)</span> <span class="n">unary</span> <span class="err">|</span> <span class="n">call</span> <span class="p">;</span>
+<span class="n">call</span>           <span class="err">→</span> <span class="n">primary</span> <span class="p">(</span> <span class="s">&quot;(&quot;</span> <span class="n">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="err">|</span> <span class="s">&quot;.&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">primary</span>        <span class="err">→</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;null&quot;</span> <span class="err">|</span> <span class="s">&quot;this&quot;</span>
+               <span class="err">|</span> <span class="vg">NUMBER</span> <span class="err">|</span> <span class="vg">STRING</span> <span class="err">|</span> <span class="vg">IDENTIFIER</span> <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span>
+               <span class="err">|</span> <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">;</span>
+</pre></div>
+
+
+<h3><a href="#utility-rules" name="utility-rules"><small>A1&#8202;.&#8202;1&#8202;.&#8202;4</small> Utility Rules</a></h3>
+<p>In order to keep the above rules a little cleaner, some of the grammar is
+split out into a few reused helper rules:</p>
+<div class="codehilite"><pre><span></span><span class="n">function</span>       <span class="err">→</span> <span class="vg">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="n">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="n">block</span> <span class="p">;</span>
+<span class="n">parameters</span>     <span class="err">→</span> <span class="vg">IDENTIFIER</span> <span class="p">(</span> <span class="s">&quot;,&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">arguments</span>      <span class="err">→</span> <span class="n">expression</span> <span class="p">(</span> <span class="s">&quot;,&quot;</span> <span class="n">expression</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+</pre></div>
+
+
+<h2><a href="#lexical-grammar" name="lexical-grammar"><small>A1&#8202;.&#8202;2</small> Lexical Grammar</a></h2>
+<p>The lexical grammar is used by the scanner to group characters into tokens.
+Where the syntax is <a href="https://en.wikipedia.org/wiki/Context-free_grammar">context free</a>, the lexical grammar is <a href="https://en.wikipedia.org/wiki/Regular_grammar">regular</a>&#8202;&mdash;&#8202;note
+that there are no recursive rules.</p>
+<div class="codehilite"><pre><span></span><span class="vg">NUMBER</span>         <span class="err">→</span> <span class="vg">DIGIT</span><span class="o">+</span> <span class="p">(</span> <span class="s">&quot;.&quot;</span> <span class="vg">DIGIT</span><span class="o">*</span> <span class="p">)</span><span class="err">?</span> <span class="err">|</span> <span class="s">&quot;.&quot;</span> <span class="vg">DIGIT</span><span class="o">+</span> <span class="p">;</span>
+<span class="vg">STRING</span>         <span class="err">→</span> <span class="err">&#39;</span><span class="s">&quot;&#39; &lt;any char except &#39;&quot;</span><span class="err">&#39;</span><span class="o">&gt;*</span> <span class="err">&#39;&quot;&#39;</span> <span class="p">;</span>
+<span class="vg">IDENTIFIER</span>     <span class="err">→</span> <span class="vg">ALPHA</span> <span class="p">(</span> <span class="vg">ALPHA</span> <span class="err">|</span> <span class="vg">DIGIT</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+<span class="vg">ALPHA</span>          <span class="err">→</span> <span class="err">&#39;</span><span class="n">a</span><span class="err">&#39;</span> <span class="p">...</span> <span class="err">&#39;</span><span class="n">z</span><span class="err">&#39;</span> <span class="err">|</span> <span class="err">&#39;</span><span class="vg">A</span><span class="err">&#39;</span> <span class="p">...</span> <span class="err">&#39;</span><span class="vg">Z</span><span class="err">&#39;</span> <span class="err">|</span> <span class="err">&#39;</span><span class="n">_</span><span class="err">&#39;</span> <span class="p">;</span>
+<span class="vg">DIGIT</span>          <span class="err">→</span> <span class="err">&#39;</span><span class="mi">0</span><span class="err">&#39;</span> <span class="p">...</span> <span class="err">&#39;</span><span class="mi">9</span><span class="err">&#39;</span> <span class="p">;</span>
+</pre></div>
+
+<footer>
+<a href="appendix-ii.html" class="next">
+  Next Chapter: &ldquo;Appendix II&rdquo; &rarr;
+</a>
+Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2017</a>
+</footer>
+</article>
+
+</div>
+</body>
+</html>

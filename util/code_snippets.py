@@ -53,7 +53,8 @@ END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 # Hacky regexes that matches a function, method or constructor declaration.
 FUNCTION_PATTERN = re.compile(r'(\w+)>* (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
-CLASS_PATTERN = re.compile(r'(public )?class (\w+)')
+CLASS_PATTERN = re.compile(r'(public )?(abstract )?class (\w+)')
+NESTED_CLASS_PATTERN = re.compile(r'  static class (\w+)')
 
 # Reserved words that can appear like a return type in a function declaration
 # but shouldn't be treated as one.
@@ -135,6 +136,7 @@ class SourceCode:
           if len(snippet.added) == 1:
             snippet.function = line.function
             snippet.clas = line.clas
+            snippet.nested_class = line.nested_class
 
         if line.end and line.end.chapter == chapter:
           snippet = ensure_snippet(line.end.name, line_num)
@@ -213,10 +215,11 @@ class SourceFile:
 
 
 class SourceLine:
-  def __init__(self, text, function, clas, start, end):
+  def __init__(self, text, function, clas, nested_class, start, end):
     self.text = text
     self.function = function
     self.clas = clas
+    self.nested_class = nested_class
     self.start = start
     self.end = end
 
@@ -269,6 +272,8 @@ class Snippet:
       # No lines before the snippet, it must be a new file.
       return 'create new file'
 
+    if self.nested_class:
+      return 'nest inside class <em>{}</em>'.format(self.clas)
     if self.preceding_function and self.function == self.preceding_function:
       # The function before the snippet is the same one, so we must be in the
       # middle of it.
@@ -300,10 +305,6 @@ class ParseState:
 def load_file(source_code, source_dir, path):
   relative = os.path.relpath(path, source_dir)
 
-  # Don't process the generated files. We only worry about GenerateAst.java.
-  if relative == "com/craftinginterpreters/lox/Expr.java": return
-  if relative == "com/craftinginterpreters/lox/Stmt.java": return
-
   file = SourceFile(relative)
   source_code.files.append(file)
 
@@ -314,6 +315,7 @@ def load_file(source_code, source_dir, path):
   function_before_block = None
   current_function = None
   current_class = None
+  nested_class = None
 
   def error(message):
     print("Error: {} line {}: {}".format(relative, line_num, message),
@@ -358,7 +360,11 @@ def load_file(source_code, source_dir, path):
 
       match = CLASS_PATTERN.match(line)
       if match:
-        current_class = match.group(2)
+        current_class = match.group(3)
+
+      match = NESTED_CLASS_PATTERN.match(line)
+      if match:
+        nested_class = match.group(1)
 
       match = BLOCK_PATTERN.match(line)
       if match:
@@ -419,7 +425,7 @@ def load_file(source_code, source_dir, path):
         if chapter != state.start.chapter or name != state.start.name:
           error('Expecting to pop "{} {}" but got "{} {}".'.format(
               state.start.chapter, state.start.name, chapter, name))
-        if state.parent.start.chapter == None:
+        if state.start.chapter == None:
           error('Cannot pop last state "{}".'.format(state.start))
         pop()
 
@@ -428,13 +434,16 @@ def load_file(source_code, source_dir, path):
           error("No snippet in effect.".format(relative))
 
         source_line = SourceLine(line, current_function, current_class,
-            state.start, state.end)
+            nested_class, state.start, state.end)
         file.lines.append(source_line)
 
       # Hacky. Detect the end of the function or class. Assumes everything is
       # nicely indented.
       if path.endswith('.java') and line == '  }':
-        current_function = None
+        if nested_class:
+          nested_class = None
+        else:
+          current_function = None
       elif (path.endswith('.c') or path.endswith('.h')) and line == '}':
         current_function = None
 

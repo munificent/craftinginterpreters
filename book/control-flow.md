@@ -158,10 +158,18 @@ ifStmt    → "if" "(" expression ")" statement ( "else" statement )? ;
 
 An if statement has an expression for the condition then a statement to execute
 if the condition is truthy. Optionally, it may also have an `else` keyword and a
-statement to execute if the condition is falsey. The syntax tree node has fields
-for each of those three pieces:
+statement to execute if the condition is falsey. The <span name="if-ast">syntax
+tree node</span> has fields for each of those three pieces:
 
 ^code if-ast (1 before, 1 after)
+
+<aside name="if-ast">
+
+The generated code for the new node is in [Appendix II][appendix-if].
+
+[appendix-if]: appendix-ii.html#if-statement
+
+</aside>
 
 Like other statements, the parser recognizes an if statement by the leading `if`
 keyword:
@@ -312,10 +320,19 @@ The *syntax* doesn't care that they short-circuit. That's a semantic concern.
 We could reuse the existing Expr.Binary class for these two new expressions
 since they have the same fields. But then `visitBinaryExpr()` would have to
 check to see if the operator is one of the logical operators and use a different
-code path to handle the short circuiting. I think it's cleaner to define a new
-class for these operators so that they get their own visit method.
+code path to handle the short circuiting. I think it's cleaner to define a <span
+name="logical-ast">new class</span> for these operators so that they get their
+own visit method.
 
 ^code logical-ast (1 before, 1 after)
+
+<aside name="logical-ast">
+
+The generated code for the new node is in [Appendix II][appendix-logical].
+
+[appendix-logical]: appendix-ii.html#logical-expression
+
+</aside>
 
 To weave the new expressions into the parser, we first change the parsing code
 for assignment to call `or()`:
@@ -369,6 +386,8 @@ reference to... oh, forget it.
 Lox features two looping control flow statements, while and for. While is the
 simpler one so we'll start there. Its grammar is the same as in C:
 
+<span name="semicolon"></span>
+
 ```lox
 statement → exprStmt
           | ifStmt
@@ -378,8 +397,6 @@ statement → exprStmt
 
 whileStmt → "while" "(" expression ")" statement ;
 ```
-
-<span name="semicolon"></span>
 
 <aside name="semicolon">
 
@@ -393,9 +410,18 @@ We add another clause to the statement rule that points to the new rule for
 while. It takes a `while` keyword, followed by a parenthesized condition
 expression, then a statement for the body.
 
-The new grammar rule gets its own syntax tree node:
+The new grammar rule gets its own <span name="while-ast">syntax tree
+node</span>:
 
 ^code while-ast (1 before, 1 after)
+
+<aside name="while-ast">
+
+The generated code for the new node is in [Appendix II][appendix-while].
+
+[appendix-while]: appendix-ii.html#while-statement
+
+</aside>
 
 It stores the condition and body. Here you can see why it's nice to have
 separate base classes for expressions and statements. The field declarations

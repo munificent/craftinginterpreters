@@ -226,7 +226,7 @@ body. Here&rsquo;s an example:</p>
 class declaration. Instances are loose bags of data and you can freely add
 fields to them as you see fit in the middle of normal imperative code.</p>
 <p>Over in our AST generator, the <code>classDecl</code> grammar rule gets its own statement
-node:</p>
+<span name="class-ast">node</span>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Block      : List&lt;Stmt&gt; statements&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -234,6 +234,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="class-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#class-statement">Appendix II</a>.</p>
+</aside>
 <p>It stores the name and the methods inside the body. Methods are represented by
 the existing Stmt.Function class that we use for function declaration AST nodes.
 It has all the bits of state that we need for a method: name, parameter list,
@@ -472,7 +475,7 @@ by replacing the existing <code>call</code> rule with:</p>
 calls and dotted property accesses. &ldquo;Property access&rdquo; is a mouthful, so from
 here on out, we&rsquo;ll call these &ldquo;get expressions&rdquo;.</p>
 <h3><a href="#get-expressions" name="get-expressions"><small>12&#8202;.&#8202;3&#8202;.&#8202;1</small> Get expressions</a></h3>
-<p>The syntax tree node is:</p>
+<p>The <span name="get-ast">syntax tree node</span> is:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Call     : Expr callee, Token paren, List&lt;Expr&gt; arguments&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -480,6 +483,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Grouping : Expr expression&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="get-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#get-expression">Appendix II</a>.</p>
+</aside>
 <p>Following the grammar, the new parsing code goes in our existing <code>call()</code>
 method:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
@@ -607,7 +613,8 @@ accesses, as in:</p>
 <p>Note here that only the <em>last</em> part, the <code>.meat</code> is the <em>setter</em>. The
 <code>.omelette</code> and <code>.filling</code> parts are both <em>get</em> expressions.</p>
 <p>Like we have two separate AST nodes for variable access and variable assignment,
-we need a second setter node to complement our getter node:</p>
+we need a <span name="set-ast">second setter node</span> to complement our
+getter node:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -615,6 +622,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="set-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#set-expression">Appendix II</a>.</p>
+</aside>
 <p>In case you don&rsquo;t remember, the way we handle assignment in the parser is a
 little funny. We can&rsquo;t easily tell that a series of tokens is the left-hand side
 of an assignment until we reach the <code>=</code>. Now that our assignment grammar rule
@@ -1043,7 +1053,8 @@ interesting cases where methods and functions interact, like:</p>
 callback may want to hang onto and retain access to the original object&#8202;&mdash;&#8202;the
 <code>this</code> value&#8202;&mdash;&#8202;that the method was associated with. Our existing support for
 closures and environment chains should do all this correctly.</p>
-<p>Let&rsquo;s code it up. The first step is adding new syntax for <code>this</code>:</p>
+<p>Let&rsquo;s code it up. The first step is adding <span name="this-ast">new
+syntax</span> for <code>this</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Set      : Expr object, Token name, Expr value&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -1051,6 +1062,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="this-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#this-expression">Appendix II</a>.</p>
+</aside>
 <p>Parsing is simple since it&rsquo;s a single token (which our lexer already
 recognizes as a reserved word):</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="na">literal</span><span class="o">);</span>

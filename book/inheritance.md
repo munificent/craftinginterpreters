@@ -291,10 +291,18 @@ method();
 ```
 
 So the super expression itself contains only the token for the `super` keyword
-and the name of the method being looked up. The corresponding syntax tree node
-is thus:
+and the name of the method being looked up. The corresponding <span
+name="super-ast">syntax tree node</span> is thus:
 
 ^code super-expr (1 before, 1 after)
+
+<aside name="super-ast">
+
+The generated code for the new node is in [Appendix II][appendix-super].
+
+[appendix-super]: appendix-ii.html#super-expression
+
+</aside>
 
 Following the grammar, the new parsing code goes inside our existing `primary()`
 method:

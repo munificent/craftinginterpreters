@@ -116,7 +116,7 @@ That means a new base class for statements. As our elders did before us, we will
 use the cryptic name "Stmt". With great <span name="foresight">foresight</span>,
 I have designed our little AST metaprogramming script in anticipation of this.
 That's why we passed in "Expr" as a parameter to `defineAst()`. We add another
-call to that for defining Stmt and its subclasses:
+call to that for defining Stmt and its <span name="stmt-ast">subclasses</span>:
 
 <aside name="foresight">
 
@@ -126,6 +126,16 @@ slicing things into chapters and scrawling prose.
 </aside>
 
 ^code stmt-ast (2 before, 1 after)
+
+<aside name="stmt-ast">
+
+The generated code for the new nodes is in [Appendix II][appendix-ii]: [Expression statement][], [Print statement][].
+
+[appendix-ii]: appendix-ii.html
+[expression statement]: appendix-ii.html#expression-statement
+[print statement]: appendix-ii.html#print-statement
+
+</aside>
 
 Run that script and behold your new "Stmt.java" file with the syntax tree
 classes we need for expression and print statements. Don't forgot to add it to
@@ -394,14 +404,38 @@ That `IDENTIFIER` clause matches a single identifier token, which is understood
 to be the name of the variable being accessed.
 
 These new grammar rules get their corresponding syntax trees. Over in the AST
-generator, we add a new statement tree for a variable declaration:
+generator, we add a <span name="var-stmt-ast">new statement</span> tree for a
+variable declaration:
 
 ^code var-stmt-ast (1 before, 1 after)
+
+<aside name="var-stmt-ast">
+
+The generated code for the new node is in [Appendix II][appendix-var-stmt].
+
+[appendix-var-stmt]: appendix-ii.html#variable-statement
+
+</aside>
 
 It stores the name token so we know what it's declaring, along with the
 initializer expression. (If there isn't an initializer, that's `null`.)
 
-Then we add an expression node for accessing a <span name="comma">variable</span>:
+Then we add <span name="var-expr-ast">an expression node</span> for accessing a
+variable:
+
+^code var-expr (1 before, 1 after)
+
+<aside name="var-expr-ast">
+
+The generated code for the new node is in [Appendix II][appendix-var-expr].
+
+[appendix-var-expr]: appendix-ii.html#variable-expression
+
+</aside>
+
+It's <span name="comma">simply</span> a wrapper around the token for the
+variable name. That's it. As always, don't forget to run the AST generator
+script so that you get updated "Expr.java" and "Stmt.java" files.
 
 <aside name="comma">
 
@@ -409,12 +443,6 @@ Also, we need a comma after the Unary line, which is why that one is changed
 too.
 
 </aside>
-
-^code var-expr (1 before, 1 after)
-
-It's simply a wrapper around the token for the variable name. That's it. As
-always, don't forget to run the AST generator script so that you get updated
-"Expr.java" and "Stmt.java" files.
 
 ### Parsing variables
 
@@ -747,9 +775,17 @@ objects, like:
 instance.field = "value";
 ```
 
-The easy part is adding the new syntax tree node:
+The easy part is adding the <span name="assign-ast">new syntax tree node</span>:
 
 ^code assign-expr (1 before, 1 after)
+
+<aside name="assign-ast">
+
+The generated code for the new node is in [Appendix II][appendix-assign].
+
+[appendix-assign]: appendix-ii.html#assign-expression
+
+</aside>
 
 It has a token for the variable being assigned to, and an expression for the new
 value. After you run the AstGenerator to get the new Expr.Assign class, swap out
@@ -1159,9 +1195,17 @@ block     → "{" declaration* "}" ;
 
 It's a (possibly empty) series of statements or declarations surrounded by curly
 braces. A block is itself a statement and can appear anywhere a statement is
-allowed. Its syntax tree node looks like this:
+allowed. Its <span name="block-ast">syntax tree</span> node looks like this:
 
 ^code block-ast (1 before, 1 after)
+
+<aside name="block-ast">
+
+The generated code for the new node is in [Appendix II][appendix-block].
+
+[appendix-block]: appendix-ii.html#block-statement
+
+</aside>
 
 <span name="generate">It</span> contains the list of statements that are inside
 the block. Parsing is straightforward. Like other statements, we detect the

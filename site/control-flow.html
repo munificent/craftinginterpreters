@@ -233,8 +233,8 @@ if statement on. It gets a new production under the statement grammar rule:</p>
 
 <p>An if statement has an expression for the condition then a statement to execute
 if the condition is truthy. Optionally, it may also have an <code>else</code> keyword and a
-statement to execute if the condition is falsey. The syntax tree node has fields
-for each of those three pieces:</p>
+statement to execute if the condition is falsey. The <span name="if-ast">syntax
+tree node</span> has fields for each of those three pieces:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -242,6 +242,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Print      : Expr expression&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="if-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#if-statement">Appendix II</a>.</p>
+</aside>
 <p>Like other statements, the parser recognizes an if statement by the leading <code>if</code>
 keyword:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="n">Stmt</span> <span class="nf">statement</span><span class="o">()</span> <span class="o">{</span>
@@ -390,8 +393,9 @@ expression rules.</p>
 <p>We could reuse the existing Expr.Binary class for these two new expressions
 since they have the same fields. But then <code>visitBinaryExpr()</code> would have to
 check to see if the operator is one of the logical operators and use a different
-code path to handle the short circuiting. I think it&rsquo;s cleaner to define a new
-class for these operators so that they get their own visit method.</p>
+code path to handle the short circuiting. I think it&rsquo;s cleaner to define a <span
+name="logical-ast">new class</span> for these operators so that they get their
+own visit method.</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Literal  : Object value&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -399,6 +403,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="logical-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#logical-expression">Appendix II</a>.</p>
+</aside>
 <p>To weave the new expressions into the parser, we first change the parsing code
 for assignment to call <code>or()</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">assignment</span><span class="o">()</span> <span class="o">{</span>
@@ -484,6 +491,7 @@ reference to&hellip; oh, forget it.</p>
 <h2><a href="#while-loops" name="while-loops"><small>9&#8202;.&#8202;4</small> While Loops</a></h2>
 <p>Lox features two looping control flow statements, while and for. While is the
 simpler one so we&rsquo;ll start there. Its grammar is the same as in C:</p>
+<p><span name="semicolon"></span></p>
 <div class="codehilite"><pre><span></span><span class="n">statement</span> <span class="err">→</span> <span class="n">exprStmt</span>
           <span class="err">|</span> <span class="n">ifStmt</span>
           <span class="err">|</span> <span class="n">printStmt</span>
@@ -494,7 +502,6 @@ simpler one so we&rsquo;ll start there. Its grammar is the same as in C:</p>
 </pre></div>
 
 
-<p><span name="semicolon"></span></p>
 <aside name="semicolon">
 <p>The semicolon in the rule is part of the grammar metasyntax, not the while
 statement itself. That&rsquo;s why it isn&rsquo;t quoted. If the body of the while is a
@@ -503,7 +510,8 @@ block, there won&rsquo;t be a semicolon after it.</p>
 <p>We add another clause to the statement rule that points to the new rule for
 while. It takes a <code>while</code> keyword, followed by a parenthesized condition
 expression, then a statement for the body.</p>
-<p>The new grammar rule gets its own syntax tree node:</p>
+<p>The new grammar rule gets its own <span name="while-ast">syntax tree
+node</span>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Print      : Expr expression&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()<br>
@@ -513,6 +521,9 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>    <span class="o">));</span>
 </pre></div>
 
+<aside name="while-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#while-statement">Appendix II</a>.</p>
+</aside>
 <p>It stores the condition and body. Here you can see why it&rsquo;s nice to have
 separate base classes for expressions and statements. The field declarations
 make it clear that the condition is an expression and the body is a statement.</p>

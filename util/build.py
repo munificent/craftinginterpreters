@@ -90,10 +90,9 @@ def get_part_chapters(title):
   chapters = []
   for part in book.TOC:
     if title == part['name']:
-      chapter_number = book.chapter_number(part['chapters'][0]['name'])
       for chapter in part['chapters']:
+        chapter_number = book.chapter_number(chapter['name'])
         chapters.append([chapter_number, chapter['name']])
-        chapter_number += 1
       break
 
   return chapters
