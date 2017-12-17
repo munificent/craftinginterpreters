@@ -94,6 +94,9 @@ public class GenerateAst {
     String path = outputDir + "/" + baseName + ".java";
     PrintWriter writer = new PrintWriter(path, "UTF-8");
 
+//> omit
+    writer.println("//> Appendix II " + baseName.toLowerCase());
+//< omit
     writer.println("package com.craftinginterpreters.lox;");
     writer.println("");
     writer.println("import java.util.List;");
@@ -104,6 +107,10 @@ public class GenerateAst {
     defineVisitor(writer, baseName, types);
 
 //< call-define-visitor
+//> omit
+    writer.println();
+    writer.println("  // Nested " + baseName + " classes here...");
+//< omit
 //> nested-classes
     // The AST classes.
     for (String type : types) {
@@ -120,6 +127,9 @@ public class GenerateAst {
 
 //< base-accept-method
     writer.println("}");
+//> omit
+    writer.println("//< Appendix II " + baseName.toLowerCase());
+//< omit
     writer.close();
   }
 //< define-ast
@@ -141,7 +151,10 @@ public class GenerateAst {
   private static void defineType(
       PrintWriter writer, String baseName,
       String className, String fieldList) {
-    writer.println("");
+//> omit
+    writer.println("//> " +
+        baseName.toLowerCase() + "-" + className.toLowerCase());
+//< omit
     writer.println("  static class " + className + " extends " +
         baseName + " {");
 
@@ -173,6 +186,10 @@ public class GenerateAst {
     }
 
     writer.println("  }");
+//> omit
+    writer.println("//< " +
+        baseName.toLowerCase() + "-" + className.toLowerCase());
+//< omit
   }
 //< define-type
 //> pastry-visitor

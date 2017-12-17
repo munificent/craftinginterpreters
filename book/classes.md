@@ -147,9 +147,17 @@ class declaration. Instances are loose bags of data and you can freely add
 fields to them as you see fit in the middle of normal imperative code.
 
 Over in our AST generator, the `classDecl` grammar rule gets its own statement
-node:
+<span name="class-ast">node</span>:
 
 ^code class-ast (1 before, 1 after)
+
+<aside name="class-ast">
+
+The generated code for the new node is in [Appendix II][appendix-class].
+
+[appendix-class]: appendix-ii.html#class-statement
+
+</aside>
 
 It stores the name and the methods inside the body. Methods are represented by
 the existing Stmt.Function class that we use for function declaration AST nodes.
@@ -335,9 +343,17 @@ here on out, we'll call these "get expressions".
 
 ### Get expressions
 
-The syntax tree node is:
+The <span name="get-ast">syntax tree node</span> is:
 
 ^code get-ast (1 before, 1 after)
+
+<aside name="get-ast">
+
+The generated code for the new node is in [Appendix II][appendix-get].
+
+[appendix-get]: appendix-ii.html#get-expression
+
+</aside>
 
 Following the grammar, the new parsing code goes in our existing `call()`
 method:
@@ -449,9 +465,18 @@ Note here that only the *last* part, the `.meat` is the *setter*. The
 `.omelette` and `.filling` parts are both *get* expressions.
 
 Like we have two separate AST nodes for variable access and variable assignment,
-we need a second setter node to complement our getter node:
+we need a <span name="set-ast">second setter node</span> to complement our
+getter node:
 
 ^code set-ast (1 before, 1 after)
+
+<aside name="set-ast">
+
+The generated code for the new node is in [Appendix II][appendix-set].
+
+[appendix-set]: appendix-ii.html#set-expression
+
+</aside>
 
 In case you don't remember, the way we handle assignment in the parser is a
 little funny. We can't easily tell that a series of tokens is the left-hand side
@@ -862,9 +887,18 @@ callback may want to hang onto and retain access to the original object -- the
 `this` value -- that the method was associated with. Our existing support for
 closures and environment chains should do all this correctly.
 
-Let's code it up. The first step is adding new syntax for `this`:
+Let's code it up. The first step is adding <span name="this-ast">new
+syntax</span> for `this`:
 
 ^code this-ast (1 before, 1 after)
+
+<aside name="this-ast">
+
+The generated code for the new node is in [Appendix II][appendix-this].
+
+[appendix-this]: appendix-ii.html#this-expression
+
+</aside>
 
 Parsing is simple since it's a single token (which our lexer already
 recognizes as a reserved word):

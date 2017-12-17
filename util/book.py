@@ -272,6 +272,19 @@ TOC = [
       }
     ]
   },
+  {
+    'name': 'Backmatter',
+    'chapters': [
+      {
+        'name': 'Appendix I',
+        'topics': [],
+      },
+      {
+        'name': 'Appendix II',
+        'topics': [],
+      }
+    ],
+  },
 ]
 
 
@@ -285,6 +298,7 @@ def list_code_chapters():
 
   walk_part(TOC[2])
   walk_part(TOC[3])
+  walk_part(TOC[4])
 
   return chapters
 
@@ -310,15 +324,21 @@ def number_chapters():
   in_matter = False
   for part in TOC:
     # Front- and backmatter have no names, pages, or numbers.
-    in_matter = part['name'] == ''
+    in_matter = part['name'] == '' or part['name'] == 'Backmatter'
     if not in_matter:
       numbers[part['name']] = roman(part_num)
       part_num += 1
 
     for chapter in part['chapters']:
       if in_matter:
-        # Front- and backmatter chapters are not numbered.
-        numbers[chapter['name']] = ''
+        # Front- and backmatter chapters are specially numbered.
+        name = chapter['name']
+        if name == 'Appendix I':
+          numbers[chapter['name']] = 'A1'
+        elif name == 'Appendix II':
+          numbers[chapter['name']] = 'A2'
+        else:
+          numbers[chapter['name']] = ''
       else:
         numbers[chapter['name']] = chapter_num
         chapter_num += 1
@@ -367,7 +387,11 @@ def chapter_number(name):
   """
   Given the name of a chapter (or part of end matter page), finds its number.
   """
-  return NUMBERS[name]
+  if name in NUMBERS:
+    return NUMBERS[name]
+
+  # The chapter has no number. This is true for the appendices.
+  return ""
 
 
 def get_language(name):

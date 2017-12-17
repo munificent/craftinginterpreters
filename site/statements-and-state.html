@@ -216,7 +216,7 @@ method that expects an expression.</p>
 use the cryptic name &ldquo;Stmt&rdquo;. With great <span name="foresight">foresight</span>,
 I have designed our little AST metaprogramming script in anticipation of this.
 That&rsquo;s why we passed in &ldquo;Expr&rdquo; as a parameter to <code>defineAst()</code>. We add another
-call to that for defining Stmt and its subclasses:</p>
+call to that for defining Stmt and its <span name="stmt-ast">subclasses</span>:</p>
 <aside name="foresight">
 <p>Not really foresight: I wrote all the code for the whole book before I started
 slicing things into chapters and scrawling prose.</p>
@@ -232,6 +232,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>
 </pre></div>
 
+<aside name="stmt-ast">
+<p>The generated code for the new nodes is in <a href="appendix-ii.html">Appendix II</a>: <a href="appendix-ii.html#expression-statement">Expression statement</a>, <a href="appendix-ii.html#print-statement">Print statement</a>.</p>
+</aside>
 <p>Run that script and behold your new &ldquo;Stmt.java&rdquo; file with the syntax tree
 classes we need for expression and print statements. Don&rsquo;t forgot to add it to
 your IDE project or makefile or whatever.</p>
@@ -538,7 +541,8 @@ semicolon.</p>
 <p>That <code>IDENTIFIER</code> clause matches a single identifier token, which is understood
 to be the name of the variable being accessed.</p>
 <p>These new grammar rules get their corresponding syntax trees. Over in the AST
-generator, we add a new statement tree for a variable declaration:</p>
+generator, we add a <span name="var-stmt-ast">new statement</span> tree for a
+variable declaration:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()<br>
@@ -548,13 +552,13 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>    <span class="o">));</span>
 </pre></div>
 
+<aside name="var-stmt-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#variable-statement">Appendix II</a>.</p>
+</aside>
 <p>It stores the name token so we know what it&rsquo;s declaring, along with the
 initializer expression. (If there isn&rsquo;t an initializer, that&rsquo;s <code>null</code>.)</p>
-<p>Then we add an expression node for accessing a <span name="comma">variable</span>:</p>
-<aside name="comma">
-<p>Also, we need a comma after the Unary line, which is why that one is changed
-too.</p>
-</aside>
+<p>Then we add <span name="var-expr-ast">an expression node</span> for accessing a
+variable:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Literal  : Object value&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()<br>
@@ -564,9 +568,16 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span>    <span class="o">));</span>
 </pre></div>
 
-<p>It&rsquo;s simply a wrapper around the token for the variable name. That&rsquo;s it. As
-always, don&rsquo;t forget to run the AST generator script so that you get updated
-&ldquo;Expr.java&rdquo; and &ldquo;Stmt.java&rdquo; files.</p>
+<aside name="var-expr-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#variable-expression">Appendix II</a>.</p>
+</aside>
+<p>It&rsquo;s <span name="comma">simply</span> a wrapper around the token for the
+variable name. That&rsquo;s it. As always, don&rsquo;t forget to run the AST generator
+script so that you get updated &ldquo;Expr.java&rdquo; and &ldquo;Stmt.java&rdquo; files.</p>
+<aside name="comma">
+<p>Also, we need a comma after the Unary line, which is why that one is changed
+too.</p>
+</aside>
 <h3><a href="#parsing-variables" name="parsing-variables"><small>8&#8202;.&#8202;2&#8202;.&#8202;2</small> Parsing variables</a></h3>
 <p>Before we parse variable statements, we need to shift around some code to make
 room for the new <code>declaration</code> rule in the grammar. The top level of a program
@@ -920,7 +931,7 @@ objects, like:</p>
 </pre></div>
 
 
-<p>The easy part is adding the new syntax tree node:</p>
+<p>The easy part is adding the <span name="assign-ast">new syntax tree node</span>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">defineAst</span><span class="o">(</span><span class="n">outputDir</span><span class="o">,</span> <span class="s">&quot;Expr&quot;</span><span class="o">,</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -928,6 +939,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Binary   : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="assign-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#assign-expression">Appendix II</a>.</p>
+</aside>
 <p>It has a token for the variable being assigned to, and an expression for the new
 value. After you run the AstGenerator to get the new Expr.Assign class, swap out
 the body of the parser&rsquo;s existing <code>expression()</code> method to match the updated
@@ -1328,7 +1342,7 @@ the grammar:</p>
 
 <p>It&rsquo;s a (possibly empty) series of statements or declarations surrounded by curly
 braces. A block is itself a statement and can appear anywhere a statement is
-allowed. Its syntax tree node looks like this:</p>
+allowed. Its <span name="block-ast">syntax tree</span> node looks like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">defineAst</span><span class="o">(</span><span class="n">outputDir</span><span class="o">,</span> <span class="s">&quot;Stmt&quot;</span><span class="o">,</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -1336,6 +1350,9 @@ in <em>main</em>()</div>
 </pre><pre class="insert-after"><span></span>      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>
 </pre></div>
 
+<aside name="block-ast">
+<p>The generated code for the new node is in <a href="appendix-ii.html#block-statement">Appendix II</a>.</p>
+</aside>
 <p><span name="generate">It</span> contains the list of statements that are inside
 the block. Parsing is straightforward. Like other statements, we detect the
 beginning of a block by its leading token&#8202;&mdash;&#8202;in this case the <code>{</code>. In the

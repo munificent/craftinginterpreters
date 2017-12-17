@@ -96,9 +96,18 @@ incredibly common "zero or more comma-separated things" pattern. There are some
 sophisticated metasyntaxes that handle this better, but in our EBNF and many
 language specs I've seen, it is this cumbersome.
 
-Over in our syntax tree generator, we add a new node:
+Over in our syntax tree generator, we add a <span name="call-ast">new
+node</span>:
 
 ^code call-expr (1 before, 1 after)
+
+<aside name="call-ast">
+
+The generated code for the new node is in [Appendix II][appendix-call].
+
+[appendix-call]: appendix-ii.html#call-expression
+
+</aside>
 
 It stores the callee expression and a list of expressions for the arguments. It
 also stores the token for the closing parenthesis. We'll use that token's
@@ -482,9 +491,17 @@ parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 
 It's like the earlier `arguments` rule, except that each parameter is an
 identifier, not an expression. That's a lot of new syntax for the parser to chew
-through, but the resulting AST node isn't too bad:
+through, but the resulting AST <span name="fun-ast">node</span> isn't too bad:
 
 ^code function-ast (1 before, 1 after)
+
+<aside name="fun-ast">
+
+The generated code for the new node is in [Appendix II][appendix-fun].
+
+[appendix-fun]: appendix-ii.html#function-statement
+
+</aside>
 
 It has a name, a list of parameters -- their names -- and then the body. We
 store the body as the list of statements contained inside the curly braces.
@@ -753,9 +770,17 @@ omit the value in a return statement, we simply treat it as:
 return nil;
 ```
 
-Over in our AST generator, add a new node:
+Over in our AST generator, add a <span name="return-ast">new node</span>:
 
 ^code return-ast (1 before, 1 after)
+
+<aside name="return-ast">
+
+The generated code for the new node is in [Appendix II][appendix-return].
+
+[appendix-return]: appendix-ii.html#return-statement
+
+</aside>
 
 It keeps the `return` keyword token so we can use its location for error
 reporting, and the value being returned, if any. We parse it like other

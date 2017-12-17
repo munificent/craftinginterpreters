@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+<title>Appendix II &middot; Crafting Interpreters</title>
+
+<!-- Tell mobile browsers we're optimized for them and they don't need to crop
+     the viewport. -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="style.css" />
+
+<!-- Oh, God, Source Code Pro is so beautiful it makes me want to cry. -->
+<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link rel="icon" type="image/png" href="image/favicon.png" />
+<script src="jquery-1.10.1.min.js"></script>
+<script src="script.js"></script>
+
+<!-- Google analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-42804721-2', 'auto');
+  ga('send', 'pageview');
+</script>
+
+</head>
+<body id="top">
+
+<!-- <div class="scrim"></div> -->
+<nav class="wide">
+  <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+  <div class="contents">
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top">Appendix II<small>A2</small></a></h3>
+
+<ul>
+    <li><a href="#expressions"><small>A2.1</small> Expressions</a></li>
+    <li><a href="#statements"><small>A2.2</small> Statements</a></li>
+</ul>
+
+
+<div class="prev-next">
+    <a href="appendix-i.html" title="Appendix I" class="left">&larr;&nbsp;Previous</a>
+    <a href="backmatter.html" title="Backmatter">&uarr;&nbsp;Up</a>
+</div>  </div>
+</nav>
+
+<nav class="narrow">
+<a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+<a href="appendix-i.html" title="Appendix I" class="prev">←</a>
+</nav>
+
+<div class="page">
+<div class="nav-wrapper">
+<nav class="floating">
+  <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+  <div class="expandable">
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top">Appendix II<small>A2</small></a></h3>
+
+<ul>
+    <li><a href="#expressions"><small>A2.1</small> Expressions</a></li>
+    <li><a href="#statements"><small>A2.2</small> Statements</a></li>
+</ul>
+
+
+<div class="prev-next">
+    <a href="appendix-i.html" title="Appendix I" class="left">&larr;&nbsp;Previous</a>
+    <a href="backmatter.html" title="Backmatter">&uarr;&nbsp;Up</a>
+</div>  </div>
+  <a id="expand-nav">≡</a>
+</nav>
+</div>
+
+<article class="chapter">
+
+  <div class="number">A2</div>
+  <h1>Appendix II</h1>
+
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
+
+  <!-- Begin MailChimp Signup Form -->
+  <div id="mc_embed_signup">
+  <form action="//gameprogrammingpatterns.us7.list-manage.com/subscribe/post?u=0952ca43ed2536d6717766b88&amp;id=6e96334109" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Your email address" required>
+    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0952ca43ed2536d6717766b88_6e96334109" tabindex="-1" value=""></div>
+    <input type="submit" value="Sign me up!" name="subscribe" id="mc-embedded-subscribe" class="button">
+  </form>
+  </div>
+  <!--End mc_embed_signup-->
+  <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
+</div>
+
+<p>For your edification, here is the code produced by <a href="representing-code.html#metaprogramming-the-trees">the little script
+we build</a> to automate generating the syntax tree classes for jlox.</p>
+<h2><a href="#expressions" name="expressions"><small>A2&#8202;.&#8202;1</small> Expressions</a></h2>
+<p>Expressions are the first syntax tree nodes we see, introduced in &ldquo;<a href="representing-code.html">Representing
+Code</a>&rdquo;. The main Expr class defines the visitor
+interface used to dispatch against the specific expression types, and contains
+the other expression subclasses as nested classes:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Expr</span> <span class="o">{</span>
+  <span class="kd">interface</span> <span class="nc">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="n">R</span> <span class="nf">visitAssignExpr</span><span class="o">(</span><span class="n">Assign</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitBinaryExpr</span><span class="o">(</span><span class="n">Binary</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitCallExpr</span><span class="o">(</span><span class="n">Call</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitGetExpr</span><span class="o">(</span><span class="n">Get</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitGroupingExpr</span><span class="o">(</span><span class="n">Grouping</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitLiteralExpr</span><span class="o">(</span><span class="n">Literal</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitLogicalExpr</span><span class="o">(</span><span class="n">Logical</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitSetExpr</span><span class="o">(</span><span class="n">Set</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitSuperExpr</span><span class="o">(</span><span class="n">Super</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitThisExpr</span><span class="o">(</span><span class="n">This</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitUnaryExpr</span><span class="o">(</span><span class="n">Unary</span> <span class="n">expr</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitVariableExpr</span><span class="o">(</span><span class="n">Variable</span> <span class="n">expr</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Nested Expr classes here...</span>
+
+  <span class="kd">abstract</span> <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+
+<h3><a href="#assign-expression" name="assign-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;1</small> Assign expression</a></h3>
+<p>Variable assignment is introduced in &ldquo;<a href="statements-and-state.html#assignment">Statements and
+State</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Assign</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Assign</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitAssignExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">value</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#binary-expression" name="binary-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;2</small> Binary expression</a></h3>
+<p>Binary operators are introduced in &ldquo;<a href="representing-code.html">Representing
+Code</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Binary</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Binary</span><span class="o">(</span><span class="n">Expr</span> <span class="n">left</span><span class="o">,</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitBinaryExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#call-expression" name="call-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;3</small> Call expression</a></h3>
+<p>Function call expressions are introduced in
+&ldquo;<a href="functions.html#function-calls">Functions</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Call</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Call</span><span class="o">(</span><span class="n">Expr</span> <span class="n">callee</span><span class="o">,</span> <span class="n">Token</span> <span class="n">paren</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Expr</span><span class="o">&gt;</span> <span class="n">arguments</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">callee</span> <span class="o">=</span> <span class="n">callee</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">paren</span> <span class="o">=</span> <span class="n">paren</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">arguments</span> <span class="o">=</span> <span class="n">arguments</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitCallExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">callee</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">paren</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Expr</span><span class="o">&gt;</span> <span class="n">arguments</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#get-expression" name="get-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;4</small> Get expression</a></h3>
+<p>Property access, or &ldquo;get&rdquo; expressions are introduced in
+&ldquo;<a href="classes.html#properties-on-instances">Classes</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Get</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Get</span><span class="o">(</span><span class="n">Expr</span> <span class="n">object</span><span class="o">,</span> <span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">object</span> <span class="o">=</span> <span class="n">object</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitGetExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">object</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#grouping-expression" name="grouping-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;5</small> Grouping expression</a></h3>
+<p>Using parentheses to group expressions is introduced in &ldquo;<a href="representing-code.html">Representing
+Code</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Grouping</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Grouping</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">expression</span> <span class="o">=</span> <span class="n">expression</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitGroupingExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">expression</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#literal-expression" name="literal-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;6</small> Literal expression</a></h3>
+<p>Literal value expressions are introduced in &ldquo;<a href="representing-code.html">Representing
+Code</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Literal</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Literal</span><span class="o">(</span><span class="n">Object</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitLiteralExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Object</span> <span class="n">value</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#logical-expression" name="logical-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;7</small> Logical expression</a></h3>
+<p>The logical <code>and</code> and <code>or</code> operators are introduced in &ldquo;<a href="control-flow.html#logical-operators">Control
+Flow</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Logical</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Logical</span><span class="o">(</span><span class="n">Expr</span> <span class="n">left</span><span class="o">,</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitLogicalExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#set-expression" name="set-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;8</small> Set expression</a></h3>
+<p>Property assignment, or &ldquo;set&rdquo; expressions are introduced in
+&ldquo;<a href="classes.html#properties-on-instances">Classes</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Set</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Set</span><span class="o">(</span><span class="n">Expr</span> <span class="n">object</span><span class="o">,</span> <span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">object</span> <span class="o">=</span> <span class="n">object</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitSetExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">object</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">value</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#super-expression" name="super-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;9</small> Super expression</a></h3>
+<p>The <code>super</code> keyword is introduced in
+&ldquo;<a href="inheritance.html#calling-superclass-methods">Inheritance</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Super</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Super</span><span class="o">(</span><span class="n">Token</span> <span class="n">keyword</span><span class="o">,</span> <span class="n">Token</span> <span class="n">method</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">keyword</span> <span class="o">=</span> <span class="n">keyword</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitSuperExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">keyword</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">method</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#this-expression" name="this-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;10</small> This expression</a></h3>
+<p>The <code>this</code> keyword is introduced in &ldquo;<a href="classes.html#this">Classes</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">This</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">This</span><span class="o">(</span><span class="n">Token</span> <span class="n">keyword</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">keyword</span> <span class="o">=</span> <span class="n">keyword</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitThisExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">keyword</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#unary-expression" name="unary-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;11</small> Unary expression</a></h3>
+<p>Unary operators are introduced in &ldquo;<a href="representing-code.html">Representing Code</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Unary</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Unary</span><span class="o">(</span><span class="n">Token</span> <span class="n">operator</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">operator</span> <span class="o">=</span> <span class="n">operator</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitUnaryExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">operator</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">right</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#variable-expression" name="variable-expression"><small>A2&#8202;.&#8202;1&#8202;.&#8202;12</small> Variable expression</a></h3>
+<p>Variable access expressions are introduced in &ldquo;<a href="statements-and-state.html#variable-syntax">Statements and
+State</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Expr.java</em><br>
+nest inside class <em>Expr</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Variable</span> <span class="kd">extends</span> <span class="n">Expr</span> <span class="o">{</span>
+    <span class="n">Variable</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitVariableExpr</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h2><a href="#statements" name="statements"><small>A2&#8202;.&#8202;2</small> Statements</a></h2>
+<p>Statements form a second hierarchy of syntax tree nodes independent of
+expressions. We add the first couple of them in &ldquo;<a href="statements-and-state.html">Statements and
+State</a>&rdquo;.</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+create new file</div>
+<pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+
+<span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">Stmt</span> <span class="o">{</span>
+  <span class="kd">interface</span> <span class="nc">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="n">R</span> <span class="nf">visitBlockStmt</span><span class="o">(</span><span class="n">Block</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitClassStmt</span><span class="o">(</span><span class="n">Class</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitExpressionStmt</span><span class="o">(</span><span class="n">Expression</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitFunctionStmt</span><span class="o">(</span><span class="n">Function</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitIfStmt</span><span class="o">(</span><span class="n">If</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitPrintStmt</span><span class="o">(</span><span class="n">Print</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitReturnStmt</span><span class="o">(</span><span class="n">Return</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitVarStmt</span><span class="o">(</span><span class="n">Var</span> <span class="n">stmt</span><span class="o">);</span>
+    <span class="n">R</span> <span class="nf">visitWhileStmt</span><span class="o">(</span><span class="n">While</span> <span class="n">stmt</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Nested Stmt classes here...</span>
+
+  <span class="kd">abstract</span> <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
+
+<h3><a href="#block-statement" name="block-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;1</small> Block statement</a></h3>
+<p>Curly-braced block statements to define local scopes are introduced &ldquo;<a href="statements-and-state.html#block-syntax-and-semantics">Statements
+and State</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Block</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Block</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">statements</span> <span class="o">=</span> <span class="n">statements</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitBlockStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#class-statement" name="class-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;2</small> Class statement</a></h3>
+<p>Class declaration statements are introduced in, unsurprisingly, &ldquo;<a href="classes.html#class-declarations">Classes</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Class</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Class</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">superclass</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span><span class="o">&gt;</span> <span class="n">methods</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">superclass</span> <span class="o">=</span> <span class="n">superclass</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">methods</span> <span class="o">=</span> <span class="n">methods</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitClassStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">superclass</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span><span class="o">&gt;</span> <span class="n">methods</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#expression-statement" name="expression-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;3</small> Expression statement</a></h3>
+<p>Expression statements are introduced in &ldquo;<a href="statements-and-state.html#statements">Statements and
+State</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Expression</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Expression</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">expression</span> <span class="o">=</span> <span class="n">expression</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitExpressionStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">expression</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#function-statement" name="function-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;4</small> Function statement</a></h3>
+<p>Function declaration statements are introduced in, you guessed it, &ldquo;<a href="functions.html#function-declarations">Functions</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Function</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Function</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">parameters</span><span class="o">,</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">body</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">parameters</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">body</span> <span class="o">=</span> <span class="n">body</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitFunctionStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">parameters</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">body</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#if-statement" name="if-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;5</small> If statement</a></h3>
+<p>If statements are introduced in &ldquo;<a href="control-flow.html#conditional-execution">Control
+Flow</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">If</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">If</span><span class="o">(</span><span class="n">Expr</span> <span class="n">condition</span><span class="o">,</span> <span class="n">Stmt</span> <span class="n">thenBranch</span><span class="o">,</span> <span class="n">Stmt</span> <span class="n">elseBranch</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">condition</span> <span class="o">=</span> <span class="n">condition</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">thenBranch</span> <span class="o">=</span> <span class="n">thenBranch</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">elseBranch</span> <span class="o">=</span> <span class="n">elseBranch</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitIfStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">condition</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Stmt</span> <span class="n">thenBranch</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Stmt</span> <span class="n">elseBranch</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#print-statement" name="print-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;6</small> Print statement</a></h3>
+<p>Print statements are introduced in &ldquo;<a href="statements-and-state.html#statements">Statements and
+State</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Print</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Print</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">expression</span> <span class="o">=</span> <span class="n">expression</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitPrintStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">expression</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#return-statement" name="return-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;7</small> Return statement</a></h3>
+<p>You need a function to return from, so return statements are introduced in &ldquo;<a href="functions.html#return-statements">Functions</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Return</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Return</span><span class="o">(</span><span class="n">Token</span> <span class="n">keyword</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">keyword</span> <span class="o">=</span> <span class="n">keyword</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitReturnStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">keyword</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">value</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#variable-statement" name="variable-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;8</small> Variable statement</a></h3>
+<p>Variable declaration statements are introduced in &ldquo;<a href="statements-and-state.html#variable-syntax">Statements and
+State</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Var</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">Var</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="n">Expr</span> <span class="n">initializer</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">initializer</span> <span class="o">=</span> <span class="n">initializer</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitVarStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Token</span> <span class="n">name</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">initializer</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<h3><a href="#while-statement" name="while-statement"><small>A2&#8202;.&#8202;2&#8202;.&#8202;9</small> While statement</a></h3>
+<p>While statements are introduced in &ldquo;<a href="control-flow.html#while-loops">Control
+Flow</a>&rdquo;:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Stmt.java</em><br>
+nest inside class <em>Stmt</em></div>
+<pre><span></span>  <span class="kd">static</span> <span class="kd">class</span> <span class="nc">While</span> <span class="kd">extends</span> <span class="n">Stmt</span> <span class="o">{</span>
+    <span class="n">While</span><span class="o">(</span><span class="n">Expr</span> <span class="n">condition</span><span class="o">,</span> <span class="n">Stmt</span> <span class="n">body</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">condition</span> <span class="o">=</span> <span class="n">condition</span><span class="o">;</span>
+      <span class="k">this</span><span class="o">.</span><span class="na">body</span> <span class="o">=</span> <span class="n">body</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">R</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="n">R</span><span class="o">&gt;</span> <span class="n">visitor</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">visitor</span><span class="o">.</span><span class="na">visitWhileStmt</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">final</span> <span class="n">Expr</span> <span class="n">condition</span><span class="o">;</span>
+    <span class="kd">final</span> <span class="n">Stmt</span> <span class="n">body</span><span class="o">;</span>
+  <span class="o">}</span>
+</pre></div>
+
+<footer>
+Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2017</a>
+</footer>
+</article>
+
+</div>
+</body>
+</html>
