@@ -1,7 +1,4 @@
 //> Scanning on Demand not-yet
-//> Compiling Expressions not-yet
-#include <assert.h>
-//< Compiling Expressions not-yet
 #include <stdio.h>
 //> Compiling Expressions not-yet
 #include <stdlib.h>
@@ -419,7 +416,7 @@ static void parsePrecedence(Precedence precedence);
 
 static uint8_t makeConstant(Value value) {
   int constant = addConstant(currentChunk(), value);
-  if (constant == -1) {
+  if (constant > UINT8_MAX) {
     error("Too many constants in one chunk.");
     return 0;
   }
@@ -659,7 +656,7 @@ static void binary(bool canAssign) {
     case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
     case TOKEN_SLASH:         emitByte(OP_DIVIDE); break;
     default:
-      assert(false); // Unreachable.
+      return; // Unreachable.
   }
 }
 //> Calls and Functions not-yet
@@ -909,7 +906,7 @@ static void unary(bool canAssign) {
 //< Types of Values not-yet
     case TOKEN_MINUS: emitByte(OP_NEGATE); break;
     default:
-      assert(false); // Unreachable.
+      return; // Unreachable.
   }
 }
 

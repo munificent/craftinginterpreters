@@ -265,6 +265,7 @@ class Snippet:
     self.function = None
     self.preceding_function = None
     self.clas = None
+    self.nested_class = None
 
   def location(self):
     """Describes where in the file this snippet appears."""
