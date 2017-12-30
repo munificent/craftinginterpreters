@@ -140,7 +140,6 @@ TOC = [
           'Allocation', 'Dynamic arrays', 'Code chunks', 'Constant tables',
           'Instruction arguments', 'Disassembly'
         ],
-        'done': False,
       },
       {
         'name': 'A Virtual Machine',
