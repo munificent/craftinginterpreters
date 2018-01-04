@@ -217,7 +217,8 @@ int disassembleInstruction(Chunk* chunk, int i) {
         printf("%04d   |                     %s %d\n",
                i - 2, isLocal ? "local" : "upvalue", index);
       }
-      break;
+      
+      return i;
     }
 
     case OP_CLOSE_UPVALUE:
