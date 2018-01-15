@@ -13,10 +13,12 @@
 //< Strings not-yet
 #define GROW_CAPACITY(capacity) \
     ((capacity) < 8 ? 8 : (capacity) * 2)
+//> grow-array
 
 #define GROW_ARRAY(previous, type, oldCount, count) \
     (type*)reallocate(previous, sizeof(type) * (oldCount), \
         sizeof(type) * (count))
+//< grow-array
 //> free-array
 
 #define FREE_ARRAY(type, pointer, oldCount) \
