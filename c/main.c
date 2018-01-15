@@ -93,7 +93,7 @@ int main(int argc, const char* argv[]) {
  
   int constant = addConstant(&chunk, 1.2);
 */
-/* Chunks of Bytecode main-constant < Chunks of Bytecode main-constant-line
+/* Chunks of Bytecode main-constant < Chunks of Bytecode main-chunk-line
   writeChunk(&chunk, OP_CONSTANT);
   writeChunk(&chunk, constant);
 
