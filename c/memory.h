@@ -18,7 +18,6 @@
 #define GROW_ARRAY(previous, type, oldCount, count) \
     (type*)reallocate(previous, sizeof(type) * (oldCount), \
         sizeof(type) * (count))
-//< grow-array
 //> free-array
 
 #define FREE_ARRAY(type, pointer, oldCount) \
@@ -26,6 +25,7 @@
 //< free-array
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize);
+//< grow-array
 //> Garbage Collection not-yet
 
 void grayObject(Obj* object);
