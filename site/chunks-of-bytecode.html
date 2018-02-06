@@ -117,6 +117,13 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<blockquote>
+<p>If you find that you&rsquo;re spending almost all your time on theory, start turning
+some attention to practical things; it will improve your theories. If you find
+that you&rsquo;re spending almost all your time on practice, start turning some
+attention to theoretical things; it will improve your practice.</p>
+<p><cite>Donald Knuth</cite></p>
+</blockquote>
 <p>We already have ourselves a complete implementation of Lox in jlox, so why isn&rsquo;t
 the book over yet? Part of this is because jlox relies on the <span
 name="metal">JVM</span> to do lots of things for us. If we want to understand
@@ -303,11 +310,12 @@ chips was worth more than squeezing the max perf out of each one. That&rsquo;s w
 &ldquo;p&rdquo; in &ldquo;p-code&rdquo; doesn&rsquo;t stand for &ldquo;Pascal&rdquo;, but &ldquo;portable&rdquo;.</p>
 </aside>
 <p>In many ways, it parallels the structure of our previous interpreter:</p>
-<p><strong>todo: illustrate jlox vs clox. jlox has columns for parser -&gt; ast -&gt;
-interpreter. clox is compiler -&gt; bytecode -&gt; vm.</strong></p>
+<p><img src="image/chunks-of-bytecode/phases.png" alt="Phases of the two
+implementations. jlox is Parser to Syntax Trees to Interpreter. clox is Compiler
+to Bytecode to Virtual Machine." /></p>
 <p>Of course, we won&rsquo;t do it all in that order. Like our previous interpreter,
-we&rsquo;ll bounce between all three of those, building up the interpreter one
-language feature at a time. In this chapter, we&rsquo;ll get the skeleton of the
+we&rsquo;ll bounce between all three of those phases, building up the implementation
+one language feature at a time. In this chapter, we&rsquo;ll get the skeleton of the
 application in place and the data structures needed to store and represent a
 chunk of bytecode.</p>
 <h2><a href="#getting-started" name="getting-started"><small>14&#8202;.&#8202;2</small> Getting Started</a></h2>
@@ -403,16 +411,22 @@ currently filled (&ldquo;count&rdquo;) and the actual allocated size of the arra
 
 <p>When we add an element, if the count is less than the capacity, then there is
 available space in the array and we store the new element right in there and
-bump the count. If we have no extra <span name="amortized">capacity</span> left,
-then before we store the element, we do this little dance:</p>
+bump the count:</p>
+<p><img src="image/chunks-of-bytecode/insert.png" alt="Storing an element in an
+array that has enough capacity." /></p>
+<p>If we have no extra capacity left, then the process is a little more involved:</p>
+<p><img src="image/chunks-of-bytecode/grow.png" alt="Growing the dynamic array
+before storing an element." class="wide" /></p>
 <ol>
-<li>Allocate a new, array with a larger capacity.</li>
-<li>Copy the elements from the old too-small array over to the new one.</li>
+<li><span name="amortized">Allocate</span> a new array with a larger capacity.</li>
+<li>Copy the elements from the old too-small array
+    over to the new one.</li>
+<li>Store the new <code>capacity</code>.</li>
 <li>Delete the old array.</li>
+<li>Update <code>code</code> to point to the new array.</li>
+<li>Store the element now that there is room.</li>
+<li>Update <code>count</code>.</li>
 </ol>
-<p>After that, since the capacity has now grown, we&rsquo;ll have room to append the new
-element.</p>
-<p><strong>todo: illustrate</strong></p>
 <aside name="amortized">
 <p>Copying the existing elements when you grow the array makes it seem like
 appending an element is <code>O(n)</code>, not <code>O(1)</code> like I said above. However, you only
@@ -555,8 +569,6 @@ from scratch, using only <code>mmap()</code>. I&rsquo;ll leave that as a challen
 particularly adventurous readers. (Daunting as it sounds, it is actually pretty
 fun.)</p>
 </aside>
-<p><strong>todo: illustrate with table of existing pointer null-ness, desired size and
-resulting behavior.</strong></p>
 <p>The interesting case is when the pointer is not <code>NULL</code> <em>and</em> the size is not
 zero. In that case, it will try to resize the allocated block. If the new size
 is <em>smaller</em> than the existing block of memory, it simply <span
@@ -578,6 +590,36 @@ information, which is necessary to be able to cleanly free it. (Many
 implementations of <code>malloc()</code> store the allocated size in memory right <em>before</em>
 the returned address.) It&rsquo;s this size metadata that <code>realloc()</code> updates.</p>
 </aside>
+<p>If you like tables, here&rsquo;s all of the various cases:</p>
+<table>
+  <thead>
+    <tr>
+      <td>Call</td>
+      <td>Effect</td>
+    </tr>
+  </thead>
+  <tr>
+    <td><code>realloc(NULL, NULL)</code></td>
+    <td>Does nothing.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(NULL, 1000)</code></td>
+    <td>Equivalent to <code>malloc(1000)</code>.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(1000, NULL)</code></td>
+    <td>Equivalent to <code>free()</code>.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(1000, 2000)</code></td>
+    <td>Grow existing block or allocate new one and copy.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(2000, 1000)</code></td>
+    <td>Shrink allocated block.</td>
+  </tr>
+</table>
+
 <p>Right now, all of the interesting logic is in <code>realloc()</code>. When we later
 implement a garbage collector, our <code>reallocate()</code> function is going to get a
 <em>lot</em> more fun. For now, this is enough.</p>
@@ -1009,7 +1051,6 @@ example, a simple operation like &ldquo;return&rdquo; may have no operands, wher
 instruction for &ldquo;load local variable&rdquo; needs an operand to identify which
 variable to load. Each time we add a new instruction to clox, we specify what
 it&rsquo;s operands look like&#8202;&mdash;&#8202;its <strong>instruction format</strong>.</p>
-<p><strong>todo: illustrate instruction</strong></p>
 <aside name="operand">
 <p>Instruction operands are <em>not</em> the same as the &ldquo;operands&rdquo; to an arithmetic
 expression. You&rsquo;ll see when we get to expressions that those operand values are
@@ -1017,8 +1058,10 @@ tracked separately. Instruction operands are a lower-level notion that modify
 how the instruction itself behaves.</p>
 </aside>
 <p>In this case, <code>OP_CONSTANT</code> takes a single byte operand that specifies which
-constant to load from the chunk&rsquo;s constant array. Since we don&rsquo;t have a compiler
-yet, we &ldquo;hand-compile&rdquo; one in our test chunk:</p>
+constant to load from the chunk&rsquo;s constant array.</p>
+<p><img src="image/chunks-of-bytecode/format.png" alt="OP_CONSTANT is a byte for
+the opcode followed by a byte for the constant index." /></p>
+<p>Since we don&rsquo;t have a compiler yet, we &ldquo;hand-compile&rdquo; one in our test chunk:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
@@ -1400,7 +1443,7 @@ language. You&rsquo;ll thank me for it.</p>
 <a href="a-virtual-machine.html" class="next">
   Next Chapter: &ldquo;A Virtual Machine&rdquo; &rarr;
 </a>
-Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2017</a>
+Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2018</a>
 </footer>
 </article>
 
