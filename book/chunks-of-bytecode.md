@@ -1,6 +1,13 @@
 ^title Chunks of Bytecode
 ^part A Bytecode Virtual Machine
 
+> If you find that you're spending almost all your time on theory, start turning
+> some attention to practical things; it will improve your theories. If you find
+> that you're spending almost all your time on practice, start turning some
+> attention to theoretical things; it will improve your practice.
+>
+> <cite>Donald Knuth</cite>
+
 We already have ourselves a complete implementation of Lox in jlox, so why isn't
 the book over yet? Part of this is because jlox relies on the <span
 name="metal">JVM</span> to do lots of things for us. If we want to understand
@@ -249,12 +256,13 @@ chips was worth more than squeezing the max perf out of each one. That's why the
 
 In many ways, it parallels the structure of our previous interpreter:
 
-**todo: illustrate jlox vs clox. jlox has columns for parser -> ast ->
-interpreter. clox is compiler -> bytecode -> vm.**
+<img src="image/chunks-of-bytecode/phases.png" alt="Phases of the two
+implementations. jlox is Parser to Syntax Trees to Interpreter. clox is Compiler
+to Bytecode to Virtual Machine." />
 
 Of course, we won't do it all in that order. Like our previous interpreter,
-we'll bounce between all three of those, building up the interpreter one
-language feature at a time. In this chapter, we'll get the skeleton of the
+we'll bounce between all three of those phases, building up the implementation
+one language feature at a time. In this chapter, we'll get the skeleton of the
 application in place and the data structures needed to store and represent a
 chunk of bytecode.
 
@@ -315,7 +323,7 @@ ice cream flavor, but consider the perks:
 * Constant-time indexed element lookup.
 * Constant-time appending to the end of the array.
 
-Those perks are exactly what Java's ArrayList is a dynamic array under the hood
+Those perks are exactly why Java's ArrayList is a dynamic array under the hood
 and why we used it all the time in jlox. Now that we're in C, we get to roll our
 own. If you're rusty on them, the idea is pretty simple. In addition to the
 array itself, we keep track of two numbers -- how many elements in the array are
@@ -326,17 +334,24 @@ currently filled ("count") and the actual allocated size of the array (its
 
 When we add an element, if the count is less than the capacity, then there is
 available space in the array and we store the new element right in there and
-bump the count. If we have no extra <span name="amortized">capacity</span> left,
-then before we store the element, we do this little dance:
+bump the count:
 
-1.  Allocate a new, array with a larger capacity.
-2.  Copy the elements from the old too-small array over to the new one.
-3.  Delete the old array.
+<img src="image/chunks-of-bytecode/insert.png" alt="Storing an element in an
+array that has enough capacity." />
 
-After that, since the capacity has now grown, we'll have room to append the new
-element.
+If we have no extra capacity left, then the process is a little more involved:
 
-**todo: illustrate**
+<img src="image/chunks-of-bytecode/grow.png" alt="Growing the dynamic array
+before storing an element." class="wide" />
+
+1.  <span name="amortized">Allocate</span> a new array with a larger capacity.
+2.  Copy the elements from the old too-small array
+    over to the new one.
+3.  Store the new `capacity`.
+4.  Delete the old array.
+5.  Update `code` to point to the new array.
+6.  Store the element now that there is room.
+7.  Update `count`.
 
 <aside name="amortized">
 
@@ -438,9 +453,6 @@ fun.)
 
 </aside>
 
-**todo: illustrate with table of existing pointer null-ness, desired size and
-resulting behavior.**
-
 The interesting case is when the pointer is not `NULL` *and* the size is not
 zero. In that case, it will try to resize the allocated block. If the new size
 is *smaller* than the existing block of memory, it simply <span
@@ -466,6 +478,37 @@ implementations of `malloc()` store the allocated size in memory right *before*
 the returned address.) It's this size metadata that `realloc()` updates.
 
 </aside>
+
+If you like tables, here's all of the various cases:
+
+<table>
+  <thead>
+    <tr>
+      <td>Call</td>
+      <td>Effect</td>
+    </tr>
+  </thead>
+  <tr>
+    <td><code>realloc(NULL, NULL)</code></td>
+    <td>Does nothing.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(NULL, 1000)</code></td>
+    <td>Equivalent to <code>malloc(1000)</code>.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(1000, NULL)</code></td>
+    <td>Equivalent to <code>free()</code>.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(1000, 2000)</code></td>
+    <td>Grow existing block or allocate new one and copy.</td>
+  </tr>
+  <tr>
+    <td><code>realloc(2000, 1000)</code></td>
+    <td>Shrink allocated block.</td>
+  </tr>
+</table>
 
 Right now, all of the interesting logic is in `realloc()`. When we later
 implement a garbage collector, our `reallocate()` function is going to get a
@@ -803,8 +846,6 @@ instruction for "load local variable" needs an operand to identify which
 variable to load. Each time we add a new instruction to clox, we specify what
 it's operands look like -- its **instruction format**.
 
-**todo: illustrate instruction**
-
 <aside name="operand">
 
 Instruction operands are *not* the same as the "operands" to an arithmetic
@@ -815,8 +856,12 @@ how the instruction itself behaves.
 </aside>
 
 In this case, `OP_CONSTANT` takes a single byte operand that specifies which
-constant to load from the chunk's constant array. Since we don't have a compiler
-yet, we "hand-compile" one in our test chunk:
+constant to load from the chunk's constant array.
+
+<img src="image/chunks-of-bytecode/format.png" alt="OP_CONSTANT is a byte for
+the opcode followed by a byte for the constant index." />
+
+Since we don't have a compiler yet, we "hand-compile" one in our test chunk:
 
 ^code main-constant (1 before, 1 after)
 
