@@ -275,7 +275,7 @@ So the new clause we add to the `primary` rule in our grammar includes the
 property access as well:
 
 ```lox
-primary → "true" | "false" | "null" | "this"
+primary → "true" | "false" | "nil" | "this"
         | NUMBER | STRING | IDENTIFIER | "(" expression ")"
         | "super" "." IDENTIFIER ;
 ```
