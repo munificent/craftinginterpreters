@@ -6,6 +6,7 @@
 //> chunk-h-include-value
 #include "value.h"
 //< chunk-h-include-value
+//> op-enum
 
 typedef enum {
 //> op-constant
@@ -112,6 +113,7 @@ typedef enum {
   OP_METHOD
 //< Methods and Initializers not-yet
 } OpCode;
+//< op-enum
 //> chunk-struct
 
 typedef struct {
