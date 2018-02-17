@@ -1050,7 +1050,7 @@ the [next chapter][vm], we will see how the virtual machine does exactly that.
     Implement this function:
 
         :::c
-        void writeConstant(Chunk* chunk, Value value) {
+        void writeConstant(Chunk* chunk, Value value, int line) {
           // Implement me...
         }
 
@@ -1061,16 +1061,19 @@ the [next chapter][vm], we will see how the virtual machine does exactly that.
     Defining two instructions seems to be the best of both worlds. What
     sacrifices, if any, does it force on us?
 
-3.  This one is a doozy. Our `reallocate()` function relies on the C standard
-    library for dynamic memory allocation and freeing. Demonstrate how it does
-    that by writing your own memory manager on top of it.
+3.  Our `reallocate()` function relies on the C standard library for dynamic
+    memory allocation and freeing. `malloc()` and `free()` aren't magic. Find
+    a couple of open source implementations of them and explain how they work.
+    How do they keep track of which bytes are allocated and which are free?
+    What is required to allocate a block of memory? Free it? How do they make
+    that efficient? What do they do about fragmentation?
 
-    Implement `reallocate()` without calling `realloc()`, `malloc()`, or
-    `free()`. You are allowed to call `malloc()` *once*, at the beginning of the
-    interpreter's execution, to allocate a single big block of memory which your
-    `reallocate()` function has access to. It parcels out blobs of memory from
-    that single region, your own personal heap. It's your job to define how it
-    does that.
+    *Hardcore mode: Implement `reallocate()` without calling `realloc()`,
+    `malloc()`, or `free()`. You are allowed to call `malloc()` *once*, at the
+    beginning of the interpreter's execution, to allocate a single big block of
+    memory which your `reallocate()` function has access to. It parcels out
+    blobs of memory from that single region, your own personal heap. It's your
+    job to define how it does that.*
 
 </div>
 
