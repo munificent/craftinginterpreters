@@ -474,8 +474,13 @@ scope's map. That seems simple, but there's a little dance we need to do:
 
 ^code visit-var-stmt
 
-We split binding into two separate steps -- declaring and defining -- in order
-to handle this funny edge case:
+Before we get to the interesting code, we need another overload of `resolve()`
+to resolve an expression instead of a statement:
+
+^code resolve-expr
+
+Now to the semantics. We split binding into two separate steps -- declaring and
+defining -- in order to handle this funny edge case:
 
 ```lox
 var a = "outer";
@@ -578,12 +583,8 @@ like this:
 ^code visit-assign-expr
 
 First, we resolve the expression for the assigned value in case it also contains
-references to other variables using this helper:
-
-^code resolve-expr
-
-Then we use our existing `resolveLocal()` method to resolve the variable that's
-being assigned to.
+references to other variables. Then we use our existing `resolveLocal()` method
+to resolve the variable that's being assigned to.
 
 ### Resolving function declarations
 
