@@ -569,8 +569,17 @@ add after <em>visitBlockStmt</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>We split binding into two separate steps&#8202;&mdash;&#8202;declaring and defining&#8202;&mdash;&#8202;in order
-to handle this funny edge case:</p>
+<p>Before we get to the interesting code, we need another overload of <code>resolve()</code>
+to resolve an expression instead of a statement:</p>
+<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>resolve</em>()</div>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+
+<p>Now to the semantics. We split binding into two separate steps&#8202;&mdash;&#8202;declaring and
+defining&#8202;&mdash;&#8202;in order to handle this funny edge case:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
 <span class="p">{</span>
   <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
@@ -710,16 +719,8 @@ add after <em>visitVarStmt</em>()</div>
 </pre></div>
 
 <p>First, we resolve the expression for the assigned value in case it also contains
-references to other variables using this helper:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
-in <em>resolve</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">resolve</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
-  <span class="o">}</span>
-</pre></div>
-
-<p>Then we use our existing <code>resolveLocal()</code> method to resolve the variable that&rsquo;s
-being assigned to.</p>
+references to other variables. Then we use our existing <code>resolveLocal()</code> method
+to resolve the variable that&rsquo;s being assigned to.</p>
 <h3><a href="#resolving-function-declarations" name="resolving-function-declarations"><small>11&#8202;.&#8202;3&#8202;.&#8202;5</small> Resolving function declarations</a></h3>
 <p>Finally, functions. Functions both bind names and introduce a scope. The name of
 the function itself is bound in the surrounding scope where the function is
