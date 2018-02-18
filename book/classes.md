@@ -797,7 +797,7 @@ a method body, a `this` expression evaluates to the instance that the method was
 called on. Or, more specifically, since methods are accessed and then invoked as
 two steps, it will refer to the object that the method was *accessed* from.
 
-That's makes our job harder. Peep at:
+That makes our job harder. Peep at:
 
 ```lox
 class Egotist {
