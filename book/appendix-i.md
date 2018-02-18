@@ -107,7 +107,7 @@ that there are no recursive rules.
 [regular]: https://en.wikipedia.org/wiki/Regular_grammar
 
 ```lox
-NUMBER         → DIGIT+ ( "." DIGIT* )? | "." DIGIT+ ;
+NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
 STRING         → '"' <any char except '"'>* '"' ;
 IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
 ALPHA          → 'a' ... 'z' | 'A' ... 'Z' | '_' ;
