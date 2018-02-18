@@ -398,7 +398,7 @@ Does anyone even like rhetorical questions?
 [last chapter]: classes.html
 
 One important difference is that we bound `this` when the method was *accessed*.
-The same method can be called on difference instances and each needs its own
+The same method can be called on different instances and each needs its own
 `this`. With super expressions, the superclass is a fixed property of the *class
 declaration itself*. Every time you evaluate some super expression, the
 superclass is always the same.
