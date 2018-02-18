@@ -183,8 +183,8 @@ and it can still access the inherited fields correctly.
 
 <aside name="liskov">
 
-A fancier name for this hand-wavey guideline is the [Liskov substitution
-principle][liskov]. Barbara Liskov introduced it in a keynote during the
+A fancier name for this hand-wavey guideline is the [*Liskov substitution
+principle*][liskov]. Barbara Liskov introduced it in a keynote during the
 formative period of object-oriented programming.
 
 [liskov]: https://en.wikipedia.org/wiki/Liskov_substitution_principle
