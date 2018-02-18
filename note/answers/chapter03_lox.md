@@ -1,7 +1,7 @@
 1.  I've, uh, written plenty. Look in /test/. Here's another:
-
+    ~~~~
     class List {
-      List(data, next) {
+      init(data, next) {
         this.data = data;
         this.next = next;
       }
@@ -9,14 +9,14 @@
       map(function) {
         var data = function(this.data);
         var next;
-        if (this.next != null) next = next.map(function);
+        if (this.next != nil) next = this.next.map(function);
         return List(data, next);
       }
 
       display() {
         var list = this;
-        while (list != null) {
-          print(this.data);
+        while (list != nil) {
+          print(list.data);
           list = list.next;
         }
       }
@@ -28,6 +28,7 @@
     fun double(n) { return n * 2; }
     list = list.map(double);
     list.display();
+    ~~~~
 
 2.  Here's a few:
 
