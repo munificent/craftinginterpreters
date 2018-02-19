@@ -1,11 +1,15 @@
-//> Chunks of Bytecode not-yet
+//> Chunks of Bytecode main-c
+//> A Virtual Machine not-yet
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+//< A Virtual Machine not-yet
 #include "common.h"
-/* Chunks of Bytecode not-yet < Scanning on Demand not-yet
+/* Chunks of Bytecode main-include-chunk < Scanning on Demand not-yet
 #include "chunk.h"
+*/
+/* Chunks of Bytecode main-include-debug < Scanning on Demand not-yet
 #include "debug.h"
 */
 //> A Virtual Machine not-yet
@@ -81,34 +85,47 @@ int main(int argc, const char* argv[]) {
 //> A Virtual Machine not-yet
   initVM();
 
-/* Chunks of Bytecode not-yet < Scanning on Demand not-yet
+/* Chunks of Bytecode main-chunk < Scanning on Demand not-yet
   Chunk chunk;
   initChunk(&chunk);
+*/
+/* Chunks of Bytecode main-constant < Scanning on Demand not-yet
+ 
+  int constant = addConstant(&chunk, 1.2);
+*/
+/* Chunks of Bytecode main-constant < Chunks of Bytecode main-chunk-line
+  writeChunk(&chunk, OP_CONSTANT);
+  writeChunk(&chunk, constant);
 
-  addConstant(&chunk, 1.2);
-  writeChunk(&chunk, OP_CONSTANT, 100);
-  writeChunk(&chunk, 0, 100);
+*/
+/* Chunks of Bytecode main-chunk < Chunks of Bytecode main-chunk-line
+  writeChunk(&chunk, OP_RETURN);
+*/
+/* Chunks of Bytecode main-chunk-line < Scanning on Demand not-yet
+  writeChunk(&chunk, OP_CONSTANT, 123);
+  writeChunk(&chunk, constant, 123);
 
-  addConstant(&chunk, 3.4);
-  writeChunk(&chunk, OP_CONSTANT, 101);
-  writeChunk(&chunk, 1, 101);
-
+  writeChunk(&chunk, OP_RETURN, 123);
 */
 /* A Virtual Machine not-yet < Scanning on Demand not-yet
-  writeChunk(&chunk, OP_ADD, 101);
+  writeChunk(&chunk, OP_ADD, 1);
 
   addConstant(&chunk, 5.6);
-  writeChunk(&chunk, OP_CONSTANT, 102);
-  writeChunk(&chunk, 2, 100);
+  writeChunk(&chunk, OP_CONSTANT, 2);
+  writeChunk(&chunk, 2, 2);
 
-  writeChunk(&chunk, OP_MULTIPLY, 102);
-  writeChunk(&chunk, OP_NEGATE, 102);
+  writeChunk(&chunk, OP_MULTIPLY, 3);
+  writeChunk(&chunk, OP_NEGATE, 3);
 
-  writeChunk(&chunk, OP_RETURN, 102);
+  writeChunk(&chunk, OP_RETURN, 4);
 
 */
-/* Chunks of Bytecode not-yet < Scanning on Demand not-yet
+/* Chunks of Bytecode main-disassemble-chunk < Scanning on Demand not-yet
+ 
   disassembleChunk(&chunk, "test chunk");
+*/
+/* Chunks of Bytecode main-chunk < Scanning on Demand not-yet
+  freeChunk(&chunk);
 */
 /* A Virtual Machine not-yet < Scanning on Demand not-yet
 

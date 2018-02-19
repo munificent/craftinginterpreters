@@ -1,4 +1,4 @@
-//> Chunks of Bytecode not-yet
+//> Chunks of Bytecode common-h
 #ifndef clox_common_h
 #define clox_common_h
 
@@ -22,7 +22,9 @@
 #define DEBUG_STRESS_GC
 //#define DEBUG_TRACE_GC
 //< Garbage Collection not-yet
+//> Local Variables not-yet
 
 #define UINT8_COUNT (UINT8_MAX + 1)
+//< Local Variables not-yet
 
 #endif

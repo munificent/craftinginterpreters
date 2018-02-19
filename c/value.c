@@ -1,14 +1,13 @@
-//> Chunks of Bytecode not-yet
+//> Chunks of Bytecode value-c
 #include <stdio.h>
-#include <stdlib.h>
 /* Strings not-yet < Hash Tables not-yet
 #include <string.h>
 */
 
 #include "memory.h"
 #include "value.h"
-
 //> Strings not-yet
+
 static void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
 //> Classes and Instances not-yet
@@ -51,6 +50,31 @@ static void printObject(Value value) {
 }
 //< Strings not-yet
 
+void initValueArray(ValueArray* array) {
+  array->values = NULL;
+  array->capacity = 0;
+  array->count = 0;
+}
+//> write-value-array
+void writeValueArray(ValueArray* array, Value value) {
+  if (array->capacity < array->count + 1) {
+    int oldCapacity = array->capacity;
+    array->capacity = GROW_CAPACITY(oldCapacity);
+    array->values = GROW_ARRAY(array->values, Value,
+                               oldCapacity, array->capacity);
+  }
+  
+  array->values[array->count] = value;
+  array->count++;
+}
+//< write-value-array
+//> free-value-array
+void freeValueArray(ValueArray* array) {
+  FREE_ARRAY(Value, array->values, array->capacity);
+  initValueArray(array);
+}
+//< free-value-array
+//> print-value
 void printValue(Value value) {
 //> Optimization not-yet
 #ifdef NAN_TAGGING
@@ -65,7 +89,7 @@ void printValue(Value value) {
   }
 #else
 //< Optimization not-yet
-/* Chunks of Bytecode not-yet < Types of Values not-yet
+/* Chunks of Bytecode print-value < Types of Values not-yet
   printf("%g", value);
 */
 //> Types of Values not-yet
@@ -82,17 +106,14 @@ void printValue(Value value) {
 #endif
 //< Optimization not-yet
 }
-
+//< print-value
+//> Types of Values not-yet
 bool valuesEqual(Value a, Value b) {
 //> Optimization not-yet
 #ifdef NAN_TAGGING
   return a == b;
 #else
 //< Optimization not-yet
-/* Chunks of Bytecode not-yet < Types of Values not-yet
-  return a == b;
-*/
-//> Types of Values not-yet
   if (a.type != b.type) return false;
 
   switch (a.type) {
@@ -118,25 +139,5 @@ bool valuesEqual(Value a, Value b) {
 //> Optimization not-yet
 #endif
 //< Optimization not-yet
+}
 //< Types of Values not-yet
-}
-
-void initArray(ValueArray* array) {
-  array->values = NULL;
-  array->capacity = 0;
-  array->count = 0;
-}
-
-void growArray(ValueArray* array) {
-  if (array->capacity > array->count) return;
-
-  int oldCapacity = array->capacity;
-  array->capacity = GROW_CAPACITY(oldCapacity);
-  array->values = GROW_ARRAY(array->values, Value,
-                             oldCapacity, array->capacity);
-}
-
-void freeArray(ValueArray* array) {
-  FREE_ARRAY(Value, array->values, array->capacity);
-  initArray(array);
-}

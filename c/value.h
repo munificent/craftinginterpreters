@@ -1,11 +1,10 @@
-//> Chunks of Bytecode not-yet
+//> Chunks of Bytecode value-h
 #ifndef clox_value_h
 #define clox_value_h
 
 #include "common.h"
 
 //> Strings not-yet
-
 typedef struct sObj Obj;
 typedef struct sObjString ObjString;
 
@@ -74,7 +73,7 @@ static inline Value numToValue(double num)
 #else
 
 //< Optimization not-yet
-/* Chunks of Bytecode not-yet < Types of Values not-yet
+/* Chunks of Bytecode value-h < Types of Values not-yet
 typedef double Value;
 */
 //> Types of Values not-yet
@@ -122,19 +121,25 @@ typedef struct {
 #endif
 //< Optimization not-yet
 //< Types of Values not-yet
+//> value-array
 
 typedef struct {
   int capacity;
   int count;
   Value* values;
 } ValueArray;
+//< value-array
+//> array-fns-h
 
-void printValue(Value value);
-
+//> Types of Values not-yet
 bool valuesEqual(Value a, Value b);
-
-void initArray(ValueArray* array);
-void growArray(ValueArray* array);
-void freeArray(ValueArray* array);
+//< Types of Values not-yet
+void initValueArray(ValueArray* array);
+void writeValueArray(ValueArray* array, Value value);
+void freeValueArray(ValueArray* array);
+//< array-fns-h
+//> print-value-h
+void printValue(Value value);
+//< print-value-h
 
 #endif

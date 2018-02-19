@@ -84,6 +84,10 @@ if len(sys.argv) == 3:
   split_chapter(chapter, snippet)
 else:
   for chapter in book.CODE_CHAPTERS:
+    if "Appendix" in chapter:
+      # Appendices are "code chapters" because they include snippets, but don't
+      # need to be split out and run.
+      continue
     # TODO: Uncomment this to split out the chapters at each snippet.
     # TODO: Need to also pass snippet to chapter_to_package() to generate
     # directory name.
