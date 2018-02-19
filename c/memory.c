@@ -1,4 +1,4 @@
-//> Chunks of Bytecode not-yet
+//> Chunks of Bytecode memory-c
 #include <stdlib.h>
 
 #include "common.h"
