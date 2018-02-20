@@ -80,7 +80,7 @@ class Parser {
     Token name = consume(IDENTIFIER, "Expect class name.");
 //> Inheritance parse-superclass
 
-    Expr superclass = null;
+    Expr.Variable superclass = null;
     if (match(LESS)) {
       consume(IDENTIFIER, "Expect superclass name.");
       superclass = new Expr.Variable(previous());
