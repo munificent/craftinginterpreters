@@ -644,13 +644,13 @@ interpreter doesn't do very much, but it's alive!
 2.  Many languages define `+` such that if *either* operand is a string, the
     other is converted to a string and the results are then concatenated. For
     example, `"scone" + 4` would yield `scone4`. Extend the code in
-    `visitBinary()` to support that.
+    `visitBinaryExpr()` to support that.
 
 3.  What happens right now if you divide a number by zero? What do you think
     should happen? Justify your choice. How do other languages you know handle
     division by zero and why do they make the choices they do?
 
-    Change the implementation in `visitBinary()` to detect and report a runtime
+    Change the implementation in `visitBinaryExpr()` to detect and report a runtime
     error for this case.
 
 </div>
