@@ -366,6 +366,13 @@ c_interpreter('clox', {
 
 # TODO: Other chapters.
 
+c_interpreter('chap20_hash', {
+  # No real interpreter yet.
+  'test': 'skip',
+
+  'test/expressions/evaluate.lox': 'pass',
+})
+
 c_interpreter('chap21_global', {
   'test': 'pass',
 

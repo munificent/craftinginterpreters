@@ -269,9 +269,13 @@ class Snippet:
 
   def location(self):
     """Describes where in the file this snippet appears."""
-    if len(self.context_before) == 0:
-      # No lines before the snippet, it must be a new file.
+    if len(self.context_before) == 0 and len(self.context_after) == 0:
+      # No lines around the snippet, it must be a new file.
       return 'create new file'
+
+    if len(self.context_before) == 0:
+      # No lines before the snippet, it must be at the beginning.
+      return 'add to top of file'
 
     if self.nested_class:
       return 'nest inside class <em>{}</em>'.format(self.clas)
@@ -350,7 +354,7 @@ def load_file(source_code, source_dir, path):
 
       # See if we reached a new function or method declaration.
       match = FUNCTION_PATTERN.search(line)
-      if match and match.group(1) not in KEYWORDS:
+      if match and "#define" not in line and match.group(1) not in KEYWORDS:
         # Hack. Don't get caught by comments or string literals.
         if '//' not in line and '"' not in line:
           current_function = match.group(2)
