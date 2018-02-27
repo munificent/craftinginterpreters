@@ -138,7 +138,7 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_LESS:
       return simpleInstruction("OP_LESS", offset);
 //< Types of Values not-yet
-//> A Virtual Machine not-yet
+//> A Virtual Machine disassemble-binary
     case OP_ADD:
       return simpleInstruction("OP_ADD", offset);
     case OP_SUBTRACT:
@@ -147,15 +147,15 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       return simpleInstruction("OP_MULTIPLY", offset);
     case OP_DIVIDE:
       return simpleInstruction("OP_DIVIDE", offset);
-//< A Virtual Machine not-yet
 //> Types of Values not-yet
     case OP_NOT:
       return simpleInstruction("OP_NOT", offset);
 //< Types of Values not-yet
-//> A Virtual Machine not-yet
+//< A Virtual Machine disassemble-binary
+//> A Virtual Machine disassemble-negate
     case OP_NEGATE:
       return simpleInstruction("OP_NEGATE", offset);
-//< A Virtual Machine not-yet
+//< A Virtual Machine disassemble-negate
 //> Global Variables not-yet
     case OP_PRINT:
       return simpleInstruction("OP_PRINT", offset);

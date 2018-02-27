@@ -4,19 +4,21 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-//> Optimization not-yet
+//> A Virtual Machine define-debug-trace
 
+//> Optimization not-yet
 #define NAN_TAGGING
 //< Optimization not-yet
-//> A Virtual Machine not-yet
-
-//< A Virtual Machine not-yet
 //> Compiling Expressions not-yet
 //#define DEBUG_PRINT_CODE
 //< Compiling Expressions not-yet
-//> A Virtual Machine not-yet
-//#define DEBUG_TRACE_EXECUTION
-//< A Virtual Machine not-yet
+#define DEBUG_TRACE_EXECUTION
+//> omit
+// In the book, we always have it defined, but for working on it locally,
+// we don't want it to be.
+#undef DEBUG_TRACE_EXECUTION
+//< omit
+//< A Virtual Machine define-debug-trace
 //> Garbage Collection not-yet
 
 #define DEBUG_STRESS_GC

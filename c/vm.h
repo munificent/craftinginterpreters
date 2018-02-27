@@ -1,8 +1,8 @@
-//> A Virtual Machine not-yet
+//> A Virtual Machine vm-h
 #ifndef clox_vm_h
 #define clox_vm_h
 
-/* A Virtual Machine not-yet < Calls and Functions not-yet
+/* A Virtual Machine vm-h < Calls and Functions not-yet
 #include "chunk.h"
 */
 //> Calls and Functions not-yet
@@ -11,16 +11,18 @@
 //> Hash Tables not-yet
 #include "table.h"
 //< Hash Tables not-yet
+//> vm-include-value
 #include "value.h"
+//< vm-include-value
+/* A Virtual Machine stack-max < Calls and Functions not-yet
 
-/* A Virtual Machine not-yet < Calls and Functions not-yet
-#define STACK_SIZE 256
+#define STACK_MAX 256
 */
 //> Calls and Functions not-yet
 // TODO: Don't depend on frame count for stack count since we have stack before
 // frames?
-#define FRAMES_SIZE 64
-#define STACK_SIZE (FRAMES_SIZE * UINT8_COUNT)
+#define FRAMES_MAX 64
+#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
 typedef struct {
 /* Calls and Functions not-yet < Closures not-yet
@@ -35,15 +37,19 @@ typedef struct {
 //< Calls and Functions not-yet
 
 typedef struct {
-  Value stack[STACK_SIZE];
+//> vm-stack
+  Value stack[STACK_MAX];
   Value* stackTop;
-/* A Virtual Machine not-yet < Calls and Functions not-yet
+//< vm-stack
+/* A Virtual Machine vm-h < Calls and Functions not-yet
   Chunk* chunk;
+*/
+/* A Virtual Machine ip < Calls and Functions not-yet
   uint8_t* ip;
 */
 //> Calls and Functions not-yet
 
-  CallFrame frames[FRAMES_SIZE];
+  CallFrame frames[FRAMES_MAX];
   int frameCount;
 
 //< Calls and Functions not-yet
@@ -76,24 +82,29 @@ typedef struct {
 //< Garbage Collection not-yet
 } VM;
 
+//> interpret-result
 typedef enum {
   INTERPRET_OK,
   INTERPRET_COMPILE_ERROR,
   INTERPRET_RUNTIME_ERROR
 } InterpretResult;
 
-// The singleton VM.
+//< interpret-result
+//> Strings not-yet
 extern VM vm;
 
+//< Strings not-yet
 void initVM();
-void push(Value value);
-Value pop();
-/* A Virtual Machine not-yet < Scanning on Demand not-yet
+void freeVM();
+/* A Virtual Machine interpret-h < Scanning on Demand not-yet
 InterpretResult interpret(Chunk* chunk);
 */
 //> Scanning on Demand not-yet
 InterpretResult interpret(const char* source);
 //< Scanning on Demand not-yet
-void endVM();
+//> push-pop
+void push(Value value);
+Value pop();
+//< push-pop
 
 #endif

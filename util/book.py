@@ -149,7 +149,6 @@ TOC = [
           'Loading constants', 'Arithmetic instructions', 'Interpreter loop',
           'Instruction dispatch'
         ],
-        'done': False,
       },
       {
         'name': 'Scanning on Demand',

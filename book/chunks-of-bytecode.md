@@ -257,7 +257,7 @@ many ways, it parallels the structure of our previous interpreter:
 implementations. jlox is Parser to Syntax Trees to Interpreter. clox is Compiler
 to Bytecode to Virtual Machine." />
 
-Of course, we won't implement the phases in strictly in order. Like our previous
+Of course, we won't implement the phases strictly in order. Like our previous
 interpreter, we'll bounce around, building up the implementation one language
 feature at a time. In this chapter, we'll get the skeleton of the application in
 place and the data structures needed to store and represent a chunk of bytecode.

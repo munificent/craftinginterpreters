@@ -45,18 +45,18 @@ typedef enum {
   OP_GREATER,
   OP_LESS,
 //< Types of Values not-yet
-//> A Virtual Machine not-yet
+//> A Virtual Machine binary-ops
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
-//< A Virtual Machine not-yet
 //> Types of Values not-yet
   OP_NOT,
 //< Types of Values not-yet
-//> A Virtual Machine not-yet
+//< A Virtual Machine binary-ops
+//> A Virtual Machine negate-op
   OP_NEGATE,
-//< A Virtual Machine not-yet
+//< A Virtual Machine negate-op
 //> Global Variables not-yet
   OP_PRINT,
 //< Global Variables not-yet
