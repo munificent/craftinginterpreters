@@ -756,8 +756,6 @@ Last is disassembler support:
 
 ^code disassemble-binary (2 before, 1 after)
 
----
-
 The arithmetic instructions are simple, like OP_RETURN. Even though the
 arithmetic *operators* take operands -- which are found on the stack -- the
 arithmetic *bytecode instructions* do not.
@@ -828,24 +826,31 @@ generate it for us.
 
 ## Design Note: Register-Based Bytecode
 
-- register-based vm
+For the remainder of this book, we'll meticulously implement an interpreter
+around a *stack-based* bytecode instruction set. There's another family of
+bytecode instructions out there -- *register-based*. Despite the name, these
+bytecode instructions aren't quite as difficult to work with as the registers in
+an actual chip like <span name="x64">x64</span>. With actual hardware registers,
+you usually only have a handful for the entire program, so you spend a lot of
+effort [shuttling stuff in and out of them][register allocation].
 
-- spend book on stack based
-- other family bytecode, register based
-- despite name, not exactly like machine reg
-- machine fixed number
-- shared across fn calls
-- spend lot of time moving in and out of reg
+[register allocation]: https://en.wikipedia.org/wiki/Register_allocation
 
-- reg bytecode higher level
-https://en.wikipedia.org/wiki/Register_window
+<aside name="x64">
 
-- still have stack
-- but inst can read inputs from anywhere in stack
-- can write result anywhere
-- most instr have operands for "register" index into stack where value
+Register-based bytecode is a *little* closer to the [*register windows*][window]
+supported by SPARC chips.
 
-- ex:
+[window]: https://en.wikipedia.org/wiki/Register_window
+
+</aside>
+
+In a register-based VM, you still have a stack. Temporary values still get
+pushed onto it and popped when no longer needed. The main difference is that
+instructions can read their inputs from anywhere in the stack and can store
+their outputs into specific stack slots.
+
+Take this little Lox script:
 
 ```lox
 var a = 1;
@@ -853,44 +858,64 @@ var b = 2;
 var c = a + b;
 ```
 
-- in clox, last statement bytecode
+In our stack-based VM, the last statement will get compiled to something like:
 
 ```lox
-local a : read variable and push onto stack
-local b : read variable and push onto stack
-add     : pop two, add, push result
-store c : pop stack and store in local variable
+load <a>  // Read local variable a and push onto stack.
+load <b>  // Read local variable b and push onto stack.
+add       // Pop two values, add, push result.
+store <c> // Pop value and store in local variable c.
 ```
 
-- four insts, four times through interp loop, four decode and dispatches
-- at 7 byte - 4 for opcodes, 3 to identify locals
+(Don't worry if you don't fully understand the load and store instructions yet.
+We'll go over them in much greater detail when we implement variables.) We have
+four separate instructions. That means four times through the bytecode interpret
+loop, four instructions to decode and dispatch. It's at least seven bytes of
+code -- four for the opcodes and another three for the operands identifying
+which locals to load and store. Three pushes and three pops. A lot of work!
 
-- in reg lang, locals accessible as reg
-- add instr reads directly from reg and writes to
-- has three operands for which regs to read and write
+In a register-based instruction set, an instruction can read a value directly
+from a local variable and can store directly into it. The bytecode for the last
+statement above looks like:
 
 ```lox
-add <operand a> <operand b> <result>
+add <a> <b> <c> // Read values from a and b, add, store in c.
 ```
 
-- one instr with three operands
-- one decode and dispatch
-- no stack manip
-- decode more complex because of operands, but still less work
+The add instruction is bigger -- it has three instruction operands that define
+where in the stack it reads its inputs from and writes the result to. But since
+local variables live on the stack, it can read directly from `a` and `b` and
+then store the result right into `c`.
 
-- lua got faster when switched to reg-based
-- neat model
-- more complex to compile for
-- still need push/pop stack for temporaries
-- if generate non-optimal instr seq, can lose benefits
-- too complex for book
-- good next step to learn about
-- stepping stone to native code
+There's only a single instruction to decode and dispatch, and the whole thing
+fits in four bytes. Decoding is more complex because of the additional operands,
+but it's still a net win. There's no pushing and popping or other stack
+manipulation.
 
-- nice thing is bytecode usually impl detail of vm
-- can switch from one to another without breaking users
-- lua did
+The main implementation of Lua used to be stack-based. For <span name="lua">Lua
+5.0</span>, the implementors switched to a register instruction set and noted a
+speed improvement. The amount of improvement, naturally, depends heavily on the
+details of the language semantics, specific instruction set, and compiler
+sophistication, but that should get your attention.
 
-- link to lua paper
+<aside name="lua">
+
+Roberto Ierusalimschy and a couple of other folks wrote a *fantastic* paper on
+this, one of my all time favorite computer science papers, "[The Implementation
+of Lua 5.0][lua]" (PDF).
+
+[lua]: https://www.lua.org/doc/jucs05.pdf
+
+</aside>
+
+That raises the obvious question of why I'm going to spend the rest of the book
+doing a stack-based bytecode. Register VMs are neat, but they are quite a bit
+harder to write a compiler for. For what is likely to be your very first
+compiler, I wanted to stick with an instruction set that's easy to generate and
+easy to execute. Stack-based bytecode is marvelously simple.
+
+It's also *much* better known in the literature and the community. Even though
+you may eventually move to something more advanced, it's a good foundation to
+have and share with the rest of your language hacker peers.
 
 </div>

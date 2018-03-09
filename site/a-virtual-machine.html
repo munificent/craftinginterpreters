@@ -951,7 +951,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="p">:</span>
 </pre></div>
 
-<hr />
 <p>The arithmetic instructions are simple, like OP_RETURN. Even though the
 arithmetic <em>operators</em> take operands&#8202;&mdash;&#8202;which are found on the stack&#8202;&mdash;&#8202;the
 arithmetic <em>bytecode instructions</em> do not.</p>
@@ -1031,97 +1030,75 @@ adding?</p>
 <h2><a href="#design-note" name="design-note">Design Note: Register-Based Bytecode
 </a></h2>
 
-<ul>
-<li>
-<p>register-based vm</p>
-</li>
-<li>
-<p>spend book on stack based</p>
-</li>
-<li>other family bytecode, register based</li>
-<li>despite name, not exactly like machine reg</li>
-<li>machine fixed number</li>
-<li>shared across fn calls</li>
-<li>
-<p>spend lot of time moving in and out of reg</p>
-</li>
-<li>
-<p>reg bytecode higher level
-https://en.wikipedia.org/wiki/Register_window</p>
-</li>
-<li>
-<p>still have stack</p>
-</li>
-<li>but inst can read inputs from anywhere in stack</li>
-<li>can write result anywhere</li>
-<li>
-<p>most instr have operands for &ldquo;register&rdquo; index into stack where value</p>
-</li>
-<li>
-<p>ex:</p>
-</li>
-</ul>
+<p>For the remainder of this book, we&rsquo;ll meticulously implement an interpreter
+around a <em>stack-based</em> bytecode instruction set. There&rsquo;s another family of
+bytecode instructions out there&#8202;&mdash;&#8202;<em>register-based</em>. Despite the name, these
+bytecode instructions aren&rsquo;t quite as difficult to work with as the registers in
+an actual chip like <span name="x64">x64</span>. With actual hardware registers,
+you usually only have a handful for the entire program, so you spend a lot of
+effort <a href="https://en.wikipedia.org/wiki/Register_allocation">shuttling stuff in and out of them</a>.</p>
+<aside name="x64">
+<p>Register-based bytecode is a <em>little</em> closer to the <a href="https://en.wikipedia.org/wiki/Register_window"><em>register windows</em></a>
+supported by SPARC chips.</p>
+</aside>
+<p>In a register-based VM, you still have a stack. Temporary values still get
+pushed onto it and popped when no longer needed. The main difference is that
+instructions can read their inputs from anywhere in the stack and can store
+their outputs into specific stack slots.</p>
+<p>Take this little Lox script:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 </pre></div>
 
 
-<ul>
-<li>in clox, last statement bytecode</li>
-</ul>
-<div class="codehilite"><pre><span></span><span class="n">local</span> <span class="n">a</span> <span class="err">:</span> <span class="n">read</span> <span class="n">variable</span> <span class="k">and</span> <span class="n">push</span> <span class="n">onto</span> <span class="n">stack</span>
-<span class="n">local</span> <span class="n">b</span> <span class="err">:</span> <span class="n">read</span> <span class="n">variable</span> <span class="k">and</span> <span class="n">push</span> <span class="n">onto</span> <span class="n">stack</span>
-<span class="n">add</span>     <span class="err">:</span> <span class="n">pop</span> <span class="n">two</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">push</span> <span class="n">result</span>
-<span class="n">store</span> <span class="n">c</span> <span class="err">:</span> <span class="n">pop</span> <span class="n">stack</span> <span class="k">and</span> <span class="n">store</span> <span class="n">in</span> <span class="n">local</span> <span class="n">variable</span>
+<p>In our stack-based VM, the last statement will get compiled to something like:</p>
+<div class="codehilite"><pre><span></span><span class="n">load</span> <span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span>  <span class="c1">// Read local variable a and push onto stack.</span>
+<span class="n">load</span> <span class="o">&lt;</span><span class="n">b</span><span class="o">&gt;</span>  <span class="c1">// Read local variable b and push onto stack.</span>
+<span class="n">add</span>       <span class="c1">// Pop two values, add, push result.</span>
+<span class="n">store</span> <span class="o">&lt;</span><span class="n">c</span><span class="o">&gt;</span> <span class="c1">// Pop value and store in local variable c.</span>
 </pre></div>
 
 
-<ul>
-<li>four insts, four times through interp loop, four decode and dispatches</li>
-<li>
-<p>at 7 byte - 4 for opcodes, 3 to identify locals</p>
-</li>
-<li>
-<p>in reg lang, locals accessible as reg</p>
-</li>
-<li>add instr reads directly from reg and writes to</li>
-<li>has three operands for which regs to read and write</li>
-</ul>
-<div class="codehilite"><pre><span></span><span class="n">add</span> <span class="o">&lt;</span><span class="n">operand</span> <span class="n">a</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">operand</span> <span class="n">b</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">result</span><span class="o">&gt;</span>
+<p>(Don&rsquo;t worry if you don&rsquo;t fully understand the load and store instructions yet.
+We&rsquo;ll go over them in much greater detail when we implement variables.) We have
+four separate instructions. That means four times through the bytecode interpret
+loop, four instructions to decode and dispatch. It&rsquo;s at least seven bytes of
+code&#8202;&mdash;&#8202;four for the opcodes and another three for the operands identifying
+which locals to load and store. Three pushes and three pops. A lot of work!</p>
+<p>In a register-based instruction set, an instruction can read a value directly
+from a local variable and can store directly into it. The bytecode for the last
+statement above looks like:</p>
+<div class="codehilite"><pre><span></span><span class="n">add</span> <span class="o">&lt;</span><span class="n">a</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">b</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">c</span><span class="o">&gt;</span> <span class="c1">// Read values from a and b, add, store in c.</span>
 </pre></div>
 
 
-<ul>
-<li>one instr with three operands</li>
-<li>one decode and dispatch</li>
-<li>no stack manip</li>
-<li>
-<p>decode more complex because of operands, but still less work</p>
-</li>
-<li>
-<p>lua got faster when switched to reg-based</p>
-</li>
-<li>neat model</li>
-<li>more complex to compile for</li>
-<li>still need push/pop stack for temporaries</li>
-<li>if generate non-optimal instr seq, can lose benefits</li>
-<li>too complex for book</li>
-<li>good next step to learn about</li>
-<li>
-<p>stepping stone to native code</p>
-</li>
-<li>
-<p>nice thing is bytecode usually impl detail of vm</p>
-</li>
-<li>can switch from one to another without breaking users</li>
-<li>
-<p>lua did</p>
-</li>
-<li>
-<p>link to lua paper</p>
-</li>
-</ul>
+<p>The add instruction is bigger&#8202;&mdash;&#8202;it has three instruction operands that define
+where in the stack it reads its inputs from and writes the result to. But since
+local variables live on the stack, it can read directly from <code>a</code> and <code>b</code> and
+then store the result right into <code>c</code>.</p>
+<p>There&rsquo;s only a single instruction to decode and dispatch, and the whole thing
+fits in four bytes. Decoding is more complex because of the additional operands,
+but it&rsquo;s still a net win. There&rsquo;s no pushing and popping or other stack
+manipulation.</p>
+<p>The main implementation of Lua used to be stack-based. For <span name="lua">Lua
+5.0</span>, the implementors switched to a register instruction set and noted a
+speed improvement. The amount of improvement, naturally, depends heavily on the
+details of the language semantics, specific instruction set, and compiler
+sophistication, but that should get your attention.</p>
+<aside name="lua">
+<p>Roberto Ierusalimschy and a couple of other folks wrote a <em>fantastic</em> paper on
+this, one of my all time favorite computer science papers, &ldquo;<a href="https://www.lua.org/doc/jucs05.pdf">The Implementation
+of Lua 5.0</a>&rdquo; (PDF).</p>
+</aside>
+<p>That raises the obvious question of why I&rsquo;m going to spend the rest of the book
+doing a stack-based bytecode. Register VMs are neat, but they are quite a bit
+harder to write a compiler for. For what is likely to be your very first
+compiler, I wanted to stick with an instruction set that&rsquo;s easy to generate and
+easy to execute. Stack-based bytecode is marvelously simple.</p>
+<p>It&rsquo;s also <em>much</em> better known in the literature and the community. Even though
+you may eventually move to something more advanced, it&rsquo;s a good foundation to
+have and share with the rest of your language hacker peers.</p>
 </div>
 
 <footer>
