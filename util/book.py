@@ -149,6 +149,7 @@ TOC = [
           'Loading constants', 'Arithmetic instructions', 'Interpreter loop',
           'Instruction dispatch'
         ],
+        'design_note': 'Register-Based Bytecode'
       },
       {
         'name': 'Scanning on Demand',
