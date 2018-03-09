@@ -110,6 +110,12 @@ int main(int argc, const char* argv[]) {
   writeChunk(&chunk, constant, 123);
  
   writeChunk(&chunk, OP_ADD, 123);
+ 
+  constant = addConstant(&chunk, 5.6);
+  writeChunk(&chunk, OP_CONSTANT, 123);
+  writeChunk(&chunk, constant, 123);
+ 
+  writeChunk(&chunk, OP_SUBTRACT, 123);
 */
 /* A Virtual Machine main-negate < Scanning on Demand not-yet
   writeChunk(&chunk, OP_NEGATE, 123);
@@ -128,9 +134,6 @@ int main(int argc, const char* argv[]) {
 /* A Virtual Machine main-interpret < Scanning on Demand not-yet
   interpret(&chunk);
 */
-/* Chunks of Bytecode main-chunk < Scanning on Demand not-yet
-  freeChunk(&chunk);
-*/
 //> Scanning on Demand not-yet
   if (argc == 1) {
     repl();
@@ -144,5 +147,8 @@ int main(int argc, const char* argv[]) {
 //> A Virtual Machine main-free-vm
   freeVM();
 //< A Virtual Machine main-free-vm
+/* Chunks of Bytecode main-chunk < Scanning on Demand not-yet
+  freeChunk(&chunk);
+*/
   return 0;
 }
