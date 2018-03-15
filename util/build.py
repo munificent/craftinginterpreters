@@ -288,7 +288,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
         design_note = stripped[len('## Design Note:') + 1:]
         contents += '<h2><a href="#design-note" name="design-note">Design Note: {}</a></h2>\n'.format(design_note)
 
-      elif stripped.startswith('#') and not stripped.startswith('####'):
+      elif stripped.startswith('# ') or stripped.startswith('## ') or stripped.startswith('### '):
         # Build the section navigation from the headers.
         index = stripped.find(" ")
         header_type = stripped[:index]
