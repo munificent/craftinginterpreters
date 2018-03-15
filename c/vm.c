@@ -25,7 +25,7 @@
 //< Strings not-yet
 #include "vm.h"
 
-VM vm;
+VM vm; // [one]
 //> Calls and Functions not-yet
 
 static Value clockNative(int argCount, Value* args) {

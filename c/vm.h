@@ -37,16 +37,16 @@ typedef struct {
 //< Calls and Functions not-yet
 
 typedef struct {
-//> vm-stack
-  Value stack[STACK_MAX];
-  Value* stackTop;
-//< vm-stack
 /* A Virtual Machine vm-h < Calls and Functions not-yet
   Chunk* chunk;
 */
 /* A Virtual Machine ip < Calls and Functions not-yet
   uint8_t* ip;
 */
+//> vm-stack
+  Value stack[STACK_MAX];
+  Value* stackTop;
+//< vm-stack
 //> Calls and Functions not-yet
 
   CallFrame frames[FRAMES_MAX];
@@ -88,7 +88,6 @@ typedef enum {
   INTERPRET_COMPILE_ERROR,
   INTERPRET_RUNTIME_ERROR
 } InterpretResult;
-
 //< interpret-result
 //> Strings not-yet
 extern VM vm;
