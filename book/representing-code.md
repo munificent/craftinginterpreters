@@ -531,7 +531,7 @@ stripped of behavior.
 
 ### Metaprogramming the trees
 
-Java can express behavior-less classes, but I wouldn't say that's particularly
+Java can express behavior-less classes, but I wouldn't say that it's particularly
 great at it. Eleven lines of code to stuff three fields in an object is pretty
 tedious, and when we're all done, we're going to have 21 of these classes.
 
