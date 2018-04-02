@@ -140,9 +140,8 @@ it "PC".
 
 We initialize `ip` by pointing it at the first byte of code in the chunk. We
 haven't executed that instruction yet, so `ip` points to the instruction *about
-to be executed*. This will be true during the entire time the VM is running: IP
-always points to the next instruction, not the one currently being handled. That
-might seem a little odd but most machines work this way.
+to be executed*. This will be true during the entire time the VM is running: the
+IP always points to the next instruction, not the one currently being handled.
 
 The real fun happens in `run`():
 
@@ -166,16 +165,24 @@ loop, we read and execute a single bytecode instruction.
 
 To process an instruction, we first figure out what kind of instruction we're
 dealing with. The `READ_BYTE` macro reads the byte currently pointed at by `ip`
-and then advances the instruction pointer. The first byte of any instruction is
-the opcode. Given a numeric opcode, we need to get to the right C code that
-implements that instruction's semantics. This process is called **"decoding"**
-or **"dispatching"** the instruction.
+and then <span name="next">advances</span> the instruction pointer. The first
+byte of any instruction is the opcode. Given a numeric opcode, we need to get to
+the right C code that implements that instruction's semantics. This process is
+called **"decoding"** or **"dispatching"** the instruction.
+
+<aside name="next">
+
+Note that `ip` advances as soon as we read the opcode, before we've actually
+started executing the instruction. So, again, `ip` points to the *next*
+instruction to execute.
+
+</aside>
 
 We to do that process for every single instruction, every single time one is
 executed, so this is the most performance critical part of the entire virtual
-machine. There is decades of research into how to do bytecode <span
-name="dispatch">dispatch</span> efficiently and there are tons of clever
-techniques.
+machine. Programming language lore is filled with brilliant techniques to do
+bytecode <span name="dispatch">dispatch</span> efficiently, going all the way
+back to the early days of computers.
 
 <aside name="dispatch">
 
@@ -301,7 +308,16 @@ print echo(echo(1) + echo(2)) + echo(echo(4) + echo(5));
 I wrapped each subexpression in a call to `echo()` that prints and returns its
 argument. That side effect means we can see the exact order of operations.
 
-**todo: illustrate ast**
+<span name="order"></span>
+
+<img src="image/a-virtual-machine/ast.png" alt="The AST for the example
+statement, with numbers marking the order that the nodes are evaluated." />
+
+<aside name="order">
+
+The little black circles show the order that the nodes are evaluated.
+
+</aside>
 
 Don't worry about the VM for a minute. Think about just the semantics of Lox
 itself. The operands to an arithmetic operator obviously need to be evaluated
@@ -328,7 +344,7 @@ pain to figure out what's going on.
 Given left-to-right evaluation, and the way the expressions are nested, any
 correct Lox implementation *must* print these numbers in this order:
 
-```lox
+```text
 1  // from echo(1)
 2  // from echo(2)
 3  // from echo(1 + 2)
@@ -368,28 +384,13 @@ later gets consumed by some other operation. Between those two points, we'll
 track the lifetime of the value. This shows us which values we need to preserve
 and when:
 
-**todo: draw?**
+<img src="image/a-virtual-machine/bars.png" alt="The series of instructions with
+bars showing which numbers need to be preserved across which instructions." />
 
-```
-constant 1  -> 1
-echo(1)     -> |
-constant 2  -> | 2
-echo(2)     -> | |
-add 1 2     -> * * 3
-constant 4  ->     | 4
-echo(4)     ->     | |
-constant 5  ->     | | 5
-echo(5)     ->     | | |
-add 4 5     ->     | * * 9
-echo(9)     ->     |     |
-add 3 9     ->     *     * 12
-print 12    ->             *
-```
-
-On the left is the bit of the program that just executed. On the right are the
-values we're tracking. A number represents when a value is first produced --
-either a constant or the result of an addition. A vertical bar tracks when a
-previously-produced value needs to be kept around. An asterisk is when that
+On the left are the steps of code. On the right are the values we're tracking.
+Each bar represents a number. It starts when the value is first produced --
+either a constant or the result of an addition. The length of the bar tracks
+when a previously-produced value needs to be kept around, and it ends when that
 value finally gets consumed by an operation.
 
 As you step through, you see values appear and then later get eaten. The
@@ -400,30 +401,25 @@ expression.
 In the above diagram, I gave each unique number its own visual column. Let's be
 a little more parsimonious. Once a number is consumed, we allow its slot to be
 reused for another later value. In other words, we take all of those empty areas
-up there and shift over numbers from the right to fill them in:
+up there and push numbers from the right towards the left to fill them in:
 
-```
-constant 1  -> 1
-echo(1)     -> |
-constant 2  -> |  2
-echo(2)     -> |  |
-add 1 2     -> 3
-constant 4  -> |  4
-echo(4)     -> |  |
-constant 5  -> |  | 5
-echo(5)     -> |  | |
-add 4 5     -> |  9
-echo(9)     -> |  |
-add 3 9     -> 12
-print 12    ->
-```
+<img src="image/a-virtual-machine/bars-stacked.png" alt="Like the previous
+diagram, but with number bars pushed to the left, forming a stack." />
 
 There's some interesting stuff going on here. When we shift everything over,
 each number still manages to stay in a single column for its entire life. Also,
-there are no more gaps. In other words, whenever a number appears earlier than
+there are no gaps left. In other words, whenever a number appears earlier than
 another, then it will live at least as long as that second one. The first number
 to appear is the last to be consumed. Hmm... last-in, first-out... Why, that's a
-stack!
+<span name="pancakes">stack</span>!
+
+<aside name="pancakes">
+
+This is also a stack:
+
+<img src="image/a-virtual-machine/pancakes.png" alt="A stack... of pancakes." />
+
+</aside>
 
 In the second diagram, each time we introduce a number, we push it onto the
 stack from the right. When numbers are consumed, they are always popped off from
@@ -433,8 +429,6 @@ Since the temporary values we need to track naturally have stack-like behavior,
 our VM will use a stack to manage them. When an instruction "produces" a value,
 it pushes it onto a stack. When it needs to consume one or more values, it gets
 them by popping them off the stack.
-
-**todo: illustrate stack**
 
 ### The VM's Stack
 
@@ -484,7 +478,17 @@ We implement the stack semantics ourselves on top of a raw C array. The bottom
 of the stack -- the first value pushed and the last to be popped -- is at
 element zero in the array, and later pushed values follow it.
 
-**todo: illustrate**
+<span name="array"></span>
+
+<img src="image/a-virtual-machine/array.png" alt="An array containing the
+letters in 'crepe' in order starting at element 0." />
+
+<aside name="array">
+
+If we push the letters of "crepe" -- my favorite stackable breakfast
+item -- onto the stack, in order, the resulting C array looks like this.
+
+</aside>
 
 Since the stack grows and shrinks as values are pushed and popped, we need to
 track where the top of the stack is in the array. As with `ip`, we use a direct
@@ -494,9 +498,14 @@ than calculate the offset from the index each time we need it.
 The pointer points at the array element just *past* the element containing the
 top value on the stack. That seems a little odd, but almost every implementation
 does this. It means we can indicate that the stack is empty by pointing at
-element zero in the array. If we pointed to the top element, then for an empty
-stack we'd need to point at element -1. That's <span
-name="defined">undefined</span> in C.
+element zero in the array:
+
+<img src="image/a-virtual-machine/stack-empty.png" alt="An empty array with
+stackTop pointing at the first element." />
+
+If we pointed to the top element, then for an empty stack we'd need to point at
+element -1. That's <span name="defined">undefined</span> in C. As we push values
+onto the stack...
 
 <aside name="defined">
 
@@ -506,7 +515,13 @@ pointer that points just past the end of an array.
 
 </aside>
 
-**todo: illustrate stackTop pointer into various stacks**
+<img src="image/a-virtual-machine/stack-c.png" alt="An array with 'c' at element
+zero." />
+
+...`stackTop` always points just past the last item...
+
+<img src="image/a-virtual-machine/stack-crepe.png" alt="An array with 'c', 'r',
+'e', 'p', and 'e' in the first five elements." />
 
 I remember it like this: `stackTop` points to where the next value to be pushed
 will go. The maximum number of values we can store on the stack (for now, at
@@ -559,8 +574,6 @@ the most recent used slot in the array. Then we look up the value at that
 position in the array and return it. We don't need to explicitly "remove" it
 from the array -- moving `stackTop` down is enough to mark that slot as no
 longer in use.
-
-**todo: illustrate operations and stackTop pointer**
 
 We have a working stack, but it's hard to *see* that it's working. When we start
 implementing more complex instructions and compiling and running larger pieces
@@ -755,7 +768,7 @@ larger expression:
 
 **todo: show expr ast**
 
-^code main-chunk (1 before, 2 after)
+^code main-chunk (3 before, 3 after)
 
 The addition goes first. The instruction for the left constant, 1.2, is already
 there, so we add another for 3.4. Then we add those two using `OP_ADD`, leaving
@@ -763,7 +776,7 @@ it on the stack. That covers the left side of the subtraction. Next we push the
 5.6, and finally subtract it from the result of the addition.
 
 Note how the result of the `OP_ADD` implicitly flows into being an operand of
-`OP_SUBTRACT` without either instruction being directly coupled to each other.
+`OP_DIVIDE` without either instruction being directly coupled to each other.
 That's the magic of the stack. It lets us freely compose instructions together
 without them needing any complexity or awareness of the data flow. The stack
 acts like a shared workspace that they all read from and write to.
