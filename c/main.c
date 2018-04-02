@@ -91,7 +91,7 @@ int main(int argc, const char* argv[]) {
   initChunk(&chunk);
 */
 /* Chunks of Bytecode main-constant < Scanning on Demand not-yet
- 
+
   int constant = addConstant(&chunk, 1.2);
 */
 /* Chunks of Bytecode main-constant < Chunks of Bytecode main-chunk-line
@@ -104,18 +104,18 @@ int main(int argc, const char* argv[]) {
   writeChunk(&chunk, constant, 123);
 */
 /* A Virtual Machine main-chunk < Scanning on Demand not-yet
- 
+
   constant = addConstant(&chunk, 3.4);
   writeChunk(&chunk, OP_CONSTANT, 123);
   writeChunk(&chunk, constant, 123);
- 
+
   writeChunk(&chunk, OP_ADD, 123);
- 
+
   constant = addConstant(&chunk, 5.6);
   writeChunk(&chunk, OP_CONSTANT, 123);
   writeChunk(&chunk, constant, 123);
- 
-  writeChunk(&chunk, OP_SUBTRACT, 123);
+
+  writeChunk(&chunk, OP_DIVIDE, 123);
 */
 /* A Virtual Machine main-negate < Scanning on Demand not-yet
   writeChunk(&chunk, OP_NEGATE, 123);
@@ -128,7 +128,7 @@ int main(int argc, const char* argv[]) {
   writeChunk(&chunk, OP_RETURN, 123);
 */
 /* Chunks of Bytecode main-disassemble-chunk < Scanning on Demand not-yet
- 
+
   disassembleChunk(&chunk, "test chunk");
 */
 /* A Virtual Machine main-interpret < Scanning on Demand not-yet

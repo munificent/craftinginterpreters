@@ -285,9 +285,8 @@ it &ldquo;PC&rdquo;.</p>
 </aside>
 <p>We initialize <code>ip</code> by pointing it at the first byte of code in the chunk. We
 haven&rsquo;t executed that instruction yet, so <code>ip</code> points to the instruction <em>about
-to be executed</em>. This will be true during the entire time the VM is running: IP
-always points to the next instruction, not the one currently being handled. That
-might seem a little odd but most machines work this way.</p>
+to be executed</em>. This will be true during the entire time the VM is running: the
+IP always points to the next instruction, not the one currently being handled.</p>
 <p>The real fun happens in <code>run</code>():</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>freeVM</em>()</div>
@@ -320,15 +319,20 @@ loop that goes and goes until we run out of instructions. Each turn through that
 loop, we read and execute a single bytecode instruction.</p>
 <p>To process an instruction, we first figure out what kind of instruction we&rsquo;re
 dealing with. The <code>READ_BYTE</code> macro reads the byte currently pointed at by <code>ip</code>
-and then advances the instruction pointer. The first byte of any instruction is
-the opcode. Given a numeric opcode, we need to get to the right C code that
-implements that instruction&rsquo;s semantics. This process is called <strong>&ldquo;decoding&rdquo;</strong>
-or <strong>&ldquo;dispatching&rdquo;</strong> the instruction.</p>
+and then <span name="next">advances</span> the instruction pointer. The first
+byte of any instruction is the opcode. Given a numeric opcode, we need to get to
+the right C code that implements that instruction&rsquo;s semantics. This process is
+called <strong>&ldquo;decoding&rdquo;</strong> or <strong>&ldquo;dispatching&rdquo;</strong> the instruction.</p>
+<aside name="next">
+<p>Note that <code>ip</code> advances as soon as we read the opcode, before we&rsquo;ve actually
+started executing the instruction. So, again, <code>ip</code> points to the <em>next</em>
+instruction to execute.</p>
+</aside>
 <p>We to do that process for every single instruction, every single time one is
 executed, so this is the most performance critical part of the entire virtual
-machine. There is decades of research into how to do bytecode <span
-name="dispatch">dispatch</span> efficiently and there are tons of clever
-techniques.</p>
+machine. Programming language lore is filled with brilliant techniques to do
+bytecode <span name="dispatch">dispatch</span> efficiently, going all the way
+back to the early days of computers.</p>
 <aside name="dispatch">
 <p>If you want some terms to search for, start with &ldquo;direct threaded code&rdquo;, &ldquo;jump
 table&rdquo;, and &ldquo;computed goto&rdquo;.</p>
@@ -465,7 +469,12 @@ and &ldquo;subtrahend&rdquo; might be some sort of underground Paleolithic monum
 
 <p>I wrapped each subexpression in a call to <code>echo()</code> that prints and returns its
 argument. That side effect means we can see the exact order of operations.</p>
-<p><strong>todo: illustrate ast</strong></p>
+<p><span name="order"></span></p>
+<p><img src="image/a-virtual-machine/ast.png" alt="The AST for the example
+statement, with numbers marking the order that the nodes are evaluated." /></p>
+<aside name="order">
+<p>The little black circles show the order that the nodes are evaluated.</p>
+</aside>
 <p>Don&rsquo;t worry about the VM for a minute. Think about just the semantics of Lox
 itself. The operands to an arithmetic operator obviously need to be evaluated
 before we can perform the operation itself. (It&rsquo;s pretty hard to add <code>a + b</code> if
@@ -485,13 +494,13 @@ pain to figure out what&rsquo;s going on.</p>
 </aside>
 <p>Given left-to-right evaluation, and the way the expressions are nested, any
 correct Lox implementation <em>must</em> print these numbers in this order:</p>
-<div class="codehilite"><pre><span></span><span class="mi">1</span>  <span class="c1">// from echo(1)</span>
-<span class="mi">2</span>  <span class="c1">// from echo(2)</span>
-<span class="mi">3</span>  <span class="c1">// from echo(1 + 2)</span>
-<span class="mi">4</span>  <span class="c1">// from echo(4)</span>
-<span class="mi">5</span>  <span class="c1">// from echo(5)</span>
-<span class="mi">9</span>  <span class="c1">// from echo(4 + 5)</span>
-<span class="mi">12</span> <span class="c1">// from print 3 + 9</span>
+<div class="codehilite"><pre><span></span>1  // from echo(1)
+2  // from echo(2)
+3  // from echo(1 + 2)
+4  // from echo(4)
+5  // from echo(5)
+9  // from echo(4 + 5)
+12 // from print 3 + 9
 </pre></div>
 
 
@@ -518,26 +527,11 @@ a step at a time. Whenever a value is produced, we&rsquo;ll note it, and also wh
 later gets consumed by some other operation. Between those two points, we&rsquo;ll
 track the lifetime of the value. This shows us which values we need to preserve
 and when:</p>
-<p><strong>todo: draw?</strong></p>
-<div class="codehilite"><pre><span></span>constant 1  -&gt; 1
-echo(1)     -&gt; |
-constant 2  -&gt; | 2
-echo(2)     -&gt; | |
-add 1 2     -&gt; * * 3
-constant 4  -&gt;     | 4
-echo(4)     -&gt;     | |
-constant 5  -&gt;     | | 5
-echo(5)     -&gt;     | | |
-add 4 5     -&gt;     | * * 9
-echo(9)     -&gt;     |     |
-add 3 9     -&gt;     *     * 12
-print 12    -&gt;             *
-</pre></div>
-
-
-<p>On the left is the bit of the program that just executed. On the right are the
-values we&rsquo;re tracking. A number represents when a value is first produced&#8202;&mdash;&#8202;either a constant or the result of an addition. A vertical bar tracks when a
-previously-produced value needs to be kept around. An asterisk is when that
+<p><img src="image/a-virtual-machine/bars.png" alt="The series of instructions with
+bars showing which numbers need to be preserved across which instructions." /></p>
+<p>On the left are the steps of code. On the right are the values we&rsquo;re tracking.
+Each bar represents a number. It starts when the value is first produced&#8202;&mdash;&#8202;either a constant or the result of an addition. The length of the bar tracks
+when a previously-produced value needs to be kept around, and it ends when that
 value finally gets consumed by an operation.</p>
 <p>As you step through, you see values appear and then later get eaten. The
 longest-lived ones are the values produced from the left-hand side of an
@@ -546,29 +540,19 @@ expression.</p>
 <p>In the above diagram, I gave each unique number its own visual column. Let&rsquo;s be
 a little more parsimonious. Once a number is consumed, we allow its slot to be
 reused for another later value. In other words, we take all of those empty areas
-up there and shift over numbers from the right to fill them in:</p>
-<div class="codehilite"><pre><span></span>constant 1  -&gt; 1
-echo(1)     -&gt; |
-constant 2  -&gt; |  2
-echo(2)     -&gt; |  |
-add 1 2     -&gt; 3
-constant 4  -&gt; |  4
-echo(4)     -&gt; |  |
-constant 5  -&gt; |  | 5
-echo(5)     -&gt; |  | |
-add 4 5     -&gt; |  9
-echo(9)     -&gt; |  |
-add 3 9     -&gt; 12
-print 12    -&gt;
-</pre></div>
-
-
+up there and push numbers from the right towards the left to fill them in:</p>
+<p><img src="image/a-virtual-machine/bars-stacked.png" alt="Like the previous
+diagram, but with number bars pushed to the left, forming a stack." /></p>
 <p>There&rsquo;s some interesting stuff going on here. When we shift everything over,
 each number still manages to stay in a single column for its entire life. Also,
-there are no more gaps. In other words, whenever a number appears earlier than
+there are no gaps left. In other words, whenever a number appears earlier than
 another, then it will live at least as long as that second one. The first number
 to appear is the last to be consumed. Hmm&hellip; last-in, first-out&hellip; Why, that&rsquo;s a
-stack!</p>
+<span name="pancakes">stack</span>!</p>
+<aside name="pancakes">
+<p>This is also a stack:</p>
+<p><img src="image/a-virtual-machine/pancakes.png" alt="A stack... of pancakes." /></p>
+</aside>
 <p>In the second diagram, each time we introduce a number, we push it onto the
 stack from the right. When numbers are consumed, they are always popped off from
 rightmost to left.</p>
@@ -576,7 +560,6 @@ rightmost to left.</p>
 our VM will use a stack to manage them. When an instruction &ldquo;produces&rdquo; a value,
 it pushes it onto a stack. When it needs to consume one or more values, it gets
 them by popping them off the stack.</p>
-<p><strong>todo: illustrate stack</strong></p>
 <h3><a href="#the-vm's-stack" name="the-vm's-stack"><small>15&#8202;.&#8202;2&#8202;.&#8202;1</small> The VM&rsquo;s Stack</a></h3>
 <p>Maybe this doesn&rsquo;t seem like a revelation, but I <em>love</em> stack-based VMs. When
 you first see a magic trick, it feels like something actually magical. But then
@@ -615,7 +598,13 @@ pipelines to generate <em>much</em> faster native code on the fly.</p>
 <p>We implement the stack semantics ourselves on top of a raw C array. The bottom
 of the stack&#8202;&mdash;&#8202;the first value pushed and the last to be popped&#8202;&mdash;&#8202;is at
 element zero in the array, and later pushed values follow it.</p>
-<p><strong>todo: illustrate</strong></p>
+<p><span name="array"></span></p>
+<p><img src="image/a-virtual-machine/array.png" alt="An array containing the
+letters in 'crepe' in order starting at element 0." /></p>
+<aside name="array">
+<p>If we push the letters of &ldquo;crepe&rdquo;&#8202;&mdash;&#8202;my favorite stackable breakfast
+item&#8202;&mdash;&#8202;onto the stack, in order, the resulting C array looks like this.</p>
+</aside>
 <p>Since the stack grows and shrinks as values are pushed and popped, we need to
 track where the top of the stack is in the array. As with <code>ip</code>, we use a direct
 pointer instead of an integer index since it&rsquo;s faster to dereference the pointer
@@ -623,15 +612,22 @@ than calculate the offset from the index each time we need it.</p>
 <p>The pointer points at the array element just <em>past</em> the element containing the
 top value on the stack. That seems a little odd, but almost every implementation
 does this. It means we can indicate that the stack is empty by pointing at
-element zero in the array. If we pointed to the top element, then for an empty
-stack we&rsquo;d need to point at element -1. That&rsquo;s <span
-name="defined">undefined</span> in C.</p>
+element zero in the array:</p>
+<p><img src="image/a-virtual-machine/stack-empty.png" alt="An empty array with
+stackTop pointing at the first element." /></p>
+<p>If we pointed to the top element, then for an empty stack we&rsquo;d need to point at
+element -1. That&rsquo;s <span name="defined">undefined</span> in C. As we push values
+onto the stack&hellip;</p>
 <aside name="defined">
 <p>What about when the stack is <em>full</em>, you ask, Clever Reader? The C standard is
 one step ahead of you. It <em>is</em> allowed and well-specified to have an array
 pointer that points just past the end of an array.</p>
 </aside>
-<p><strong>todo: illustrate stackTop pointer into various stacks</strong></p>
+<p><img src="image/a-virtual-machine/stack-c.png" alt="An array with 'c' at element
+zero." /></p>
+<p>&hellip;<code>stackTop</code> always points just past the last item&hellip;</p>
+<p><img src="image/a-virtual-machine/stack-crepe.png" alt="An array with 'c', 'r',
+'e', 'p', and 'e' in the first five elements." /></p>
 <p>I remember it like this: <code>stackTop</code> points to where the next value to be pushed
 will go. The maximum number of values we can store on the stack (for now, at
 least) is:</p>
@@ -709,7 +705,6 @@ the most recent used slot in the array. Then we look up the value at that
 position in the array and return it. We don&rsquo;t need to explicitly &ldquo;remove&rdquo; it
 from the array&#8202;&mdash;&#8202;moving <code>stackTop</code> down is enough to mark that slot as no
 longer in use.</p>
-<p><strong>todo: illustrate operations and stackTop pointer</strong></p>
 <p>We have a working stack, but it&rsquo;s hard to <em>see</em> that it&rsquo;s working. When we start
 implementing more complex instructions and compiling and running larger pieces
 of code, we&rsquo;ll end up with a lot of values crammed into that stack array. It
@@ -950,7 +945,9 @@ arithmetic <em>bytecode instructions</em> do not.</p>
 <p>Let&rsquo;s put some of our new instructions through their paces by evaluating a
 larger expression:</p>
 <p><strong>todo: show expr ast</strong></p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">constant</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">);</span>
+  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OP_CONSTANT</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
+  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">constant</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert"><br><span></span>  <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">);</span>
@@ -963,16 +960,18 @@ in <em>main</em>()</div>
   <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OP_CONSTANT</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
   <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">constant</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
 
-  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OP_SUBTRACT</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
+  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OP_DIVIDE</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OP_NEGATE</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
-<br></pre></div>
+
+  <span class="n">writeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OP_RETURN</span><span class="p">,</span> <span class="mi">123</span><span class="p">);</span>
+</pre></div>
 
 <p>The addition goes first. The instruction for the left constant, 1.2, is already
 there, so we add another for 3.4. Then we add those two using <code>OP_ADD</code>, leaving
 it on the stack. That covers the left side of the subtraction. Next we push the
 5.6, and finally subtract it from the result of the addition.</p>
 <p>Note how the result of the <code>OP_ADD</code> implicitly flows into being an operand of
-<code>OP_SUBTRACT</code> without either instruction being directly coupled to each other.
+<code>OP_DIVIDE</code> without either instruction being directly coupled to each other.
 That&rsquo;s the magic of the stack. It lets us freely compose instructions together
 without them needing any complexity or awareness of the data flow. The stack
 acts like a shared workspace that they all read from and write to.</p>
