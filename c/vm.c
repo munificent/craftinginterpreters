@@ -4,14 +4,14 @@
 //< Types of Values not-yet
 //> vm-include-stdio
 #include <stdio.h>
-//< vm-include-stdio
 //> Strings not-yet
 #include <string.h>
 //< Strings not-yet
 //> Calls and Functions not-yet
 #include <time.h>
-
 //< Calls and Functions not-yet
+
+//< vm-include-stdio
 #include "common.h"
 //> Scanning on Demand not-yet
 #include "compiler.h"
