@@ -831,7 +831,7 @@ Each opcode determines how many operand bytes it has and what they mean. For
 example, a simple operation like "return" may have no operands, where an
 instruction for "load local variable" needs an operand to identify which
 variable to load. Each time we add a new instruction to clox, we specify what
-it's operands look like -- its **instruction format**.
+its operands look like -- its **instruction format**.
 
 <aside name="operand">
 
