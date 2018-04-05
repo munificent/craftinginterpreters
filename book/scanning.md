@@ -390,8 +390,8 @@ Again, we need a couple of helper methods:
 ^code advance-and-add-token
 
 The `advance()` method consumes the next character in the source file and
-returns it. Where `advance()` is for input, `addToken()` is for output. It grabs
-the text of the current lexeme and creates a new token for it. (We'll use the
+returns current character. Where `advance()` is for input, `addToken()` is for output.
+It grabs the text of the current lexeme and creates a new token for it. (We'll use the
 other overload to handle tokens with literal values later.)
 
 ### Lexical errors
