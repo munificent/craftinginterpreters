@@ -192,7 +192,7 @@ end for each one.
 <aside name="back">
 
 The situation isn't entirely dire. A well-architected compiler lets you
-share the front and and most of the middle layer optimization passes across the
+share the front end and most of the middle layer optimization passes across the
 different architectures you support. It's mainly the code generation and some of
 the details around instruction selection that you'll need to write afresh each
 time.
