@@ -57,7 +57,7 @@ public class GenerateAst {
       "Class      : Token name, List<Stmt.Function> methods",
 */
 //> Inheritance superclass-ast
-      "Class      : Token name, Expr superclass," +
+      "Class      : Token name, Expr.Variable superclass," +
                   " List<Stmt.Function> methods",
 //< Inheritance superclass-ast
       "Expression : Expr expression",
