@@ -158,9 +158,20 @@ public class GenerateAst {
     writer.println("  static class " + className + " extends " +
         baseName + " {");
 
+//> omit
+    // Hack. Stmt.Class has such a long constructor that it overflows
+    // the line length on the Appendix II page. Wrap it.
+    if (fieldList.length() > 64) {
+      fieldList = fieldList.replace(", ", ",\n          ");
+    }
+
+//< omit
     // Constructor.
     writer.println("    " + className + "(" + fieldList + ") {");
 
+//> omit
+    fieldList = fieldList.replace(",\n          ", ", ");
+//< omit
     // Store parameters in fields.
     String[] fields = fieldList.split(", ");
     for (String field : fields) {

@@ -859,12 +859,6 @@ And now you know why Python's `lambda` only allows a single expression body.
     many style guides demand explicit semicolons after every statement even
     though the language theoretically lets you elide them.
 
-[lua]: https://www.lua.org/pil/1.1.html
-[go]: https://golang.org/ref/spec#Semicolons
-[gofmt]: https://golang.org/cmd/gofmt/
-[python]: https://docs.python.org/3.5/reference/lexical_analysis.html#implicit-line-joining
-[asi]: https://www.ecma-international.org/ecma-262/5.1/#sec-7.9
-
 If you're designing a new language, you almost surely *should* avoid an explicit
 statement terminator. Programmers are creatures of fashion like other humans and
 semicolons are as passé as ALL CAPS KEYWORDS. Just make sure you pick a set of
@@ -872,3 +866,9 @@ rules that make sense for your language's particular grammar and idioms. And
 don't do what JavaScript did.
 
 </div>
+
+[lua]: https://www.lua.org/pil/1.1.html
+[go]: https://golang.org/ref/spec#Semicolons
+[gofmt]: https://golang.org/cmd/gofmt/
+[python]: https://docs.python.org/3.5/reference/lexical_analysis.html#implicit-line-joining
+[asi]: https://www.ecma-international.org/ecma-262/5.1/#sec-7.9
