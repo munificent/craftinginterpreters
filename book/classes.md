@@ -1277,17 +1277,10 @@ Including [more than a handful][prototypes] by yours truly.
 
 </aside>
 
-[delegate]: https://en.wikipedia.org/wiki/Prototype-based_programming#Delegation
-[prototypes]: http://gameprogrammingpatterns.com/prototype.html
-[self]: http://www.selflanguage.org/
-
 I won't get into whether or not I think prototypes are a good idea for a
 language. I've made languages that are [prototypal][finch] and
 [class-based][wren], and my opinions of both are complex. What I want to discuss
 is the role of *simplicity* in a language.
-
-[finch]: http://finch.stuffwithstuff.com/
-[wren]: http://wren.io/
 
 Prototypes are simpler than classes -- less code for the language implementer to
 write, and fewer concepts for the user to learn and understand. Does that make
@@ -1336,3 +1329,9 @@ a large enough margin to pay for the added complexity. But if that isn't how
 users are using your language, then by all means leave classes out.
 
 </div>
+
+[delegate]: https://en.wikipedia.org/wiki/Prototype-based_programming#Delegation
+[prototypes]: http://gameprogrammingpatterns.com/prototype.html
+[self]: http://www.selflanguage.org/
+[finch]: http://finch.stuffwithstuff.com/
+[wren]: http://wren.io/

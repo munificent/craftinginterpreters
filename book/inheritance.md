@@ -111,11 +111,11 @@ We want to capture this new syntax in the class declaration's AST node:
 
 ^code superclass-ast (1 before, 1 after)
 
-You might be surprised that we store the superclass name as an Expr, not a
-Token. The grammar restricts the superclass clause to a single identifier, but
-at runtime, that identifier is evaluated as a variable access. Wrapping the
-name in an Expr early on in the parser gives us an object that the resolver can
-hang the resolution information off of.
+You might be surprised that we store the superclass name as an Expr.Variable,
+not a Token. The grammar restricts the superclass clause to a single identifier,
+but at runtime, that identifier is evaluated as a variable access. Wrapping the
+name in an Expr.Variable early on in the parser gives us an object that the
+resolver can hang the resolution information off of.
 
 The new parser code follows the grammar directly:
 
