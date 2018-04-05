@@ -7,8 +7,8 @@
 
 The first step in any compiler or interpreter is <span
 name="lexing">scanning</span>. The scanner takes in raw source code as a series
-characters and groups it into meaningful chunks -- the "words" and "punctuation"
-that make up the language's grammar.
+of characters and groups it into meaningful chunks -- the "words" and
+"punctuation" that make up the language's grammar.
 
 <aside name="lexing">
 
