@@ -484,7 +484,7 @@ If you like tables, here's the various cases:
   </thead>
   <tr>
     <td><code>NULL</code></td>
-    <td><code>NULL</code></td>
+    <td><code>0</code></td>
     <td>Does nothing.</td>
   </tr>
   <tr>
@@ -494,7 +494,7 @@ If you like tables, here's the various cases:
   </tr>
   <tr>
     <td><code>1000</code></td>
-    <td><code>NULL</code></td>
+    <td><code>0</code></td>
     <td>Equivalent to <code>free()</code>.</td>
   </tr>
   <tr>
