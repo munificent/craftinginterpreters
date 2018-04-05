@@ -650,8 +650,8 @@ interpreter doesn't do very much, but it's alive!
     should happen? Justify your choice. How do other languages you know handle
     division by zero and why do they make the choices they do?
 
-    Change the implementation in `visitBinaryExpr()` to detect and report a runtime
-    error for this case.
+    Change the implementation in `visitBinaryExpr()` to detect and report a
+    runtime error for this case.
 
 </div>
 
