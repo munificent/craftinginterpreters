@@ -1109,7 +1109,7 @@ programming language for at least a couple of reasons:
     your text editor, it -- hopefully! -- won't cause failures in the text
     rendering on screen. Language implementations are narrower and deeper,
     especially the core of the interpreter that handles the language's actual
-    semantics. That makes it easy to for subtle bugs to creep in caused by weird
+    semantics. That makes it easy for subtle bugs to creep in caused by weird
     interactions between various parts of the system. It takes good tests to
     flush those out.
 
