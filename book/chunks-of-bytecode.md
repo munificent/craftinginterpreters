@@ -430,38 +430,74 @@ This macro wraps a little syntactic sugar around a function call to
 getting the size of the array's element type and casting the resulting `void*`
 back to a pointer of the right type.
 
-The magic lives here:
+This `reallocate()` function is the single function we'll use for all dynamic
+memory management in clox -- allocating memory, freeing it, and changing the
+size of an existing allocation. Routing all of those operations through a single
+function will be important later when we add a garbage collector that needs to
+keep track of how much memory is in use.
+
+The two size arguments passed to `reallocate()` control which operation to
+perform:
+
+<table>
+  <thead>
+    <tr>
+      <td><code>oldSize</code></td>
+      <td><code>newSize</code></td>
+      <td>Operation</td>
+    </tr>
+  </thead>
+  <tr>
+    <td>0</td>
+    <td>Non&#8209;zero</td>
+    <td>Allocate new block.</td>
+  </tr>
+  <tr>
+    <td>Non&#8209;zero</td>
+    <td>0</td>
+    <td>Free allocation.</td>
+  </tr>
+  <tr>
+    <td>Non&#8209;zero</td>
+    <td>Smaller&nbsp;than&nbsp;<code>oldSize</code></td>
+    <td>Shrink existing allocation.</td>
+  </tr>
+  <tr>
+    <td>Non&#8209;zero</td>
+    <td>Larger&nbsp;than&nbsp;<code>oldSize</code></td>
+    <td>Grow existing allocation.</td>
+  </tr>
+</table>
+
+That sounds like a lot of cases to handle, but here's the implementation:
 
 ^code memory-c
 
-OK, "magic" might be overselling it. This function is again the thinnest of
-wrappers, this time around the C standard library's `realloc()` function. That
-function, if you're rusty on your C stdlib, is sort of a hybrid of `malloc()`,
-`free()`, and a dash of special sauce. You give it a pointer to some existing
-memory (`previous`) and a desired size (`newSize`). If the pointer is `NULL`, it
-allocates and returns a brand new chunk of memory with the desired size, just
-like `malloc()`. If the desired size is zero, and the pointer is not `NULL`, it
-deallocates the pointer, like `free()` and returns `NULL`.
+Pretty simple. We handle the deallocation case ourselves by calling `free()`
+when `newSize` is zero. Otherwise, we fall through to calling the C standard
+library's `realloc()` function. That function conveniently supports the other
+three aspects of our policy. When `oldSize` is zero, `realloc()` is equivalent
+to calling `malloc()`.
 
-The interesting case is when the pointer is not `NULL` *and* the size is not
-zero. In that case, it will try to resize the allocated block. If the new size
-is *smaller* than the existing block of memory, it simply <span
-name="shrink">shrinks</span> the allocated size of the block and returns the
-same pointer you gave it. If the new size is *larger*, it attempts to grow the
-existing block of memory.
+The interesting cases are when both `oldSize` and `newSize` are not zero. Those
+tell to `realloc()` to resize the previously-allocated block. If the new size is
+smaller than the existing block of memory, it simply <span
+name="shrink">updates</span> the size of the block and returns the same pointer
+you gave it. If the new size is larger, it attempts to grow the existing block
+of memory.
 
-It can only do that if the memory after that block isn't already in use. If it's
-unavailable, `realloc()` instead allocates a *new* block of memory of the
-desired size, copies over the old bytes, frees the old block, and then returns a
-pointer to the new block. Remember, that's exactly the behavior we want for our
-dynamic array.
+It can only do that if the memory after that block isn't already in use. If
+there isn't room to grow the block, `realloc()` instead allocates a *new* block
+of memory of the desired size, copies over the old bytes, frees the old block,
+and then returns a pointer to the new block. Remember, that's exactly the
+behavior we want for our dynamic array.
 
 <aside name="shrink">
 
 Since all we passed in was a bare pointer to the first byte of memory, what does
-it mean to "shrink" the allocated block? Under the hood, the memory allocator
-keeps track of some additional bookkeeping information for each block of
-heap-allocated memory, including its size.
+it mean to "update" the block's size? Under the hood, the memory allocator
+maintains additional bookkeeping information for each block of heap-allocated
+memory, including its size.
 
 Given a pointer to some previously-allocated memory, it can find this
 bookkeeping information, which is necessary to be able to cleanly free it. It's
@@ -471,43 +507,6 @@ Many implementations of `malloc()` store the allocated size in memory right
 *before* the returned address.
 
 </aside>
-
-If you like tables, here's the various cases:
-
-<table>
-  <thead>
-    <tr>
-      <td>Existing&nbsp;size</td>
-      <td>Desired&nbsp;size</td>
-      <td>Result</td>
-    </tr>
-  </thead>
-  <tr>
-    <td><code>0</code>&nbsp;(<code>NULL</code>&nbsp;pointer)</td>
-    <td><code>0</code></td>
-    <td>Does nothing.</td>
-  </tr>
-  <tr>
-    <td><code>0</code>&nbsp;(<code>NULL</code>&nbsp;pointer)</td>
-    <td><code>1000</code></td>
-    <td>Equivalent to <code>malloc(1000)</code>.</td>
-  </tr>
-  <tr>
-    <td><code>1000</code></td>
-    <td><code>0</code></td>
-    <td>Equivalent to <code>free()</code>.</td>
-  </tr>
-  <tr>
-    <td><code>2000</code></td>
-    <td><code>1000</code></td>
-    <td>Shrink allocated block.</td>
-  </tr>
-  <tr>
-    <td><code>1000</code></td>
-    <td><code>2000</code></td>
-    <td>Grow existing block or allocate new one and copy.</td>
-  </tr>
-</table>
 
 OK, we can create new chunks and write instructions to them. Are we done? Nope!
 We're in C now, remember, we have to manage memory ourselves, like Ye Olden
@@ -526,7 +525,7 @@ add one more macro:
 ^code free-array (1 before, 2 after)
 
 Like `GROW_ARRAY()`, this is a wrapper around a call to `reallocate()`. This one
-simply "resizes" the memory down to zero bytes.
+frees the memory by passing in zero for the new size.
 
 ## Disassembling Chunks
 

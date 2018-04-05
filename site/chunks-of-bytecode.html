@@ -546,7 +546,44 @@ in <em>GROW_CAPACITY</em>()</div>
 <code>reallocate()</code>, where the real work happens. The macro itself takes care of
 getting the size of the array&rsquo;s element type and casting the resulting <code>void*</code>
 back to a pointer of the right type.</p>
-<p>The magic lives here:</p>
+<p>This <code>reallocate()</code> function is the single function we&rsquo;ll use for all dynamic
+memory management in clox&#8202;&mdash;&#8202;allocating memory, freeing it, and changing the
+size of an existing allocation. Routing all of those operations through a single
+function will be important later when we add a garbage collector that needs to
+keep track of how much memory is in use.</p>
+<p>The two size arguments passed to <code>reallocate()</code> control which operation to
+perform:</p>
+<table>
+  <thead>
+    <tr>
+      <td><code>oldSize</code></td>
+      <td><code>newSize</code></td>
+      <td>Operation</td>
+    </tr>
+  </thead>
+  <tr>
+    <td>0</td>
+    <td>Non&#8209;zero</td>
+    <td>Allocate new block.</td>
+  </tr>
+  <tr>
+    <td>Non&#8209;zero</td>
+    <td>0</td>
+    <td>Free allocation.</td>
+  </tr>
+  <tr>
+    <td>Non&#8209;zero</td>
+    <td>Smaller&nbsp;than&nbsp;<code>oldSize</code></td>
+    <td>Shrink existing allocation.</td>
+  </tr>
+  <tr>
+    <td>Non&#8209;zero</td>
+    <td>Larger&nbsp;than&nbsp;<code>oldSize</code></td>
+    <td>Grow existing allocation.</td>
+  </tr>
+</table>
+
+<p>That sounds like a lot of cases to handle, but here&rsquo;s the implementation:</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
@@ -555,76 +592,42 @@ create new file</div>
 <span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;</span><span class="cp"></span>
 
 <span class="kt">void</span><span class="o">*</span> <span class="nf">reallocate</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">previous</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">oldSize</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">newSize</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">newSize</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">free</span><span class="p">(</span><span class="n">previous</span><span class="p">);</span>
+    <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="p">}</span>
+
   <span class="k">return</span> <span class="n">realloc</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="n">newSize</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 
-<p>OK, &ldquo;magic&rdquo; might be overselling it. This function is again the thinnest of
-wrappers, this time around the C standard library&rsquo;s <code>realloc()</code> function. That
-function, if you&rsquo;re rusty on your C stdlib, is sort of a hybrid of <code>malloc()</code>,
-<code>free()</code>, and a dash of special sauce. You give it a pointer to some existing
-memory (<code>previous</code>) and a desired size (<code>newSize</code>). If the pointer is <code>NULL</code>, it
-allocates and returns a brand new chunk of memory with the desired size, just
-like <code>malloc()</code>. If the desired size is zero, and the pointer is not <code>NULL</code>, it
-deallocates the pointer, like <code>free()</code> and returns <code>NULL</code>.</p>
-<p>The interesting case is when the pointer is not <code>NULL</code> <em>and</em> the size is not
-zero. In that case, it will try to resize the allocated block. If the new size
-is <em>smaller</em> than the existing block of memory, it simply <span
-name="shrink">shrinks</span> the allocated size of the block and returns the
-same pointer you gave it. If the new size is <em>larger</em>, it attempts to grow the
-existing block of memory.</p>
-<p>It can only do that if the memory after that block isn&rsquo;t already in use. If it&rsquo;s
-unavailable, <code>realloc()</code> instead allocates a <em>new</em> block of memory of the
-desired size, copies over the old bytes, frees the old block, and then returns a
-pointer to the new block. Remember, that&rsquo;s exactly the behavior we want for our
-dynamic array.</p>
+<p>Pretty simple. We handle the deallocation case ourselves by calling <code>free()</code>
+when <code>newSize</code> is zero. Otherwise, we fall through to calling the C standard
+library&rsquo;s <code>realloc()</code> function. That function conveniently supports the other
+three aspects of our policy. When <code>oldSize</code> is zero, <code>realloc()</code> is equivalent
+to calling <code>malloc()</code>.</p>
+<p>The interesting cases are when both <code>oldSize</code> and <code>newSize</code> are not zero. Those
+tell to <code>realloc()</code> to resize the previously-allocated block. If the new size is
+smaller than the existing block of memory, it simply <span
+name="shrink">updates</span> the size of the block and returns the same pointer
+you gave it. If the new size is larger, it attempts to grow the existing block
+of memory.</p>
+<p>It can only do that if the memory after that block isn&rsquo;t already in use. If
+there isn&rsquo;t room to grow the block, <code>realloc()</code> instead allocates a <em>new</em> block
+of memory of the desired size, copies over the old bytes, frees the old block,
+and then returns a pointer to the new block. Remember, that&rsquo;s exactly the
+behavior we want for our dynamic array.</p>
 <aside name="shrink">
 <p>Since all we passed in was a bare pointer to the first byte of memory, what does
-it mean to &ldquo;shrink&rdquo; the allocated block? Under the hood, the memory allocator
-keeps track of some additional bookkeeping information for each block of
-heap-allocated memory, including its size.</p>
+it mean to &ldquo;update&rdquo; the block&rsquo;s size? Under the hood, the memory allocator
+maintains additional bookkeeping information for each block of heap-allocated
+memory, including its size.</p>
 <p>Given a pointer to some previously-allocated memory, it can find this
 bookkeeping information, which is necessary to be able to cleanly free it. It&rsquo;s
 this size metadata that <code>realloc()</code> updates.</p>
 <p>Many implementations of <code>malloc()</code> store the allocated size in memory right
 <em>before</em> the returned address.</p>
 </aside>
-<p>If you like tables, here&rsquo;s the various cases:</p>
-<table>
-  <thead>
-    <tr>
-      <td>Existing&nbsp;size</td>
-      <td>Desired&nbsp;size</td>
-      <td>Result</td>
-    </tr>
-  </thead>
-  <tr>
-    <td><code>0</code>&nbsp;(<code>NULL</code>&nbsp;pointer)</td>
-    <td><code>0</code></td>
-    <td>Does nothing.</td>
-  </tr>
-  <tr>
-    <td><code>0</code>&nbsp;(<code>NULL</code>&nbsp;pointer)</td>
-    <td><code>1000</code></td>
-    <td>Equivalent to <code>malloc(1000)</code>.</td>
-  </tr>
-  <tr>
-    <td><code>1000</code></td>
-    <td><code>0</code></td>
-    <td>Equivalent to <code>free()</code>.</td>
-  </tr>
-  <tr>
-    <td><code>2000</code></td>
-    <td><code>1000</code></td>
-    <td>Shrink allocated block.</td>
-  </tr>
-  <tr>
-    <td><code>1000</code></td>
-    <td><code>2000</code></td>
-    <td>Grow existing block or allocate new one and copy.</td>
-  </tr>
-</table>
-
 <p>OK, we can create new chunks and write instructions to them. Are we done? Nope!
 We&rsquo;re in C now, remember, we have to manage memory ourselves, like Ye Olden
 Times, and that means <em>freeing</em> it too:</p>
@@ -656,7 +659,7 @@ in <em>GROW_ARRAY</em>()</div>
 </pre></div>
 
 <p>Like <code>GROW_ARRAY()</code>, this is a wrapper around a call to <code>reallocate()</code>. This one
-simply &ldquo;resizes&rdquo; the memory down to zero bytes.</p>
+frees the memory by passing in zero for the new size.</p>
 <h2><a href="#disassembling-chunks" name="disassembling-chunks"><small>14&#8202;.&#8202;4</small> Disassembling Chunks</a></h2>
 <p>Great, now we have a little module for creating chunks of bytecode. Let&rsquo;s try
 it out by hand-building a sample chunk:</p>

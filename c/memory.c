@@ -34,6 +34,11 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
   }
 
 //< Garbage Collection not-yet
+  if (newSize == 0) {
+    free(previous);
+    return NULL;
+  }
+  
   return realloc(previous, newSize);
 }
 //> Garbage Collection not-yet
