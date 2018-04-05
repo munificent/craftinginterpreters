@@ -477,18 +477,18 @@ If you like tables, here's the various cases:
 <table>
   <thead>
     <tr>
-      <td>Existing&nbsp;pointer</td>
+      <td>Existing&nbsp;size</td>
       <td>Desired&nbsp;size</td>
       <td>Result</td>
     </tr>
   </thead>
   <tr>
-    <td><code>NULL</code></td>
+    <td><code>0</code>&nbsp;(<code>NULL</code>&nbsp;pointer)</td>
     <td><code>0</code></td>
     <td>Does nothing.</td>
   </tr>
   <tr>
-    <td><code>NULL</code></td>
+    <td><code>0</code>&nbsp;(<code>NULL</code>&nbsp;pointer)</td>
     <td><code>1000</code></td>
     <td>Equivalent to <code>malloc(1000)</code>.</td>
   </tr>
