@@ -1,34 +1,38 @@
-//> A Virtual Machine not-yet
+//> A Virtual Machine vm-c
 //> Types of Values not-yet
 #include <stdarg.h>
 //< Types of Values not-yet
+//> vm-include-stdio
 #include <stdio.h>
 //> Strings not-yet
 #include <string.h>
 //< Strings not-yet
 //> Calls and Functions not-yet
 #include <time.h>
-
 //< Calls and Functions not-yet
+
+//< vm-include-stdio
 #include "common.h"
 //> Scanning on Demand not-yet
 #include "compiler.h"
 //< Scanning on Demand not-yet
+//> vm-include-debug
 #include "debug.h"
+//< vm-include-debug
 //> Strings not-yet
 #include "object.h"
 #include "memory.h"
 //< Strings not-yet
 #include "vm.h"
 
-VM vm;
+VM vm; // [one]
 //> Calls and Functions not-yet
 
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 //< Calls and Functions not-yet
-
+//> reset-stack
 static void resetStack() {
   vm.stackTop = vm.stack;
 //> Calls and Functions not-yet
@@ -38,8 +42,8 @@ static void resetStack() {
   vm.openUpvalues = NULL;
 //< Closures not-yet
 }
+//< reset-stack
 //> Types of Values not-yet
-
 static void runtimeError(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -86,7 +90,9 @@ static void defineNative(const char* name, NativeFn function) {
 //< Calls and Functions not-yet
 
 void initVM() {
+//> call-reset-stack
   resetStack();
+//< call-reset-stack
 //> Strings not-yet
   vm.objects = NULL;
 //< Strings not-yet
@@ -115,7 +121,7 @@ void initVM() {
 //< Calls and Functions not-yet
 }
 
-void endVM() {
+void freeVM() {
 //> Global Variables not-yet
   freeTable(&vm.globals);
 //< Global Variables not-yet
@@ -129,16 +135,18 @@ void endVM() {
   freeObjects();
 //< Strings not-yet
 }
-
+//> push
 void push(Value value) {
   *vm.stackTop = value;
   vm.stackTop++;
 }
-
+//< push
+//> pop
 Value pop() {
   vm.stackTop--;
   return *vm.stackTop;
 }
+//< pop
 //> Types of Values not-yet
 
 static Value peek(int distance) {
@@ -163,7 +171,7 @@ static bool call(ObjClosure* closure, int argCount) {
     return false;
   }
 
-  if (vm.frameCount == FRAMES_SIZE) {
+  if (vm.frameCount == FRAMES_MAX) {
     runtimeError("Stack overflow.");
     return false;
   }
@@ -411,13 +419,15 @@ static void concatenate() {
   push(OBJ_VAL(result));
 }
 //< Strings not-yet
-
-static bool run() {
+//> run
+static InterpretResult run() {
 //> Calls and Functions not-yet
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
 
-/* A Virtual Machine not-yet < Calls and Functions not-yet
+/* A Virtual Machine run < Calls and Functions not-yet
 #define READ_BYTE() (*vm.ip++)
+*/
+/* A Virtual Machine read-constant < Calls and Functions not-yet
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
 /* Jumping Forward and Back not-yet < Calls and Functions not-yet
@@ -435,7 +445,7 @@ static bool run() {
 //> Global Variables not-yet
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 //< Global Variables not-yet
-/* A Virtual Machine not-yet < Types of Values not-yet
+/* A Virtual Machine binary-op < Types of Values not-yet
 
 #define BINARY_OP(op) \
     do { \
@@ -450,7 +460,7 @@ static bool run() {
     do { \
       if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) { \
         runtimeError("Operands must be numbers."); \
-        return false; \
+        return INTERPRET_RUNTIME_ERROR; \
       } \
       \
       double b = AS_NUMBER(pop()); \
@@ -460,7 +470,9 @@ static bool run() {
 //< Types of Values not-yet
 
   for (;;) {
+//> trace-execution
 #ifdef DEBUG_TRACE_EXECUTION
+//> trace-stack
     printf("          ");
     for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
       printf("[ ");
@@ -468,7 +480,8 @@ static bool run() {
       printf(" ]");
     }
     printf("\n");
-/* A Virtual Machine not-yet < Calls and Functions not-yet
+//< trace-stack
+/* A Virtual Machine trace-execution < Calls and Functions not-yet
     disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 */
 /* Calls and Functions not-yet < Closures not-yet
@@ -480,10 +493,23 @@ static bool run() {
         (int)(frame->ip - frame->closure->function->chunk.code));
 //< Closures not-yet
 #endif
-
+    
+//< trace-execution
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
-      case OP_CONSTANT: push(READ_CONSTANT()); break;
+//> op-constant
+      case OP_CONSTANT: {
+        Value constant = READ_CONSTANT();
+/* A Virtual Machine op-constant < A Virtual Machine push-constant
+        printValue(constant);
+        printf("\n");
+*/
+//> push-constant
+        push(constant);
+//< push-constant
+        break;
+      }
+//< op-constant
 //> Types of Values not-yet
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
@@ -523,7 +549,7 @@ static bool run() {
         Value value;
         if (!tableGet(&vm.globals, name, &value)) {
           runtimeError("Undefined variable '%s'.", name->chars);
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
         push(value);
         break;
@@ -540,7 +566,7 @@ static bool run() {
         ObjString* name = READ_STRING();
         if (tableSet(&vm.globals, name, peek(0))) {
           runtimeError("Undefined variable '%s'.", name->chars);
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
         break;
       }
@@ -564,7 +590,7 @@ static bool run() {
       case OP_GET_PROPERTY: {
         if (!IS_INSTANCE(peek(0))) {
           runtimeError("Only instances have properties.");
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
 
         ObjInstance* instance = AS_INSTANCE(peek(0));
@@ -578,10 +604,12 @@ static bool run() {
 
 /* Classes and Instances not-yet < Methods and Initializers not-yet
         runtimeError("Undefined property '%s'.", name->chars);
-        return false;
+        return INTERPRET_RUNTIME_ERROR;
 */
 //> Methods and Initializers not-yet
-        if (!bindMethod(instance->klass, name)) return false;
+        if (!bindMethod(instance->klass, name)) {
+          return INTERPRET_RUNTIME_ERROR;
+        }
         break;
 //< Methods and Initializers not-yet
       }
@@ -589,7 +617,7 @@ static bool run() {
       case OP_SET_PROPERTY: {
         if (!IS_INSTANCE(peek(1))) {
           runtimeError("Only instances have fields.");
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
 
         ObjInstance* instance = AS_INSTANCE(peek(1));
@@ -605,7 +633,9 @@ static bool run() {
       case OP_GET_SUPER: {
         ObjString* name = READ_STRING();
         ObjClass* superclass = AS_CLASS(pop());
-        if (!bindMethod(superclass, name)) return false;
+        if (!bindMethod(superclass, name)) {
+          return INTERPRET_RUNTIME_ERROR;
+        }
         break;
       }
 //< Superclasses not-yet
@@ -621,11 +651,13 @@ static bool run() {
       case OP_GREATER:  BINARY_OP(BOOL_VAL, >); break;
       case OP_LESS:     BINARY_OP(BOOL_VAL, <); break;
 //< Types of Values not-yet
-/* A Virtual Machine not-yet < Types of Values not-yet
+/* A Virtual Machine op-binary < Types of Values not-yet
       case OP_ADD:      BINARY_OP(+); break;
       case OP_SUBTRACT: BINARY_OP(-); break;
       case OP_MULTIPLY: BINARY_OP(*); break;
       case OP_DIVIDE:   BINARY_OP(/); break;
+*/
+/* A Virtual Machine op-negate < Types of Values not-yet
       case OP_NEGATE:   push(-pop()); break;
 */
 /* Types of Values not-yet < Strings not-yet
@@ -642,7 +674,7 @@ static bool run() {
           push(NUMBER_VAL(a + b));
         } else {
           runtimeError("Operands must be two numbers or two strings.");
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
         break;
       }
@@ -660,7 +692,7 @@ static bool run() {
       case OP_NEGATE:
         if (!IS_NUMBER(peek(0))) {
           runtimeError("Operand must be a number.");
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
 
         push(NUMBER_VAL(-AS_NUMBER(pop())));
@@ -721,7 +753,9 @@ static bool run() {
       case OP_CALL_7:
       case OP_CALL_8: {
         int argCount = instruction - OP_CALL_0;
-        if (!callValue(peek(argCount), argCount)) return false;
+        if (!callValue(peek(argCount), argCount)) {
+          return INTERPRET_RUNTIME_ERROR;
+        }
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
@@ -739,7 +773,9 @@ static bool run() {
       case OP_INVOKE_8: {
         ObjString* method = READ_STRING();
         int argCount = instruction - OP_INVOKE_0;
-        if (!invoke(method, argCount)) return false;
+        if (!invoke(method, argCount)) {
+          return INTERPRET_RUNTIME_ERROR;
+        }
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
@@ -759,7 +795,7 @@ static bool run() {
         int argCount = instruction - OP_SUPER_0;
         ObjClass* superclass = AS_CLASS(pop());
         if (!invokeFromClass(superclass, method, argCount)) {
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
         frame = &vm.frames[vm.frameCount - 1];
         break;
@@ -798,12 +834,12 @@ static bool run() {
 
 //< Closures not-yet
       case OP_RETURN: {
-/* A Virtual Machine not-yet < Global Variables not-yet
+/* A Virtual Machine print-return < Global Variables not-yet
         printValue(pop());
         printf("\n");
 */
-/* A Virtual Machine not-yet < Calls and Functions not-yet
-        return true;
+/* A Virtual Machine run < Calls and Functions not-yet
+        return INTERPRET_OK;
 */
 //> Calls and Functions not-yet
         Value result = pop();
@@ -814,14 +850,14 @@ static bool run() {
 //< Closures not-yet
 
         vm.frameCount--;
-        if (vm.frameCount == 0) return true;
+        if (vm.frameCount == 0) return INTERPRET_OK;
 
         vm.stackTop = frame->slots;
         push(result);
 
         frame = &vm.frames[vm.frameCount - 1];
-//< Calls and Functions not-yet
         break;
+//< Calls and Functions not-yet
       }
 //> Classes and Instances not-yet
 
@@ -840,7 +876,7 @@ static bool run() {
         Value superclass = peek(0);
         if (!IS_CLASS(superclass)) {
           runtimeError("Superclass must be a class.");
-          return false;
+          return INTERPRET_RUNTIME_ERROR;
         }
 
         createClass(READ_STRING(), AS_CLASS(superclass));
@@ -856,20 +892,23 @@ static bool run() {
     }
   }
 
-  return true;
-
 #undef READ_BYTE
 //> Jumping Forward and Back not-yet
 #undef READ_SHORT
 //< Jumping Forward and Back not-yet
+//> undef-read-constant
 #undef READ_CONSTANT
+//< undef-read-constant
 //> Global Variables not-yet
 #undef READ_STRING
 //< Global Variables not-yet
+//> undef-binary-op
 #undef BINARY_OP
+//< undef-binary-op
 }
-
-/* A Virtual Machine not-yet < Scanning on Demand not-yet
+//< run
+//> interpret
+/* A Virtual Machine interpret < Scanning on Demand not-yet
 InterpretResult interpret(Chunk* chunk) {
   vm.chunk = chunk;
   vm.ip = vm.chunk->code;
@@ -910,11 +949,12 @@ InterpretResult interpret(const char* source) {
 
 //< Closures not-yet
 //< Scanning on Demand not-yet
-  InterpretResult result = INTERPRET_RUNTIME_ERROR;
-  if (run()) result = INTERPRET_OK;
+  
+  InterpretResult result = run();
 /* Compiling Expressions not-yet < Calls and Functions not-yet
 
   freeChunk(&chunk);
 */
   return result;
 }
+//< interpret
