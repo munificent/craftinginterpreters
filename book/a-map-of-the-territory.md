@@ -69,7 +69,7 @@ begins on the left with the bare text of the user's source code:
 ### Scanning
 
 The first step is **scanning**, also known as **lexing**, or (if you're trying
-to impress someone) **lexical analysis**. They all mean the pretty much same
+to impress someone) **lexical analysis**. They all mean pretty much the same
 thing. I like "lexing" because it sounds like something an evil supervillain
 would do, but I'll use "scanning" because it seems to be marginally more
 commonplace.
@@ -354,7 +354,7 @@ last step is running it. If we compiled it to machine code, we simply tell the
 operating system to load the executable and off it goes. If we compiled it to
 bytecode, we need to start up the VM and load the program into that.
 
-In both cases, for all but the basest of low-level of languages, we usually need
+In both cases, for all but the basest of low-level languages, we usually need
 some services that our language provides while the program is running. For
 example, if the language automatically manages memory, we need a garbage
 collector going in order to reclaim unused bits. If our language supports

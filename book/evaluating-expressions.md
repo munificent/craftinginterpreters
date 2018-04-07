@@ -364,7 +364,7 @@ performed?
 I was cavalier about jamming casts into the previous code whenever some
 subexpression produces an Object and the operator wants it to be a number or a
 string. Those casts can fail. Even though the user's code is erroneous, if we
-want to make a <span name="fail">usable</span> language, we are responsible to
+want to make a <span name="fail">usable</span> language, we are responsible for
 handling that error gracefully.
 
 <aside name="fail">
@@ -387,9 +387,10 @@ previous chapters talking about error handling, but those were all *syntax* or
 Runtime errors are failures that the language semantics demand we detect and
 report while the program is running (hence the name).
 
-Right now, the Java cast will fail and the JVM will throw a ClassCastException.
-That unwinds the whole stack and exits the application, vomiting a Java stack
-trace onto the user. That's probably not what we want. The fact that Lox is
+Right now, if an operand is the wrong type for the operation being performed,
+the Java cast will fail and the JVM will throw a ClassCastException. That
+unwinds the whole stack and exits the application, vomiting a Java stack trace
+onto the user. That's probably not what we want. The fact that Lox is
 implemented in Java should be a detail hidden from the user. Instead, we want
 them to understand that a *Lox* runtime error occurred, and give them an error
 message relevant to our language and their program.

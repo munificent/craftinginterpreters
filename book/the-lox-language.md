@@ -13,8 +13,8 @@ going to end up with.
 At the same time, I don't want to drag you through reams of language lawyering
 and specification-ese before you get to touch your text <span
 name="home">editor</span>. So this will be a gentle, friendly introduction to
-Lox. It will leave out of a lot of details and edge cases. We've got plenty of
-time for those later.
+Lox. It will leave out a lot of details and edge cases. We've got plenty of time
+for those later.
 
 <aside name="home">
 
@@ -379,7 +379,7 @@ points in my heart if you augment your own implementation of Lox with them.
 
 ## Statements
 
-That's the expression forms (except for a couple related to specific features
+Those are the expression forms (except for a couple related to specific features
 that we'll get to later), so let's move up a level. Now we're at statements.
 Where an expression's main job is to produce a *value*, a statement's job is to
 produce an *effect*. Since, by definition, statements don't evaluate to a value,
@@ -507,8 +507,8 @@ while (a < 10) {
 <aside name="do">
 
 I left `do-while` loops out of Lox because they aren't that common and wouldn't
-teach you anything that won't already learn from `while`. Go ahead and add it to
-your implementation if it makes you happy. It's your party.
+teach you anything that you won't already learn from `while`. Go ahead and add
+it to your implementation if it makes you happy. It's your party.
 
 </aside>
 
@@ -971,7 +971,7 @@ And... that's it. I know, right? It's embarrassing.
 If you wanted to turn Lox into an actual useful language, the very first thing
 you should do is flesh this out. String manipulation, trigonometric functions,
 file IO, networking, heck, even *reading input from the user* would help. But we
-don't need any of that for this book, and adding wouldn't teach you anything
+don't need any of that for this book, and adding it wouldn't teach you anything
 interesting, so I left it out.
 
 Don't worry, we'll have plenty of exciting stuff in the language itself to keep

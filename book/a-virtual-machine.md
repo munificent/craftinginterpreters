@@ -189,7 +189,7 @@ instruction to execute.
 
 </aside>
 
-We to do that process for every single instruction, every single time one is
+We do that process for every single instruction, every single time one is
 executed, so this is the most performance critical part of the entire virtual
 machine. Programming language lore is filled with <span
 name="dispatch">clever</span> techniques to do bytecode dispatch efficiently,
@@ -254,7 +254,7 @@ black box. That makes our lives as VM implementers harder.
 
 To help ourselves out, now is a good time to add some diagnostic logging to the
 VM like we did with chunks themselves. In fact, we'll even reuse the same code.
-We don't want this logging enabled all the time -- it's just for we VM hackers,
+We don't want this logging enabled all the time -- it's just for us VM hackers,
 not Lox users -- so first we create a flag to hide it behind:
 
 ^code define-debug-trace (1 before, 2 after)

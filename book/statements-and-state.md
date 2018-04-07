@@ -339,7 +339,7 @@ if (monday) var beverage = "espresso";
 
 We *could* allow the latter, but it's confusing. What is the scope of that
 `beverage` variable? If it goes *past* the if, then it means in some cases, the
-variable exists and others it doesn't. That makes it really hard for the
+variable exists and in others it doesn't. That makes it really hard for the
 compiler or a human to reason about the code. But if the variable *doesn't* live
 past the if, then what's the point of declaring it at all?
 
