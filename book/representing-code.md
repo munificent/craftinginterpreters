@@ -21,7 +21,7 @@ of design patterns, and do some metaprogramming.
 <aside name="boring">
 
 I was so worried about this being one of the most boring chapters in the book
-that I kept stuffing more fun ideas into until I ran out of room.
+that I kept stuffing more fun ideas into it until I ran out of room.
 
 </aside>
 
@@ -531,9 +531,10 @@ stripped of behavior.
 
 ### Metaprogramming the trees
 
-Java can express behavior-less classes, but I wouldn't say that it's particularly
-great at it. Eleven lines of code to stuff three fields in an object is pretty
-tedious, and when we're all done, we're going to have 21 of these classes.
+Java can express behavior-less classes, but I wouldn't say that it's
+particularly great at it. Eleven lines of code to stuff three fields in an
+object is pretty tedious, and when we're all done, we're going to have 21 of
+these classes.
 
 I don't want to waste your time or my ink writing all that down. Really, what is
 the essence of each subclass? A name, and a list of typed fields. That's it.

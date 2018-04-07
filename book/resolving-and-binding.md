@@ -869,7 +869,7 @@ report an error.
 
 ### Invalid return errors
 
-Here's a another nasty little script:
+Here's another nasty little script:
 
 ```lox
 return "at top level";

@@ -131,10 +131,10 @@ should be dense and ordered like it's read.
 
 Now look up at that tree. Those sub-objects could be <span
 name="anywhere">*anywhere*</span>. Every step the tree-walker takes where it
-follows a reference to a child node may to step outside the bounds of the cache
-and force the CPU to stall until a new lump of data can be slurped in from RAM.
-Just the *overhead* of those tree nodes with all of their pointer fields and
-object headers tends to push objects away from each other and out of the cache.
+follows a reference to a child node may step outside the bounds of the cache and
+force the CPU to stall until a new lump of data can be slurped in from RAM. Just
+the *overhead* of those tree nodes with all of their pointer fields and object
+headers tends to push objects away from each other and out of the cache.
 
 <aside name="anywhere">
 
@@ -295,9 +295,9 @@ that module:
 ^code chunk-h
 
 In our bytecode format, each instruction has a one-byte **operation code**
-(universally shorted to "opcode"). That number controls what kind of instruction
-we're dealing with -- add, subtract, look up variable, etc. We define those
-here:
+(universally shortened to "opcode"). That number controls what kind of
+instruction we're dealing with -- add, subtract, look up variable, etc. We
+define those here:
 
 ^code op-enum (1 before, 2 after)
 

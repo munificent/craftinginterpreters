@@ -36,7 +36,7 @@ theory allowed you to define any sort of set. If you could describe it in Englis
 it was valid. Naturally, given mathematicians' predilection for self reference,
 sets can contain other sets. So Russell, rascal that he was, came up with:
 
-*R is the set of all sets of that do not contain themselves.*
+*R is the set of all sets that do not contain themselves.*
 
 Does R contain itself? If it doesn't, then according to the second half of the
 definition it should. But if it does, then it no longer meets the definition.
