@@ -189,7 +189,7 @@ instruction to execute.
 
 </aside>
 
-We to do that process for every single instruction, every single time one is
+We do that process for every single instruction, every single time one is
 executed, so this is the most performance critical part of the entire virtual
 machine. Programming language lore is filled with <span
 name="dispatch">clever</span> techniques to do bytecode dispatch efficiently,
