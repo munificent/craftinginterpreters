@@ -95,12 +95,12 @@ extern VM vm;
 //< Strings not-yet
 void initVM();
 void freeVM();
-/* A Virtual Machine interpret-h < Scanning on Demand not-yet
+/* A Virtual Machine interpret-h < Scanning on Demand vm-interpret-h
 InterpretResult interpret(Chunk* chunk);
 */
-//> Scanning on Demand not-yet
+//> Scanning on Demand vm-interpret-h
 InterpretResult interpret(const char* source);
-//< Scanning on Demand not-yet
+//< Scanning on Demand vm-interpret-h
 //> push-pop
 void push(Value value);
 Value pop();

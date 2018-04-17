@@ -25,13 +25,13 @@ OBJECTS := $(addprefix $(BUILD_DIR)/$(NAME)/, $(notdir $(SOURCES:.c=.o)))
 
 # Link the interpreter.
 build/$(NAME): $(OBJECTS)
-	@ printf "%10s %-32s %s\n" $(CC) $@ "$(CFLAGS)"
+	@ printf "%8s %-40s %s\n" $(CC) $@ "$(CFLAGS)"
 	@ mkdir -p build
 	@ $(CC) $(CFLAGS) $^ -o $@
 
 # Compile object files.
 $(BUILD_DIR)/$(NAME)/%.o: $(SOURCE_DIR)/%.c $(HEADERS)
-	@ printf "%10s %-32s %s\n" $(CC) $< "$(CFLAGS)"
+	@ printf "%8s %-40s %s\n" $(CC) $< "$(CFLAGS)"
 	@ mkdir -p $(BUILD_DIR)/$(NAME)
 	@ $(CC) -c $(CFLAGS) -o $@ $<
 

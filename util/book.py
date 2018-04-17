@@ -156,7 +156,6 @@ TOC = [
         'topics': [
           'Reading files', 'Token values', 'Source pointers', 'LL(k) grammars'
         ],
-        'done': False,
       },
       {
         'name': 'Compiling Expressions',

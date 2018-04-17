@@ -37,7 +37,12 @@
 <h3><a href="#top">Scanning on Demand<small>16</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#app-skeleton"><small>16.1</small> app skeleton</a></li>
+    <li><a href="#compilation-pipeline"><small>16.2</small> compilation pipeline</a></li>
+    <li><a href="#a-token-at-a-time"><small>16.3</small> a token at a time</a></li>
+    <li><a href="#notes"><small>16.4</small> notes</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -63,7 +68,12 @@
 <h3><a href="#top">Scanning on Demand<small>16</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#app-skeleton"><small>16.1</small> app skeleton</a></li>
+    <li><a href="#compilation-pipeline"><small>16.2</small> compilation pipeline</a></li>
+    <li><a href="#a-token-at-a-time"><small>16.3</small> a token at a time</a></li>
+    <li><a href="#notes"><small>16.4</small> notes</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -81,9 +91,10 @@
   <div class="number">16</div>
   <h1>Scanning on Demand</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +109,1246 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<hr />
+<ul>
+<li>clox roughly three phases</li>
+<li>scanner, compiler, vm</li>
+<li>scanner and compiler comm with tokens</li>
+<li>compiler and vm comm with chunks</li>
+<li>started at back end with chunks and vm</li>
+<li>now front end scanner and tokens</li>
+<li>next chapter, middle</li>
+</ul>
+<p><strong>todo: illustrate phases scanner -&gt; tokens -&gt; compiler -&gt; chunk -&gt; vm</strong></p>
+<ul>
+<li>not most exciting chapter</li>
+<li>mostly similar technique as java scanner</li>
+<li>few interesting differences scattered</li>
+<li>some driven by mem manage in c</li>
+<li>get started</li>
+</ul>
+<h2><a href="#app-skeleton" name="app-skeleton"><small>16&#8202;.&#8202;1</small> app skeleton</a></h2>
+<ul>
+<li>building front end so can start get work like real interp</li>
+<li>repl and run scripts</li>
+<li>like jlox</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initVM</span><span class="p">();</span>
+<br></pre><div class="source-file"><em>main.c</em><br>
+in <em>main</em>()<br>
+replace 24 lines</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">repl</span><span class="p">();</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">argc</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">runFile</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Usage: clox [path]</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">64</span><span class="p">);</span>
+  <span class="p">}</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">freeVM</span><span class="p">();</span>
+</pre></div>
 
+<ul>
+<li>clox run from cmd line</li>
+<li>if pass no arg, repl</li>
+<li>if one, run script at path</li>
+<li>otherwise error</li>
+<li>[args[0] is executable in c]</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>main.c</em><br>
+add to top of file</div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+<br></pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<ul>
+<li>always need indluces</li>
+<li>repl easiest</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>main.c</em></div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">repl</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kt">char</span> <span class="n">line</span><span class="p">[</span><span class="n">MAX_LINE_LENGTH</span><span class="p">];</span>
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&gt; &quot;</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fgets</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">MAX_LINE_LENGTH</span><span class="p">,</span> <span class="n">stdin</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">interpret</span><span class="p">(</span><span class="n">line</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>rudimentary</li>
+<li>only single-line</li>
+<li>hardcoded line length</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>main.c</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define MAX_LINE_LENGTH 1024</span>
+<br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">repl</span><span class="p">()</span> <span class="p">{</span>
+</pre></div>
+
+<ul>
+<li>real work is interpret()</li>
+<li>get there soon</li>
+</ul>
+<h3><a href="#running-scripts" name="running-scripts"><small>16&#8202;.&#8202;1&#8202;.&#8202;1</small> running scripts</a></h3>
+<ul>
+<li>if pass path, load file and run as script</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>main.c</em><br>
+add after <em>repl</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">runFile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">path</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">char</span><span class="o">*</span> <span class="n">source</span> <span class="o">=</span> <span class="n">readFile</span><span class="p">(</span><span class="n">path</span><span class="p">);</span>
+  <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">interpret</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+  <span class="n">free</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="p">)</span> <span class="n">exit</span><span class="p">(</span><span class="mi">65</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">==</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">)</span> <span class="n">exit</span><span class="p">(</span><span class="mi">70</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>readFile() dynamically allocs string, so free here</li>
+<li>
+<p>use result of interp() to determine exit code</p>
+</li>
+<li>
+<p>helper</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>main.c</em><br>
+add after <em>repl</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">char</span><span class="o">*</span> <span class="nf">readFile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">path</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">FILE</span><span class="o">*</span> <span class="n">file</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">);</span>
+
+  <span class="n">fseek</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="mi">0L</span><span class="p">,</span> <span class="n">SEEK_END</span><span class="p">);</span>
+  <span class="kt">size_t</span> <span class="n">fileSize</span> <span class="o">=</span> <span class="n">ftell</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+  <span class="n">rewind</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+
+  <span class="kt">char</span><span class="o">*</span> <span class="n">buffer</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">fileSize</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="kt">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">fileSize</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
+  <span class="n">buffer</span><span class="p">[</span><span class="n">bytesRead</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+
+  <span class="n">fclose</span><span class="p">(</span><span class="n">file</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">buffer</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>reads the contents of the file at path</li>
+<li>need to manage mem for string</li>
+<li>how big?</li>
+<li>depends on file</li>
+<li>trick: seek to end of file</li>
+<li>get current file pos -&gt; length of file</li>
+<li>
+<p>seek back to beginning</p>
+</li>
+<li>
+<p>alloc string that size</p>
+</li>
+<li>[+1 for terminator!]</li>
+<li>
+<p>read into buffer, just right size</p>
+</li>
+<li>
+<p>close and return</p>
+</li>
+<li>
+<p>what if error?</p>
+</li>
+<li>most c stdlib fns can fail</li>
+<li>need to handle</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">FILE</span><span class="o">*</span> <span class="n">file</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">);</span>
+</pre><div class="source-file"><em>main.c</em><br>
+add after <em>repl</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">file</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not find file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">fseek</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="mi">0L</span><span class="p">,</span> <span class="n">SEEK_END</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>if couldn&rsquo;t open file at all</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">buffer</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">fileSize</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+</pre><div class="source-file"><em>main.c</em></div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not read file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
+  <span class="p">}</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="kt">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">fileSize</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>if couldn&rsquo;t alloc enough mem for file</li>
+<li>[unlikely, but would crash hard if didn&rsquo;t]</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">fileSize</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
+</pre><div class="source-file"><em>main.c</em></div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">bytesRead</span> <span class="o">&lt;</span> <span class="n">fileSize</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not read file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
+    <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
+  <span class="p">}</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">buffer</span><span class="p">[</span><span class="n">bytesRead</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+</pre></div>
+
+<ul>
+<li>read failed</li>
+<li>also unlikely</li>
+<li>if make it through these, return string with script</li>
+<li>runFile() passes to interp</li>
+</ul>
+<h2><a href="#compilation-pipeline" name="compilation-pipeline"><small>16&#8202;.&#8202;2</small> compilation pipeline</a></h2>
+<ul>
+<li>old interp() was temp to run hard-coded chunk</li>
+<li>change to closer to real</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeVM</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.h</em><br>
+function <em>interpret</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="n">InterpretResult</span> <span class="nf">interpret</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">push</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>job now is to wrap entire exec pipeline</li>
+<li>take in raw source, compile, run</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+function <em>interpret</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span><span class="n">InterpretResult</span> <span class="nf">interpret</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">compile</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">INTERPRET_OK</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>first step is compile</li>
+<li>not full compiler this chapter, but start laying out</li>
+<li>uses new module</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;compiler.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<ul>
+<li>looks like</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.h</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#ifndef clox_compiler_h</span>
+<span class="cp">#define clox_compiler_h</span>
+
+<span class="kt">void</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+
+<ul>
+<li>signature will change, but good for now</li>
+<li>impl</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;compiler.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;</span><span class="cp"></span>
+
+<span class="kt">void</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>first phase of compile is scanning</li>
+<li>compiler right now just sets that up</li>
+<li>lot of scaffolding</li>
+</ul>
+<h3><a href="#scanner" name="scanner"><small>16&#8202;.&#8202;2&#8202;.&#8202;1</small> scanner</a></h3>
+<ul>
+<li>start get to real code</li>
+<li>new scanner module</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.h</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#ifndef clox_scanner_h</span>
+<span class="cp">#define clox_scanner_h</span>
+
+<span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+
+<ul>
+<li>entrypoint fn sets up scanner to scan given source code</li>
+<li>impl</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;</span><span class="cp"></span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+  <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">start</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">current</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">line</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">Scanner</span><span class="p">;</span>
+
+<span class="n">Scanner</span> <span class="n">scanner</span><span class="p">;</span>
+</pre></div>
+
+<ul>
+<li>scanner is stateful</li>
+<li>similar to vm, store all state in struct</li>
+<li>
+<p>create single global instance so don&rsquo;t have to thread through fns</p>
+</li>
+<li>
+<p>few fields</p>
+</li>
+<li>start is pointer to first char of current token being scanned</li>
+<li>point directly into source string</li>
+<li>current is point to current char being scanned</li>
+<li>next char to be consumed</li>
+<li>line is current line number</li>
+<li>as in jlox, track line info through compilation for reporting compile and
+  runtime errors</li>
+<li>
+<p>all we need</p>
+</li>
+<li>
+<p>don&rsquo;t even store pointer to beginning of source</p>
+</li>
+<li>scanner walks through string once and never again</li>
+<li>
+<p>doesn&rsquo;t need to remember beginning</p>
+</li>
+<li>
+<p>initialize</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Scanner</span> <span class="n">scanner</span><span class="p">;</span>
+</pre><div class="source-file"><em>scanner.c</em></div>
+<pre class="insert"><br><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">source</span><span class="p">;</span>
+  <span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">=</span> <span class="n">source</span><span class="p">;</span>
+  <span class="n">scanner</span><span class="p">.</span><span class="n">line</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>start pointers at beginning of source code</li>
+<li>on line one</li>
+</ul>
+<h2><a href="#a-token-at-a-time" name="a-token-at-a-time"><small>16&#8202;.&#8202;3</small> a token at a time</a></h2>
+<hr />
+<ul>
+<li>finally ready to start doing work</li>
+<li>feel like beginning of concert</li>
+<li>set up sheet music</li>
+<li>adjusted bench</li>
+<li>sit down</li>
+<li>shoot cuffs, adjust skirt</li>
+<li>
+<p>music begins</p>
+</li>
+<li>
+<p>don&rsquo;t have compiler to consume tokens yet</p>
+</li>
+<li>temp code for chapter so can see scanner working</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>compile</em>()</div>
+<pre class="insert"><br><span></span>  <span class="kt">int</span> <span class="n">line</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
+    <span class="n">Token</span> <span class="n">token</span> <span class="o">=</span> <span class="n">scanToken</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">line</span> <span class="o">!=</span> <span class="n">line</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%4d &quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">line</span><span class="p">);</span>
+      <span class="n">line</span> <span class="o">=</span> <span class="n">token</span><span class="p">.</span><span class="n">line</span><span class="p">;</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;   | &quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%2d &#39;%.*s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">type</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">start</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_EOF</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>repeatedly scans tokens until reaching special eof token</li>
+<li>prints each token to stdout</li>
+</ul>
+<p><strong>todo: show example output</strong></p>
+<ul>
+<li>goal for rest of chapter is make that code work</li>
+<li>key fn</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+</pre><div class="source-file"><em>scanner.h</em><br>
+add after <em>initScanner</em>()</div>
+<pre class="insert"><span></span><span class="n">Token</span> <span class="nf">scanToken</span><span class="p">();</span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif</span>
+</pre></div>
+
+<ul>
+<li>tells scanner to scan and return next token</li>
+<li>main difference from previous scanner</li>
+<li>in jlox, scanner eagerly scanned all input and returned list of tokens</li>
+<li>in clox, have to worry about memory for tokens</li>
+<li>simplest solution is to not create token until compiler requests one</li>
+<li>where old pipeline pushes data from front to back, new one pulls</li>
+<li>
+<p>scanner doesn&rsquo;t scan until compiler asks it to</p>
+</li>
+<li>
+<p>returns token by value</p>
+</li>
+<li>token lives directly on c stack, no dynamic alloc needed</li>
+<li>struct is</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_scanner_h</span>
+</pre><div class="source-file"><em>scanner.h</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+  <span class="n">TokenType</span> <span class="n">type</span><span class="p">;</span>
+  <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">start</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">length</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">line</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">Token</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>similar to jlox</li>
+<li>enum for what kind of token it is</li>
+<li>
+<p>line number</p>
+</li>
+<li>
+<p>difference is lexeme</p>
+</li>
+<li>in jlox, stored as normal java string</li>
+<li>would require us to manage memory for string in clox</li>
+<li>instead, point back into source code string</li>
+<li>start is first char in source where token begins</li>
+<li>
+<p>length is num chars</p>
+</li>
+<li>
+<p>means no mem management for token</p>
+</li>
+<li>can copy around freely</li>
+<li>as long as memory for source code outlives all tokens, fine</li>
+<li>
+<p>[do have to ensure that policy happens! would be bad if, say, dealloc source
+  string before running code but runtime had token]</p>
+</li>
+<li>
+<p>token type enum virtually idential to clox</p>
+</li>
+<li>blast all out at once</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifndef clox_scanner_h</span>
+<span class="cp">#define clox_scanner_h</span>
+</pre><div class="source-file"><em>scanner.h</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>
+  <span class="c1">// Single-character tokens.</span>
+  <span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span>
+  <span class="n">TOKEN_LEFT_BRACE</span><span class="p">,</span> <span class="n">TOKEN_RIGHT_BRACE</span><span class="p">,</span>
+  <span class="n">TOKEN_COMMA</span><span class="p">,</span> <span class="n">TOKEN_DOT</span><span class="p">,</span> <span class="n">TOKEN_MINUS</span><span class="p">,</span> <span class="n">TOKEN_PLUS</span><span class="p">,</span>
+  <span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="n">TOKEN_SLASH</span><span class="p">,</span> <span class="n">TOKEN_STAR</span><span class="p">,</span>
+
+  <span class="c1">// One or two character tokens.</span>
+  <span class="n">TOKEN_BANG</span><span class="p">,</span> <span class="n">TOKEN_BANG_EQUAL</span><span class="p">,</span>
+  <span class="n">TOKEN_EQUAL</span><span class="p">,</span> <span class="n">TOKEN_EQUAL_EQUAL</span><span class="p">,</span>
+  <span class="n">TOKEN_GREATER</span><span class="p">,</span> <span class="n">TOKEN_GREATER_EQUAL</span><span class="p">,</span>
+  <span class="n">TOKEN_LESS</span><span class="p">,</span> <span class="n">TOKEN_LESS_EQUAL</span><span class="p">,</span>
+
+  <span class="c1">// Literals.</span>
+  <span class="n">TOKEN_IDENTIFIER</span><span class="p">,</span> <span class="n">TOKEN_STRING</span><span class="p">,</span> <span class="n">TOKEN_NUMBER</span><span class="p">,</span>
+
+  <span class="c1">// Keywords.</span>
+  <span class="n">TOKEN_AND</span><span class="p">,</span> <span class="n">TOKEN_CLASS</span><span class="p">,</span> <span class="n">TOKEN_ELSE</span><span class="p">,</span> <span class="n">TOKEN_FALSE</span><span class="p">,</span>
+  <span class="n">TOKEN_FUN</span><span class="p">,</span> <span class="n">TOKEN_FOR</span><span class="p">,</span> <span class="n">TOKEN_IF</span><span class="p">,</span> <span class="n">TOKEN_NIL</span><span class="p">,</span> <span class="n">TOKEN_OR</span><span class="p">,</span>
+  <span class="n">TOKEN_PRINT</span><span class="p">,</span> <span class="n">TOKEN_RETURN</span><span class="p">,</span> <span class="n">TOKEN_SUPER</span><span class="p">,</span> <span class="n">TOKEN_THIS</span><span class="p">,</span>
+  <span class="n">TOKEN_TRUE</span><span class="p">,</span> <span class="n">TOKEN_VAR</span><span class="p">,</span> <span class="n">TOKEN_WHILE</span><span class="p">,</span>
+
+  <span class="n">TOKEN_ERROR</span><span class="p">,</span>
+  <span class="n">TOKEN_EOF</span>
+<span class="p">}</span> <span class="n">TokenType</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</pre></div>
+
+<ul>
+<li>aside from &ldquo;TOKEN_&rdquo; prefix since c doesn&rsquo;t scope enum names, only difference
+  is error type</li>
+<li>in clox, scanner not directly report lexical error</li>
+<li>pass to compiler as error token</li>
+<li>
+<p>let&rsquo;s compiler handle, helpful for panic mode</p>
+</li>
+<li>
+<p>that&rsquo;s token data</p>
+</li>
+<li>now to produce</li>
+<li>start simple then refine</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>initScanner</em>()</div>
+<pre><span></span><span class="n">Token</span> <span class="nf">scanToken</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="n">errorToken</span><span class="p">(</span><span class="s">&quot;Unexpected character.&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>each call scans and returns next token in source</li>
+<li>since call beginning new token, first set scanner.start to current char</li>
+<li>
+<p>new token starts where last token ended</p>
+</li>
+<li>
+<p>then, if call after reach end of source, return eof token</p>
+</li>
+<li>
+<p>[can call repeatedly get infinite series of eof]</p>
+</li>
+<li>
+<p>otherwise, if reach end of this fn return error token</p>
+</li>
+<li>soon, before last line, will add code for chars that <em>are</em> valid</li>
+<li>need few helpers</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>initScanner</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isAtEnd</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="o">*</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>assume source string is good nul-term c string</li>
+<li>
+<p>need to be careful not to advance current <em>past</em> end of string</p>
+</li>
+<li>
+<p>helper to create token of given type</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>isAtEnd</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">makeToken</span><span class="p">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Token</span> <span class="n">token</span><span class="p">;</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">type</span><span class="p">;</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">start</span><span class="p">;</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">scanner</span><span class="p">.</span><span class="n">start</span><span class="p">);</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">line</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">token</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>uses start and current chars in scanner to determine range for lexeme</li>
+<li>likewise current line</li>
+<li>
+<p>returns token by value, so gets copied</p>
+</li>
+<li>
+<p>also have helper for creating error token</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>makeToken</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">errorToken</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Token</span> <span class="n">token</span><span class="p">;</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">TOKEN_ERROR</span><span class="p">;</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">message</span><span class="p">;</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">strlen</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+  <span class="n">token</span><span class="p">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">line</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">token</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>similar to maketoken</li>
+<li>&ldquo;lexeme&rdquo; now point to given error message string</li>
+<li>must ensure all calls to this pass string should lifetime is long enough for
+  compiler to access string</li>
+<li>in practice, always call with string literal, which are constant and eternal</li>
+<li>
+<p>[need to be careful. c lang doesn&rsquo;t help.]</p>
+</li>
+<li>
+<p>basically have functional scanner now for language whose lexical grammar is
+  empty</p>
+</li>
+<li>reports errors on all chars</li>
+<li>start filling in grammar</li>
+</ul>
+<h3><a href="#simple-tokens" name="simple-tokens"><small>16&#8202;.&#8202;3&#8202;.&#8202;1</small> simple tokens</a></h3>
+<ul>
+<li>as before start with tokens that are single char</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">);</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>scanToken</em>()</div>
+<pre class="insert"><br><span></span>  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">advance</span><span class="p">();</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="sc">&#39;(&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;)&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;{&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;}&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_RIGHT_BRACE</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;;&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;,&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_COMMA</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;.&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_DOT</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;-&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_MINUS</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;+&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_PLUS</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;/&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_SLASH</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_STAR</span><span class="p">);</span>
+  <span class="p">}</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="nf">errorToken</span><span class="p">(</span><span class="s">&quot;Unexpected character.&quot;</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>read next char from source</li>
+<li>switch on it</li>
+<li>if any of single char punctuators, immediately make token</li>
+<li>uses new fn</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>isAtEnd</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">char</span> <span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="o">++</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>advances pointer to current char and returns previous just consumed one</li>
+<li>
+<p>[would be smart to assert current char is not &lsquo;\0&rsquo; to ensure can&rsquo;t advance
+  past end of input]</p>
+</li>
+<li>
+<p>next-simplest are tokens that can be one or two chars</p>
+</li>
+<li>in all cases, token can be single char or is valid two char token with <code>=</code>
+  as second</li>
+<li>like <code>!</code> or <code>=</code>, <code>=</code> or <code>==</code></li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_STAR</span><span class="p">);</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>scanToken</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="sc">&#39;!&#39;</span><span class="o">:</span>
+      <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">TOKEN_BANG_EQUAL</span> <span class="p">:</span> <span class="n">TOKEN_BANG</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;=&#39;</span><span class="o">:</span>
+      <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">TOKEN_EQUAL_EQUAL</span> <span class="p">:</span> <span class="n">TOKEN_EQUAL</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;&lt;&#39;</span><span class="o">:</span>
+      <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">TOKEN_LESS_EQUAL</span> <span class="p">:</span> <span class="n">TOKEN_LESS</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span><span class="o">:</span>
+      <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">TOKEN_GREATER_EQUAL</span> <span class="p">:</span> <span class="n">TOKEN_GREATER</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>
+<br></pre></div>
+
+<ul>
+<li>for these, after consume first char, look at second</li>
+<li>conditionally consume second if <code>=</code></li>
+<li>otherwise, just consume first</li>
+<li>that logic in</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>advance</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">match</span><span class="p">(</span><span class="kt">char</span> <span class="n">expected</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="o">++</span><span class="p">;</span>
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>if current char is given one, consumes it and returns return</li>
+<li>else false</li>
+<li>
+<p>now can handle all of various punctuation tokens</p>
+</li>
+<li>
+<p>before more interesting, side trip to handle chars that aren&rsquo;t tokens at
+  all</p>
+</li>
+</ul>
+<h3><a href="#whitespace" name="whitespace"><small>16&#8202;.&#8202;3&#8202;.&#8202;2</small> whitespace</a></h3>
+<ul>
+<li>scanner needs to consume whitespace, but not emit token</li>
+<li>
+<p>[whitespace is meaningful, though, separates other tokens]</p>
+</li>
+<li>
+<p>don&rsquo;t want to handle whitespace in main switch because need to ensure that
+  call to scanToken() does ignore whitespace and get to actual token it can
+  return</p>
+</li>
+<li>would have to call itself or loop or something if waited until main switch
+  to look for whitespace chars</li>
+<li>instead, before starting next token, first try to just skip over whitespace</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Token</span> <span class="nf">scanToken</span><span class="p">()</span> <span class="p">{</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>scanToken</em>()</div>
+<pre class="insert"><span></span>  <span class="n">skipWhitespace</span><span class="p">();</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="p">;</span>
+<br></pre></div>
+
+<ul>
+<li>advances scanner past any whitespace chars</li>
+<li>if there are none, does nothing</li>
+<li>after calling this, know next char is meaningful</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>errorToken</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">skipWhitespace</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
+    <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">peek</span><span class="p">();</span>
+    <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">case</span> <span class="sc">&#39; &#39;</span><span class="o">:</span>
+      <span class="k">case</span> <span class="sc">&#39;\r&#39;</span><span class="o">:</span>
+      <span class="k">case</span> <span class="sc">&#39;\t&#39;</span><span class="o">:</span>
+        <span class="n">advance</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+
+      <span class="k">default</span><span class="o">:</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>loops</li>
+<li>as long as next char is whitespace, advances past it and keeps looping</li>
+<li>once hits non-whitespace, exits</li>
+<li>unlike previous switch, use peek(), not advance()</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>advance</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">char</span> <span class="nf">peek</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="o">*</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>if next char is not whitespace, need to <em>not</em> consume it so that scanToken()
+  can</li>
+<li>want to just <em>look</em> at it</li>
+<li>
+<p>peek does that</p>
+</li>
+<li>
+<p>above handles most whitespace chars</p>
+</li>
+<li>one char left, newline</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="p">;</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>skipWhitespace</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="sc">&#39;\n&#39;</span><span class="o">:</span>
+        <span class="n">scanner</span><span class="p">.</span><span class="n">line</span><span class="o">++</span><span class="p">;</span>
+        <span class="n">advance</span><span class="p">();</span>
+        <span class="k">break</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span>      <span class="k">default</span><span class="o">:</span>
+</pre></div>
+
+<ul>
+<li>
+<p>treat a little specially because need to increment current line too</p>
+</li>
+<li>
+<p>other kind of ignored text is comments</p>
+</li>
+<li>handle here too</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="p">;</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>skipWhitespace</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="sc">&#39;/&#39;</span><span class="o">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">peekNext</span><span class="p">()</span> <span class="o">==</span> <span class="sc">&#39;/&#39;</span><span class="p">)</span> <span class="p">{</span>
+          <span class="c1">// A comment goes until the end of the line.</span>
+          <span class="k">while</span> <span class="p">(</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="sc">&#39;\n&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="n">advance</span><span class="p">();</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="k">return</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="k">break</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span>      <span class="k">default</span><span class="o">:</span>
+</pre></div>
+
+<ul>
+<li>if current char is <code>/</code> and next char is <code>/</code> too, then found line comment</li>
+<li>enter little inner loop that consumes anything until hit end of line</li>
+<li>have to check for eof too&#8202;&mdash;&#8202;can have comment on last line</li>
+<li>again use peek here</li>
+<li>
+<p>don&rsquo;t want to consume &lsquo;\n&rsquo; in this loop because want to handle that in outer
+  loop so increment current line after line comment too</p>
+</li>
+<li>
+<p>also handle <code>/</code> not followed by <code>/</code></p>
+</li>
+<li>in that case, not comment, meaningful char, so exit entirely</li>
+<li>need to ensure don&rsquo;t even consume first <code>/</code> in this case, so have to look
+  two chars ahead before consume either</li>
+<li>define</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>peek</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">char</span> <span class="nf">peekNext</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="k">return</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>could make peek take param, but explicit fn makes it clear scanner only uses
+  two chars of lookahead</li>
+<li>
+<p>[also avoids having to pass 0 to most calls to peek since c no overload]</p>
+</li>
+<li>
+<p>easy tokens and whitespace</p>
+</li>
+<li>get more interesting</li>
+</ul>
+<h3><a href="#literal-tokens" name="literal-tokens"><small>16&#8202;.&#8202;3&#8202;.&#8202;3</small> literal tokens</a></h3>
+<ul>
+<li>number and string tokens</li>
+<li>literal values</li>
+<li>strings always start with quote</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">makeToken</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">TOKEN_GREATER_EQUAL</span> <span class="p">:</span> <span class="n">TOKEN_GREATER</span><span class="p">);</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>scanToken</em>()</div>
+<pre class="insert"><br><span></span>    <span class="k">case</span> <span class="sc">&#39;&quot;&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">string</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>
+<br></pre></div>
+
+<ul>
+<li>calls</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>skipWhitespace</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">string</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">peek</span><span class="p">()</span> <span class="o">!=</span> <span class="sc">&#39;&quot;&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="sc">&#39;\n&#39;</span><span class="p">)</span> <span class="n">scanner</span><span class="p">.</span><span class="n">line</span><span class="o">++</span><span class="p">;</span>
+    <span class="n">advance</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="k">return</span> <span class="n">errorToken</span><span class="p">(</span><span class="s">&quot;Unterminated string.&quot;</span><span class="p">);</span>
+
+  <span class="c1">// The closing &quot;.</span>
+  <span class="n">advance</span><span class="p">();</span>
+  <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_STRING</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>pretty similar to jlox</li>
+<li>keep reading chars until find closing quote</li>
+<li>also track newlines inside string</li>
+<li>[lox allows newlines in string]</li>
+<li>
+<p>and handle unterm string error</p>
+</li>
+<li>
+<p>main difference from jlox something not there</p>
+</li>
+<li>again about mem mgmt</li>
+<li>in jlox, token had value field to store converted literal value&#8202;&mdash;&#8202;string,
+  double</li>
+<li>field&rsquo;s type was object</li>
+<li>
+<p>lot of baggage&#8202;&mdash;&#8202;runtime type id, gc</p>
+</li>
+<li>
+<p>no easy way to store string or number in token in c</p>
+</li>
+<li>instead, defer creating runtime rep until later</li>
+<li>token just has raw lexeme</li>
+<li>
+<p>then in compiler, will produce value when can immediately store in constant
+  table</p>
+</li>
+<li>
+<p>[does mean little redundant work
+  code to recognize lexeme similar to code to produce real value from it
+  would be more if had string escapes and stuff]</p>
+</li>
+<li>
+<p>number can start with any digit</p>
+</li>
+<li>instead of lot of cases in switch, handle separately</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">advance</span><span class="p">();</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>scanToken</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isDigit</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">return</span> <span class="n">number</span><span class="p">();</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<ul>
+<li>utility</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>initScanner</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isDigit</span><span class="p">(</span><span class="kt">char</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">c</span> <span class="o">&gt;=</span> <span class="sc">&#39;0&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="sc">&#39;9&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>to finish scanning number</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>skipWhitespace</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">number</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">isDigit</span><span class="p">(</span><span class="n">peek</span><span class="p">()))</span> <span class="n">advance</span><span class="p">();</span>
+
+  <span class="c1">// Look for a fractional part.</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">peek</span><span class="p">()</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">isDigit</span><span class="p">(</span><span class="n">peekNext</span><span class="p">()))</span> <span class="p">{</span>
+    <span class="c1">// Consume the &quot;.&quot;</span>
+    <span class="n">advance</span><span class="p">();</span>
+
+    <span class="k">while</span> <span class="p">(</span><span class="n">isDigit</span><span class="p">(</span><span class="n">peek</span><span class="p">()))</span> <span class="n">advance</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_NUMBER</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>virtually identical to jlox</li>
+<li>except don&rsquo;t parse lexeme to double value yet</li>
+</ul>
+<h3><a href="#identifiers-and-keywords" name="identifiers-and-keywords"><small>16&#8202;.&#8202;3&#8202;.&#8202;4</small> identifiers and keywords</a></h3>
+<ul>
+<li>last set of tokens are identifiers</li>
+<li>including special reserved identifiers&#8202;&mdash;&#8202;keywords</li>
+<li>idents start with letter</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">advance</span><span class="p">();</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>scanToken</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isAlpha</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">return</span> <span class="n">identifier</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isDigit</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">return</span> <span class="n">number</span><span class="p">();</span>
+<br></pre></div>
+
+<ul>
+<li>which is any of</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>initScanner</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isAlpha</span><span class="p">(</span><span class="kt">char</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="sc">&#39;a&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="sc">&#39;z&#39;</span><span class="p">)</span> <span class="o">||</span>
+         <span class="p">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="sc">&#39;A&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="sc">&#39;Z&#39;</span><span class="p">)</span> <span class="o">||</span>
+          <span class="n">c</span> <span class="o">==</span> <span class="sc">&#39;_&#39;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>once found, scan rest of ident using</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>skipWhitespace</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">identifier</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">isAlpha</span><span class="p">(</span><span class="n">peek</span><span class="p">())</span> <span class="o">||</span> <span class="n">isDigit</span><span class="p">(</span><span class="n">peek</span><span class="p">()))</span> <span class="n">advance</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">identifierType</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>keep reading allowed chars&#8202;&mdash;&#8202;letter or digit&#8202;&mdash;&#8202;until hit other</li>
+<li>
+<p>or reach end</p>
+</li>
+<li>
+<p>then make token with proper type</p>
+</li>
+<li>type calculated here</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>skipWhitespace</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">TokenType</span> <span class="nf">identifierType</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">TOKEN_IDENTIFIER</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>first pass, no reserved words at all</li>
+<li>
+<p>everything is user-defined ident</p>
+</li>
+<li>
+<p>how recognize keywords?</p>
+</li>
+<li>on jlox, looked up lexeme string in map of keyword name to token type</li>
+<li>
+<p>no maps in c</p>
+</li>
+<li>
+<p>could write our own map</p>
+</li>
+<li>will need it eventually</li>
+<li>think little more fundamentally</li>
+<li>let&rsquo;s say scanned identifier lexeme is &ldquo;gorgonzola&rdquo;</li>
+<li>how much work need to do to tell if that&rsquo;s a reserved word?</li>
+<li>well, no lox keyword starts with &ldquo;g&rdquo;, so looking at first char enough to
+  rule it out</li>
+<li>
+<p>much faster than hashing string, doing map lookup, etc.</p>
+</li>
+<li>
+<p>what about &ldquo;cardigan&rdquo;?</p>
+</li>
+<li>do have one keyword that starts with c</li>
+<li>but second char rules out &ldquo;class&rdquo;</li>
+<li>
+<p>so sometimes need to walk farther into lexeme</p>
+</li>
+<li>
+<p>what about &ldquo;foreigner&rdquo;?</p>
+</li>
+<li>
+<p>&ldquo;for&rdquo; is keyword, but remaining chars rule out</p>
+</li>
+<li>
+<p>imagine tree</p>
+</li>
+<li>root has child for letter that starts keyword</li>
+<li>each of those have children for each letter that is second letter of keyword starting with that letter</li>
+<li>and so on</li>
+<li>
+<p>if char node is last letter in keyword, mark it with token type</p>
+</li>
+<li>
+<p>to recognize, walk tree</p>
+</li>
+<li>at each node, take branch that is next char in lexeme</li>
+<li>if reach token type node at last char of lexeme, matched full keyword</li>
+<li>if didn&rsquo;t have node for lexeme char, or still had chars left (as in foreigner)
+  when reach tokentype node, it&rsquo;s an identifier</li>
+</ul>
+<p><strong>todo: tree</strong></p>
+<p><strong>todo: illustrate example traversal</strong></p>
+<ul>
+<li>may sound familiar</li>
+<li>very similar to two classic data structures</li>
+<li>first is trie</li>
+</ul>
+<p>https://en.wikipedia.org/wiki/Trie</p>
+<ul>
+<li>[bad name]</li>
+<li>tree-like way to store set of strings</li>
+<li>instead of storing each string as separate object, split in to characters</li>
+<li>organize into a tree where path along branches reconstructs original string</li>
+<li>with special marker on nodes where string ends</li>
+<li>
+<p>to tell if string is in set, walk tree just like did above</p>
+</li>
+<li>
+<p>trie is special case of dfa</p>
+</li>
+</ul>
+<p>https://en.wikipedia.org/wiki/Deterministic_finite_automaton</p>
+<ul>
+<li>finite automata other name for state machine</li>
+<li>[gpp link]</li>
+<li>state machine has set of &ldquo;states&rdquo;&#8202;&mdash;&#8202;node in graph</li>
+<li>has set of allowed transitions&#8202;&mdash;&#8202;labeled edges</li>
+<li>
+<p>can go from one state to another if transition exists and &ldquo;event&rdquo; occurs that
+  matches edge label</p>
+</li>
+<li>
+<p>can think of like old text adventures where each state is room, edges are doors, and events are navigation commands &ldquo;go n&rdquo;</p>
+</li>
+</ul>
+<p><strong>todo: illustrate</strong></p>
+<ul>
+<li>
+<p>[metaphor from steve klabnik]</p>
+</li>
+<li>
+<p>dfa can be used to recognize strings</p>
+</li>
+<li>states represent how much of string has been consumed</li>
+<li>each edge consumes specific char</li>
+<li>can transition from one state to next by consuming char</li>
+<li>in general dfa, can have cycles and reuse states</li>
+<li>
+<p>in simple keyword recognizer, no loops, so tree</p>
+</li>
+<li>
+<p>could in fact use single giant dfa for entire scanner</p>
+</li>
+<li>what scanner generators like lex and ragel do</li>
+<li>
+<p>most regex engines generate dfa under hood</p>
+</li>
+<li>
+<p>all we need is tiny tree one for keywords</p>
+</li>
+<li>
+<p>how to map tree walk to code?</p>
+</li>
+<li>
+<p>idiot simple thing is to use switch for each level of branching</p>
+</li>
+<li>start with first char, and easy keywords</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">{</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>identifierType</em>()</div>
+<pre class="insert"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">start</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;nd&quot;</span><span class="p">,</span> <span class="n">TOKEN_AND</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;lass&quot;</span><span class="p">,</span> <span class="n">TOKEN_CLASS</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;lse&quot;</span><span class="p">,</span> <span class="n">TOKEN_ELSE</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;f&quot;</span><span class="p">,</span> <span class="n">TOKEN_IF</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;n&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;il&quot;</span><span class="p">,</span> <span class="n">TOKEN_NIL</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;o&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">,</span> <span class="n">TOKEN_OR</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;p&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;rint&quot;</span><span class="p">,</span> <span class="n">TOKEN_PRINT</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;r&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s">&quot;eturn&quot;</span><span class="p">,</span> <span class="n">TOKEN_RETURN</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;uper&quot;</span><span class="p">,</span> <span class="n">TOKEN_SUPER</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;ar&quot;</span><span class="p">,</span> <span class="n">TOKEN_VAR</span><span class="p">);</span>
+    <span class="k">case</span> <span class="sc">&#39;w&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;hile&quot;</span><span class="p">,</span> <span class="n">TOKEN_WHILE</span><span class="p">);</span>
+  <span class="p">}</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">TOKEN_IDENTIFIER</span><span class="p">;</span>
+</pre></div>
+
+<ul>
+<li>these are keywords where only single keyword starts with given char</li>
+<li>if we see &ldquo;a&rdquo; as first letter could only possibly be &ldquo;and&rdquo;</li>
+<li>might not be though, so still need to check rest of letters too</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
+add after <em>skipWhitespace</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">TokenType</span> <span class="nf">checkKeyword</span><span class="p">(</span><span class="kt">int</span> <span class="n">start</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+    <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">rest</span><span class="p">,</span> <span class="n">TokenType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">==</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span> <span class="o">&amp;&amp;</span>
+      <span class="n">memcmp</span><span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">start</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">type</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="n">TOKEN_IDENTIFIER</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>need to test two things</li>
+<li>lexeme must be exactly as long as keyword&#8202;&mdash;&#8202;not too long or short</li>
+<li>remaining chars much match exactly</li>
+<li>if so, it&rsquo;s keyword</li>
+<li>
+<p>otherwise, regular ident</p>
+</li>
+<li>
+<p>couple of tricky cases</p>
+</li>
+<li>if first letter is &ldquo;f&rdquo;, could be &ldquo;false&rdquo;, &ldquo;for&rdquo;, or &ldquo;fun&rdquo;</li>
+<li>have to check second letter to see which it could be</li>
+<li>next level of branching in tree</li>
+<li>also need to make sure there is second letter</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;lse&quot;</span><span class="p">,</span> <span class="n">TOKEN_ELSE</span><span class="p">);</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>identifierType</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="sc">&#39;f&#39;</span><span class="o">:</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">start</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">{</span>
+          <span class="k">case</span> <span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;lse&quot;</span><span class="p">,</span> <span class="n">TOKEN_FALSE</span><span class="p">);</span>
+          <span class="k">case</span> <span class="sc">&#39;o&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">,</span> <span class="n">TOKEN_FOR</span><span class="p">);</span>
+          <span class="k">case</span> <span class="sc">&#39;u&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;n&quot;</span><span class="p">,</span> <span class="n">TOKEN_FUN</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">break</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="sc">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;f&quot;</span><span class="p">,</span> <span class="n">TOKEN_IF</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>&ldquo;t&rdquo; is similar&#8202;&mdash;&#8202;could be &ldquo;this&rdquo; or &ldquo;true&rdquo;</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;uper&quot;</span><span class="p">,</span> <span class="n">TOKEN_SUPER</span><span class="p">);</span>
+</pre><div class="source-file"><em>scanner.c</em><br>
+in <em>identifierType</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="sc">&#39;t&#39;</span><span class="o">:</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">scanner</span><span class="p">.</span><span class="n">start</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="p">{</span>
+          <span class="k">case</span> <span class="sc">&#39;h&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;is&quot;</span><span class="p">,</span> <span class="n">TOKEN_THIS</span><span class="p">);</span>
+          <span class="k">case</span> <span class="sc">&#39;r&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;ue&quot;</span><span class="p">,</span> <span class="n">TOKEN_TRUE</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+      <span class="k">break</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="sc">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;ar&quot;</span><span class="p">,</span> <span class="n">TOKEN_VAR</span><span class="p">);</span>
+</pre></div>
+
+<p>&hellip;</p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ul>
+<li>
+<p>many newer langs support string interpolation (define). how would you
+  write scanner to handle that? what tokens would emit for &ldquo;Hi, ${person.name}!&rdquo;,
+  assuming ${&hellip;} was interpolation syntax</p>
+</li>
+<li>
+<p>how do java scanners handle &ldquo;&gt;&gt;&rdquo; in generics?</p>
+</li>
+<li>
+<p>how would handle contextual keywords?</p>
+</li>
+</ul>
+</div>
+<hr />
+<h2><a href="#notes" name="notes"><small>16&#8202;.&#8202;4</small> notes</a></h2>
+<ul>
+<li>
+<p>compare keyword recognizer to trie, scanner generator, dfa</p>
+</li>
+<li>
+<p>differences from first scanner</p>
+</li>
+<li>scan on demand</li>
+<li>defer creating literal values</li>
+<li>trie-ish for keywords</li>
+</ul>
+<p>https://github.com/v8/v8/blob/master/src/parsing/scanner.cc#L1653</p>
 
 <footer>
 <a href="compiling-expressions.html" class="next">
