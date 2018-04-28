@@ -15,18 +15,13 @@
 //> A Virtual Machine main-include-vm
 #include "vm.h"
 //< A Virtual Machine main-include-vm
-//> Scanning on Demand line-length
-
-#define MAX_LINE_LENGTH 1024
-
-//< Scanning on Demand line-length
 //> Scanning on Demand repl
 static void repl() {
-  char line[MAX_LINE_LENGTH];
+  char line[1024];
   for (;;) {
     printf("> ");
 
-    if (!fgets(line, MAX_LINE_LENGTH, stdin)) {
+    if (!fgets(line, sizeof(line), stdin)) {
       printf("\n");
       break;
     }
@@ -40,7 +35,7 @@ static char* readFile(const char* path) {
   FILE* file = fopen(path, "rb");
 //> no-file
   if (file == NULL) {
-    fprintf(stderr, "Could not find file \"%s\".\n", path);
+    fprintf(stderr, "Could not open file \"%s\".\n", path);
     exit(74);
   }
 //< no-file
@@ -52,7 +47,7 @@ static char* readFile(const char* path) {
   char* buffer = (char*)malloc(fileSize + 1);
 //> no-buffer
   if (buffer == NULL) {
-    fprintf(stderr, "Could not read file \"%s\".\n", path);
+    fprintf(stderr, "Not enough memory to read \"%s\".\n", path);
     exit(74);
   }
   
