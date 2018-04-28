@@ -970,7 +970,7 @@ And... that's it. I know, right? It's embarrassing.
 
 If you wanted to turn Lox into an actual useful language, the very first thing
 you should do is flesh this out. String manipulation, trigonometric functions,
-file IO, networking, heck, even *reading input from the user* would help. But we
+file I/O, networking, heck, even *reading input from the user* would help. But we
 don't need any of that for this book, and adding it wouldn't teach you anything
 interesting, so I left it out.
 

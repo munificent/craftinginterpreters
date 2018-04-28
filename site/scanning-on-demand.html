@@ -37,10 +37,11 @@
 <h3><a href="#top">Scanning on Demand<small>16</small></a></h3>
 
 <ul>
-    <li><a href="#app-skeleton"><small>16.1</small> app skeleton</a></li>
-    <li><a href="#compilation-pipeline"><small>16.2</small> compilation pipeline</a></li>
-    <li><a href="#a-token-at-a-time"><small>16.3</small> a token at a time</a></li>
-    <li><a href="#notes"><small>16.4</small> notes</a></li>
+    <li><a href="#spinning-up-the-interpreter"><small>16.1</small> Spinning Up the Interpreter</a></li>
+    <li><a href="#opening-the-compilation-pipeline"><small>16.2</small> Opening the Compilation Pipeline</a></li>
+    <li><a href="#the-scanner-scans"><small>16.3</small> The Scanner Scans</a></li>
+    <li><a href="#a-token-at-a-time"><small>16.4</small> A Token at a Time</a></li>
+    <li><a href="#identifiers-and-keywords"><small>16.5</small> Identifiers and Keywords</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
@@ -68,10 +69,11 @@
 <h3><a href="#top">Scanning on Demand<small>16</small></a></h3>
 
 <ul>
-    <li><a href="#app-skeleton"><small>16.1</small> app skeleton</a></li>
-    <li><a href="#compilation-pipeline"><small>16.2</small> compilation pipeline</a></li>
-    <li><a href="#a-token-at-a-time"><small>16.3</small> a token at a time</a></li>
-    <li><a href="#notes"><small>16.4</small> notes</a></li>
+    <li><a href="#spinning-up-the-interpreter"><small>16.1</small> Spinning Up the Interpreter</a></li>
+    <li><a href="#opening-the-compilation-pipeline"><small>16.2</small> Opening the Compilation Pipeline</a></li>
+    <li><a href="#the-scanner-scans"><small>16.3</small> The Scanner Scans</a></li>
+    <li><a href="#a-token-at-a-time"><small>16.4</small> A Token at a Time</a></li>
+    <li><a href="#identifiers-and-keywords"><small>16.5</small> Identifiers and Keywords</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
@@ -109,30 +111,20 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
-<hr />
-<ul>
-<li>clox roughly three phases</li>
-<li>scanner, compiler, vm</li>
-<li>scanner and compiler comm with tokens</li>
-<li>compiler and vm comm with chunks</li>
-<li>started at back end with chunks and vm</li>
-<li>now front end scanner and tokens</li>
-<li>next chapter, middle</li>
-</ul>
+<blockquote>
+<p>Literature is idiosyncratic arrangements in horizontal lines in only twenty-six symbols, ten arabic numbers, and about eight punctuation marks.</p>
+<p><cite>Kurt Vonnegut</cite></p>
+</blockquote>
+<p><strong>todo: more illustrations?</strong></p>
+<p>Our second interpreter clox has roughly three phases<span class="em">&mdash;</span>the scanner, the compiler, and the virtual machine. Between each pair is a data structure. Tokens flow between the scanner and compiler, and chunks of bytecode between the compiler and VM. We started near the end with <a href="chunks-of-bytecode.html">chunks</a> and the <a href="a-virtual-machine.html">VM</a>. Now we&rsquo;re going to circle back to the beginning and build a scanner that makes tokens. In the <a href="compiling-expressions.html">next chapter</a>, we&rsquo;ll tie the two ends together with our bytecode compiler.</p>
 <p><strong>todo: illustrate phases scanner -&gt; tokens -&gt; compiler -&gt; chunk -&gt; vm</strong></p>
-<ul>
-<li>not most exciting chapter</li>
-<li>mostly similar technique as java scanner</li>
-<li>few interesting differences scattered</li>
-<li>some driven by mem manage in c</li>
-<li>get started</li>
-</ul>
-<h2><a href="#app-skeleton" name="app-skeleton"><small>16&#8202;.&#8202;1</small> app skeleton</a></h2>
-<ul>
-<li>building front end so can start get work like real interp</li>
-<li>repl and run scripts</li>
-<li>like jlox</li>
-</ul>
+<p>I&rsquo;ll admit, this is not the most exciting chapter in the book. With two implementations of the same languages, there&rsquo;s bound to be <em>some</em> redundancy. The basic techniques we use here are similar to the scanner in jlox. I did sneak in a few interesting differences, though, mostly driven by our need to manage memory ourselves in C. Ready to get started?</p>
+<h2><a href="#spinning-up-the-interpreter" name="spinning-up-the-interpreter"><small>16&#8202;.&#8202;1</small> Spinning Up the Interpreter</a></h2>
+<p>Now that we&rsquo;re building the front end, we can finally get clox running like a
+real interpreter. No more executing a hand-authored chunk of bytecode and then
+exiting. Like jlox has, clox is going to get a REPL and the ability to run Lox
+scripts stored in files.</p>
+<p>It starts in <code>main()</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initVM</span><span class="p">();</span>
 <br></pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()<br>
@@ -148,13 +140,16 @@ replace 24 lines</div>
 <br></pre><pre class="insert-after"><span></span>  <span class="n">freeVM</span><span class="p">();</span>
 </pre></div>
 
-<ul>
-<li>clox run from cmd line</li>
-<li>if pass no arg, repl</li>
-<li>if one, run script at path</li>
-<li>otherwise error</li>
-<li>[args[0] is executable in c]</li>
-</ul>
+<p>You invoke clox from the command line. If you pass <span name="args">no
+arguments</span> to the executable, you are dropped into the REPL. A single
+command line argument is understood to be the path to a script to run. More
+arguments than that is an error.</p>
+<aside name="args">
+<p>The code actually tests for one and two arguments respectively. That&rsquo;s because
+the first argument in <code>argv</code> is always the name of the executable being run.
+Sort of the &ldquo;zeroth&rdquo; argument to the command.</p>
+</aside>
+<p>We need to include a few headers, so let&rsquo;s get that out of the way now:</p>
 <div class="codehilite"><div class="source-file"><em>main.c</em><br>
 add to top of file</div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
@@ -163,17 +158,14 @@ add to top of file</div>
 <br></pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
 </pre></div>
 
-<ul>
-<li>always need indluces</li>
-<li>repl easiest</li>
-</ul>
+<p>And now to get the REPL up and&hellip; uh&hellip; REPLing:</p>
 <div class="codehilite"><div class="source-file"><em>main.c</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">repl</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kt">char</span> <span class="n">line</span><span class="p">[</span><span class="n">MAX_LINE_LENGTH</span><span class="p">];</span>
+  <span class="kt">char</span> <span class="n">line</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
   <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
     <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&gt; &quot;</span><span class="p">);</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fgets</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">MAX_LINE_LENGTH</span><span class="p">,</span> <span class="n">stdin</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">fgets</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">line</span><span class="p">),</span> <span class="n">stdin</span><span class="p">))</span> <span class="p">{</span>
       <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
       <span class="k">break</span><span class="p">;</span>
     <span class="p">}</span>
@@ -183,25 +175,13 @@ add to top of file</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>rudimentary</li>
-<li>only single-line</li>
-<li>hardcoded line length</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;</span><span class="cp"></span>
-</pre><div class="source-file"><em>main.c</em></div>
-<pre class="insert"><br><span></span><span class="cp">#define MAX_LINE_LENGTH 1024</span>
-<br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">repl</span><span class="p">()</span> <span class="p">{</span>
-</pre></div>
-
-<ul>
-<li>real work is interpret()</li>
-<li>get there soon</li>
-</ul>
-<h3><a href="#running-scripts" name="running-scripts"><small>16&#8202;.&#8202;1&#8202;.&#8202;1</small> running scripts</a></h3>
-<ul>
-<li>if pass path, load file and run as script</li>
-</ul>
+<p>It&rsquo;s pretty rudimentary. A quality REPL handles input that spans multiple lines
+gracefully and doesn&rsquo;t have a hardcoded line length limit. This REPL here is a
+little more spartan, but it gets the job done.</p>
+<p>The real work happens in <code>interpret()</code>. We&rsquo;ll get to that soon, but first let&rsquo;s
+take care of running scripts.</p>
+<h3><a href="#running-lox-scripts" name="running-lox-scripts"><small>16&#8202;.&#8202;1&#8202;.&#8202;1</small> Running Lox scripts</a></h3>
+<p>If you pass an argument to clox, it loads the file at that path and runs it:</p>
 <div class="codehilite"><div class="source-file"><em>main.c</em><br>
 add after <em>repl</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">runFile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">path</span><span class="p">)</span> <span class="p">{</span>
@@ -214,15 +194,20 @@ add after <em>repl</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>readFile() dynamically allocs string, so free here</li>
-<li>
-<p>use result of interp() to determine exit code</p>
-</li>
-<li>
-<p>helper</p>
-</li>
-</ul>
+<p><span name="owner">We</span> read the file and execute the resulting string of
+Lox source code. Then, based on the result of that, we set the exit code
+appropriately because we&rsquo;re scrupulous tool builders and care about little
+details like that.</p>
+<p>We also need to free the source code string because <code>readFile()</code> dynamically
+allocates it and passes ownership to us. Here&rsquo;s what
+that function looks like:</p>
+<aside name="owner">
+<p>The fact that we have to know and remember the memory policy is a key pain point
+of C. The language is too low-level to handle memory policy on its own as Java
+does, but nor does it give us tools to actually encode the policies like you
+could in C++. Instead, it&rsquo;s up to us fallible humans. C&rsquo;s simplicity is nice,
+but it has its cost.</p>
+</aside>
 <div class="codehilite"><div class="source-file"><em>main.c</em><br>
 add after <em>repl</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">char</span><span class="o">*</span> <span class="nf">readFile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">path</span><span class="p">)</span> <span class="p">{</span>
@@ -241,58 +226,65 @@ add after <em>repl</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>reads the contents of the file at path</li>
-<li>need to manage mem for string</li>
-<li>how big?</li>
-<li>depends on file</li>
-<li>trick: seek to end of file</li>
-<li>get current file pos -&gt; length of file</li>
-<li>
-<p>seek back to beginning</p>
-</li>
-<li>
-<p>alloc string that size</p>
-</li>
-<li>[+1 for terminator!]</li>
-<li>
-<p>read into buffer, just right size</p>
-</li>
-<li>
-<p>close and return</p>
-</li>
-<li>
-<p>what if error?</p>
-</li>
-<li>most c stdlib fns can fail</li>
-<li>need to handle</li>
-</ul>
+<p>Like a lot of C code, this takes more effort than it seems like it should,
+especially for a language expressly designed for operating systems. You&rsquo;d think
+file I/O would come more easily, but I digress.</p>
+<p>The tricky part is that we want to allocate a big enough string to read the
+whole file, but we don&rsquo;t know how big the file is. The code here is the classic
+trick to solve that. We open the file, but before reading it, we seek to the
+very end of the file using <code>fseek()</code>. Then we call <code>ftell()</code> which tells us how
+many bytes we are from the start of the file. Since we seeked (&ldquo;sought&rdquo;?) to the
+end, that&rsquo;s the size.</p>
+<p>Next, we rewind back to the beginning of a file, allocate a string of that <span
+name="one">size</span>, and read the whole file in a single batch. Then the
+usual remaining formalities<span class="em">&mdash;</span>ensuring the string is null-terminated and
+closing the file.</p>
+<aside name="one">
+<p>Well, that size <em>plus one</em>. Always gotta remember to make room for the null
+byte.</p>
+</aside>
+<p>So we&rsquo;re done, right? Not quite. These function calls, like most calls in the C
+standard library, can <span name="printf">fail</span>. If this were Java, the
+failures would be thrown as exceptions and automatically unwind the stack so we
+wouldn&rsquo;t <em>really</em> need to handle them. In C, if we don&rsquo;t check for them, they
+silently get ignored.</p>
+<aside name="printf">
+<p>Even good old <code>printf()</code> can fail. Yup. How many times have you checked for
+<em>that</em> error?</p>
+</aside>
+<p>This isn&rsquo;t really a good on good C programming practices, but I don&rsquo;t want to
+encourage sloppy programming either, so lets go ahead and handle the errors.
+It&rsquo;s good for us, like eating our vegetables or flossing.</p>
+<p>Fortunately, we don&rsquo;t need to do anything particulary clever if a failure occurs
+here. If we can&rsquo;t even correctly read the user&rsquo;s script, all we can really do is
+let the user know and exit the interpreter gracefully.</p>
+<p>First up, we might fail to open the file:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">FILE</span><span class="o">*</span> <span class="n">file</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 add after <em>repl</em>()</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">file</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not find file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not open file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
   <span class="p">}</span>
 </pre><pre class="insert-after"><br><span></span>  <span class="n">fseek</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="mi">0L</span><span class="p">,</span> <span class="n">SEEK_END</span><span class="p">);</span>
 </pre></div>
 
-<ul>
-<li>if couldn&rsquo;t open file at all</li>
-</ul>
+<p>This can happen if the file doesn&rsquo;t exist or the user doesn&rsquo;t have access to it.
+This is actually pretty common<span class="em">&mdash;</span>people mis-type paths all the time.</p>
+<p>This failure is much less common:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">buffer</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">fileSize</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em></div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not read file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Not enough memory to read </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
   <span class="p">}</span>
 <br></pre><pre class="insert-after"><span></span>  <span class="kt">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">fileSize</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
 </pre></div>
 
-<ul>
-<li>if couldn&rsquo;t alloc enough mem for file</li>
-<li>[unlikely, but would crash hard if didn&rsquo;t]</li>
-</ul>
+<p>If you can&rsquo;t even allocate enough memory to read a little Lox script, you&rsquo;ve
+probably got bigger problems to worry about, but we should do our best to at
+least let you know.</p>
+<p>Finally, the read itself may fail:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">fileSize</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em></div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">bytesRead</span> <span class="o">&lt;</span> <span class="n">fileSize</span><span class="p">)</span> <span class="p">{</span>
@@ -302,17 +294,15 @@ add after <em>repl</em>()</div>
 <br></pre><pre class="insert-after"><span></span>  <span class="n">buffer</span><span class="p">[</span><span class="n">bytesRead</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
 </pre></div>
 
-<ul>
-<li>read failed</li>
-<li>also unlikely</li>
-<li>if make it through these, return string with script</li>
-<li>runFile() passes to interp</li>
-</ul>
-<h2><a href="#compilation-pipeline" name="compilation-pipeline"><small>16&#8202;.&#8202;2</small> compilation pipeline</a></h2>
-<ul>
-<li>old interp() was temp to run hard-coded chunk</li>
-<li>change to closer to real</li>
-</ul>
+<p>This is also pretty unlikely. Actually, the calls to <code>fseek()</code>, <code>ftell()</code>, and
+<code>rewind()</code> could theoretically fail too, but let&rsquo;s not go too far off in the
+weeds, shall we?</p>
+<h2><a href="#opening-the-compilation-pipeline" name="opening-the-compilation-pipeline"><small>16&#8202;.&#8202;2</small> Opening the Compilation Pipeline</a></h2>
+<p>We&rsquo;ve got ourselves a string of Lox source code, so now we&rsquo;re ready to set up a
+pipeline to scan it, compile it, and execute it. That&rsquo;s all going to be wrapped
+up in <code>interpret()</code>. Right now, that function is a hack to run our old
+hard-coded test chunk. We&rsquo;re ready to change it to something closer to its final
+incarnation:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeVM</span><span class="p">();</span>
 </pre><div class="source-file"><em>vm.h</em><br>
 function <em>interpret</em>()<br>
@@ -321,10 +311,8 @@ replace 1 line</div>
 </pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">push</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
 </pre></div>
 
-<ul>
-<li>job now is to wrap entire exec pipeline</li>
-<li>take in raw source, compile, run</li>
-</ul>
+<p>Where before we passed in a Chunk, now we pass in the string of source code.
+Here&rsquo;s the new implementation:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 function <em>interpret</em>()<br>
 replace 4 lines</div>
@@ -334,20 +322,16 @@ replace 4 lines</div>
 </pre><pre class="insert-after"><span></span><span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>first step is compile</li>
-<li>not full compiler this chapter, but start laying out</li>
-<li>uses new module</li>
-</ul>
+<p>The first step is to compile that source code. We don&rsquo;t have the actual
+<em>compiler</em> yet in this chapter, but we can start laying out that code. It lives
+in a new module:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;compiler.h&quot;</span><span class="cp"></span>
 </pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot;</span><span class="cp"></span>
 </pre></div>
 
-<ul>
-<li>looks like</li>
-</ul>
+<p>For now, the one function in it is declared like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.h</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#ifndef clox_compiler_h</span>
@@ -358,10 +342,7 @@ create new file</div>
 <span class="cp">#endif</span>
 </pre></div>
 
-<ul>
-<li>signature will change, but good for now</li>
-<li>impl</li>
-</ul>
+<p>That will change, but it&rsquo;s fine for now. Here&rsquo;s a first pass at implementing it:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
@@ -375,16 +356,11 @@ create new file</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>first phase of compile is scanning</li>
-<li>compiler right now just sets that up</li>
-<li>lot of scaffolding</li>
-</ul>
-<h3><a href="#scanner" name="scanner"><small>16&#8202;.&#8202;2&#8202;.&#8202;1</small> scanner</a></h3>
-<ul>
-<li>start get to real code</li>
-<li>new scanner module</li>
-</ul>
+<p>The first phase of compilation in scanning<span class="em">&mdash;</span>you know, the thing we&rsquo;re doing
+in this chapter<span class="em">&mdash;</span>so right now all the compiler does is set up that.</p>
+<h2><a href="#the-scanner-scans" name="the-scanner-scans"><small>16&#8202;.&#8202;3</small> The Scanner Scans</a></h2>
+<p>This is a lot of scaffolding code to set up but now we&rsquo;re starting to get to
+something that does something:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.h</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#ifndef clox_scanner_h</span>
@@ -395,10 +371,8 @@ create new file</div>
 <span class="cp">#endif</span>
 </pre></div>
 
-<ul>
-<li>entrypoint fn sets up scanner to scan given source code</li>
-<li>impl</li>
-</ul>
+<p>This initial function sets up the scanner to get ready to tokenize the given
+string of source code. The implementation is:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
@@ -416,36 +390,21 @@ create new file</div>
 <span class="n">Scanner</span> <span class="n">scanner</span><span class="p">;</span>
 </pre></div>
 
-<ul>
-<li>scanner is stateful</li>
-<li>similar to vm, store all state in struct</li>
-<li>
-<p>create single global instance so don&rsquo;t have to thread through fns</p>
-</li>
-<li>
-<p>few fields</p>
-</li>
-<li>start is pointer to first char of current token being scanned</li>
-<li>point directly into source string</li>
-<li>current is point to current char being scanned</li>
-<li>next char to be consumed</li>
-<li>line is current line number</li>
-<li>as in jlox, track line info through compilation for reporting compile and
-  runtime errors</li>
-<li>
-<p>all we need</p>
-</li>
-<li>
-<p>don&rsquo;t even store pointer to beginning of source</p>
-</li>
-<li>scanner walks through string once and never again</li>
-<li>
-<p>doesn&rsquo;t need to remember beginning</p>
-</li>
-<li>
-<p>initialize</p>
-</li>
-</ul>
+<p>Our scanner has some state to keep track of where it is as it chews its way
+through the user&rsquo;s source code. Like with did with the VM, we wrap that state up
+in a single struct and then create a top-level module variable for it so we
+don&rsquo;t have to thread it through all of the various functions.</p>
+<p>It only needs a couple of little first. The <code>start</code> pointer marks the beginning
+of the current lexeme being scanned, and <code>current</code> points to the current
+character being looked at. It&rsquo;s the next character to be consumed, not the
+most-recently consumed one.</p>
+<p>Also, we have a <code>line</code> field to track of what line <code>current</code> is on in the user&rsquo;s
+program. When we create tokens, we&rsquo;ll store that so that we can tell the user
+what line errors occurred on.</p>
+<p>That&rsquo;s all we need. Note that we don&rsquo;t even keep a pointer to the whole source
+code string. The scanners works its way through the source string once and never
+returns to the beginning.</p>
+<p>Since we have some state, we need to initialize it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">Scanner</span> <span class="n">scanner</span><span class="p">;</span>
 </pre><div class="source-file"><em>scanner.c</em></div>
 <pre class="insert"><br><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
@@ -455,27 +414,12 @@ create new file</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>start pointers at beginning of source code</li>
-<li>on line one</li>
-</ul>
-<h2><a href="#a-token-at-a-time" name="a-token-at-a-time"><small>16&#8202;.&#8202;3</small> a token at a time</a></h2>
-<hr />
-<ul>
-<li>finally ready to start doing work</li>
-<li>feel like beginning of concert</li>
-<li>set up sheet music</li>
-<li>adjusted bench</li>
-<li>sit down</li>
-<li>shoot cuffs, adjust skirt</li>
-<li>
-<p>music begins</p>
-</li>
-<li>
-<p>don&rsquo;t have compiler to consume tokens yet</p>
-</li>
-<li>temp code for chapter so can see scanner working</li>
-</ul>
+<p>We start at the very first character on the very first line, like a runner
+crouching down at the starting line, ready to sprint.</p>
+<h2><a href="#a-token-at-a-time" name="a-token-at-a-time"><small>16&#8202;.&#8202;4</small> A Token at a Time</a></h2>
+<p>We&rsquo;re almost ready to get started on the real code, but the starting gun hasn&rsquo;t
+fired just yet. We don&rsquo;t have a compiler that will consume the output of our
+scanner, so we need some temporary code to see what we&rsquo;re doing:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>compile</em>()</div>
@@ -495,15 +439,28 @@ add after <em>compile</em>()</div>
 </pre><pre class="insert-after"><span></span><span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>repeatedly scans tokens until reaching special eof token</li>
-<li>prints each token to stdout</li>
-</ul>
-<p><strong>todo: show example output</strong></p>
-<ul>
-<li>goal for rest of chapter is make that code work</li>
-<li>key fn</li>
-</ul>
+<p>This loops indefinitely. Each turn through the loop, it scans one token and
+prints it. When it reaches a special &ldquo;end of file&rdquo; token, it stops. For example,
+if we invoke the interpreter and throw this at it:</p>
+<div class="codehilite"><pre><span></span>print 1 + 2;
+</pre></div>
+
+
+<p>It prints out:</p>
+<div class="codehilite"><pre><span></span>   1 31 &#39;print&#39;
+   | 21 &#39;1&#39;
+   |  7 &#39;+&#39;
+   | 21 &#39;2&#39;
+   |  8 &#39;;&#39;
+   2 39 &#39;&#39;
+</pre></div>
+
+
+<p>The first column is the line numbers, the second is the numeric value of the
+token type (not exactly human-readable, I know), and then finally the lexeme.
+That last empty token on line 2 here is the EOF one.</p>
+<p>The goal for the rest of the chapter is to make that blob of code work. The key
+function is this one:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
 </pre><div class="source-file"><em>scanner.h</em><br>
 add after <em>initScanner</em>()</div>
@@ -511,22 +468,21 @@ add after <em>initScanner</em>()</div>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#endif</span>
 </pre></div>
 
-<ul>
-<li>tells scanner to scan and return next token</li>
-<li>main difference from previous scanner</li>
-<li>in jlox, scanner eagerly scanned all input and returned list of tokens</li>
-<li>in clox, have to worry about memory for tokens</li>
-<li>simplest solution is to not create token until compiler requests one</li>
-<li>where old pipeline pushes data from front to back, new one pulls</li>
-<li>
-<p>scanner doesn&rsquo;t scan until compiler asks it to</p>
-</li>
-<li>
-<p>returns token by value</p>
-</li>
-<li>token lives directly on c stack, no dynamic alloc needed</li>
-<li>struct is</li>
-</ul>
+<p>It tells the scanner to scan and return the next token in the source code. This
+is the main difference between clox&rsquo;s scanner and the one we wrote for jlox. In
+jlox, our scanner eagerly tokenized the entire input and produced a list of all
+of the tokens at once. If we did that for clox, we&rsquo;d need to allocate and grow
+the list and then free it when the compiler no longer needed it. That&rsquo;s a lot of
+effort, and a lot of memory churn.</p>
+<p>At any point in time, the compiler only needs one or two tokens<span class="em">&mdash;</span>remember that
+our grammar only requires a single token of lookahead after all<span class="em">&mdash;</span>so we don&rsquo;t
+need to keep them <em>all</em> around at the same time. Instead, the simplest solution
+is to not create a token until the compiler requests one.</p>
+<p>Where our old interpreter pipeline ran the scanner and then <em>pushed</em> the
+resulting tokens over to the parser, our new one inverts it. The parser will
+<em>pull</em> tokens out of the scanner as it needs them. When the scanner returns one,
+it returns the token by value. We don&rsquo;t need to dynamically allocate them at all<span class="em">&mdash;</span>we can just pass them around on the C stack.</p>
+<p>Here&rsquo;s what a token looks like:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_scanner_h</span>
 </pre><div class="source-file"><em>scanner.h</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -538,36 +494,26 @@ add after <em>initScanner</em>()</div>
 </pre><pre class="insert-after"><br><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
 </pre></div>
 
-<ul>
-<li>similar to jlox</li>
-<li>enum for what kind of token it is</li>
-<li>
-<p>line number</p>
-</li>
-<li>
-<p>difference is lexeme</p>
-</li>
-<li>in jlox, stored as normal java string</li>
-<li>would require us to manage memory for string in clox</li>
-<li>instead, point back into source code string</li>
-<li>start is first char in source where token begins</li>
-<li>
-<p>length is num chars</p>
-</li>
-<li>
-<p>means no mem management for token</p>
-</li>
-<li>can copy around freely</li>
-<li>as long as memory for source code outlives all tokens, fine</li>
-<li>
-<p>[do have to ensure that policy happens! would be bad if, say, dealloc source
-  string before running code but runtime had token]</p>
-</li>
-<li>
-<p>token type enum virtually idential to clox</p>
-</li>
-<li>blast all out at once</li>
-</ul>
+<p>It&rsquo;s pretty similar to our Java Token class in jlox. There&rsquo;s an enum identifying
+what type of token it is<span class="em">&mdash;</span>number, identifier, <code>+</code> operator, etc. There&rsquo;s a
+line number. The interesting bit is how we represent the lexeme.</p>
+<p>In jlox, each Token stored the lexeme as its own separate little Java string. If
+we did that for clox, we&rsquo;d have to figure out how to manage the memory for that
+string. That&rsquo;s especially hard since we pass around Tokens by value<span class="em">&mdash;</span>multiple
+tokens could point to the same lexeme string. Ownership gets weird.</p>
+<p>Instead, we let the characters for the lexeme reside in the original source
+string. We represent a lexeme by a pointer to its first character, and the
+number of characters it takes up. This means we don&rsquo;t need to worry about
+managing memory for lexemes at all and we can freely copy tokens around. As long
+as the one string for the source code <span name="outlive">outlives</span> all
+of the tokens, everything works out fine.</p>
+<aside name="outlive">
+<p>I don&rsquo;t mean to sound flippant. We really do need to actually think about and
+ensure that the source string, which is created far away over in the main
+module, has the right lifetime.</p>
+</aside>
+<p>That struct relies on an enum for the token&rsquo;s type. It&rsquo;s virtually identical to
+the one in jlox, so let&rsquo;s just hammer out the whole thing:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifndef clox_scanner_h</span>
 <span class="cp">#define clox_scanner_h</span>
 </pre><div class="source-file"><em>scanner.h</em></div>
@@ -599,20 +545,16 @@ add after <em>initScanner</em>()</div>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
 </pre></div>
 
-<ul>
-<li>aside from &ldquo;TOKEN_&rdquo; prefix since c doesn&rsquo;t scope enum names, only difference
-  is error type</li>
-<li>in clox, scanner not directly report lexical error</li>
-<li>pass to compiler as error token</li>
-<li>
-<p>let&rsquo;s compiler handle, helpful for panic mode</p>
-</li>
-<li>
-<p>that&rsquo;s token data</p>
-</li>
-<li>now to produce</li>
-<li>start simple then refine</li>
-</ul>
+<p>Aside from prefixing them all with <code>TOKEN_</code> since C doesn&rsquo;t namespace enum
+names, the only difference is that extra <code>TOKEN_ERROR</code> type. What&rsquo;s that about?
+There are only a couple of errors that get detected during scanning<span class="em">&mdash;</span>things
+like unterminated strings and unrecognized characters. In jlox, the scanner
+reported those directly.</p>
+<p>In clox, the scanner produces a synthetic &ldquo;error&rdquo; token for that error and
+passes it over to the compiler. This way, the compiler knows an error occurred
+and can kick off error recovery before reporting it.</p>
+<p>That&rsquo;s the data representation of a token. Now let&rsquo;s start producing them. We&rsquo;ll
+work our way up to the complete implementation, starting with this:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="n">Token</span> <span class="nf">scanToken</span><span class="p">()</span> <span class="p">{</span>
@@ -624,24 +566,20 @@ add after <em>initScanner</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>each call scans and returns next token in source</li>
-<li>since call beginning new token, first set scanner.start to current char</li>
-<li>
-<p>new token starts where last token ended</p>
-</li>
-<li>
-<p>then, if call after reach end of source, return eof token</p>
-</li>
-<li>
-<p>[can call repeatedly get infinite series of eof]</p>
-</li>
-<li>
-<p>otherwise, if reach end of this fn return error token</p>
-</li>
-<li>soon, before last line, will add code for chars that <em>are</em> valid</li>
-<li>need few helpers</li>
-</ul>
+<p>Each call to this scans a complete token, so we know at the beginning of the
+function that we are at the beginning of the next token. So we set
+<code>scanner.start</code> to point to the current character so we can remember where the
+token starts.</p>
+<p>Then we check to see if we&rsquo;ve reached the end of the source code. If so, we
+return an EOF token and stop. This is a signal to the compiler to stop looking
+for more tokens.</p>
+<p>Otherwise, we do some&hellip; stuff&hellip; to scan the next token. But we haven&rsquo;t written
+that code yet. We&rsquo;ll get to that soon. If that code
+doesn&rsquo;t successfully scan and return a token, then we reach the end of the
+function. That must mean we&rsquo;re at a character that the scanner can&rsquo;t recognize,
+so we return an error token for that.</p>
+<p>To get this working, we need a couple of helpers. Most of these will seem
+familiar from jlow. First up:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isAtEnd</span><span class="p">()</span> <span class="p">{</span>
@@ -649,15 +587,11 @@ add after <em>initScanner</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>assume source string is good nul-term c string</li>
-<li>
-<p>need to be careful not to advance current <em>past</em> end of string</p>
-</li>
-<li>
-<p>helper to create token of given type</p>
-</li>
-</ul>
+<p>We require the source string to be a good null-terminated C string. If the
+current character is the null byte, then we have reached the end. For this check
+to work, we do need to be careful to never advance current <em>past</em> that null
+byte. Otherwise, we&rsquo;ll end up in other random memory doing God knows what.</p>
+<p>In order to create a token, we have this constructor-like function:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>isAtEnd</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">makeToken</span><span class="p">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
@@ -671,16 +605,10 @@ add after <em>isAtEnd</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>uses start and current chars in scanner to determine range for lexeme</li>
-<li>likewise current line</li>
-<li>
-<p>returns token by value, so gets copied</p>
-</li>
-<li>
-<p>also have helper for creating error token</p>
-</li>
-</ul>
+<p>It uses the scanner&rsquo;s <code>start</code> and <code>current</code> pointers to define the range of
+source code containing the token&rsquo;s lexeme. It sets a couple of other obvious
+fields, then returns the token.</p>
+<p>We have a similar function for returning error tokens:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>makeToken</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">errorToken</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
@@ -694,26 +622,16 @@ add after <em>makeToken</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>similar to maketoken</li>
-<li>&ldquo;lexeme&rdquo; now point to given error message string</li>
-<li>must ensure all calls to this pass string should lifetime is long enough for
-  compiler to access string</li>
-<li>in practice, always call with string literal, which are constant and eternal</li>
-<li>
-<p>[need to be careful. c lang doesn&rsquo;t help.]</p>
-</li>
-<li>
-<p>basically have functional scanner now for language whose lexical grammar is
-  empty</p>
-</li>
-<li>reports errors on all chars</li>
-<li>start filling in grammar</li>
-</ul>
-<h3><a href="#simple-tokens" name="simple-tokens"><small>16&#8202;.&#8202;3&#8202;.&#8202;1</small> simple tokens</a></h3>
-<ul>
-<li>as before start with tokens that are single char</li>
-</ul>
+<p>The key difference is that the lexeme fields point to the error message instead
+of pointing into the user&rsquo;s source code string. We need to be careful then to
+ensure that the error message string also has a long enough lifetime that it is
+still around when the compiler reads it. In practice, we only ever call this
+function with C string literals. Those are constant and eternal, so we&rsquo;re fine.</p>
+<p>What we have now is basically a working scanner for a language with an empty
+lexical grammar. Since the grammar has no productions, every character is an
+error. Now we can start filling in the rules.</p>
+<h3><a href="#simple-tokens" name="simple-tokens"><small>16&#8202;.&#8202;4&#8202;.&#8202;1</small> Simple tokens</a></h3>
+<p>The simplest tokens are only a single character. We can recognize those like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isAtEnd</span><span class="p">())</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">);</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
@@ -735,12 +653,11 @@ in <em>scanToken</em>()</div>
 </pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="nf">errorToken</span><span class="p">(</span><span class="s">&quot;Unexpected character.&quot;</span><span class="p">);</span>
 </pre></div>
 
-<ul>
-<li>read next char from source</li>
-<li>switch on it</li>
-<li>if any of single char punctuators, immediately make token</li>
-<li>uses new fn</li>
-</ul>
+<p>We read the next character from the source code, and then do a straightforward
+switch to see if it&rsquo;s any of Lox&rsquo;s one-character lexemes. If it is, we make a
+token of the right type.</p>
+<p>To read the next character, we use this helper which consumes the current
+character and returns it:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>isAtEnd</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">char</span> <span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
@@ -749,19 +666,10 @@ add after <em>isAtEnd</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>advances pointer to current char and returns previous just consumed one</li>
-<li>
-<p>[would be smart to assert current char is not &lsquo;\0&rsquo; to ensure can&rsquo;t advance
-  past end of input]</p>
-</li>
-<li>
-<p>next-simplest are tokens that can be one or two chars</p>
-</li>
-<li>in all cases, token can be single char or is valid two char token with <code>=</code>
-  as second</li>
-<li>like <code>!</code> or <code>=</code>, <code>=</code> or <code>==</code></li>
-</ul>
+<p>Next up are the punctuation tokens that can be one or two characters, like <code>!</code>
+and <code>!=</code>, or <code>&gt;</code> and <code>&gt;=</code>. When we see a character like <code>!</code>, we don&rsquo;t know if
+we&rsquo;re in a <code>!</code> token or a <code>!=</code> until we look at the next character too. We
+handle those like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="p">(</span><span class="n">TOKEN_STAR</span><span class="p">);</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
@@ -776,12 +684,11 @@ in <em>scanToken</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="p">}</span>
 <br></pre></div>
 
-<ul>
-<li>for these, after consume first char, look at second</li>
-<li>conditionally consume second if <code>=</code></li>
-<li>otherwise, just consume first</li>
-<li>that logic in</li>
-</ul>
+<p>After consuming the first character, we look for an <code>=</code>. If found, we consume it
+and return the corresponding two-character token. Otherwise, we leave the
+current character alone (so it can be part of the next token) and return the
+appropriate one-character token.</p>
+<p>That logic for conditionally consuming the second character lives here:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>advance</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">match</span><span class="p">(</span><span class="kt">char</span> <span class="n">expected</span><span class="p">)</span> <span class="p">{</span>
@@ -793,32 +700,19 @@ add after <em>advance</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>if current char is given one, consumes it and returns return</li>
-<li>else false</li>
-<li>
-<p>now can handle all of various punctuation tokens</p>
-</li>
-<li>
-<p>before more interesting, side trip to handle chars that aren&rsquo;t tokens at
-  all</p>
-</li>
-</ul>
-<h3><a href="#whitespace" name="whitespace"><small>16&#8202;.&#8202;3&#8202;.&#8202;2</small> whitespace</a></h3>
-<ul>
-<li>scanner needs to consume whitespace, but not emit token</li>
-<li>
-<p>[whitespace is meaningful, though, separates other tokens]</p>
-</li>
-<li>
-<p>don&rsquo;t want to handle whitespace in main switch because need to ensure that
-  call to scanToken() does ignore whitespace and get to actual token it can
-  return</p>
-</li>
-<li>would have to call itself or loop or something if waited until main switch
-  to look for whitespace chars</li>
-<li>instead, before starting next token, first try to just skip over whitespace</li>
-</ul>
+<p>If the current character is the desired one, we advance and return <code>true</code>.
+Otherwise, we return <code>false</code> to indicate it wasn&rsquo;t matched.</p>
+<p>Now, we can handle all of the punctuation-like tokens. Before we get to the
+longer ones, let&rsquo;s take a little side trip to handle characters that aren&rsquo;t part
+of a token at all.</p>
+<h3><a href="#whitespace" name="whitespace"><small>16&#8202;.&#8202;4&#8202;.&#8202;2</small> Whitespace</a></h3>
+<p>Our scanner needs to handle spaces, tabs, and newlines, but those characters
+don&rsquo;t become part of any token&rsquo;s lexeme. We could check for those inside the
+main character switch in <code>scanToken()</code> but it gets a little tricky to ensure
+that the function still correctly finds the next token <em>after</em> the whitespace
+when you call it. We&rsquo;d have to wrap the whole body of the function in a loop or
+something.</p>
+<p>Instead, before starting the token, we shunt off to a separate function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">Token</span> <span class="nf">scanToken</span><span class="p">()</span> <span class="p">{</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
@@ -826,11 +720,9 @@ in <em>scanToken</em>()</div>
 <br></pre><pre class="insert-after"><span></span>  <span class="n">scanner</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">scanner</span><span class="p">.</span><span class="n">current</span><span class="p">;</span>
 <br></pre></div>
 
-<ul>
-<li>advances scanner past any whitespace chars</li>
-<li>if there are none, does nothing</li>
-<li>after calling this, know next char is meaningful</li>
-</ul>
+<p>This advances the scanner past any leading whitespace. After a call to this
+returns, we know the very next character is a meaningful one (or we&rsquo;re at the
+end of the source code).</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>errorToken</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">skipWhitespace</span><span class="p">()</span> <span class="p">{</span>
@@ -850,12 +742,10 @@ add after <em>errorToken</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>loops</li>
-<li>as long as next char is whitespace, advances past it and keeps looping</li>
-<li>once hits non-whitespace, exits</li>
-<li>unlike previous switch, use peek(), not advance()</li>
-</ul>
+<p>It&rsquo;s sort of a separate mini-scanner. It loops, consuming every whitespace
+character it encounters. However, unlike the main scanner loop, this needs to
+<em>not</em> consume the current character if it isn&rsquo;t whitespace. To support that, it
+uses:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>advance</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">char</span> <span class="nf">peek</span><span class="p">()</span> <span class="p">{</span>
@@ -863,18 +753,14 @@ add after <em>advance</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>if next char is not whitespace, need to <em>not</em> consume it so that scanToken()
-  can</li>
-<li>want to just <em>look</em> at it</li>
-<li>
-<p>peek does that</p>
-</li>
-<li>
-<p>above handles most whitespace chars</p>
-</li>
-<li>one char left, newline</li>
-</ul>
+<p><span name="peek">This</span> simply returns the next character waiting to be
+consumed, but doesn&rsquo;t consume it.</p>
+<aside name="peek">
+<p>Another approach some scanners take is to have a function to &ldquo;unconsume&rdquo; a
+character. Then you would speculatively consume it and undo if it turns out to
+not be a whitespace character.</p>
+</aside>
+<p>We handle most whitespace characters now, but newlines are a little different:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="p">;</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
@@ -885,15 +771,11 @@ in <em>skipWhitespace</em>()</div>
 </pre><pre class="insert-after"><br><span></span>      <span class="k">default</span><span class="o">:</span>
 </pre></div>
 
-<ul>
-<li>
-<p>treat a little specially because need to increment current line too</p>
-</li>
-<li>
-<p>other kind of ignored text is comments</p>
-</li>
-<li>handle here too</li>
-</ul>
+<p>When we consume one of those, we also need to bump the current line number.</p>
+<h3><a href="#comments" name="comments"><small>16&#8202;.&#8202;4&#8202;.&#8202;3</small> Comments</a></h3>
+<p>There&rsquo;s one last kind of program text that isn&rsquo;t meaningful to the interpreter<span class="em">&mdash;</span>comments. They aren&rsquo;t technically &ldquo;whitespace&rdquo;, if you want to get all
+precise with your terminology, but as far as Lox is concerned, they may as well
+be:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="p">;</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
@@ -908,23 +790,11 @@ in <em>skipWhitespace</em>()</div>
 </pre><pre class="insert-after"><br><span></span>      <span class="k">default</span><span class="o">:</span>
 </pre></div>
 
-<ul>
-<li>if current char is <code>/</code> and next char is <code>/</code> too, then found line comment</li>
-<li>enter little inner loop that consumes anything until hit end of line</li>
-<li>have to check for eof too&#8202;&mdash;&#8202;can have comment on last line</li>
-<li>again use peek here</li>
-<li>
-<p>don&rsquo;t want to consume &lsquo;\n&rsquo; in this loop because want to handle that in outer
-  loop so increment current line after line comment too</p>
-</li>
-<li>
-<p>also handle <code>/</code> not followed by <code>/</code></p>
-</li>
-<li>in that case, not comment, meaningful char, so exit entirely</li>
-<li>need to ensure don&rsquo;t even consume first <code>/</code> in this case, so have to look
-  two chars ahead before consume either</li>
-<li>define</li>
-</ul>
+<p>Comments start with <code>//</code> in Lox, so as with <code>!=</code> and friends, we need a second
+character of lookahead. However, with <code>!=</code>, we still wanted to consume the <code>!</code>
+even if the <code>=</code> wasn&rsquo;t found. Comments are different, if we don&rsquo;t find a second
+<code>/</code>, we need to not consume the first slash either.</p>
+<p>To handle that, we add:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>peek</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">char</span> <span class="nf">peekNext</span><span class="p">()</span> <span class="p">{</span>
@@ -933,23 +803,15 @@ add after <em>peek</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>could make peek take param, but explicit fn makes it clear scanner only uses
-  two chars of lookahead</li>
-<li>
-<p>[also avoids having to pass 0 to most calls to peek since c no overload]</p>
-</li>
-<li>
-<p>easy tokens and whitespace</p>
-</li>
-<li>get more interesting</li>
-</ul>
-<h3><a href="#literal-tokens" name="literal-tokens"><small>16&#8202;.&#8202;3&#8202;.&#8202;3</small> literal tokens</a></h3>
-<ul>
-<li>number and string tokens</li>
-<li>literal values</li>
-<li>strings always start with quote</li>
-</ul>
+<p>This is like <code>peek()</code> but for one character past the current one. If the current
+character and the next one are both <code>/</code>, we consume them and then any other
+characters until the next newline or the end of the source code.</p>
+<p>We use <code>peek()</code> to check for the newline but not consume it. That way, the
+newline will be the current character on the next turn of the outer loop in
+<code>skipWhitespace()</code> and we&rsquo;ll recognize it and increment <code>scanner.line</code>.</p>
+<h3><a href="#literal-tokens" name="literal-tokens"><small>16&#8202;.&#8202;4&#8202;.&#8202;4</small> Literal tokens</a></h3>
+<p>Number and string tokens are special because they have an associated runtime
+value with them. We&rsquo;ll start with strings because they are easy to recognize<span class="em">&mdash;</span>they always start with a double quote:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">makeToken</span><span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="sc">&#39;=&#39;</span><span class="p">)</span> <span class="o">?</span> <span class="nl">TOKEN_GREATER_EQUAL</span> <span class="p">:</span> <span class="n">TOKEN_GREATER</span><span class="p">);</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
@@ -957,9 +819,7 @@ in <em>scanToken</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="p">}</span>
 <br></pre></div>
 
-<ul>
-<li>calls</li>
-</ul>
+<p>That calls:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">string</span><span class="p">()</span> <span class="p">{</span>
@@ -976,43 +836,32 @@ add after <em>skipWhitespace</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>pretty similar to jlox</li>
-<li>keep reading chars until find closing quote</li>
-<li>also track newlines inside string</li>
-<li>[lox allows newlines in string]</li>
-<li>
-<p>and handle unterm string error</p>
-</li>
-<li>
-<p>main difference from jlox something not there</p>
-</li>
-<li>again about mem mgmt</li>
-<li>in jlox, token had value field to store converted literal value&#8202;&mdash;&#8202;string,
-  double</li>
-<li>field&rsquo;s type was object</li>
-<li>
-<p>lot of baggage&#8202;&mdash;&#8202;runtime type id, gc</p>
-</li>
-<li>
-<p>no easy way to store string or number in token in c</p>
-</li>
-<li>instead, defer creating runtime rep until later</li>
-<li>token just has raw lexeme</li>
-<li>
-<p>then in compiler, will produce value when can immediately store in constant
-  table</p>
-</li>
-<li>
-<p>[does mean little redundant work
-  code to recognize lexeme similar to code to produce real value from it
-  would be more if had string escapes and stuff]</p>
-</li>
-<li>
-<p>number can start with any digit</p>
-</li>
-<li>instead of lot of cases in switch, handle separately</li>
-</ul>
+<p>This is similar to how we did it in jlox. We keep consuming characters until we
+reach the closing quote. We also need to track newlines inside the string
+literal<span class="em">&mdash;</span>Lox supports multi-line strings. And, of course, we need to
+gracefully handle running out of source code before we find the end quote.</p>
+<p>The main change here in clox is something that&rsquo;s <em>not</em> present. Again, it
+relates to memory management. In jlox, the Token class had an Object field to
+store the runtime value converted from the literal token&rsquo;s lexeme.</p>
+<p>Supporting that in C requires a lot of work. We need some sort of union and type
+tag to track where the token contains a string or double value. If it&rsquo;s a
+string, we need to manage the memory for the string&rsquo;s character array somehow.</p>
+<p>Instead of adding that complexity to the scanner, we will defer <span
+name="convert">converting</span> the literal lexeme to a runtime value until
+later. In clox, Token will just store the lexeme<span class="em">&mdash;</span>the character sequence
+exactly as it appears in the user&rsquo;s source code. Then, in the compiler, we&rsquo;ll
+convert that lexeme to a runtime value right when we are ready to store it in
+the chunk&rsquo;s constant table.</p>
+<aside name="convert">
+<p>Doing the lexeme to value conversion in the compiler does introduce a little
+redundancy. The work to, say, scan a number literal is <em>awfully</em> similar to the
+work required to convert a sequence of digit characters to a number. If we had
+things like string escape sequences, there would be even more duplicate effort.</p>
+<p>But, for our purposes, there isn&rsquo;t that much redundancy, it isn&rsquo;t in anything
+performance-critical, and it keeps our scanner simpler.</p>
+</aside>
+<p>Next up, numbers. Instead of adding a case for each of the ten digits that can
+start a number, we handle them separately:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">advance</span><span class="p">();</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
@@ -1020,9 +869,7 @@ in <em>scanToken</em>()</div>
 </pre><pre class="insert-after"><br><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 
-<ul>
-<li>utility</li>
-</ul>
+<p>That uses this obvious utility function:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isDigit</span><span class="p">(</span><span class="kt">char</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
@@ -1030,9 +877,7 @@ add after <em>initScanner</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>to finish scanning number</li>
-</ul>
+<p>We finish scanning the number using this:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">number</span><span class="p">()</span> <span class="p">{</span>
@@ -1050,16 +895,15 @@ add after <em>skipWhitespace</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>virtually identical to jlox</li>
-<li>except don&rsquo;t parse lexeme to double value yet</li>
-</ul>
-<h3><a href="#identifiers-and-keywords" name="identifiers-and-keywords"><small>16&#8202;.&#8202;3&#8202;.&#8202;4</small> identifiers and keywords</a></h3>
-<ul>
-<li>last set of tokens are identifiers</li>
-<li>including special reserved identifiers&#8202;&mdash;&#8202;keywords</li>
-<li>idents start with letter</li>
-</ul>
+<p>It&rsquo;s virtually identical to jlox&rsquo;s version except, again, we don&rsquo;t convert the
+lexeme to a double yet.</p>
+<hr />
+<h2><a href="#identifiers-and-keywords" name="identifiers-and-keywords"><small>16&#8202;.&#8202;5</small> Identifiers and Keywords</a></h2>
+<p>The last batch of tokens are identifiers, both user-defined and reserved. This
+section should be fun<span class="em">&mdash;</span>the way we recognize keywords in clox is quite
+different from how we did it in jlox, and touches on some important data
+structures.</p>
+<p>First, though, we have to scan the lexeme. Names start with a letter:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">advance</span><span class="p">();</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
@@ -1067,9 +911,7 @@ in <em>scanToken</em>()</div>
 </pre><pre class="insert-after"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isDigit</span><span class="p">(</span><span class="n">c</span><span class="p">))</span> <span class="k">return</span> <span class="n">number</span><span class="p">();</span>
 <br></pre></div>
 
-<ul>
-<li>which is any of</li>
-</ul>
+<p>Which can be any of:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isAlpha</span><span class="p">(</span><span class="kt">char</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
@@ -1079,9 +921,7 @@ add after <em>initScanner</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>once found, scan rest of ident using</li>
-</ul>
+<p>Once we&rsquo;ve found an identifier, we scan the rest of it using:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">identifier</span><span class="p">()</span> <span class="p">{</span>
@@ -1091,16 +931,9 @@ add after <em>skipWhitespace</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>keep reading allowed chars&#8202;&mdash;&#8202;letter or digit&#8202;&mdash;&#8202;until hit other</li>
-<li>
-<p>or reach end</p>
-</li>
-<li>
-<p>then make token with proper type</p>
-</li>
-<li>type calculated here</li>
-</ul>
+<p>As usual, after the first letter, we allow digits too, and we keep consuming
+alphanumerics until we run out of them. Then we produce a token with the proper
+type. &ldquo;Proper type&rdquo; is where the fun happens:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">TokenType</span> <span class="nf">identifierType</span><span class="p">()</span>
@@ -1109,129 +942,110 @@ add after <em>skipWhitespace</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>first pass, no reserved words at all</li>
-<li>
-<p>everything is user-defined ident</p>
-</li>
-<li>
-<p>how recognize keywords?</p>
-</li>
-<li>on jlox, looked up lexeme string in map of keyword name to token type</li>
-<li>
-<p>no maps in c</p>
-</li>
-<li>
-<p>could write our own map</p>
-</li>
-<li>will need it eventually</li>
-<li>think little more fundamentally</li>
-<li>let&rsquo;s say scanned identifier lexeme is &ldquo;gorgonzola&rdquo;</li>
-<li>how much work need to do to tell if that&rsquo;s a reserved word?</li>
-<li>well, no lox keyword starts with &ldquo;g&rdquo;, so looking at first char enough to
-  rule it out</li>
-<li>
-<p>much faster than hashing string, doing map lookup, etc.</p>
-</li>
-<li>
-<p>what about &ldquo;cardigan&rdquo;?</p>
-</li>
-<li>do have one keyword that starts with c</li>
-<li>but second char rules out &ldquo;class&rdquo;</li>
-<li>
-<p>so sometimes need to walk farther into lexeme</p>
-</li>
-<li>
-<p>what about &ldquo;foreigner&rdquo;?</p>
-</li>
-<li>
-<p>&ldquo;for&rdquo; is keyword, but remaining chars rule out</p>
-</li>
-<li>
-<p>imagine tree</p>
-</li>
-<li>root has child for letter that starts keyword</li>
-<li>each of those have children for each letter that is second letter of keyword starting with that letter</li>
-<li>and so on</li>
-<li>
-<p>if char node is last letter in keyword, mark it with token type</p>
-</li>
-<li>
-<p>to recognize, walk tree</p>
-</li>
-<li>at each node, take branch that is next char in lexeme</li>
-<li>if reach token type node at last char of lexeme, matched full keyword</li>
-<li>if didn&rsquo;t have node for lexeme char, or still had chars left (as in foreigner)
-  when reach tokentype node, it&rsquo;s an identifier</li>
-</ul>
-<p><strong>todo: tree</strong></p>
+<p>Here&rsquo;s what it looks like if we have no reserved words at all. Now how should we
+go about recognizing keywords? In jlox, we stuff them all in a Java Map and
+looked them up by name. We don&rsquo;t have any sort of hash table structure in clox,
+at least not yet.</p>
+<p>Even if we did, it&rsquo;s overkill if you think about it. To look up a string in a
+hash <span name="hash">table</span>, we need to walk the string to calculate
+it&rsquo;s hash code, look up the corresponding bucket in the hash table, and then do
+a character-by-character equality comparison on any string it happens to find
+there.</p>
+<aside name="hash">
+<p>Don&rsquo;t worry if this is unfamiliar to you. When we get to <a href="hash-tables.html">building our own hash
+table from scratch</a>, we&rsquo;ll learn all about it in minute detail.</p>
+</aside>
+<p>Let&rsquo;s say we&rsquo;ve scanned the identifier &ldquo;gorgonzola&rdquo;. How much work should we
+need to do to tell if that&rsquo;s a reserved word? Well, no Lox keyword starts with
+&ldquo;g&rdquo;, so looking at the first character is enough to definitively answer &ldquo;no&rdquo;.
+That&rsquo;s a lot simpler than a hash table lookup.</p>
+<p>What about &ldquo;cardigan&rdquo;? We do have a keyword in Lox that starts with &ldquo;c&rdquo;:
+&ldquo;class&rdquo;. But the second character in &ldquo;cardigan&rdquo;, &ldquo;a&rdquo;, rules that out. What about
+&ldquo;forest&rdquo;? Since &ldquo;for&rdquo; is a keyword, we have to go farther in the string before
+we can establish that we don&rsquo;t have a reserved word. But, in most cases, only a
+character or two is enough to tell we&rsquo;ve got a user-defined name in our hands.</p>
+<p>It seems like there should be some way to traverse through the characters in the
+lexeme and bail out quickly when we realize the identifier isn&rsquo;t a keyword. At
+each character in the lexeme, we make a choice: either we realize it&rsquo;s not a
+keyword, realize it is a specific one, or need to look further.</p>
+<p>Imagine a tree where each node (except the root) is a character. Each child of
+the root is one character that starts a Lox keyword. A child of one of those
+nodes in turn has children for second characters that can follow that first one.
+If a node is the last letter in a keyword, it&rsquo;s marked with that keyword&rsquo;s token
+type.</p>
+<p>To recognize a keyword, we take the identifier&rsquo;s lexeme and use it as a path to
+guide a traversal through the tree. At each node, we choose the branch that
+leads to the next character in the lexeme. If there is no branch for the next
+character, it must not be a keyword. If we reach a node marked with a keyword&rsquo;s
+token type, and we&rsquo;re at the last character of the lexeme, then we&rsquo;ve exactly
+matched a keyword.</p>
+<p>Lox&rsquo;s keyword tree looks like this:</p>
 <p><strong>todo: illustrate example traversal</strong></p>
-<ul>
-<li>may sound familiar</li>
-<li>very similar to two classic data structures</li>
-<li>first is trie</li>
-</ul>
-<p>https://en.wikipedia.org/wiki/Trie</p>
-<ul>
-<li>[bad name]</li>
-<li>tree-like way to store set of strings</li>
-<li>instead of storing each string as separate object, split in to characters</li>
-<li>organize into a tree where path along branches reconstructs original string</li>
-<li>with special marker on nodes where string ends</li>
-<li>
-<p>to tell if string is in set, walk tree just like did above</p>
-</li>
-<li>
-<p>trie is special case of dfa</p>
-</li>
-</ul>
-<p>https://en.wikipedia.org/wiki/Deterministic_finite_automaton</p>
-<ul>
-<li>finite automata other name for state machine</li>
-<li>[gpp link]</li>
-<li>state machine has set of &ldquo;states&rdquo;&#8202;&mdash;&#8202;node in graph</li>
-<li>has set of allowed transitions&#8202;&mdash;&#8202;labeled edges</li>
-<li>
-<p>can go from one state to another if transition exists and &ldquo;event&rdquo; occurs that
-  matches edge label</p>
-</li>
-<li>
-<p>can think of like old text adventures where each state is room, edges are doors, and events are navigation commands &ldquo;go n&rdquo;</p>
-</li>
-</ul>
+<p>This kind of tree may look familiar. It&rsquo;s part of a family of related classic,
+fundamental data structures in computer science. The first is a <span
+name="trie"><a href="https://en.wikipedia.org/wiki/Trie"><strong>trie</strong></a></span>. Like Java&rsquo;s HashSet, a binary search tree,
+or even the humble array, a trie stores a collection of items. Specifically, a
+trie stores a set of strings. The brilliant part is that it breaks them down to
+their atomic components<span class="em">&mdash;</span>individual characters. Nowhere in the trie will you
+find a whole string.</p>
+<aside name="trie">
+<p>&ldquo;Trie&rdquo; is one of the most confusing names in CS. Edward Fredkin yanked it out of
+the middle of the word &ldquo;retrieval&rdquo;, which means it should be pronounced like
+&ldquo;tree&rdquo;. But, uh, there is already a pretty important data structure pronounced
+&ldquo;tree&rdquo; <em>which tries are a special case of</em>, so unless you never speak of these
+things out loud, no one can tell which one you&rsquo;re talking about. Thus, people
+these days often pronounce it like &ldquo;try&rdquo; to try to avoid the headache.</p>
+</aside>
+<p>Instead, each string in the trie exists as a <em>path</em> through a tree of character
+nodes. Each child of the root node is a letter that starts one of the strings in
+the set. Off those children are nodes for letters that follow those, and so on.
+Nodes that represent the last character in a string have a special marker. That
+way, if your trie contains, say, &ldquo;banquet&rdquo; and &ldquo;ban&rdquo;, you are able to tell that
+it does <em>not</em> contain &ldquo;banque&rdquo;<span class="em">&mdash;</span>the &ldquo;e&rdquo; node won&rsquo;t have that marker, while the
+&ldquo;n&rdquo; and &ldquo;t&rdquo; nodes will.</p>
+<p>To see if the trie contains some string, you use the characters in the string to
+traverse through the tree. If you successfully reach a marked node, the string
+is present. Sounds a lot like the keyword tree I sketched out above, right?</p>
+<p>Tries are actually a special case of an even more fundamental data structure, a
+<a href="https://en.wikipedia.org/wiki/Deterministic_finite_automaton"><strong>deterministic finite automaton</strong></a> (DFA). You might also know these by
+another name: <strong>&ldquo;finite state machine&rdquo;</strong>, or just <strong>&ldquo;state machine&rdquo;</strong>. State
+machines are rad. They end up useful in everything from <a href="http://gameprogrammingpatterns.com/state.html">game
+programming</a> to implementing networking protocols.</p>
+<p>In a DFA, you have a set of <em>states</em> with <em>transitions</em> between them, forming a
+graph. At any point in time, the machine is &ldquo;in&rdquo; exactly one state. It gets to
+other states by following transitions. When you use a DFA for lexical analysis,
+each transition is a character that gets matched from the string. Each state
+respresents a set of allowed characters.</p>
+<p>Our keyword tree is exactly a DFA that recognizes Lox keywords. But DFAs are
+more powerful than simple trees because they can be arbitrary <em>graphs</em>.
+Transitions can form cycles between states. That lets you recognize arbitrarily
+long strings. For example, here&rsquo;s a DFA that recognizes integers:</p>
 <p><strong>todo: illustrate</strong></p>
-<ul>
-<li>
-<p>[metaphor from steve klabnik]</p>
-</li>
-<li>
-<p>dfa can be used to recognize strings</p>
-</li>
-<li>states represent how much of string has been consumed</li>
-<li>each edge consumes specific char</li>
-<li>can transition from one state to next by consuming char</li>
-<li>in general dfa, can have cycles and reuse states</li>
-<li>
-<p>in simple keyword recognizer, no loops, so tree</p>
-</li>
-<li>
-<p>could in fact use single giant dfa for entire scanner</p>
-</li>
-<li>what scanner generators like lex and ragel do</li>
-<li>
-<p>most regex engines generate dfa under hood</p>
-</li>
-<li>
-<p>all we need is tiny tree one for keywords</p>
-</li>
-<li>
-<p>how to map tree walk to code?</p>
-</li>
-<li>
-<p>idiot simple thing is to use switch for each level of branching</p>
-</li>
-<li>start with first char, and easy keywords</li>
-</ul>
+<p>In fact, we could one big giant DFA that does <em>all</em> of the lexical analysis for
+Lox. A single state machine that recognizes and spits out all of the tokens we
+need. However, crafting one of those by hand would be pretty challenging. That&rsquo;s
+why Lex was created. If you give it a nice textual description of your lexical
+grammar<span class="em">&mdash;</span>a bunch of <span name="regex">regular</span> expressions<span class="em">&mdash;</span>it
+automatically generates a DFA for you and produces a pile of C code that
+implements it.</p>
+<aside name="regex">
+<p>This is also how most regular expression engines in programming languages and
+text editors work under the hood. They take your regex string and convert it to
+a DFA, which they then use to match strings.</p>
+<p>If you want to learn the algorithm to convert a regular expression into a DFA,
+<a href="https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools">the Dragon Book</a> has you covered.</p>
+</aside>
+<p>We won&rsquo;t go down that road. We already have a perfectly serviceable hand-rolled
+scanner. We just need a tiny trie for recognizing keywords. How should we map
+that tree to code?</p>
+<p>The absolute simplest <span name="v8">solution</span> is to use a switch
+statement for each node with cases for each branch. We&rsquo;ll start with the root
+node and handle the easy keywords:</p>
+<aside name="v8">
+<p>Don&rsquo;t look down on my rudimentary code here. The same approach is <a href="https://github.com/v8/v8/blob/e77eebfe3b747fb315bd3baad09bec0953e53e68/src/parsing/scanner.cc#L1643">essentially
+what V8 does</a>, and that&rsquo;s literally one of the world&rsquo;s most sophisticated,
+fastest language implementations.</p>
+</aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">{</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
@@ -1251,11 +1065,12 @@ in <em>identifierType</em>()</div>
 <br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">TOKEN_IDENTIFIER</span><span class="p">;</span>
 </pre></div>
 
-<ul>
-<li>these are keywords where only single keyword starts with given char</li>
-<li>if we see &ldquo;a&rdquo; as first letter could only possibly be &ldquo;and&rdquo;</li>
-<li>might not be though, so still need to check rest of letters too</li>
-</ul>
+<p>These are the letters that only start a single keyword. If we see an &ldquo;s&rdquo;, the
+only keyword the identifier could possibly be is &ldquo;super&rdquo;. It might not be,
+though, so we still need to check the rest of the letters too. In the tree
+diagram, this is basically that unbranching path leading off the &ldquo;s&rdquo;.</p>
+<p>We won&rsquo;t roll a switch for each of those nodes. Instead, here&rsquo;s a utility
+function to test the rest of a potential keyword&rsquo;s lexeme:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">TokenType</span> <span class="nf">checkKeyword</span><span class="p">(</span><span class="kt">int</span> <span class="n">start</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
@@ -1269,22 +1084,17 @@ add after <em>skipWhitespace</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<ul>
-<li>need to test two things</li>
-<li>lexeme must be exactly as long as keyword&#8202;&mdash;&#8202;not too long or short</li>
-<li>remaining chars much match exactly</li>
-<li>if so, it&rsquo;s keyword</li>
-<li>
-<p>otherwise, regular ident</p>
-</li>
-<li>
-<p>couple of tricky cases</p>
-</li>
-<li>if first letter is &ldquo;f&rdquo;, could be &ldquo;false&rdquo;, &ldquo;for&rdquo;, or &ldquo;fun&rdquo;</li>
-<li>have to check second letter to see which it could be</li>
-<li>next level of branching in tree</li>
-<li>also need to make sure there is second letter</li>
-</ul>
+<p>Once we&rsquo;ve found a prefix that could only be one possible reserved word, we
+still need to verify two things. The lexeme must be exactly as long as the
+keyword. If the first letter is &ldquo;s&rdquo;, the lexeme could still be &ldquo;sup&rdquo; or
+&ldquo;superb&rdquo;. And the remaining characters must match exactly<span class="em">&mdash;</span>&ldquo;supar&rdquo; isn&rsquo;t good
+enough.</p>
+<p>If we do have the right number of characters, and they&rsquo;re the ones we want, then
+it&rsquo;s a keyword, and we return the associated token type. Otherwise, it must be a
+regular identifier.</p>
+<p>We have a couple of keywords where the tree branches again after the first
+letter. If the lexeme starts with &ldquo;f&rdquo;, it could still be &ldquo;false&rdquo;, &ldquo;for&rdquo;, or
+&ldquo;fun&rdquo;. So we need another switch for the node reached from &ldquo;f&rdquo;:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&quot;lse&quot;</span><span class="p">,</span> <span class="n">TOKEN_ELSE</span><span class="p">);</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
@@ -1300,9 +1110,8 @@ in <em>identifierType</em>()</div>
 </pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="sc">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;f&quot;</span><span class="p">,</span> <span class="n">TOKEN_IF</span><span class="p">);</span>
 </pre></div>
 
-<ul>
-<li>&ldquo;t&rdquo; is similar&#8202;&mdash;&#8202;could be &ldquo;this&rdquo; or &ldquo;true&rdquo;</li>
-</ul>
+<p>We also need to check that there even <em>is</em> a second letter. &ldquo;f&rdquo; by itself is a
+valid identifier too, after all. The other letter like this is &ldquo;t&rdquo;:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&quot;uper&quot;</span><span class="p">,</span> <span class="n">TOKEN_SUPER</span><span class="p">);</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
@@ -1317,38 +1126,75 @@ in <em>identifierType</em>()</div>
 </pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="sc">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s">&quot;ar&quot;</span><span class="p">,</span> <span class="n">TOKEN_VAR</span><span class="p">);</span>
 </pre></div>
 
-<p>&hellip;</p>
+<p>That&rsquo;s it. A couple of nested switch statements. Not only is this code <span
+name="short">short</span>, but it&rsquo;s very very fast. It does the minimum amount
+of work required to detect a keyword, and bails out as soon as it can tell the
+identifier will not be a reserved one.</p>
+<p>And with that, our scanner is complete.</p>
+<aside name="short">
+<p>We sometimes fall into the trap of thinking that performance comes from
+complicated data structures, layers of caching, and other fancy optimizations.
+But, many times, all that&rsquo;s required is to do less work, and I often find that
+writing the simplest code I can is more than sufficient to accomplish that.</p>
+</aside>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 
-<ul>
+<ol>
 <li>
-<p>many newer langs support string interpolation (define). how would you
-  write scanner to handle that? what tokens would emit for &ldquo;Hi, ${person.name}!&rdquo;,
-  assuming ${&hellip;} was interpolation syntax</p>
+<p>Many newer languages support <a href="https://en.wikipedia.org/wiki/String_interpolation"><em>string interpolation</em></a>. Inside a
+    string literal, you have some sort of special delimiters<span class="em">&mdash;</span>most commonly
+    <code>${</code> at the beginning and <code>}</code> at the end. Inside those, any expression can
+    appear. When the string literal is executed, the inner expressions are
+    evaluated, converted to strings, and then merged with the surrounding string
+    literal.</p>
+<p>For example, if Lox supported string interpolation, then this:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">steep</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="k">var</span> <span class="n">cool</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="k">print</span> <span class="s">&quot;Tea will be ready in ${steep + cool} minutes.&quot;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Would print:</p>
+<div class="codehilite"><pre><span></span>Tea will be ready in 6 minutes.
+</pre></div>
+
+
+<p>What token types would you define to support scanning strings containing
+interpolation? What sequence of tokens would you emit for the above string
+literal?</p>
+<p>What tokens would you emit for:</p>
+<div class="codehilite"><pre><span></span>&quot;Nested ${&quot;interpolation?! Are you ${&quot;mad?!&quot;}&quot;}&quot;
+</pre></div>
+
+
+<p>Consider looking at other language implementations that support this to see
+how they handle it.</p>
 </li>
 <li>
-<p>how do java scanners handle &ldquo;&gt;&gt;&rdquo; in generics?</p>
+<p>Several languages use angle brackets for generics and also have a <code>&gt;&gt;</code> right
+    shift operator. This lead to a classic problem in earlier versions of C++:</p>
+<div class="codehilite"><pre><span></span><span class="n">vector</span><span class="o">&lt;</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;&gt;</span> <span class="n">nestedVectors</span><span class="p">;</span>
+</pre></div>
+
+
+<p>This would produce a compile error because the <code>&gt;&gt;</code> was lexed to a single
+right shift token, not two <code>&gt;</code> tokens. Instead, you needed to put a space
+between the closing angle brackets.. Later versions of C++ fix this. Java
+and C# never had the problem.</p>
+<p>How do those languages specify and implement this?</p>
 </li>
 <li>
-<p>how would handle contextual keywords?</p>
+<p>Many language, especially later in their evolution, define &ldquo;contextual
+    keywords&rdquo;. These are identifiers that act like reserved words in some
+    contexts but can be normal user-defined identifiers in others.</p>
+<p>For example, <code>await</code> is a keyword inside an <code>async</code> method in C#, but
+in other methods, you can use <code>await</code> as your own identifier.</p>
+<p>What are the pros and cons of having contextual keywords? How would you
+implement them in your language&rsquo;s front end if you needed to?</p>
 </li>
-</ul>
+</ol>
 </div>
-<hr />
-<h2><a href="#notes" name="notes"><small>16&#8202;.&#8202;4</small> notes</a></h2>
-<ul>
-<li>
-<p>compare keyword recognizer to trie, scanner generator, dfa</p>
-</li>
-<li>
-<p>differences from first scanner</p>
-</li>
-<li>scan on demand</li>
-<li>defer creating literal values</li>
-<li>trie-ish for keywords</li>
-</ul>
-<p>https://github.com/v8/v8/blob/master/src/parsing/scanner.cc#L1653</p>
 
 <footer>
 <a href="compiling-expressions.html" class="next">
