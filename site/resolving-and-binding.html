@@ -127,7 +127,7 @@ the deepest, dampest corners of the semantics.</p>
 <p>We will spend this entire chapter exploring that leak, and then carefully
 patching it up. In the process, we will gain a more rigorous understanding of
 lexical scoping as used by Lox and other languages in the C tradition. We&rsquo;ll
-also get a chance to learn about <em>semantic analysis</em>&#8202;&mdash;&#8202;a powerful technique for
+also get a chance to learn about <em>semantic analysis</em><span class="em">&mdash;</span>a powerful technique for
 extracting meaning from the user&rsquo;s source code without having to run it.</p>
 <h2><a href="#static-scope" name="static-scope"><small>11&#8202;.&#8202;1</small> Static Scope</a></h2>
 <p>A quick refresher: Lox, like most modern languages, uses <em>lexical</em> scoping. This
@@ -142,7 +142,7 @@ by reading the text of the program. For example:</p>
 
 
 <p>Here, we know that the <code>a</code> being printed is the variable declared on the
-previous line, and not the global one. Running the program doesn&rsquo;t&#8202;&mdash;&#8202;<em>can&rsquo;t</em>&#8202;&mdash;&#8202;affect this. The scope rules are part of the <em>static</em> semantics of the language,
+previous line, and not the global one. Running the program doesn&rsquo;t<span class="em">&mdash;</span><em>can&rsquo;t</em><span class="em">&mdash;</span>affect this. The scope rules are part of the <em>static</em> semantics of the language,
 which is why they&rsquo;re also called <strong>&ldquo;static scope&rdquo;</strong>.</p>
 <p>I haven&rsquo;t spelled out those scope rules, but now is the time for <span
 name="precise">precision</span>:</p>
@@ -204,7 +204,7 @@ write this in JavaScript:</p>
 
 
 <p>That means that in some cases you can read a variable before its initializer
-has run&#8202;&mdash;&#8202;an annoying source of bugs. The alternate <code>let</code> syntax for
+has run<span class="em">&mdash;</span>an annoying source of bugs. The alternate <code>let</code> syntax for
 declaring variables was added later to address this problem.</p>
 </aside>
 
@@ -265,7 +265,7 @@ variable prints two different values at different points in time. We definitely
 broke something somewhere.</p>
 <h3><a href="#scopes-and-mutable-environments" name="scopes-and-mutable-environments"><small>11&#8202;.&#8202;1&#8202;.&#8202;1</small> Scopes and mutable environments</a></h3>
 <p>In our interpreter, environments are the dynamic manifestation of static scopes.
-The two mostly stay in sync with each other&#8202;&mdash;&#8202;we create a new environment when
+The two mostly stay in sync with each other<span class="em">&mdash;</span>we create a new environment when
 we enter a new scope, and discard it when we leave the scope. There is one other
 operation we perform on environments: binding a variable in one. This is where
 our bug lies.</p>
@@ -284,7 +284,7 @@ block.</p>
 <p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." /></p>
 <p>The interpreter dynamically creates a new environment for the function body of
 <code>showA()</code>. It&rsquo;s empty since that function doesn&rsquo;t declare any variables. The
-parent of that environment is the function&rsquo;s closure&#8202;&mdash;&#8202;the outer block
+parent of that environment is the function&rsquo;s closure<span class="em">&mdash;</span>the outer block
 environment.</p>
 <p>Inside the body of <code>showA()</code>, we print the value of <code>a</code>. The interpreter looks
 up <code>a</code>&rsquo;s value by walking the chain of environments. It gets all the way
@@ -319,7 +319,7 @@ actually the same scope. Consider:</p>
 
 <p>At the first marked line, only <code>a</code> is in scope. At the second line, both <code>a</code> and
 <code>b</code> are. If you define a &ldquo;scope&rdquo; to be a set of declarations, then those are
-clearly not the same scope&#8202;&mdash;&#8202;they don&rsquo;t contain the same declarations. It&rsquo;s
+clearly not the same scope<span class="em">&mdash;</span>they don&rsquo;t contain the same declarations. It&rsquo;s
 like each variable statement <span name="split">splits</span> the block into two
 separate scopes, the scope before the variable is declared and the one after,
 which includes the new variable.</p>
@@ -365,8 +365,8 @@ going back and changing a pile of existing code.</p>
 same. Instead of making the data more statically structured, we&rsquo;ll bake the
 static resolution into the access <em>operation</em> itself.</p>
 <h2><a href="#semantic-analysis" name="semantic-analysis"><small>11&#8202;.&#8202;2</small> Semantic Analysis</a></h2>
-<p>Our interpreter resolves a variable&#8202;&mdash;&#8202;tracks down which declaration it refers
-to&#8202;&mdash;&#8202;each and every time the variable expression is evaluated. If that variable
+<p>Our interpreter resolves a variable<span class="em">&mdash;</span>tracks down which declaration it refers
+to<span class="em">&mdash;</span>each and every time the variable expression is evaluated. If that variable
 is swaddled inside a loop that runs a thousand times, that variable gets
 re-resolved a thousand times.</p>
 <p>We know static scope means that a variable usage always resolves to the same
@@ -376,8 +376,8 @@ that leads to our annoying bug, it&rsquo;s also needlessly slow.</p>
 <p>A better solution is to resolve each variable use <em>once</em>. Write a chunk of code
 that inspects the user&rsquo;s program, finds every variable mentioned, and figures
 out which declaration each refers to. This process is an example of a <strong>semantic
-analysis</strong>. Where a parser only tells if a program is grammatically correct&#8202;&mdash;&#8202;a
-<em>syntactic</em> analysis&#8202;&mdash;&#8202;semantic analysis goes farther and starts to figure out
+analysis</strong>. Where a parser only tells if a program is grammatically correct<span class="em">&mdash;</span>a
+<em>syntactic</em> analysis<span class="em">&mdash;</span>semantic analysis goes farther and starts to figure out
 what pieces of the program actually mean. In this case, our analysis will
 resolve variable bindings. We&rsquo;ll know not just that an expression <em>is</em> a
 variable, but <em>which</em> variable it is.</p>
@@ -401,7 +401,7 @@ variables are declared. If we could ensure a variable lookup always walked the
 found the same variable in the same scope every time.</p>
 <p>To &ldquo;resolve&rdquo; a variable usage, we only need to calculate how many &ldquo;hops&rdquo; away
 the declared variable will be in the environment chain. The interesting question
-is <em>when</em> to do this calculation&#8202;&mdash;&#8202;or, put differently, where in our
+is <em>when</em> to do this calculation<span class="em">&mdash;</span>or, put differently, where in our
 interpreter&rsquo;s implementation do we stuff the code for it?</p>
 <p>Since we&rsquo;re calcuting a static property based on the structure of the source
 code, the obvious answer is in the parser. That is the traditional home, and is
@@ -514,7 +514,7 @@ add after <em>visitBlockStmt</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>This is similar to the <code>evaluate()</code> and <code>execute()</code> methods in Interpreter&#8202;&mdash;&#8202;it
+<p>This is similar to the <code>evaluate()</code> and <code>execute()</code> methods in Interpreter<span class="em">&mdash;</span>it
 turns around and applies the Visitor pattern to the given syntax tree node.</p>
 <p>The real interesting behavior is around scopes. A new block scope is created
 like so:</p>
@@ -527,7 +527,7 @@ add after <em>resolve</em>()</div>
 
 <p>Lexical scopes nest and in both the interpreter and the resolver, they are
 treated like a stack. The interpreter implements that stack using a linked
-list&#8202;&mdash;&#8202;the chain of Environment objects. In the resolver, we use an actual
+list<span class="em">&mdash;</span>the chain of Environment objects. In the resolver, we use an actual
 Java Stack:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">;</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -578,8 +578,8 @@ in <em>resolve</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>Now to the semantics. We split binding into two separate steps&#8202;&mdash;&#8202;declaring and
-defining&#8202;&mdash;&#8202;in order to handle this funny edge case:</p>
+<p>Now to the semantics. We split binding into two separate steps<span class="em">&mdash;</span>declaring and
+defining<span class="em">&mdash;</span>in order to handle this funny edge case:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
 <span class="p">{</span>
   <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
@@ -659,7 +659,7 @@ add after <em>declare</em>()</div>
 <p>We set the variable&rsquo;s value in the scope map to <code>true</code> to mark it as fully
 initialized and available for use. It&rsquo;s alive!</p>
 <h3><a href="#resolving-variable-expressions" name="resolving-variable-expressions"><small>11&#8202;.&#8202;3&#8202;.&#8202;3</small> Resolving variable expressions</a></h3>
-<p>Variable declarations&#8202;&mdash;&#8202;and function declarations, which we&rsquo;ll get to&#8202;&mdash;&#8202;write
+<p>Variable declarations<span class="em">&mdash;</span>and function declarations, which we&rsquo;ll get to<span class="em">&mdash;</span>write
 to the scope maps. Those maps are read when we resolve variable expressions:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitVarStmt</em>()</div>
@@ -799,7 +799,7 @@ add after <em>visitFunctionStmt</em>()</div>
 <p>Here, we can see how resolution is different from interpretation. When we
 resolve an if statement, there is no control flow. We resolve the condition and
 <em>both</em> branches. Where a dynamic execution only steps into the branch that <em>is</em>
-run, a static analysis is conservative&#8202;&mdash;&#8202;it analyzes any branch that <em>could</em> be
+run, a static analysis is conservative<span class="em">&mdash;</span>it analyzes any branch that <em>could</em> be
 run. Since either one could be reached at runtime, it resolves both.</p>
 <p>Moving along&hellip;</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -864,7 +864,7 @@ add after <em>visitBinaryExpr</em>()</div>
   <span class="o">}</span>
 </pre></div>
 
-<p>Calls are similar&#8202;&mdash;&#8202;we walk the argument list and resolve them all. The thing
+<p>Calls are similar<span class="em">&mdash;</span>we walk the argument list and resolve them all. The thing
 being called is also an expression (usually a variable expression) so that gets
 resolved too.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -957,7 +957,7 @@ keeping them separated.</p>
 the user&rsquo;s program. It may be hard to find all of the bits of state that need
 recalculating when they&rsquo;re hiding in the foliage of the syntax tree. A benefit
 of storing this data outside of the nodes is that it makes it easy to <em>discard</em>
-it&#8202;&mdash;&#8202;simply clear the map.</p>
+it<span class="em">&mdash;</span>simply clear the map.</p>
 </aside>
 <p>As usual, using a collection requires us to import a couple of names:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
@@ -1033,7 +1033,7 @@ add after <em>define</em>()</div>
 <p>This walks a fixed number of hops up the parent chain and returns the
 environment there. Once we have that, <code>getAt()</code> simply returns the value of the
 variable in that environment&rsquo;s map. It doesn&rsquo;t even have to check to see if the
-variable is there&#8202;&mdash;&#8202;we know it will be because the resolver already found it
+variable is there<span class="em">&mdash;</span>we know it will be because the resolver already found it
 before.</p>
 <aside name="coupled">
 <p>The way the interpreter assumes the variable is in that map feels like flying
@@ -1044,8 +1044,8 @@ in the interpreter for modifying an environment.</p>
 <p>I felt that coupling first-hand because as I wrote the code for the book, I
 ran into a couple of subtle bugs where the resolver and interpreter code were
 slightly out of sync. Tracking those down was difficult. One tool to make that
-easier is to have the interpreter explicitly assert&#8202;&mdash;&#8202;using Java&rsquo;s assert
-statements or some other validation tool&#8202;&mdash;&#8202;the contract it expects the resolver
+easier is to have the interpreter explicitly assert<span class="em">&mdash;</span>using Java&rsquo;s assert
+statements or some other validation tool<span class="em">&mdash;</span>the contract it expects the resolver
 to have already upheld.</p>
 </aside>
 <h3><a href="#assigning-to-a-resolved-variable" name="assigning-to-a-resolved-variable"><small>11&#8202;.&#8202;4&#8202;.&#8202;2</small> Assigning to a resolved variable</a></h3>

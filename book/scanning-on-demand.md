@@ -5,17 +5,25 @@
 >
 > <cite>Kurt Vonnegut</cite>
 
-**todo: more illustrations?**
-
-Our second interpreter clox has roughly three phases -- the scanner, the compiler, and the virtual machine. Between each pair is a data structure. Tokens flow between the scanner and compiler, and chunks of bytecode between the compiler and VM. We started near the end with [chunks][] and the [VM][]. Now we're going to circle back to the beginning and build a scanner that makes tokens. In the [next chapter][], we'll tie the two ends together with our bytecode compiler.
+Our second interpreter clox has roughly three phases -- the scanner, the
+compiler, and the virtual machine. Between each pair is a data structure. Tokens
+flow between the scanner and compiler, and chunks of bytecode between the
+compiler and VM. We started near the end with [chunks][] and the [VM][]. Now
+we're going to circle back to the beginning and build a scanner that makes
+tokens. In the [next chapter][], we'll tie the two ends together with our
+bytecode compiler.
 
 [chunks]: chunks-of-bytecode.html
 [vm]: a-virtual-machine.html
 [next chapter]: compiling-expressions.html
 
-**todo: illustrate phases scanner -> tokens -> compiler -> chunk -> vm**
+<img src="image/scanning-on-demand/pipeline.png" alt="Source code &rarr; scanner &rarr; tokens &rarr; compiler &rarr; bytecode chunk &rarr; VM." />
 
-I'll admit, this is not the most exciting chapter in the book. With two implementations of the same languages, there's bound to be *some* redundancy. The basic techniques we use here are similar to the scanner in jlox. I did sneak in a few interesting differences, though, mostly driven by our need to manage memory ourselves in C. Ready to get started?
+I'll admit, this is not the most exciting chapter in the book. With two
+implementations of the same languages, there's bound to be *some* redundancy.
+The basic techniques we use here are similar to the scanner in jlox. I did sneak
+in a few interesting differences, though, mostly driven by our need to manage
+memory ourselves in C. Ready to get started?
 
 ## Spinning Up the Interpreter
 
@@ -179,7 +187,7 @@ That will change, but it's fine for now. Here's a first pass at implementing it:
 
 ^code compiler-c
 
-The first phase of compilation in scanning -- you know, the thing we're doing
+The first phase of compilation is scanning -- you know, the thing we're doing
 in this chapter -- so right now all the compiler does is set up that.
 
 ## The Scanner Scans
@@ -199,17 +207,28 @@ through the user's source code. Like with did with the VM, we wrap that state up
 in a single struct and then create a top-level module variable for it so we
 don't have to thread it through all of the various functions.
 
-It only needs a couple of little first. The `start` pointer marks the beginning
-of the current lexeme being scanned, and `current` points to the current
-character being looked at. It's the next character to be consumed, not the
-most-recently consumed one.
+It only needs a couple of little fields first. The `start` pointer marks the
+beginning of the current lexeme being scanned, and `current` points to the
+current character being looked at. It's the next character to be consumed, not
+the most-recently consumed one.
+
+<span name="fields"></span>
+
+<img src="image/scanning-on-demand/fields.png" alt="The start and current fields pointing at 'print bacon;'. Start points at 'b' and current points at 'o'." />
+
+<aside name="fields">
+
+Here, we are in the middle of scanning the identifier `bacon`. The current
+character is `o` and the character we just consumed is `c`.
+
+</aside>
 
 Also, we have a `line` field to track of what line `current` is on in the user's
 program. When we create tokens, we'll store that so that we can tell the user
 what line errors occurred on.
 
 That's all we need. Note that we don't even keep a pointer to the whole source
-code string. The scanners works its way through the source string once and never
+code string. The scanner works its way through the source string once and never
 returns to the beginning.
 
 Since we have some state, we need to initialize it:
@@ -247,8 +266,15 @@ It prints out:
 ```
 
 The first column is the line numbers, the second is the numeric value of the
-token type (not exactly human-readable, I know), and then finally the lexeme.
-That last empty token on line 2 here is the EOF one.
+token <span name="token">type</span>, and then finally the lexeme. That last
+empty token on line 2 here is the EOF one.
+
+<aside name="token">
+
+Yeah, the raw index of the token type isn't exactly human readable, but it's all
+C gives us.
+
+</aside>
 
 The goal for the rest of the chapter is to make that blob of code work. The key
 function is this one:
@@ -357,6 +383,14 @@ fields, then returns the token.
 We have a similar function for returning error tokens:
 
 ^code error-token
+
+<span name="axolotl"></span>
+
+<aside name="axolotl">
+This part of the chapter is pretty dry, so here's a picture of an axolotl.
+
+<img src="image/scanning-on-demand/axolotl.png" alt="A drawing of an axolotl." />
+</aside>
 
 The key difference is that the lexeme fields point to the error message instead
 of pointing into the user's source code string. We need to be careful then to
@@ -535,8 +569,6 @@ We finish scanning the number using this:
 It's virtually identical to jlox's version except, again, we don't convert the
 lexeme to a double yet.
 
----
-
 ## Identifiers and Keywords
 
 The last batch of tokens are identifiers, both user-defined and reserved. This
@@ -576,7 +608,7 @@ there.
 <aside name="hash">
 
 Don't worry if this is unfamiliar to you. When we get to [building our own hash
-table from scratch][hash], we'll learn all about it in minute detail.
+table from scratch][hash], we'll learn all about it in exquisite detail.
 
 [hash]: hash-tables.html
 
@@ -613,7 +645,7 @@ matched a keyword.
 
 Lox's keyword tree looks like this:
 
-**todo: illustrate example traversal**
+<img src="image/scanning-on-demand/keywords.png" alt="A trie that contains all of Lox's keywords." />
 
 This kind of tree may look familiar. It's part of a family of related classic,
 fundamental data structures in computer science. The first is a <span
@@ -664,17 +696,33 @@ each transition is a character that gets matched from the string. Each state
 respresents a set of allowed characters.
 
 Our keyword tree is exactly a DFA that recognizes Lox keywords. But DFAs are
-more powerful than simple trees because they can be arbitrary *graphs*.
-Transitions can form cycles between states. That lets you recognize arbitrarily
-long strings. For example, here's a DFA that recognizes integers:
+more powerful than simple trees because they can be arbitrary <span
+name="railroad">*graphs*</span>. Transitions can form cycles between states.
+That lets you recognize arbitrarily long strings. For example, here's a DFA that
+recognizes number literals:
 
-**todo: illustrate**
+<img src="image/scanning-on-demand/numbers.png" alt="A syntax diagram that recognizes integer and floating point literals." />
+
+<aside name="railroad">
+
+This style of diagram has a name, two actually. It's a [**syntax
+diagram**][syntax diagram] or, my favorite, a **railroad diagram**. The latter
+name is because it looks something like a switching yard for trains.
+
+Back before Backus-Naur Form was a thing, this was one of the predominant ways
+of documenting a language's grammar. These days, we mostly use text, but there's
+something charming about having the official specification for a *language*
+relying on a *picture*.
+
+[syntax diagram]: https://en.wikipedia.org/wiki/Syntax_diagram
+
+</aside>
 
 In fact, we could one big giant DFA that does *all* of the lexical analysis for
 Lox. A single state machine that recognizes and spits out all of the tokens we
-need. However, crafting one of those by hand would be pretty challenging. That's
-why Lex was created. If you give it a nice textual description of your lexical
-grammar -- a bunch of <span name="regex">regular</span> expressions -- it
+need. However, crafting one of those by <span name="regex">hand</span> would be
+pretty challenging. That's why Lex was created. If you give it a nice textual
+description of your lexical grammar -- a bunch of regular expressions -- it
 automatically generates a DFA for you and produces a pile of C code that
 implements it.
 
@@ -701,9 +749,9 @@ node and handle the easy keywords:
 
 <aside name="v8">
 
-Don't look down on my rudimentary code here. The same approach is [essentially
-what V8 does][v8], and that's literally one of the world's most sophisticated,
-fastest language implementations.
+Simple doesn't mean dumb. The same approach is [essentially what V8 does][v8],
+and that's literally one of the world's most sophisticated, fastest language
+implementations.
 
 [v8]: https://github.com/v8/v8/blob/e77eebfe3b747fb315bd3baad09bec0953e53e68/src/parsing/scanner.cc#L1643
 

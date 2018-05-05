@@ -115,10 +115,19 @@
 <p>Literature is idiosyncratic arrangements in horizontal lines in only twenty-six symbols, ten arabic numbers, and about eight punctuation marks.</p>
 <p><cite>Kurt Vonnegut</cite></p>
 </blockquote>
-<p><strong>todo: more illustrations?</strong></p>
-<p>Our second interpreter clox has roughly three phases<span class="em">&mdash;</span>the scanner, the compiler, and the virtual machine. Between each pair is a data structure. Tokens flow between the scanner and compiler, and chunks of bytecode between the compiler and VM. We started near the end with <a href="chunks-of-bytecode.html">chunks</a> and the <a href="a-virtual-machine.html">VM</a>. Now we&rsquo;re going to circle back to the beginning and build a scanner that makes tokens. In the <a href="compiling-expressions.html">next chapter</a>, we&rsquo;ll tie the two ends together with our bytecode compiler.</p>
-<p><strong>todo: illustrate phases scanner -&gt; tokens -&gt; compiler -&gt; chunk -&gt; vm</strong></p>
-<p>I&rsquo;ll admit, this is not the most exciting chapter in the book. With two implementations of the same languages, there&rsquo;s bound to be <em>some</em> redundancy. The basic techniques we use here are similar to the scanner in jlox. I did sneak in a few interesting differences, though, mostly driven by our need to manage memory ourselves in C. Ready to get started?</p>
+<p>Our second interpreter clox has roughly three phases<span class="em">&mdash;</span>the scanner, the
+compiler, and the virtual machine. Between each pair is a data structure. Tokens
+flow between the scanner and compiler, and chunks of bytecode between the
+compiler and VM. We started near the end with <a href="chunks-of-bytecode.html">chunks</a> and the <a href="a-virtual-machine.html">VM</a>. Now
+we&rsquo;re going to circle back to the beginning and build a scanner that makes
+tokens. In the <a href="compiling-expressions.html">next chapter</a>, we&rsquo;ll tie the two ends together with our
+bytecode compiler.</p>
+<p><img src="image/scanning-on-demand/pipeline.png" alt="Source code &rarr; scanner &rarr; tokens &rarr; compiler &rarr; bytecode chunk &rarr; VM." /></p>
+<p>I&rsquo;ll admit, this is not the most exciting chapter in the book. With two
+implementations of the same languages, there&rsquo;s bound to be <em>some</em> redundancy.
+The basic techniques we use here are similar to the scanner in jlox. I did sneak
+in a few interesting differences, though, mostly driven by our need to manage
+memory ourselves in C. Ready to get started?</p>
 <h2><a href="#spinning-up-the-interpreter" name="spinning-up-the-interpreter"><small>16&#8202;.&#8202;1</small> Spinning Up the Interpreter</a></h2>
 <p>Now that we&rsquo;re building the front end, we can finally get clox running like a
 real interpreter. No more executing a hand-authored chunk of bytecode and then
@@ -356,7 +365,7 @@ create new file</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>The first phase of compilation in scanning<span class="em">&mdash;</span>you know, the thing we&rsquo;re doing
+<p>The first phase of compilation is scanning<span class="em">&mdash;</span>you know, the thing we&rsquo;re doing
 in this chapter<span class="em">&mdash;</span>so right now all the compiler does is set up that.</p>
 <h2><a href="#the-scanner-scans" name="the-scanner-scans"><small>16&#8202;.&#8202;3</small> The Scanner Scans</a></h2>
 <p>This is a lot of scaffolding code to set up but now we&rsquo;re starting to get to
@@ -394,15 +403,21 @@ create new file</div>
 through the user&rsquo;s source code. Like with did with the VM, we wrap that state up
 in a single struct and then create a top-level module variable for it so we
 don&rsquo;t have to thread it through all of the various functions.</p>
-<p>It only needs a couple of little first. The <code>start</code> pointer marks the beginning
-of the current lexeme being scanned, and <code>current</code> points to the current
-character being looked at. It&rsquo;s the next character to be consumed, not the
-most-recently consumed one.</p>
+<p>It only needs a couple of little fields first. The <code>start</code> pointer marks the
+beginning of the current lexeme being scanned, and <code>current</code> points to the
+current character being looked at. It&rsquo;s the next character to be consumed, not
+the most-recently consumed one.</p>
+<p><span name="fields"></span></p>
+<p><img src="image/scanning-on-demand/fields.png" alt="The start and current fields pointing at 'print bacon;'. Start points at 'b' and current points at 'o'." /></p>
+<aside name="fields">
+<p>Here, we are in the middle of scanning the identifier <code>bacon</code>. The current
+character is <code>o</code> and the character we just consumed is <code>c</code>.</p>
+</aside>
 <p>Also, we have a <code>line</code> field to track of what line <code>current</code> is on in the user&rsquo;s
 program. When we create tokens, we&rsquo;ll store that so that we can tell the user
 what line errors occurred on.</p>
 <p>That&rsquo;s all we need. Note that we don&rsquo;t even keep a pointer to the whole source
-code string. The scanners works its way through the source string once and never
+code string. The scanner works its way through the source string once and never
 returns to the beginning.</p>
 <p>Since we have some state, we need to initialize it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">Scanner</span> <span class="n">scanner</span><span class="p">;</span>
@@ -457,8 +472,12 @@ if we invoke the interpreter and throw this at it:</p>
 
 
 <p>The first column is the line numbers, the second is the numeric value of the
-token type (not exactly human-readable, I know), and then finally the lexeme.
-That last empty token on line 2 here is the EOF one.</p>
+token <span name="token">type</span>, and then finally the lexeme. That last
+empty token on line 2 here is the EOF one.</p>
+<aside name="token">
+<p>Yeah, the raw index of the token type isn&rsquo;t exactly human readable, but it&rsquo;s all
+C gives us.</p>
+</aside>
 <p>The goal for the rest of the chapter is to make that blob of code work. The key
 function is this one:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">initScanner</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
@@ -622,6 +641,12 @@ add after <em>makeToken</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
+<p><span name="axolotl"></span></p>
+<aside name="axolotl">
+<p>This part of the chapter is pretty dry, so here&rsquo;s a picture of an axolotl.</p>
+<p><img src="image/scanning-on-demand/axolotl.png" alt="A drawing of an axolotl." />
+</p>
+</aside>
 <p>The key difference is that the lexeme fields point to the error message instead
 of pointing into the user&rsquo;s source code string. We need to be careful then to
 ensure that the error message string also has a long enough lifetime that it is
@@ -897,7 +922,6 @@ add after <em>skipWhitespace</em>()</div>
 
 <p>It&rsquo;s virtually identical to jlox&rsquo;s version except, again, we don&rsquo;t convert the
 lexeme to a double yet.</p>
-<hr />
 <h2><a href="#identifiers-and-keywords" name="identifiers-and-keywords"><small>16&#8202;.&#8202;5</small> Identifiers and Keywords</a></h2>
 <p>The last batch of tokens are identifiers, both user-defined and reserved. This
 section should be fun<span class="em">&mdash;</span>the way we recognize keywords in clox is quite
@@ -953,7 +977,7 @@ a character-by-character equality comparison on any string it happens to find
 there.</p>
 <aside name="hash">
 <p>Don&rsquo;t worry if this is unfamiliar to you. When we get to <a href="hash-tables.html">building our own hash
-table from scratch</a>, we&rsquo;ll learn all about it in minute detail.</p>
+table from scratch</a>, we&rsquo;ll learn all about it in exquisite detail.</p>
 </aside>
 <p>Let&rsquo;s say we&rsquo;ve scanned the identifier &ldquo;gorgonzola&rdquo;. How much work should we
 need to do to tell if that&rsquo;s a reserved word? Well, no Lox keyword starts with
@@ -980,7 +1004,7 @@ character, it must not be a keyword. If we reach a node marked with a keyword&rs
 token type, and we&rsquo;re at the last character of the lexeme, then we&rsquo;ve exactly
 matched a keyword.</p>
 <p>Lox&rsquo;s keyword tree looks like this:</p>
-<p><strong>todo: illustrate example traversal</strong></p>
+<p><img src="image/scanning-on-demand/keywords.png" alt="A trie that contains all of Lox's keywords." /></p>
 <p>This kind of tree may look familiar. It&rsquo;s part of a family of related classic,
 fundamental data structures in computer science. The first is a <span
 name="trie"><a href="https://en.wikipedia.org/wiki/Trie"><strong>trie</strong></a></span>. Like Java&rsquo;s HashSet, a binary search tree,
@@ -1017,15 +1041,25 @@ other states by following transitions. When you use a DFA for lexical analysis,
 each transition is a character that gets matched from the string. Each state
 respresents a set of allowed characters.</p>
 <p>Our keyword tree is exactly a DFA that recognizes Lox keywords. But DFAs are
-more powerful than simple trees because they can be arbitrary <em>graphs</em>.
-Transitions can form cycles between states. That lets you recognize arbitrarily
-long strings. For example, here&rsquo;s a DFA that recognizes integers:</p>
-<p><strong>todo: illustrate</strong></p>
+more powerful than simple trees because they can be arbitrary <span
+name="railroad"><em>graphs</em></span>. Transitions can form cycles between states.
+That lets you recognize arbitrarily long strings. For example, here&rsquo;s a DFA that
+recognizes number literals:</p>
+<p><img src="image/scanning-on-demand/numbers.png" alt="A syntax diagram that recognizes integer and floating point literals." /></p>
+<aside name="railroad">
+<p>This style of diagram has a name, two actually. It&rsquo;s a <a href="https://en.wikipedia.org/wiki/Syntax_diagram"><strong>syntax
+diagram</strong></a> or, my favorite, a <strong>railroad diagram</strong>. The latter
+name is because it looks something like a switching yard for trains.</p>
+<p>Back before Backus-Naur Form was a thing, this was one of the predominant ways
+of documenting a language&rsquo;s grammar. These days, we mostly use text, but there&rsquo;s
+something charming about having the official specification for a <em>language</em>
+relying on a <em>picture</em>.</p>
+</aside>
 <p>In fact, we could one big giant DFA that does <em>all</em> of the lexical analysis for
 Lox. A single state machine that recognizes and spits out all of the tokens we
-need. However, crafting one of those by hand would be pretty challenging. That&rsquo;s
-why Lex was created. If you give it a nice textual description of your lexical
-grammar<span class="em">&mdash;</span>a bunch of <span name="regex">regular</span> expressions<span class="em">&mdash;</span>it
+need. However, crafting one of those by <span name="regex">hand</span> would be
+pretty challenging. That&rsquo;s why Lex was created. If you give it a nice textual
+description of your lexical grammar<span class="em">&mdash;</span>a bunch of regular expressions<span class="em">&mdash;</span>it
 automatically generates a DFA for you and produces a pile of C code that
 implements it.</p>
 <aside name="regex">
@@ -1042,9 +1076,9 @@ that tree to code?</p>
 statement for each node with cases for each branch. We&rsquo;ll start with the root
 node and handle the easy keywords:</p>
 <aside name="v8">
-<p>Don&rsquo;t look down on my rudimentary code here. The same approach is <a href="https://github.com/v8/v8/blob/e77eebfe3b747fb315bd3baad09bec0953e53e68/src/parsing/scanner.cc#L1643">essentially
-what V8 does</a>, and that&rsquo;s literally one of the world&rsquo;s most sophisticated,
-fastest language implementations.</p>
+<p>Simple doesn&rsquo;t mean dumb. The same approach is <a href="https://github.com/v8/v8/blob/e77eebfe3b747fb315bd3baad09bec0953e53e68/src/parsing/scanner.cc#L1643">essentially what V8 does</a>,
+and that&rsquo;s literally one of the world&rsquo;s most sophisticated, fastest language
+implementations.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">{</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
