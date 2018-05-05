@@ -203,7 +203,7 @@ ensures the parser consumes the entire input and doesn&rsquo;t silently ignore
 erroneous unconsumed tokens at the end of a script.</p>
 <p>Right now, <code>statement</code> only has two cases for the two kinds of statements we&rsquo;ve
 described. We&rsquo;ll fill in more later in this chapter and in the following ones.
-The next step is turning this grammar into something we can store in memory&#8202;&mdash;&#8202;syntax trees.</p>
+The next step is turning this grammar into something we can store in memory<span class="em">&mdash;</span>syntax trees.</p>
 <h3><a href="#statement-syntax-trees" name="statement-syntax-trees"><small>8&#8202;.&#8202;1&#8202;.&#8202;1</small> Statement syntax trees</a></h3>
 <p>There is no place in the grammar where both an expression and a statement is
 allowed. The operands of, say, <code>+</code> are always expressions, never statements. The
@@ -368,7 +368,7 @@ add after <em>visitExpressionStmt</em>()</div>
 stdout.</p>
 <p>Our interpreter is ready to visit statements now, but we have some work to do to
 feed them to it. First, modify the old <code>interpret()</code> method in the Interpreter
-class to accept a list of statements&#8202;&mdash;&#8202;in other words, a program:</p>
+class to accept a list of statements<span class="em">&mdash;</span>in other words, a program:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 method <em>interpret</em>()<br>
 replace 8 lines</div>
@@ -458,8 +458,8 @@ value (here, the string <code>"espresso"</code>).</p>
 </ol>
 <p>Later, we&rsquo;ll add assignment and block scope, but that&rsquo;s enough to get started.</p>
 <aside name="globals">
-<p>Global state gets a bad rap. Sure, lots of global state&#8202;&mdash;&#8202;especially <em>mutable</em>
-state&#8202;&mdash;&#8202;makes it hard to maintain large programs. It&rsquo;s good software
+<p>Global state gets a bad rap. Sure, lots of global state<span class="em">&mdash;</span>especially <em>mutable</em>
+state<span class="em">&mdash;</span>makes it hard to maintain large programs. It&rsquo;s good software
 engineering to minimize how much you use.</p>
 <p>But when you&rsquo;re slapping together a simple programming language or, heck, even
 learning your first language, the flat simplicity of global variables helps. My
@@ -473,8 +473,8 @@ with the syntax. Variable declarations are statements, but they are different
 from other statements, and we&rsquo;re going to split the statement grammar in two to
 handle them. That&rsquo;s because the grammar restricts where some kinds of statements
 are allowed.</p>
-<p>The clauses in control flow statements&#8202;&mdash;&#8202;think the &ldquo;then&rdquo; and &ldquo;else&rdquo; parts of
-an if statement or the body of a while&#8202;&mdash;&#8202;are each a single statement. But that
+<p>The clauses in control flow statements<span class="em">&mdash;</span>think the &ldquo;then&rdquo; and &ldquo;else&rdquo; parts of
+an if statement or the body of a while<span class="em">&mdash;</span>are each a single statement. But that
 statement is not allowed to be one that declares a name. This is OK:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">monday</span><span class="p">)</span> <span class="k">print</span> <span class="s">&quot;Ugh, already?&quot;</span><span class="p">;</span>
 </pre></div>
@@ -492,8 +492,8 @@ compiler or a human to reason about the code. But if the variable <em>doesn&rsqu
 past the if, then what&rsquo;s the point of declaring it at all?</p>
 <p>Code like this is weird, so C, Java, and friends all disallow it. Instead, it&rsquo;s
 as if there are two levels of <span name="brace">&ldquo;precedence&rdquo;</span> for
-statements. Some places where a statement is allowed&#8202;&mdash;&#8202;like inside a block or
-at the top level&#8202;&mdash;&#8202;allow any kind of statement, including declarations. Others
+statements. Some places where a statement is allowed<span class="em">&mdash;</span>like inside a block or
+at the top level<span class="em">&mdash;</span>allow any kind of statement, including declarations. Others
 only allow the &ldquo;higher&rdquo; precedence statements that don&rsquo;t declare names.</p>
 <aside name="brace">
 <p>In this analogy, a block statement, where you stuff a series of statements
@@ -733,8 +733,8 @@ to the other might not work.</p>
 <aside name="scheme">
 <p>My rule about variables and scoping is, &ldquo;When in doubt, do what Scheme does.&rdquo;
 The Scheme folks have probably spent more time thinking about variable scope
-than we ever will&#8202;&mdash;&#8202;one of the main goals of Scheme was to introduce lexical
-scoping to the world&#8202;&mdash;&#8202;so it&rsquo;s hard to go wrong if you follow in their
+than we ever will<span class="em">&mdash;</span>one of the main goals of Scheme was to introduce lexical
+scoping to the world<span class="em">&mdash;</span>so it&rsquo;s hard to go wrong if you follow in their
 footsteps.</p>
 <p>Scheme allows redefining variables at the top level.</p>
 </aside>
@@ -767,7 +767,7 @@ choice.</p>
 </li>
 </ul>
 <p>Lox is pretty lax, but the last option is a little <em>too</em> permissive to me.
-Making it a syntax error&#8202;&mdash;&#8202;a compile time error&#8202;&mdash;&#8202;seems like a smart choice.
+Making it a syntax error<span class="em">&mdash;</span>a compile time error<span class="em">&mdash;</span>seems like a smart choice.
 Using an undefined variable is a bug, and the sooner you detect the mistake, the
 better.</p>
 <p>The problem is that <em>using</em> a variable isn&rsquo;t the same as <em>referring to it</em>. You
@@ -775,7 +775,7 @@ can refer to a variable in a chunk of code without immediately evaluating it if
 that chunk of code is wrapped inside a function. If we make it a static error to
 <em>mention</em> a variable before it&rsquo;s been declared, it becomes much harder to define
 recursive functions.</p>
-<p>We could accommodate single recursion&#8202;&mdash;&#8202;a function that calls itself&#8202;&mdash;&#8202;by
+<p>We could accommodate single recursion<span class="em">&mdash;</span>a function that calls itself<span class="em">&mdash;</span>by
 declaring the function&rsquo;s own name before we examine its body. But that doesn&rsquo;t
 help with mutually recursive procedures that call each other. Consider:</p>
 <p><span name="contrived"></span></p>
@@ -891,11 +891,11 @@ working. Try this out:</p>
 <h2><a href="#assignment" name="assignment"><small>8&#8202;.&#8202;4</small> Assignment</a></h2>
 <p>It&rsquo;s possible to create a language that has variables but does not let you
 reassign, or <strong>&ldquo;mutate&rdquo;</strong>, them. Haskell is one example. SML only supports
-mutable references and arrays&#8202;&mdash;&#8202;variables cannot be re-assigned. Rust steers
+mutable references and arrays<span class="em">&mdash;</span>variables cannot be re-assigned. Rust steers
 you away from mutation by requiring a <code>mut</code> modifier to enable assignment.</p>
 <p>Mutating a variable is a side effect and, as the name suggests, some language
 folks think side effects are <span name="pure">dirty</span> or inelegant. Code
-should be pure math that produces values&#8202;&mdash;&#8202;crystalline, unchanging ones&#8202;&mdash;&#8202;like
+should be pure math that produces values<span class="em">&mdash;</span>crystalline, unchanging ones<span class="em">&mdash;</span>like
 an act of divine creation. Not some grubby automaton that beats blobs of data
 into shape, one imperative grunt at a time.</p>
 <aside name="pure">
@@ -1211,7 +1211,7 @@ disappear.</p>
 </li>
 </ol>
 <p>That would work for the previous example. But, remember, one motivation for
-local scope is encapsulation&#8202;&mdash;&#8202;a block of code in one corner of the program
+local scope is encapsulation<span class="em">&mdash;</span>a block of code in one corner of the program
 shouldn&rsquo;t interfere with some other one. Check this out:</p>
 <div class="codehilite"><pre><span></span><span class="c1">// How loud?</span>
 <span class="k">var</span> <span class="n">volume</span> <span class="o">=</span> <span class="mi">11</span><span class="p">;</span>
@@ -1295,7 +1295,7 @@ in class <em>Environment</em></div>
 <p>The no-argument constructor is for the global scope&rsquo;s environment, which ends
 the chain. The other constructor creates a new local scope nested inside the
 given outer one.</p>
-<p>We don&rsquo;t have to touch the <code>define()</code> method&#8202;&mdash;&#8202;a new variable is always
+<p>We don&rsquo;t have to touch the <code>define()</code> method<span class="em">&mdash;</span>a new variable is always
 declared in the current innermost scope. But variable lookup and assignment work
 with existing variables and they need to walk the chain to find it. First,
 lookup:</p>
@@ -1355,7 +1355,7 @@ in <em>main</em>()</div>
 </aside>
 <p><span name="generate">It</span> contains the list of statements that are inside
 the block. Parsing is straightforward. Like other statements, we detect the
-beginning of a block by its leading token&#8202;&mdash;&#8202;in this case the <code>{</code>. In the
+beginning of a block by its leading token<span class="em">&mdash;</span>in this case the <code>{</code>. In the
 <code>statement()</code> method, we add:</p>
 <aside name="generate">
 <p>As always, don&rsquo;t forget to run &ldquo;GenerateAst.java&rdquo;.</p>
@@ -1417,7 +1417,7 @@ add after <em>execute</em>()</div>
 
 <p>It executes a list of statements in the context of a given <span
 name="param">environment</span>. Up until now, the <code>environment</code> field in
-Interpreter always pointed to the same environment&#8202;&mdash;&#8202;the global one. Now, that
+Interpreter always pointed to the same environment<span class="em">&mdash;</span>the global one. Now, that
 field represents the <em>current</em> environment. That&rsquo;s the environment that corresponds to the innermost scope containing the code to be executed.</p>
 <p>To execute code within a given scope, this method updates the interpreter&rsquo;s
 <code>environment</code> field, visits all of the statements, and then restores the
@@ -1565,7 +1565,7 @@ mean&rdquo;.</p>
 </li>
 <li>
 <p>JS, Ruby, and CoffeeScript use the presence of an existing variable with
-    some name&#8202;&mdash;&#8202;even in an outer scope&#8202;&mdash;&#8202;to determine whether or not an
+    some name<span class="em">&mdash;</span>even in an outer scope<span class="em">&mdash;</span>to determine whether or not an
     assignment creates a new variable or assigns to an existing one. That means
     adding a new variable in a surrounding scope can change the meaning of
     existing code. What was once a local variable may silently turn into an
