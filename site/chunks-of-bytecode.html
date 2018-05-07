@@ -139,7 +139,7 @@ this book is going to fit on your bookshelf.</p>
 </aside>
 <p>An even more fundamental reason that jlox isn&rsquo;t sufficient is that it&rsquo;s too damn
 slow. A tree-walk interpreter is fine for some kinds of high-level, declarative
-languages. But for a general-purpose, imperative language&#8202;&mdash;&#8202;even a &ldquo;scripting&rdquo;
+languages. But for a general-purpose, imperative language<span class="em">&mdash;</span>even a &ldquo;scripting&rdquo;
 language like Lox, it won&rsquo;t fly. Take this little script:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="k">return</span> <span class="n">n</span><span class="p">;</span>
@@ -156,7 +156,7 @@ language like Lox, it won&rsquo;t fly. Take this little script:</p>
 <aside name="fib">
 <p>This is a comically inefficient way to actually calculate Fibonacci numbers.
 Our goal is to see how fast the <em>interpreter</em> runs, not to see how fast of a
-program we can write. A slow program that does a lot of work&#8202;&mdash;&#8202;pointless or not&#8202;&mdash;&#8202;is a good test case for that.</p>
+program we can write. A slow program that does a lot of work<span class="em">&mdash;</span>pointless or not<span class="em">&mdash;</span>is a good test case for that.</p>
 </aside>
 <p>On my laptop, that takes jlox about 72 seconds to execute. An equivalent C
 program finishes in half a second. Our dynamically-typed scripting language is
@@ -164,8 +164,8 @@ never going to be as fast as a statically-typed language with manual memory
 management, but we don&rsquo;t need to settle for more than <em>two orders of magnitude</em>
 slower.</p>
 <p>We could take jlox and run it in a profiler and start tuning and tweaking
-hotspots, but that will only get us so far. The execution model&#8202;&mdash;&#8202;walking the
-AST&#8202;&mdash;&#8202;is fundamentally the wrong design. We can&rsquo;t micro-optimize that to the
+hotspots, but that will only get us so far. The execution model<span class="em">&mdash;</span>walking the
+AST<span class="em">&mdash;</span>is fundamentally the wrong design. We can&rsquo;t micro-optimize that to the
 performance we want any more than you can polish an AMC Gremlin into an SR-71
 Blackbird.</p>
 <p>We need to rethink the core model. This chapter introduces that model, bytecode, and begins our new interpreter, clox.</p>
@@ -226,7 +226,7 @@ the <em>overhead</em> of those tree nodes with all of their pointer fields and o
 headers tends to push objects away from each other and out of the cache.</p>
 <aside name="anywhere">
 <p>Even if the objects happened to be allocated in sequential memory when the
-parser first produced them, after a couple of rounds of garbage collection&#8202;&mdash;&#8202;which may move objects around in memory&#8202;&mdash;&#8202;there&rsquo;s no telling where they&rsquo;ll be.</p>
+parser first produced them, after a couple of rounds of garbage collection<span class="em">&mdash;</span>which may move objects around in memory<span class="em">&mdash;</span>there&rsquo;s no telling where they&rsquo;ll be.</p>
 </aside>
 <p>Our AST walker has other overhead too around interface dispatch and the visitor
 pattern, but the locality issues alone are enough to justify a better code
@@ -276,7 +276,7 @@ native code for a plethora of architectures.</p>
 <p>Fix those two points in your mind. On one end, a tree-walk interpreter is
 simple, portable, and slow. On the other, native code is complex and
 platform-specific but fast. Bytecode sits in the middle. It retains the
-portability of a tree-walker&#8202;&mdash;&#8202;we won&rsquo;t be getting our hands dirty with
+portability of a tree-walker<span class="em">&mdash;</span>we won&rsquo;t be getting our hands dirty with
 assembly code in this book. It trades in <em>some</em> simplicity to get a performance
 boost in return, though not as fast as going fully native.</p>
 <p>Structurally, bytecode resembles machine code. It&rsquo;s a dense, linear sequence of
@@ -289,7 +289,7 @@ given carte blanche to define the easiest possible architecture to target.
 Bytecode is kind of like that. It&rsquo;s an idealized fantasy instruction set that
 makes your life as the compiler writer easier.</p>
 <p>The problem with a fantasy architecture, of course, is that it doesn&rsquo;t exist. We
-solve that by writing an <em>emulator</em>&#8202;&mdash;&#8202;a simulated chip written in software that
+solve that by writing an <em>emulator</em><span class="em">&mdash;</span>a simulated chip written in software that
 interprets the bytecode one instruction at a time. A <strong>&ldquo;virtual machine&rdquo;</strong>
 (<strong>VM</strong>) if you will.</p>
 <p>That emulation layer adds <span name="p-code">overhead</span>, which is a key
@@ -347,7 +347,7 @@ create new file</div>
 
 <p>There are a handful of types and constants we&rsquo;ll use throughout the interpreter,
 and this is a convenient place to put them. For now, it&rsquo;s just the nice C99
-Boolean and explicit-sized integer types&#8202;&mdash;&#8202;<code>bool</code>, <code>uint8_t</code>, and friends.</p>
+Boolean and explicit-sized integer types<span class="em">&mdash;</span><code>bool</code>, <code>uint8_t</code>, and friends.</p>
 <h2><a href="#chunks-of-instructions" name="chunks-of-instructions"><small>14&#8202;.&#8202;3</small> Chunks of Instructions</a></h2>
 <p>Next, we need a module to define our code representation. I&rsquo;ve been using
 &ldquo;chunk&rdquo; to refer to blobs of bytecode, so let&rsquo;s make that the official name for
@@ -364,7 +364,7 @@ create new file</div>
 
 <p>In our bytecode format, each instruction has a one-byte <strong>operation code</strong>
 (universally shortened to &ldquo;opcode&rdquo;). That number controls what kind of
-instruction we&rsquo;re dealing with&#8202;&mdash;&#8202;add, subtract, look up variable, etc. We
+instruction we&rsquo;re dealing with<span class="em">&mdash;</span>add, subtract, look up variable, etc. We
 define those here:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>chunk.h</em></div>
@@ -403,7 +403,7 @@ arrays provide:</p>
 <p>Those features are exactly why we used it all the time in jlox under the guise
 of Java&rsquo;s ArrayList class. Now that we&rsquo;re in C, we get to roll our own. If
 you&rsquo;re rusty on dynamic arrays, the idea is pretty simple. In addition to the
-array itself, we keep two numbers&#8202;&mdash;&#8202;the number of elements in the array we have
+array itself, we keep two numbers<span class="em">&mdash;</span>the number of elements in the array we have
 allocated (&ldquo;capacity&rdquo;) and how many of those allocated entries are actually in
 use (&ldquo;count&rdquo;).</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
@@ -545,7 +545,7 @@ using <code>GROW_ARRAY()</code>:</p>
 getting the size of the array&rsquo;s element type and casting the resulting <code>void*</code>
 back to a pointer of the right type.</p>
 <p>This <code>reallocate()</code> function is the single function we&rsquo;ll use for all dynamic
-memory management in clox&#8202;&mdash;&#8202;allocating memory, freeing it, and changing the
+memory management in clox<span class="em">&mdash;</span>allocating memory, freeing it, and changing the
 size of an existing allocation. Routing all of those operations through a single
 function will be important later when we add a garbage collector that needs to
 keep track of how much memory is in use.</p>
@@ -683,7 +683,7 @@ actually inside that chunk we made.</p>
 <p>To fix this, we&rsquo;re going to create a <strong>disassembler</strong>. An <strong>assembler</strong> is an
 old-school program that takes a file containing human-readable mnemonic names
 for CPU instructions like &ldquo;ADD&rdquo; and &ldquo;MULT&rdquo; and translates them to their binary
-machine code equivalent. A <em>dis</em>-assembler goes in the other direction&#8202;&mdash;&#8202;given
+machine code equivalent. A <em>dis</em>-assembler goes in the other direction<span class="em">&mdash;</span>given
 a blob of machine code, it spits out a textual listing of the instructions.</p>
 <p>We&rsquo;ll implement something <span name="printer">similar</span>. Given a chunk, it
 will print out all of the instructions in it. A Lox <em>user</em> won&rsquo;t use this, but
@@ -770,14 +770,14 @@ add after <em>disassembleChunk</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>First, it prints the byte offset of the given instruction&#8202;&mdash;&#8202;it tells us where
+<p>First, it prints the byte offset of the given instruction<span class="em">&mdash;</span>it tells us where
 in the chunk this instruction is. This will be a helpful signpost when we start
 doing control flow and jumping around in the bytecode.</p>
 <p>Next, it reads a single byte from the bytecode at the given offset. That&rsquo;s our
 opcode. We <span name="switch">switch</span> on that. For each kind of
 instruction, we dispatch to a little utlity function for displaying it. On the
-off chance that the given byte doesn&rsquo;t look like an instruction at all&#8202;&mdash;&#8202;a bug
-in our compiler&#8202;&mdash;&#8202;we print that too. For the one instruction we do have,
+off chance that the given byte doesn&rsquo;t look like an instruction at all<span class="em">&mdash;</span>a bug
+in our compiler<span class="em">&mdash;</span>we print that too. For the one instruction we do have,
 <code>OP_RETURN</code>, the display function is:</p>
 <aside name="switch">
 <p>We only have one instruction right now, but this switch will grow throughout the
@@ -822,7 +822,7 @@ different solution now that we don&rsquo;t have a syntax tree.</p>
 <p>We won&rsquo;t be <em>running</em> any code in this chapter, but since constants have a foot
 in both the static and dynamic worlds of our interpreter, they force us to start
 thinking at least a little bit about how our VM should represent values.</p>
-<p>For now, we&rsquo;re going to start as simple as possible&#8202;&mdash;&#8202;we&rsquo;ll only support
+<p>For now, we&rsquo;re going to start as simple as possible<span class="em">&mdash;</span>we&rsquo;ll only support
 double-precision floating point numbers. This will obviously expand over time,
 so we&rsquo;ll set up a new module to give ourselves room to grow:</p>
 <div class="codehilite"><div class="source-file"><em>value.h</em><br>
@@ -856,8 +856,8 @@ values that appear as literals in the program. To keep things <span
 name="immediate">simpler</span>, we&rsquo;ll put <em>all</em> constants in there, even simple
 integers.</p>
 <aside name="immediate">
-<p>In addition to needing two kinds of constant instructions&#8202;&mdash;&#8202;one for immediate
-values and one for constants in the constant table&#8202;&mdash;&#8202;immediates also force us
+<p>In addition to needing two kinds of constant instructions<span class="em">&mdash;</span>one for immediate
+values and one for constants in the constant table<span class="em">&mdash;</span>immediates also force us
 to worry about alignment, padding, and endianness. Some architectures aren&rsquo;t
 happy if you try to say, stuff a 4-byte integer at an odd address.</p>
 </aside>
@@ -989,7 +989,7 @@ in <em>freeChunk</em>()</div>
 
 <p>Next, we define a convenience method to add a new constant to the chunk. Our
 yet-to-be-written compiler could write to the constant array inside Chunk
-directly&#8202;&mdash;&#8202;it&rsquo;s not like C has private fields or anything&#8202;&mdash;&#8202;but it&rsquo;s a little
+directly<span class="em">&mdash;</span>it&rsquo;s not like C has private fields or anything<span class="em">&mdash;</span>but it&rsquo;s a little
 nicer to add an explicit function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">writeChunk</span><span class="p">(</span><span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">,</span> <span class="kt">uint8_t</span> <span class="n">byte</span><span class="p">);</span>
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -1036,7 +1036,7 @@ haven&rsquo;t learned how the virtual machine actually executes code at runtime 
 For that, you&rsquo;ll have to wait for (or skip ahead to, I suppose) the <a href="a-virtual-machine.html">next
 chapter</a>.</p>
 </aside>
-<p>To handle cases like this, our bytecode&#8202;&mdash;&#8202;like most others&#8202;&mdash;&#8202;allows
+<p>To handle cases like this, our bytecode<span class="em">&mdash;</span>like most others<span class="em">&mdash;</span>allows
 instructions to have <span name="operand"><strong>operands</strong></span>. These are stored
 as binary data immediately after the opcode in the instruction stream and let us
 parameterize what the instruction does.</p>
@@ -1044,7 +1044,7 @@ parameterize what the instruction does.</p>
 example, a simple operation like &ldquo;return&rdquo; may have no operands, where an
 instruction for &ldquo;load local variable&rdquo; needs an operand to identify which
 variable to load. Each time we add a new instruction to clox, we specify what
-its operands look like&#8202;&mdash;&#8202;its <strong>instruction format</strong>.</p>
+its operands look like<span class="em">&mdash;</span>its <strong>instruction format</strong>.</p>
 <aside name="operand">
 <p>Bytecode instruction operands are <em>not</em> the same as the operands passed to an
 arithmetic operator. You&rsquo;ll see when we get to expressions that those operand
@@ -1098,8 +1098,8 @@ add after <em>disassembleChunk</em>()</div>
 <p>There&rsquo;s more going on here. As with <code>OP_RETURN</code>, we print out the name of the
 opcode. Then we pull out the constant index from the subsequent byte in the
 chunk. We print that index, but that isn&rsquo;t super useful to we human readers. So
-we also look up the actual constant value&#8202;&mdash;&#8202;since constants <em>are</em> known at
-compile-time after all&#8202;&mdash;&#8202;and display the value itself too.</p>
+we also look up the actual constant value<span class="em">&mdash;</span>since constants <em>are</em> known at
+compile-time after all<span class="em">&mdash;</span>and display the value itself too.</p>
 <p>This requires some way to print a Lox Value. That function will live in the
 value module, so we include that:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot;</span><span class="cp"></span>
@@ -1136,7 +1136,7 @@ in <em>constantInstruction</em>()</div>
 
 <p>Remember that <code>disassembleInstruction()</code> also returns a number to tell the
 caller how many bytes to advance to reach the beginning of the <em>next</em>
-instruction. Where <code>OP_RETURN</code> was only a single byte, <code>OP_CONSTANT</code> is two&#8202;&mdash;&#8202;one for the opcode and one for the operand.</p>
+instruction. Where <code>OP_RETURN</code> was only a single byte, <code>OP_CONSTANT</code> is two<span class="em">&mdash;</span>one for the opcode and one for the operand.</p>
 <h2><a href="#line-information" name="line-information"><small>14&#8202;.&#8202;6</small> Line Information</a></h2>
 <p>Chunks contain almost everything we need to preserve from the user&rsquo;s source
 code. It&rsquo;s kind of crazy to think that we can reduce all of the different AST
@@ -1228,7 +1228,7 @@ in <em>writeChunk</em>()</div>
 <h3><a href="#disassembling-line-information" name="disassembling-line-information"><small>14&#8202;.&#8202;6&#8202;.&#8202;1</small> Disassembling line information</a></h3>
 <p>Alright, let&rsquo;s try this out with our little, uh, artisanal chunk. First, since
 we added a new parameter to <code>writeChunk()</code>, we need to fix those calls to pass
-in some&#8202;&mdash;&#8202;arbitrary at this point&#8202;&mdash;&#8202;line number:</p>
+in some<span class="em">&mdash;</span>arbitrary at this point<span class="em">&mdash;</span>line number:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()<br>
@@ -1246,8 +1246,8 @@ and pass that in.</p>
 use. In our disassembler, it&rsquo;s helpful to show which source line each
 instruction was compiled from. That gives us a way to map back to the original
 code when we&rsquo;re trying to figure out what some blob of bytecode is supposed to
-do. After printing the offset of the instruction&#8202;&mdash;&#8202;the number of bytes from the
-beginning of the chunk&#8202;&mdash;&#8202;we show its source line:</p>
+do. After printing the offset of the instruction<span class="em">&mdash;</span>the number of bytes from the
+beginning of the chunk<span class="em">&mdash;</span>we show its source line:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">int</span> <span class="nf">disassembleInstruction</span><span class="p">(</span><span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%04d &quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -1369,7 +1369,7 @@ programming language for at least a couple of reasons:</p>
 <li>
 <p><strong>A language implementation is a deeply interconnected piece of software.</strong>
     Some codebases are broad and shallow. If the file loading code is broken in
-    your text editor, it&#8202;&mdash;&#8202;hopefully!&#8202;&mdash;&#8202;won&rsquo;t cause failures in the text
+    your text editor, it<span class="em">&mdash;</span>hopefully!<span class="em">&mdash;</span>won&rsquo;t cause failures in the text
     rendering on screen. Language implementations are narrower and deeper,
     especially the core of the interpreter that handles the language&rsquo;s actual
     semantics. That makes it easy for subtle bugs to creep in caused by weird
@@ -1426,8 +1426,8 @@ Writing your tests in the language itself has a few nice advantages:</p>
 </li>
 <li>
 <p>The overhead can be high to fire up the interpreter, parse, compile, and
-    run each test script. With a big suite of tests&#8202;&mdash;&#8202;which you <em>do</em> want,
-    remember&#8202;&mdash;&#8202;that can mean a lot of time spent waiting for the tests to
+    run each test script. With a big suite of tests<span class="em">&mdash;</span>which you <em>do</em> want,
+    remember<span class="em">&mdash;</span>that can mean a lot of time spent waiting for the tests to
     finish running.</p>
 </li>
 </ul>

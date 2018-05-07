@@ -125,13 +125,13 @@ them living and breathing, so it&rsquo;s hard to really understand what they <em
 would be hard to write a compiler that outputs bytecode when we don&rsquo;t have a
 good understanding of how that bytecode behaves.</p>
 <p>So, before we go and build the front end of our new interpreter, we will begin
-with the back end&#8202;&mdash;&#8202;the virtual machine that executes instructions. It breathes
+with the back end<span class="em">&mdash;</span>the virtual machine that executes instructions. It breathes
 life into the bytecode. Watching the instructions prance around gives us a
 clearer picture of how a compiler might translate the user&rsquo;s source code into a
 series of them.</p>
 <h2><a href="#an-instruction-execution-machine" name="an-instruction-execution-machine"><small>15&#8202;.&#8202;1</small> An Instruction Execution Machine</a></h2>
 <p>The &ldquo;virtual machine&rdquo; is one part of our interpreter&rsquo;s internal architecture.
-You hand it a chunk of code&#8202;&mdash;&#8202;literally a Chunk&#8202;&mdash;&#8202;and it runs it. The code and
+You hand it a chunk of code<span class="em">&mdash;</span>literally a Chunk<span class="em">&mdash;</span>and it runs it. The code and
 data structures for the VM reside in a new module:</p>
 <div class="codehilite"><div class="source-file"><em>vm.h</em><br>
 create new file</div>
@@ -259,7 +259,7 @@ add after <em>freeVM</em>()</div>
 <p>First, we store the chunk being executed in the VM. Then we call <code>run()</code>, an
 internal helper function that actually runs the bytecode instructions. Between
 those two parts is an intriguing line. What is this <code>ip</code> business?</p>
-<p>As the VM works its way through the bytecode, it keeps track of where it is&#8202;&mdash;&#8202;the location of the instruction currently being executed. We don&rsquo;t use a <span
+<p>As the VM works its way through the bytecode, it keeps track of where it is<span class="em">&mdash;</span>the location of the instruction currently being executed. We don&rsquo;t use a <span
 name="local">local</span> variable inside <code>run()</code> for this because eventually
 other functions will need to access it. Instead, we store it as a field in VM:</p>
 <aside name="local">
@@ -279,7 +279,7 @@ register.</p>
 middle of the bytecode array instead of something like an integer index because
 it&rsquo;s faster to dereference a pointer than look up an element in an array by
 index.</p>
-<p>The name &ldquo;IP&rdquo; is traditional, and&#8202;&mdash;&#8202;unlike many traditional names in CS&#8202;&mdash;&#8202;actually makes sense: it&rsquo;s an <strong><a href="https://en.wikipedia.org/wiki/Program_counter">instruction pointer</a></strong>. Almost every
+<p>The name &ldquo;IP&rdquo; is traditional, and<span class="em">&mdash;</span>unlike many traditional names in CS<span class="em">&mdash;</span>actually makes sense: it&rsquo;s an <strong><a href="https://en.wikipedia.org/wiki/Program_counter">instruction pointer</a></strong>. Almost every
 instruction set in the <span name="ip">world</span>, real and virtual, has a
 register or variable like this. The other common name for it is &ldquo;PC&rdquo; for
 &ldquo;program counter&rdquo;.</p>
@@ -386,7 +386,7 @@ operands that refer to constants, so we&rsquo;re setting up this helper macro no
 <p>Like the previous <code>READ_BYTE</code> macro, <code>READ_CONSTANT</code> is only used inside
 <code>run()</code>. To make that scoping more explicit, the macro definitions themselves
 are confined to that function. We <span name="macro">define</span> them at the
-beginning and&#8202;&mdash;&#8202;because we care&#8202;&mdash;&#8202;undefine them at the end:</p>
+beginning and<span class="em">&mdash;</span>because we care<span class="em">&mdash;</span>undefine them at the end:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#undef READ_BYTE</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
@@ -406,8 +406,8 @@ constant along to other operations that want to consume it, the VM will become a
 black box. That makes our lives as VM implementers harder.</p>
 <p>To help ourselves out, now is a good time to add some diagnostic logging to the
 VM like we did with chunks themselves. In fact, we&rsquo;ll even reuse the same code.
-We don&rsquo;t want this logging enabled all the time&#8202;&mdash;&#8202;it&rsquo;s just for us VM hackers,
-not Lox users&#8202;&mdash;&#8202;so first we create a flag to hide it behind:</p>
+We don&rsquo;t want this logging enabled all the time<span class="em">&mdash;</span>it&rsquo;s just for us VM hackers,
+not Lox users<span class="em">&mdash;</span>so first we create a flag to hide it behind:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;</span><span class="cp"></span>
 </pre><div class="source-file"><em>common.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define DEBUG_TRACE_EXECUTION</span>
@@ -438,10 +438,10 @@ it:</p>
 </pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;</span><span class="cp"></span>
 </pre></div>
 
-<p>I know this code isn&rsquo;t super impressive so far&#8202;&mdash;&#8202;it&rsquo;s literally a switch
+<p>I know this code isn&rsquo;t super impressive so far<span class="em">&mdash;</span>it&rsquo;s literally a switch
 statement wrapped in a for loop but, believe it or not, this is one of the two
 major components of our VM. With this, we can imperatively execute instructions.
-Its simplicity is a virtue&#8202;&mdash;&#8202;the less work it does, the faster it can do it.
+Its simplicity is a virtue<span class="em">&mdash;</span>the less work it does, the faster it can do it.
 Contrast this with all of the complexity and overhead we had in jlox with the
 Visitor pattern for walking the AST.</p>
 <h2><a href="#a-value-stack-manipulator" name="a-value-stack-manipulator"><small>15&#8202;.&#8202;2</small> A Value Stack Manipulator</a></h2>
@@ -487,8 +487,8 @@ to reorder arithmetic expressions for efficiency, even in cases where the
 operands have visible side effects. C and Scheme leave it unspecified. Java
 specifies left-to-right evaluation like we do for Lox.</p>
 <p>I think nailing down stuff like this is generally better for users. When
-expressions are not evaluated in the order users intuit&#8202;&mdash;&#8202;possibly in different
-orders across different implementations!&#8202;&mdash;&#8202;it can be a burning hellscape of
+expressions are not evaluated in the order users intuit<span class="em">&mdash;</span>possibly in different
+orders across different implementations!<span class="em">&mdash;</span>it can be a burning hellscape of
 pain to figure out what&rsquo;s going on.</p>
 </aside>
 <p>Here is the syntax tree for the print statement:</p>
@@ -514,7 +514,7 @@ temporarily while it&rsquo;s busy traversing down through the right operand tree
 used a local variable in Java for that. Our recursive tree-walk interpreter
 creates a unique Java call frame for each node being evaluated, so we could have
 as many of these local variables as we needed.</p>
-<p>In clox, our <code>run()</code> function is not recursive&#8202;&mdash;&#8202;the nested expression tree is
+<p>In clox, our <code>run()</code> function is not recursive<span class="em">&mdash;</span>the nested expression tree is
 flattened out into a linear series of instructions. We don&rsquo;t have the luxury of
 using C local variables, so how and where should we store these temporary
 values? You can probably <span name="guess">guess</span> already, but I want to
@@ -529,7 +529,7 @@ a step at a time:</p>
 <p><img src="image/a-virtual-machine/bars.png" alt="The series of instructions with
 bars showing which numbers need to be preserved across which instructions." /></p>
 <p>On the left are the steps of code. On the right are the values we&rsquo;re tracking.
-Each bar represents a number. It starts when the value is first produced&#8202;&mdash;&#8202;either a constant or the result of an addition. The length of the bar tracks
+Each bar represents a number. It starts when the value is first produced<span class="em">&mdash;</span>either a constant or the result of an addition. The length of the bar tracks
 when a previously-produced value needs to be kept around, and it ends when that
 value finally gets consumed by an operation.</p>
 <p>As you step through, you see values appear and then later get eaten. The
@@ -562,13 +562,13 @@ gets them by popping them off the stack.</p>
 <h3><a href="#the-vm's-stack" name="the-vm's-stack"><small>15&#8202;.&#8202;2&#8202;.&#8202;1</small> The VM&rsquo;s Stack</a></h3>
 <p>Maybe this doesn&rsquo;t seem like a revelation, but I <em>love</em> stack-based VMs. When
 you first see a magic trick, it feels like something actually magical. But then
-you learn how it works&#8202;&mdash;&#8202;usually some mechanical gimmick or misdirection&#8202;&mdash;&#8202;and
+you learn how it works<span class="em">&mdash;</span>usually some mechanical gimmick or misdirection<span class="em">&mdash;</span>and
 the sense of wonder evaporates. There are a <span name="wonder">couple</span> of
 ideas in computer science where even after I pulled them apart and learned all
 the ins and outs, some of the initial sparkle remained. Stack-based VMs are one
 of those.</p>
 <aside name="wonder">
-<p>Heaps&#8202;&mdash;&#8202;<a href="https://en.wikipedia.org/wiki/Heap_(data_structure)">the data structure</a>, not <a href="https://en.wikipedia.org/wiki/Memory_management#HEAP">the memory management thing</a>&#8202;&mdash;&#8202;are another. And Vaughan Pratt&rsquo;s top-down operator precedence parsing scheme,
+<p>Heaps<span class="em">&mdash;</span><a href="https://en.wikipedia.org/wiki/Heap_(data_structure)">the data structure</a>, not <a href="https://en.wikipedia.org/wiki/Memory_management#HEAP">the memory management thing</a><span class="em">&mdash;</span>are another. And Vaughan Pratt&rsquo;s top-down operator precedence parsing scheme,
 which we&rsquo;ll learn about <a href="compiling-expressions.html">in due time</a>.</p>
 </aside>
 <p>As you&rsquo;ll see in this chapter, executing instructions in a stack-based VM is
@@ -594,14 +594,14 @@ pipelines to generate <em>much</em> faster native code on the fly.</p>
 </pre></div>
 
 <p>We implement the stack semantics ourselves on top of a raw C array. The bottom
-of the stack&#8202;&mdash;&#8202;the first value pushed and the last to be popped&#8202;&mdash;&#8202;is at
+of the stack<span class="em">&mdash;</span>the first value pushed and the last to be popped<span class="em">&mdash;</span>is at
 element zero in the array, and later pushed values follow it.</p>
 <p><span name="array"></span></p>
 <p><img src="image/a-virtual-machine/array.png" alt="An array containing the
 letters in 'crepe' in order starting at element 0." /></p>
 <aside name="array">
-<p>If we push the letters of &ldquo;crepe&rdquo;&#8202;&mdash;&#8202;my favorite stackable breakfast
-item&#8202;&mdash;&#8202;onto the stack, in order, the resulting C array looks like this.</p>
+<p>If we push the letters of &ldquo;crepe&rdquo;<span class="em">&mdash;</span>my favorite stackable breakfast
+item<span class="em">&mdash;</span>onto the stack, in order, the resulting C array looks like this.</p>
 </aside>
 <p>Since the stack grows and shrinks as values are pushed and popped, we need to
 track where the top of the stack is in the array. As with <code>ip</code>, we use a direct
@@ -636,7 +636,7 @@ least) is:</p>
 </pre></div>
 
 <p>Giving our VM a fixed stack size means it&rsquo;s possible for some sequence of
-instructions to push too many values and run out of stack space&#8202;&mdash;&#8202;the classic
+instructions to push too many values and run out of stack space<span class="em">&mdash;</span>the classic
 &ldquo;stack overflow&rdquo;. We could grow the stack dynamically as needed, but for now
 we&rsquo;ll keep it simple. Since VM uses Value, we need to include its declaration:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chunk.h&quot;</span><span class="cp"></span>
@@ -662,7 +662,7 @@ in <em>initVM</em>()</div>
 
 <p>Since the stack array is declared directly inline in the VM struct, we don&rsquo;t
 need to allocate it. We don&rsquo;t even need to clear the unused cells in the
-array&#8202;&mdash;&#8202;we simply won&rsquo;t access them until after values have been stored in
+array<span class="em">&mdash;</span>we simply won&rsquo;t access them until after values have been stored in
 them. The only initialization we need is to set <code>stackTop</code> to point to the
 beginning of the array to indicate that the stack is empty.</p>
 <p>The stack protocol supports two operations:</p>
@@ -700,7 +700,7 @@ add after <em>push</em>()</div>
 
 <p>First, we move the stack pointer <em>back</em> to get to the most recent used slot in
 the array. Then we look up the value at that index and return it. We don&rsquo;t need
-to explicitly &ldquo;remove&rdquo; it from the array&#8202;&mdash;&#8202;moving <code>stackTop</code> down is enough to
+to explicitly &ldquo;remove&rdquo; it from the array<span class="em">&mdash;</span>moving <code>stackTop</code> down is enough to
 mark that slot as no longer in use.</p>
 <p>We have a working stack, but it&rsquo;s hard to <em>see</em> that it&rsquo;s working. When we start
 implementing more complex instructions and compiling and running larger pieces
@@ -814,7 +814,7 @@ four binary <span name="ops">arithmetic</span> operators: addition, subtraction,
 multiplication, and division. We&rsquo;ll go ahead and implement them all at the same
 time:</p>
 <aside name="ops">
-<p>Lox has some other binary operators&#8202;&mdash;&#8202;comparison and equality&#8202;&mdash;&#8202;but those
+<p>Lox has some other binary operators<span class="em">&mdash;</span>comparison and equality<span class="em">&mdash;</span>but those
 don&rsquo;t produce numbers as a result, so we aren&rsquo;t ready for them yet.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_CONSTANT</span><span class="p">,</span>
@@ -940,7 +940,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 
 <p>The arithmetic instructions are simple, like <code>OP_RETURN</code>. Even though the
-arithmetic <em>operators</em> take operands&#8202;&mdash;&#8202;which are found on the stack&#8202;&mdash;&#8202;the
+arithmetic <em>operators</em> take operands<span class="em">&mdash;</span>which are found on the stack<span class="em">&mdash;</span>the
 arithmetic <em>bytecode instructions</em> do not.</p>
 <p>Let&rsquo;s put some of our new instructions through their paces by evaluating a
 larger expression:</p>
@@ -1032,7 +1032,7 @@ including?</p>
 
 <p>For the remainder of this book, we&rsquo;ll meticulously implement an interpreter
 around a stack-based bytecode instruction set. There&rsquo;s another family of
-bytecode architectures out there&#8202;&mdash;&#8202;<em>register-based</em>. Despite the name, these
+bytecode architectures out there<span class="em">&mdash;</span><em>register-based</em>. Despite the name, these
 bytecode instructions aren&rsquo;t quite as difficult to work with as the registers in
 an actual chip like <span name="x64">x64</span>. With real hardware registers,
 you usually only have a handful for the entire program, so you spend a lot of
@@ -1065,7 +1065,7 @@ their outputs into specific stack slots.</p>
 We&rsquo;ll go over them in much greater detail <a href="global-variables.html">when we implement
 variables</a>.) We have four separate instructions. That means four
 times through the bytecode interpret loop, four instructions to decode and
-dispatch. It&rsquo;s at least seven bytes of code&#8202;&mdash;&#8202;four for the opcodes and another
+dispatch. It&rsquo;s at least seven bytes of code<span class="em">&mdash;</span>four for the opcodes and another
 three for the operands identifying which locals to load and store. Three pushes
 and three pops. A lot of work!</p>
 <p>In a register-based instruction set, instructions can read from and store
@@ -1075,7 +1075,7 @@ like:</p>
 </pre></div>
 
 
-<p>The add instruction is bigger&#8202;&mdash;&#8202;it has three instruction operands that define
+<p>The add instruction is bigger<span class="em">&mdash;</span>it has three instruction operands that define
 where in the stack it reads its inputs from and writes the result to. But since
 local variables live on the stack, it can read directly from <code>a</code> and <code>b</code> and
 then store the result right into <code>c</code>.</p>
