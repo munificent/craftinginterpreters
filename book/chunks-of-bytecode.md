@@ -81,8 +81,9 @@ Our existing interpreter has a couple of things going for it:
     at runtime.
 
 *   It's **portable.** Our current interpreter is written in Java and runs on
-    any platform Java supports. If we re-wrote in C, we could compile and run it
-    on basically every platform under the sun.
+    any platform Java supports. We could write a new implementation in C using
+    the same approach and compile and run our language on basically every
+    platform under the sun.
 
 Those are real advantages. But, on the other hand, **it's not
 memory-efficient.** Each piece of syntax becomes an AST node. A tiny Lox
