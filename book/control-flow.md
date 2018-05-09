@@ -147,6 +147,8 @@ only operator in C that takes three operands.
 For simplicity's sake, Lox doesn't have a conditional operator, so let's get our
 if statement on. It gets a new production under the statement grammar rule:
 
+<span name="semicolon"></span>
+
 ```lox
 statement → exprStmt
           | ifStmt
@@ -155,6 +157,15 @@ statement → exprStmt
 
 ifStmt    → "if" "(" expression ")" statement ( "else" statement )? ;
 ```
+
+<aside name="semicolon">
+
+The semicolons in the rules aren't quoted, which means they are part of the
+grammar metasyntax, not Lox's syntax. A block does not have a `;` at the end and
+an if statement doesn't either unless the then or else statement happens to be
+one that ends in a semicolon.
+
+</aside>
 
 An if statement has an expression for the condition then a statement to execute
 if the condition is truthy. Optionally, it may also have an `else` keyword and a
@@ -386,8 +397,6 @@ reference to... oh, forget it.
 Lox features two looping control flow statements, while and for. While is the
 simpler one so we'll start there. Its grammar is the same as in C:
 
-<span name="semicolon"></span>
-
 ```lox
 statement → exprStmt
           | ifStmt
@@ -397,14 +406,6 @@ statement → exprStmt
 
 whileStmt → "while" "(" expression ")" statement ;
 ```
-
-<aside name="semicolon">
-
-The semicolon in the rule is part of the grammar metasyntax, not the while
-statement itself. That's why it isn't quoted. If the body of the while is a
-block, there won't be a semicolon after it.
-
-</aside>
 
 We add another clause to the statement rule that points to the new rule for
 while. It takes a `while` keyword, followed by a parenthesized condition
