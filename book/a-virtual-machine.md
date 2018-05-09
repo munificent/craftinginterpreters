@@ -618,8 +618,8 @@ interpreter to do arithmetic.
 We'll start with the simplest arithmetic operation, unary negation:
 
 ```lox
-var a = 123;
-print -a; // -123.
+var a = 1.2;
+print -a; // -1.2.
 ```
 
 The prefix `-` operator takes one operand, the value to negate. It produces a
