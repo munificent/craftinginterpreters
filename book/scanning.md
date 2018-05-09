@@ -385,6 +385,12 @@ those:
 
 ^code scan-token
 
+<aside name="slash">
+
+Wondering why `/` isn't in here? Don't worry, we'll get to it.
+
+</aside>
+
 Again, we need a couple of helper methods:
 
 ^code advance-and-add-token
