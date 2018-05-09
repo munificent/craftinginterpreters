@@ -709,8 +709,8 @@ all in one place.
 
 ML, short for "metalanguage" was created by Robin Milner and friends and forms
 one of the main branches in the great programming language family. Its children
-include SML, Caml, OCaml, Haskell, and F#. Even Scala, F#, Rust, and Swift
-bear a strong resemblance.
+include SML, Caml, OCaml, Haskell, and F#. Even Scala, Rust, and Swift bear a
+strong resemblance.
 
 Much like Lisp, it is one of those languages that is so full of good ideas that
 language designers today are still rediscovering them over forty years later.
