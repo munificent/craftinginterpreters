@@ -53,8 +53,10 @@ END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 # Hacky regexes that matches a function, method or constructor declaration.
 FUNCTION_PATTERN = re.compile(r'(\w+)>* (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
-CLASS_PATTERN = re.compile(r'(public )?(abstract )?class (\w+)')
+CLASS_PATTERN = re.compile(r'(public )?(abstract )?(class|interface) (\w+)')
 NESTED_CLASS_PATTERN = re.compile(r'  static class (\w+)')
+TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union) {')
+TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
 
 # Reserved words that can appear like a return type in a function declaration
 # but shouldn't be treated as one.
@@ -135,7 +137,8 @@ class SourceCode:
 
           if len(snippet.added) == 1:
             snippet.function = line.function
-            snippet.clas = line.clas
+            snippet.type = line.type
+            snippet.kind = line.kind
             snippet.nested_class = line.nested_class
 
         if line.end and line.end.chapter == chapter:
@@ -159,6 +162,10 @@ class SourceCode:
 
           if line.function and not snippet.preceding_function:
             snippet.preceding_function = line.function
+
+          if line.type and not snippet.preceding_type:
+            snippet.preceding_type = line.type
+
         i -= 1
       snippet.context_before = before[::-1]
 
@@ -215,10 +222,11 @@ class SourceFile:
 
 
 class SourceLine:
-  def __init__(self, text, function, clas, nested_class, start, end):
+  def __init__(self, text, function, type, kind, nested_class, start, end):
     self.text = text
     self.function = function
-    self.clas = clas
+    self.type = type
+    self.kind = kind
     self.nested_class = nested_class
     self.start = start
     self.end = end
@@ -264,7 +272,9 @@ class Snippet:
 
     self.function = None
     self.preceding_function = None
-    self.clas = None
+    self.type = None
+    self.kind = None
+    self.preceding_type = None
     self.nested_class = None
 
   def location(self):
@@ -278,7 +288,7 @@ class Snippet:
       return 'add to top of file'
 
     if self.nested_class:
-      return 'nest inside class <em>{}</em>'.format(self.clas)
+      return 'nest inside class <em>{}</em>'.format(self.type)
     if self.preceding_function and self.function == self.preceding_function:
       # The function before the snippet is the same one, so we must be in the
       # middle of it.
@@ -292,11 +302,16 @@ class Snippet:
       # If we get here, we aren't inside any function, but we do know the
       # preceding one.
       return 'add after <em>{}</em>()'.format(self.preceding_function)
-    elif self.clas:
-      # If we get here, all we know is that we're adding something at the top
-      # of a class.
-      return 'in class <em>{}</em>'.format(self.clas)
+    elif self.preceding_type and self.type == self.preceding_type:
+      # If we get here, all we know is that we're adding something inside a
+      # type.
+      return 'in {} <em>{}</em>'.format(self.kind, self.type)
+    elif self.preceding_type:
+      # If we get here, we aren't inside any function, but we do know the
+      # preceding one.
+      return 'add after <em>{}</em>'.format(self.preceding_type)
 
+    print("no location for {} {}".format(self.file.path, self.name))
     return None
 
 
@@ -317,9 +332,15 @@ def load_file(source_code, source_dir, path):
   state = ParseState(None, None)
   handled = False
 
+  # The name of a typedef appears after its body, but we need to know it while
+  # we're creating SourceLines for the body. So we do a separate pass to find
+  # the name for each typedef and store them here.
+  typedef_starts = {}
+
   function_before_block = None
   current_function = None
-  current_class = None
+  current_kind = None
+  current_type = None
   nested_class = None
 
   def error(message):
@@ -348,7 +369,28 @@ def load_file(source_code, source_dir, path):
 
   # Split the source file into chunks.
   with open(path, 'r') as input:
-    for line in input:
+    lines = input.read().splitlines()
+
+    # Find the names for each struct typedef.
+    typedef_start_line = None
+    typedef_kind = None
+
+    for line in lines:
+      line = line.rstrip()
+
+      match = TYPEDEF_PATTERN.match(line)
+      if match:
+        typedef_kind = match.group(1)
+        typedef_start_line = line_num
+
+      match = TYPEDEF_NAME_PATTERN.match(line)
+      if match:
+        typedef_starts[typedef_start_line] = [typedef_kind, match.group(1)]
+
+      line_num += 1
+
+    line_num = 1
+    for line in lines:
       line = line.rstrip()
       handled = False
 
@@ -365,7 +407,19 @@ def load_file(source_code, source_dir, path):
 
       match = CLASS_PATTERN.match(line)
       if match:
-        current_class = match.group(3)
+        current_kind = match.group(3)
+        current_type = match.group(4)
+
+      match = TYPEDEF_PATTERN.match(line)
+      if match:
+        typedef = typedef_starts[line_num]
+        current_kind = typedef[0]
+        current_type = typedef[1]
+
+      match = TYPEDEF_NAME_PATTERN.match(line)
+      if match:
+        current_kind = None
+        current_type = None
 
       match = NESTED_CLASS_PATTERN.match(line)
       if match:
@@ -438,8 +492,8 @@ def load_file(source_code, source_dir, path):
         if not state.start:
           error("No snippet in effect.".format(relative))
 
-        source_line = SourceLine(line, current_function, current_class,
-            nested_class, state.start, state.end)
+        source_line = SourceLine(line, current_function, current_type,
+            current_kind, nested_class, state.start, state.end)
         file.lines.append(source_line)
 
       # Hacky. Detect the end of the function or class. Assumes everything is
@@ -453,7 +507,8 @@ def load_file(source_code, source_dir, path):
         current_function = None
 
       if path.endswith('.java') and line == '}':
-        current_class = None
+        current_kind = None
+        current_type = None
 
       line_num += 1
 

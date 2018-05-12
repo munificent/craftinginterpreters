@@ -191,8 +191,7 @@ ObjUpvalue* newUpvalue(Value* slot);
 
 // Returns true if [value] is an object of type [type]. Do not call this
 // directly, instead use the [IS___] macro for the type in question.
-static inline bool isObjType(Value value, ObjType type)
-{
+static inline bool isObjType(Value value, ObjType type) {
   return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 

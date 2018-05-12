@@ -88,6 +88,7 @@ typedef enum {
   INTERPRET_COMPILE_ERROR,
   INTERPRET_RUNTIME_ERROR
 } InterpretResult;
+
 //< interpret-result
 //> Strings not-yet
 extern VM vm;

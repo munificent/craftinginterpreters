@@ -20,7 +20,6 @@ void disassembleChunk(Chunk* chunk, const char* name) {
   }
 }
 //> constant-instruction
-
 static int constantInstruction(const char* name, Chunk* chunk,
                                int offset) {
   uint8_t constant = chunk->code[offset + 1];
@@ -31,7 +30,6 @@ static int constantInstruction(const char* name, Chunk* chunk,
   return offset + 2;
 //< return-after-operand
 }
-
 //< constant-instruction
 //> Methods and Initializers not-yet
 static int constantInstructionN(const char* name, int n, Chunk* chunk,

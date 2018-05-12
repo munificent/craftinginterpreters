@@ -99,7 +99,7 @@ This function is the main entrypoint into the VM. It's declared like so:
 
 The VMs runs the chunk and then responds with a value from this enum:
 
-^code interpret-result
+^code interpret-result (2 before, 2 after)
 
 We aren't using the result yet, but when we have a compiler that reports static
 errors and a VM that detects runtime errors, the interpreter will use this to
