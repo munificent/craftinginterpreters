@@ -385,7 +385,8 @@ simple instruction, for reasons we&rsquo;ll get to later.</p>
 along with the instructions, so let&rsquo;s go ahead and create a struct to hold it
 all:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">OpCode</span><span class="p">;</span>
-</pre><div class="source-file"><em>chunk.h</em></div>
+</pre><div class="source-file"><em>chunk.h</em><br>
+add after <em>OpCode</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
   <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">code</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">Chunk</span><span class="p">;</span>
@@ -409,10 +410,12 @@ array itself, we keep two numbers&#8202;&mdash;&#8202;the number of elements in 
 allocated (&ldquo;capacity&rdquo;) and how many of those allocated entries are actually in
 use (&ldquo;count&rdquo;).</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-</pre><div class="source-file"><em>chunk.h</em></div>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in struct <em>Chunk</em></div>
 <pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">count</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">capacity</span><span class="p">;</span>
 </pre><pre class="insert-after"><span></span>  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">code</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">Chunk</span><span class="p">;</span>
 </pre></div>
 
 <p>When we add an element, if the count is less than the capacity, then there is
@@ -445,7 +448,8 @@ average out the cost of a <em>sequence</em> of appends, each append is <code>O(1
 <p>We have our struct ready, so let&rsquo;s implement the functions to work with it. C
 doesn&rsquo;t have constructors, so we declare a function to initialize a new chunk:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Chunk</span><span class="p">;</span>
-</pre><div class="source-file"><em>chunk.h</em></div>
+</pre><div class="source-file"><em>chunk.h</em><br>
+add after <em>Chunk</em></div>
 <pre class="insert"><br><span></span><span class="kt">void</span> <span class="nf">initChunk</span><span class="p">(</span><span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">);</span>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#endif</span>
 </pre></div>
@@ -650,7 +654,9 @@ add after <em>initChunk</em>()</div>
 <p>It deallocates all of the memory and then calls <code>initChunk()</code> to zero out the
 fields leaving the chunk in a well-defined empty state. To free the memory, we
 add one more macro:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define GROW_ARRAY(previous, type, oldCount, count) \</span>
+<span class="cp">    (type*)reallocate(previous, sizeof(type) * (oldCount), \</span>
+<span class="cp">        sizeof(type) * (count))</span>
 </pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define FREE_ARRAY(type, pointer, oldCount) \</span>
 <span class="cp">    reallocate(pointer, sizeof(type) * (oldCount), 0)</span>
@@ -706,7 +712,7 @@ in <em>main</em>()</div>
 <p>Again, we whip up a <span name="module">yet another</span> module:</p>
 <aside name="module">
 <p>I promise you we won&rsquo;t be creating this many new files in later chapters. This
-first one lays most of the groundwork.</p>
+first one lays much of the groundwork.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chunk.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>main.c</em></div>
@@ -890,7 +896,8 @@ of these.</p>
 along with its allocated capacity and the number of elements in use. We also
 need the same three functions to work with value arrays:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ValueArray</span><span class="p">;</span>
-</pre><div class="source-file"><em>value.h</em></div>
+</pre><div class="source-file"><em>value.h</em><br>
+add after <em>ValueArray</em></div>
 <pre class="insert"><br><span></span><span class="kt">void</span> <span class="nf">initValueArray</span><span class="p">(</span><span class="n">ValueArray</span><span class="o">*</span> <span class="n">array</span><span class="p">);</span>
 <span class="kt">void</span> <span class="nf">writeValueArray</span><span class="p">(</span><span class="n">ValueArray</span><span class="o">*</span> <span class="n">array</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
 <span class="kt">void</span> <span class="nf">freeValueArray</span><span class="p">(</span><span class="n">ValueArray</span><span class="o">*</span> <span class="n">array</span><span class="p">);</span>
@@ -945,11 +952,9 @@ add after <em>writeValueArray</em>()</div>
 
 <p>Now that we have growable arrays of values, we can add one to Chunk to store its
 constants:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">count</span><span class="p">;</span>
-  <span class="kt">int</span> <span class="n">capacity</span><span class="p">;</span>
-  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">code</span><span class="p">;</span>
-</pre><div class="source-file"><em>chunk.h</em></div>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">code</span><span class="p">;</span>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in struct <em>Chunk</em></div>
 <pre class="insert"><span></span>  <span class="n">ValueArray</span> <span class="n">constants</span><span class="p">;</span>
 </pre><pre class="insert-after"><span></span><span class="p">}</span> <span class="n">Chunk</span><span class="p">;</span>
 </pre></div>
@@ -1023,7 +1028,8 @@ piece of code like:</p>
 to produce them so that they are printed in the right order. Thus, we need an
 instruction that produces a particular constant:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>
-</pre><div class="source-file"><em>chunk.h</em></div>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
 <pre class="insert"><span></span>  <span class="n">OP_CONSTANT</span><span class="p">,</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">OP_RETURN</span><span class="p">,</span>
 </pre></div>
@@ -1084,17 +1090,15 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>This instruction has a different instruction format, so we write a new helper
 function to disassemble it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span>
-</pre><div class="source-file"><em>debug.c</em><br>
+<div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>disassembleChunk</em>()</div>
-<pre class="insert"><br><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">constantInstruction</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">,</span>
+<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">constantInstruction</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">,</span>
                                <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">uint8_t</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%-16s %4d &#39;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">constant</span><span class="p">);</span>
   <span class="n">printValue</span><span class="p">(</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="p">.</span><span class="n">values</span><span class="p">[</span><span class="n">constant</span><span class="p">]);</span>
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
 <span class="p">}</span>
-<br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">simpleInstruction</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 
 <p>There&rsquo;s more going on here. As with <code>OP_RETURN</code>, we print out the name of the
@@ -1168,7 +1172,8 @@ instructions it cares about.</p>
 </aside>
 <p>To implement this, we add another array to Chunk:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">code</span><span class="p">;</span>
-</pre><div class="source-file"><em>chunk.h</em></div>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in struct <em>Chunk</em></div>
 <pre class="insert"><span></span>  <span class="kt">int</span><span class="o">*</span> <span class="n">lines</span><span class="p">;</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">ValueArray</span> <span class="n">constants</span><span class="p">;</span>
 </pre></div>

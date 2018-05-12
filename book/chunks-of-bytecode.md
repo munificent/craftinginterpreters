@@ -332,7 +332,7 @@ array itself, we keep two numbers -- the number of elements in the array we have
 allocated ("capacity") and how many of those allocated entries are actually in
 use ("count").
 
-^code count-and-capacity (1 before, 1 after)
+^code count-and-capacity (1 before, 2 after)
 
 When we add an element, if the count is less than the capacity, then there is
 already available space in the array. We store the new element right in there
@@ -523,7 +523,7 @@ It deallocates all of the memory and then calls `initChunk()` to zero out the
 fields leaving the chunk in a well-defined empty state. To free the memory, we
 add one more macro:
 
-^code free-array (1 before, 2 after)
+^code free-array (3 before, 2 after)
 
 Like `GROW_ARRAY()`, this is a wrapper around a call to `reallocate()`. This one
 frees the memory by passing in zero for the new size.
@@ -571,7 +571,7 @@ Again, we whip up a <span name="module">yet another</span> module:
 <aside name="module">
 
 I promise you we won't be creating this many new files in later chapters. This
-first one lays most of the groundwork.
+first one lays much of the groundwork.
 
 </aside>
 
@@ -750,7 +750,7 @@ by the array:
 Now that we have growable arrays of values, we can add one to Chunk to store its
 constants:
 
-^code chunk-constants (4 before, 1 after)
+^code chunk-constants (1 before, 1 after)
 
 Don't forget the include:
 
@@ -866,7 +866,7 @@ doesn't know how to decode the new instruction. Let's fix that:
 This instruction has a different instruction format, so we write a new helper
 function to disassemble it:
 
-^code constant-instruction (1 before, 1 after)
+^code constant-instruction
 
 There's more going on here. As with `OP_RETURN`, we print out the name of the
 opcode. Then we pull out the constant index from the subsequent byte in the

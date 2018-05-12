@@ -49,22 +49,19 @@ typedef uint64_t Value;
 #define OBJ_VAL(obj) (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))
 
 // A union to let us reinterpret a double as raw bits and back.
-typedef union
-{
+typedef union {
   uint64_t bits64;
   uint32_t bits32[2];
   double num;
 } DoubleUnion;
 
-static inline double valueToNum(Value value)
-{
+static inline double valueToNum(Value value) {
   DoubleUnion data;
   data.bits64 = value;
   return data.num;
 }
 
-static inline Value numToValue(double num)
-{
+static inline Value numToValue(double num) {
   DoubleUnion data;
   data.num = num;
   return data.bits64;
