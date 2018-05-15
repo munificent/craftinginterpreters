@@ -6,7 +6,7 @@
 > <cite>Kurt Vonnegut</cite>
 
 Our second interpreter, clox, has three phases -- scanner, compiler, and virtual
-machine. Between each pair is a data structure. Tokens flow from scanner to
+machine. A data structure joins each pair of phases. Tokens flow from scanner to
 compiler, and chunks of bytecode from compiler to VM. We begun our
 implementation near the end with [chunks][] and the [VM][]. Now, we're going to
 hop back to the beginning and build a scanner that makes tokens. In the [next
@@ -20,15 +20,14 @@ chapter][], we'll tie the two ends together with our bytecode compiler.
 
 I'll admit, this is not the most exciting chapter in the book. With two
 implementations of the same language, there's bound to be some redundancy. I did
-sneak in a few interesting differences compared to jlox's scanner, but I won't
-spoil the surprise. You'll have to read on.
+sneak in a few interesting differences compared to jlox's scanner. Read on to
+see what they are.
 
 ## Spinning Up the Interpreter
 
 Now that we're building the front end, we can get clox running like a real
 interpreter. No more hand-authored chunks of bytecode. It's time for a REPL and
-the ability to run Lox scripts stored in files. Tear out most of the code in
-`main()` and replace it with:
+script loading. Tear out most of the code in `main()` and replace it with:
 
 ^code args (2 before, 1 after)
 
@@ -38,9 +37,8 @@ path to a script to run.
 
 <aside name="args">
 
-The code actually tests for one and two arguments respectively. That's because
-the first argument in `argv` is always the name of the executable being run.
-Sort of the "zeroth" argument to the command.
+The code tests for one and two arguments, not zero and one, because the first
+argument in `argv` is always the name of the executable being run.
 
 </aside>
 
@@ -48,13 +46,13 @@ We'll need a few system headers, so let's get them all out of the way:
 
 ^code main-includes (1 after)
 
-And now to get the REPL up and... uh... REPLing:
+And now to get the REPL up and REPL-ing:
 
 ^code repl
 
 A quality REPL handles input that spans multiple lines gracefully and doesn't
 have a hardcoded line length limit. This REPL here is a little more, ahem,
-austere, but it gets the job done.
+austere, but it's fine for our purposes.
 
 The real work happens in `interpret()`. We'll get to that soon, but first let's
 take care of loading scripts:
@@ -70,20 +68,22 @@ allocates it and passes ownership to its caller. That function looks like this:
 
 <aside name="owner">
 
-C asks us not just to manage memory explicitly, but *manually*. We programmers
-have to *remember* the ownership rules and hand-implement them throughout the
-program. Java just does it for us. C++ gives us the tools to encode the policy
-directly. I like C's simplicity, but we pay a real price for it -- the language
-requires us to be more conscientious.
+C asks us not just to manage memory explicitly, but *mentally*. We programmers
+have to remember the ownership rules and hand-implement them throughout the
+program. Java just does it for us. C++ gives us tools to encode the policy
+directly so that the compiler validates it for us.
+
+I like C's simplicity, but we pay a real price for it -- the language requires
+us to be more conscientious.
 
 </aside>
 
 ^code read-file
 
-Like a lot of C code, this takes more effort than it seems like it should,
-especially for a language expressly designed for operating systems. The tricky
-part is that we want to allocate a big enough string to read the whole file, but
-we don't know how big the file is until we've read it.
+Like a lot of C code, it takes more effort than it seems like it should,
+especially for a language expressly designed for operating systems. The
+difficult part is that we want to allocate a big enough string to read the whole
+file, but we don't know how big the file is until we've read it.
 
 The code here is the classic trick to solve that. We open the file, but before
 reading it, we seek to the very end using `fseek()`. Then we call `ftell()`
@@ -100,37 +100,29 @@ byte.
 </aside>
 
 So we're done, right? Not quite. These function calls, like most calls in the C
-standard library, can <span name="printf">fail</span>. If this were Java, the
-failures would be thrown as exceptions and automatically unwind the stack so we
-wouldn't *really* need to handle them. In C, if we don't check for them, they
-silently get ignored.
-
-<aside name="printf">
-
-Even good old `printf()` can fail. Yup. How many times have you checked for
-*that* error?
-
-</aside>
+standard library, can fail. If this were Java, the failures would be thrown as
+exceptions and automatically unwind the stack so we wouldn't *really* need to
+handle them. In C, if we don't check for them, they silently get ignored.
 
 This isn't really a book on good C programming practice, but I hate to encourage
-sloppy programming, so lets go ahead and handle the errors. It's good for us,
-like eating our vegetables or flossing.
+bad style, so lets go ahead and handle the errors. It's good for us, like eating
+our vegetables or flossing.
 
 Fortunately, we don't need to do anything particulary clever if a failure
 occurs. If we can't correctly read the user's script, all we can really do is
-tell the user and exit the interpreter gracefully.
-
-First up, we might fail to open the file:
+tell the user and exit the interpreter gracefully. First up, we might fail to
+open the file:
 
 ^code no-file (1 before, 2 after)
 
 This can happen if the file doesn't exist or the user doesn't have access to it.
-This is actually pretty common -- people mistype paths all the time. This
-failure is much less common:
+It's pretty common -- people mistype paths all the time.
+
+This failure is much rarer:
 
 ^code no-buffer (1 before, 1 after)
 
-If you can't allocate enough memory to read a little Lox script, you've probably
+If you can't even allocate enough memory to read the Lox script, you've probably
 got bigger problems to worry about, but we should do our best to at least let
 you know.
 
@@ -138,16 +130,23 @@ Finally, the read itself may fail:
 
 ^code no-read (1 before, 1 after)
 
-This is also pretty unlikely. Actually, the calls to `fseek()`, `ftell()`, and
-`rewind()` could theoretically fail too, but let's not go too far off in the
-weeds, shall we?
+This is also unlikely. Actually, the <span name="printf"> calls</span> to
+`fseek()`, `ftell()`, and `rewind()` could theoretically fail too, but let's not
+go too far off in the weeds, shall we?
 
-## Opening the Compilation Pipeline
+<aside name="printf">
+
+Even good old `printf()` can fail. Yup. How many times have you handled *that*
+error?
+
+</aside>
+
+### Opening the compilation pipeline
 
 We've got ourselves a string of Lox source code, so now we're ready to set up a
-pipeline to scan, compile, and execute it. That all gets be wrapped up in
-`interpret()`. Right now, that function runs our old hard-coded test chunk.
-Let's change it to something closer to its final incarnation:
+pipeline to scan, compile, and execute it. It's driven by `interpret()`. Right
+now, that function runs our old hard-coded test chunk. Let's change it to
+something closer to its final incarnation:
 
 ^code vm-interpret-h (1 before, 1 after)
 
@@ -165,18 +164,17 @@ For now, the one function in it is declared like so:
 
 ^code compiler-h
 
-That will change, but it gets us started. Here's a first pass at implementing
-it:
+That will change, but it gets us going:
 
 ^code compiler-c
 
 The first phase of compilation is scanning -- the thing we're doing in this
 chapter -- so right now all the compiler does is set that up.
 
-## The Scanner Scans
+### The scanner scans
 
-There's still little more scaffolding to set up before we can start writing
-useful code. First a new header:
+There's still a few more feet of scaffolding to stand up before we can start
+writing useful code. First, a new header:
 
 ^code scanner-h
 
@@ -184,15 +182,14 @@ And its corresponding implementation:
 
 ^code scanner-c
 
-Our scanner has state to track where it is as it chews its way through the
-user's source code. Like we did with the VM, we wrap that state in a struct and
-then create a single top-level module variable for it so we don't have to pass
-it around all of the various functions.
+Our scanner tracks where it is as it chews its way through the user's source
+code. Like we did with the VM, we wrap that state in a struct and then create a
+single top-level module variable of that type so we don't have to pass it around
+all of the various functions.
 
 There are surprisingly few fields. The `start` pointer marks the beginning of
 the current lexeme being scanned, and `current` points to the current character
-being looked at -- the next character to be consumed, not the most-recently
-consumed one.
+being looked at.
 
 <span name="fields"></span>
 
@@ -201,44 +198,40 @@ consumed one.
 <aside name="fields">
 
 Here, we are in the middle of scanning the identifier `bacon`. The current
-character is `o` and the character we just consumed is `c`.
+character is `o` and the character we most recently consumed is `c`.
 
 </aside>
 
-We have a `line` field to track of what line `current` is on in the user's
-program. We track that so that we can users what line errors occur on. That's!
-We don't even keep a pointer to the beginning of the source code string. The
-scanner works its way through the code once and is done after that.
+We have a `line` field to track what line the current lexeme is on for error
+reporting. That's it! We don't even keep a pointer to the beginning of the
+source code string. The scanner works its way through the code once and is done
+after that.
 
 Since we have some state, we should initialize it:
 
 ^code init-scanner (1 before)
 
 We start at the very first character on the very first line, like a runner
-crouched at the starting line waiting to be told to run.
+crouched and ready to run.
 
 ## A Token at a Time
 
 In jlox, when the starting gun went off, the scanner raced ahead and eagerly
-scanned the whole program, returning a list of tokens. That would be challenge
-for clox. We'd need some sort of growable array or list to store the tokens.
-We'd need to manage allocating and freeing the tokens and the collection itself.
+scanned the whole program, returning a list of tokens. This would be a challenge
+in clox. We'd need some sort of growable array or list to store the tokens. We'd
+need to manage allocating and freeing the tokens and the collection itself.
 That's a lot of code, and a lot of memory churn.
 
 At any point in time, the compiler only needs one or two tokens -- remember our
 grammar only requires a single token of lookahead -- so we don't need to keep
 them *all* around at the same time. Instead, the simplest solution is to not
-scan a token until the compiler needs one.
+scan a token until the compiler needs one. When the scanner provides one, it
+returns the token by value. It doesn't need to dynamically anything -- it can
+just pass tokens around on the C stack.
 
-Where our previous interpreter ran the scanner and then *pushed* the resulting
-tokens over to the parser, our new one inverts that. The parser *pulls* each
-token from the scanner as it needs one. When the scanner provides one, it
-returns the token by value. It doesn't need to dynamically allocate them at all
--- it can just pass them around on the C stack.
-
-Unfortunately, we don't have a compiler yet to ask the scanner for tokens, so it
-will just sit there doing nothing. To kick it into action, we'll write some
-temporary code to drive it:
+Unfortunately, we don't have a compiler yet that can ask the scanner for tokens,
+so the scanner will just sit there doing nothing. To kick it into action, we'll
+write some temporary code to drive it:
 
 ^code dump-tokens (1 before, 1 after)
 
@@ -263,7 +256,7 @@ It prints out:
 
 The first column is the line numbers, the second is the numeric value of the
 token <span name="token">type</span>, and then finally the lexeme. That last
-empty token on line 2 here is the EOF one.
+empty lexeme on line 2 is the EOF token.
 
 <aside name="token">
 
@@ -283,32 +276,8 @@ looks like:
 ^code token-struct (1 before, 2 after)
 
 It's pretty similar to jlox's Token class. We have an enum identifying what type
-of token it is -- number, identifier, `+` operator, etc. There's a line number.
-The interesting bit is how we represent the lexeme.
-
-In jlox, each Token stored the lexeme as its own separate little Java string. If
-we did that for clox, we'd have to figure out how to manage the memory for those
-strings. That's especially hard since we pass Tokens by value -- multiple tokens
-could point to the same lexeme string. Ownership gets weird.
-
-Instead, we use the original source string as our character store. We represent
-a lexeme by a pointer to its first character and the number of characters it
-contains. This means we don't need to worry about managing memory for lexemes at
-all and we can freely copy tokens around. As long as the main source code string
-<span name="outlive">outlives</span> all of the tokens, everything works out
-fine.
-
-<aside name="outlive">
-
-I don't mean to sound flippant. We really do need to actually think about and
-ensure that the source string, which is created far away over in the main
-module, has a long enough lifetime. That's why `runFile()` doesn't free the
-string until `interpret()` finishes executing the code and returns.
-
-</aside>
-
-That struct relies on an enum for the token's type. It's virtually identical to
-the one in jlox, so let's just hammer out the whole thing:
+of token it is -- number, identifier, `+` operator, etc. The enum is virtually
+identical to the one in jlox, so let's just hammer out the whole thing:
 
 ^code token-type (2 before, 2 after)
 
@@ -317,10 +286,33 @@ the top level namespace) the only difference is that extra `TOKEN_ERROR` type.
 What's that about?
 
 There are only a couple of errors that get detected during scanning:
-unterminated strings and unrecognized characters. In jlox, the scanner reported
-those directly. In clox, the scanner produces a synthetic "error" token for that
+unterminated strings and unrecognized characters. In jlox, the scanner reports
+those itself. In clox, the scanner produces a synthetic "error" token for that
 error and passes it over to the compiler. This way, the compiler knows an error
 occurred and can kick off error recovery before reporting it.
+
+The novel part in clox's Token type is how it represents the lexeme. In jlox,
+each Token stored the lexeme as its own separate little Java string. If we did
+that for clox, we'd have to figure out how to manage the memory for those
+strings. That's especially hard since we pass tokens by value
+-- multiple tokens could point to the same lexeme string. Ownership gets weird.
+
+Instead, we use the original source string as our character store. We represent
+a lexeme by a pointer to its first character and the number of characters it
+contains. This means we don't need to worry about managing memory for lexemes at
+all and we can freely copy tokens around. As long as the main source code string
+<span name="outlive">outlives</span> all of the tokens, everything works fine.
+
+<aside name="outlive">
+
+I don't mean to sound flippant. We really do need to think about and ensure that
+the source string, which is created far away over in the main module, has a long
+enough lifetime. That's why `runFile()` doesn't free the string until
+`interpret()` finishes executing the code and returns.
+
+</aside>
+
+### Scanning tokens
 
 We're ready to scan some tokens. We'll work our way up to the complete
 implementation, starting with this:
@@ -329,7 +321,7 @@ implementation, starting with this:
 
 Since each call to this scans a complete token, we know we are the beginning of
 a new token when we enter the function. Thus, we set `scanner.start` to point to
-the current character so we can remember where the token we're about to scan
+the current character so we remember where the lexeme we're about to scan
 starts.
 
 Then we check to see if we've reached the end of the source code. If so, we
@@ -342,8 +334,8 @@ successfully scan and return a token, then we reach the end of the function.
 That must mean we're at a character that the scanner can't recognize, so we
 return an error token for that.
 
-To get this working, we need a couple of helpers. Most of these will seem
-familiar from jlow. First up:
+This function relies on a couple of helpers, most of which are familiar from
+jlox. First up:
 
 ^code is-at-end
 
@@ -369,17 +361,17 @@ This part of the chapter is pretty dry, so here's a picture of an axolotl.
 </aside>
 
 The only difference is that the "lexeme" points to the error message string
-instead of pointing into the user's source code string. Again, we need to be
-ensure that the error message sticks around long enough for the compiler to read
-it. In practice, we only ever call this function with C string literals. Those
-are constant and eternal, so we're fine.
+instead of pointing into the user's source code. Again, we need to ensure that
+the error message sticks around long enough for the compiler to read it. In
+practice, we only ever call this function with C string literals. Those are
+constant and eternal, so we're fine.
 
 What we have now is basically a working scanner for a language with an empty
 lexical grammar. Since the grammar has no productions, every character is an
 error. That's not exactly a fun language to program in, so let's fill in the
 rules.
 
-### Simple tokens
+## A Lexical Grammar for Lox
 
 The simplest tokens are only a single character. We recognize those like so:
 
@@ -428,20 +420,20 @@ Instead, before starting the token, we shunt off to a separate function:
 
 ^code call-skip-whitespace (1 before, 2 after)
 
-This advances the scanner past any leading whitespace. After a call to this
-returns, we know the very next character is a meaningful one (or we're at the
-end of the source code).
+This advances the scanner past any leading whitespace. After this call returns,
+we know the very next character is a meaningful one (or we're at the end of the
+source code).
 
 ^code skip-whitespace
 
 It's sort of a separate mini-scanner. It loops, consuming every whitespace
-character it encounters. We need to be careful that it does *not* consume the
-current character if it *isn't* whitespace. To support that, we use:
+character it encounters. We need to be careful that it does *not* consume any
+*non*-whitespace characters. To support that, we use:
 
 ^code peek
 
-This simply returns the next character waiting to be consumed, but doesn't
-consume it. That covers all the whitespace characters except for newlines:
+This simply returns the current character, but doesn't consume it. The previous
+code handles all the whitespace characters except for newlines:
 
 ^code newline (1 before, 2 after)
 
@@ -458,7 +450,7 @@ skip those too:
 Comments start with `//` in Lox, so as with `!=` and friends, we need a second
 character of lookahead. However, with `!=`, we still wanted to consume the `!`
 even if the `=` wasn't found. Comments are different, if we don't find a second
-`/`, we need to not consume the *first* slash either.
+`/`, then `skipWhitespace()` needs to not consume the *first* slash either.
 
 To handle that, we add:
 
@@ -476,7 +468,7 @@ newline will be the current character on the next turn of the outer loop in
 
 Number and string tokens are special because they have a runtime value
 associated with them. We'll start with strings because they are easy to
-recognize -- they always start with a double quote:
+recognize -- they always begin with a double quote:
 
 ^code scan-string (1 before, 2 after)
 
@@ -485,9 +477,9 @@ That calls:
 ^code string
 
 Similar to jlox, we consume characters until we reach the closing quote. We also
-track newlines inside the string literal -- Lox supports multi-line strings.
-And, of course, we need to gracefully handle running out of source code before
-we find the end quote.
+track newlines inside the string literal. (Lox supports multi-line strings.)
+And, as ever, we gracefully handle running out of source code before we find the
+end quote.
 
 The main change here in clox is something that's *not* present. Again, it
 relates to memory management. In jlox, the Token class had a field of type
@@ -515,7 +507,7 @@ keeps our scanner simpler.
 </aside>
 
 Next up, numbers. Instead of adding a switch case for each of the ten digits
-that can start a number, we handle them separately:
+that can start a number, we handle them here:
 
 ^code scan-number (1 before, 2 after)
 
@@ -606,17 +598,11 @@ doesn't match a child node, then the identifier must not be a keyword and we
 stop. If we reach a double-lined box, and we're at the last character of the
 lexeme, then we found a keyword.
 
-To recognize a keyword, we use the identifier's characters to guide a traversal
-through the tree. At each node, we choose the branch that matches the next
-character in the lexeme. If there is no branch for the next character, it must
-not be a keyword. If we reach a node marked with a keyword's token type, and
-we're at the last character of the lexeme, then we found a keyword.
-
-This tree is called a <span name="trie">[**trie**][trie]</span>. It stores a set
-of strings. Most other data structures for storing strings contain the raw
-strings and then wrap them inside some larger construct that helps you search
-for them. A trie is different. Nowhere in the trie will you find a complete
-string.
+This tree diagram is an example of a thing called a <span
+name="trie">[**trie**][trie]</span>. A tries stores a set of strings. Most other
+data structures for storing strings contain the raw character arrays and then
+wrap them inside some larger construct that helps you search faster. A trie is
+different. Nowhere in the trie will you find a whole string.
 
 [trie]: https://en.wikipedia.org/wiki/Trie
 
@@ -627,16 +613,16 @@ the middle of the word "retrieval", which means it should be pronounced like
 "tree". But, uh, there is already a pretty important data structure pronounced
 "tree" *which tries are a special case of*, so unless you never speak of these
 things out loud, no one can tell which one you're talking about. Thus, people
-these days often pronounce it like "try" to try to avoid the headache.
+these days often pronounce it like "try" to avoid the headache.
 
 </aside>
 
 Instead, each string the trie "contains" is represented as a *path* through the
-tree of character nodes, as in our traversal above. Nodes that represent the
-last character in a string have a special marker -- the double lined boxes in
-the illustration. That way, if your trie contains, say, "banquet" and "ban", you
-are able to tell that it does *not* contain "banque" -- the "e" node won't have
-that marker, while the "n" and "t" nodes will.
+tree of character nodes, as in our traversal above. Nodes that match the last
+character in a string have a special marker -- the double lined boxes in the
+illustration. That way, if your trie contains, say, "banquet" and "ban", you are
+able to tell that it does *not* contain "banque" -- the "e" node won't have that
+marker, while the "n" and "t" nodes will.
 
 Tries are a special case of an even more fundamental data structure: a
 [**deterministic finite automaton**][dfa] (DFA). You might also know these by
@@ -728,7 +714,7 @@ implementations.
 These are the letters that correspond to a single keyword. If we see an "s", the
 only keyword the identifier could possibly be is `super`. It might not be,
 though, so we still need to check the rest of the letters too. In the tree
-diagram, this is basically that unbranching path leading off the "s".
+diagram, this is basically that straight path hanging off the "s".
 
 We won't roll a switch for each of those nodes. Instead, we have a utility
 function that tests the rest of a potential keyword's lexeme:
@@ -746,13 +732,14 @@ it's a keyword, and we return the associated token type. Otherwise, it must be a
 regular identifier.
 
 We have a couple of keywords where the tree branches again after the first
-letter. If the lexeme starts with "f", it could still be `false`, `for`, or
-`fun`. So we add another switch for the branches coming off the "f" node:
+letter. If the lexeme starts with "f", it could be `false`, `for`, or `fun`. So
+we add another switch for the branches coming off the "f" node:
 
 ^code keyword-f (1 before, 1 after)
 
-We also need to check that there even *is* a second letter. "f" by itself is a
-valid identifier too, after all. The other letter that branches is "t":
+Before we switch, we need to check that there even *is* a second letter. "f" by
+itself is a valid identifier too, after all. The other letter that branches is
+"t":
 
 ^code keyword-t (1 before, 1 after)
 
@@ -768,7 +755,7 @@ And with that, our scanner is complete.
 We sometimes fall into the trap of thinking that performance comes from
 complicated data structures, layers of caching, and other fancy optimizations.
 But, many times, all that's required is to do less work, and I often find that
-writing the simplest code I can is more than sufficient to accomplish that.
+writing the simplest code I can is sufficient to accomplish that.
 
 </aside>
 
@@ -786,9 +773,10 @@ writing the simplest code I can is more than sufficient to accomplish that.
     For example, if Lox supported string interpolation, then this:
 
         :::lox
+        var drink = "Tea";
         var steep = 4;
         var cool = 2;
-        print "Tea will be ready in ${steep + cool} minutes.";
+        print "${drink} will be ready in ${steep + cool} minutes.";
 
     Would print:
 
@@ -807,18 +795,17 @@ writing the simplest code I can is more than sufficient to accomplish that.
     interpolation to see how they handle it.
 
 2.  Several languages use angle brackets for generics and also have a `>>` right
-    shift operator. This lead to a classic problem in earlier versions of C++:
+    shift operator. This led to a classic problem in early versions of C++:
 
         :::c++
         vector<vector<string>> nestedVectors;
 
     This would produce a compile error because the `>>` was lexed to a single
-    right shift token, not two `>` tokens. Used were forced to fix this by
-    putting a space between the closing angle brackets. Later versions of C++
-    are smarter and can handle the above code. Java and C# never had the
-    problem.
+    right shift token, not two `>` tokens. Users were forced to avoid this by
+    putting a space between the closing angle brackets.
 
-    How do those languages specify and implement this?
+    Later versions of C++ are smarter and can handle the above code. Java and C#
+    never had the problem. How do those languages specify and implement this?
 
 3.  Many languages, especially later in their evolution, define "contextual
     keywords". These are identifiers that act like reserved words in some
