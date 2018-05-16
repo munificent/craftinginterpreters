@@ -311,7 +311,6 @@ class Snippet:
       # preceding one.
       return 'add after <em>{}</em>'.format(self.preceding_type)
 
-    print("no location for {} {}".format(self.file.path, self.name))
     return None
 
 
