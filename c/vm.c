@@ -13,9 +13,9 @@
 
 //< vm-include-stdio
 #include "common.h"
-//> Scanning on Demand not-yet
+//> Scanning on Demand vm-include-compiler
 #include "compiler.h"
-//< Scanning on Demand not-yet
+//< Scanning on Demand vm-include-compiler
 //> vm-include-debug
 #include "debug.h"
 //< vm-include-debug
@@ -908,14 +908,20 @@ static InterpretResult run() {
 }
 //< run
 //> interpret
-/* A Virtual Machine interpret < Scanning on Demand not-yet
+/* A Virtual Machine interpret < Scanning on Demand vm-interpret-c
 InterpretResult interpret(Chunk* chunk) {
   vm.chunk = chunk;
   vm.ip = vm.chunk->code;
+  return run();
 */
-//> Scanning on Demand not-yet
+//> Scanning on Demand vm-interpret-c
 InterpretResult interpret(const char* source) {
-/* Scanning on Demand not-yet < Compiling Expressions not-yet
+/* Scanning on Demand omit < Compiling Expressions not-yet
+  // Hack to avoid unused function error. run() is not used in the scanning
+  // chapter.
+  if (false) run();
+*/
+/* Scanning on Demand vm-interpret-c < Compiling Expressions not-yet
   compile(source);
   return INTERPRET_OK;
 */
@@ -948,7 +954,8 @@ InterpretResult interpret(const char* source) {
   callValue(OBJ_VAL(closure), 0);
 
 //< Closures not-yet
-//< Scanning on Demand not-yet
+//< Scanning on Demand vm-interpret-c
+//> Compiling Expressions not-yet
   
   InterpretResult result = run();
 /* Compiling Expressions not-yet < Calls and Functions not-yet
@@ -956,5 +963,6 @@ InterpretResult interpret(const char* source) {
   freeChunk(&chunk);
 */
   return result;
+//< Compiling Expressions not-yet
 }
 //< interpret
