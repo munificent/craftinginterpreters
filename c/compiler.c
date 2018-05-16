@@ -1,4 +1,4 @@
-//> Scanning on Demand not-yet
+//> Scanning on Demand compiler-c
 #include <stdio.h>
 //> Compiling Expressions not-yet
 #include <stdlib.h>
@@ -920,6 +920,18 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
+/* Compiling Expressions not-yet < Classes and Instances not-yet
+  { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
+*/
+//> Classes and Instances not-yet
+  { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
+//< Classes and Instances not-yet
+  { unary,    binary,  PREC_TERM },       // TOKEN_MINUS
+  { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
+  { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
+  { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
 /* Compiling Expressions not-yet < Types of Values not-yet
   { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG
   { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_BANG_EQUAL
@@ -928,13 +940,6 @@ ParseRule rules[] = {
   { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //< Types of Values not-yet
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/* Compiling Expressions not-yet < Classes and Instances not-yet
-  { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
-*/
-//> Classes and Instances not-yet
-  { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
-//< Classes and Instances not-yet
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
 /* Compiling Expressions not-yet < Types of Values not-yet
   { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
@@ -950,11 +955,6 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS_EQUAL
 //< Types of Values not-yet
-  { unary,    binary,  PREC_TERM },       // TOKEN_MINUS
-  { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
-  { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
-  { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
 /* Compiling Expressions not-yet < Global Variables not-yet
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 */
@@ -1473,7 +1473,7 @@ static void statement() {
 }
 //< Global Variables not-yet
 //< Compiling Expressions not-yet
-/* Scanning on Demand not-yet < Compiling Expressions not-yet
+/* Scanning on Demand compiler-c < Compiling Expressions not-yet
 
 void compile(const char* source) {
 */
@@ -1486,7 +1486,8 @@ bool compile(const char* source, Chunk* chunk) {
 ObjFunction* compile(const char* source) {
 //< Calls and Functions not-yet
   initScanner(source);
-/* Scanning on Demand not-yet < Compiling Expressions not-yet
+/* Scanning on Demand dump-tokens < Compiling Expressions not-yet
+ 
   int line = -1;
   for (;;) {
     Token token = scanToken();

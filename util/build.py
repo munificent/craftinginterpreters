@@ -31,6 +31,7 @@ BEFORE_PATTERN = re.compile(r'(\d+) before')
 AFTER_PATTERN = re.compile(r'(\d+) after')
 
 ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\]</span>')
+EM_DASH_PATTERN = re.compile(r'\s+--\s')
 
 num_chapters = 0
 empty_chapters = 0
@@ -75,8 +76,6 @@ class RootedHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 def pretty(text):
   '''Use nicer HTML entities and special characters.'''
-  text = text.replace(" -- ", "&#8202;&mdash;&#8202;")
-  text = text.replace(" --\n", "&#8202;&mdash;&#8202;")
   text = text.replace("à", "&agrave;")
   text = text.replace("ï", "&iuml;")
   text = text.replace("ø", "&oslash;")
@@ -330,6 +329,11 @@ def format_file(path, skip_up_to_date, dependencies_mod):
     for error in errors:
       error_markdown += "**Error: {}**\n\n".format(error)
     contents = error_markdown + contents
+
+  # Fix up em dashes. We do this on the entire contents instead of in pretty()
+  # so that we can handle surrounding whitespace even when the "--" is at the
+  # beginning of end of a line in Markdown.
+  contents = EM_DASH_PATTERN.sub('<span class="em">&mdash;</span>', contents)
 
   # Allow processing markdown inside some tags.
   contents = contents.replace('<aside', '<aside markdown="1"')
