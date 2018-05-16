@@ -357,7 +357,7 @@ the declared variable will be in the environment chain. The interesting question
 is *when* to do this calculation -- or, put differently, where in our
 interpreter's implementation do we stuff the code for it?
 
-Since we're calcuting a static property based on the structure of the source
+Since we're calculating a static property based on the structure of the source
 code, the obvious answer is in the parser. That is the traditional home, and is
 where we'll do it later in clox. It would work here too, but I want an excuse to
 show you another technique. We'll write our resolver as a separate pass.
