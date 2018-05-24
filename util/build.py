@@ -31,7 +31,11 @@ BEFORE_PATTERN = re.compile(r'(\d+) before')
 AFTER_PATTERN = re.compile(r'(\d+) after')
 
 ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\]</span>')
-EM_DASH_PATTERN = re.compile(r'\s+--\s')
+# The "(?!-)" is a hack. scanning.md has an inline code sample containing a
+# "--" operator. We don't want that to get matched, so fail the match if the
+# character after the "-- " is "-", which is the next character in the code
+# sample.
+EM_DASH_PATTERN = re.compile(r'\s+--\s(?!-)')
 
 num_chapters = 0
 empty_chapters = 0
