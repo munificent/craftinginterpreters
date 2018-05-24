@@ -601,7 +601,7 @@ breakfast(eggs, sausage);
 ```
 
 And it does the same thing. Likewise, since the `.` and the `()` in a method
-call *are* two separate expressions, it seems you should be able hoist the
+call *are* two separate expressions, it seems you should be able to hoist the
 *lookup* part into a variable and then call it <span
 name="callback">later</span>. We need to think carefully about what the *thing*
 you get when you look up a method is, and how it behaves, even in weird cases
@@ -1084,7 +1084,7 @@ initializer, the arity is still zero.
 
 That's basically it. Since we bind the `init()` method before we call it, it has
 access to `this` inside its body. That, along with the arguments passed to the
-class, are all you need to be able to set up the new instance however you
+class, is all you need to be able to set up the new instance however you
 desire.
 
 ### Invoking init() directly
