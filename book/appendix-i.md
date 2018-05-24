@@ -47,8 +47,9 @@ statement      → exprStmt
                | block ;
 
 exprStmt       → expression ";" ;
-forStmt        → "for" "(" ( varDecl | exprStmt )
-                 expression? ";" expression? ")" statement ;
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                           expression? ";"
+                           expression? ")" statement ;
 ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 printStmt      → "print" expression ";" ;
 returnStmt     → "return" expression? ";" ;
