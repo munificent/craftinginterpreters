@@ -226,8 +226,8 @@ At any point in time, the compiler only needs one or two tokens -- remember our
 grammar only requires a single token of lookahead -- so we don't need to keep
 them *all* around at the same time. Instead, the simplest solution is to not
 scan a token until the compiler needs one. When the scanner provides one, it
-returns the token by value. It doesn't need to dynamically anything -- it can
-just pass tokens around on the C stack.
+returns the token by value. It doesn't need to dynamically allocate anything --
+it can just pass tokens around on the C stack.
 
 Unfortunately, we don't have a compiler yet that can ask the scanner for tokens,
 so the scanner will just sit there doing nothing. To kick it into action, we'll
@@ -599,7 +599,7 @@ stop. If we reach a double-lined box, and we're at the last character of the
 lexeme, then we found a keyword.
 
 This tree diagram is an example of a thing called a <span
-name="trie">[**trie**][trie]</span>. A tries stores a set of strings. Most other
+name="trie">[**trie**][trie]</span>. A trie stores a set of strings. Most other
 data structures for storing strings contain the raw character arrays and then
 wrap them inside some larger construct that helps you search faster. A trie is
 different. Nowhere in the trie will you find a whole string.
