@@ -64,7 +64,7 @@ subtype of its superclass. Say we have a Doughnut superclass and a BostonCream
 subclass. Every BostonCream is also an instance of Doughnut, but there may be
 doughnut objects that are not BostonCreams (like crullers).
 
-Think of a type as the set of values of that type. The set of all Doughnut
+Think of a type as the set of all values of that type. The set of all Doughnut
 instances contains the set of all BostonCream instances since every BostonCream
 is also a Doughnut. So BostonCream is a subclass, and a subtype, and its
 instances are a subset. It all lines up.
@@ -197,7 +197,7 @@ superclass, you should be able to call that method when given an instance of the
 subclass. In other words, methods are inherited from the superclass.
 
 This lines up with one of the goals of inheritance -- to give users a way to
-reuse code across classes. Implementing this is in our interpreter is
+reuse code across classes. Implementing this in our interpreter is
 astonishingly easy:
 
 ^code find-method-recurse-superclass (3 before, 1 after)
