@@ -839,7 +839,7 @@ statement, we'll use an exception to unwind the interpreter past the visit
 methods of all of the containing statements back to the code that began
 executing the body.
 
-The new visit method looks like this:
+The visit method for our new AST node looks like this:
 
 ^code visit-return
 
