@@ -53,7 +53,7 @@ lighter on the page.
 The choice to have a static VM instance is a concession for the book, but not
 necessarily a sound engineering choice for a real language implementation. If
 you're building a VM that's designed to be embedded in other host applications,
-it's gives the host more flexibility if you *do* explicitly take a VM pointer
+it gives the host more flexibility if you *do* explicitly take a VM pointer
 and pass it around.
 
 That way, the host app can control when and where memory for the VM is
@@ -97,7 +97,7 @@ This function is the main entrypoint into the VM. It's declared like so:
 
 ^code interpret-h (1 before, 2 after)
 
-The VMs runs the chunk and then responds with a value from this enum:
+The VM runs the chunk and then responds with a value from this enum:
 
 ^code interpret-result (2 before, 2 after)
 
