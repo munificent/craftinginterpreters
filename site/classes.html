@@ -1437,6 +1437,28 @@ in <em>visitReturnStmt</em>()</div>
 <br></pre><pre class="insert-after"><span></span>      <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">value</span><span class="o">);</span>
 </pre></div>
 
+<p>We&rsquo;re <em>still</em> not done. We statically disallow returning a <em>value</em> from an
+initializer, but you can still use an empty early return:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Foo</span> <span class="p">{</span>
+  <span class="n">init</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>That is actually kind of useful sometimes, so we don&rsquo;t want to disallow it
+entirely. Instead, it should return <code>this</code> instead of <code>nil</code>. That&rsquo;s an easy fix
+over in LoxFunction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Return</span> <span class="n">returnValue</span><span class="o">)</span> <span class="o">{</span>
+</pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
+in <em>call</em>()</div>
+<pre class="insert"><span></span>      <span class="k">if</span> <span class="o">(</span><span class="n">isInitializer</span><span class="o">)</span> <span class="k">return</span> <span class="n">closure</span><span class="o">.</span><span class="na">getAt</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>
+<br></pre><pre class="insert-after"><span></span>      <span class="k">return</span> <span class="n">returnValue</span><span class="o">.</span><span class="na">value</span><span class="o">;</span>
+</pre></div>
+
+<p>If we&rsquo;re in an initializer and execute a return statement, instead of returning
+the value (which will always be <code>nil</code>), we again return <code>this</code>.</p>
 <p>Phew! That was a whole list of tasks but our reward is that our little
 interpreter has grown an entire programming paradigm. Classes, methods, fields,
 <code>this</code>, and constructors. Our baby language is looking awfully grown-up.</p>
