@@ -916,19 +916,23 @@ InterpretResult interpret(Chunk* chunk) {
 */
 //> Scanning on Demand vm-interpret-c
 InterpretResult interpret(const char* source) {
-/* Scanning on Demand omit < Compiling Expressions not-yet
+/* Scanning on Demand omit < Compiling Expressions interpret-chunk
   // Hack to avoid unused function error. run() is not used in the scanning
   // chapter.
   if (false) run();
 */
-/* Scanning on Demand vm-interpret-c < Compiling Expressions not-yet
+/* Scanning on Demand vm-interpret-c < Compiling Expressions interpret-chunk
   compile(source);
   return INTERPRET_OK;
 */
-/* Compiling Expressions not-yet < Calls and Functions not-yet
+/* Compiling Expressions interpret-chunk < Calls and Functions not-yet
   Chunk chunk;
   initChunk(&chunk);
-  if (!compile(source, &chunk)) return INTERPRET_COMPILE_ERROR;
+ 
+  if (!compile(source, &chunk)) {
+    freeChunk(&chunk);
+    return INTERPRET_COMPILE_ERROR;
+  }
 
   vm.chunk = &chunk;
   vm.ip = vm.chunk->code;
@@ -955,14 +959,14 @@ InterpretResult interpret(const char* source) {
 
 //< Closures not-yet
 //< Scanning on Demand vm-interpret-c
-//> Compiling Expressions not-yet
+//> Compiling Expressions interpret-chunk
   
   InterpretResult result = run();
-/* Compiling Expressions not-yet < Calls and Functions not-yet
+/* Compiling Expressions interpret-chunk < Calls and Functions not-yet
 
   freeChunk(&chunk);
 */
   return result;
-//< Compiling Expressions not-yet
+//< Compiling Expressions interpret-chunk
 }
 //< interpret
