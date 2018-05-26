@@ -10,13 +10,14 @@
 //> Optimization not-yet
 #define NAN_TAGGING
 //< Optimization not-yet
-//> Compiling Expressions not-yet
-//#define DEBUG_PRINT_CODE
-//< Compiling Expressions not-yet
+//> Compiling Expressions define-debug-print-code
+#define DEBUG_PRINT_CODE
+//< Compiling Expressions define-debug-print-code
 #define DEBUG_TRACE_EXECUTION
 //> omit
-// In the book, we always have it defined, but for working on it locally,
-// we don't want it to be.
+// In the book, we show them defined, but for working on them locally, we don't
+// want them to be.
+#undef DEBUG_PRINT_CODE
 #undef DEBUG_TRACE_EXECUTION
 //< omit
 //< A Virtual Machine define-debug-trace

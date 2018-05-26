@@ -5,14 +5,14 @@
 //> Strings not-yet
 #include "object.h"
 //< Strings not-yet
-//> Compiling Expressions not-yet
+//> Compiling Expressions compile-h
 #include "vm.h"
-//< Compiling Expressions not-yet
 
-/* Scanning on Demand compiler-h < Compiling Expressions not-yet
+//< Compiling Expressions compile-h
+/* Scanning on Demand compiler-h < Compiling Expressions compile-h
 void compile(const char* source);
 */
-/* Compiling Expressions not-yet < Calls and Functions not-yet
+/* Compiling Expressions compile-h < Calls and Functions not-yet
 bool compile(const char* source, Chunk* chunk);
 */
 //> Calls and Functions not-yet
