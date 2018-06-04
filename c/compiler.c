@@ -22,10 +22,14 @@
 //> Compiling Expressions parser
 
 typedef struct {
-  bool hadError;
-  bool panicMode;
   Token current;
   Token previous;
+//> had-error-field
+  bool hadError;
+//< had-error-field
+//> panic-mode-field
+  bool panicMode;
+//< panic-mode-field
 } Parser;
 //> precedence
 
@@ -161,9 +165,11 @@ static Chunk* currentChunk() {
 //< Calls and Functions not-yet
 //> Compiling Expressions error-at
 static void errorAt(Token* token, const char* message) {
+//> set-panic-mode
   if (parser.panicMode) return;
   parser.panicMode = true;
 
+//< set-panic-mode
   fprintf(stderr, "[line %d] Error", token->line);
 
   if (token->type == TOKEN_EOF) {
@@ -648,10 +654,9 @@ static void binary() {
 //> Global Variables not-yet
 static void binary(bool canAssign) {
 //< Global Variables not-yet
+  // Compile the right operand.
   TokenType operatorType = parser.previous.type;
   ParseRule* rule = getRule(operatorType);
-
-  // Compile the right-hand operand.
   parsePrecedence((Precedence)(rule->precedence + 1));
 
   // Emit the operator instruction.
@@ -898,7 +903,12 @@ static void unary(bool canAssign) {
   TokenType operatorType = parser.previous.type;
 
   // Compile the operand.
+/* Compiling Expressions unary < Compiling Expressions unary-operand
+  expression();
+*/
+//> unary-operand
   parsePrecedence(PREC_CALL);
+//< unary-operand
 
   // Emit the operator instruction.
   switch (operatorType) {
@@ -1027,6 +1037,10 @@ ParseRule rules[] = {
 //< Compiling Expressions rules
 //> Compiling Expressions parse-precedence
 static void parsePrecedence(Precedence precedence) {
+/* Compiling Expressions parse-precedence < Compiling Expressions precedence-body
+  // What goes here?
+*/
+//> precedence-body
   advance();
   ParseFn prefixRule = getRule(parser.previous.type)->prefix;
   if (prefixRule == NULL) {
@@ -1034,7 +1048,7 @@ static void parsePrecedence(Precedence precedence) {
     return;
   }
 
-/* Compiling Expressions parse-precedence < Global Variables not-yet
+/* Compiling Expressions precedence-body < Global Variables not-yet
   prefixRule();
 */
 //> Global Variables not-yet
@@ -1063,6 +1077,7 @@ static void parsePrecedence(Precedence precedence) {
   }
 //< Global Variables not-yet
 //< infix
+//< precedence-body
 }
 //< Compiling Expressions parse-precedence
 //> Compiling Expressions get-rule
@@ -1072,7 +1087,12 @@ static ParseRule* getRule(TokenType type) {
 //< Compiling Expressions get-rule
 //> Compiling Expressions expression
 void expression() {
+/* Compiling Expressions expression < Compiling Expressions expression-body
+  // What goes here?
+*/
+//> expression-body
   parsePrecedence(PREC_ASSIGNMENT);
+//< expression-body
 }
 //< Compiling Expressions expression
 //> Local Variables not-yet
@@ -1482,7 +1502,6 @@ ObjFunction* compile(const char* source) {
 //< Calls and Functions not-yet
   initScanner(source);
 /* Scanning on Demand dump-tokens < Compiling Expressions compile-chunk
- 
   int line = -1;
   for (;;) {
     Token token = scanToken();
@@ -1506,12 +1525,12 @@ ObjFunction* compile(const char* source) {
 //> Calls and Functions not-yet
   initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
 //< Calls and Functions not-yet
-/* Compiling Expressions init-compile-chunk < Calls and Functions not-yet
-  compilingChunk = chunk;
-*/
 //> Compiling Expressions compile-chunk
 //> init-parser-error
 
+/* Compiling Expressions init-compile-chunk < Calls and Functions not-yet
+  compilingChunk = chunk;
+*/
   parser.hadError = false;
   parser.panicMode = false;
   
@@ -1533,6 +1552,8 @@ ObjFunction* compile(const char* source) {
 //< Global Variables not-yet
 /* Compiling Expressions finish-compile < Calls and Functions not-yet
   endCompiler();
+*/
+/* Compiling Expressions return-had-error < Calls and Functions not-yet
   return !parser.hadError;
 */
 //> Calls and Functions not-yet
