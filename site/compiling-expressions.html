@@ -37,11 +37,12 @@
 <h3><a href="#top">Compiling Expressions<small>17</small></a></h3>
 
 <ul>
-    <li><a href="#set-up"><small>17.1</small> set up</a></li>
-    <li><a href="#parsing-tokens"><small>17.2</small> parsing tokens</a></li>
-    <li><a href="#emitting-bytecode"><small>17.3</small> emitting bytecode</a></li>
+    <li><a href="#parsing-tokens"><small>17.1</small> parsing tokens</a></li>
+    <li><a href="#emitting-bytecode"><small>17.2</small> emitting bytecode</a></li>
+    <li><a href="#operator-precedence-parsing"><small>17.3</small> operator precedence parsing</a></li>
     <li><a href="#dump-chunk"><small>17.4</small> dump chunk</a></li>
-    <li><a href="#operator-precedence-parsing"><small>17.5</small> operator precedence parsing</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -67,11 +68,12 @@
 <h3><a href="#top">Compiling Expressions<small>17</small></a></h3>
 
 <ul>
-    <li><a href="#set-up"><small>17.1</small> set up</a></li>
-    <li><a href="#parsing-tokens"><small>17.2</small> parsing tokens</a></li>
-    <li><a href="#emitting-bytecode"><small>17.3</small> emitting bytecode</a></li>
+    <li><a href="#parsing-tokens"><small>17.1</small> parsing tokens</a></li>
+    <li><a href="#emitting-bytecode"><small>17.2</small> emitting bytecode</a></li>
+    <li><a href="#operator-precedence-parsing"><small>17.3</small> operator precedence parsing</a></li>
     <li><a href="#dump-chunk"><small>17.4</small> dump chunk</a></li>
-    <li><a href="#operator-precedence-parsing"><small>17.5</small> operator precedence parsing</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -107,8 +109,32 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
-<h2><a href="#set-up" name="set-up"><small>17&#8202;.&#8202;1</small> set up</a></h2>
-<p>&hellip;</p>
+<blockquote>
+<p>There are no happy endings.</p>
+<p>Endings are the saddest part,</p>
+<p>So just give me a happy middle</p>
+<p>And a very happy start.
+<cite>Shel Silverstein</cite></p>
+</blockquote>
+<p><strong>todo: more illustrations</strong></p>
+<p><strong>todo: quote</strong></p>
+<ul>
+<li>chapter exciting three reasons</li>
+<li>first, last section in execution pipeline of vm</li>
+<li>once in place, can pipe source code all the way through to run</li>
+<li>two, get to write actual compiler</li>
+<li>parses syntax and outputs low level binary bytecode</li>
+<li>real lang hackers</li>
+<li>three, get to teach one of favorite techniques</li>
+<li>vaughan pratt&rsquo;s top down op prec parser</li>
+<li>
+<p>[aside on pratt]</p>
+</li>
+<li>
+<p>before get to fun stuff, prelim</p>
+</li>
+<li>first replace temp code for driving scanner with something closer to final</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">InterpretResult</span> <span class="nf">interpret</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
@@ -131,7 +157,22 @@ replace 5 lines</div>
 </pre><pre class="insert-after"><span></span><span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>create new empty chunk</li>
+<li>pass to compiler to generate bytecode from source</li>
+<li>
+<p>if got compile error, discard chunk and bail</p>
+</li>
+<li>
+<p>otherwise, set up vm like did with hand-rolled chunk</p>
+</li>
+<li>
+<p>run it</p>
+</li>
+<li>
+<p>compile sig changed</p>
+</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_compiler_h</span>
 <br></pre><div class="source-file"><em>compiler.h</em><br>
 replace 1 line</div>
@@ -141,7 +182,11 @@ replace 1 line</div>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#endif</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>now passing in chunk to compile</li>
+<li>return true if compiled without error</li>
+<li>over in impl</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 2 lines</div>
@@ -149,11 +194,17 @@ replace 2 lines</div>
 </pre><pre class="insert-after"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>tear out temp code to drive scanner</li>
+<li>instead call advance to scan first token</li>
+<li>then expression to parse single expr</li>
+<li>eventually replace with whole program</li>
+<li>should be done with input after that</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>compile</em>()<br>
-replace 14 lines</div>
+replace 13 lines</div>
 <pre class="insert"><span></span>  <span class="n">advance</span><span class="p">();</span>
 
   <span class="n">expression</span><span class="p">();</span>
@@ -161,9 +212,51 @@ replace 14 lines</div>
 </pre><pre class="insert-after"><span></span><span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
-<h2><a href="#parsing-tokens" name="parsing-tokens"><small>17&#8202;.&#8202;2</small> parsing tokens</a></h2>
-<p>&hellip;</p>
+<ul>
+<li>rest of chapter making this fn work, especially expression()</li>
+<li>take long time to get there</li>
+<li>
+<p>work way in from both ends</p>
+</li>
+<li>
+<p>compiler has two jobs</p>
+</li>
+<li>parse source syntax</li>
+<li>compile<span class="em">&mdash;</span>produce bytecode</li>
+<li>many langs split into two passes</li>
+<li>[often many more than two]</li>
+<li>parser parses syntax and produces ast</li>
+<li>second pass walks ast and generates code</li>
+<li>[&ldquo;code gen&rdquo;]</li>
+<li>in clox, merge into one</li>
+<li>while parsing, immediately output bytecode with no intermediate rep</li>
+<li>&ldquo;single-pass compiler&rdquo;</li>
+<li>classic way to do it</li>
+<li>doesn&rsquo;t work great with all langs</li>
+<li>hard to optimize</li>
+<li>
+<p>very simple and fast (to compile, not run)</p>
+</li>
+<li>
+<p>so compiler module has functionality familiar from jlox for parsing</p>
+</li>
+<li>consuming and matching tokens, etc.</li>
+<li>and functionality for emitting bytecode</li>
+<li>
+<p>walk through those first</p>
+</li>
+<li>
+<p>then do actual lox grammar that calls those</p>
+</li>
+<li>little more bottom-up than like, but means when get to tricky op prec parser,
+  have as much done as possible</li>
+</ul>
+<h2><a href="#parsing-tokens" name="parsing-tokens"><small>17&#8202;.&#8202;1</small> parsing tokens</a></h2>
+<ul>
+<li>first, front half</li>
+<li>very similar to jlox</li>
+<li>primary fn is advance</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">advance</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">parser</span><span class="p">.</span><span class="n">previous</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">current</span><span class="p">;</span>
@@ -177,12 +270,26 @@ replace 14 lines</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>scans next token and stores</li>
+<li>before doing so, copies old current token into previous</li>
+<li>
+<p>useful to extract data from token after consuming it</p>
+</li>
+<li>
+<p>loop is because need to catch and report error tokens</p>
+</li>
+<li>caller to advance wants next real token</li>
+<li>
+<p>so this reports and skips over error tokens</p>
+</li>
+<li>
+<p>current and previous tokens are stored in parser struct</p>
+</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-  <span class="kt">bool</span> <span class="n">hadError</span><span class="p">;</span>
-  <span class="kt">bool</span> <span class="n">panicMode</span><span class="p">;</span>
   <span class="n">Token</span> <span class="n">current</span><span class="p">;</span>
   <span class="n">Token</span> <span class="n">previous</span><span class="p">;</span>
 <span class="p">}</span> <span class="n">Parser</span><span class="p">;</span>
@@ -192,16 +299,14 @@ replace 14 lines</div>
   <span class="n">parser</span><span class="p">.</span><span class="n">previous</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">current</span><span class="p">;</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
-</pre><div class="source-file"><em>compiler.c</em><br>
-add after <em>compile</em>()</div>
-<pre class="insert"><br><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
-  <span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
-<br></pre><pre class="insert-after"><span></span>  <span class="n">advance</span><span class="p">();</span>
-<br></pre></div>
-
-<p>&hellip;</p>
+<ul>
+<li>like in other modules, have single module var for struct so don&rsquo;t have to
+  pass around</li>
+</ul>
+<h3><a href="#error-handling" name="error-handling"><small>17&#8202;.&#8202;1&#8202;.&#8202;1</small> error handling</a></h3>
+<ul>
+<li>if scanner emitted error token, need to report it</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAtCurrent</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
@@ -209,13 +314,13 @@ add after <em>Parser</em></div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>this fn reports given error using current token for location</li>
+<li>uses more primitive</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
-  <span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
-
   <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] Error&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">line</span><span class="p">);</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_EOF</span><span class="p">)</span> <span class="p">{</span>
@@ -231,14 +336,113 @@ add after <em>Parser</em></div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>
+<p>sometimes want to report error at previous token pos, so takes token as
+  param</p>
+</li>
+<li>
+<p>first print error location</p>
+</li>
+<li>try to show lexeme if possible</li>
+<li>
+<p>then error message</p>
+</li>
+<li>
+<p>finally, set flag</p>
+</li>
+<li>tracks if any compile error occurred</li>
+<li>lives in parser</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Token</span> <span class="n">previous</span><span class="p">;</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>Parser</em></div>
+<pre class="insert"><span></span>  <span class="kt">bool</span> <span class="n">hadError</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span> <span class="n">Parser</span><span class="p">;</span>
+</pre></div>
+
+<ul>
+<li>that way compile() returns false if compile error occurred</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">,</span> <span class="s">&quot;Expect end of expression.&quot;</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>compile</em>()</div>
+<pre class="insert"><span></span>  <span class="k">return</span> <span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>one other useful flag</li>
+<li>want to avoid cascaded errors</li>
+<li>after one compile error, compiler may be confused about where it is in program</li>
+<li>lead to slew of errors</li>
+<li>
+<p>not useful to report all</p>
+</li>
+<li>
+<p>used &ldquo;panic mode&rdquo; in jlox</p>
+</li>
+<li>there, escaped to sync point by throwing exception to unwind out of parse
+  methods</li>
+<li>no exceptions in c</li>
+<li>
+<p>[could do setjmp, but risky. easy to leak mem or forget to clear state]</p>
+</li>
+<li>
+<p>instead, do simple trick</p>
+</li>
+<li>add flag for when in panic mode</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">bool</span> <span class="n">hadError</span><span class="p">;</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>Parser</em></div>
+<pre class="insert"><span></span>  <span class="kt">bool</span> <span class="n">panicMode</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span> <span class="n">Parser</span><span class="p">;</span>
+</pre></div>
+
+<ul>
+<li>set flag when error occurs</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>errorAt</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+  <span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] Error&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">line</span><span class="p">);</span>
+</pre></div>
+
+<ul>
+<li>after that, keep compiling as normal, but simply don&rsquo;t report any other
+  errors</li>
+<li>will discard resulting bytecode without running anyway, so ok to keep going</li>
+<li>
+<p>later when get to statements, will synchronize and clear flag</p>
+</li>
+<li>
+<p>new fields need to be inited</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>compile</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">advance</span><span class="p">();</span>
+</pre></div>
+
+<ul>
+<li>also need include</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>often will report error at location of token just consumed</li>
+<li>helper for that too</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>errorAt</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">error</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
@@ -246,7 +450,9 @@ add after <em>errorAt</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>one last</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>advance</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">consume</span><span class="p">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
@@ -259,17 +465,34 @@ add after <em>advance</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
-<h2><a href="#emitting-bytecode" name="emitting-bytecode"><small>17&#8202;.&#8202;3</small> emitting bytecode</a></h2>
-<p>&hellip;</p>
+<ul>
+<li>like advance, but expects next token to be certain type</li>
+<li>if not, reports it as error</li>
+<li>
+<p>foundation of most compile errors</p>
+</li>
+<li>
+<p>enough base functionality to start reading and using tokens</p>
+</li>
+</ul>
+<h2><a href="#emitting-bytecode" name="emitting-bytecode"><small>17&#8202;.&#8202;2</small> emitting bytecode</a></h2>
+<hr />
+<ul>
+<li>now jump to other end</li>
+<li>after parsing and figuring out code, produce bytecode instrs</li>
+<li>already passed in chunk</li>
+<li>some helpers for that end</li>
+<li>at very end, when done compiling everything</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">,</span> <span class="s">&quot;Expect end of expression.&quot;</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert"><span></span>  <span class="n">endCompiler</span><span class="p">();</span>
-  <span class="k">return</span> <span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">;</span>
-</pre><pre class="insert-after"><span></span><span class="p">}</span>
+</pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">;</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>calls</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">endCompiler</span><span class="p">()</span> <span class="p">{</span>
@@ -277,7 +500,11 @@ add after <em>consume</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>right now, just compile single expression</li>
+<li>when run, should evaluate and return it</li>
+<li>remember use return instr for last part</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitReturn</span><span class="p">()</span> <span class="p">{</span>
@@ -285,7 +512,9 @@ add after <em>consume</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>relies on this more primitive</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitByte</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">byte</span><span class="p">)</span> <span class="p">{</span>
@@ -293,8 +522,17 @@ add after <em>consume</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><pre class="insert-before"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>
+<ul>
+<li>writes given bytecode and says on current line</li>
+<li>
+<p>will use throughout next chapters</p>
+</li>
+<li>
+<p>need to get chunk to write to</p>
+</li>
+<li>use helper fn for this</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>Parser</em></div>
 <pre class="insert"><br><span></span><span class="n">Chunk</span><span class="o">*</span> <span class="n">compilingChunk</span><span class="p">;</span>
@@ -305,15 +543,22 @@ add after <em>Parser</em></div>
 <br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>right now, chunk stored in module var</li>
+<li>later, when have functions, gets more complicated</li>
+<li>set var right before compiling</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
-</pre><div class="source-file"><em>compiler.c</em><br>
+<br></pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>compile</em>()</div>
 <pre class="insert"><span></span>  <span class="n">compilingChunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">;</span>
-</pre><pre class="insert-after"><br><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>often need to emit couple of bytes</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitByte</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitBytes</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">byte1</span><span class="p">,</span> <span class="kt">uint8_t</span> <span class="n">byte2</span><span class="p">)</span> <span class="p">{</span>
@@ -322,46 +567,211 @@ add after <em>emitByte</em>()</div>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
-<h2><a href="#dump-chunk" name="dump-chunk"><small>17&#8202;.&#8202;4</small> dump chunk</a></h2>
-<p>&hellip;</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;</span><span class="cp"></span>
-<br></pre><div class="source-file"><em>common.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define DEBUG_PRINT_CODE</span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define DEBUG_TRACE_EXECUTION</span>
-</pre></div>
-
-<p>&hellip;</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitReturn</span><span class="p">();</span>
-</pre><div class="source-file"><em>compiler.c</em><br>
+<ul>
+<li>just shorthand</li>
+<li>enough for now</li>
+</ul>
+<h2><a href="#operator-precedence-parsing" name="operator-precedence-parsing"><small>17&#8202;.&#8202;3</small> operator precedence parsing</a></h2>
+<ul>
+<li>left is one fn:</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
-<pre class="insert"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE</span>
-  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">disassembleChunk</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span> <span class="s">&quot;code&quot;</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="cp">#endif</span>
-</pre><pre class="insert-after"><span></span><span class="p">}</span>
-</pre></div>
-
-<p>&hellip;</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;</span><span class="cp"></span>
-</pre><div class="source-file"><em>compiler.c</em></div>
-<pre class="insert"><br><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE</span>
-<span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot;</span><span class="cp"></span>
-<span class="cp">#endif</span>
-</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
-</pre></div>
-
-<p>&hellip;</p>
-<h2><a href="#operator-precedence-parsing" name="operator-precedence-parsing"><small>17&#8202;.&#8202;5</small> operator precedence parsing</a></h2>
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em></div>
 <pre><span></span><span class="kt">void</span> <span class="nf">expression</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">parsePrecedence</span><span class="p">(</span><span class="n">PREC_ASSIGNMENT</span><span class="p">);</span>
+  <span class="c1">// What goes here?</span>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>few kinds of exprs to support in this chapter</li>
+<li>number literals</li>
+<li>parentheses for grouping</li>
+<li>unary negate</li>
+<li>
+<p>binary arithmetic</p>
+</li>
+<li>
+<p>usually explain top down</p>
+</li>
+<li>harder here because code that drives hard to understand without context</li>
+<li>take different approach</li>
+<li>
+<p>outside in</p>
+</li>
+<li>
+<p>core of algo is table-driven parser</p>
+</li>
+<li>row in table for each token type</li>
+<li>each row has parsing data assoc with that token type</li>
+</ul>
+<p><strong>todo: illustrate</strong></p>
+<ul>
+<li>if introduced one feature at a time, have to keep rewriting table to add
+  columns</li>
+<li>instead, show table last</li>
+<li>first cover everything need table to do</li>
+<li>have handful of fns introduce but not implement until near end</li>
+<li>have to hold lot in your head, best i could do</li>
+</ul>
+<h3><a href="#number" name="number"><small>17&#8202;.&#8202;3&#8202;.&#8202;1</small> number</a></h3>
+<ul>
+<li>imagine exprs only single token</li>
+<li>different token different kind expr</li>
+<li>logic for compiling each kind of expr</li>
+<li>table of fn pointers</li>
+<li>index is token type</li>
+<li>fn is function to parse expr for that token</li>
+<li>TOKEN_NUMBER:</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>endCompiler</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">number</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kt">double</span> <span class="n">value</span> <span class="o">=</span> <span class="n">strtod</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+  <span class="n">emitConstant</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>assume number token already consumed, so in previous</li>
+<li>convert lexeme to value (remember lexer doesn&rsquo;t do)</li>
+<li>generate code to load value from constant table</li>
+<li>will have other code that uses const later, so put in helper</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>emitReturn</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitConstant</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_CONSTANT</span><span class="p">,</span> <span class="n">makeConstant</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>add value to const table</li>
+<li>emit bytecode to load that const</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>emitReturn</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">makeConstant</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span> <span class="n">value</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">constant</span> <span class="o">&gt;</span> <span class="n">UINT8_MAX</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Too many constants in one chunk.&quot;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">constant</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>add to constant table for chunk compiling</li>
+<li>return index</li>
+</ul>
+<h3><a href="#grouping" name="grouping"><small>17&#8202;.&#8202;3&#8202;.&#8202;2</small> grouping</a></h3>
+<ul>
+<li>table nice</li>
+<li>easy to add new exprs for tokens</li>
+<li>easy to see which tokens already in use</li>
+<li>
+<p>alas exprs not all single token</p>
+</li>
+<li>
+<p>some exprs start with token</p>
+</li>
+<li>prefix expr</li>
+<li>
+<p>if parsing expr and next token is <code>(</code>, know grouping expr</p>
+</li>
+<li>
+<p>table still works</p>
+</li>
+<li>token is token that <em>starts</em> expr</li>
+<li>fn can then consume more tokens</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>endCompiler</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">grouping</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">expression</span><span class="p">();</span>
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after expression.&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>assumes &ldquo;(&rdquo; consumed which is how got to fn</li>
+<li>can have any expr inside parens, so recursively call expression()</li>
+<li>[parser still recursive, since grammar recursive. not recursive <em>descent</em>.]</li>
+<li>then must end with &ldquo;)&rdquo;</li>
+<li>grouping expr itself just &ldquo;grammar hack&rdquo; to let have low prec expr where
+  higher expected</li>
+<li>so doesn&rsquo;t emit any code on its own</li>
+<li>call to expression() does work</li>
+</ul>
+<h3><a href="#unary" name="unary"><small>17&#8202;.&#8202;3&#8202;.&#8202;3</small> unary</a></h3>
+<ul>
+<li>unary negate also prefix expr</li>
+<li>assume parsed <code>-</code> token, then</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>number</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">unary</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">TokenType</span> <span class="n">operatorType</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">;</span>
+
+  <span class="c1">// Compile the operand.</span>
+  <span class="n">expression</span><span class="p">();</span>
+
+  <span class="c1">// Emit the operator instruction.</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">operatorType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nl">TOKEN_MINUS</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NEGATE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="k">return</span><span class="p">;</span> <span class="c1">// Unreachable.</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>start with token, then need to compile operand</li>
+<li>emits instructions to execute operand expr</li>
+<li>result of executing those instrs leaves value on stack</li>
+<li>right where want</li>
+<li>then emit instruction for unary operator itself</li>
+<li>
+<p>that will pop value, perform op, push result</p>
+</li>
+<li>
+<p>problem here</p>
+</li>
+<li>unary allows any expr as operand</li>
+<li>once add binary ops, does wrong thing</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="o">-</span><span class="n">a</span><span class="p">.</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
+</pre></div>
+
+
+<ul>
+<li>here, operand to <code>-</code> is only <code>a.b</code>, not whole <code>a.b + c</code> expr</li>
+<li>operand is expr, but only expr above certain precedence level</li>
+<li>need way to parse expr but only allow exprs at given prec or higher</li>
+<li>in old recursive descent parser, had fn for each level</li>
+<li>could call directly</li>
+<li>fns different here</li>
+<li>each fn only compiles expr of exactly one type</li>
+<li>
+<p>doesn&rsquo;t cascade to higher precedence too</p>
+</li>
+<li>
+<p>need different solution</p>
+</li>
+<li>create fn that parse expression at any given precedence level or higher</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>unary</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// What goes here?</span>
+<span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>get to body later</li>
+<li>define precedence numerically</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Parser</span><span class="p">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>Parser</em></div>
@@ -381,29 +791,129 @@ add after <em>Parser</em></div>
 </pre><pre class="insert-after"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em></div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">advance</span><span class="p">();</span>
-  <span class="n">ParseFn</span> <span class="n">prefixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">prefix</span><span class="p">;</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">prefixRule</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Expect expression.&quot;</span><span class="p">);</span>
-    <span class="k">return</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="n">prefixRule</span><span class="p">();</span>
-<span class="p">}</span>
+<ul>
+<li>highest prec has highest enum value</li>
+<li>then when compiling operand, can pass in prec and say &ldquo;only this or higher&rdquo;</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="c1">// Compile the operand.</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>unary</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="n">parsePrecedence</span><span class="p">(</span><span class="n">PREC_CALL</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="c1">// Emit the operator instruction.</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>since unary op pretty high prec, operand has to be call or higher</li>
+</ul>
+<h3><a href="#infix-ops" name="infix-ops"><small>17&#8202;.&#8202;3&#8202;.&#8202;4</small> infix ops</a></h3>
+<ul>
+<li>last expr type is binary op</li>
+<li>different from others</li>
+<li>before, token that keys parsing logic is first</li>
+<li>binary different</li>
+<li>by the time hit operator, already compiled left operand</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">3</span>
+</pre></div>
+
+
+<ul>
+<li>first, see <code>-</code>, ok unary negate</li>
+<li>compile 1 operand</li>
+<li>don&rsquo;t treat <code>+</code> as part of <code>-</code> operand since too low precedence</li>
+<li>unary() returns</li>
+<li>
+<p>now what?</p>
+</li>
+<li>
+<p>need way to handle token appearing <em>after</em> expression</p>
+</li>
+<li>call &ldquo;infix&rdquo;</li>
+<li>after parsing expression, look at next token</li>
+<li>look up in table</li>
+<li>if infix parse fn associated with it, call it</li>
+<li>only one infix so far:</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>parsePrecedence</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="n">ParseRule</span><span class="o">*</span> <span class="nf">getRule</span><span class="p">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="o">&amp;</span><span class="n">rules</span><span class="p">[</span><span class="n">type</span><span class="p">];</span>
+add after <em>endCompiler</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">binary</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Compile the right operand.</span>
+  <span class="n">TokenType</span> <span class="n">operatorType</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">;</span>
+  <span class="n">ParseRule</span><span class="o">*</span> <span class="n">rule</span> <span class="o">=</span> <span class="n">getRule</span><span class="p">(</span><span class="n">operatorType</span><span class="p">);</span>
+  <span class="n">parsePrecedence</span><span class="p">((</span><span class="n">Precedence</span><span class="p">)(</span><span class="n">rule</span><span class="o">-&gt;</span><span class="n">precedence</span> <span class="o">+</span> <span class="mi">1</span><span class="p">));</span>
+
+  <span class="c1">// Emit the operator instruction.</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">operatorType</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nl">TOKEN_PLUS</span><span class="p">:</span>          <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_ADD</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">TOKEN_MINUS</span><span class="p">:</span>         <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_SUBTRACT</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">TOKEN_STAR</span><span class="p">:</span>          <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_MULTIPLY</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">TOKEN_SLASH</span><span class="p">:</span>         <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_DIVIDE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="k">return</span><span class="p">;</span> <span class="c1">// Unreachable.</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>when called, left operand already compiled</li>
+<li>works out fine</li>
+<li>because stack-based, result of operand sitting on stack where want</li>
+<li>next, compile right operand</li>
+<li>finally, emit instruction for op</li>
+<li>again, works great with stack</li>
+<li>
+<p>two operands end up on stack, then inst for binary op pops them, does op
+  pushes result</p>
+</li>
+<li>
+<p>interesting part is what precedence to use to parse rhs</p>
+</li>
+<li>get to parserule stuff soon</li>
+<li>understand that that code gets precedence of current binary operator</li>
+<li>
+<p>then parses operand at one level above that</p>
+</li>
+<li>
+<p>ensures operands always higher precedence than operator itself, which is
+  what want</p>
+</li>
+<li>[+1 is because left assoc. if right assoc would be +0. example.]</li>
+<li>for example, prec of &ldquo;+&rdquo; is PREC_TERM</li>
+<li>next one up is PREC_FACTOR</li>
+<li>
+<p>is indeed right prec for operand to &ldquo;+&rdquo; - can be multiply, divide or anything
+  higher</p>
+</li>
+<li>
+<p>this one binary() fn handles all four arithmetic ops and their different
+  precedences</p>
+</li>
+</ul>
+<h3><a href="#parse-table" name="parse-table"><small>17&#8202;.&#8202;3&#8202;.&#8202;5</small> parse table</a></h3>
+<ul>
+<li>those are all fns around table driven parser</li>
+<li>
+<p>can now define table and see how works</p>
+</li>
+<li>
+<p>review, for each token type, can have</p>
+<ul>
+<li>pointer to fn for parsing prefix expr that starts with that token</li>
+<li>pointer to fn for parsing infix expr with that token following operand</li>
+<li>precedence level for infix expr for that token</li>
+</ul>
+</li>
+<li>all optional, many tokens don&rsquo;t support</li>
+<li>
+<p>[can&rsquo;t use <code>if</code> as infix op! except in python and ruby]</p>
+</li>
+<li>
+<p>table is array</p>
+</li>
+<li>index in array is token type</li>
+<li>each row is struct:</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>Precedence</em></div>
@@ -415,7 +925,17 @@ add after <em>Precedence</em></div>
 </pre><pre class="insert-after"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>prefix is pointer to fn for parsing expr that starts with token</li>
+<li>infix is pointer to fn for parsing expr that has token after left operand</li>
+<li>prec is precedence of token when used in infix</li>
+<li>
+<p>[don&rsquo;t need prefix prec because all prefix ops have same prec in lox.]</p>
+</li>
+<li>
+<p>parse fn just simple fn ptr typedef</p>
+</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>Precedence</em></div>
@@ -423,8 +943,11 @@ add after <em>Precedence</em></div>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em></div>
+<ul>
+<li>then have big static array of rules</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>unary</em>()</div>
 <pre><span></span><span class="n">ParseRule</span> <span class="n">rules</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
   <span class="p">{</span> <span class="n">grouping</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_CALL</span> <span class="p">},</span>       <span class="c1">// TOKEN_LEFT_PAREN</span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RIGHT_PAREN</span>
@@ -469,74 +992,99 @@ add after <em>Precedence</em></div>
 <span class="p">};</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em></div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">number</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kt">double</span> <span class="n">value</span> <span class="o">=</span> <span class="n">strtod</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
-  <span class="n">emitConstant</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&hellip;</p>
+<ul>
+<li>will fill in table over time as add new expressions in later chapters</li>
+<li>
+<p>[cool part of this approach is very clear which tokens available for use as
+  expressions. can see nulls right there.]</p>
+</li>
+<li>
+<p>now can go back and fill in missing fns</p>
+</li>
+<li>
+<p>getrule fn used in binary() just looks up array element</p>
+</li>
+</ul>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>emitReturn</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitConstant</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_CONSTANT</span><span class="p">,</span> <span class="n">makeConstant</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+add after <em>parsePrecedence</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">ParseRule</span><span class="o">*</span> <span class="nf">getRule</span><span class="p">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="o">&amp;</span><span class="n">rules</span><span class="p">[</span><span class="n">type</span><span class="p">];</span>
 <span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>emitReturn</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">makeConstant</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kt">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span> <span class="n">value</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">constant</span> <span class="o">&gt;</span> <span class="n">UINT8_MAX</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Too many constants in one chunk.&quot;</span><span class="p">);</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">constant</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>number</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">unary</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">TokenType</span> <span class="n">operatorType</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">;</span>
-
-  <span class="c1">// Compile the operand.</span>
-  <span class="n">parsePrecedence</span><span class="p">(</span><span class="n">PREC_CALL</span><span class="p">);</span>
-
-  <span class="c1">// Emit the operator instruction.</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">operatorType</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="nl">TOKEN_MINUS</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NEGATE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
-    <span class="k">default</span><span class="o">:</span>
-      <span class="k">return</span><span class="p">;</span> <span class="c1">// Unreachable.</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-<p>&hellip;</p>
+<ul>
+<li>need to wrap in fn to avoid cycle in decls</li>
+<li>binary() defined above table so table can store pointer to it</li>
+<li>so define some forward decls above all parse fns</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span>
-</pre><div class="source-file"><em>compiler.c</em></div>
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>endCompiler</em>()</div>
 <pre class="insert"><br><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">expression</span><span class="p">();</span>
 <span class="k">static</span> <span class="n">ParseRule</span><span class="o">*</span> <span class="nf">getRule</span><span class="p">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="p">);</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">);</span>
-<br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">number</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kt">double</span> <span class="n">value</span> <span class="o">=</span> <span class="n">strtod</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+<br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">binary</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Compile the right operand.</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>parsePrecedence</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">grouping</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">expression</span><span class="p">();</span>
-  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after expression.&quot;</span><span class="p">);</span>
-<span class="p">}</span>
+<ul>
+<li>that way can recursively call</li>
+<li>
+<p>needed for subexprs</p>
+</li>
+<li>
+<p>here where gets interesting</p>
+</li>
+<li>parse prec where real work happens</li>
+<li>start with prefix handling</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>parsePrecedence</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="n">advance</span><span class="p">();</span>
+  <span class="n">ParseFn</span> <span class="n">prefixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">prefix</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">prefixRule</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Expect expression.&quot;</span><span class="p">);</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">prefixRule</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
+<ul>
+<li>reads next token</li>
+<li>looks up rule for it</li>
+<li>if no prefix parser, then token can&rsquo;t begin expr</li>
+<li>must be a parse error because expect expression</li>
+<li>otherwise, let prefix parser handle</li>
+<li>
+<p>simple</p>
+</li>
+<li>
+<p>now that have parseprec, expr is</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">expression</span><span class="p">()</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>expression</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="n">parsePrecedence</span><span class="p">(</span><span class="n">PREC_ASSIGNMENT</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>
+<p>just starts at lowest prec level, which subsumes all</p>
+</li>
+<li>
+<p>last part is trickiest</p>
+</li>
+<li>most powerful code in entire chapter</li>
+<li>very simple, but subtle with how interacts with other fns that call back to
+  parsePrec()</li>
+</ul>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">prefixRule</span><span class="p">();</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()</div>
@@ -548,27 +1096,194 @@ in <em>parsePrecedence</em>()</div>
 </pre><pre class="insert-after"><span></span><span class="p">}</span>
 </pre></div>
 
-<p>&hellip;</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>parsePrecedence</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">binary</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">TokenType</span> <span class="n">operatorType</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">;</span>
-  <span class="n">ParseRule</span><span class="o">*</span> <span class="n">rule</span> <span class="o">=</span> <span class="n">getRule</span><span class="p">(</span><span class="n">operatorType</span><span class="p">);</span>
-
-  <span class="c1">// Compile the right-hand operand.</span>
-  <span class="n">parsePrecedence</span><span class="p">((</span><span class="n">Precedence</span><span class="p">)(</span><span class="n">rule</span><span class="o">-&gt;</span><span class="n">precedence</span> <span class="o">+</span> <span class="mi">1</span><span class="p">));</span>
-
-  <span class="c1">// Emit the operator instruction.</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">operatorType</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">case</span> <span class="nl">TOKEN_PLUS</span><span class="p">:</span>          <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_ADD</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="nl">TOKEN_MINUS</span><span class="p">:</span>         <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_SUBTRACT</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="nl">TOKEN_STAR</span><span class="p">:</span>          <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_MULTIPLY</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
-    <span class="k">case</span> <span class="nl">TOKEN_SLASH</span><span class="p">:</span>         <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_DIVIDE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
-    <span class="k">default</span><span class="o">:</span>
-      <span class="k">return</span><span class="p">;</span> <span class="c1">// Unreachable.</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<ul>
+<li>when parsing expr, first tokens always belong to some prefix expr</li>
+<li>may be deeply nested inside infix, but left to right, first is prefix</li>
+<li>in:</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">4</span>
 </pre></div>
+
+
+<p><strong>todo: illustrate ast</strong></p>
+<ul>
+<li>here, outermost expr is <code>==</code>, which don&rsquo;t get to until much later</li>
+<li>
+<p>but leftmost is <code>-1</code></p>
+</li>
+<li>
+<p>walk through how parseprec parses this</p>
+</li>
+<li>comsume first token, <code>-</code></li>
+<li>look up prefix rule</li>
+<li>find <code>unary()</code></li>
+<li>that recursively calls <code>parsePrec(PREC_CALL)</code></li>
+<li>consume next token, <code>1</code></li>
+<li>look up prefix rule</li>
+<li>find <code>number()</code></li>
+<li>
+<p>compile number constant and return</p>
+</li>
+<li>
+<p>now enter infix section of <code>parsePrec()</code> for inner call</p>
+</li>
+<li>next token is <code>*</code>, so there is infix</li>
+<li>but remember, parsing operand to unary, so should <em>not</em> parse <code>+</code></li>
+<li>
+<p>unary op should just be <code>1</code></p>
+</li>
+<li>
+<p>in while loop, look up prec of current token <code>+</code></p>
+</li>
+<li>PREC_TERM is lower than PREC_CALL, so while condition fail</li>
+<li>don&rsquo;t go into loop, return</li>
+<li>
+<p>so entire operand of <code>-</code> is just <code>1</code></p>
+</li>
+<li>
+<p>now back in outer call to <code>parsePrec()</code></p>
+</li>
+<li>prec is PREC_ASSIGN</li>
+<li>get to while loop again</li>
+<li>this time, PREC_TERM is higher than PREC_ASSIGN, so can get into loop body</li>
+<li>consume <code>+</code></li>
+<li>look up infix parse fn for it</li>
+<li>[know won&rsquo;t be null because all null infix rules have PREC_NONE which is lower than all]</li>
+<li>call it, binary()</li>
+<li>calls parsePrec() again for rhs</li>
+<li>
+<p>passes in own prec + 1, so PREC_FACTOR</p>
+</li>
+<li>
+<p>next token is <code>2</code>, so prefix parser is number()</p>
+</li>
+<li>enter infix loop because next token, <code>*</code> is PREC_FACTOR</li>
+<li>call binary() for *</li>
+<li>calls parsePrec() with PREC_UNARY, which is 1 + PREC_FACTOR</li>
+<li>next token is <code>3</code></li>
+<li>prefix parse is number()</li>
+<li>don&rsquo;t get into infix loop because next is == which is lower than PREC_UNARY</li>
+<li>return, so rhs of * is just 3</li>
+<li>now back in rhs parser for <code>+</code></li>
+<li>next token still <code>==</code> which also too low for <code>+</code> so return again</li>
+<li>rhs of <code>+</code> is <code>2 * 3</code></li>
+<li>back in outermost parsePrec() call with PREC_ASSIGN</li>
+<li>finally low enough to get into infix loop</li>
+<li>again call binary()</li>
+<li>consume <code>4</code> as prefix expr</li>
+<li>next token is TOKEN_EOF with PREC_NONE, so don&rsquo;t get into infix loop</li>
+<li>
+<p>so outermost expression is <code>==</code> and done</p>
+</li>
+<li>
+<p>may take while to wrap head around</p>
+</li>
+<li>worth stepping through in debugger to see how recursive calls climb prec
+  until run out and return</li>
+<li>love love love this fn</li>
+<li>remember, one <code>binary()</code> handles all arith ops, at all prec levels</li>
+<li>once understand this, can write parser like this whenever need</li>
+<li>can easily extend to more prec levels, postfix and prefix ops, even mixfix
+  like ternary</li>
+</ul>
+<h2><a href="#dump-chunk" name="dump-chunk"><small>17&#8202;.&#8202;4</small> dump chunk</a></h2>
+<ul>
+<li>one last small thing</li>
+<li>make our lives easier hacking on vm</li>
+<li>add support for dumping disassembled bytecode after running compiler</li>
+<li>did with hand-rolled chunk</li>
+<li>now add support to compiler</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;</span><span class="cp"></span>
+<br></pre><div class="source-file"><em>common.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define DEBUG_PRINT_CODE</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define DEBUG_TRACE_EXECUTION</span>
+</pre></div>
+
+<ul>
+<li>add flag so can disable it</li>
+<li>end users don&rsquo;t want bytecode spew</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitReturn</span><span class="p">();</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>endCompiler</em>()</div>
+<pre class="insert"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">disassembleChunk</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span> <span class="s">&quot;code&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="cp">#endif</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>
+</pre></div>
+
+<ul>
+<li>after compile finishes, dump bytecode</li>
+<li>don&rsquo;t do this if had compile error</li>
+<li>when error occurs, compiler does not promise to generate valid code after
+  error</li>
+<li>ok, because will never be executed</li>
+<li>but could be confusing to look at disasm</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>compiler.c</em></div>
+<pre class="insert"><br><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE</span>
+<span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot;</span><span class="cp"></span>
+<span class="cp">#endif</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>
+</pre></div>
+
+<ul>
+<li>
+<p>compiler also need to include disasm module</p>
+</li>
+<li>
+<p>now tied knot on vm</p>
+</li>
+<li>have full pipeline from source string to tokens to parsing and compiling to
+  bytecode, to executing</li>
+<li>go ahead and run</li>
+<li>can type in arith expr and executes and prints result</li>
+<li>
+<p>made little calculator</p>
+</li>
+<li>
+<p>not seem impressive, but strong foundation inside</p>
+</li>
+<li>next, start fleshing out calc to turn into real lang</li>
+</ul>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<p>1.</p>
+<ul>
+<li>no prefix prec because all prefix expr in lox same prec</li>
+<li>most other langs same</li>
+<li>
+<p>js has low prec prefix expr, yield</p>
+<p>yield 1 + 2;</p>
+</li>
+<li>
+<p>yields result of 1 + 2</p>
+</li>
+<li>operand to yield allow binary op</li>
+<li>when parsing yield operand, need to allow lower prec than just PREC_CALL</li>
+<li>could do separate parse fn with direct call to parsePrec with right prec</li>
+</ul>
+<p><strong>todo: not sure if this q makes sense</strong></p>
+<p>2.</p>
+<ul>
+<li>parse rule for <code>-</code> has both prefix and infix parse rule</li>
+<li>because unary negate and binary subtract</li>
+<li>in full lox lang, any other token types used for both?</li>
+<li>what about c?</li>
+</ul>
+<p>3.</p>
+<ul>
+<li>can use same infix support for &ldquo;mixfix&rdquo; expr where have more than two operands
+  separated by tokens</li>
+<li>classic example is &ldquo;?:&rdquo; in c</li>
+<li>add to parser</li>
+</ul>
+</div>
 
 <footer>
 <a href="types-of-values.html" class="next">
