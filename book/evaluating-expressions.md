@@ -410,7 +410,7 @@ the way out.
 
 <aside name="muffin">
 
-I don't know, man, *can* you negate a muffin?
+I don't know, *can* you negate a muffin?
 
 ![A muffin, negated.](image/evaluating-expressions/muffin.png)
 
