@@ -165,8 +165,10 @@ static Chunk* currentChunk() {
 //< Calls and Functions not-yet
 //> Compiling Expressions error-at
 static void errorAt(Token* token, const char* message) {
-//> set-panic-mode
+//> check-panic-mode
   if (parser.panicMode) return;
+//< check-panic-mode
+//> set-panic-mode
   parser.panicMode = true;
 
 //< set-panic-mode
@@ -177,7 +179,7 @@ static void errorAt(Token* token, const char* message) {
   } else if (token->type == TOKEN_ERROR) {
     // Nothing.
   } else {
-    fprintf(stderr, " at '%.*s'", token->length, token->start);
+    fprintf(stderr, " at '%.*s'", token->length, token->start); // [format]
   }
 
   fprintf(stderr, ": %s\n", message);
@@ -654,8 +656,10 @@ static void binary() {
 //> Global Variables not-yet
 static void binary(bool canAssign) {
 //< Global Variables not-yet
-  // Compile the right operand.
+  // Remember the operator.
   TokenType operatorType = parser.previous.type;
+  
+  // Compile the right operand.
   ParseRule* rule = getRule(operatorType);
   parsePrecedence((Precedence)(rule->precedence + 1));
 
@@ -907,7 +911,7 @@ static void unary(bool canAssign) {
   expression();
 */
 //> unary-operand
-  parsePrecedence(PREC_CALL);
+  parsePrecedence(PREC_UNARY);
 //< unary-operand
 
   // Emit the operator instruction.
