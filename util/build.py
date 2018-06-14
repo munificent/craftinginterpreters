@@ -185,7 +185,8 @@ def insert_snippet(snippets, arg, contents, errors):
   if before_lines > 0:
     before = format_code(snippet.file.language(),
         snippet.context_before[-before_lines:])
-    before = before.replace('<pre>', '<pre class="insert-before">')
+    if snippet.added:
+      before = before.replace('<pre>', '<pre class="insert-before">')
     contents += before
 
   if show_location:
@@ -196,6 +197,9 @@ def insert_snippet(snippets, arg, contents, errors):
 
     if snippet.removed and snippet.added:
       where += '<br>\nreplace {} line{}'.format(
+          len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
+    elif snippet.removed and not snippet.added:
+      where += '<br>\nremove {} line{}'.format(
           len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
     contents += '<div class="source-file">{}</div>\n'.format(where)
 
@@ -213,7 +217,8 @@ def insert_snippet(snippets, arg, contents, errors):
   if after_lines > 0:
     after = format_code(snippet.file.language(),
         snippet.context_after[:after_lines])
-    after = after.replace('<pre>', '<pre class="insert-after">')
+    if snippet.added:
+      after = after.replace('<pre>', '<pre class="insert-after">')
     contents += after
 
   contents += '</div>'

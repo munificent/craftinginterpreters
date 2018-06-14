@@ -29,7 +29,7 @@ Now that we're building the front end, we can get clox running like a real
 interpreter. No more hand-authored chunks of bytecode. It's time for a REPL and
 script loading. Tear out most of the code in `main()` and replace it with:
 
-^code args (2 before, 1 after)
+^code args (3 before, 2 after)
 
 If you pass <span name="args">no arguments</span> to the executable, you are
 dropped into the REPL. A single command line argument is understood to be the

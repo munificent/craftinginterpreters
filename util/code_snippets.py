@@ -289,24 +289,34 @@ class Snippet:
 
     if self.nested_class:
       return 'nest inside class <em>{}</em>'.format(self.type)
+
     if self.preceding_function and self.function == self.preceding_function:
       # The function before the snippet is the same one, so we must be in the
       # middle of it.
       return 'in <em>{}</em>()'.format(self.function)
-    elif self.removed and self.function:
+
+    if self.removed and self.function:
       # We don't appear to be in the middle of a function, but we are replacing
       # lines, so assume we're replacing the entire function.
       function = 'method' if self.file.path.endswith('.java') else 'function'
       return '{} <em>{}</em>()'.format(function, self.function)
-    elif self.preceding_function:
+
+    if self.preceding_function and not self.added:
+      # Hackish. If we get here, we aren't adding any lines. In that case, the
+      # "preceding" function happens to be the current one too.
+      return 'in <em>{}</em>()'.format(self.preceding_function)
+
+    if self.preceding_function:
       # If we get here, we aren't inside any function, but we do know the
       # preceding one.
       return 'add after <em>{}</em>()'.format(self.preceding_function)
-    elif self.preceding_type and self.type == self.preceding_type:
+
+    if self.preceding_type and self.type == self.preceding_type:
       # If we get here, all we know is that we're adding something inside a
       # type.
       return 'in {} <em>{}</em>'.format(self.kind, self.type)
-    elif self.preceding_type:
+
+    if self.preceding_type:
       # If we get here, we aren't inside any function, but we do know the
       # preceding one.
       return 'add after <em>{}</em>'.format(self.preceding_type)
