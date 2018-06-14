@@ -140,12 +140,15 @@ int main(int argc, const char* argv[]) {
     exit(64);
   }
   
-//< Scanning on Demand args
-//> A Virtual Machine main-free-vm
   freeVM();
-//< A Virtual Machine main-free-vm
-/* Chunks of Bytecode main-chunk < Scanning on Demand not-yet
+//< Scanning on Demand args
+/* A Virtual Machine main-free-vm < Scanning on Demand args
+  freeVM();
+*/
+/* Chunks of Bytecode main-chunk < Scanning on Demand args
   freeChunk(&chunk);
 */
+//> Scanning on Demand remove-free-chunk
+//< Scanning on Demand remove-free-chunk
   return 0;
 }
