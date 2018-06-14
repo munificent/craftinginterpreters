@@ -33,27 +33,23 @@ street cred.
 
 </aside>
 
-Third and finally, I get to show you one of my absolute favorite techniques --
-<span name="pratt">Vaughan Pratt's</span> "top-down operator precedence
+<span name="pratt">Third</span> and finally, I get to show you one of my
+absolute favorite techniques -- Vaughan Pratt's "top-down operator precedence
 parsing". It's the most elegant way I know to parse expressions. It gracefully
 handles prefix operators, postfix, infix, *mixfix*, any kind of *-fix* you got.
 It deals with precedence and associativity without breaking a sweat. I love it.
 
 <aside name="pratt">
 
-It's a continuing wonder to me that Pratt parsers aren't better known. The
-Dragon Book makes no mention of them. No other compiler or language book I've
-read teaches them. But when I talk to people who actually work on production
-compilers, a surprisingly large fraction know the technique.
+Top-down operator precedence parsers exist as a strange sort of tribal lore. No
+compiler or language book I've read teaches them. Academia is very focused on
+generated parsers, and Pratt's technique is for hand-written ones, so it's
+mostly overlooked.
 
-My guess is that academia went for compiler-compilers in a big way in the 70s.
-(That's what much of the Dragon Book is about -- algorithms to automatically
-generate parsers and scanners given descriptions of the grammars.) Meanwhile,
-Pratt parser is a technique for *hand*-writing a parser. That fits in industry
-where hand-rolled parsers are way more common than the average compiler textbook
-would lead you to believe.
-
-**todo: overlap**
+But in industry, where hand-rolled parsers are actually quite common, you'd be
+surprised how many people know it. Ask where they learned it, and it's always,
+"Oh, I worked on this compiler years ago that used one and they got the idea
+from this other old front end..."
 
 </aside>
 
@@ -235,24 +231,15 @@ where the error occurred. We try to show the lexeme if it's human-readable.
 
 <aside name="format">
 
-That `%.*s` in the format string is a neat feature you might not know. You're
-probably know you can put a number between the `.` and the type specifier (here
-`s`) to control the output precision -- the maximum number of characters to
-show. So calling `printf()` with `%.3s` as the format prints the first three
-characters of the given string.
+That `%.*s` in the format string is a neat feature you might not know. Usually,
+you the output precision -- the maximum number of characters to show -- as a
+number inside the format string. Calling `printf()` with `%.3s` as the format
+prints the first three characters of the given string.
 
-Using `*` for the precision lets you pass the value in as parameter at runtime.
-So this line:
-
-```c
-fprintf(stderr, " at '%.*s'",
-    token->length, token->start);
-```
-
-prints the first `token->length` characters of the string `token->start`. That's
-what we need since there is no terminator at the end of the lexeme.
-
-**TODO: overlap**
+Using `*` instead lets you pass the precision in as an argument. So that
+`fprintf()` call prints the first `token->length` characters of the string at
+`token->start`. We need to limit the length like that because the lexeme points
+into the original source string and doesn't have a terminator at the end.
 
 </aside>
 
@@ -711,12 +698,9 @@ We know we need some sort of table that, given a token type, lets us look up:
 
 <aside name="prefix">
 
-We don't need to store the precedence of the *prefix* expression that starts
-with a given token because in Lox, all prefix operators have the same
-precedence. So `unary()` calls `parsePrecedence(PREC_CALL)` directly instead of
-looking up the precedence of the current token.
-
-**TODO: overlap**
+We don't need to store the precedence of the *prefix* expression starting
+with a given token because all prefix operators in Lox have the same
+precedence.
 
 </aside>
 
@@ -798,7 +782,7 @@ If you're following and implementing clox yourself, pay close attention to the
 little annotations that tell you where to put these code snippets. If you get it
 wrong, the C compiler will be happy to tell you.
 
-**todo: subtitle here?**
+### Parsing with precedence
 
 Now we're getting to the fun stuff. The maestro that orchestrates all of the
 parsing functions we've defined is `parsePrecedence()`. Let's start with parsing
