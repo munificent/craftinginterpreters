@@ -145,7 +145,7 @@ And one its practitioners don't hesitate to play up. Two of the seminal texts on
 programming languages feature a [dragon][] and a [wizard][] on their cover.
 
 [dragon]: https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
-[wizard]: https://mitpress.mit.edu/sicp/full-text/book/book.html
+[wizard]: https://mitpress.mit.edu/sites/default/files/sicp/index.html
 
 </aside>
 
