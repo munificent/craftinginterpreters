@@ -325,7 +325,7 @@ the current character so we remember where the lexeme we're about to scan
 starts.
 
 Then we check to see if we've reached the end of the source code. If so, we
-return an EOF token and stop. This is a sentinal value that signals to the
+return an EOF token and stop. This is a sentinel value that signals to the
 compiler to stop asking for more tokens.
 
 If we aren't at the end, we do some... stuff... to scan the next token. But we
