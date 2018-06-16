@@ -1006,7 +1006,7 @@ add after <em>expressionStatement</em>()</div>
         <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Assign</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
       <span class="o">}</span>
 
-      <span class="n">error</span><span class="o">(</span><span class="n">equals</span><span class="o">,</span> <span class="s">&quot;Invalid assignment target.&quot;</span><span class="o">);</span>
+      <span class="n">error</span><span class="o">(</span><span class="n">equals</span><span class="o">,</span> <span class="s">&quot;Invalid assignment target.&quot;</span><span class="o">);</span> <span name="no-throw"></span>
     <span class="o">}</span>
 
     <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>
@@ -1017,6 +1017,11 @@ add after <em>expressionStatement</em>()</div>
 binary operators like <code>+</code>. We parse the left-hand side, which can be any
 expression of higher precedence. If we find an <code>=</code>, we parse the right-hand side
 and then wrap it all up in an assignment expression tree node.</p>
+<aside name="no-throw">
+<p>We <em>report</em> an error if the left-hand side isn&rsquo;t a valid assignment target, but
+we don&rsquo;t <em>throw</em> it because the parser isn&rsquo;t in a confused state where we need
+to go into panic mode and synchronize.</p>
+</aside>
 <p>One slight difference from binary operators is that we don&rsquo;t loop to build up a
 sequence of the same operator. Since assignment is right-associative, we instead
 recursively call <code>assignment()</code> to parse the right-hand side.</p>

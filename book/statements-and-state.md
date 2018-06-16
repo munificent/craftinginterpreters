@@ -853,6 +853,14 @@ binary operators like `+`. We parse the left-hand side, which can be any
 expression of higher precedence. If we find an `=`, we parse the right-hand side
 and then wrap it all up in an assignment expression tree node.
 
+<aside name="no-throw">
+
+We *report* an error if the left-hand side isn't a valid assignment target, but
+we don't *throw* it because the parser isn't in a confused state where we need
+to go into panic mode and synchronize.
+
+</aside>
+
 One slight difference from binary operators is that we don't loop to build up a
 sequence of the same operator. Since assignment is right-associative, we instead
 recursively call `assignment()` to parse the right-hand side.

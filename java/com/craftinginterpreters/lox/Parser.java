@@ -309,7 +309,7 @@ class Parser {
 //< Classes assign-set
       }
 
-      error(equals, "Invalid assignment target.");
+      error(equals, "Invalid assignment target."); // [no-throw]
     }
 
     return expr;
