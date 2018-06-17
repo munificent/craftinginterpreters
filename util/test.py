@@ -112,7 +112,7 @@ java_interpreter('chap08_statements', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
-  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
@@ -178,7 +178,7 @@ java_interpreter('chap09_control', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
-  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
@@ -243,6 +243,7 @@ java_interpreter('chap10_functions', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
@@ -291,6 +292,7 @@ java_interpreter('chap11_resolving', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
@@ -327,6 +329,7 @@ java_interpreter('chap12_classes', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
@@ -335,6 +338,8 @@ java_interpreter('chap12_classes', {
   'test/limit/stack_overflow.lox': 'skip',
 
   # No inheritance.
+  'test/class/local_inherit_self.lox': 'skip',
+  'test/class/inherit_self.lox': 'skip',
   'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
   'test/super': 'skip',
@@ -349,6 +354,7 @@ java_interpreter('chap13_inheritance', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
@@ -409,7 +415,7 @@ c_interpreter('chap21_global', {
   'test/call': 'skip',
   'test/closure': 'skip',
   'test/function': 'skip',
-  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/stack_overflow.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
@@ -459,7 +465,7 @@ c_interpreter('chap22_local', {
   'test/call': 'skip',
   'test/closure': 'skip',
   'test/function': 'skip',
-  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/stack_overflow.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
@@ -504,7 +510,7 @@ c_interpreter('chap23_jumping', {
   'test/for/return_inside.lox': 'skip',
   'test/for/syntax.lox': 'skip',
   'test/function': 'skip',
-  'test/limit/reuse_constants.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/stack_overflow.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
@@ -638,6 +644,8 @@ c_interpreter('chap27_classes', {
   'test/expressions': 'skip',
 
   # No inheritance.
+  'test/class/local_inherit_self.lox': 'skip',
+  'test/class/inherit_self.lox': 'skip',
   'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
   'test/super': 'skip',
@@ -667,6 +675,8 @@ c_interpreter('chap28_methods', {
   'test/expressions': 'skip',
 
   # No inheritance.
+  'test/class/local_inherit_self.lox': 'skip',
+  'test/class/inherit_self.lox': 'skip',
   'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
   'test/super': 'skip',

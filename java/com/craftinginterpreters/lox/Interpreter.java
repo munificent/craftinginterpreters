@@ -108,8 +108,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //> Classes interpreter-visit-class
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
-    environment.define(stmt.name.lexeme, null);
-//> interpret-methods
 //> Inheritance interpret-superclass
     Object superclass = null;
     if (stmt.superclass != null) {
@@ -118,13 +116,19 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         throw new RuntimeError(stmt.superclass.name,
             "Superclass must be a class.");
       }
-//> begin-superclass-environment
-      environment = new Environment(environment);
-      environment.define("super", superclass);
-//< begin-superclass-environment
     }
 
 //< Inheritance interpret-superclass
+    environment.define(stmt.name.lexeme, null);
+//> Inheritance begin-superclass-environment
+
+    if (stmt.superclass != null) {
+      environment = new Environment(environment);
+      environment.define("super", superclass);
+    }
+//< Inheritance begin-superclass-environment
+//> interpret-methods
+
     Map<String, LoxFunction> methods = new HashMap<>();
     for (Stmt.Function method : stmt.methods) {
 /* Classes interpret-methods < Classes interpreter-method-initializer

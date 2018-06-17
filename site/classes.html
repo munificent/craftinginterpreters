@@ -874,7 +874,7 @@ worry about it. The interesting stuff is in the interpreter:</p>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">LoxFunction</span><span class="o">&gt;</span> <span class="n">methods</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+<pre class="insert"><br><span></span>    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">LoxFunction</span><span class="o">&gt;</span> <span class="n">methods</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
     <span class="k">for</span> <span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Function</span> <span class="n">method</span> <span class="o">:</span> <span class="n">stmt</span><span class="o">.</span><span class="na">methods</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">LoxFunction</span> <span class="n">function</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LoxFunction</span><span class="o">(</span><span class="n">method</span><span class="o">,</span> <span class="n">environment</span><span class="o">);</span>
       <span class="n">methods</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">function</span><span class="o">);</span>
@@ -1192,14 +1192,14 @@ add after <em>Resolver</em>()</div>
 value, hence the enum right now. We also add a corresponding field,
 <code>currentClass</code>. Its value tells us if we are currently inside a class while
 traversing the syntax tree. It starts out <code>NONE</code> which means we aren&rsquo;t in one.</p>
-<p>Right before we resolve the method bodies in a class declaration, we change
-that:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+<p>When we begin to resolve a class declaration, we change that:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitClassStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Class</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><span></span>    <span class="n">ClassType</span> <span class="n">enclosingClass</span> <span class="o">=</span> <span class="n">currentClass</span><span class="o">;</span>
     <span class="n">currentClass</span> <span class="o">=</span> <span class="n">ClassType</span><span class="o">.</span><span class="na">CLASS</span><span class="o">;</span>
-</pre><pre class="insert-after"><br><span></span>    <span class="n">beginScope</span><span class="o">();</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
 </pre></div>
 
 <p>As with <code>currentFunction</code>, we store the previous value of the field in a local
@@ -1208,7 +1208,7 @@ values. That way we don&rsquo;t lose track of the previous value if one class ne
 inside another.</p>
 <p>Once the methods have been resolved, we &ldquo;pop&rdquo; that stack by restoring the old
 value:</p>
-<div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">endScope</span><span class="o">();</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">endScope</span><span class="o">();</span>
 <br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><span></span>    <span class="n">currentClass</span> <span class="o">=</span> <span class="n">enclosingClass</span><span class="o">;</span>

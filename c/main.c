@@ -148,7 +148,5 @@ int main(int argc, const char* argv[]) {
 /* Chunks of Bytecode main-chunk < Scanning on Demand args
   freeChunk(&chunk);
 */
-//> Scanning on Demand remove-free-chunk
-//< Scanning on Demand remove-free-chunk
   return 0;
 }

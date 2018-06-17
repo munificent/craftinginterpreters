@@ -231,23 +231,33 @@ replace 1 line</div>
 <p>If we didn&rsquo;t parse a superclass clause, the superclass expression will be
 <code>null</code>. We&rsquo;ll have to make sure the later passes check for that. The first of
 those is the resolver:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">currentClass</span> <span class="o">=</span> <span class="n">ClassType</span><span class="o">.</span><span class="na">CLASS</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">);</span>
     <span class="o">}</span>
-</pre><pre class="insert-after"><br><span></span>    <span class="n">beginScope</span><span class="o">();</span>
+</pre><pre class="insert-after"><br><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
 </pre></div>
 
 <p>The class declaration AST node has a new subexpression, so we traverse into and
-resolve that. Since classes are usually declared at the top level, the
-superclass name will most likely be a global variable, so this doesn&rsquo;t usually
-do anything useful. However, Lox allows class declarations even inside blocks,
-so it&rsquo;s possible the superclass name refers to a local variable. In that case,
-we need to make sure it&rsquo;s resolved.</p>
+<span name="self">resolve</span> that. Since classes are usually declared at the
+top level, the superclass name will most likely be a global variable, so this
+doesn&rsquo;t usually do anything useful. However, Lox allows class declarations even
+inside blocks, so it&rsquo;s possible the superclass name refers to a local variable.
+In that case, we need to make sure it&rsquo;s resolved.</p>
+<aside name="self">
+<p>We resolve the superclass between declaring and defining the class name to
+handle this edge case:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Oops</span> <span class="o">&lt;</span> <span class="vg">Oops</span> <span class="p">{}</span>
+</pre></div>
+
+
+<p>If the class&rsquo;s name is declared but not defined when the superclass expression
+is evaluated, it becomes an error to mention it, like we want.</p>
+</aside>
 <p>Once that&rsquo;s done, we move to the interpreter:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitClassStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Class</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><span></span>    <span class="n">Object</span> <span class="n">superclass</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
@@ -258,7 +268,7 @@ in <em>visitClassStmt</em>()</div>
             <span class="s">&quot;Superclass must be a class.&quot;</span><span class="o">);</span>
       <span class="o">}</span>
     <span class="o">}</span>
-<br></pre><pre class="insert-after"><span></span>    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">LoxFunction</span><span class="o">&gt;</span> <span class="n">methods</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+<br></pre><pre class="insert-after"><span></span>    <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
 </pre></div>
 
 <p>If the class has a superclass expression, we evaluate it. Since that could
@@ -533,13 +543,14 @@ the method&rsquo;s environment, like so:</p>
 <p>That&rsquo;s a lot of machinery, but we&rsquo;ll get through it a step at a time. Before we
 can get to creating the environment at runtime, we need to handle the
 corresponding scope chain in the resolver:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><span></span>      <span class="n">beginScope</span><span class="o">();</span>
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">beginScope</span><span class="o">();</span>
       <span class="n">scopes</span><span class="o">.</span><span class="na">peek</span><span class="o">().</span><span class="na">put</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">,</span> <span class="kc">true</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>    <span class="o">}</span>
+    <span class="o">}</span>
+</pre><pre class="insert-after"><br><span></span>    <span class="n">beginScope</span><span class="o">();</span>
 </pre></div>
 
 <p>If the class declaration has a superclass, then we create a new scope
@@ -571,17 +582,19 @@ number of hops along the environment chain the interpreter needs to walk to find
 the environment where the superclass is stored.</p>
 <p>This code is mirrored in the interpreter. When we evaluate a subclass
 definition, we create a new environment:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">superclass</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">);</span>
-      <span class="k">if</span> <span class="o">(!(</span><span class="n">superclass</span> <span class="k">instanceof</span> <span class="n">LoxClass</span><span class="o">))</span> <span class="o">{</span>
-        <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">.</span><span class="na">name</span><span class="o">,</span>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">.</span><span class="na">name</span><span class="o">,</span>
             <span class="s">&quot;Superclass must be a class.&quot;</span><span class="o">);</span>
       <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><span></span>      <span class="n">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">(</span><span class="n">environment</span><span class="o">);</span>
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Environment</span><span class="o">(</span><span class="n">environment</span><span class="o">);</span>
       <span class="n">environment</span><span class="o">.</span><span class="na">define</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">,</span> <span class="n">superclass</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>    <span class="o">}</span>
+    <span class="o">}</span>
+</pre><pre class="insert-after"><br><span></span>    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">LoxFunction</span><span class="o">&gt;</span> <span class="n">methods</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
 </pre></div>
 
 <p>Inside that environment, we store a reference to the superclass<span class="em">&mdash;</span>the actual
