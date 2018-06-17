@@ -132,11 +132,25 @@ those is the resolver:
 ^code resolve-superclass (1 before, 2 after)
 
 The class declaration AST node has a new subexpression, so we traverse into and
-resolve that. Since classes are usually declared at the top level, the
-superclass name will most likely be a global variable, so this doesn't usually
-do anything useful. However, Lox allows class declarations even inside blocks,
-so it's possible the superclass name refers to a local variable. In that case,
-we need to make sure it's resolved.
+<span name="self">resolve</span> that. Since classes are usually declared at the
+top level, the superclass name will most likely be a global variable, so this
+doesn't usually do anything useful. However, Lox allows class declarations even
+inside blocks, so it's possible the superclass name refers to a local variable.
+In that case, we need to make sure it's resolved.
+
+<aside name="self">
+
+We resolve the superclass between declaring and defining the class name to
+handle this edge case:
+
+```lox
+class Oops < Oops {}
+```
+
+If the class's name is declared but not defined when the superclass expression
+is evaluated, it becomes an error to mention it, like we want.
+
+</aside>
 
 Once that's done, we move to the interpreter:
 
@@ -420,7 +434,7 @@ That's a lot of machinery, but we'll get through it a step at a time. Before we
 can get to creating the environment at runtime, we need to handle the
 corresponding scope chain in the resolver:
 
-^code begin-super-scope (2 before, 1 after)
+^code begin-super-scope (2 before, 2 after)
 
 If the class declaration has a superclass, then we create a new scope
 surrounding all of its methods. In that scope, we define the name "super". Once
@@ -444,7 +458,7 @@ the environment where the superclass is stored.
 This code is mirrored in the interpreter. When we evaluate a subclass
 definition, we create a new environment:
 
-^code begin-superclass-environment (6 before, 1 after)
+^code begin-superclass-environment (6 before, 2 after)
 
 Inside that environment, we store a reference to the superclass -- the actual
 LoxClass object for the superclass which we have now that we are in the runtime.

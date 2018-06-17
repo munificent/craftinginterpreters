@@ -992,8 +992,7 @@ value, hence the enum right now. We also add a corresponding field,
 `currentClass`. Its value tells us if we are currently inside a class while
 traversing the syntax tree. It starts out `NONE` which means we aren't in one.
 
-Right before we resolve the method bodies in a class declaration, we change
-that:
+When we begin to resolve a class declaration, we change that:
 
 ^code set-current-class (1 before, 2 after)
 
@@ -1005,7 +1004,7 @@ inside another.
 Once the methods have been resolved, we "pop" that stack by restoring the old
 value:
 
-^code restore-current-class (3 before, 1 after)
+^code restore-current-class (2 before, 1 after)
 
 When we resolve a `this` expression, that gives us the bit of data we need to
 report an error if the expression doesn't occur nestled inside a method body:

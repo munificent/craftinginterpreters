@@ -68,12 +68,12 @@ private FunctionType currentFunction = FunctionType.NONE;
 //> Classes resolver-visit-class
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
-    declare(stmt.name);
-    define(stmt.name);
 //> set-current-class
     ClassType enclosingClass = currentClass;
     currentClass = ClassType.CLASS;
+
 //< set-current-class
+    declare(stmt.name);
 //> Inheritance resolve-superclass
 
     if (stmt.superclass != null) {
@@ -81,12 +81,17 @@ private FunctionType currentFunction = FunctionType.NONE;
       currentClass = ClassType.SUBCLASS;
 //< set-current-subclass
       resolve(stmt.superclass);
-//> begin-super-scope
-      beginScope();
-      scopes.peek().put("super", true);
-//< begin-super-scope
     }
 //< Inheritance resolve-superclass
+
+    define(stmt.name);
+//> Inheritance begin-super-scope
+
+    if (stmt.superclass != null) {
+      beginScope();
+      scopes.peek().put("super", true);
+    }
+//< Inheritance begin-super-scope
 //> resolve-methods
 
 //> resolver-begin-this-scope
