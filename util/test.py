@@ -71,6 +71,7 @@ java_interpreter('jlox', {
 
   # No hardcoded limits in jlox.
   'test/limit/loop_too_large.lox': 'skip',
+  'test/limit/no_reuse_constants.lox': 'skip',
   'test/limit/too_many_constants.lox': 'skip',
   'test/limit/too_many_locals.lox': 'skip',
   'test/limit/too_many_upvalues.lox': 'skip',
