@@ -40,6 +40,15 @@ starts with a class in Java:
 
 ^code lox-class
 
+<aside name="64">
+
+For exit codes, I'm using the conventions defined in the UNIX "[sysexits.h][]"
+header. It's the closest thing to a standard I could find.
+
+[sysexits.h]: https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
+
+</aside>
+
 Stick that in a text file, and go get your IDE or Makefile or whatever set up.
 I'll be right here when you're ready. Good? OK!
 
