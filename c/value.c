@@ -35,7 +35,7 @@ static void printObject(Value value) {
 //< Classes and Instances not-yet
 //> Calls and Functions not-yet
     case OBJ_NATIVE:
-      printf("<native %p>", (void*)AS_NATIVE(value));
+      printf("<native fn>");
       break;
 //< Calls and Functions not-yet
     case OBJ_STRING:
