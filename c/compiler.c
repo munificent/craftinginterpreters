@@ -934,7 +934,7 @@ ParseRule rules[] = {
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
 //< Calls and Functions not-yet
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE [big]
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
 /* Compiling Expressions rules < Classes and Instances not-yet
