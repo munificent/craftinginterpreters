@@ -5,7 +5,10 @@
 > where the straight way was lost.
 > <cite>Dante Alighieri</cite>
 
-**todo: more illustrations**
+**todo: more illustrations:**
+
+- table with arrows to all of fns that call each other
+- data flow with parser fns on left, bytecode on right, ??? in middle
 
 This chapter is exciting for not one, not two, but *three* reasons. First, it
 provides the final section of our VM's execution pipeline. Once in place, we can
@@ -100,7 +103,7 @@ force you rewrite 40-something lines of code each time we extend the table.
 
 <aside name="blog">
 
-If this chapter isn't clicking with you and you'd like another approach to the
+If this chapter isn't clicking with you and you'd like another take on the
 concepts, I wrote an article that teaches the same algorithm but using Java and
 an object-oriented style: [Pratt Parsing: Expression Parsing Made Easy][blog].
 
