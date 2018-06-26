@@ -255,7 +255,7 @@ tell the user and exit the interpreter gracefully. First up, we might fail to
 open the file:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">FILE</span><span class="o">*</span> <span class="n">file</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
-add after <em>repl</em>()</div>
+in <em>readFile</em>()</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">file</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not open file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
@@ -267,7 +267,8 @@ add after <em>repl</em>()</div>
 It&rsquo;s pretty common<span class="em">&mdash;</span>people mistype paths all the time.</p>
 <p>This failure is much rarer:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">buffer</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">malloc</span><span class="p">(</span><span class="n">fileSize</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
-</pre><div class="source-file"><em>main.c</em></div>
+</pre><div class="source-file"><em>main.c</em><br>
+in <em>readFile</em>()</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">buffer</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Not enough memory to read </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
@@ -280,7 +281,8 @@ got bigger problems to worry about, but we should do our best to at least let
 you know.</p>
 <p>Finally, the read itself may fail:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">),</span> <span class="n">fileSize</span><span class="p">,</span> <span class="n">file</span><span class="p">);</span>
-</pre><div class="source-file"><em>main.c</em></div>
+</pre><div class="source-file"><em>main.c</em><br>
+in <em>readFile</em>()</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">bytesRead</span> <span class="o">&lt;</span> <span class="n">fileSize</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;Could not read file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">);</span>
     <span class="n">exit</span><span class="p">(</span><span class="mi">74</span><span class="p">);</span>
@@ -431,7 +433,7 @@ so the scanner will just sit there doing nothing. To kick it into action, we&rsq
 write some temporary code to drive it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
-add after <em>compile</em>()</div>
+in <em>compile</em>()</div>
 <pre class="insert"><br><span></span>  <span class="kt">int</span> <span class="n">line</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
   <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>
     <span class="n">Token</span> <span class="n">token</span> <span class="o">=</span> <span class="n">scanToken</span><span class="p">();</span>
