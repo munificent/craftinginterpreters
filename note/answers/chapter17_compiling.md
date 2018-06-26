@@ -1,4 +1,30 @@
-## 1
+##1
+
+It's:
+
+```
+expression
+| parsePrecedence(PREC_ASSIGNMENT)
+| | grouping
+| | | expression
+| | | | parsePrecedence(PREC_ASSIGNMENT)
+| | | | | unary // for "-"
+| | | | | | parsePrecedence(PREC_UNARY)
+| | | | | | | number
+| | | | | binary // for "+"
+| | | | | | parsePrecedence(PREC_FACTOR) // PREC_TERM + 1
+| | | | | | | number
+| | binary // for "*"
+| | | parsePrecedence(PREC_UNARY) // PREC_FACTOR + 1
+| | | | number
+| | binary // for "-"
+| | | parsePrecedence(PREC_FACTOR) // PREC_TERM + 1
+| | | | unary // for "-"
+| | | | | parsePrecedence(PREC_UNARY)
+| | | | | | number
+```
+
+## 2
 
 Lox only has one other: left parenthesis is used as a prefix expression for
 grouping, and as an infix expression for invoking a function.
@@ -17,7 +43,7 @@ and.
 `*` and `&` aren't prefix *expressions* in Ruby, but they can appear in prefix
 position before an argument in an argument list.
 
-## 2
+## 3
 
 The `?:` operator has lower precedence than almost anything, so we add a new `PREC_CONDITIONAL` level between `PREC_ASSIGN` and `PREC_OR`. I'll skip adding the new TokenType enums for `?` and `:`. That part is pretty obvious. In the new row in the table for the `?` token type, we call:
 
