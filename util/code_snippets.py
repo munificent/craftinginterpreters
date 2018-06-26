@@ -51,7 +51,7 @@ BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 
 # Hacky regexes that matches a function, method or constructor declaration.
-FUNCTION_PATTERN = re.compile(r'(\w+)>* (\w+)\(')
+FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
 CLASS_PATTERN = re.compile(r'(public )?(abstract )?(class|interface) (\w+)')
 NESTED_CLASS_PATTERN = re.compile(r'  static class (\w+)')
