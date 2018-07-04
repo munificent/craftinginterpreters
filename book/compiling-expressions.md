@@ -5,16 +5,11 @@
 > where the straight way was lost.
 > <cite>Dante Alighieri</cite>
 
-**todo: more illustrations:**
-
-- table with arrows to all of fns that call each other
-- data flow with parser fns on left, bytecode on right, ??? in middle
-
 This chapter is exciting for not one, not two, but *three* reasons. First, it
 provides the final section of our VM's execution pipeline. Once in place, we can
 plumb the user's source code from scanning all the way through to executing it.
 
-**todo: illustrate last section in pipeline**
+<img src="image/compiling-expressions/pipeline.png" alt="Lowering the 'compiler' section of pipe between 'scanner' and 'VM'."/>
 
 Second, we get to write an actual, honest-to-God *compiler*. It parses source
 code and outputs a low-level series of binary instructions. Sure, it's <span
@@ -155,6 +150,8 @@ that.
 
 Not that this should come as much of a surprise. I did design the language
 specifically for this book after all.
+
+<img src="image/compiling-expressions/keyhole.png" alt="Peering through a keyhole at 'var x;'"/>
 
 </aside>
 
@@ -352,8 +349,12 @@ a one-byte operand that it's worth defining this convenience function.
 
 ## Parsing Prefix Expressions
 
-We've assembled our parsing and code generation functions. The only remaining
-step in `compile()` that we need to implement is this function:
+We've assembled our parsing and code generation functions. The missing piece is
+the code in the middle that connects those together.
+
+<img src="image/compiling-expressions/mystery.png" alt="Parsing functions on the left, bytecode emitting functions on the right. What goes in the middle?"/>
+
+The only step in `compile()` that we have left to implement is this function:
 
 ^code expression
 
@@ -812,10 +813,29 @@ and fully understand the algorithm, it's worth stepping through the parser in
 your debugger as it works through some expressions. Once it clicks, you're set
 for life.
 
-We'll need to tweak the code to handle assignment, but, otherwise, the code we
-have here covers all of our expression compiling needs for the rest of the book.
-We'll plug additional parsing functions into the table when we add new kinds of
-expressions, but `parsePrecedence()` is complete.
+Maybe a picture will help. There's only a handful of functions, but they are
+curiously intertwined:
+
+<span name="connections"></span>
+
+<img src="image/compiling-expressions/connections.png" alt="The various parsing functions and how they call each other."/>
+
+<aside name="connections">
+
+The <img src="image/compiling-expressions/calls.png" class="arrow" /> arrow connects a
+function to another function it directly calls. The other <img
+src="image/compiling-expressions/points-to.png" class="arrow" /> arrow shows the
+table's pointers to the parsing functions.
+
+</aside>
+
+You may wish to gaze into this until reaching enlightenment. Or maybe you're
+there already. If so, congratulations.
+
+We'll need to tweak the code in this chapter later to handle assignment. But,
+otherwise, what we wrote covers all of our expression compiling needs for the
+rest of the book. We'll plug additional parsing functions into the table when we
+add new kinds of expressions, but `parsePrecedence()` is complete.
 
 ## Dumping Chunks
 
