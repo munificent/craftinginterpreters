@@ -139,9 +139,9 @@ typedef struct ClassCompiler {
 //< Methods and Initializers not-yet
 
 Parser parser;
+
 //< Compiling Expressions parser
 //> Local Variables not-yet
-
 Compiler* current = NULL;
 //< Local Variables not-yet
 //> Methods and Initializers not-yet
@@ -1540,13 +1540,13 @@ ObjFunction* compile(const char* source) {
   
 //< init-parser-error
   advance();
-
 //< Compiling Expressions compile-chunk
 /* Compiling Expressions compile-chunk < Global Variables not-yet
   expression();
   consume(TOKEN_EOF, "Expect end of expression.");
 */
 //> Global Variables not-yet
+  
   if (!match(TOKEN_EOF)) {
     do {
       declaration();
