@@ -2,7 +2,7 @@
 ^part Backmatter
 
 For your edification, here is the code produced by [the little script
-we build][generator] to automate generating the syntax tree classes for jlox.
+we built][generator] to automate generating the syntax tree classes for jlox.
 
 [generator]: representing-code.html#metaprogramming-the-trees
 
@@ -107,8 +107,8 @@ State](statements-and-state.html)".
 
 ### Block statement
 
-Curly-braced block statements to define local scopes are introduced "[Statements
-and State](statements-and-state.html#block-syntax-and-semantics)":
+Curly-braced block statements to define local scopes are introduced in
+"[Statements and State](statements-and-state.html#block-syntax-and-semantics)":
 
 ^code stmt-block
 
