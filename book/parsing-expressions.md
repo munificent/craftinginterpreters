@@ -915,7 +915,7 @@ table than C does? There are two strategies we can take.
 You almost never want to use the result of an `==` expression as the operand to
 a bitwise operator. By making bitwise bind tighter, users don't need to
 parenthesize as often. So if we do that, and users assume the precedence is
-chose logically to minimize parentheses, they're likely to infer it correctly.
+chosen logically to minimize parentheses, they're likely to infer it correctly.
 
 This kind of internal consistency makes the language easier to learn because
 there are fewer edge cases and exceptions users have to stumble into and then

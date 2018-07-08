@@ -319,9 +319,9 @@ implementation, starting with this:
 
 ^code scan-token
 
-Since each call to this scans a complete token, we know we are the beginning of
-a new token when we enter the function. Thus, we set `scanner.start` to point to
-the current character so we remember where the lexeme we're about to scan
+Since each call to this scans a complete token, we know we are at the beginning
+of a new token when we enter the function. Thus, we set `scanner.start` to point
+to the current character so we remember where the lexeme we're about to scan
 starts.
 
 Then we check to see if we've reached the end of the source code. If so, we

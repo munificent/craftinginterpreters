@@ -599,10 +599,10 @@ The [Go tool][go] is even more of a horticultural curiosity. If you run `go
 build`, it compiles your Go source code to machine code and stops. If you type
 `go run`, it does that then immediately executes the generated executable.
 
-So `go` *is* a compiler (you can use it as tool to compile code without running
-it), *is* an interpreter (you can invoke it to immediately run a program from
-source), and also *has* a compiler (when you use it as an interpreter, it is
-still compiling internally).
+So `go` *is* a compiler (you can use it as a tool to compile code without
+running it), *is* an interpreter (you can invoke it to immediately run a program
+from source), and also *has* a compiler (when you use it as an interpreter, it
+is still compiling internally).
 
 [go tool]: https://golang.org/cmd/go/
 
