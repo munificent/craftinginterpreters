@@ -8,8 +8,8 @@ place.
 ## Syntax Grammar
 
 The syntactic grammar is used to parse the linear sequence of tokens into the
-nested syntax tree structure. It starts with the first rule, that matches an
-entire Lox program (or an single REPL entry):
+nested syntax tree structure. It starts with the first rule that matches an
+entire Lox program (or a single REPL entry):
 
 ```lox
 program        → declaration* EOF ;
@@ -62,10 +62,10 @@ couple of other rules for things like function bodies.
 
 ### Expressions
 
-Expressions evaluate to produce values. Lox has a number of unary and binary
-operators with different levels of precedence. Some grammars for languages do
-not directly encode the precedence relationships and specify that elsewhere.
-Here, we use a separate rule for each precedence level to make it explicit:
+Expressions produce values. Lox has a number of unary and binary operators with
+different levels of precedence. Some grammars for languages do not directly
+encode the precedence relationships and specify that elsewhere. Here, we use a
+separate rule for each precedence level to make it explicit:
 
 ```lox
 expression     → assignment ;
