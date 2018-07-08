@@ -1261,8 +1261,8 @@ exception is thrown.
 <aside name="param">
 
 Explicitly changing and restoring a mutable `environment` field may seem a
-little inelegant. Another classic approach to explicitly pass the environment as
-a parameter to each visit method. To "change" the enviroment, you pass a
+little inelegant. Another classic approach is to explicitly pass the environment
+as a parameter to each visit method. To "change" the enviroment, you pass a
 different one as you recurse down the tree. You don't have to restore the old
 one, since the new one lives on the Java stack and is implicitly discarded when
 the interpreter returns from the block's visit method.

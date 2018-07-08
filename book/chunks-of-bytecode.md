@@ -482,7 +482,7 @@ three aspects of our policy. When `oldSize` is zero, `realloc()` is equivalent
 to calling `malloc()`.
 
 The interesting cases are when both `oldSize` and `newSize` are not zero. Those
-tell to `realloc()` to resize the previously-allocated block. If the new size is
+tell `realloc()` to resize the previously-allocated block. If the new size is
 smaller than the existing block of memory, it simply <span
 name="shrink">updates</span> the size of the block and returns the same pointer
 you gave it. If the new size is larger, it attempts to grow the existing block
@@ -567,7 +567,7 @@ In `main()`, after we create the chunk, we pass it to the disassembler:
 
 ^code main-disassemble-chunk (2 before, 1 after)
 
-Again, we whip up a <span name="module">yet another</span> module:
+Again, we whip up <span name="module">yet another</span> module:
 
 <aside name="module">
 
@@ -816,8 +816,8 @@ bare opcode isn't enough to know *which* constant to load.
 
 I'm being vague about what it means to "load" or "produce" a constant because we
 haven't learned how the virtual machine actually executes code at runtime yet.
-For that, you'll have to wait for (or skip ahead to, I suppose) the [next
-chapter][vm].
+For that, you'll have to wait until you get to (or skip ahead to, I suppose) the
+[next chapter][vm].
 
 [vm]: a-virtual-machine.html
 
