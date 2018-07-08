@@ -417,30 +417,31 @@ The generated code for the new node is in [Appendix II][appendix-var-stmt].
 
 </aside>
 
-It stores the name token so we know what it's declaring, along with the
-initializer expression. (If there isn't an initializer, that's `null`.)
+<span name="comma">It</span> stores the name token so we know what it's
+declaring, along with the initializer expression. (If there isn't an
+initializer, that's `null`.)
 
-Then we add <span name="var-expr-ast">an expression node</span> for accessing a
-variable:
+<aside name="comma">
+
+The existing line for the Print statement is marked as being replaced because we
+need to add a comma at the end of it. Likewise in the next code snippet. Details
+matter!
+
+</aside>
+
+Then we add an expression node for accessing a variable:
 
 ^code var-expr (1 before, 1 after)
+
+<span name="var-expr-ast">It's</span> simply a wrapper around the token for the
+variable name. That's it. As always, don't forget to run the AST generator
+script so that you get updated "Expr.java" and "Stmt.java" files.
 
 <aside name="var-expr-ast">
 
 The generated code for the new node is in [Appendix II][appendix-var-expr].
 
 [appendix-var-expr]: appendix-ii.html#variable-expression
-
-</aside>
-
-It's <span name="comma">simply</span> a wrapper around the token for the
-variable name. That's it. As always, don't forget to run the AST generator
-script so that you get updated "Expr.java" and "Stmt.java" files.
-
-<aside name="comma">
-
-Also, we need a comma after the Unary line, which is why that one is changed
-too.
 
 </aside>
 
