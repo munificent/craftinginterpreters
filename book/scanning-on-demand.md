@@ -254,7 +254,7 @@ It prints out:
    2 39 ''
 ```
 
-The first column is the line numbers, the second is the numeric value of the
+The first column is the line number, the second is the numeric value of the
 token <span name="token">type</span>, and then finally the lexeme. That last
 empty lexeme on line 2 is the EOF token.
 
