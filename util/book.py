@@ -163,7 +163,6 @@ TOC = [
           'Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence',
           'Single-pass compilation', 'Code generation'
         ],
-        'done': False,
       },
       {
         'name': 'Types of Values',
