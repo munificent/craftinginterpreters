@@ -665,14 +665,14 @@ static void binary(bool canAssign) {
 
   // Emit the operator instruction.
   switch (operatorType) {
-//> Types of Values not-yet
+//> Types of Values comparison-operators
     case TOKEN_BANG_EQUAL:    emitBytes(OP_EQUAL, OP_NOT); break;
     case TOKEN_EQUAL_EQUAL:   emitByte(OP_EQUAL); break;
     case TOKEN_GREATER:       emitByte(OP_GREATER); break;
     case TOKEN_GREATER_EQUAL: emitBytes(OP_LESS, OP_NOT); break;
     case TOKEN_LESS:          emitByte(OP_LESS); break;
     case TOKEN_LESS_EQUAL:    emitBytes(OP_GREATER, OP_NOT); break;
-//< Types of Values not-yet
+//< Types of Values comparison-operators
     case TOKEN_PLUS:          emitByte(OP_ADD); break;
     case TOKEN_MINUS:         emitByte(OP_SUBTRACT); break;
     case TOKEN_STAR:          emitByte(OP_MULTIPLY); break;
@@ -706,16 +706,22 @@ static void dot(bool canAssign) {
   }
 }
 //< Classes and Instances not-yet
-//> Types of Values not-yet
-/* Types of Values not-yet < Global Variables not-yet
-static void false_() {
+//> Types of Values parse-literal
+/* Types of Values parse-literal < Global Variables not-yet
+static void literal() {
 */
 //> Global Variables not-yet
-static void false_(bool canAssign) {
+static void literal(bool canAssign) {
 //< Global Variables not-yet
-  emitByte(OP_FALSE);
+  switch (parser.previous.type) {
+    case TOKEN_FALSE: emitByte(OP_FALSE); break;
+    case TOKEN_NIL: emitByte(OP_NIL); break;
+    case TOKEN_TRUE: emitByte(OP_TRUE); break;
+    default:
+      return; // Unreachable.
+  }
 }
-//< Types of Values not-yet
+//< Types of Values parse-literal
 //> Compiling Expressions grouping
 /* Compiling Expressions grouping < Global Variables not-yet
 static void grouping() {
@@ -727,16 +733,6 @@ static void grouping(bool canAssign) {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 //< Compiling Expressions grouping
-/* Types of Values not-yet < Global Variables not-yet
-static void nil() {
-*/
-//> Types of Values not-yet
-//> Global Variables not-yet
-static void nil(bool canAssign) {
-//< Global Variables not-yet
-  emitByte(OP_NIL);
-}
-//< Types of Values not-yet
 /* Compiling Expressions number < Global Variables not-yet
 static void number() {
 */
@@ -745,12 +741,12 @@ static void number() {
 static void number(bool canAssign) {
 //< Global Variables not-yet
   double value = strtod(parser.previous.start, NULL);
-/* Compiling Expressions number < Types of Values not-yet
+/* Compiling Expressions number < Types of Values const-number-val
   emitConstant(value);
 */
-//> Types of Values not-yet
+//> Types of Values const-number-val
   emitConstant(NUMBER_VAL(value));
-//< Types of Values not-yet
+//< Types of Values const-number-val
 }
 //< Compiling Expressions number
 //> Jumping Forward and Back not-yet
@@ -885,18 +881,6 @@ static void this_(bool canAssign) {
   }
 }
 //< Methods and Initializers not-yet
-/* Types of Values not-yet < Global Variables not-yet
-
-static void true_() {
-*/
-//> Types of Values not-yet
-//> Global Variables not-yet
-
-static void true_(bool canAssign) {
-//< Global Variables not-yet
-  emitByte(OP_TRUE);
-}
-//< Types of Values not-yet
 //> Compiling Expressions unary
 /* Compiling Expressions unary < Global Variables not-yet
 static void unary() {
@@ -916,9 +900,9 @@ static void unary(bool canAssign) {
 
   // Emit the operator instruction.
   switch (operatorType) {
-//> Types of Values not-yet
+//> Types of Values compile-not
     case TOKEN_BANG: emitByte(OP_NOT); break;
-//< Types of Values not-yet
+//< Types of Values compile-not
     case TOKEN_MINUS: emitByte(OP_NEGATE); break;
     default:
       return; // Unreachable.
@@ -948,29 +932,33 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
   { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
-/* Compiling Expressions rules < Types of Values not-yet
+/* Compiling Expressions rules < Types of Values table-not
   { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG
+*/
+//> Types of Values table-not
+  { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
+//< Types of Values table-not
+/* Compiling Expressions rules < Types of Values table-equal
   { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 */
-//> Types of Values not-yet
-  { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
+//> Types of Values table-equal
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
-//< Types of Values not-yet
+//< Types of Values table-equal
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
-/* Compiling Expressions rules < Types of Values not-yet
+/* Compiling Expressions rules < Types of Values table-comparisons
   { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
   { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_GREATER
   { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
   { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_LESS
   { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_LESS_EQUAL
 */
-//> Types of Values not-yet
+//> Types of Values table-comparisons
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS_EQUAL
-//< Types of Values not-yet
+//< Types of Values table-comparisons
 /* Compiling Expressions rules < Global Variables not-yet
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 */
@@ -992,21 +980,21 @@ ParseRule rules[] = {
 //< Jumping Forward and Back not-yet
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
-/* Compiling Expressions rules < Types of Values not-yet
+/* Compiling Expressions rules < Types of Values table-false
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FALSE
 */
-//> Types of Values not-yet
-  { false_,   NULL,    PREC_NONE },       // TOKEN_FALSE
-//< Types of Values not-yet
+//> Types of Values table-false
+  { literal,  NULL,    PREC_NONE },       // TOKEN_FALSE
+//< Types of Values table-false
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
-/* Compiling Expressions rules < Types of Values not-yet
+/* Compiling Expressions rules < Types of Values table-nil
   { NULL,     NULL,    PREC_NONE },       // TOKEN_NIL
 */
-//> Types of Values not-yet
-  { nil,      NULL,    PREC_NONE },       // TOKEN_NIL
-//< Types of Values not-yet
+//> Types of Values table-nil
+  { literal,  NULL,    PREC_NONE },       // TOKEN_NIL
+//< Types of Values table-nil
 /* Compiling Expressions rules < Jumping Forward and Back not-yet
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
@@ -1027,12 +1015,12 @@ ParseRule rules[] = {
 //> Methods and Initializers not-yet
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
 //< Methods and Initializers not-yet
-/* Compiling Expressions rules < Types of Values not-yet
+/* Compiling Expressions rules < Types of Values table-true
   { NULL,     NULL,    PREC_NONE },       // TOKEN_TRUE
 */
-//> Types of Values not-yet
-  { true_,    NULL,    PREC_NONE },       // TOKEN_TRUE
-//< Types of Values not-yet
+//> Types of Values table-true
+  { literal,  NULL,    PREC_NONE },       // TOKEN_TRUE
+//< Types of Values table-true
   { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
   { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ERROR
