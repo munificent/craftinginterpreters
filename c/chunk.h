@@ -12,11 +12,11 @@ typedef enum {
 //> op-constant
   OP_CONSTANT,
 //< op-constant
-//> Types of Values not-yet
+//> Types of Values literal-ops
   OP_NIL,
   OP_TRUE,
   OP_FALSE,
-//< Types of Values not-yet
+//< Types of Values literal-ops
 //> Global Variables not-yet
   OP_POP,
 //< Global Variables not-yet
@@ -40,19 +40,19 @@ typedef enum {
 //> Superclasses not-yet
   OP_GET_SUPER,
 //< Superclasses not-yet
-//> Types of Values not-yet
+//> Types of Values comparison-ops
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,
-//< Types of Values not-yet
+//< Types of Values comparison-ops
 //> A Virtual Machine binary-ops
   OP_ADD,
   OP_SUBTRACT,
   OP_MULTIPLY,
   OP_DIVIDE,
-//> Types of Values not-yet
+//> Types of Values not-op
   OP_NOT,
-//< Types of Values not-yet
+//< Types of Values not-op
 //< A Virtual Machine binary-ops
 //> A Virtual Machine negate-op
   OP_NEGATE,
