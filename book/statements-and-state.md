@@ -138,7 +138,7 @@ The generated code for the new nodes is in [Appendix II][appendix-ii]: [Expressi
 </aside>
 
 Run that script and behold your new "Stmt.java" file with the syntax tree
-classes we need for expression and print statements. Don't forgot to add it to
+classes we need for expression and print statements. Don't forget to add it to
 your IDE project or makefile or whatever.
 
 ### Parsing statements
