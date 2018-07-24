@@ -89,9 +89,12 @@ void printValue(Value value) {
   }
 #else
 //< Optimization not-yet
-/* Chunks of Bytecode print-value < Types of Values print-value
+/* Chunks of Bytecode print-value < Types of Values print-number-value
   printf("%g", value);
 */
+/* Types of Values print-number-value < Types of Values print-value
+ printf("%g", AS_NUMBER(value));
+ */
 //> Types of Values print-value
   switch (value.type) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
