@@ -584,7 +584,7 @@ Scheme allows redefining variables at the top level.
 So, to keep the two modes consistent, we'll allow it (at least for global
 variables). Once a variable exists, we need a way to look it up:
 
-^code environment-get
+^code environment-get (3 before, 1 after)
 
 This is a little more semantically interesting. If the variable is found, it
 simply returns the value bound to it. But what if it's not? Again, we have a

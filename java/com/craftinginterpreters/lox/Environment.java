@@ -19,6 +19,7 @@ class Environment {
   }
 //< environment-constructors
 //> environment-get
+
   Object get(Token name) {
     if (values.containsKey(name.lexeme)) {
       return values.get(name.lexeme);
@@ -31,6 +32,7 @@ class Environment {
     throw new RuntimeError(name,
         "Undefined variable '" + name.lexeme + "'.");
   }
+
 //< environment-get
 //> environment-assign
   void assign(Token name, Object value) {
