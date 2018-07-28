@@ -376,7 +376,7 @@ this function:
 
 ^code emit-constant
 
-First, we add the value to the constant table, then we emit an `OP_CONST`
+First, we add the value to the constant table, then we emit an `OP_CONSTANT`
 instruction that pushes it onto the stack at runtime. To insert an entry in the
 constant table, we rely on:
 
@@ -385,8 +385,8 @@ constant table, we rely on:
 Most of the work happens in `addConstant()`, which we defined back in an
 [earlier chapter][bytecode]. That adds the given value to the end of the chunk's
 constant table and returns its index. The new function's job is mostly to make
-sure we don't have too many constants. Since the `OP_CONST` instruction uses a
-single byte for the index operand, we can only store and load up to <span
+sure we don't have too many constants. Since the `OP_CONSTANT` instruction uses
+a single byte for the index operand, we can only store and load up to <span
 name="256">256</span> constants in a chunk.
 
 [bytecode]: chunks-of-bytecode.html
@@ -394,7 +394,7 @@ name="256">256</span> constants in a chunk.
 <aside name="256">
 
 Yes, that limit is pretty low. If this were a full-sized language
-implementation, we'd want to add another instruction like `OP_CONST_16` that
+implementation, we'd want to add another instruction like `OP_CONSTANT_16` that
 stores the index as a two-byte operand so we can handle more constants when
 needed.
 
