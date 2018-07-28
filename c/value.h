@@ -76,7 +76,7 @@ typedef double Value;
 //> Types of Values value-type
 typedef enum {
   VAL_BOOL,
-  VAL_NIL,
+  VAL_NIL, // [user-types]
   VAL_NUMBER,
 //> Strings not-yet
   VAL_OBJ
