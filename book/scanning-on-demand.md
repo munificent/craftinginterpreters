@@ -235,6 +235,17 @@ write some temporary code to drive it:
 
 ^code dump-tokens (1 before, 1 after)
 
+<aside name="format">
+
+That `%.*s` in the format string is a neat feature. Usually, you set the output
+precision -- the number of characters to show -- by placing a number inside the
+format string. Using `*` instead lets you pass the precision as an argument. So
+that `printf()` call prints the first `token.length` characters of the string at
+`token.start`. We need to limit the length like that because the lexeme points
+into the original source string and doesn't have a terminator at the end.
+
+</aside>
+
 This loops indefinitely. Each turn through the loop, it scans one token and
 prints it. When it reaches a special "end of file" token, it stops. For example,
 if we run the interpreter on this program:

@@ -355,20 +355,20 @@ add after <em>Parser</em></div>
 <p>The actual work happens here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>Parser</em></div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>                   
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>       
   <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] Error&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">line</span><span class="p">);</span>
 
-  <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_EOF</span><span class="p">)</span> <span class="p">{</span>                                          
-    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot; at end&quot;</span><span class="p">);</span>                                            
-  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_ERROR</span><span class="p">)</span> <span class="p">{</span>                                 
-    <span class="c1">// Nothing.                                                            </span>
-  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                                 
-    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot; at &#39;%.*s&#39;&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">start</span><span class="p">);</span> <span name="format"></span>
-  <span class="p">}</span>                                                                        
+  <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_EOF</span><span class="p">)</span> <span class="p">{</span>                              
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot; at end&quot;</span><span class="p">);</span>                                
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_ERROR</span><span class="p">)</span> <span class="p">{</span>                     
+    <span class="c1">// Nothing.                                                </span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                     
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot; at &#39;%.*s&#39;&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">start</span><span class="p">);</span>
+  <span class="p">}</span>                                                            
 
-  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>                                      
-  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>                                                  
-<span class="p">}</span>                                                                          
+  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>                          
+  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>                                      
+<span class="p">}</span>                                                              
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>Parser</em></div>
@@ -377,14 +377,6 @@ add after <em>Parser</em></div>
 human-readable. Then we print the error message itself. After that, we set this
 <code>hadError</code> flag. That records whether any errors occurred during compilation.
 It also lives in the parser struct:</p>
-<aside name="format">
-<p>That <code>%.*s</code> in the format string is a neat feature. Usually, you set the output
-precision<span class="em">&mdash;</span>the number of characters to show<span class="em">&mdash;</span>by placing a number inside the
-format string. Using <code>*</code> instead lets you pass the precision as an argument. So
-that <code>fprintf()</code> call prints the first <code>token-&gt;length</code> characters of the string
-at <code>token-&gt;start</code>. We need to limit the length like that because the lexeme
-points into the original source string and doesn&rsquo;t have a terminator at the end.</p>
-</aside>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Token</span> <span class="n">previous</span><span class="p">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Parser</em></div>

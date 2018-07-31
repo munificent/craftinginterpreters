@@ -463,27 +463,35 @@ returns the token by value. It doesn&rsquo;t need to dynamically allocate anythi
 <p>Unfortunately, we don&rsquo;t have a compiler yet that can ask the scanner for tokens,
 so the scanner will just sit there doing nothing. To kick it into action, we&rsquo;ll
 write some temporary code to drive it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>                                            
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>                                                        
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
-<pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">line</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>                                                  
-  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                      
-    <span class="n">Token</span> <span class="n">token</span> <span class="o">=</span> <span class="n">scanToken</span><span class="p">();</span>                                    
-    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">line</span> <span class="o">!=</span> <span class="n">line</span><span class="p">)</span> <span class="p">{</span>                                     
-      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%4d &quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">line</span><span class="p">);</span>                                 
-      <span class="n">line</span> <span class="o">=</span> <span class="n">token</span><span class="p">.</span><span class="n">line</span><span class="p">;</span>                                          
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                      
-      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;   | &quot;</span><span class="p">);</span>                                            
-    <span class="p">}</span>                                                             
-    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%2d &#39;%.*s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">type</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">start</span><span class="p">);</span>
+<pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">line</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>                                                              
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                                  
+    <span class="n">Token</span> <span class="n">token</span> <span class="o">=</span> <span class="n">scanToken</span><span class="p">();</span>                                                
+    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">line</span> <span class="o">!=</span> <span class="n">line</span><span class="p">)</span> <span class="p">{</span>                                                 
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%4d &quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">line</span><span class="p">);</span>                                             
+      <span class="n">line</span> <span class="o">=</span> <span class="n">token</span><span class="p">.</span><span class="n">line</span><span class="p">;</span>                                                      
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                                  
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;   | &quot;</span><span class="p">);</span>                                                        
+    <span class="p">}</span>                                                                         
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%2d &#39;%.*s&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">type</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">length</span><span class="p">,</span> <span class="n">token</span><span class="p">.</span><span class="n">start</span><span class="p">);</span> <span name="format"></span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_EOF</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>                           
-  <span class="p">}</span>                                                               
-</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                 
+    <span class="k">if</span> <span class="p">(</span><span class="n">token</span><span class="p">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">TOKEN_EOF</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>                                       
+  <span class="p">}</span>                                                                           
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                             
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
+<aside name="format">
+<p>That <code>%.*s</code> in the format string is a neat feature. Usually, you set the output
+precision<span class="em">&mdash;</span>the number of characters to show<span class="em">&mdash;</span>by placing a number inside the
+format string. Using <code>*</code> instead lets you pass the precision as an argument. So
+that <code>printf()</code> call prints the first <code>token.length</code> characters of the string at
+<code>token.start</code>. We need to limit the length like that because the lexeme points
+into the original source string and doesn&rsquo;t have a terminator at the end.</p>
+</aside>
 <p>This loops indefinitely. Each turn through the loop, it scans one token and
 prints it. When it reaches a special &ldquo;end of file&rdquo; token, it stops. For example,
 if we run the interpreter on this program:</p>
