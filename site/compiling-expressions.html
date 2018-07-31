@@ -509,7 +509,7 @@ add after <em>consume</em>()</div>
 
 <p>It&rsquo;s hard to believe great things will flow through such a simple function. It
 writes the given byte, which may be an opcode or an operand to an instruction.
-It sends in the current token&rsquo;s line information so that runtime errors are
+It sends in the previous token&rsquo;s line information so that runtime errors are
 associated with that line.</p>
 <p>The chunk that we&rsquo;re writing gets passed into <code>compile()</code>, but it needs to make
 its way to <code>emitByte()</code>. To do that, we rely on this intermediary function:</p>
@@ -749,9 +749,26 @@ weird to write the negate instruction <em>after</em> its operand&rsquo;s bytecod
 <p>Then we pop that value, negate it, and push the result.</p>
 </li>
 </ol>
-<p>So the <code>OP_NEGATE</code> instruction should be emitted last. This is part of the
-compiler&rsquo;s job<span class="em">&mdash;</span>parsing the program in the order it appears in the source code
-and rearranging it into the order that execution happens.</p>
+<p>So the <code>OP_NEGATE</code> instruction should be emitted <span name="line">last</span>.
+This is part of the compiler&rsquo;s job<span class="em">&mdash;</span>parsing the program in the order it
+appears in the source code and rearranging it into the order that execution
+happens.</p>
+<aside name="line">
+<p>Emitting the <code>OP_NEGATE</code> instruction after the operands does mean that the
+current token when the bytecode is written is <em>not</em> the <code>-</code> token. That mostly
+doesn&rsquo;t matter, except that we use that token for the line number to associate
+with that instruction.</p>
+<p>This means if you have a multi-line negation expression, like:</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span>
+  <span class="nb">true</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Then the runtime error will be reported on the wrong line. Here, it would show
+the error on line 2, even though the <code>-</code> is on line 1. A more robust approach
+would be to store the token&rsquo;s line before compiling the operand and then pass
+that into <code>emitByte()</code>, but I wanted to keep things simple for the book.</p>
+</aside>
 <p>There is one problem with this code, though. By calling <code>expression()</code>, we allow
 any expression for the operand, regardless of precedence. Once we add binary
 operators and other syntax, that will do the wrong thing. Consider:</p>

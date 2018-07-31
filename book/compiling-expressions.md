@@ -293,7 +293,7 @@ fundamental than appending a single byte to the chunk:
 
 It's hard to believe great things will flow through such a simple function. It
 writes the given byte, which may be an opcode or an operand to an instruction.
-It sends in the current token's line information so that runtime errors are
+It sends in the previous token's line information so that runtime errors are
 associated with that line.
 
 The chunk that we're writing gets passed into `compile()`, but it needs to make
@@ -462,9 +462,31 @@ weird to write the negate instruction *after* its operand's bytecode since the
 
 2. Then we pop that value, negate it, and push the result.
 
-So the `OP_NEGATE` instruction should be emitted last. This is part of the
-compiler's job -- parsing the program in the order it appears in the source code
-and rearranging it into the order that execution happens.
+So the `OP_NEGATE` instruction should be emitted <span name="line">last</span>.
+This is part of the compiler's job -- parsing the program in the order it
+appears in the source code and rearranging it into the order that execution
+happens.
+
+<aside name="line">
+
+Emitting the `OP_NEGATE` instruction after the operands does mean that the
+current token when the bytecode is written is *not* the `-` token. That mostly
+doesn't matter, except that we use that token for the line number to associate
+with that instruction.
+
+This means if you have a multi-line negation expression, like:
+
+```lox
+print -
+  true;
+```
+
+Then the runtime error will be reported on the wrong line. Here, it would show
+the error on line 2, even though the `-` is on line 1. A more robust approach
+would be to store the token's line before compiling the operand and then pass
+that into `emitByte()`, but I wanted to keep things simple for the book.
+
+</aside>
 
 There is one problem with this code, though. By calling `expression()`, we allow
 any expression for the operand, regardless of precedence. Once we add binary
