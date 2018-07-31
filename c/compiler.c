@@ -180,7 +180,7 @@ static void errorAt(Token* token, const char* message) {
   } else if (token->type == TOKEN_ERROR) {
     // Nothing.
   } else {
-    fprintf(stderr, " at '%.*s'", token->length, token->start); // [format]
+    fprintf(stderr, " at '%.*s'", token->length, token->start);
   }
 
   fprintf(stderr, ": %s\n", message);
@@ -1527,7 +1527,7 @@ ObjFunction* compile(const char* source) {
     } else {
       printf("   | ");
     }
-    printf("%2d '%.*s'\n", token.type, token.length, token.start);
+    printf("%2d '%.*s'\n", token.type, token.length, token.start); // [format]
 
     if (token.type == TOKEN_EOF) break;
   }

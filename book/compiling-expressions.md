@@ -209,18 +209,6 @@ human-readable. Then we print the error message itself. After that, we set this
 `hadError` flag. That records whether any errors occurred during compilation.
 It also lives in the parser struct:
 
-<aside name="format">
-
-That `%.*s` in the format string is a neat feature. Usually, you set the output
-precision -- the number of characters to show -- by placing a number inside the
-format string. Using `*` instead lets you pass the precision as an argument. So
-that `fprintf()` call prints the first `token->length` characters of the string
-at `token->start`. We need to limit the length like that because the lexeme
-points into the original source string and doesn't have a terminator at the end.
-
-</aside>
-
-
 ^code had-error-field (1 before, 1 after)
 
 Earlier I said that `compile()` should return `false` if an error occurred. Now
