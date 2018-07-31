@@ -444,10 +444,9 @@ like so:
 
 ^code begin-scope
 
-Lexical scopes nest and in both the interpreter and the resolver, they are
-treated like a stack. The interpreter implements that stack using a linked
-list -- the chain of Environment objects. In the resolver, we use an actual
-Java Stack:
+Lexical scopes nest and in both the interpreter and the resolver. They behave
+like a stack. The interpreter implements that stack using a linked list -- the
+chain of Environment objects. In the resolver, we use an actual Java Stack:
 
 ^code scopes-field (1 before, 2 after)
 

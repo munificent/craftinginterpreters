@@ -510,9 +510,9 @@ class Parser {
   }
 //< consume
 //> check
-  private boolean check(TokenType tokenType) {
+  private boolean check(TokenType type) {
     if (isAtEnd()) return false;
-    return peek().type == tokenType;
+    return peek().type == type;
   }
 //< check
 //> advance
