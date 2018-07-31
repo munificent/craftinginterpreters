@@ -323,7 +323,7 @@ versa:
 
 ```lox
 !true;  // false.
-!false; // true;
+!false; // true.
 ```
 
 The other two logical operators really are control flow constructs in the guise
@@ -417,7 +417,7 @@ can wrap them up in a block:
 
 ```lox
 {
-  print "One statement";
+  print "One statement.";
   print "Two statements.";
 }
 ```

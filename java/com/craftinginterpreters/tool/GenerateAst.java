@@ -98,9 +98,9 @@ public class GenerateAst {
     writer.println("//> Appendix II " + baseName.toLowerCase());
 //< omit
     writer.println("package com.craftinginterpreters.lox;");
-    writer.println("");
+    writer.println();
     writer.println("import java.util.List;");
-    writer.println("");
+    writer.println();
     writer.println("abstract class " + baseName + " {");
 
 //> call-define-visitor
@@ -122,7 +122,7 @@ public class GenerateAst {
 //> base-accept-method
 
     // The base accept() method.
-    writer.println("");
+    writer.println();
     writer.println("  abstract <R> R accept(Visitor<R> visitor);");
 
 //< base-accept-method

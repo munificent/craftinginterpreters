@@ -344,7 +344,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< check-is-callable
     LoxCallable function = (LoxCallable)callee;
 //> check-arity
-   if (arguments.size() != function.arity()) {
+    if (arguments.size() != function.arity()) {
       throw new RuntimeError(expr.paren, "Expected " +
           function.arity() + " arguments but got " +
           arguments.size() + ".");
