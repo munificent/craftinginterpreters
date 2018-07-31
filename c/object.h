@@ -119,13 +119,14 @@ typedef struct sUpvalue {
   // Pointer to the variable this upvalue is referencing.
   Value* value;
 
-  // If the upvalue is closed (i.e. the local variable it was pointing to has
-  // been popped off the stack) then the closed-over value is hoisted out of
-  // the stack into here. [value] is then be changed to point to this.
+  // If the upvalue is closed (i.e. the local variable it was pointing
+  // to has been popped off the stack) then the closed-over value is
+  // hoisted out of the stack into here. [value] is then be changed to
+  // point to this.
   Value closed;
 
-  // Open upvalues are stored in a linked list. This points to the next one in
-  // that list.
+  // Open upvalues are stored in a linked list. This points to the next
+  // one in that list.
   struct sUpvalue* next;
 } ObjUpvalue;
 

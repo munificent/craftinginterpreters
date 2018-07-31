@@ -398,10 +398,19 @@ def load_file(source_code, source_dir, path):
 
       line_num += 1
 
+    printed_file = False
     line_num = 1
     for line in lines:
       line = line.rstrip()
       handled = False
+
+      # Report any lines that are too long.
+      trimmed = re.sub(r'// \[([-a-z0-9]+)\]', '', line)
+      if len(trimmed) > 72 and not '/*' in trimmed:
+        if not printed_file:
+          print("Long line in {}:".format(file.path))
+          printed_file = True
+        print("{0:4} ({1:2} chars): {2}".format(line_num, len(trimmed), trimmed))
 
       # See if we reached a new function or method declaration.
       match = FUNCTION_PATTERN.search(line)

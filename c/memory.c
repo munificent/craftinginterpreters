@@ -60,9 +60,10 @@ void grayObject(Obj* object) {
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
 
-    // Not using reallocate() here because we don't want to trigger the GC
-    // inside a GC!
-    vm.grayStack = realloc(vm.grayStack, sizeof(Obj*) * vm.grayCapacity);
+    // Not using reallocate() here because we don't want to trigger the
+    // GC inside a GC!
+    vm.grayStack = realloc(vm.grayStack,
+                           sizeof(Obj*) * vm.grayCapacity);
   }
 
   vm.grayStack[vm.grayCount++] = object;
@@ -272,13 +273,14 @@ void collectGarbage() {
   Obj** object = &vm.objects;
   while (*object != NULL) {
     if (!((*object)->isDark)) {
-      // This object wasn't reached, so remove it from the list and free it.
+      // This object wasn't reached, so remove it from the list and
+      // free it.
       Obj* unreached = *object;
       *object = unreached->next;
       freeObject(unreached);
     } else {
-      // This object was reached, so unmark it (for the next GC) and move on to
-      // the next.
+      // This object was reached, so unmark it (for the next GC) and
+      // move on to the next.
       (*object)->isDark = false;
       object = &(*object)->next;
     }
@@ -289,7 +291,8 @@ void collectGarbage() {
 
 #ifdef DEBUG_TRACE_GC
   printf("-- gc collected %ld bytes (from %ld to %ld) next at %ld\n",
-         before - vm.bytesAllocated, before, vm.bytesAllocated, vm.nextGC);
+         before - vm.bytesAllocated, before, vm.bytesAllocated,
+         vm.nextGC);
 #endif
 }
 //< Garbage Collection not-yet

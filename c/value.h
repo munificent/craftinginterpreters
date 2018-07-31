@@ -26,15 +26,15 @@ typedef struct sObjString ObjString;
 
 typedef uint64_t Value;
 
-#define IS_BOOL(value)    (((value) & (QNAN | TAG_FALSE)) == (QNAN | TAG_FALSE))
-#define IS_NIL(value)     ((value) == NIL_VAL)
+#define IS_BOOL(v)    (((v) & (QNAN | TAG_FALSE)) == (QNAN | TAG_FALSE))
+#define IS_NIL(v)     ((v) == NIL_VAL)
 // If the NaN bits are set, it's not a number.
-#define IS_NUMBER(value)  (((value) & QNAN) != QNAN)
-#define IS_OBJ(value)     (((value) & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))
+#define IS_NUMBER(v)  (((v) & QNAN) != QNAN)
+#define IS_OBJ(v)     (((v) & (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))
 
-#define AS_BOOL(value)    ((value) == TRUE_VAL)
-#define AS_NUMBER(value)  valueToNum(value)
-#define AS_OBJ(value)     ((Obj*)(uintptr_t)((value) & ~(SIGN_BIT | QNAN)))
+#define AS_BOOL(v)    ((v) == TRUE_VAL)
+#define AS_NUMBER(v)  valueToNum(v)
+#define AS_OBJ(v)     ((Obj*)(uintptr_t)((v) & ~(SIGN_BIT | QNAN)))
 
 #define BOOL_VAL(boolean) ((boolean) ? TRUE_VAL : FALSE_VAL)
 #define FALSE_VAL         ((Value)(uint64_t)(QNAN | TAG_FALSE))
@@ -46,7 +46,8 @@ typedef uint64_t Value;
 // 2. (uint64_t)  Pad it up to 64 bits in 32-bit builds.
 // 3. Or in the bits to make a tagged Nan.
 // 4. Cast to a typedef'd value.
-#define OBJ_VAL(obj) (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))
+#define OBJ_VAL(obj) \
+    (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))
 
 // A union to let us reinterpret a double as raw bits and back.
 typedef union {

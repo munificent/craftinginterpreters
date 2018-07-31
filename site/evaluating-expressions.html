@@ -235,8 +235,10 @@ create new file</div>
 <pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
 
 <span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="o">{</span>
-<span class="o">}</span>
+<span class="o">}</span>                                                  
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, create new file</div>
 
 <p>It declares that it&rsquo;s a visitor. The return type of the visit methods is Object,
 the root class that we use to refer to a Lox value in our Java code. To satisfy
@@ -259,11 +261,13 @@ in the parser, now we convert the literal tree node into a runtime value. That
 turns out to be trivial:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
-<pre><span></span>  <span class="nd">@Override</span>
+<pre><span></span>  <span class="nd">@Override</span>                                          
   <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitLiteralExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">value</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">value</span><span class="o">;</span>                               
+  <span class="o">}</span>                                                  
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <p>We eagerly produced the runtime value way back during scanning and stuffed it in
 the token. The parser took that value and stuck it in the literal tree node,
@@ -273,11 +277,13 @@ so to evaluate a literal, we simply pull it back out.</p>
 of using explicit parentheses in an expression.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
-<pre><span></span>  <span class="nd">@Override</span>
+<pre><span></span>  <span class="nd">@Override</span>                                            
   <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitGroupingExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">return</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">expression</span><span class="o">);</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">expression</span><span class="o">);</span>                  
+  <span class="o">}</span>                                                    
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <p>A <span name="grouping">grouping</span> node has a reference to an inner node
 for the expression contained inside the parentheses. To evaluate the
@@ -294,9 +300,11 @@ interpreter&rsquo;s visitor implementation:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Object</span> <span class="nf">evaluate</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="na">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>         
+  <span class="o">}</span>                                   
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <h3><a href="#evaluating-unary-expressions" name="evaluating-unary-expressions"><small>7&#8202;.&#8202;2&#8202;.&#8202;3</small> Evaluating unary expressions</a></h3>
 <p>Like grouping, unary expressions have a single subexpression that we must
@@ -304,19 +312,21 @@ evaluate first. The only difference is that the unary expression itself does a
 little work afterwards:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitLiteralExpr</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>
+<pre><span></span>  <span class="nd">@Override</span>                                      
   <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitUnaryExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Unary</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">Object</span> <span class="n">right</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
 
-    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">-(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-    <span class="o">}</span>
+    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>                
+      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                                
+        <span class="k">return</span> <span class="o">-(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>                   
+    <span class="o">}</span>                                            
 
-    <span class="c1">// Unreachable.</span>
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="c1">// Unreachable.                              </span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                 
+  <span class="o">}</span>                                              
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitLiteralExpr</em>()</div>
 
 <p>First, we evaluate the operand expression. Then we apply the unary operator
 itself to the result of that. There are two different unary expressions,
@@ -337,10 +347,12 @@ subexpression. That means our interpreter is doing a <strong>post-order traversa
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitUnaryExpr</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="n">BANG</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">!</span><span class="n">isTruthy</span><span class="o">(</span><span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="n">BANG</span><span class="o">:</span>                 
+        <span class="k">return</span> <span class="o">!</span><span class="n">isTruthy</span><span class="o">(</span><span class="n">right</span><span class="o">);</span> 
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitUnaryExpr</em>()</div>
 
 <p>The implementation is simple, but what is this &ldquo;truthy&rdquo; thing about? We need to
 make a little side trip to one of the great questions of Western philosophy:
@@ -370,36 +382,40 @@ non-empty strings are truthy.</p>
 is truthy. We implement that like so:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isTruthy</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isTruthy</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>               
+    <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>                     
     <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="k">instanceof</span> <span class="n">Boolean</span><span class="o">)</span> <span class="k">return</span> <span class="o">(</span><span class="kt">boolean</span><span class="o">)</span><span class="n">object</span><span class="o">;</span>
-    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>                                          
+  <span class="o">}</span>                                                       
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitUnaryExpr</em>()</div>
 
 <h3><a href="#evaluating-binary-operators" name="evaluating-binary-operators"><small>7&#8202;.&#8202;2&#8202;.&#8202;5</small> Evaluating binary operators</a></h3>
 <p>Onto the last expression tree class, binary operators. There&rsquo;s a handful of
 them, and we&rsquo;ll start with the arithmetic ones:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>evaluate</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>
+<pre><span></span>  <span class="nd">@Override</span>                                        
   <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitBinaryExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">Object</span> <span class="n">left</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">left</span><span class="o">);</span>
-    <span class="n">Object</span> <span class="n">right</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span> <span name="left"></span>
+    <span class="n">Object</span> <span class="n">left</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">left</span><span class="o">);</span>             
+    <span class="n">Object</span> <span class="n">right</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">right</span><span class="o">);</span> <span class="c1">// [left] </span>
 
-    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">-</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">/</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-      <span class="k">case</span> <span class="n">STAR</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">*</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-    <span class="o">}</span>
+    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>                  
+      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                                  
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">-</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>       
+      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>                                  
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">/</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>       
+      <span class="k">case</span> <span class="n">STAR</span><span class="o">:</span>                                   
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">*</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>       
+    <span class="o">}</span>                                              
 
-    <span class="c1">// Unreachable.</span>
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="c1">// Unreachable.                                </span>
+    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                   
+  <span class="o">}</span>                                                
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>evaluate</em>()</div>
 
 <aside name="left">
 <p>Did you notice we pinned down a subtle corner of the language semantics here?
@@ -412,21 +428,23 @@ make sure clox does the same thing.</p>
 <p>I think you can figure out what&rsquo;s going on. The only difference from the unary
 operator is we have two operands to evaluate. I left out one arithmetic operator
 because it&rsquo;s a little special:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">-</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>                               
+      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                                               
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">-</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>                    
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="n">PLUS</span><span class="o">:</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="n">PLUS</span><span class="o">:</span>                                                
         <span class="k">if</span> <span class="o">(</span><span class="n">left</span> <span class="k">instanceof</span> <span class="n">Double</span> <span class="o">&amp;&amp;</span> <span class="n">right</span> <span class="k">instanceof</span> <span class="n">Double</span><span class="o">)</span> <span class="o">{</span>
-          <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">+</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-        <span class="o">}</span> <span name="plus"></span>
+          <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">+</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>                  
+        <span class="o">}</span> <span class="c1">// [plus]                                             </span>
 
         <span class="k">if</span> <span class="o">(</span><span class="n">left</span> <span class="k">instanceof</span> <span class="n">String</span> <span class="o">&amp;&amp;</span> <span class="n">right</span> <span class="k">instanceof</span> <span class="n">String</span><span class="o">)</span> <span class="o">{</span>
-          <span class="k">return</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">left</span> <span class="o">+</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-        <span class="o">}</span>
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>
+          <span class="k">return</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">left</span> <span class="o">+</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>                  
+        <span class="o">}</span>                                                       
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>                                               
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>The <code>+</code> operator can also be used to concatenate two strings. To handle that, we
 don&rsquo;t just assume the operands are a certain type and <em>cast</em> them, we
@@ -442,19 +460,21 @@ languages that don&rsquo;t use <code>+</code> for strings, they still often over
 adding both integers and floating point numbers.</p>
 </aside>
 <p>Next up are the comparison operators:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">.</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>            
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="n">GREATER</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-      <span class="k">case</span> <span class="n">GREATER_EQUAL</span><span class="o">:</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="n">GREATER</span><span class="o">:</span>                          
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span> 
+      <span class="k">case</span> <span class="n">GREATER_EQUAL</span><span class="o">:</span>                    
         <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;=</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-      <span class="k">case</span> <span class="n">LESS</span><span class="o">:</span>
-        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-      <span class="k">case</span> <span class="n">LESS_EQUAL</span><span class="o">:</span>
+      <span class="k">case</span> <span class="n">LESS</span><span class="o">:</span>                             
+        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span> 
+      <span class="k">case</span> <span class="n">LESS_EQUAL</span><span class="o">:</span>                       
         <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;=</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>They are basically the same as arithmetic. The only difference is that where the
 arithmetic operators produce a value whose type is the same as the operands
@@ -465,6 +485,8 @@ in <em>visitBinaryExpr</em>()</div>
 <pre><span></span>      <span class="k">case</span> <span class="n">BANG_EQUAL</span><span class="o">:</span> <span class="k">return</span> <span class="o">!</span><span class="n">isEqual</span><span class="o">(</span><span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
       <span class="k">case</span> <span class="n">EQUAL_EQUAL</span><span class="o">:</span> <span class="k">return</span> <span class="n">isEqual</span><span class="o">(</span><span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>Unlike the comparison operators which require numbers, the equality operators
 support operands of any type, even mixed ones. You can&rsquo;t ask Lox if 3 is <em>less</em>
@@ -477,13 +499,15 @@ it.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>isTruthy</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isEqual</span><span class="o">(</span><span class="n">Object</span> <span class="n">a</span><span class="o">,</span> <span class="n">Object</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
-    <span class="c1">// nil is only equal to nil.</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+    <span class="c1">// nil is only equal to nil.               </span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>   
     <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
 
-    <span class="k">return</span> <span class="n">a</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>                        
+  <span class="o">}</span>                                            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>isTruthy</em>()</div>
 
 <p>This is one of those corners where the details of how we represent Lox objects
 in terms of Java matters. We need to correctly implement <em>Lox&rsquo;s</em> notion of
@@ -554,21 +578,25 @@ is a fine way to accomplish that. However, instead of using Java&rsquo;s own cas
 failure, we&rsquo;ll define a Lox-specific one so that we can handle it like we want.</p>
 <p>Before we do the cast, we validate the type ourselves. So, for unary <code>-</code>, we
 add:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                                
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitUnaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperand</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">-(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">-(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>                   
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitUnaryExpr</em>()</div>
 
 <p>The code to check the operand is:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">checkNumberOperand</span><span class="o">(</span><span class="n">Token</span> <span class="n">operator</span><span class="o">,</span> <span class="n">Object</span> <span class="n">operand</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">operand</span> <span class="k">instanceof</span> <span class="n">Double</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
-    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="s">&quot;Operand must be a number.&quot;</span><span class="o">);</span>
-  <span class="o">}</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">operand</span> <span class="k">instanceof</span> <span class="n">Double</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>                         
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="s">&quot;Operand must be a number.&quot;</span><span class="o">);</span> 
+  <span class="o">}</span>                                                                
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitUnaryExpr</em>()</div>
 
 <p>When the check fails, it throws one of these:</p>
 <div class="codehilite"><div class="source-file"><em>lox/RuntimeError.java</em><br>
@@ -576,14 +604,16 @@ create new file</div>
 <pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
 
 <span class="kd">class</span> <span class="nc">RuntimeError</span> <span class="kd">extends</span> <span class="n">RuntimeException</span> <span class="o">{</span>
-  <span class="kd">final</span> <span class="n">Token</span> <span class="n">token</span><span class="o">;</span>
+  <span class="kd">final</span> <span class="n">Token</span> <span class="n">token</span><span class="o">;</span>                         
 
   <span class="n">RuntimeError</span><span class="o">(</span><span class="n">Token</span> <span class="n">token</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
-    <span class="kd">super</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
-    <span class="k">this</span><span class="o">.</span><span class="na">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+    <span class="kd">super</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>                          
+    <span class="k">this</span><span class="o">.</span><span class="na">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">;</span>                      
+  <span class="o">}</span>                                          
+<span class="o">}</span>                                            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/RuntimeError.java</em>, create new file</div>
 
 <p>Unlike the Java cast exception, our <span name="class">class</span> tracks the
 token that identifies where in the user&rsquo;s code the runtime error came from. As
@@ -598,72 +628,88 @@ language. Wait until we get to implementing Lox classes.</p>
 single line of code needed to implement the interpreters, I&rsquo;ll run through them
 all.</p>
 <p>Greater than:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">GREATER</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">GREATER</span><span class="o">:</span>                                     
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>Greater than or equal to:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">GREATER_EQUAL</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">GREATER_EQUAL</span><span class="o">:</span>                               
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;=</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&gt;=</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>           
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>Less than:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">LESS</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">LESS</span><span class="o">:</span>                                        
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>Less than or equal to:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">LESS_EQUAL</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">LESS_EQUAL</span><span class="o">:</span>                                  
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;=</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">&lt;=</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>           
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>Subtraction:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">MINUS</span><span class="o">:</span>                                       
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">-</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">-</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>Division:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>                                       
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">/</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">/</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>            
 </pre></div>
 
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
+
 <p>Multiplication:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">STAR</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="n">STAR</span><span class="o">:</span>                                        
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
 <pre class="insert"><span></span>        <span class="n">checkNumberOperands</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span> <span class="n">left</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">*</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">left</span> <span class="o">*</span> <span class="o">(</span><span class="kt">double</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>All of those rely on this validator, which is virtually the same as the unary
 one:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>checkNumberOperand</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">checkNumberOperands</span><span class="o">(</span><span class="n">Token</span> <span class="n">operator</span><span class="o">,</span>
-                                   <span class="n">Object</span> <span class="n">left</span><span class="o">,</span> <span class="n">Object</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">checkNumberOperands</span><span class="o">(</span><span class="n">Token</span> <span class="n">operator</span><span class="o">,</span>                
+                                   <span class="n">Object</span> <span class="n">left</span><span class="o">,</span> <span class="n">Object</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>   
     <span class="k">if</span> <span class="o">(</span><span class="n">left</span> <span class="k">instanceof</span> <span class="n">Double</span> <span class="o">&amp;&amp;</span> <span class="n">right</span> <span class="k">instanceof</span> <span class="n">Double</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
-    <span name="operand"></span>
+    <span class="c1">// [operand]                                                  </span>
     <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="s">&quot;Operands must be numbers.&quot;</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="o">}</span>                                                               
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>checkNumberOperand</em>()</div>
 
 <aside name="operand">
 <p>Another subtle semantic corner: We evaluate <em>both</em> operands before checking the
@@ -681,14 +727,16 @@ even evaluating the other.</p>
 strings, it already has code to check the types. All we need to do is fail if
 neither of the two success cases match:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">if</span> <span class="o">(</span><span class="n">left</span> <span class="k">instanceof</span> <span class="n">String</span> <span class="o">&amp;&amp;</span> <span class="n">right</span> <span class="k">instanceof</span> <span class="n">String</span><span class="o">)</span> <span class="o">{</span>
-          <span class="k">return</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">left</span> <span class="o">+</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>
-        <span class="o">}</span>
+          <span class="k">return</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">left</span> <span class="o">+</span> <span class="o">(</span><span class="n">String</span><span class="o">)</span><span class="n">right</span><span class="o">;</span>                  
+        <span class="o">}</span>                                                       
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitBinaryExpr</em>()</div>
-<pre class="insert"><br><span></span>        <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span>
-            <span class="s">&quot;Operands must be two numbers or two strings.&quot;</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>
+<pre class="insert"><br><span></span>        <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">operator</span><span class="o">,</span>                   
+            <span class="s">&quot;Operands must be two numbers or two strings.&quot;</span><span class="o">);</span>    
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="n">SLASH</span><span class="o">:</span>                                               
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitBinaryExpr</em>()</div>
 
 <p>That gets us detecting runtime errors deep in the bowels of the evaluator. The
 errors are getting thrown. The next step is to write the code that catches them.
@@ -700,15 +748,17 @@ work happens. We need to wrap a skin around it to interface with the rest of the
 program. The Interpreter&rsquo;s public API is simply:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
-<pre><span></span>  <span class="kt">void</span> <span class="nf">interpret</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">try</span> <span class="o">{</span>
-      <span class="n">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expression</span><span class="o">);</span>
+<pre><span></span>  <span class="kt">void</span> <span class="nf">interpret</span><span class="o">(</span><span class="n">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>        
+    <span class="k">try</span> <span class="o">{</span>                                  
+      <span class="n">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expression</span><span class="o">);</span> 
       <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">stringify</span><span class="o">(</span><span class="n">value</span><span class="o">));</span>
-    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">RuntimeError</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">Lox</span><span class="o">.</span><span class="na">runtimeError</span><span class="o">(</span><span class="n">error</span><span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">RuntimeError</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>         
+      <span class="n">Lox</span><span class="o">.</span><span class="na">runtimeError</span><span class="o">(</span><span class="n">error</span><span class="o">);</span>             
+    <span class="o">}</span>                                      
+  <span class="o">}</span>                                        
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
 
 <p>It takes in a syntax tree for an expression and evaluates it. If that succeeds,
 <code>evaluate()</code> returns an object for the result value. <code>interpret()</code> converts that
@@ -716,21 +766,23 @@ to a string and shows it to the user. To convert any Lox value to a string, we
 rely on:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>isEqual</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="n">String</span> <span class="nf">stringify</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="n">String</span> <span class="nf">stringify</span><span class="o">(</span><span class="n">Object</span> <span class="n">object</span><span class="o">)</span> <span class="o">{</span>                         
     <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="s">&quot;nil&quot;</span><span class="o">;</span>
 
     <span class="c1">// Hack. Work around Java adding &quot;.0&quot; to integer-valued doubles.</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="k">instanceof</span> <span class="n">Double</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">String</span> <span class="n">text</span> <span class="o">=</span> <span class="n">object</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
-      <span class="k">if</span> <span class="o">(</span><span class="n">text</span><span class="o">.</span><span class="na">endsWith</span><span class="o">(</span><span class="s">&quot;.0&quot;</span><span class="o">))</span> <span class="o">{</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="na">substring</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">text</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">-</span> <span class="mi">2</span><span class="o">);</span>
-      <span class="o">}</span>
-      <span class="k">return</span> <span class="n">text</span><span class="o">;</span>
-    <span class="o">}</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">object</span> <span class="k">instanceof</span> <span class="n">Double</span><span class="o">)</span> <span class="o">{</span>                                 
+      <span class="n">String</span> <span class="n">text</span> <span class="o">=</span> <span class="n">object</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>                              
+      <span class="k">if</span> <span class="o">(</span><span class="n">text</span><span class="o">.</span><span class="na">endsWith</span><span class="o">(</span><span class="s">&quot;.0&quot;</span><span class="o">))</span> <span class="o">{</span>                                    
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="na">substring</span><span class="o">(</span><span class="mi">0</span><span class="o">,</span> <span class="n">text</span><span class="o">.</span><span class="na">length</span><span class="o">()</span> <span class="o">-</span> <span class="mi">2</span><span class="o">);</span>                
+      <span class="o">}</span>                                                             
+      <span class="k">return</span> <span class="n">text</span><span class="o">;</span>                                                  
+    <span class="o">}</span>                                                               
 
-    <span class="k">return</span> <span class="n">object</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">object</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>                                       
+  <span class="o">}</span>                                                                 
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>isEqual</em>()</div>
 
 <p>This is another of those pieces of code like <code>isTruthy()</code> that crosses the
 membrane between the user&rsquo;s view of Lox objects and their internal
@@ -759,34 +811,40 @@ put this method there too:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>error</em>()</div>
 <pre><span></span>  <span class="kd">static</span> <span class="kt">void</span> <span class="nf">runtimeError</span><span class="o">(</span><span class="n">RuntimeError</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">error</span><span class="o">.</span><span class="na">getMessage</span><span class="o">()</span> <span class="o">+</span>
-        <span class="s">&quot;\n[line &quot;</span> <span class="o">+</span> <span class="n">error</span><span class="o">.</span><span class="na">token</span><span class="o">.</span><span class="na">line</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">);</span>
-    <span class="n">hadRuntimeError</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">err</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">error</span><span class="o">.</span><span class="na">getMessage</span><span class="o">()</span> <span class="o">+</span>     
+        <span class="s">&quot;\n[line &quot;</span> <span class="o">+</span> <span class="n">error</span><span class="o">.</span><span class="na">token</span><span class="o">.</span><span class="na">line</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="o">);</span>   
+    <span class="n">hadRuntimeError</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>                     
+  <span class="o">}</span>                                             
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>error</em>()</div>
 
 <p>It uses the token associated with the RuntimeError to tell the user what line of
 code was executing when the error occurred. It would be even better to give the
 user an entire callstack to show how they <em>got</em> to be executing that code. But
 we don&rsquo;t have function calls yet, so I guess we don&rsquo;t have to worry about it.</p>
 <p>After showing the error, it sets this field:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">static</span> <span class="kt">boolean</span> <span class="n">hadError</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">static</span> <span class="kt">boolean</span> <span class="n">hadError</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>                           
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in class <em>Lox</em></div>
-<pre class="insert"><span></span>  <span class="kd">static</span> <span class="kt">boolean</span> <span class="n">hadRuntimeError</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+<pre class="insert"><span></span>  <span class="kd">static</span> <span class="kt">boolean</span> <span class="n">hadRuntimeError</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>                    
 <br></pre><pre class="insert-after"><span></span>  <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, in class <em>Lox</em></div>
 
 <p>That field only has one minor use:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">run</span><span class="o">(</span><span class="k">new</span> <span class="n">String</span><span class="o">(</span><span class="n">bytes</span><span class="o">,</span> <span class="n">Charset</span><span class="o">.</span><span class="na">defaultCharset</span><span class="o">()));</span>
 
-    <span class="c1">// Indicate an error in the exit code.</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">65</span><span class="o">);</span>
+    <span class="c1">// Indicate an error in the exit code.           </span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">65</span><span class="o">);</span>                   
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>runFile</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">hadRuntimeError</span><span class="o">)</span> <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">70</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">hadRuntimeError</span><span class="o">)</span> <span class="n">System</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="mi">70</span><span class="o">);</span>            
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                  
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>runFile</em>()</div>
 
 <p>If the user is running a Lox <span name="repl">script from a file</span> and a
 runtime error occurs, we set an exit code when the process quits to let the
@@ -799,12 +857,14 @@ keep going.</p>
 <h3><a href="#running-the-interpreter" name="running-the-interpreter"><small>7&#8202;.&#8202;4&#8202;.&#8202;2</small> Running the interpreter</a></h3>
 <p>Now that we have an interpreter, the Lox class can start using it. It creates
 and stores an instance of it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lox</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lox</span> <span class="o">{</span>                                                 
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in class <em>Lox</em></div>
 <pre class="insert"><span></span>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Interpreter</span> <span class="n">interpreter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Interpreter</span><span class="o">();</span>
-</pre><pre class="insert-after"><span></span>  <span class="kd">static</span> <span class="kt">boolean</span> <span class="n">hadError</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="kd">static</span> <span class="kt">boolean</span> <span class="n">hadError</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>                                 
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, in class <em>Lox</em></div>
 
 <p>We make it static so that successive calls to <code>run()</code> inside a REPL session
 reuse the same interpreter. That doesn&rsquo;t make a difference now, but it will
@@ -813,13 +873,15 @@ to persist throughout the entire REPL session.</p>
 <p>Finally, we remove the line of temporary code from the <a href="parsing-expressions.html">last chapter</a> for
 printing the syntax tree and replace it with this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="c1">// Stop if there was a syntax error.</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>               
 <br></pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>    <span class="n">interpreter</span><span class="o">.</span><span class="na">interpret</span><span class="o">(</span><span class="n">expression</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+<pre class="insert"><span></span>    <span class="n">interpreter</span><span class="o">.</span><span class="na">interpret</span><span class="o">(</span><span class="n">expression</span><span class="o">);</span>  
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                     
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>(), replace 1 line</div>
 
 <p>We have an entire language pipeline now: scanning, parsing, and
 execution. Congratulations, you now have your very own arithmetic calculator.</p>

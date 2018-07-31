@@ -347,7 +347,7 @@ private FunctionType currentFunction = FunctionType.NONE;
 
 //< set-current-function
     beginScope();
-    for (Token param : function.parameters) {
+    for (Token param : function.params) {
       declare(param);
       define(param);
     }

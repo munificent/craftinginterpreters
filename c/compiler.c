@@ -68,13 +68,14 @@ typedef struct {
   // The name of the local variable.
   Token name;
 
-  // The depth in the scope chain that this variable was declared at. Zero is
-  // the outermost scope--parameters for a method, or the first local block in
-  // top level code. One is the scope within that, etc.
+  // The depth in the scope chain that this variable was declared at.
+  // Zero is the outermost scope--parameters for a method, or the first
+  // local block in top level code. One is the scope within that, etc.
   int depth;
 //> Closures not-yet
 
-  // True if this local variable is captured as an upvalue by a function.
+  // True if this local variable is captured as an upvalue by a
+  // function.
   bool isUpvalue;
 //< Closures not-yet
 } Local;
@@ -85,8 +86,8 @@ typedef struct {
   // enclosing function.
   uint8_t index;
 
-  // Whether the captured variable is a local or upvalue in the enclosing
-  // function.
+  // Whether the captured variable is a local or upvalue in the
+  // enclosing function.
   bool isLocal;
 } Upvalue;
 //< Closures not-yet
@@ -121,8 +122,8 @@ typedef struct Compiler {
   Upvalue upvalues[UINT8_COUNT];
 //< Closures not-yet
 
-  // The current level of block scope nesting. Zero is the outermost local
-  // scope. 0 is global scope.
+  // The current level of block scope nesting. Zero is the outermost
+  // local scope. 0 is global scope.
   int scopeDepth;
 } Compiler;
 //< Local Variables not-yet
@@ -254,8 +255,8 @@ static void emitLoop(int loopStart) {
 }
 
 // Emits [instruction] followed by a placeholder for a jump offset. The
-// placeholder can be patched by calling [jumpPatch]. Returns the index of the
-// placeholder.
+// placeholder can be patched by calling [jumpPatch]. Returns the index
+// of the placeholder.
 static int emitJump(uint8_t instruction) {
   emitByte(instruction);
   emitByte(0xff);
@@ -297,8 +298,9 @@ static void emitConstant(Value value) {
 }
 //< Compiling Expressions emit-constant
 //> Jumping Forward and Back not-yet
-// Replaces the placeholder argument for a previous CODE_JUMP or CODE_JUMP_IF
-// instruction with an offset that jumps to the current end of bytecode.
+// Replaces the placeholder argument for a previous CODE_JUMP or
+// CODE_JUMP_IF instruction with an offset that jumps to the current
+// end of bytecode.
 static void patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
   int jump = currentChunk()->count - offset - 2;
@@ -342,13 +344,15 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
 //> Methods and Initializers not-yet
     case TYPE_INITIALIZER:
     case TYPE_METHOD: {
-      int length = currentClass->name.length + parser.previous.length + 1;
+      int length = currentClass->name.length +
+                   parser.previous.length + 1;
 
       char* chars = ALLOCATE(char, length + 1);
-      memcpy(chars, currentClass->name.start, currentClass->name.length);
+      memcpy(chars, currentClass->name.start,
+             currentClass->name.length);
       chars[currentClass->name.length] = '.';
-      memcpy(chars + currentClass->name.length + 1, parser.previous.start,
-             parser.previous.length);
+      memcpy(chars + currentClass->name.length + 1,
+             parser.previous.start, parser.previous.length);
       chars[length] = '\0';
 
       current->function->name = takeString(chars, length);
@@ -376,8 +380,8 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.start = "this";
     local->name.length = 4;
   } else {
-    // In a function, it holds the function, but cannot be referenced, so has
-    // no name.
+    // In a function, it holds the function, but cannot be referenced,
+    // so has no name.
     local->name.start = "";
     local->name.length = 0;
   }
@@ -427,7 +431,8 @@ static void endScope() {
   current->scopeDepth--;
 
   while (current->localCount > 0 &&
-         current->locals[current->localCount - 1].depth > current->scopeDepth) {
+         current->locals[current->localCount - 1].depth >
+            current->scopeDepth) {
 /* Local Variables not-yet < Closures not-yet
     emitByte(OP_POP);
 */
@@ -467,9 +472,10 @@ static bool identifiersEqual(Token* a, Token* b) {
   return memcmp(a->start, b->start, a->length) == 0;
 }
 
-static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
-  // Look it up in the local scopes. Look in reverse order so that the most
-  // nested variable is found first and shadows outer ones.
+static int resolveLocal(Compiler* compiler, Token* name,
+                        bool inFunction) {
+  // Look it up in the local scopes. Look in reverse order so that the
+  // most nested variable is found first and shadows outer ones.
   for (int i = compiler->localCount - 1; i >= 0; i--) {
     Local* local = &compiler->locals[i];
     if (identifiersEqual(name, &local->name))
@@ -485,35 +491,38 @@ static int resolveLocal(Compiler* compiler, Token* name, bool inFunction) {
 }
 //> Closures not-yet
 
-// Adds an upvalue to [compiler]'s function with the given properties. Does not
-// add one if an upvalue for that variable is already in the list. Returns the
-// index of the upvalue.
+// Adds an upvalue to [compiler]'s function with the given properties.
+// Does not add one if an upvalue for that variable is already in the
+// list. Returns the index of the upvalue.
 static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
   // Look for an existing one.
-  for (int i = 0; i < compiler->function->upvalueCount; i++) {
+  int upvalueCount = compiler->function->upvalueCount;
+  for (int i = 0; i < upvalueCount; i++) {
     Upvalue* upvalue = &compiler->upvalues[i];
-    if (upvalue->index == index && upvalue->isLocal == isLocal) return i;
+    if (upvalue->index == index && upvalue->isLocal == isLocal) {
+      return i;
+    }
   }
 
   // If we got here, it's a new upvalue.
-  if (compiler->function->upvalueCount == UINT8_COUNT) {
+  if (upvalueCount == UINT8_COUNT) {
     error("Too many closure variables in function.");
     return 0;
   }
 
-  compiler->upvalues[compiler->function->upvalueCount].isLocal = isLocal;
-  compiler->upvalues[compiler->function->upvalueCount].index = index;
+  compiler->upvalues[upvalueCount].isLocal = isLocal;
+  compiler->upvalues[upvalueCount].index = index;
   return compiler->function->upvalueCount++;
 }
 
-// Attempts to look up [name] in the functions enclosing the one being compiled
-// by [compiler]. If found, it adds an upvalue for it to this compiler's list
-// of upvalues (unless it's already in there) and returns its index. If not
-// found, returns -1.
+// Attempts to look up [name] in the functions enclosing the one being
+// compiled by [compiler]. If found, it adds an upvalue for it to this
+// compiler's list of upvalues (unless it's already in there) and
+// returns its index. If not found, returns -1.
 //
-// If the name is found outside of the immediately enclosing function, this
-// will flatten the closure and add upvalues to all of the intermediate
-// functions so that it gets walked down to this one.
+// If the name is found outside of the immediately enclosing function,
+// this will flatten the closure and add upvalues to all of the
+// intermediate functions so that it gets walked down to this one.
 static int resolveUpvalue(Compiler* compiler, Token* name) {
   // If we are at the top level, we didn't find it.
   if (compiler->enclosing == NULL) return -1;
@@ -521,25 +530,25 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   // See if it's a local variable in the immediately enclosing function.
   int local = resolveLocal(compiler->enclosing, name, true);
   if (local != -1) {
-    // Mark the local as an upvalue so we know to close it when it goes out of
-    // scope.
+    // Mark the local as an upvalue so we know to close it when it goes
+    // out of scope.
     compiler->enclosing->locals[local].isUpvalue = true;
     return addUpvalue(compiler, (uint8_t)local, true);
   }
 
-  // See if it's an upvalue in the immediately enclosing function. In other
-  // words, if it's a local variable in a non-immediately enclosing function.
-  // This "flattens" closures automatically: it adds upvalues to all of the
-  // intermediate functions to get from the function where a local is declared
-  // all the way into the possibly deeply nested function that is closing over
-  // it.
+  // See if it's an upvalue in the immediately enclosing function. In
+  // other words, if it's a local variable in a non-immediately
+  // enclosing function. This "flattens" closures automatically: it
+  // adds upvalues to all of the intermediate functions to get from the
+  // function where a local is declared all the way into the possibly
+  // deeply nested function that is closing over it.
   int upvalue = resolveUpvalue(compiler->enclosing, name);
   if (upvalue != -1) {
     return addUpvalue(compiler, (uint8_t)upvalue, false);
   }
 
-  // If we got here, we walked all the way up the parent chain and couldn't
-  // find it.
+  // If we got here, we walked all the way up the parent chain and
+  // couldn't find it.
   return -1;
 }
 //< Closures not-yet
@@ -561,13 +570,14 @@ static void addLocal(Token name) {
   current->localCount++;
 }
 
-// Allocates a local slot for the value currently on the stack, if we're in a
-// local scope.
+// Allocates a local slot for the value currently on the stack, if
+// we're in a local scope.
 static void declareVariable() {
   // Global variables are implicitly declared.
   if (current->scopeDepth == 0) return;
 
-  // See if a local variable with this name is already declared in this scope.
+  // See if a local variable with this name is already declared in this
+  // scope.
   Token* name = &parser.previous;
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];
@@ -607,7 +617,8 @@ static void defineVariable(uint8_t global) {
     emitBytes(OP_DEFINE_GLOBAL, global);
   } else {
     // Mark the local as defined now.
-    current->locals[current->localCount - 1].depth = current->scopeDepth;
+    current->locals[current->localCount - 1].depth =
+        current->scopeDepth;
   }
 //< Local Variables not-yet
 }
@@ -764,8 +775,8 @@ static void or_(bool canAssign) {
   //   <--------------------'
   // ...
 
-  // If the operand is *true* we want to keep it, so when it's false, jump to
-  // the code to evaluate the right operand.
+  // If the operand is *true* we want to keep it, so when it's false,
+  // jump to the code to evaluate the right operand.
   int elseJump = emitJump(OP_JUMP_IF_FALSE);
 
   // If we get here, the operand is true, so jump to the end to keep it.
@@ -1074,8 +1085,8 @@ static void parsePrecedence(Precedence precedence) {
 //> Global Variables not-yet
 
   if (canAssign && match(TOKEN_EQUAL)) {
-    // If we get here, we didn't parse the "=" even though we could have, so
-    // the LHS must not be a valid lvalue.
+    // If we get here, we didn't parse the "=" even though we could
+    // have, so the LHS must not be a valid lvalue.
     error("Invalid assignment target.");
     expression();
   }
@@ -1145,8 +1156,8 @@ static void function(FunctionType type) {
   // Capture the upvalues in the new closure object.
   emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
 
-  // Emit arguments for each upvalue to know whether to capture a local or
-  // an upvalue.
+  // Emit arguments for each upvalue to know whether to capture a local
+  // or an upvalue.
   for (int i = 0; i < function->upvalueCount; i++) {
     emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(compiler.upvalues[i].index);
@@ -1303,7 +1314,8 @@ static void forStatement() {
 
   // Increment step.
   if (!match(TOKEN_RIGHT_PAREN)) {
-    // We don't want to execute the increment before the body, so jump over it.
+    // We don't want to execute the increment before the body, so jump
+    // over it.
     int bodyJump = emitJump(OP_JUMP);
 
     int incrementStart = currentChunk()->count;
@@ -1314,8 +1326,8 @@ static void forStatement() {
     // After the increment, start the whole loop over.
     emitLoop(loopStart);
 
-    // At the end of the body, we want to jump to the increment, not the top
-    // of the loop.
+    // At the end of the body, we want to jump to the increment, not
+    // the top of the loop.
     loopStart = incrementStart;
 
     patchJump(bodyJump);
@@ -1563,8 +1575,8 @@ ObjFunction* compile(const char* source) {
 //> Calls and Functions not-yet
   ObjFunction* function = endCompiler();
 
-  // If there was a compile error, the code is not valid, so don't create a
-  // function.
+  // If there was a compile error, the code is not valid, so don't
+  // create a function.
   return parser.hadError ? NULL : function;
 //< Calls and Functions not-yet
 }

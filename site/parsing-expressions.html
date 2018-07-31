@@ -447,19 +447,21 @@ rule translates to code roughly like:</p>
 create new file</div>
 <pre><span></span><span class="kn">package</span> <span class="nn">com.craftinginterpreters.lox</span><span class="o">;</span>
 
-<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>                                 
 
 <span class="kn">import static</span> <span class="nn">com.craftinginterpreters.lox.TokenType.*</span><span class="o">;</span>
 
-<span class="kd">class</span> <span class="nc">Parser</span> <span class="o">{</span>
-  <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="o">;</span>
-  <span class="kd">private</span> <span class="kt">int</span> <span class="n">current</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+<span class="kd">class</span> <span class="nc">Parser</span> <span class="o">{</span>                                         
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="o">;</span>                    
+  <span class="kd">private</span> <span class="kt">int</span> <span class="n">current</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>                             
 
-  <span class="n">Parser</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">this</span><span class="o">.</span><span class="na">tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+  <span class="n">Parser</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="o">)</span> <span class="o">{</span>                         
+    <span class="k">this</span><span class="o">.</span><span class="na">tokens</span> <span class="o">=</span> <span class="n">tokens</span><span class="o">;</span>                              
+  <span class="o">}</span>                                                    
+<span class="o">}</span>                                                      
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, create new file</div>
 
 <p>Like the scanner, it consumes a sequence, only now we&rsquo;re working at the level of
 entire tokens. It takes in a list of tokens and uses <code>current</code> to point to the
@@ -470,9 +472,11 @@ each rule to Java code. The first rule, <code>expression</code>, simply expands 
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>Parser</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">expression</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">return</span> <span class="n">equality</span><span class="o">();</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">equality</span><span class="o">();</span>       
+  <span class="o">}</span>                          
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>Parser</em>()</div>
 
 <p>Each method for parsing a grammar rule produces a syntax tree for that rule and
 returns it to the caller. When the body of the rule contains a nonterminal<span class="em">&mdash;</span>a
@@ -491,18 +495,20 @@ and so on, until the parser hits a stack overflow and dies.</p>
 <p>In Java, that becomes:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expression</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">equality</span><span class="o">()</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">equality</span><span class="o">()</span> <span class="o">{</span>                         
     <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">();</span>
 
-    <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">BANG_EQUAL</span><span class="o">,</span> <span class="n">EQUAL_EQUAL</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>
-      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">();</span>
+    <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">BANG_EQUAL</span><span class="o">,</span> <span class="n">EQUAL_EQUAL</span><span class="o">))</span> <span class="o">{</span>        
+      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                  
+      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">();</span>                    
       <span class="n">expr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-    <span class="o">}</span>
+    <span class="o">}</span>                                               
 
-    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>                                    
+  <span class="o">}</span>                                                 
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expression</em>()</div>
 
 <p>Let&rsquo;s step through it. The left <code>comparison</code> nonterminal in the body is
 translated to the first call to <code>comparison()</code> and we store that in a local
@@ -515,16 +521,18 @@ with the sequence of equality operators. We express that check using a handy
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>equality</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">match</span><span class="o">(</span><span class="n">TokenType</span><span class="o">...</span> <span class="n">types</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">for</span> <span class="o">(</span><span class="n">TokenType</span> <span class="n">type</span> <span class="o">:</span> <span class="n">types</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">if</span> <span class="o">(</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="o">{</span>
-        <span class="n">advance</span><span class="o">();</span>
-        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
-      <span class="o">}</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">TokenType</span> <span class="n">type</span> <span class="o">:</span> <span class="n">types</span><span class="o">)</span> <span class="o">{</span>           
+      <span class="k">if</span> <span class="o">(</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="o">{</span>                     
+        <span class="n">advance</span><span class="o">();</span>                           
+        <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>                         
+      <span class="o">}</span>                                      
     <span class="o">}</span>
 
-    <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>                            
+  <span class="o">}</span>                                          
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>equality</em>()</div>
 
 <p>It checks to see if the current token is any of the given types. If so, it
 consumes it and returns <code>true</code>. Otherwise, it returns <code>false</code> and leaves the
@@ -533,38 +541,44 @@ token where it is.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>match</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">check</span><span class="o">(</span><span class="n">TokenType</span> <span class="n">tokenType</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
-    <span class="k">return</span> <span class="n">peek</span><span class="o">().</span><span class="na">type</span> <span class="o">==</span> <span class="n">tokenType</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>              
+    <span class="k">return</span> <span class="n">peek</span><span class="o">().</span><span class="na">type</span> <span class="o">==</span> <span class="n">tokenType</span><span class="o">;</span>          
+  <span class="o">}</span>                                           
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>match</em>()</div>
 
 <p>This returns <code>true</code> if the current token is of the given type. Unlike <code>match()</code>,
 it doesn&rsquo;t consume the token, it only looks at it.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>check</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">advance</span><span class="o">()</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">advance</span><span class="o">()</span> <span class="o">{</span>   
     <span class="k">if</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="n">current</span><span class="o">++;</span>
-    <span class="k">return</span> <span class="n">previous</span><span class="o">();</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">previous</span><span class="o">();</span>        
+  <span class="o">}</span>                           
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>check</em>()</div>
 
 <p>This consumes the current token and returns it, similar to how our scanner&rsquo;s
 <code>advance()</code> method did with characters.</p>
 <p>These methods bottom out on the last handful of primitive operations:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>advance</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isAtEnd</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">return</span> <span class="n">peek</span><span class="o">().</span><span class="na">type</span> <span class="o">==</span> <span class="n">EOF</span><span class="o">;</span>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isAtEnd</span><span class="o">()</span> <span class="o">{</span>      
+    <span class="k">return</span> <span class="n">peek</span><span class="o">().</span><span class="na">type</span> <span class="o">==</span> <span class="n">EOF</span><span class="o">;</span>     
   <span class="o">}</span>
 
-  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">peek</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">return</span> <span class="n">tokens</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">current</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">peek</span><span class="o">()</span> <span class="o">{</span>           
+    <span class="k">return</span> <span class="n">tokens</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">current</span><span class="o">);</span>    
+  <span class="o">}</span>                                
 
-  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">previous</span><span class="o">()</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">previous</span><span class="o">()</span> <span class="o">{</span>       
     <span class="k">return</span> <span class="n">tokens</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">current</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="o">}</span>                                
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>advance</em>()</div>
 
 <p><code>isAtEnd()</code> checks if we&rsquo;ve run out of tokens to parse. <code>peek()</code> returns the
 current token we have yet to consume and <code>previous()</code> returns the most recently
@@ -599,18 +613,20 @@ this method matches an equality operator <em>or anything of higher precedence</e
 <p>Translated to Java:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>equality</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">comparison</span><span class="o">()</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">comparison</span><span class="o">()</span> <span class="o">{</span>                                
     <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">addition</span><span class="o">();</span>
 
     <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">GREATER</span><span class="o">,</span> <span class="n">GREATER_EQUAL</span><span class="o">,</span> <span class="n">LESS</span><span class="o">,</span> <span class="n">LESS_EQUAL</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>
-      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">addition</span><span class="o">();</span>
-      <span class="n">expr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-    <span class="o">}</span>
+      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                           
+      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">addition</span><span class="o">();</span>                               
+      <span class="n">expr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>         
+    <span class="o">}</span>                                                        
 
-    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>                                             
+  <span class="o">}</span>                                                          
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>equality</em>()</div>
 
 <p>The grammar rule is virtually identical to <code>equality</code> and so is the
 corresponding code. The only <span name="handle">differences</span> are the
@@ -624,30 +640,32 @@ types and an operand method handle and unify some of this redundant code.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>comparison</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">addition</span><span class="o">()</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">addition</span><span class="o">()</span> <span class="o">{</span>                         
     <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">multiplication</span><span class="o">();</span>
 
-    <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">MINUS</span><span class="o">,</span> <span class="n">PLUS</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>
-      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">multiplication</span><span class="o">();</span>
+    <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">MINUS</span><span class="o">,</span> <span class="n">PLUS</span><span class="o">))</span> <span class="o">{</span>                    
+      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                  
+      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">multiplication</span><span class="o">();</span>                
       <span class="n">expr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-    <span class="o">}</span>
+    <span class="o">}</span>                                               
 
-    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>                                    
+  <span class="o">}</span>                                                 
 
-  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">multiplication</span><span class="o">()</span> <span class="o">{</span>
-    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>
+  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">multiplication</span><span class="o">()</span> <span class="o">{</span>                   
+    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>                            
 
-    <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">SLASH</span><span class="o">,</span> <span class="n">STAR</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>
-      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>
+    <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">SLASH</span><span class="o">,</span> <span class="n">STAR</span><span class="o">))</span> <span class="o">{</span>                    
+      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                  
+      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>                         
       <span class="n">expr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Binary</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-    <span class="o">}</span>
+    <span class="o">}</span>                                               
 
-    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">expr</span><span class="o">;</span>                                    
+  <span class="o">}</span>                                                 
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>comparison</em>()</div>
 
 <p>That&rsquo;s all of the binary operators, parsed with the correct precedence and
 associativity. We&rsquo;re crawling up the precedence hierarchy and now we&rsquo;ve reached
@@ -660,16 +678,18 @@ the unary operators:</p>
 <p>The code for this is a little different:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>multiplication</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">unary</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">BANG</span><span class="o">,</span> <span class="n">MINUS</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>
-      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>
+<pre><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">unary</span><span class="o">()</span> <span class="o">{</span>                     
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">BANG</span><span class="o">,</span> <span class="n">MINUS</span><span class="o">))</span> <span class="o">{</span>                
+      <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>           
+      <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>                  
       <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Unary</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
     <span class="o">}</span>
 
-    <span class="k">return</span> <span class="n">primary</span><span class="o">();</span>
-  <span class="o">}</span>
+    <span class="k">return</span> <span class="n">primary</span><span class="o">();</span>                        
+  <span class="o">}</span>                                          
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>multiplication</em>()</div>
 
 <p>Again, we look at the <span name="current">current<span> token to see how to
 parse. If it&rsquo;s a <code>!</code> or <code>-</code>, we must have a unary expression. In that case, we
@@ -690,22 +710,24 @@ expressions.</p>
 straightforward:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>unary</em>()</div>
-<pre><br><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">primary</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">FALSE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">TRUE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+<pre><br><span></span>  <span class="kd">private</span> <span class="n">Expr</span> <span class="nf">primary</span><span class="o">()</span> <span class="o">{</span>                                 
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">FALSE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>      
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">TRUE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>        
     <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">NIL</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
 
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">NUMBER</span><span class="o">,</span> <span class="n">STRING</span><span class="o">))</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="na">literal</span><span class="o">);</span>
-    <span class="o">}</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">NUMBER</span><span class="o">,</span> <span class="n">STRING</span><span class="o">))</span> <span class="o">{</span>                           
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="na">literal</span><span class="o">);</span>         
+    <span class="o">}</span>                                                      
 
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                               
+      <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>                            
       <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after expression.&quot;</span><span class="o">);</span>
-      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>                      
+    <span class="o">}</span>                                                      
+  <span class="o">}</span>                                                        
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>unary</em>()</div>
 
 <p>The interesting branch is the one for handling parentheses. After we match an
 opening <code>(</code> and parse the expression inside it, we <em>must</em> find a <code>)</code> token. If
@@ -827,9 +849,11 @@ add after <em>match</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">Token</span> <span class="nf">consume</span><span class="o">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="k">return</span> <span class="n">advance</span><span class="o">();</span>
 
-    <span class="k">throw</span> <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="n">message</span><span class="o">);</span>
-  <span class="o">}</span>
+    <span class="k">throw</span> <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="n">message</span><span class="o">);</span>                        
+  <span class="o">}</span>                                                      
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>match</em>()</div>
 
 <p>It&rsquo;s similar to <code>match()</code> in that it checks to see if the next token is of the
 expected type. If so, it consumes it and everything is groovy. If some other
@@ -837,22 +861,26 @@ token is there, then we&rsquo;ve hit an error. We report it by calling this:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>previous</em>()</div>
 <pre><span></span>  <span class="kd">private</span> <span class="n">ParseError</span> <span class="nf">error</span><span class="o">(</span><span class="n">Token</span> <span class="n">token</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">token</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="n">ParseError</span><span class="o">();</span>
-  <span class="o">}</span>
+    <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">token</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>                           
+    <span class="k">return</span> <span class="k">new</span> <span class="n">ParseError</span><span class="o">();</span>                             
+  <span class="o">}</span>                                                      
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>previous</em>()</div>
 
 <p>First, that shows the error to the user by calling:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>report</em>()</div>
-<pre><span></span>  <span class="kd">static</span> <span class="kt">void</span> <span class="nf">error</span><span class="o">(</span><span class="n">Token</span> <span class="n">token</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">type</span> <span class="o">==</span> <span class="n">TokenType</span><span class="o">.</span><span class="na">EOF</span><span class="o">)</span> <span class="o">{</span>
-      <span class="n">report</span><span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">line</span><span class="o">,</span> <span class="s">&quot; at end&quot;</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
-    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">static</span> <span class="kt">void</span> <span class="nf">error</span><span class="o">(</span><span class="n">Token</span> <span class="n">token</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>              
+    <span class="k">if</span> <span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">type</span> <span class="o">==</span> <span class="n">TokenType</span><span class="o">.</span><span class="na">EOF</span><span class="o">)</span> <span class="o">{</span>                          
+      <span class="n">report</span><span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">line</span><span class="o">,</span> <span class="s">&quot; at end&quot;</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>                   
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                                    
       <span class="n">report</span><span class="o">(</span><span class="n">token</span><span class="o">.</span><span class="na">line</span><span class="o">,</span> <span class="s">&quot; at &#39;&quot;</span> <span class="o">+</span> <span class="n">token</span><span class="o">.</span><span class="na">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+    <span class="o">}</span>                                                           
+  <span class="o">}</span>                                                             
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>report</em>()</div>
 
 <p>This reports an error at a given token. It shows the token&rsquo;s location and the
 token itself. This will come in handy later since we use tokens throughout the
@@ -860,12 +888,14 @@ interpreter to track locations in code.</p>
 <p>After this is called, the user knows about the syntax error, but what does the
 <em>parser</em> do next? Back in <code>error()</code>, it creates and returns a ParseError, an
 instance of:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Parser</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Parser</span> <span class="o">{</span>                                               
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in class <em>Parser</em></div>
 <pre class="insert"><span></span>  <span class="kd">private</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">ParseError</span> <span class="kd">extends</span> <span class="n">RuntimeException</span> <span class="o">{}</span>
-<br></pre><pre class="insert-after"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="o">;</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="o">;</span>                          
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, in class <em>Parser</em></div>
 
 <p>This is a simple sentinel class we use to unwind the parser. The <code>error()</code>
 method <em>returns</em> it instead of <em>throwing</em> because we want to let the caller
@@ -925,28 +955,30 @@ the first error precisely, so everything after that is kind of &ldquo;best effor
 <p>This method encapsulates that logic:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>error</em>()</div>
-<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">synchronize</span><span class="o">()</span> <span class="o">{</span>
+<pre><span></span>  <span class="kd">private</span> <span class="kt">void</span> <span class="nf">synchronize</span><span class="o">()</span> <span class="o">{</span>                 
     <span class="n">advance</span><span class="o">();</span>
 
-    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>
+    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                       
       <span class="k">if</span> <span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="na">type</span> <span class="o">==</span> <span class="n">SEMICOLON</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
 
-      <span class="k">switch</span> <span class="o">(</span><span class="n">peek</span><span class="o">().</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">case</span> <span class="n">CLASS</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">FUN</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">VAR</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">FOR</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">IF</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">WHILE</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">PRINT</span><span class="o">:</span>
-        <span class="k">case</span> <span class="n">RETURN</span><span class="o">:</span>
-          <span class="k">return</span><span class="o">;</span>
-      <span class="o">}</span>
+      <span class="k">switch</span> <span class="o">(</span><span class="n">peek</span><span class="o">().</span><span class="na">type</span><span class="o">)</span> <span class="o">{</span>                   
+        <span class="k">case</span> <span class="n">CLASS</span><span class="o">:</span>                            
+        <span class="k">case</span> <span class="n">FUN</span><span class="o">:</span>                              
+        <span class="k">case</span> <span class="n">VAR</span><span class="o">:</span>                              
+        <span class="k">case</span> <span class="n">FOR</span><span class="o">:</span>                              
+        <span class="k">case</span> <span class="n">IF</span><span class="o">:</span>                               
+        <span class="k">case</span> <span class="n">WHILE</span><span class="o">:</span>                            
+        <span class="k">case</span> <span class="n">PRINT</span><span class="o">:</span>                            
+        <span class="k">case</span> <span class="n">RETURN</span><span class="o">:</span>                           
+          <span class="k">return</span><span class="o">;</span>                              
+      <span class="o">}</span>                                        
 
-      <span class="n">advance</span><span class="o">();</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+      <span class="n">advance</span><span class="o">();</span>                               
+    <span class="o">}</span>                                          
+  <span class="o">}</span>                                            
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>error</em>()</div>
 
 <p>It discards tokens until it thinks it found a statement boundary. After catching
 a ParseError, we&rsquo;ll call this and then we are hopefully back in sync. When it
@@ -963,29 +995,33 @@ need to add a little error handling. As the parser descends through the parsing
 methods for each grammar rule, it eventually hits <code>primary()</code>. If none of the
 cases in there match, it means we are sitting on a token that can&rsquo;t start an
 expression. We need to handle that error too:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>
-      <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                               
+      <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>                            
       <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after expression.&quot;</span><span class="o">);</span>
-      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>
-    <span class="o">}</span>
+      <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Grouping</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>                      
+    <span class="o">}</span>                                                      
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>primary</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">throw</span> <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Expect expression.&quot;</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+<pre class="insert"><br><span></span>    <span class="k">throw</span> <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Expect expression.&quot;</span><span class="o">);</span>             
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                        
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
 
 <p>With that, all that remains in the parser is to define an initial method to kick
 it off. It&rsquo;s called, naturally enough, <code>parse()</code>:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>Parser</em>()</div>
-<pre><span></span>  <span class="n">Expr</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">try</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="n">expression</span><span class="o">();</span>
+<pre><span></span>  <span class="n">Expr</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>                
+    <span class="k">try</span> <span class="o">{</span>                       
+      <span class="k">return</span> <span class="n">expression</span><span class="o">();</span>      
     <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">ParseError</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
+      <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>              
+    <span class="o">}</span>                           
+  <span class="o">}</span>                             
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>Parser</em>()</div>
 
 <p>We&rsquo;ll revisit this method later when we add statements to the language. For now,
 it parses a single expression and returns it. We also have some temporary code
@@ -1000,19 +1036,21 @@ out. We still don&rsquo;t have an interpreter so, for now, we&rsquo;ll parse to 
 tree and then use the AstPrinter class from the <a href="representing-code.html#a-(not-very)-pretty-printer">last chapter</a> to
 display it.</p>
 <p>Delete the old code to print the scanned tokens and replace it with this:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="na">scanTokens</span><span class="o">();</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">scanner</span><span class="o">.</span><span class="na">scanTokens</span><span class="o">();</span>             
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>run</em>()<br>
 replace 5 lines</div>
-<pre class="insert"><span></span>    <span class="n">Parser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Parser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
+<pre class="insert"><span></span>    <span class="n">Parser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Parser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>                    
     <span class="n">Expr</span> <span class="n">expression</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="na">parse</span><span class="o">();</span>
 
-    <span class="c1">// Stop if there was a syntax error.</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
+    <span class="c1">// Stop if there was a syntax error.                   </span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>                                  
 
     <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="k">new</span> <span class="n">AstPrinter</span><span class="o">().</span><span class="na">print</span><span class="o">(</span><span class="n">expression</span><span class="o">));</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                        
 </pre></div>
+
+<div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>(), replace 5 lines</div>
 
 <p>Congratulations, you have crossed the <span name="harder">threshold</span>! That
 really is all there is to hand-writing a parser. We&rsquo;ll extend the grammar in

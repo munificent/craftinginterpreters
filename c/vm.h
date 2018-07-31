@@ -19,8 +19,8 @@
 #define STACK_MAX 256
 */
 //> Calls and Functions not-yet
-// TODO: Don't depend on frame count for stack count since we have stack before
-// frames?
+// TODO: Don't depend on frame count for stack count since we have
+// stack before frames?
 #define FRAMES_MAX 64
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 

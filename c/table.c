@@ -30,14 +30,16 @@ void freeTable(Table* table) {
   initTable(table);
 }
 
-// Finds the entry where [key] should be. If the key is not already present in
-// the table, this will be an unused entry. Otherwise, it will be the existing
-// entry for that key.
+// Finds the entry where [key] should be. If the key is not already
+// present in the table, this will be an unused entry. Otherwise, it
+// will be the existing entry for that key.
 /* Hash Tables not-yet < Optimization not-yet
-static uint32_t findEntry(Entry* entries, int capacity, ObjString* key) {
+static uint32_t findEntry(Entry* entries, int capacity,
+                          ObjString* key) {
 */
 //> Optimization not-yet
-static uint32_t findEntry(Entry* entries, int capacityMask, ObjString* key) {
+static uint32_t findEntry(Entry* entries, int capacityMask,
+                          ObjString* key) {
 //< Optimization not-yet
   // Figure out where to insert it in the table. Use open addressing and
   // basic linear probing.
@@ -189,9 +191,9 @@ bool tableDelete(Table* table, ObjString* key) {
   entry->value = NIL_VAL;
   table->count--;
 
-  // Later entries may have been pushed past this one and may need to be pushed
-  // up to fill the hole. The simplest way to handle that is to just re-add
-  // them all until we hit an empty entry.
+  // Later entries may have been pushed past this one and may need to
+  // be pushed up to fill the hole. The simplest way to handle that is
+  // to just re-add them all until we hit an empty entry.
   for (;;) {
 /* Hash Tables not-yet < Optimization not-yet
     index = (index + 1) % table->capacity;
