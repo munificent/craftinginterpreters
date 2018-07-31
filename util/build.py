@@ -102,7 +102,7 @@ def get_part_chapters(title):
   return chapters
 
 
-def format_code(language, lines):
+def format_code(language, length, lines):
   markup = '```{}\n'.format(language)
 
   # Hack. Markdown seems to discard leading and trailing newlines, so we'll
@@ -118,7 +118,7 @@ def format_code(language, lines):
     trailing_newlines += 1
 
   for line in lines:
-    markup += line + '\n'
+    markup += line.ljust(length, ' ') + '\n'
 
   markup += '```'
 
@@ -134,6 +134,16 @@ def format_code(language, lines):
   html = html.replace('<div class="codehilite">', '')
   html = html.replace('</div>', '')
   return html
+
+
+def longest_line(longest, lines):
+  """ Returns the length of the longest line in lines, or [longest], whichever
+  is longer.
+  """
+  for line in lines:
+    longest = max(longest, len(line))
+
+  return longest
 
 
 def insert_snippet(snippets, arg, contents, errors):
@@ -179,50 +189,71 @@ def insert_snippet(snippets, arg, contents, errors):
   # Consume it.
   snippets[name] = False
 
+  location = []
+  if show_location:
+    location.append('<em>{}</em>'.format(snippet.file.nice_path()))
+
+    if snippet.location():
+      location.append('{}'.format(snippet.location()))
+
+    if snippet.removed and snippet.added:
+      location.append('replace {} line{}'.format(
+          len(snippet.removed), '' if len(snippet.removed) == 1 else 's'))
+    elif snippet.removed and not snippet.added:
+      location.append('remove {} line{}'.format(
+          len(snippet.removed), '' if len(snippet.removed) == 1 else 's'))
+
   # TODO: Show indentation in snippets somehow.
+
+  # Figure out the length of the longest line. We pad all of the snippets to
+  # this length so that the background on the pre sections is as wide as the
+  # entire chunk of code.
+  length = 0
+  if before_lines > 0:
+    length = longest_line(length, snippet.context_before[-before_lines:])
+  if snippet.removed and not snippet.added:
+    length = longest_line(length, snippet.removed)
+  if snippet.added:
+    length = longest_line(length, snippet.added)
+  if after_lines > 0:
+    length = longest_line(length, snippet.context_after[:after_lines])
 
   contents += '<div class="codehilite">'
 
   if before_lines > 0:
-    before = format_code(snippet.file.language(),
+    before = format_code(snippet.file.language(), length,
         snippet.context_before[-before_lines:])
     if snippet.added:
       before = before.replace('<pre>', '<pre class="insert-before">')
     contents += before
 
   if show_location:
-    where = '<em>{}</em>'.format(snippet.file.nice_path())
-
-    if snippet.location():
-      where += '<br>\n{}'.format(snippet.location())
-
-    if snippet.removed and snippet.added:
-      where += '<br>\nreplace {} line{}'.format(
-          len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
-    elif snippet.removed and not snippet.added:
-      where += '<br>\nremove {} line{}'.format(
-          len(snippet.removed), '' if len(snippet.removed) == 1 else 's')
-    contents += '<div class="source-file">{}</div>\n'.format(where)
+    contents += '<div class="source-file">{}</div>\n'.format(
+        '<br>\n'.join(location))
 
   if snippet.removed and not snippet.added:
-    removed = format_code(snippet.file.language(), snippet.removed)
+    removed = format_code(snippet.file.language(), length, snippet.removed)
     removed = removed.replace('<pre>', '<pre class="delete">')
     contents += removed
 
   if snippet.added:
-    added = format_code(snippet.file.language(), snippet.added)
+    added = format_code(snippet.file.language(), length, snippet.added)
     if before_lines > 0 or after_lines > 0:
       added = added.replace('<pre>', '<pre class="insert">')
     contents += added
 
   if after_lines > 0:
-    after = format_code(snippet.file.language(),
+    after = format_code(snippet.file.language(), length,
         snippet.context_after[:after_lines])
     if snippet.added:
       after = after.replace('<pre>', '<pre class="insert-after">')
     contents += after
 
   contents += '</div>'
+
+  if show_location:
+    contents += '<div class="source-file-narrow">{}</div>\n'.format(
+        ', '.join(location))
 
   return contents
 

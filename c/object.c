@@ -33,7 +33,8 @@ static Obj* allocateObject(size_t size, ObjType type) {
 //> Methods and Initializers not-yet
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
-  ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+  ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod,
+                                       OBJ_BOUND_METHOD);
 
   bound->receiver = receiver;
   bound->method = method;
@@ -62,8 +63,8 @@ ObjClass* newClass(ObjString* name, ObjClass* superclass) {
 //> Closures not-yet
 
 ObjClosure* newClosure(ObjFunction* function) {
-  // Allocate the upvalue array first so it doesn't cause the closure to get
-  // collected.
+  // Allocate the upvalue array first so it doesn't cause the closure
+  // to get collected.
   ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
@@ -112,7 +113,8 @@ ObjNative* newNative(NativeFn function) {
 static ObjString* allocateString(char* chars, int length) {
 */
 //> Hash Tables not-yet
-static ObjString* allocateString(char* chars, int length, uint32_t hash) {
+static ObjString* allocateString(char* chars, int length,
+                                 uint32_t hash) {
 //< Hash Tables not-yet
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
@@ -139,9 +141,9 @@ static uint32_t hashString(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
   uint32_t hash = 2166136261u;
 
-  // This is O(n) on the length of the string, but we only call this when a new
-  // string is created. Since the creation is also O(n) (to copy/initialize all
-  // the bytes), we allow this here.
+  // This is O(n) on the length of the string, but we only call this
+  // when a new string is created. Since the creation is also O(n) (to
+  // copy/initialize all the bytes), we allow this here.
   for (int i = 0; i < length; i++) {
     hash ^= key[i];
     hash *= 16777619;
@@ -157,7 +159,8 @@ ObjString* takeString(char* chars, int length) {
 */
 //> Hash Tables not-yet
   uint32_t hash = hashString(chars, length);
-  ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+  ObjString* interned = tableFindString(&vm.strings, chars, length,
+                                        hash);
   if (interned != NULL) return interned;
 
   return allocateString(chars, length, hash);
@@ -167,7 +170,8 @@ ObjString* takeString(char* chars, int length) {
 ObjString* copyString(const char* chars, int length) {
 //> Hash Tables not-yet
   uint32_t hash = hashString(chars, length);
-  ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
+  ObjString* interned = tableFindString(&vm.strings, chars, length,
+                                        hash);
   if (interned != NULL) return interned;
 
 //< Hash Tables not-yet

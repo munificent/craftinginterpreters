@@ -176,7 +176,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_CALL_6:
     case OP_CALL_7:
     case OP_CALL_8:
-      return simpleInstructionN("OP_CALL", instruction - OP_CALL_0, offset);
+      return simpleInstructionN("OP_CALL", instruction - OP_CALL_0,
+                                offset);
 //< Calls and Functions not-yet
 //> Methods and Initializers not-yet
     case OP_INVOKE_0:
@@ -213,7 +214,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       printValue(chunk->constants.values[constant]);
       printf("\n");
 
-      ObjFunction* function = AS_FUNCTION(chunk->constants.values[constant]);
+      ObjFunction* function = AS_FUNCTION(
+          chunk->constants.values[constant]);
       for (int j = 0; j < function->upvalueCount; j++) {
         int isLocal = chunk->code[offset++];
         int index = chunk->code[offset++];

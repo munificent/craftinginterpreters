@@ -53,7 +53,8 @@ static void runtimeError(const char* format, ...) {
 
 /* Types of Values not-yet < Calls and Functions not-yet
   size_t instruction = vm.ip - vm.chunk->code;
-  fprintf(stderr, "[line %d] in script\n", vm.chunk->lines[instruction]);
+  fprintf(stderr, "[line %d] in script\n",
+          vm.chunk->lines[instruction]);
 */
 //> Calls and Functions not-yet
   for (int i = vm.frameCount - 1; i >= 0; i--) {
@@ -64,9 +65,11 @@ static void runtimeError(const char* format, ...) {
 //> Closures not-yet
     ObjFunction* function = frame->closure->function;
 //< Closures not-yet
-    // -1 because the IP is sitting on the next instruction to be executed.
+    // -1 because the IP is sitting on the next instruction to be
+    // executed.
     size_t instruction = frame->ip - function->chunk.code - 1;
-    fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
+    fprintf(stderr, "[line %d] in ",
+            function->chunk.lines[instruction]);
     if (function->name == NULL) {
       fprintf(stderr, "script\n");
     } else {
@@ -198,8 +201,8 @@ static bool callValue(Value callee, int argCount) {
       case OBJ_BOUND_METHOD: {
         ObjBoundMethod* bound = AS_BOUND_METHOD(callee);
 
-        // Replace the bound method with the receiver so it's in the right slot
-        // when the method is called.
+        // Replace the bound method with the receiver so it's in the
+        // right slot when the method is called.
         vm.stackTop[-argCount - 1] = bound->receiver;
         return call(bound->method, argCount);
       }
@@ -256,7 +259,8 @@ static bool callValue(Value callee, int argCount) {
 //< Calls and Functions not-yet
 //> Methods and Initializers not-yet
 
-static bool invokeFromClass(ObjClass* klass, ObjString* name, int argCount) {
+static bool invokeFromClass(ObjClass* klass, ObjString* name,
+                            int argCount) {
   // Look for the method.
   Value method;
   if (!tableGet(&klass->methods, name, &method)) {
@@ -302,11 +306,11 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
 //< Methods and Initializers not-yet
 //> Closures not-yet
 
-// Captures the local variable [local] into an [Upvalue]. If that local is
-// already in an upvalue, the existing one is used. (This is important to
-// ensure that multiple closures closing over the same variable actually see
-// the same variable.) Otherwise, it creates a new open upvalue and adds it to
-// the VM's list of upvalues.
+// Captures the local variable [local] into an [Upvalue]. If that local
+// is already in an upvalue, the existing one is used. (This is
+// important to ensure that multiple closures closing over the same
+// variable actually see the same variable.) Otherwise, it creates a
+// new open upvalue and adds it to the VM's list of upvalues.
 static ObjUpvalue* captureUpvalue(Value* local) {
   // If there are no open upvalues at all, we must need a new one.
   if (vm.openUpvalues == NULL) {
@@ -317,8 +321,8 @@ static ObjUpvalue* captureUpvalue(Value* local) {
   ObjUpvalue* prevUpvalue = NULL;
   ObjUpvalue* upvalue = vm.openUpvalues;
 
-  // Walk towards the bottom of the stack until we find a previously existing
-  // upvalue or reach where it should be.
+  // Walk towards the bottom of the stack until we find a previously
+  // existing upvalue or reach where it should be.
   while (upvalue != NULL && upvalue->value > local) {
     prevUpvalue = upvalue;
     upvalue = upvalue->next;
@@ -327,9 +331,9 @@ static ObjUpvalue* captureUpvalue(Value* local) {
   // If we found it, reuse it.
   if (upvalue != NULL && upvalue->value == local) return upvalue;
 
-  // We walked past the local on the stack, so there must not be an upvalue for
-  // it already. Make a new one and link it in in the right place to keep the
-  // list sorted.
+  // We walked past the local on the stack, so there must not be an
+  // upvalue for it already. Make a new one and link it in in the right
+  // place to keep the list sorted.
   ObjUpvalue* createdUpvalue = newUpvalue(local);
   createdUpvalue->next = upvalue;
 
@@ -348,7 +352,8 @@ static void closeUpvalues(Value* last) {
          vm.openUpvalues->value >= last) {
     ObjUpvalue* upvalue = vm.openUpvalues;
 
-    // Move the value into the upvalue itself and point the upvalue to it.
+    // Move the value into the upvalue itself and point the upvalue to
+    // it.
     upvalue->closed = *upvalue->value;
     upvalue->value = &upvalue->closed;
 
@@ -431,16 +436,20 @@ static InterpretResult run() {
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
 /* Jumping Forward and Back not-yet < Calls and Functions not-yet
-#define READ_SHORT() (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
+#define READ_SHORT() \
+    (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
 #define READ_BYTE() (*frame->ip++)
-#define READ_SHORT() (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
+#define READ_SHORT() \
+    (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 //< Calls and Functions not-yet
 /* Calls and Functions not-yet < Closures not-yet
-#define READ_CONSTANT() (frame->function->chunk.constants.values[READ_BYTE()])
+#define READ_CONSTANT() \
+    (frame->function->chunk.constants.values[READ_BYTE()])
 */
 //> Closures not-yet
-#define READ_CONSTANT() (frame->closure->function->chunk.constants.values[READ_BYTE()])
+#define READ_CONSTANT() \
+    (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //< Closures not-yet
 //> Global Variables not-yet
 #define READ_STRING() AS_STRING(READ_CONSTANT())
@@ -806,8 +815,8 @@ static InterpretResult run() {
       case OP_CLOSURE: {
         ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
 
-        // Create the closure and push it on the stack before creating upvalues
-        // so that it doesn't get collected.
+        // Create the closure and push it on the stack before creating
+        // upvalues so that it doesn't get collected.
         ObjClosure* closure = newClosure(function);
         push(OBJ_VAL(closure));
 
@@ -816,7 +825,8 @@ static InterpretResult run() {
           uint8_t isLocal = READ_BYTE();
           uint8_t index = READ_BYTE();
           if (isLocal) {
-            // Make an new upvalue to close over the parent's local variable.
+            // Make an new upvalue to close over the parent's local
+            // variable.
             closure->upvalues[i] = captureUpvalue(frame->slots + index);
           } else {
             // Use the same upvalue as the current call frame.
@@ -917,8 +927,8 @@ InterpretResult interpret(Chunk* chunk) {
 //> Scanning on Demand vm-interpret-c
 InterpretResult interpret(const char* source) {
 /* Scanning on Demand omit < Compiling Expressions interpret-chunk
-  // Hack to avoid unused function error. run() is not used in the scanning
-  // chapter.
+  // Hack to avoid unused function error. run() is not used in the
+  // scanning chapter.
   if (false) run();
 */
 /* Scanning on Demand vm-interpret-c < Compiling Expressions interpret-chunk
