@@ -337,7 +337,7 @@ even have Booleans. For this chapter, we're only going to worry about:
 * Number literals: `123`.
 * Parentheses for grouping: `(123)`.
 * Unary negation: `-123`.
-* The Four Horsemen of binary arithmetic: `+`, `-`, `*`, `/`.
+* The Four Horsemen of the Arithmetic: `+`, `-`, `*`, `/`.
 
 As we work through the functions to compile each of those kinds of expressions,
 we'll also assemble the requirements for the table-driven parser that calls
