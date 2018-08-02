@@ -54,6 +54,7 @@ END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
 CLASS_PATTERN = re.compile(r'(public )?(abstract )?(class|interface) (\w+)')
+ENUM_PATTERN = re.compile(r'  private enum (\w+)')
 NESTED_CLASS_PATTERN = re.compile(r'  static class (\w+)')
 TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union) {')
 TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
@@ -179,6 +180,15 @@ class SourceCode:
         i += 1
       snippet.context_after = after
 
+    # Find line changes that just add a trailing comma.
+    for name, snippet in snippets.items():
+      if (len(snippet.added) > 0 and
+          len(snippet.removed) > 0 and
+          snippet.added[0] == snippet.removed[-1] + ","):
+        snippet.added_comma = snippet.added[0]
+        del snippet.added[0]
+        del snippet.removed[-1]
+
     return snippets
 
   def split_chapter(self, file, chapter, name):
@@ -269,6 +279,10 @@ class Snippet:
     self.added = []
     self.removed = []
     self.context_after = []
+
+    # If the snippet replaces a line with the same line but with a trailing
+    # comma, this is that line (with the comma).
+    self.added_comma = None
 
     self.function = None
     self.preceding_function = None
@@ -427,6 +441,11 @@ def load_file(source_code, source_dir, path):
       if match:
         current_kind = match.group(3)
         current_type = match.group(4)
+
+      match = ENUM_PATTERN.match(line)
+      if match:
+        current_kind = 'enum'
+        current_type = match.group(1)
 
       match = TYPEDEF_PATTERN.match(line)
       if match:
