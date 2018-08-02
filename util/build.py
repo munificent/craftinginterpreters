@@ -203,6 +203,9 @@ def insert_snippet(snippets, arg, contents, errors):
       location.append('remove {} line{}'.format(
           len(snippet.removed), '' if len(snippet.removed) == 1 else 's'))
 
+    if snippet.added_comma:
+      location.append('add <em>&ldquo;,&rdquo;</em> to previous line')
+
   # TODO: Show indentation in snippets somehow.
 
   # Figure out the length of the longest line. We pad all of the snippets to
@@ -213,6 +216,8 @@ def insert_snippet(snippets, arg, contents, errors):
     length = longest_line(length, snippet.context_before[-before_lines:])
   if snippet.removed and not snippet.added:
     length = longest_line(length, snippet.removed)
+  if snippet.added_comma:
+    length = longest_line(length, snippet.added_comma)
   if snippet.added:
     length = longest_line(length, snippet.added)
   if after_lines > 0:
@@ -226,6 +231,15 @@ def insert_snippet(snippets, arg, contents, errors):
     if snippet.added:
       before = before.replace('<pre>', '<pre class="insert-before">')
     contents += before
+
+  if snippet.added_comma:
+    def replace_last(string, old, new):
+      return new.join(string.rsplit(old, 1))
+
+    comma = format_code(snippet.file.language(), length, [snippet.added_comma])
+    comma = comma.replace('<pre>', '<pre class="insert-before">')
+    comma = replace_last(comma, ',', '<span class="insert-comma">,</span>')
+    contents += comma
 
   if show_location:
     contents += '<div class="source-file">{}</div>\n'.format(
