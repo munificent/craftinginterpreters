@@ -191,20 +191,7 @@ def insert_snippet(snippets, arg, contents, errors):
 
   location = []
   if show_location:
-    location.append('<em>{}</em>'.format(snippet.file.nice_path()))
-
-    if snippet.location():
-      location.append('{}'.format(snippet.location()))
-
-    if snippet.removed and snippet.added:
-      location.append('replace {} line{}'.format(
-          len(snippet.removed), '' if len(snippet.removed) == 1 else 's'))
-    elif snippet.removed and not snippet.added:
-      location.append('remove {} line{}'.format(
-          len(snippet.removed), '' if len(snippet.removed) == 1 else 's'))
-
-    if snippet.added_comma:
-      location.append('add <em>&ldquo;,&rdquo;</em> to previous line')
+    location = snippet.describe_location()
 
   # TODO: Show indentation in snippets somehow.
 

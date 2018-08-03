@@ -53,19 +53,16 @@ END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 # Hacky regexes that matches a function, method or constructor declaration.
 FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
-CLASS_PATTERN = re.compile(r'(public )?(abstract )?(class|interface) (\w+)')
-ENUM_PATTERN = re.compile(r'  private enum (\w+)')
-NESTED_CLASS_PATTERN = re.compile(r'  static class (\w+)')
-TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union) {')
+TYPE_PATTERN = re.compile(r'(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)')
+TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union)( \w+)? {')
 TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
 
 # Reserved words that can appear like a return type in a function declaration
 # but shouldn't be treated as one.
-KEYWORDS = ['new', 'return']
+KEYWORDS = ['new', 'return', 'throw']
 
 class SourceCode:
   """ All of the source files in the book. """
-
   def __init__(self):
     self.files = []
     self.snippet_tags = book.get_chapter_snippet_tags()
@@ -137,10 +134,7 @@ class SourceCode:
           last_lines[snippet] = line_num
 
           if len(snippet.added) == 1:
-            snippet.function = line.function
-            snippet.type = line.type
-            snippet.kind = line.kind
-            snippet.nested_class = line.nested_class
+            snippet.location = line.location
 
         if line.end and line.end.chapter == chapter:
           snippet = ensure_snippet(line.end.name, line_num)
@@ -161,11 +155,10 @@ class SourceCode:
         if line.is_present(current_snippet):
           before.append(line.text)
 
-          if line.function and not snippet.preceding_function:
-            snippet.preceding_function = line.function
-
-          if line.type and not snippet.preceding_type:
-            snippet.preceding_type = line.type
+          # Store the more precise preceding location we find.
+          if (not snippet.preceding_location or
+              line.location.depth() > snippet.preceding_location.depth()):
+            snippet.preceding_location = line.location
 
         i -= 1
       snippet.context_before = before[::-1]
@@ -208,7 +201,7 @@ class SourceCode:
 
     output = ""
     for line in source_file.lines:
-      if (line.is_present(tag)):
+      if line.is_present(tag):
         # Hack. In generate_ast.java, we split up a parameter list among
         # multiple chapters, which leads to hanging commas in some cases.
         # Remove them.
@@ -232,12 +225,9 @@ class SourceFile:
 
 
 class SourceLine:
-  def __init__(self, text, function, type, kind, nested_class, start, end):
+  def __init__(self, text, location, start, end):
     self.text = text
-    self.function = function
-    self.type = type
-    self.kind = kind
-    self.nested_class = nested_class
+    self.location = location
     self.start = start
     self.end = end
 
@@ -261,17 +251,102 @@ class SourceLine:
     if self.end:
       result += " < {}".format(self.end)
 
-    if self.function:
-      result += " (in {})".format(self.function)
+    return result + " in {}".format(self.location)
+
+
+class Location:
+  """
+  The context in which a line of code appears. The chain of types and functions
+  it's in.
+  """
+  def __init__(self, parent, kind, name):
+    self.parent = parent
+    self.kind = kind
+    self.name = name
+
+  def __str__(self):
+    result = self.kind + ' ' + self.name
+    if self.parent:
+      result = str(self.parent) + ' > ' + result
+    return result
+
+  def __eq__(self, other):
+    return other != None and self.kind == other.kind and self.name == other.name
+
+  @property
+  def is_file(self):
+    return self.kind == 'file'
+
+  @property
+  def is_function(self):
+    return self.kind in ['constructor', 'function', 'method']
+
+  def to_html(self, preceding, removed):
+    """
+    Generates a string of HTML that describes a snippet at this location, when
+    following the [preceding] location.
+    """
+
+    # Note: The order of these is highly significant.
+    if self.kind == 'class' and self.parent and self.parent.kind == 'class':
+      return 'nest inside class <em>{}</em>'.format(self.parent.name)
+
+    if self.is_function and preceding == self:
+      # We're still inside a function.
+      return 'in <em>{}</em>()'.format(self.name)
+
+    if self.is_function and removed:
+      # Hack. We don't appear to be in the middle of a function, but we are
+      # replacing lines, so assume we're replacing the entire function.
+      return '{} <em>{}</em>()'.format(self.kind, self.name)
+
+    if self.parent == preceding and not preceding.is_file:
+      # We're nested inside a type.
+      return 'in {} <em>{}</em>'.format(preceding.kind, preceding.name)
+
+    if preceding == self and not self.is_file:
+      # We're still inside a type.
+      return 'in {} <em>{}</em>'.format(self.kind, self.name)
+
+    if preceding.is_function:
+      # We aren't inside a function, but we do know the preceding one.
+      return 'add after <em>{}</em>()'.format(preceding.name)
+
+    if not preceding.is_file:
+      # We aren't inside any function, but we do know what we follow.
+      return 'add after {} <em>{}</em>'.format(preceding.kind, preceding.name)
+
+    return None
+
+  def depth(self):
+    current = self
+    result = 0
+    while current:
+      result += 1
+      current = current.parent
 
     return result
+
+  def pop_to_depth(self, depth):
+    """
+    Discard as many children as needed to get to [depth] parents.
+    """
+    current = self
+    locations = []
+    while current:
+      locations.append(current)
+      current = current.parent
+
+    # If we are already shallower, there is nothing to pop.
+    if len(locations) < depth + 1: return self
+
+    return locations[-depth - 1]
 
 
 class Snippet:
   """
   A snippet of source code that is inserted in the book.
   """
-
   def __init__(self, file, name):
     self.file = file
     self.name = name
@@ -284,58 +359,51 @@ class Snippet:
     # comma, this is that line (with the comma).
     self.added_comma = None
 
-    self.function = None
-    self.preceding_function = None
-    self.type = None
-    self.kind = None
-    self.preceding_type = None
-    self.nested_class = None
+    self.location = None
+    self.preceding_location = None
 
-  def location(self):
-    """Describes where in the file this snippet appears."""
+  def dump(self):
+    print(self.name)
+    print("prev: {}".format(self.preceding_location))
+    print("here: {}".format(self.location))
+    for line in self.context_before:
+      print("    {}".format(line))
+    for line in self.removed:
+      print("  - {}".format(line))
+    for line in self.added:
+      print("  + {}".format(line))
+    for line in self.context_after:
+      print("    {}".format(line))
+
+  def describe_location(self):
+    """
+    Describes where in the file this snippet appears. Returns a list of HTML
+    strings.
+    """
+    result = ['<em>{}</em>'.format(self.file.nice_path())]
+
     if len(self.context_before) == 0 and len(self.context_after) == 0:
       # No lines around the snippet, it must be a new file.
-      return 'create new file'
-
-    if len(self.context_before) == 0:
+      result.append('create new file')
+    elif len(self.context_before) == 0:
       # No lines before the snippet, it must be at the beginning.
-      return 'add to top of file'
+      result.append('add to top of file')
+    else:
+      location = self.location.to_html(self.preceding_location, self.removed)
+      if location:
+        result.append(location)
 
-    if self.nested_class:
-      return 'nest inside class <em>{}</em>'.format(self.type)
+    if self.removed and self.added:
+      result.append('replace {} line{}'.format(
+          len(self.removed), '' if len(self.removed) == 1 else 's'))
+    elif self.removed and not self.added:
+      result.append('remove {} line{}'.format(
+          len(self.removed), '' if len(self.removed) == 1 else 's'))
 
-    if self.preceding_function and self.function == self.preceding_function:
-      # The function before the snippet is the same one, so we must be in the
-      # middle of it.
-      return 'in <em>{}</em>()'.format(self.function)
+    if self.added_comma:
+      result.append('add <em>&ldquo;,&rdquo;</em> to previous line')
 
-    if self.removed and self.function:
-      # We don't appear to be in the middle of a function, but we are replacing
-      # lines, so assume we're replacing the entire function.
-      function = 'method' if self.file.path.endswith('.java') else 'function'
-      return '{} <em>{}</em>()'.format(function, self.function)
-
-    if self.preceding_function and not self.added:
-      # Hackish. If we get here, we aren't adding any lines. In that case, the
-      # "preceding" function happens to be the current one too.
-      return 'in <em>{}</em>()'.format(self.preceding_function)
-
-    if self.preceding_function:
-      # If we get here, we aren't inside any function, but we do know the
-      # preceding one.
-      return 'add after <em>{}</em>()'.format(self.preceding_function)
-
-    if self.preceding_type and self.type == self.preceding_type:
-      # If we get here, all we know is that we're adding something inside a
-      # type.
-      return 'in {} <em>{}</em>'.format(self.kind, self.type)
-
-    if self.preceding_type:
-      # If we get here, we aren't inside any function, but we do know the
-      # preceding one.
-      return 'add after <em>{}</em>'.format(self.preceding_type)
-
-    return None
+    return result
 
 
 class ParseState:
@@ -355,16 +423,8 @@ def load_file(source_code, source_dir, path):
   state = ParseState(None, None)
   handled = False
 
-  # The name of a typedef appears after its body, but we need to know it while
-  # we're creating SourceLines for the body. So we do a separate pass to find
-  # the name for each typedef and store them here.
-  typedef_starts = {}
-
-  function_before_block = None
-  current_function = None
-  current_kind = None
-  current_type = None
-  nested_class = None
+  current_location = Location(None, 'file', file.nice_path())
+  location_before_block = None
 
   def error(message):
     print("Error: {} line {}: {}".format(relative, line_num, message),
@@ -394,24 +454,6 @@ def load_file(source_code, source_dir, path):
   with open(path, 'r') as input:
     lines = input.read().splitlines()
 
-    # Find the names for each struct typedef.
-    typedef_start_line = None
-    typedef_kind = None
-
-    for line in lines:
-      line = line.rstrip()
-
-      match = TYPEDEF_PATTERN.match(line)
-      if match:
-        typedef_kind = match.group(1)
-        typedef_start_line = line_num
-
-      match = TYPEDEF_NAME_PATTERN.match(line)
-      if match:
-        typedef_starts[typedef_start_line] = [typedef_kind, match.group(1)]
-
-      line_num += 1
-
     printed_file = False
     line_num = 1
     for line in lines:
@@ -428,53 +470,48 @@ def load_file(source_code, source_dir, path):
 
       # See if we reached a new function or method declaration.
       match = FUNCTION_PATTERN.search(line)
+      is_function_declaration = False
       if match and "#define" not in line and match.group(1) not in KEYWORDS:
         # Hack. Don't get caught by comments or string literals.
         if '//' not in line and '"' not in line:
-          current_function = match.group(2)
+          current_location = Location(
+              current_location,
+              'method' if file.path.endswith('.java') else 'function',
+              match.group(2))
+          # TODO: What about declarations with aside comments:
+          #   void foo(); // [wat]
+          is_function_declaration = line.endswith(';')
 
       match = CONSTRUCTOR_PATTERN.match(line)
       if match:
-        current_function = match.group(1)
+        current_location = Location(current_location,
+                                    'constructor', match.group(1))
 
-      match = CLASS_PATTERN.match(line)
+      match = TYPE_PATTERN.search(line)
       if match:
-        current_kind = match.group(3)
-        current_type = match.group(4)
-
-      match = ENUM_PATTERN.match(line)
-      if match:
-        current_kind = 'enum'
-        current_type = match.group(1)
+        # Hack. Don't get caught by comments or string literals.
+        if '//' not in line and '"' not in line:
+          current_location = Location(current_location,
+                                      match.group(3), match.group(4))
 
       match = TYPEDEF_PATTERN.match(line)
       if match:
-        typedef = typedef_starts[line_num]
-        current_kind = typedef[0]
-        current_type = typedef[1]
-
-      match = TYPEDEF_NAME_PATTERN.match(line)
-      if match:
-        current_kind = None
-        current_type = None
-
-      match = NESTED_CLASS_PATTERN.match(line)
-      if match:
-        nested_class = match.group(1)
+        # We don't know the name of the typedef.
+        current_location = Location(current_location, match.group(1), '???')
 
       match = BLOCK_PATTERN.match(line)
       if match:
         push(match.group(1), match.group(2), match.group(3), match.group(4))
-        function_before_block = current_function
+        location_before_block = current_location
 
       match = BLOCK_SNIPPET_PATTERN.match(line)
       if match:
         name = match.group(1)
         push(state.start.chapter, state.start.name, state.start.chapter, name)
-        function_before_block = current_function
+        location_before_block = current_location
 
       if line.strip() == '*/' and state.end:
-        current_function = function_before_block
+        current_location = location_before_block
         pop()
 
       match = BEGIN_SNIPPET_PATTERN.match(line)
@@ -529,23 +566,32 @@ def load_file(source_code, source_dir, path):
         if not state.start:
           error("No snippet in effect.".format(relative))
 
-        source_line = SourceLine(line, current_function, current_type,
-            current_kind, nested_class, state.start, state.end)
+        source_line = SourceLine(line, current_location, state.start, state.end)
         file.lines.append(source_line)
 
-      # Hacky. Detect the end of the function or class. Assumes everything is
-      # nicely indented.
-      if path.endswith('.java') and line == '  }':
-        if nested_class:
-          nested_class = None
-        else:
-          current_function = None
-      elif (path.endswith('.c') or path.endswith('.h')) and line == '}':
-        current_function = None
+      match = TYPEDEF_NAME_PATTERN.match(line)
+      if match:
+        # Now we know the typedef name.
+        current_location.name = match.group(1)
+        current_location = current_location.parent
 
-      if path.endswith('.java') and line == '}':
-        current_kind = None
-        current_type = None
+      # Use "startswith" to include lines like "} [aside-marker]".
+      # TODO: Hacky. Generalize?
+      if line.startswith('}'):
+        current_location = current_location.pop_to_depth(0)
+      elif line.startswith('  }'):
+        current_location = current_location.pop_to_depth(1)
+      elif line.startswith('    }'):
+        current_location = current_location.pop_to_depth(2)
+
+      # If we reached a function declaration, not a definition, then it's done
+      # after one line.
+      if is_function_declaration:
+        current_location = current_location.parent
+
+      # Hack. There is a one-line class in Parser.java.
+      if 'class ParseError' in line:
+        current_location = current_location.parent
 
       line_num += 1
 
