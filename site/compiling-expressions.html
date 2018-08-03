@@ -331,30 +331,30 @@ compiler.</p>
 <p>If the scanner hands us an error token, we need to actually tell the user. That
 happens using this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>Parser</em></div>
+add after struct <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAtCurrent</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">errorAt</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">current</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>             
 <span class="p">}</span>                                                
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
 <p>It pulls the location out of the current token in order to tell the user where
 the error occurred and forwards to <code>errorAt()</code>. More often, we&rsquo;ll report an
 error at the location of the token we just consumed, so we give the shorter name
 to this other function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>Parser</em></div>
+add after struct <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">error</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">errorAt</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>   
 <span class="p">}</span>                                       
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
 <p>The actual work happens here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after <em>Parser</em></div>
+add after struct <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>       
   <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] Error&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">line</span><span class="p">);</span>
 
@@ -371,7 +371,7 @@ add after <em>Parser</em></div>
 <span class="p">}</span>                                                              
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
 <p>First, we print where the error occurred. We try to show the lexeme if it&rsquo;s
 human-readable. Then we print the error message itself. After that, we set this
@@ -507,7 +507,7 @@ associated with that line.</p>
 its way to <code>emitByte()</code>. To do that, we rely on this intermediary function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>                                          
 <br></pre><div class="source-file"><em>compiler.c</em><br>
-add after <em>Parser</em></div>
+add after struct <em>Parser</em></div>
 <pre class="insert"><br><span></span><span class="n">Chunk</span><span class="o">*</span> <span class="n">compilingChunk</span><span class="p">;</span>
 
 <span class="k">static</span> <span class="n">Chunk</span><span class="o">*</span> <span class="nf">currentChunk</span><span class="p">()</span> <span class="p">{</span>                          
@@ -516,7 +516,7 @@ add after <em>Parser</em></div>
 <br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
 <p>Right now, the chunk pointer is stored in a module level variable like we store
 other global state. Later, when we start compiling user-defined functions, the
@@ -794,7 +794,7 @@ it&rsquo;s magic. In order to take the &ldquo;precedence&rdquo; as a parameter, 
 numerically:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Parser</span><span class="p">;</span>                       
 </pre><div class="source-file"><em>compiler.c</em><br>
-add after <em>Parser</em></div>
+add after struct <em>Parser</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>                  
   <span class="n">PREC_NONE</span><span class="p">,</span>                    
   <span class="n">PREC_ASSIGNMENT</span><span class="p">,</span>  <span class="c1">// =        </span>
@@ -811,7 +811,7 @@ add after <em>Parser</em></div>
 </pre><pre class="insert-after"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>                  
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
 <p>These are all of Lox&rsquo;s precedence levels in order from lowest to highest. Since
 C implicitly gives successively larger numbers for enums, this means that
@@ -999,7 +999,7 @@ given token because all prefix operators in Lox have the same precedence.</p>
 in the parser table:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>           
 </pre><div class="source-file"><em>compiler.c</em><br>
-add after <em>Precedence</em></div>
+add after enum <em>Precedence</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>        
   <span class="n">ParseFn</span> <span class="n">prefix</span><span class="p">;</span>       
   <span class="n">ParseFn</span> <span class="n">infix</span><span class="p">;</span>        
@@ -1008,7 +1008,7 @@ add after <em>Precedence</em></div>
 </pre><pre class="insert-after"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>          
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Precedence</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>Precedence</em></div>
 
 <p>That ParseFn type is a simple <span name="typedef">typedef</span> for a function
 type that takes no arguments and returns nothing:</p>
@@ -1019,12 +1019,12 @@ reflects use&rdquo; thing<span class="em">&mdash;</span>but I think it was a fai
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>             
 </pre><div class="source-file"><em>compiler.c</em><br>
-add after <em>Precedence</em></div>
+add after enum <em>Precedence</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">*</span><span class="n">ParseFn</span><span class="p">)();</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>          
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after <em>Precedence</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>Precedence</em></div>
 
 <p>The table that drives our whole parser is an array of ParseRules. We&rsquo;ve been
 talking about it forever, and finally you get to see it:</p>
