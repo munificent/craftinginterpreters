@@ -93,7 +93,7 @@ typedef struct {
 //> Strings not-yet
     Obj* object;
 //< Strings not-yet
-  } as;
+  } as; // [as]
 } Value;
 //< Types of Values value
 //> Types of Values is-macros
