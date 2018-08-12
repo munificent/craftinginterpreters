@@ -46,6 +46,35 @@
     }
     ```
 
+    Keep in mind that commas are already used in the grammar to separate
+    arguments in function calls. With the above change, this:
+
+    ```lox
+    foo(1, 2)
+    ```
+
+    Now gets parsed as:
+
+    ```lox
+    foo((1, 2))
+    ```
+
+    In other words, pass a single argument to `foo`, the result of evaluating
+    `1, 2`. That's not what we want. To fix that, we simply change the way we
+    parse function arguments to require a higher precedence expression than the
+    comma operator:
+
+    ```java
+    if (!check(RIGHT_PAREN)) {
+      do {
+        if (arguments.size() >= 8) {
+          error(peek(), "Cannot have more than 8 arguments.");
+        }
+        arguments.add(equality()); // <-- was expression().
+      } while (match(COMMA));
+    }
+    ```
+
 2.  We just need one new rule.
 
     ```lox
