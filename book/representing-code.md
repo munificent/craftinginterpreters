@@ -193,10 +193,14 @@ When you reach a nonterminal with that name, you are allowed to pick any of the
 rules for it, whichever floats your boat.
 
 To make this concrete, we need a <span name="turtles">way</span> to write down
-these production rules. Ever since John Backus snuck into Noam Chomsky's
-linguistics class and stole some theory to use for specifying ALGOL 58,
-programmers have been inventing notations for CFGs. For some reason, virtually
-every one of them tweaks the metasyntax in one way or another.
+these production rules. People have been trying to crystallize grammar all the
+way back to Pāṇini's *Ashtadhyayi*, which codified Sanskrit grammar a mere
+couple thousand years ago. Not much progress happened until John Backus and
+company needed a notation for specifying ALGOL 58 and came up with [Backus-Naur
+form][bnf]. Since then, nearly everyone uses some flavor of BNF, tweaked to
+their own tastes.
+
+[bnf]: https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 
 I tried to come up with something clean. Each rule is a name, followed by an
 arrow (`→`), followed by its sequence of symbols. Terminals are quoted strings,
