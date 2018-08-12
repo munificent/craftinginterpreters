@@ -9,6 +9,7 @@ CLASSES := $(addprefix $(BUILD_DIR)/, $(SOURCES:.java=.class))
 JAVA_OPTIONS := -Werror
 
 default: $(CLASSES)
+	@: # Don't show "Nothing to be done" output.
 
 # Compile a single .java file to .class.
 $(BUILD_DIR)/$(DIR)/%.class: $(DIR)/%.java
