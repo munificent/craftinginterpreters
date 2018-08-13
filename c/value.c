@@ -89,10 +89,13 @@ void printValue(Value value) {
   }
 #else
 //< Optimization not-yet
-/* Chunks of Bytecode print-value < Types of Values not-yet
+/* Chunks of Bytecode print-value < Types of Values print-number-value
   printf("%g", value);
 */
-//> Types of Values not-yet
+/* Types of Values print-number-value < Types of Values print-value
+ printf("%g", AS_NUMBER(value));
+ */
+//> Types of Values print-value
   switch (value.type) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
     case VAL_NIL:    printf("nil"); break;
@@ -101,13 +104,13 @@ void printValue(Value value) {
     case VAL_OBJ:    printObject(value); break;
 //< Strings not-yet
   }
-//< Types of Values not-yet
+//< Types of Values print-value
 //> Optimization not-yet
 #endif
 //< Optimization not-yet
 }
 //< print-value
-//> Types of Values not-yet
+//> Types of Values values-equal
 bool valuesEqual(Value a, Value b) {
 //> Optimization not-yet
 #ifdef NAN_TAGGING
@@ -140,4 +143,4 @@ bool valuesEqual(Value a, Value b) {
 #endif
 //< Optimization not-yet
 }
-//< Types of Values not-yet
+//< Types of Values values-equal

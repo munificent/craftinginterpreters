@@ -163,6 +163,7 @@ TOC = [
           'Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence',
           'Single-pass compilation', 'Code generation'
         ],
+        'design_note': "It's Just Parsing"
       },
       {
         'name': 'Types of Values',
@@ -170,7 +171,6 @@ TOC = [
           'Tagged unions', 'Boolean values', 'nil',
           'Comparison and equality operators', 'Not operator', 'Runtime errors'
         ],
-        'done': False,
       },
       {
         'name': 'Strings',

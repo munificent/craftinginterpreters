@@ -37,7 +37,12 @@
 <h3><a href="#top">Types of Values<small>18</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#tagged-unions"><small>18.1</small> Tagged Unions</a></li>
+    <li><a href="#lox-values-and-c-values"><small>18.2</small> Lox Values and C Values</a></li>
+    <li><a href="#dynamically-typed-numbers"><small>18.3</small> Dynamically-typed Numbers</a></li>
+    <li><a href="#two-new-types"><small>18.4</small> Two New Types</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -63,7 +68,12 @@
 <h3><a href="#top">Types of Values<small>18</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#tagged-unions"><small>18.1</small> Tagged Unions</a></li>
+    <li><a href="#lox-values-and-c-values"><small>18.2</small> Lox Values and C Values</a></li>
+    <li><a href="#dynamically-typed-numbers"><small>18.3</small> Dynamically-typed Numbers</a></li>
+    <li><a href="#two-new-types"><small>18.4</small> Two New Types</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -81,9 +91,10 @@
   <div class="number">18</div>
   <h1>Types of Values</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +109,882 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<blockquote>
+<p>When you are a Bear of Very Little Brain, and you Think of Things, you find
+sometimes that a Thing which seemed very Thingish inside you is quite
+different when it gets out into the open and has other people looking at it.</p>
+<p><cite>A.A. Milne</cite></p>
+</blockquote>
+<p>The past few chapters were huge, packed full of complex techniques and pages of
+code. In this chapter, there&rsquo;s only one new concept to learn and a scattering of
+straightforward code. You&rsquo;ve earned a respite.</p>
+<p>Lox is <span name="unityped">dynamically</span> typed. A single variable can
+hold a Boolean, number, or string at different points in time. At least, that&rsquo;s
+the idea. Right now, in clox, all values are numbers. By the end of the chapter,
+it will also support Booleans and <code>nil</code>. While those aren&rsquo;t super interesting,
+they force us to figure out how our value representation can dynamically handle
+different types.</p>
+<aside name="unityped">
+<p>There is a third category next to &ldquo;statically typed&rdquo; and &ldquo;dynamically typed&rdquo;:
+<strong>&ldquo;unityped&rdquo;</strong>. In that paradigm, all variables have a single type, usually a
+machine register integer. Unityped languages aren&rsquo;t common today, but some
+Forths and BCPL, the language that inspired C, worked like this.</p>
+<p>As of this moment, clox is unityped.</p>
+</aside>
+<h2><a href="#tagged-unions" name="tagged-unions"><small>18&#8202;.&#8202;1</small> Tagged Unions</a></h2>
+<p>The nice thing about working in C is that we can build our data structures from
+the raw bits up. The bad thing is that we <em>have</em> to do that. C doesn&rsquo;t give you
+much for free at compile time and even less at runtime. As far as C is
+concerned, the universe is an undifferentiated array of bytes. It&rsquo;s up to us to
+decide how many of those bytes to use and what they mean.</p>
+<p>In order to choose a value representation, we need to answer two key questions:</p>
+<ol>
+<li>
+<p><strong>How do we represent the type of a value?</strong> If you try to, say, multiply a
+    number by <code>true</code>, we need to detect that error at runtime and report it. In
+    order to do that, we need to be able tell what a value&rsquo;s type is.</p>
+</li>
+<li>
+<p><strong>How do we store the value itself?</strong> We need to not only be able to tell
+    that three is a number, but that it&rsquo;s different from the number four. I
+    know, seems obvious, right? But we&rsquo;re operating at a level where it&rsquo;s good
+    to spell these things out.</p>
+</li>
+</ol>
+<p>Since we&rsquo;re not just designing this language, but building it ourselves, we also
+have to keep in mind the implementer&rsquo;s eternal question: <strong>how do we solve the
+above efficiently?</strong></p>
+<p>Language hackers over the years have come up with a variety of clever ways to
+pack the above information into as few bits as possible. For now, we&rsquo;ll start
+with the simplest, classic solution: a <strong>tagged union</strong>. A value contains two
+parts: a type &ldquo;tag&rdquo;, and a payload for the actual value. To store the value&rsquo;s
+type, we define an enum for each kind of value the VM supports:</p>
+<div class="codehilite"><pre class="insert-before"><br><span></span><span class="k">typedef</span> <span class="kt">double</span> <span class="n">Value</span><span class="p">;</span>     
+</pre><div class="source-file"><em>value.h</em></div>
+<pre class="insert"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>            
+  <span class="n">VAL_BOOL</span><span class="p">,</span>               
+  <span class="n">VAL_NIL</span><span class="p">,</span> <span name="user-types"></span>
+  <span class="n">VAL_NUMBER</span><span class="p">,</span>             
+<span class="p">}</span> <span class="n">ValueType</span><span class="p">;</span>              
+<br></pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>          
+</pre></div>
 
+<div class="source-file-narrow"><em>value.h</em></div>
+
+<aside name="user-types">
+<p>The cases here cover each kind of value that has <em>built-in support in the VM</em>.
+When we get to adding classes to the language, each class the user defines
+doesn&rsquo;t need its own entry in this enum. As far as the VM is concerned, every
+instance of a class is the same type: &ldquo;instance&rdquo;.</p>
+<p>In other word&rsquo;s, this is the VM&rsquo;s notion of &ldquo;type&rdquo;, not the user&rsquo;s.</p>
+</aside>
+<p>For now, we only have a couple of cases, but this will grow as we add strings,
+functions, and classes to clox. In addition to the type, we also need to store
+the data for the value<span class="em">&mdash;</span>the <code>double</code> for a number, <code>true</code> or <code>false</code> for a
+Boolean. We could define a struct with fields for each possible type:</p>
+<p><img src="image/types-of-values/struct.png" alt="A struct with two fields laid next to each other in memory." /></p>
+<p>But this is a waste of memory. A value can&rsquo;t simultaneously be both a number and
+a Boolean. So at any point in time, only one of those fields will be used. C
+lets you optimize this by defining a <span name="sum">union</span>. A union
+looks like a struct except that all of its fields overlap in memory:</p>
+<aside name="sum">
+<p>If you&rsquo;re familiar with a language in the ML family, structs and unions in C
+roughly mirror the difference between sum and product types, between tuples
+and algebraic data types.</p>
+</aside>
+<p><img src="image/types-of-values/union.png" alt="A union with two fields overlapping in memory." /></p>
+<p>The size of a union is the size of its largest field. Since the fields all reuse
+the same bits, you have to be very careful when working with them. If you store
+data using one field and then access it using <span
+name="reinterpret">another</span>, you will reinterpret what the underlying bits
+mean.</p>
+<aside name="reinterpret">
+<p>Using a union to interpret bits as different types is the quintessence of C. It
+opens up a number of clever optimizations and lets you slice and dice each byte
+of memory in ways that memory-safe languages disallow. But it is also wildly
+unsafe and will happily saw your fingers off if you don&rsquo;t watch out.</p>
+</aside>
+<p>As the name &ldquo;tagged union&rdquo; implies, our new value representation combines these
+two parts into a single struct:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+<br></pre><div class="source-file"><em>value.h</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>   
+  <span class="n">ValueType</span> <span class="n">type</span><span class="p">;</span>  
+  <span class="k">union</span> <span class="p">{</span>          
+    <span class="kt">bool</span> <span class="n">boolean</span><span class="p">;</span>  
+    <span class="kt">double</span> <span class="n">number</span><span class="p">;</span> 
+  <span class="p">}</span> <span class="n">as</span><span class="p">;</span> <span class="c1">// [as]    </span>
+<span class="p">}</span> <span class="n">Value</span><span class="p">;</span>           
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>   
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, replace 1 line</div>
+
+<p>There&rsquo;s a field for the type tag, and then a second field containing the union
+of all of the underlying values. On a 64-bit machine with a typical C compiler,
+the layout looks like this:</p>
+<aside name="as">
+<p>A smart language hacker gave me the idea to use &ldquo;as&rdquo; for the name of this field
+because it reads nicely, almost like a cast, when you pull the value out.</p>
+</aside>
+<p><img src="image/types-of-values/value.png" alt="The full value struct, with the type and as fields next to each other in memory." /></p>
+<p>The type tag comes first followed by the union. You&rsquo;re probably wondering why we
+need a full eight bytes for the type tag when it only needs to store a number
+between zero and three. We <em>could</em> pack the enum into a single byte, or even a
+bit field. But most architectures prefer values be aligned to their size. Since
+the union field contains an eight-byte double, the compiler will <span
+name="pad">pad</span> the type field out to eight bytes to keep that double on
+the nearest eight-byte boundary.</p>
+<aside name="pad">
+<p>We could move the tag field <em>after</em> the union, but that doesn&rsquo;t help much
+either. Whenever we create an array of values<span class="em">&mdash;</span>which is where most of our
+memory usage for values will be<span class="em">&mdash;</span>the C compiler will insert that same padding
+<em>between</em> each Value to keep the doubles aligned.</p>
+</aside>
+<p>So our values are 16 bytes, which seems a little large. We&rsquo;ll improve it
+<a href="optimization.html">later</a>. In the meantime, they&rsquo;re still small enough to store on
+the C stack and pass around by value. Lox&rsquo;s semantics allow that because the
+only types we support so far are <strong>immutable</strong>. If we pass a copy of a Value
+containing the number three to some function, we don&rsquo;t need worry about the
+caller seeing modifications to the value. You can&rsquo;t &ldquo;modify&rdquo; three. It&rsquo;s three
+forever.</p>
+<h2><a href="#lox-values-and-c-values" name="lox-values-and-c-values"><small>18&#8202;.&#8202;2</small> Lox Values and C Values</a></h2>
+<p>That&rsquo;s our new value representation, but we aren&rsquo;t done. Right now, the rest of
+clox assumes Value is an alias for <code>double</code>. We have code that does a straight C
+cast from one to the other. That code is all broken now. So sad.</p>
+<p>With our new representation, a Value can <em>contain</em> a double, but it&rsquo;s not
+<em>equivalent</em> to it. There is an mandatory conversion step to get from one to the
+other. We need to go through the code and insert those conversions to get clox
+working again.</p>
+<p>We&rsquo;ll implement these conversions as a handful of macros, one for each type and
+operation. First, to promote a native C value to a clox Value:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Value</span><span class="p">;</span>                                                              
+</pre><div class="source-file"><em>value.h</em><br>
+add after struct <em>Value</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } }) </span>
+<span class="cp">#define NIL_VAL           ((Value){ VAL_NIL, { .number = 0 } })       </span>
+<span class="cp">#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
+
+<p>Each one of these takes a C value of the appropriate type and produces a Value
+that has the correct type tag and contains the underlying value. This hoists
+statically-typed values up into clox&rsquo;s dynamically-typed universe. In order to
+<em>do</em> anything with a Value, though, we need to unpack it and get the C value
+back out:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Value</span><span class="p">;</span>                                                             
+</pre><div class="source-file"><em>value.h</em><br>
+add after struct <em>Value</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define AS_BOOL(value)    ((value).as.boolean)                       </span>
+<span class="cp">#define AS_NUMBER(value)  ((value).as.number)                        </span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
+
+<aside name="as-null">
+<p>There&rsquo;s no <code>AS_NULL</code> macro because there is only one <code>nil</code> value, so a Value
+with type <code>VAL_NIL</code> doesn&rsquo;t carry any extra data.</p>
+</aside>
+<p><span name="as-null">These</span> macros go in the opposite direction. Given a
+Value of the right type, they unwrap it and return the corresponding raw C
+value. The &ldquo;right type&rdquo; part is important! These macros directly access the
+union fields. If we were to do something like:</p>
+<div class="codehilite"><pre><span></span><span class="n">Value</span> <span class="n">value</span> <span class="o">=</span> <span class="n">BOOL_VAL</span><span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="kt">double</span> <span class="n">number</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>
+</pre></div>
+
+
+<p>Then we may open a smoldering portal to the Shadow Realm. It&rsquo;s not safe to use
+any of the <code>AS_</code> macros unless we know the value contains the appropriate type.
+To that end, we define a last few macros to check a value&rsquo;s type:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Value</span><span class="p">;</span>                                              
+</pre><div class="source-file"><em>value.h</em><br>
+add after struct <em>Value</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define IS_BOOL(value)    ((value).type == VAL_BOOL)  </span>
+<span class="cp">#define IS_NIL(value)     ((value).type == VAL_NIL)   </span>
+<span class="cp">#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)</span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#define AS_BOOL(value)    ((value).as.boolean)        </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
+
+<p><span name="universe">These</span> macros return <code>true</code> if the value has that
+type. Any time we call one of the <code>AS_</code> macros, we need to guard it behind a
+call to one of these first. With these eight macros, we can now safely shuttle
+data between Lox&rsquo;s dynamic world and C&rsquo;s static one.</p>
+<aside name="universe">
+<p><img alt="The earthly C firmament with the Lox heavens above." src="image/types-of-values/universe.png" /></p>
+<p>The <code>_VAL</code> macros lift a C value into the heavens. The <code>AS_</code> macros bring it
+back down.</p>
+</aside>
+<h2><a href="#dynamically-typed-numbers" name="dynamically-typed-numbers"><small>18&#8202;.&#8202;3</small> Dynamically-typed Numbers</a></h2>
+<p>We&rsquo;ve got our value representation and the tools to convert to and from it. All
+that&rsquo;s left to get clox running again is to grind through the code and fix every
+place where data moves across that boundary. This is one of those sections of
+the book that isn&rsquo;t exactly mind-blowing, but I promised I&rsquo;d show you every
+single line of code, so here we are.</p>
+<p>The first values we create are the constants generated when we compile number
+literals. After we convert the lexeme to a C double, we simply wrap it in a
+Value before storing it in the constant table:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">double</span> <span class="n">value</span> <span class="o">=</span> <span class="n">strtod</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>number</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="n">emitConstant</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>                   
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>number</em>(), replace 1 line</div>
+
+<p>Over in the runtime, we have a function to print values:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">printValue</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>  
+</pre><div class="source-file"><em>value.c</em><br>
+in <em>printValue</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%g&quot;</span><span class="p">,</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                               
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>(), replace 1 line</div>
+
+<p>Right before we send the value to <code>printf()</code>, we unwrap it and extract the
+double value. We&rsquo;ll revisit this function shortly to add the other types, but
+let&rsquo;s get our existing code working first.</p>
+<h3><a href="#unary-negation-and-runtime-errors" name="unary-negation-and-runtime-errors"><small>18&#8202;.&#8202;3&#8202;.&#8202;1</small> Unary negation and runtime errors</a></h3>
+<p>The next simplest operation is unary negation. It pops a value off the stack,
+negates it, and pushes the result. Now that we have other types of values, we
+can&rsquo;t assume the operand is a number anymore. The user could just as well do:</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span><span class="nb">false</span><span class="p">;</span> <span class="c1">// Uh...</span>
+</pre></div>
+
+
+<p>We need to handle that gracefully, which means it&rsquo;s time for <strong>runtime errors</strong>.
+Before performing an operation that requires a certain type, we need to make
+sure the value <em>is</em> that type.</p>
+<p>For unary negate, the check looks like this:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="p">:</span>   <span class="n">BINARY_OP</span><span class="p">(</span><span class="o">/</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="p">:</span>                               
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IS_NUMBER</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span> <span class="p">{</span>                  
+          <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Operand must be a number.&quot;</span><span class="p">);</span>
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>           
+        <span class="p">}</span>
+
+        <span class="n">push</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">(</span><span class="o">-</span><span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">pop</span><span class="p">())));</span>        
+        <span class="k">break</span><span class="p">;</span>                                      
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>First, we check to see if the value on top of the stack is a number. If we not,
+we report the runtime error and <span name="halt">stop</span> the interpreter.
+Otherwise, we keep going. Only after this validation do we unwrap the operand,
+negate it, wrap the result and push it.</p>
+<aside name="halt">
+<p>Lox&rsquo;s approach to error-handling is rather&hellip; <em>spare</em>. All errors are fatal and
+immediately halt the interpreter. There&rsquo;s no way for user code to recover from
+an error. If Lox were a real language, this is one of the first things I would
+remedy.</p>
+</aside>
+<p>To access the value, we use:</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>pop</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Value</span> <span class="nf">peek</span><span class="p">(</span><span class="kt">int</span> <span class="n">distance</span><span class="p">)</span> <span class="p">{</span>   
+  <span class="k">return</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">distance</span><span class="p">];</span>
+<span class="p">}</span>                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>pop</em>()</div>
+
+<p>It returns a value from the stack but doesn&rsquo;t <span name="peek">pop</span> it.
+The <code>distance</code> argument is how far down from the top of the stack to look: zero
+is the top, one is one slot down, etc.</p>
+<aside name="peek">
+<p>Why not just pop the operand and then validate it? We could do that. In later
+chapters, it will be important to leave operands on the stack to ensure the
+garbage collector can find them if a collection is triggered in the middle of
+the operation. I do the same thing here mostly out of habit.</p>
+</aside>
+<p>We report the runtime error using this function that we&rsquo;ll get a lot of mileage
+out of over the remainder of the book:</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>resetStack</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">runtimeError</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">format</span><span class="p">,</span> <span class="p">...)</span> <span class="p">{</span>
+  <span class="kt">va_list</span> <span class="n">args</span><span class="p">;</span>                                    
+  <span class="n">va_start</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">format</span><span class="p">);</span>                          
+  <span class="n">vfprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="n">format</span><span class="p">,</span> <span class="n">args</span><span class="p">);</span>                  
+  <span class="n">va_end</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>                                    
+  <span class="n">fputs</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">stderr</span><span class="p">);</span>
+
+  <span class="kt">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">-</span> <span class="n">vm</span><span class="p">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">;</span>     
+  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] in script</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>         
+          <span class="n">vm</span><span class="p">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">lines</span><span class="p">[</span><span class="n">instruction</span><span class="p">]);</span>           
+
+  <span class="n">resetStack</span><span class="p">();</span>                                    
+<span class="p">}</span>                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>resetStack</em>()</div>
+
+<p>You&rsquo;ve certainly <em>called</em> variadic functions<span class="em">&mdash;</span>ones that take a varying number
+of arguments<span class="em">&mdash;</span>in C before: <code>printf()</code> is one. But you may not have <em>defined</em>
+your own. This book isn&rsquo;t a C tutorial, so I&rsquo;ll skim it here, but basically the
+<code>...</code> and <code>va_list</code> stuff let us pass an arbitrary number of arguments to
+<code>runtimeError()</code>. It forwards those on to <code>vfprintf()</code>, which is the flavor of
+<code>printf()</code> that takes an explicit <code>va_list</code>.</p>
+<p>Callers can pass a format string to <code>runtimeError()</code> followed by a number of
+arguments, just like they can when calling <code>printf()</code> directly. <code>runtimeError()</code>
+then formats and prints those arguments. We won&rsquo;t take advantage of that in this
+chapter, but later chapters will produce formatted runtime error messages that
+contain other data.</p>
+<p>After we show the hopefully helpful error message, we tell the user which <span
+name="stack">line</span> of their code was being executed when the error
+occurred. Since we left the tokens behind in the compiler, we look up the line
+in the debug information compiled into the chunk. If our compiler did its job
+right, that corresponds to the line of source code that the bytecode was
+compiled from.</p>
+<aside name="stack">
+<p>Just showing the immediate line where the error occurred doesn&rsquo;t provide much
+context. Better would be a full stack trace. But we don&rsquo;t even have functions to
+call yet, so there is no callstack to trace.</p>
+</aside>
+<p>In order to use <code>va_list</code> and the macros for working with it, we need to bring
+in a standard header:</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add to top of file</div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdarg.h&gt;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add to top of file</div>
+
+<p>With this, our VM can not only do the right thing when you negate numbers (like
+it used to before we broke it), but it also gracefully handles erroneous
+attempts to negate other types.</p>
+<h3><a href="#binary-arithmetic-operators" name="binary-arithmetic-operators"><small>18&#8202;.&#8202;3&#8202;.&#8202;2</small> Binary arithmetic operators</a></h3>
+<p>We have our runtime error machinery in place now, so fixing the binary operators
+is easier even though they&rsquo;re more complex. We support four binary operators
+today: <code>+</code>, <code>-</code>, <code>*</code>, and <code>/</code>. The only difference between them is which
+underlying C operator they use. To minimize redundant code between the four
+operators, we wrapped up the commonality in a big preprocessor macro that takes
+the operator token as a parameter.</p>
+<p>That macro seemed like overkill in the <a href="compiling-expressions.html">last chapter</a>, but we get the benefit
+from it today. It lets us add the necessary type checking and conversions in one
+place:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])</span>
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 6 lines</div>
+<pre class="insert"><span></span><span class="cp">#define BINARY_OP(valueType, op) \                               </span>
+    <span class="k">do</span> <span class="p">{</span> <span class="err">\</span>                                                       
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IS_NUMBER</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">||</span> <span class="o">!</span><span class="n">IS_NUMBER</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span> <span class="p">{</span> <span class="err">\</span>        
+        <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Operands must be numbers.&quot;</span><span class="p">);</span> <span class="err">\</span>             
+        <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span> <span class="err">\</span>                        
+      <span class="p">}</span> <span class="err">\</span>                                                        
+      <span class="err">\</span>                                                          
+      <span class="kt">double</span> <span class="n">b</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span> <span class="err">\</span>                             
+      <span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span> <span class="err">\</span>                             
+      <span class="n">push</span><span class="p">(</span><span class="n">valueType</span><span class="p">(</span><span class="n">a</span> <span class="n">op</span> <span class="n">b</span><span class="p">));</span> <span class="err">\</span>                                 
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="nb">false</span><span class="p">)</span>                                              
+</pre><pre class="insert-after"><br><span></span>  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 6 lines</div>
+
+<p>Yeah, I realize that&rsquo;s a monster of a macro. It&rsquo;s not what I&rsquo;d normally consider
+good C practice, but let&rsquo;s roll with it. The changes are similar to what we did
+for unary negate. First, we check that the two operands are both numbers. If
+either isn&rsquo;t, we report a runtime error and yank the ejection seat lever.</p>
+<p>If the operands are fine, we pop them both and unwrap them. Then we apply the
+given operator, wrap the result, and push it back on the stack. Note that we
+don&rsquo;t wrap the result by directly using <code>NUMBER_VAL()</code>. Instead, the wrapper to
+use is passed in as a macro <span name="macro">parameter</span>. For our
+existing arithmetic operators, the result is a number, so we pass in the
+<code>NUMBER_VAL</code> macro:</p>
+<aside name="macro">
+<p>Did you know you can pass macros as parameters to macros? Now you do!</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="p">}</span>                                                 
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span>      <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">+</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nl">OP_SUBTRACT</span><span class="p">:</span> <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">-</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nl">OP_MULTIPLY</span><span class="p">:</span> <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">*</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="p">:</span>   <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">/</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="p">:</span>                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 4 lines</div>
+
+<p>Soon, I&rsquo;ll show you why we made the wrapping macro an argument.</p>
+<h2><a href="#two-new-types" name="two-new-types"><small>18&#8202;.&#8202;4</small> Two New Types</a></h2>
+<p>Finally, it&rsquo;s time to add some new types. All of our existing clox code is back
+in working order. We&rsquo;ve got a running numeric calculator that now does a number
+of pointless paranoid runtime type checks. We can represent other types
+internally, but there&rsquo;s no way for a user&rsquo;s program to ever create a value of
+one of those types.</p>
+<p>Not until now, that is. We&rsquo;ll start by adding compiler support for the three new
+literals: <code>true</code>, <code>false</code>, and <code>nil</code>. They&rsquo;re all pretty simple, so we&rsquo;ll do all
+three in a single batch.</p>
+<p>With number literals, we had to deal with the fact that there are billions of
+possible numeric values. We attended to that by storing the literal&rsquo;s value in
+the chunk&rsquo;s constant table and emitting a bytecode instruction that simply
+loaded that constant. We could do the same thing for the new types. We&rsquo;d store,
+say, <code>true</code>, in the constant table, and use an <code>OP_CONSTANT</code> to read it out.</p>
+<p>But given that there are literally only three possible values we need to worry
+about with these new types, it&rsquo;s gratuitous<span class="em">&mdash;</span>and <span
+name="small">slow!</span><span class="em">&mdash;</span>to waste a two-byte instruction and a constant
+table entry on them. Instead, we&rsquo;ll define three dedicated instructions to push
+each of these literals on the stack:</p>
+<aside class="bottom" name="small">
+<p>I&rsquo;m not kidding about dedicated operations for certain constant values being
+faster. A bytecode VM spends much of its execution time reading and decoding
+instructions. The fewer, simpler instructions you need for a given piece of
+behavior, the faster it goes. Short instructions dedicated to common operations
+are a classic optimization.</p>
+<p>For example, the Java bytecode instruction set has dedicated instructions for
+loading 0.0, 1.0, 2.0, and the integer values from -1 through 5. (This ends up
+being a vestigial optimization given that most mature JVMs now JIT-compile the
+bytecode to machine code before execution anyway.)</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_CONSTANT</span><span class="p">,</span>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_NIL</span><span class="p">,</span>     
+  <span class="n">OP_TRUE</span><span class="p">,</span>    
+  <span class="n">OP_FALSE</span><span class="p">,</span>   
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_ADD</span><span class="p">,</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>Our scanner already treats <code>true</code>, <code>false</code>, and <code>nil</code> as keywords, so we can
+skip right to the parser. With our table-based Pratt parser, we just need to
+slot parser functions into the rows associated with those keyword token types.
+We&rsquo;ll use the same function in all three slots:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_ELSE </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">literal</span><span class="p">,</span>  <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_FALSE</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_FUN  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>And:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_THIS</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">literal</span><span class="p">,</span>  <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_TRUE</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_VAR </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>And finally:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_IF </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">literal</span><span class="p">,</span>  <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NIL</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_OR</span> <span class="p">},</span>         <span class="c1">// TOKEN_OR </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>When the parser encounters <code>false</code>, <code>nil</code>, or <code>true</code>, in prefix position, it
+calls:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>binary</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">literal</span><span class="p">()</span> <span class="p">{</span>                         
+  <span class="k">switch</span> <span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>               
+    <span class="k">case</span> <span class="nl">TOKEN_FALSE</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_FALSE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">TOKEN_NIL</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NIL</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>    
+    <span class="k">case</span> <span class="nl">TOKEN_TRUE</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_TRUE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>  
+    <span class="k">default</span><span class="o">:</span>                                    
+      <span class="k">return</span><span class="p">;</span> <span class="c1">// Unreachable.                   </span>
+  <span class="p">}</span>                                             
+<span class="p">}</span>                                               
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>binary</em>()</div>
+
+<p>Since <code>parsePrecedence()</code> has already consumed the keyword token, all we need to
+do is output the proper instruction. We <span name="switch">look</span> at the
+token type to see which literal it was. Our front end can now compile Boolean
+and nil literals to bytecode. Moving down the execution pipeline, we reach the
+interpreter:</p>
+<aside name="switch">
+<p>We could have used separate parser functions for each literal and saved
+ourselves a switch but that felt needlessly verbose to me. I think it&rsquo;s mostly a
+matter of taste.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_CONSTANT</span><span class="p">:</span> <span class="p">{</span>                               
+        <span class="n">Value</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">READ_CONSTANT</span><span class="p">();</span>               
+        <span class="n">push</span><span class="p">(</span><span class="n">constant</span><span class="p">);</span>                                 
+        <span class="k">break</span><span class="p">;</span>                                          
+      <span class="p">}</span>                                                 
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NIL</span><span class="p">:</span> <span class="n">push</span><span class="p">(</span><span class="n">NIL_VAL</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>                
+      <span class="k">case</span> <span class="nl">OP_TRUE</span><span class="p">:</span> <span class="n">push</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">(</span><span class="nb">true</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>        
+      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="p">:</span> <span class="n">push</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">(</span><span class="nb">false</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>      
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span>      <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">+</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>This is pretty self-explanatory. Each instructions summons the appropriate value
+and pushes it onto the stack. We shouldn&rsquo;t forget our disassembler either:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OP_CONSTANT</span><span class="p">:</span>                                          
+      <span class="k">return</span> <span class="n">constantInstruction</span><span class="p">(</span><span class="s">&quot;OP_CONSTANT&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_NIL</span><span class="p">:</span>                                               
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_NIL&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>              
+    <span class="k">case</span> <span class="nl">OP_TRUE</span><span class="p">:</span>                                              
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_TRUE&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>             
+    <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="p">:</span>                                             
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_FALSE&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>            
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span>                                               
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>With this in place, we can run this Earth-shattering program:</p>
+<div class="codehilite"><pre><span></span><span class="nb">true</span>
+</pre></div>
+
+
+<p>&hellip;Except that when the interpreter tries to print the result, it blows up. We
+need to extend <code>printValue()</code> to handle the new types too:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">printValue</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>                                        
+</pre><div class="source-file"><em>value.c</em><br>
+in <em>printValue</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                                               
+    <span class="k">case</span> <span class="nl">VAL_BOOL</span><span class="p">:</span>   <span class="n">printf</span><span class="p">(</span><span class="n">AS_BOOL</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">?</span> <span class="s">&quot;true&quot;</span> <span class="o">:</span> <span class="s">&quot;false&quot;</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="nl">VAL_NIL</span><span class="p">:</span>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;nil&quot;</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>                            
+    <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="p">:</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%g&quot;</span><span class="p">,</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">value</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>           
+  <span class="p">}</span>                                                                   
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>(), replace 1 line</div>
+
+<p>There we go! Now we have some new types. They just aren&rsquo;t very useful yet. Aside
+from the literals, you can&rsquo;t really <em>do</em> anything with them. It will be a while
+before <code>nil</code> comes into play, but we can start putting Booleans to work.</p>
+<h3><a href="#logical-not-and-falsiness" name="logical-not-and-falsiness"><small>18&#8202;.&#8202;4&#8202;.&#8202;1</small> Logical not and falsiness</a></h3>
+<p>The simplest logical operator is our old exclamatory friend unary not:</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="nb">true</span><span class="p">;</span> <span class="c1">// &quot;false&quot;</span>
+</pre></div>
+
+
+<p>This new operation gets a new instruction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_DIVIDE</span><span class="p">,</span>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_NOT</span><span class="p">,</span>   
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_NEGATE</span><span class="p">,</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>We can reuse the <code>unary()</code> parser function we wrote for unary <code>-</code> to compile a
+prefix <code>!</code> expression. We just need to slot it into the parsing table:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_FACTOR</span> <span class="p">},</span>     <span class="c1">// TOKEN_STAR      </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">unary</span><span class="p">,</span>    <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_BANG      </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_EQUALITY</span> <span class="p">},</span>   <span class="c1">// TOKEN_BANG_EQUAL</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>Because I knew were going to do this, the <code>unary()</code> function already has a
+switch on the token type to figure out which bytecode instruction to output. We
+merely add another case:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">operatorType</span><span class="p">)</span> <span class="p">{</span>                        
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>unary</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">TOKEN_BANG</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NOT</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>    
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">TOKEN_MINUS</span><span class="p">:</span> <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NEGATE</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">default</span><span class="o">:</span>                                     
+      <span class="k">return</span><span class="p">;</span> <span class="c1">// Unreachable.                    </span>
+  <span class="p">}</span>                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>unary</em>()</div>
+
+<p>That&rsquo;s it for the front end. Let&rsquo;s head over to the VM and conjure this
+instruction into life:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="p">:</span>   <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">/</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NOT</span><span class="p">:</span>                                      
+        <span class="n">push</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">(</span><span class="n">isFalsey</span><span class="p">(</span><span class="n">pop</span><span class="p">())));</span>                
+        <span class="k">break</span><span class="p">;</span>                                          
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="p">:</span>                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>Like our previous unary operator, it pops the one operand, performs the
+operation, and pushes the result. And, as we did there, we have to worry about
+dynamic typing. Taking the logical not of <code>true</code> is easy, but there&rsquo;s nothing
+preventing an unruly programmer from writing something like:</p>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="nb">nil</span><span class="p">;</span>
+</pre></div>
+
+
+<p>For unary minus, we made it an error to negate anything that isn&rsquo;t a <span
+name="negate">number</span>. But Lox, like most scripting languages, is more
+permissive when it comes to <code>!</code> and other contexts where a Boolean is expected.
+The rule for how other types are handled is called &ldquo;falsiness&rdquo;, and we implement
+it here:</p>
+<aside name="negate">
+<p>Now I can&rsquo;t help but try to figure out what it would mean to negate other types
+of values. <code>nil</code> is probably its own negation, sort of like a weird pseudo-zero.
+Negating a string could, uh, reverse it?</p>
+</aside>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>peek</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">isFalsey</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>                           
+  <span class="k">return</span> <span class="n">IS_NIL</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="n">IS_BOOL</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">AS_BOOL</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+<span class="p">}</span>                                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
+
+<p>Lox follows Ruby in that <code>nil</code> and <code>false</code> are falsey and every other value
+behaves like <code>true</code>. We&rsquo;ve got a new instruction we can generate, so we also
+need to be able to <em>un</em>-generate it in the disassembler:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="p">:</span>                                 
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_DIVIDE&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_NOT</span><span class="p">:</span>                                    
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_NOT&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>   
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="p">:</span>                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<h3><a href="#equality-and-comparison-operators" name="equality-and-comparison-operators"><small>18&#8202;.&#8202;4&#8202;.&#8202;2</small> Equality and comparison operators</a></h3>
+<p>That wasn&rsquo;t too bad. Let&rsquo;s keep the momentum going and knock out the equality
+and comparison operators too: <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, and <code>&gt;=</code>. That covers
+all of the operators that return Boolean results except the logical operators
+<code>&amp;&amp;</code> and <code>||</code>. Since those need to short-circuit<span class="em">&mdash;</span>basically do a little
+control flow<span class="em">&mdash;</span>we aren&rsquo;t ready for them yet.</p>
+<p>Here&rsquo;s the new instructions for those operators:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_FALSE</span><span class="p">,</span>  
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_EQUAL</span><span class="p">,</span>  
+  <span class="n">OP_GREATER</span><span class="p">,</span>
+  <span class="n">OP_LESS</span><span class="p">,</span>   
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_ADD</span><span class="p">,</span>    
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>Wait, only three? What about <code>!=</code>, <code>&lt;=</code>, and <code>&gt;=</code>? We could create instructions
+for those too. Honestly, the VM would execute faster if we did, so we <em>should</em>
+do that if the goal is performance.</p>
+<p>But my main goal is to teach you about bytecode compilers. I want you to start
+internalizing the idea that the bytecode instructions don&rsquo;t need to closely
+follow the user&rsquo;s source code. The VM has total freedom to use whatever
+instruction set and code sequences it wants as long as they have the right
+user-visible behavior.</p>
+<p>The expression <code>a != b</code> has the same semantics as <code>!(a == b)</code>, so the compiler
+is free to compile the former as if it were the latter. Instead of a dedicated
+<code>OP_NOT_EQUAL</code> instruction, it can output an <code>OP_EQUAL</code> followed by an <code>OP_NOT</code>.
+Likewise, <code>a &lt;= b</code> is the same as <code>!(a &gt; b)</code> and <code>a &gt;= b</code> is <code>!(a &lt; b)</code>. Thus,
+we only need three new instructions.</p>
+<p>Over in the parser, though, we do have six new operators to slot into the parse
+table. We use the same <code>binary()</code> parser function from before. Here&rsquo;s the row
+for <code>==</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="n">unary</span><span class="p">,</span>    <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_BANG      </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_EQUALITY</span> <span class="p">},</span>   <span class="c1">// TOKEN_BANG_EQUAL</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_EQUAL     </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>And the remaining five operators are a little farther down in the table:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_EQUAL        </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 5 lines</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_EQUALITY</span> <span class="p">},</span>   <span class="c1">// TOKEN_EQUAL_EQUAL  </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_GREATER      </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_GREATER_EQUAL</span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_LESS         </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_LESS_EQUAL   </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_IDENTIFIER   </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 5 lines</div>
+
+<p>Inside <code>binary()</code> we have a switch to generate the right bytecode for each token
+type. We add cases for the six new operators:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">operatorType</span><span class="p">)</span> <span class="p">{</span>                                          
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>binary</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">TOKEN_BANG_EQUAL</span><span class="p">:</span>    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_EQUAL</span><span class="p">,</span> <span class="n">OP_NOT</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>  
+    <span class="k">case</span> <span class="nl">TOKEN_EQUAL_EQUAL</span><span class="p">:</span>   <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_EQUAL</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>           
+    <span class="k">case</span> <span class="nl">TOKEN_GREATER</span><span class="p">:</span>       <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_GREATER</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>         
+    <span class="k">case</span> <span class="nl">TOKEN_GREATER_EQUAL</span><span class="p">:</span> <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_LESS</span><span class="p">,</span> <span class="n">OP_NOT</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>   
+    <span class="k">case</span> <span class="nl">TOKEN_LESS</span><span class="p">:</span>          <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_LESS</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>            
+    <span class="k">case</span> <span class="nl">TOKEN_LESS_EQUAL</span><span class="p">:</span>    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_GREATER</span><span class="p">,</span> <span class="n">OP_NOT</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">TOKEN_PLUS</span><span class="p">:</span>          <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_ADD</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>binary</em>()</div>
+
+<p>The <code>==</code>, <code>&lt;</code>, and <code>&gt;</code> operators output a single instruction. The others output
+a pair of instructions, one to evalute the inverse operation, and then an
+<code>OP_NOT</code> to flip the result. Six operators for the price of three instructions!</p>
+<p>That means over in the VM, our job is simpler. Equality is the most general
+operation:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="p">:</span> <span class="n">push</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">(</span><span class="nb">false</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>      
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="p">:</span> <span class="p">{</span>                                  
+        <span class="n">Value</span> <span class="n">b</span> <span class="o">=</span> <span class="n">pop</span><span class="p">();</span>                                
+        <span class="n">Value</span> <span class="n">a</span> <span class="o">=</span> <span class="n">pop</span><span class="p">();</span>                                
+        <span class="n">push</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">(</span><span class="n">valuesEqual</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)));</span>              
+        <span class="k">break</span><span class="p">;</span>                                          
+      <span class="p">}</span>                                                 
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span>      <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">+</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>You can evaluate <code>==</code> on any pair of objects, even objects of different types.
+There&rsquo;s enough complexity that it makes sense to shunt that logic over to a
+separate function. That function always returns a C <code>bool</code>, so we can safely
+wrap the result in a <code>BOOL_VAL</code>. The function relates to values, so it lives
+over in the value module:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ValueArray</span><span class="p">;</span>                          
+<br></pre><div class="source-file"><em>value.h</em><br>
+add after struct <em>ValueArray</em></div>
+<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">valuesEqual</span><span class="p">(</span><span class="n">Value</span> <span class="n">a</span><span class="p">,</span> <span class="n">Value</span> <span class="n">b</span><span class="p">);</span>    
+</pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">initValueArray</span><span class="p">(</span><span class="n">ValueArray</span><span class="o">*</span> <span class="n">array</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, add after struct <em>ValueArray</em></div>
+
+<p>And here&rsquo;s the implementation:</p>
+<div class="codehilite"><div class="source-file"><em>value.c</em><br>
+add after <em>printValue</em>()</div>
+<pre><span></span><span class="kt">bool</span> <span class="nf">valuesEqual</span><span class="p">(</span><span class="n">Value</span> <span class="n">a</span><span class="p">,</span> <span class="n">Value</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>                     
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">b</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="k">switch</span> <span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                                      
+    <span class="k">case</span> <span class="nl">VAL_BOOL</span><span class="p">:</span>   <span class="k">return</span> <span class="n">AS_BOOL</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">AS_BOOL</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>    
+    <span class="k">case</span> <span class="nl">VAL_NIL</span><span class="p">:</span>    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                        
+    <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="p">:</span> <span class="k">return</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+  <span class="p">}</span>                                                      
+<span class="p">}</span>                                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em>, add after <em>printValue</em>()</div>
+
+<p>First, we check the types. If the values have <span
+name="equal">different</span> types, they are definitely not equal. Otherwise,
+we unwrap the two values and compare them directly.</p>
+<aside name="equal">
+<p>Some languages have &ldquo;implicit conversions&rdquo; where values of different types may
+be considered equal if one can be converted to the others&rsquo; type. For example,
+the number 0 is equivalent to the string &ldquo;0&rdquo; in JavaScript. This looseness was a
+large enough source of pain that JS added a separate &ldquo;strict equality&rdquo; operator,
+<code>===</code>.</p>
+<p>PHP considers the strings &ldquo;1&rdquo; and &ldquo;01&rdquo; to be equivalent because both can be
+converted to equivalent numbers, though the ultimate reason is because PHP was
+designed by a Lovecraftian Eldritch God to destroy the mind.</p>
+<p>Most dynamically-typed languages that have separate integer and floating point
+number types consider values of different number types equal if the numeric
+values are the same (so, say, 1.0 is equal to 1), though even that seemingly
+innocuous convenience can bite the unwary.</p>
+</aside>
+<p>For each value type, we have a separate case that handles comparing the value
+itself. Given how similar the cases are, you might wonder why we can&rsquo;t simply
+<code>memcmp()</code> the two Value structs and be done with it. The problem is that
+because of padding and different-sized union fields, a value contains unused
+bits. C gives no guarantee about what is in those, so it&rsquo;s possible that two
+equal Values actually differ in memory that isn&rsquo;t used.</p>
+<p><img src="image/types-of-values/memcmp.png" alt="The memory respresentations of two equal values that differ in unused bytes." /></p>
+<p>(You wouldn&rsquo;t believe how much pain I went through before learning this fact.)</p>
+<p>Anyway, as we add more types to clox, this function will grow new cases. For
+now, these three are sufficient. The other comparison operators are easier since
+they only work on numbers:</p>
+<div class="codehilite"><pre class="insert-before"><br><span></span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_GREATER</span><span class="p">:</span>  <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">,</span> <span class="o">&gt;</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>  
+      <span class="k">case</span> <span class="nl">OP_LESS</span><span class="p">:</span>     <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">,</span> <span class="o">&lt;</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>  
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span>      <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">+</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>We already extended the <code>BINARY_OP</code> macro to handle operators that return
+non-numeric types. Now we get to use that. We pass in <code>BOOL_VAL</code> since the
+result value type is Boolean. Otherwise, it&rsquo;s no different from plus or minus.</p>
+<p>As always, the coda to today&rsquo;s aria is disassembling the new instructions:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="p">:</span>                                   
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_FALSE&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>  
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="p">:</span>                                   
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_EQUAL&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>  
+    <span class="k">case</span> <span class="nl">OP_GREATER</span><span class="p">:</span>                                 
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_GREATER&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+    <span class="k">case</span> <span class="nl">OP_LESS</span><span class="p">:</span>                                    
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_LESS&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>   
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>With that, our numeric calculator has become something closer to a general
+expression evaluator. Fire up clox and type in:</p>
+<div class="codehilite"><pre><span></span><span class="o">!</span><span class="p">(</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">==</span> <span class="o">!</span><span class="nb">nil</span><span class="p">)</span>
+</pre></div>
+
+
+<p>OK, I&rsquo;ll admit that&rsquo;s maybe not the most <em>useful</em> expression, but we&rsquo;re making
+progress. We have one missing built-in type with its own literal form: strings.
+Those are much more complex because strings can vary in size. That tiny
+difference turns out to have implications so large that we give strings <a href="strings.html">their
+very own chapter</a>.</p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>We could reduce our binary operators even further than we did here. Which
+   other instructions can you eliminate, and how would the compiler cope with
+   their absence?</p>
+</li>
+<li>
+<p>Conversely, we can improve the speed of our bytecode VM by adding more
+   specific instructions that correspond to higher-level operations. What
+   instructions would you define to speed up the kind of user code we added
+   support for in this chapter?</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="strings.html" class="next">
