@@ -67,7 +67,7 @@ When we get to adding classes to the language, each class the user defines
 doesn't need its own entry in this enum. As far as the VM is concerned, every
 instance of a class is the same type: "instance".
 
-In other word's, this is the VM's notion of "type", not the user's.
+In other words, this is the VM's notion of "type", not the user's.
 
 </aside>
 
