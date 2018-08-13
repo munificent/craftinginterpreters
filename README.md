@@ -80,8 +80,8 @@ compiling the two interpreters clox and jlox. You can run either interpreter
 right from the root of the repo:
 
 ```sh
-$ clox
-$ jlox
+$ ./clox
+$ ./jlox
 ```
 
 ### Hacking on the book
