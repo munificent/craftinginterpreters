@@ -84,6 +84,10 @@ function refreshAsides() {
       return;
     }
 
-    aside.offset({top: pos.top - 6});
+    if (aside.hasClass("bottom")) {
+      aside.offset({top: pos.top + 23 - aside.height()});
+    } else {
+      aside.offset({top: pos.top - 6});
+    }
   });
 }

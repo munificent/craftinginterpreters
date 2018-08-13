@@ -71,39 +71,21 @@ static inline Value numToValue(double num) {
 #else
 
 //< Optimization not-yet
-/* Chunks of Bytecode value-h < Types of Values not-yet
+/* Chunks of Bytecode value-h < Types of Values value
 typedef double Value;
 */
-//> Types of Values not-yet
-#define IS_BOOL(value)    ((value).type == VAL_BOOL)
-#define IS_NIL(value)     ((value).type == VAL_NIL)
-#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)
-//> Strings not-yet
-#define IS_OBJ(value)     ((value).type == VAL_OBJ)
-//< Strings not-yet
-
-//> Strings not-yet
-#define AS_OBJ(value)     ((value).as.object)
-//< Strings not-yet
-#define AS_BOOL(value)    ((value).as.boolean)
-#define AS_NUMBER(value)  ((value).as.number)
-
-#define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
-#define NIL_VAL           ((Value){ VAL_NIL, { .number = 0 } })
-#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
-//> Strings not-yet
-#define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .object = (Obj*)obj } })
-//< Strings not-yet
-
+//> Types of Values value-type
 typedef enum {
   VAL_BOOL,
-  VAL_NIL,
+  VAL_NIL, // [user-types]
   VAL_NUMBER,
 //> Strings not-yet
   VAL_OBJ
 //< Strings not-yet
 } ValueType;
 
+//< Types of Values value-type
+//> Types of Values value
 typedef struct {
   ValueType type;
   union {
@@ -112,13 +94,39 @@ typedef struct {
 //> Strings not-yet
     Obj* object;
 //< Strings not-yet
-  } as;
+  } as; // [as]
 } Value;
+//< Types of Values value
+//> Types of Values is-macros
+
+#define IS_BOOL(value)    ((value).type == VAL_BOOL)
+#define IS_NIL(value)     ((value).type == VAL_NIL)
+#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)
+//> Strings not-yet
+#define IS_OBJ(value)     ((value).type == VAL_OBJ)
+//< Strings not-yet
+//< Types of Values is-macros
+//> Types of Values as-macros
+
+//> Strings not-yet
+#define AS_OBJ(value)     ((value).as.object)
+//< Strings not-yet
+#define AS_BOOL(value)    ((value).as.boolean)
+#define AS_NUMBER(value)  ((value).as.number)
+//< Types of Values as-macros
+//> Types of Values value-macros
+
+#define BOOL_VAL(value)   ((Value){ VAL_BOOL, { .boolean = value } })
+#define NIL_VAL           ((Value){ VAL_NIL, { .number = 0 } })
+#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })
+//> Strings not-yet
+#define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .object = (Obj*)obj } })
+//< Strings not-yet
+//< Types of Values value-macros
 //> Optimization not-yet
 
 #endif
 //< Optimization not-yet
-//< Types of Values not-yet
 //> value-array
 
 typedef struct {
@@ -129,9 +137,9 @@ typedef struct {
 //< value-array
 //> array-fns-h
 
-//> Types of Values not-yet
+//> Types of Values values-equal-h
 bool valuesEqual(Value a, Value b);
-//< Types of Values not-yet
+//< Types of Values values-equal-h
 void initValueArray(ValueArray* array);
 void writeValueArray(ValueArray* array, Value value);
 void freeValueArray(ValueArray* array);
