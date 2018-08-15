@@ -871,7 +871,7 @@ function to disassemble it:
 
 There's more going on here. As with `OP_RETURN`, we print out the name of the
 opcode. Then we pull out the constant index from the subsequent byte in the
-chunk. We print that index, but that isn't super useful to we human readers. So
+chunk. We print that index, but that isn't super useful to us human readers. So
 we also look up the actual constant value -- since constants *are* known at
 compile-time after all -- and display the value itself too.
 
