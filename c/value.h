@@ -71,9 +71,6 @@ static inline Value numToValue(double num) {
 #else
 
 //< Optimization not-yet
-/* Chunks of Bytecode value-h < Types of Values value
-typedef double Value;
-*/
 //> Types of Values value-type
 typedef enum {
   VAL_BOOL,
@@ -85,6 +82,9 @@ typedef enum {
 } ValueType;
 
 //< Types of Values value-type
+/* Chunks of Bytecode value-h < Types of Values value
+typedef double Value;
+*/
 //> Types of Values value
 typedef struct {
   ValueType type;
