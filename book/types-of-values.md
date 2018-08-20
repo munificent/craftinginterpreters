@@ -480,7 +480,7 @@ prefix `!` expression. We just need to slot it into the parsing table:
 
 ^code table-not (1 before, 1 after)
 
-Because I knew were going to do this, the `unary()` function already has a
+Because I knew we were going to do this, the `unary()` function already has a
 switch on the token type to figure out which bytecode instruction to output. We
 merely add another case:
 
