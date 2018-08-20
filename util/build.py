@@ -30,8 +30,8 @@ CODE_OPTIONS_PATTERN = re.compile(r'([-a-z0-9]+) \(([^)]+)\)')
 BEFORE_PATTERN = re.compile(r'(\d+) before')
 AFTER_PATTERN = re.compile(r'(\d+) after')
 
-ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\]</span>')
-ASIDE_WITH_COMMENT_PATTERN = re.compile(r'<span class="c1">// (.+) \[([-a-z0-9]+)\]</span>')
+ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\] *</span>')
+ASIDE_WITH_COMMENT_PATTERN = re.compile(r'<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>')
 # The "(?!-)" is a hack. scanning.md has an inline code sample containing a
 # "--" operator. We don't want that to get matched, so fail the match if the
 # character after the "-- " is "-", which is the next character in the code

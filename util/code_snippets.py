@@ -108,7 +108,7 @@ class SourceCode:
     last_lines = {}
 
     # Create a new snippet for [name] if it doesn't already exist.
-    def ensure_snippet(name, line_num):
+    def ensure_snippet(name, line_num = None):
       if not name in snippets:
         snippet = Snippet(file, name)
         snippets[name] = snippet
@@ -116,6 +116,8 @@ class SourceCode:
         return snippet
 
       snippet = snippets[name]
+      if first_lines[snippet] is None:
+        first_lines[snippet] = line_num
       if name != 'not-yet' and name != 'omit' and snippet.file.path != file.path:
         print('Error: "{} {}" appears in two files, {} and {}.'.format(
                 chapter, name, snippet.file.path, file.path),
@@ -137,9 +139,8 @@ class SourceCode:
             snippet.location = line.location
 
         if line.end and line.end.chapter == chapter:
-          snippet = ensure_snippet(line.end.name, line_num)
+          snippet = ensure_snippet(line.end.name)
           snippet.removed.append(line.text)
-          last_lines[snippet] = line_num
 
         line_num += 1
 
