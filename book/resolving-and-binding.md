@@ -708,9 +708,9 @@ place is right in the syntax tree node itself. That's a fine approach, and
 that's where many compilers store the results of analyses like this.
 
 We could do that, but it would require mucking around with our syntax tree
-generator. Instead, we'll take another common approach and store it off to the
-<span name="side">side</span> in a map that associates each syntax tree node
-with its resolved data:
+generator. Instead, we'll take <span name="side">another</span> common approach
+and store it off to the side in a map that associates each syntax tree node with
+its resolved data:
 
 <aside name="side">
 
