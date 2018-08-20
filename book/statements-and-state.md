@@ -763,7 +763,7 @@ In some other languages, like Pascal, Python, and Go, assignment is a statement.
 
 ```lox
 expression → assignment ;
-assignment → identifier "=" assignment
+assignment → IDENTIFIER "=" assignment
            | equality ;
 ```
 
