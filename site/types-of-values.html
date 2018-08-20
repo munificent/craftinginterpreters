@@ -159,15 +159,15 @@ pack the above information into as few bits as possible. For now, we&rsquo;ll st
 with the simplest, classic solution: a <strong>tagged union</strong>. A value contains two
 parts: a type &ldquo;tag&rdquo;, and a payload for the actual value. To store the value&rsquo;s
 type, we define an enum for each kind of value the VM supports:</p>
-<div class="codehilite"><pre class="insert-before"><br><span></span><span class="k">typedef</span> <span class="kt">double</span> <span class="n">Value</span><span class="p">;</span>     
-</pre><div class="source-file"><em>value.h</em></div>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;       </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>            
   <span class="n">VAL_BOOL</span><span class="p">,</span>               
   <span class="n">VAL_NIL</span><span class="p">,</span> <span name="user-types"></span>
   <span class="n">VAL_NUMBER</span><span class="p">,</span>             
 <span class="p">}</span> <span class="n">ValueType</span><span class="p">;</span>              
-<br></pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>          
-</pre></div>
+<br></pre><pre class="insert-after"><span></span><span class="k">typedef</span> <span class="kt">double</span> <span class="n">Value</span><span class="p">;</span>     
+<br></pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
@@ -206,20 +206,21 @@ unsafe and will happily saw your fingers off if you don&rsquo;t watch out.</p>
 </aside>
 <p>As the name &ldquo;tagged union&rdquo; implies, our new value representation combines these
 two parts into a single struct:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ValueType</span><span class="p">;</span>      
 <br></pre><div class="source-file"><em>value.h</em><br>
+add after enum <em>ValueType</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>   
-  <span class="n">ValueType</span> <span class="n">type</span><span class="p">;</span>  
-  <span class="k">union</span> <span class="p">{</span>          
-    <span class="kt">bool</span> <span class="n">boolean</span><span class="p">;</span>  
-    <span class="kt">double</span> <span class="n">number</span><span class="p">;</span> 
-  <span class="p">}</span> <span class="n">as</span><span class="p">;</span> <span class="c1">// [as]    </span>
-<span class="p">}</span> <span class="n">Value</span><span class="p">;</span>           
-</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>   
+<pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>  
+  <span class="n">ValueType</span> <span class="n">type</span><span class="p">;</span> 
+  <span class="k">union</span> <span class="p">{</span>         
+    <span class="kt">bool</span> <span class="n">boolean</span><span class="p">;</span> 
+    <span class="kt">double</span> <span class="n">number</span><span class="p">;</span>
+  <span class="p">}</span> <span class="n">as</span><span class="p">;</span> <span name="as"></span>
+<span class="p">}</span> <span class="n">Value</span><span class="p">;</span>          
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>  
 </pre></div>
 
-<div class="source-file-narrow"><em>value.h</em>, replace 1 line</div>
+<div class="source-file-narrow"><em>value.h</em>, add after enum <em>ValueType</em>, replace 1 line</div>
 
 <p>There&rsquo;s a field for the type tag, and then a second field containing the union
 of all of the underlying values. On a 64-bit machine with a typical C compiler,
