@@ -218,7 +218,7 @@ we can make it do that:
 
 I've got another flag for error handling to introduce. We want to avoid error
 cascades. If the user has a mistake in their code and the parser gets confused
-about where it is in the grammer, we don't want it to spew out a whole pile of
+about where it is in the grammar, we don't want it to spew out a whole pile of
 meaningless knock-on errors after the first one.
 
 We fixed that in jlox using panic mode error recovery. In the Java interpreter,
