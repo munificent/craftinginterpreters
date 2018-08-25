@@ -552,7 +552,7 @@ we only need three new instructions.
 
 Over in the parser, though, we do have six new operators to slot into the parse
 table. We use the same `binary()` parser function from before. Here's the row
-for `==`:
+for `!=`:
 
 ^code table-equal (1 before, 1 after)
 
