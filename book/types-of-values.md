@@ -254,7 +254,7 @@ For unary negate, the check looks like this:
 
 ^code op-negate (1 before, 1 after)
 
-First, we check to see if the value on top of the stack is a number. If we not,
+First, we check to see if the value on top of the stack is a number. If it's not,
 we report the runtime error and <span name="halt">stop</span> the interpreter.
 Otherwise, we keep going. Only after this validation do we unwrap the operand,
 negate it, wrap the result and push it.
