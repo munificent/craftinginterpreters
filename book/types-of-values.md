@@ -86,7 +86,7 @@ looks like a struct except that all of its fields overlap in memory:
 <aside name="sum">
 
 If you're familiar with a language in the ML family, structs and unions in C
-roughly mirror the difference between sum and product types, between tuples
+roughly mirror the difference between product and sum types, between tuples
 and algebraic data types.
 
 </aside>
