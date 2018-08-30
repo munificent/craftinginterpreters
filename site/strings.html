@@ -37,7 +37,12 @@
 <h3><a href="#top">Strings<small>19</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#values-on-the-heap"><small>19.1</small> values on the heap</a></li>
+    <li><a href="#strings"><small>19.2</small> strings</a></li>
+    <li><a href="#operations-on-strings"><small>19.3</small> operations on strings</a></li>
+    <li><a href="#freeing-objects"><small>19.4</small> freeing objects</a></li>
+    <li><a href="#design-note"><small>19.5</small> design note</a></li>
+    <li><a href="#challenges"><small>19.6</small> challenges</a></li>
 </ul>
 
 
@@ -63,7 +68,12 @@
 <h3><a href="#top">Strings<small>19</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#values-on-the-heap"><small>19.1</small> values on the heap</a></li>
+    <li><a href="#strings"><small>19.2</small> strings</a></li>
+    <li><a href="#operations-on-strings"><small>19.3</small> operations on strings</a></li>
+    <li><a href="#freeing-objects"><small>19.4</small> freeing objects</a></li>
+    <li><a href="#design-note"><small>19.5</small> design note</a></li>
+    <li><a href="#challenges"><small>19.6</small> challenges</a></li>
 </ul>
 
 
@@ -81,9 +91,10 @@
   <div class="number">19</div>
   <h1>Strings</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +109,999 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<ul>
+<li>second chapter on value rep</li>
+<li>so far have three: num, bool nil</li>
+<li>have in common: small and immutable</li>
+<li>worst case, num is two words</li>
+<li>
+<p>small enough can pack everything in union and pay worst case cost every val</p>
+</li>
+<li>
+<p>want to add strings</p>
+</li>
+<li>no max length</li>
+<li>even if clamped to, say, 256 chars, can&rsquo;t burn that on each value</li>
+<li>
+<p>need to support objects of different sizes</p>
+</li>
+<li>
+<p>exactly what heap and dynamic alloc designed for</p>
+</li>
+<li>can alloc as many bytes as needed, on demand</li>
+<li>get back pointer</li>
+</ul>
+<p>&hellip;</p>
+<h2><a href="#values-on-the-heap" name="values-on-the-heap"><small>19&#8202;.&#8202;1</small> values on the heap</a></h2>
+<ul>
+<li>have two-level represent for lox values</li>
+<li>every value is &ldquo;Value&rdquo;</li>
+<li>for small fixed-size, has type tag and stores payload inside value itself</li>
+<li>if value larger, needs heap alloc</li>
+<li>will eventually have multiple heap alloc val types: string, class, instance,
+  fn</li>
+<li>lot in common around mem mgmt, so treat uniformly</li>
+<li>call &ldquo;obj&rdquo;</li>
+<li>one new val type for all heap alloc types:</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">VAL_NUMBER</span><span class="p">,</span>
+</pre><div class="source-file"><em>value.h</em><br>
+in enum <em>ValueType</em></div>
+<pre class="insert"><span></span>  <span class="n">VAL_OBJ</span>    
+</pre><pre class="insert-after"><span></span><span class="p">}</span> <span class="n">ValueType</span><span class="p">;</span> 
+</pre></div>
 
+<div class="source-file-narrow"><em>value.h</em>, in enum <em>ValueType</em></div>
+
+<ul>
+<li>stores pointer to Obj</li>
+<li>Obj itself on heap</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="kt">double</span> <span class="n">number</span><span class="p">;</span>
+</pre><div class="source-file"><em>value.h</em><br>
+in struct <em>Value</em></div>
+<pre class="insert"><span></span>    <span class="n">Obj</span><span class="o">*</span> <span class="n">obj</span><span class="p">;</span>     
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="n">as</span><span class="p">;</span> <span name="as"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, in struct <em>Value</em></div>
+
+<ul>
+<li>also have same type macros had for other val types</li>
+<li>tell if val is obj</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)</span>
+</pre><div class="source-file"><em>value.h</em><br>
+add after struct <em>Value</em></div>
+<pre class="insert"><span></span><span class="cp">#define IS_OBJ(value)     ((value).type == VAL_OBJ)   </span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#define AS_BOOL(value)    ((value).as.boolean)        </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
+
+<ul>
+<li>extract obj from value</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_OBJ(value)     ((value).type == VAL_OBJ)</span>
+<br></pre><div class="source-file"><em>value.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define AS_OBJ(value)     ((value).as.object)      </span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define AS_BOOL(value)    ((value).as.boolean)     </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em></div>
+
+<ul>
+<li>promote raw obj to val</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })</span>
+</pre><div class="source-file"><em>value.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .obj = (Obj*)obj } })  </span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em></div>
+
+<h3><a href="#polymorphic-struct" name="polymorphic-struct"><small>19&#8202;.&#8202;1&#8202;.&#8202;1</small> polymorphic struct</a></h3>
+<ul>
+<li>every heap alloc type is Obj, but not all same</li>
+<li>string needs char array</li>
+<li>fn will need chunk for body</li>
+<li>instance will need array of fields</li>
+<li>how handle different payloads and sizes?</li>
+<li>
+<p>can&rsquo;t use union like did for value since sizes wildly divergent</p>
+</li>
+<li>
+<p>use related technique</p>
+</li>
+<li>[no canonical name, &ldquo;type punning&rdquo;
+  https://en.wikipedia.org/wiki/Type_punning]</li>
+<li>
+<p>&ldquo;polymorphic&rdquo; struct</p>
+</li>
+<li>
+<p>have type tag to tell diff obj apart</p>
+</li>
+<li>then payload fields</li>
+<li>instead of union, separate structs for each type</li>
+<li>tricky part is how to treat different structs uniformly</li>
+<li>
+<p>no inheritance in c</p>
+</li>
+<li>
+<p>explain soon, first get prelim</p>
+</li>
+<li>
+<p>Obj itself contains data used by all heap-alloc types</p>
+</li>
+<li>
+<p>sort of like &ldquo;base class&rdquo;</p>
+</li>
+<li>
+<p>because some tricky cycles, need to fwd declare in value</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;     </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>value.h</em></div>
+<pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObj</span> <span class="n">Obj</span><span class="p">;</span>
+<br></pre><pre class="insert-after"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>          
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em></div>
+
+<ul>
+<li>actual decl in new module</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>object.h</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#ifndef clox_object_h</span>
+<span class="cp">#define clox_object_h</span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;  </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;   </span><span class="cp"></span>
+
+<span class="k">struct</span> <span class="n">sObj</span> <span class="p">{</span>        
+  <span class="n">ObjType</span> <span class="n">type</span><span class="p">;</span>      
+<span class="p">};</span>                   
+
+<span class="cp">#endif               </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, create new file</div>
+
+<ul>
+<li>right now, only contains type tag</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>    
+  <span class="n">OBJ_STRING</span><span class="p">,</span>     
+<span class="p">}</span> <span class="n">ObjType</span><span class="p">;</span>        
+</pre><pre class="insert-after"><br><span></span><span class="k">struct</span> <span class="n">sObj</span> <span class="p">{</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>add helper macro to extract type given value</li>
+<li>extracts obj then type</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                                   </span><span class="cp"></span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>                                       
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>only one type for now, strings</li>
+<li>string payload is in separate struct</li>
+<li>again need, fwd decl</li>
+<li>[annoying part of c, won&rsquo;t do often but need for strings because strings very
+  core to system because of hash tables and string interning]</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObj</span> <span class="n">Obj</span><span class="p">;</span>            
+</pre><div class="source-file"><em>value.h</em></div>
+<pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="n">ObjString</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>                      
+</pre></div>
+
+<div class="source-file-narrow"><em>value.h</em></div>
+
+<ul>
+<li>defn</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                 
+</pre><div class="source-file"><em>object.h</em><br>
+add after enum <em>ObjType</em></div>
+<pre class="insert"><br><span></span><span class="k">struct</span> <span class="n">sObjString</span> <span class="p">{</span>
+  <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>         
+  <span class="kt">int</span> <span class="n">length</span><span class="p">;</span>      
+  <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">;</span>     
+<span class="p">};</span>                 
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif             </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after enum <em>ObjType</em></div>
+
+<ul>
+<li>string stores array of chars in string</li>
+<li>also number of bytes</li>
+<li>
+<p>(that way don&rsquo;t have to walk chars looking for \0 to get length)</p>
+</li>
+<li>
+<p>because ObjString is Obj, also needs shared state</p>
+</li>
+<li>get by having first field be Obj</li>
+<li>thus ObjString contains all fields of Obj</li>
+<li>C says struct lays out first in order of decl</li>
+<li>for nested structs, fields stored right inline</li>
+<li>so memory for Obj and ObjString look like</li>
+</ul>
+<p><strong>todo: illustrate</strong></p>
+<ul>
+<li>note that first bytes of ObjString exactly line up with Obj</li>
+<li>not coincidence</li>
+<li>
+<p>c spec requires</p>
+</li>
+<li>
+<p>[spec:]</p>
+<p>```
+6.7.2.1 13</p>
+<p>Within a structure object, the non-bit-field members and the units in which
+bit-fields reside have addresses that increase in the order in which they
+are declared. A pointer to a structure object, suitably converted, points to
+its initial member (or if that member is a bit-field, then to the unit in
+which it resides), and vice versa. There may be unnamed padding within a
+structure object, but not at its beginning.
+```</p>
+</li>
+<li>
+<p>designed to enable clever pattern</p>
+</li>
+<li>
+<p>can convert pointer to a struct to pointer to its first field and back</p>
+</li>
+<li>given an <code>ObjString*</code>, can safely cast to <code>Obj*</code></li>
+<li>
+<p>every ObjString &ldquo;is&rdquo; Obj in oop sense</p>
+</li>
+<li>
+<p>when later add other heap obj types, each struct have Obj as first field</p>
+</li>
+<li>
+<p>can cast other direction, too</p>
+</li>
+<li>
+<p>need to ensure <code>Obj*</code> is actually part of ObjString and not some other obj</p>
+</li>
+<li>
+<p>like for val union, macro to test</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)       </span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>takes value, not raw Obj</li>
+<li>
+<p>most code works with values, even when using heap-alloc ones</p>
+</li>
+<li>
+<p>uses inline fn</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><br><span></span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">bool</span> <span class="nf">isObjType</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">,</span> <span class="n">ObjType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">IS_OBJ</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">AS_OBJ</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">type</span><span class="p">;</span>   
+<span class="p">}</span>                                                        
+<br></pre><pre class="insert-after"><span></span><span class="cp">#endif                                                   </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>why not just use macro?</li>
+<li>note references arg twice</li>
+<li>if put whole thing in macro would eval arg expr twice</li>
+<li>bad if side effect</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="n">IS_STRING</span><span class="p">(</span><span class="n">POP</span><span class="p">())</span>
+</pre></div>
+
+
+<ul>
+<li>would pop two elements!</li>
+<li>
+<p>fn fixes</p>
+</li>
+<li>
+<p>once tested value, can unwrap</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)        </span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))         </span>
+<span class="cp">#define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))-&gt;chars)</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>two macros</li>
+<li>one to treat as clox ObjString</li>
+<li>useful for getting length</li>
+<li>one to go all the way to raw C char array</li>
+</ul>
+<h2><a href="#strings" name="strings"><small>19&#8202;.&#8202;2</small> strings</a></h2>
+<ul>
+<li>vm can rep strings, now add support to lang</li>
+<li>begin in parser, string literals</li>
+<li>already lex, so handle string token</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_IDENTIFIER</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">string</span><span class="p">,</span>   <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_STRING    </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="n">number</span><span class="p">,</span>   <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NUMBER    </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<ul>
+<li>calls</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>number</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">string</span><span class="p">()</span> <span class="p">{</span>                                          
+  <span class="n">emitConstant</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">copyString</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>    
+                                  <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)));</span>
+<span class="p">}</span>                                                               
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
+
+<ul>
+<li>gets raw chars from lexeme</li>
+<li>+1 and -2 are to trim quote chars</li>
+<li>call fn to alloc new ObjString on heap with chars</li>
+<li>
+<p>wrap in Value</p>
+</li>
+<li>
+<p>compiler needs access module</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_compiler_h</span>
+<br></pre><div class="source-file"><em>compiler.h</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;    </span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;        </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.h</em></div>
+
+<ul>
+<li>declared</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                                                       
+<br></pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>    
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">bool</span> <span class="nf">isObjType</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">,</span> <span class="n">ObjType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>module now gets impl file</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;                                    </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;                                   </span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;                                   </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;                                   </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                                    </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                                       </span><span class="cp"></span>
+
+<span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">char</span><span class="o">*</span> <span class="n">heapChars</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="p">(</span><span class="kt">char</span><span class="p">,</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>       
+  <span class="n">memcpy</span><span class="p">(</span><span class="n">heapChars</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>                   
+  <span class="n">heapChars</span><span class="p">[</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>                           
+
+  <span class="k">return</span> <span class="n">allocateString</span><span class="p">(</span><span class="n">heapChars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>           
+<span class="p">}</span>                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, create new file</div>
+
+<ul>
+<li>first thing, allocate new char array on heap</li>
+<li>copies chars from lexeme to that</li>
+<li>[don&rsquo;t forget to terminate string!]</li>
+<li>ensures string owns all of its own memory</li>
+<li>when later free string obj, frees char array</li>
+<li>
+<p>would be bad if tried to free chunk of memory in middle of orig source string</p>
+</li>
+<li>
+<p>uses new macro</p>
+</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_memory_h                                 </span>
+<br></pre><div class="source-file"><em>memory.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define ALLOCATE(type, count) \                       </span>
+    <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
+<br></pre><pre class="insert-after"><span></span><span class="cp">#define GROW_CAPACITY(capacity) \                     </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.h</em></div>
+
+<ul>
+<li>
+<p>simple wrapper to avoid redundancy in c alloc idiom</p>
+</li>
+<li>
+<p>real work in</p>
+</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>object.c</em></div>
+<pre><span></span><span class="k">static</span> <span class="n">ObjString</span><span class="o">*</span> <span class="nf">allocateString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">string</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjString</span><span class="p">,</span> <span class="n">OBJ_STRING</span><span class="p">);</span> 
+  <span class="n">string</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span><span class="p">;</span>                                 
+  <span class="n">string</span><span class="o">-&gt;</span><span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">string</span><span class="p">;</span>                                           
+<span class="p">}</span>                                                          
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em></div>
+
+<ul>
+<li>create new ObjString on heap, then initialize char pointer and len</li>
+<li>uses</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                                            </span><span class="cp"></span>
+</pre><div class="source-file"><em>object.c</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define ALLOCATE_OBJ(type, objectType) \                   </span>
+    <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">allocateObject</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">),</span> <span class="n">objectType</span><span class="p">)</span>        
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="n">ObjString</span><span class="o">*</span> <span class="nf">allocateString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em></div>
+
+<ul>
+<li>lot of little helpers to go through</li>
+<li>[nicely factored code not always super friendly to book format]</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define ALLOCATE_OBJ(type, objectType) \                   </span>
+    <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">allocateObject</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">),</span> <span class="n">objectType</span><span class="p">)</span>        
+</pre><div class="source-file"><em>object.c</em></div>
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="n">Obj</span><span class="o">*</span> <span class="nf">allocateObject</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">size</span><span class="p">,</span> <span class="n">ObjType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>    
+  <span class="n">Obj</span><span class="o">*</span> <span class="n">object</span> <span class="o">=</span> <span class="p">(</span><span class="n">Obj</span><span class="o">*</span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>           
+  <span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">type</span><span class="p">;</span>                                     
+  <span class="k">return</span> <span class="n">object</span><span class="p">;</span>                                           
+<span class="p">}</span>                                                          
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="n">ObjString</span><span class="o">*</span> <span class="nf">allocateString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em></div>
+
+<ul>
+<li>allocates heap mem of right size for full obj</li>
+<li>casts to Obj*</li>
+<li>initializes type tag</li>
+<li>
+<p>since ObjString starts with Obj, correctly initializes type tag for string</p>
+</li>
+<li>
+<p>now have new valid string obj living on heap</p>
+</li>
+<li>can compile and execute string literals</li>
+</ul>
+<h2><a href="#operations-on-strings" name="operations-on-strings"><small>19&#8202;.&#8202;3</small> operations on strings</a></h2>
+<ul>
+<li>have string literals, but can&rsquo;t do anything else with strings</li>
+<li>first is making existing print handle new value type</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="p">:</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%g&quot;</span><span class="p">,</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">value</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>
+</pre><div class="source-file"><em>value.c</em><br>
+in <em>printValue</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">VAL_OBJ</span><span class="p">:</span>    <span class="n">printObject</span><span class="p">(</span><span class="n">value</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>            
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
+
+<ul>
+<li>if val is heap obj, call out to helper</li>
+<li>declared over in obj</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>object.h</em><br>
+add after <em>copyString</em>()</div>
+<pre><span></span><span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after <em>copyString</em>()</div>
+
+<ul>
+<li>impl</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span>                                     
+</pre><div class="source-file"><em>object.c</em><br>
+add after <em>copyString</em>()</div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>       
+  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>          
+    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                  
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s&quot;</span><span class="p">,</span> <span class="n">AS_CSTRING</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+      <span class="k">break</span><span class="p">;</span>                          
+  <span class="p">}</span>                                   
+<span class="p">}</span>                                     
+</pre><pre class="insert-after"><span></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
+
+<ul>
+<li>only have one type for now, so simple</li>
+<li>
+<p>just print string as-is</p>
+</li>
+<li>
+<p>[does not re-escape or quote string. prints string itself, not lox source
+  rep of string as literal]</p>
+</li>
+<li>
+<p>equality operator also needs to handle strings</p>
+</li>
+<li>consider</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="s">&quot;string&quot;</span> <span class="o">==</span> <span class="s">&quot;string&quot;</span>
+</pre></div>
+
+
+<ul>
+<li>two separate literals, so two calls to copyString and two</li>
+<li>separate strings at runtime</li>
+<li>want strings to have value equality</li>
+<li>want print true</li>
+<li>require special support</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="p">:</span> <span class="k">return</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>              
+</pre><div class="source-file"><em>value.c</em><br>
+in <em>valuesEqual</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">VAL_OBJ</span><span class="p">:</span>                                                      
+    <span class="p">{</span>                                                                  
+      <span class="n">ObjString</span><span class="o">*</span> <span class="n">aString</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>                               
+      <span class="n">ObjString</span><span class="o">*</span> <span class="n">bString</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>                               
+      <span class="k">return</span> <span class="n">aString</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">bString</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">&amp;&amp;</span>                     
+          <span class="n">memcmp</span><span class="p">(</span><span class="n">aString</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">bString</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">aString</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="p">}</span>                                                                  
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>()</div>
+
+<ul>
+<li>equal if same chars, even if not same obj in memory</li>
+<li>will revise how do this later, but ok for now</li>
+<li>to use memcmp, need</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt; </span><span class="cp"></span>
+</pre><div class="source-file"><em>value.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em></div>
+
+<ul>
+<li>as snippet hints, last op is <code>+</code></li>
+<li>want to concatenate strings</li>
+<li>means <code>OP_ADD</code> more complex</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_LESS</span><span class="p">:</span>     <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">,</span> <span class="o">&lt;</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>                 
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="p">:</span> <span class="p">{</span>                                                   
+        <span class="k">if</span> <span class="p">(</span><span class="n">IS_STRING</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="n">IS_STRING</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span> <span class="p">{</span>                
+          <span class="n">concatenate</span><span class="p">();</span>                                               
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">IS_NUMBER</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="n">IS_NUMBER</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span> <span class="p">{</span>         
+          <span class="kt">double</span> <span class="n">b</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span>                                 
+          <span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span>                                 
+          <span class="n">push</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">));</span>                                     
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                       
+          <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Operands must be two numbers or two strings.&quot;</span><span class="p">);</span>
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>                              
+        <span class="p">}</span>                                                              
+        <span class="k">break</span><span class="p">;</span>                                                         
+      <span class="p">}</span>                                                                
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_SUBTRACT</span><span class="p">:</span> <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">NUMBER_VAL</span><span class="p">,</span> <span class="o">-</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>               
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<ul>
+<li>if operands both strings, concate</li>
+<li>if both numbers, add</li>
+<li>else error</li>
+<li>concat is in fn</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>isFalsey</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">concatenate</span><span class="p">()</span> <span class="p">{</span>                      
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">b</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span>               
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span>
+
+  <span class="kt">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">+</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">;</span>            
+  <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="p">(</span><span class="kt">char</span><span class="p">,</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>      
+  <span class="n">memcpy</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>            
+  <span class="n">memcpy</span><span class="p">(</span><span class="n">chars</span> <span class="o">+</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">,</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">);</span>
+  <span class="n">chars</span><span class="p">[</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>                          
+
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">result</span> <span class="o">=</span> <span class="n">takeString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span> 
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">result</span><span class="p">));</span>                         
+<span class="p">}</span>                                                
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>isFalsey</em>()</div>
+
+<ul>
+<li>verbose as c is</li>
+<li>calc length of result</li>
+<li>alloc char array</li>
+<li>copy two parts</li>
+<li>terminate</li>
+<li>[don&rsquo;t use strcpy() and strcat() since already know length]</li>
+<li>instead of copyString, use new takeString</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><br><span></span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>      
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">);</span>                       
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<ul>
+<li>need to include</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt; </span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
+<ul>
+<li>looks like</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>allocateString</em>()</div>
+<pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">allocateString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>         
+<span class="p">}</span>                                               
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>allocateString</em>()</div>
+
+<ul>
+<li>where copyString assumes can&rsquo;t own given string, take string is when you
+  can transfer ownership</li>
+<li>since concat() uses ALLOCATE() to create char array, ok for ObjString to take
+  it</li>
+<li>avoids redundant copy</li>
+</ul>
+<h2><a href="#freeing-objects" name="freeing-objects"><small>19&#8202;.&#8202;4</small> freeing objects</a></h2>
+<ul>
+<li>consider</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="s">&quot;st&quot;</span> <span class="o">+</span> <span class="s">&quot;ri&quot;</span> <span class="o">+</span> <span class="s">&quot;ng&quot;</span>
+</pre></div>
+
+
+<ul>
+<li>alloc ObjString for each literal and store in chunk const table</li>
+<li>runs, pushes &ldquo;st&rdquo; and &ldquo;ri&rdquo; on stack</li>
+<li>pops and concats</li>
+<li>allocates new string for &ldquo;stri&rdquo; and pushes</li>
+<li>pushes &ldquo;ng&rdquo;</li>
+<li>
+<p>pops both, concats, pushes &ldquo;string&rdquo;</p>
+</li>
+<li>
+<p>vm no longer has any ref to &ldquo;stri&rdquo; string</p>
+</li>
+<li>memory still allocated on heap</li>
+<li>mem leak</li>
+<li>
+<p>bad people</p>
+</li>
+<li>
+<p>begin period &ldquo;living in sin&rdquo;</p>
+</li>
+<li>vm dynamically allocates memory</li>
+<li>does not free it</li>
+<li>lox language frees user from worrying about managing memory</li>
+<li>doesn&rsquo;t mean we don&rsquo;t have to</li>
+<li>user doesn&rsquo;t have to because we do it for them</li>
+<li>
+<p>our job to ensure unused memory is reclaimed</p>
+</li>
+<li>
+<p>full solution is to impl gc so can reclaim while prog running</p>
+</li>
+<li>alas, need to get quite a few pieces of vm in place before possible to
+  implement gc</li>
+<li>
+<p>so on borrowed time for a while</p>
+</li>
+<li>
+<p>[many hobby langs allocate and don&rsquo;t free and intend to get to gc later</p>
+</li>
+<li>can sink project</li>
+<li>really hard to add later</li>
+<li>
+<p>lots of places in code where pointer can get squirreled away where gc can&rsquo;t
+  find and end up freeing mem still in use]</p>
+</li>
+<li>
+<p>first, need to at least be able to <em>find</em> alloc mem so possible to reclaim
+  mem</p>
+</li>
+<li>totally fine for user program to no longer ref some obj</li>
+<li>but vm internally still needs to be able to find</li>
+<li>many sophisticated techniques for this</li>
+<li>do simplest but still ok for clox</li>
+<li>all heap obj stored in linked list</li>
+<li>can traverse list to find every single alloc obj, whether or not program
+  or stack still has ref to it</li>
+</ul>
+<p><strong>illustrate</strong></p>
+<ul>
+<li>instead of creating sep linked list node, use Obj itself as node</li>
+<li>each obj has pointer to next obj in list</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">ObjType</span> <span class="n">type</span><span class="p">;</span>     
+</pre><div class="source-file"><em>object.h</em><br>
+add after enum <em>ObjType</em></div>
+<pre class="insert"><span></span>  <span class="k">struct</span> <span class="n">sObj</span><span class="o">*</span> <span class="n">next</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">};</span>                  
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after enum <em>ObjType</em></div>
+
+<ul>
+<li>vm stores pointer to head, first node in list</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Value</span><span class="o">*</span> <span class="n">stackTop</span><span class="p">;</span>
+</pre><div class="source-file"><em>vm.h</em><br>
+in struct <em>VM</em></div>
+<pre class="insert"><br><span></span>  <span class="n">Obj</span><span class="o">*</span> <span class="n">objects</span><span class="p">;</span>   
+</pre><pre class="insert-after"><span></span><span class="p">}</span> <span class="n">VM</span><span class="p">;</span>             
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
+
+<ul>
+<li>when init vm, no obj yet, so head null</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">resetStack</span><span class="p">();</span>     
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>initVM</em>()</div>
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
+
+<ul>
+<li>whenever alloc obj, insert in list</li>
+<li>ensures can find it even if nothing else in vm refs</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">type</span><span class="p">;</span>      
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>allocateObject</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">object</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">objects</span><span class="p">;</span>
+  <span class="n">vm</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="n">object</span><span class="p">;</span>      
+</pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">object</span><span class="p">;</span>            
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
+
+<ul>
+<li>insert at head of list so don&rsquo;t have to track tail</li>
+<li>obj module referencing global vm var</li>
+<li>need to expose</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">InterpretResult</span><span class="p">;</span>
+<br></pre><div class="source-file"><em>vm.h</em><br>
+add after enum <em>InterpretResult</em></div>
+<pre class="insert"><span></span><span class="k">extern</span> <span class="n">VM</span> <span class="n">vm</span><span class="p">;</span>     
+<br></pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">initVM</span><span class="p">();</span>    
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, add after enum <em>InterpretResult</em></div>
+
+<ul>
+<li>
+<p>lets obj see vm</p>
+</li>
+<li>
+<p>eventually, gc can reclaim while vm running</p>
+</li>
+<li>but when vm done need to free everything still alloc</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeVM</span><span class="p">()</span> <span class="p">{</span> 
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>freeVM</em>()</div>
+<pre class="insert"><span></span>  <span class="n">freeObjects</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>               
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
+
+<ul>
+<li>empty fn finally does something</li>
+<li>calls</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span><span class="o">*</span> <span class="nf">reallocate</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">previous</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">oldSize</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">newSize</span><span class="p">);</span>
+</pre><div class="source-file"><em>memory.h</em><br>
+add after <em>reallocate</em>()</div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">freeObjects</span><span class="p">();</span>                                              
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif                                                           </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
+
+<ul>
+<li>need some includes</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot; </span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;    </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
+<ul>
+<li>is</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>memory.c</em><br>
+add after <em>reallocate</em>()</div>
+<pre><span></span><span class="kt">void</span> <span class="nf">freeObjects</span><span class="p">()</span> <span class="p">{</span>         
+  <span class="c1">// Free all objects.       </span>
+  <span class="n">Obj</span><span class="o">*</span> <span class="n">object</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">objects</span><span class="p">;</span>  
+  <span class="k">while</span> <span class="p">(</span><span class="n">object</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>   
+    <span class="n">Obj</span><span class="o">*</span> <span class="n">next</span> <span class="o">=</span> <span class="n">object</span><span class="o">-&gt;</span><span class="n">next</span><span class="p">;</span>
+    <span class="n">freeObject</span><span class="p">(</span><span class="n">object</span><span class="p">);</span>      
+    <span class="n">object</span> <span class="o">=</span> <span class="n">next</span><span class="p">;</span>           
+  <span class="p">}</span>                          
+<span class="p">}</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em>, add after <em>reallocate</em>()</div>
+
+<ul>
+<li>cs 101 code to walk linked list</li>
+<li>on each obj, calls</li>
+</ul>
+<div class="codehilite"><div class="source-file"><em>memory.c</em><br>
+add after <em>reallocate</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">freeObject</span><span class="p">(</span><span class="n">Obj</span><span class="o">*</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>                     
+  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                                 
+    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span> <span class="p">{</span>                                    
+      <span class="n">ObjString</span><span class="o">*</span> <span class="n">string</span> <span class="o">=</span> <span class="p">(</span><span class="n">ObjString</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>             
+      <span class="n">FREE_ARRAY</span><span class="p">(</span><span class="kt">char</span><span class="p">,</span> <span class="n">string</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">string</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
+      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjString</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>                            
+      <span class="k">break</span><span class="p">;</span>                                              
+    <span class="p">}</span>                                                     
+  <span class="p">}</span>                                                       
+<span class="p">}</span>                                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em>, add after <em>reallocate</em>()</div>
+
+<ul>
+<li>string obj actually two allocs</li>
+<li>objstring itself and separate char array</li>
+<li>free both</li>
+<li>don&rsquo;t need to null pointers or anything</li>
+<li>uses last helper macro</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
+</pre><div class="source-file"><em>memory.h</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define FREE(type, pointer) \                         </span>
+    <span class="n">reallocate</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>              
+</pre><pre class="insert-after"><br><span></span><span class="cp">#define GROW_CAPACITY(capacity) \                     </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.h</em></div>
+
+<ul>
+<li>resizes mem down to zero</li>
+<li>goes through single reallocate() fn</li>
+<li>will be useful later so can keep track of how much mem outstanding</li>
+<li>
+<p>gc use that to know when to collect</p>
+</li>
+<li>
+<p>since mem module using obj stuff need to include
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_memory_h                                 </span>
+<br></pre><div class="source-file"><em>memory.h</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;                                   </span><span class="cp"></span>
+<br></pre><pre class="insert-after"><span></span><span class="cp">#define ALLOCATE(type, count) \                       </span>
+    <span class="p">(</span><span class="n">type</span><span class="o"><em></span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o"></em></span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
+</pre></div><div class="source-file-narrow"><em>memory.h</em></div></p>
+</li>
+<li>
+<p>put include in header because later ref some obj stuff in memory.h</p>
+</li>
+<li>also needs access to vm to get head of list</li>
+</ul>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;                                               </span><span class="cp"></span>
+</pre><div class="source-file"><em>memory.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                                                   </span><span class="cp"></span>
+</pre><pre class="insert-after"><br><span></span><span class="kt">void</span><span class="o">*</span> <span class="nf">reallocate</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">previous</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">oldSize</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">newSize</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em></div>
+
+<ul>
+<li>vm no longer leaking mem</li>
+<li>frees every alloc by when done executing</li>
+<li>but doesn&rsquo;t free while exec</li>
+<li>keeps alloc as long as running, building debt</li>
+<li>doesn&rsquo;t pay off until done</li>
+<li>when can write longer progs with loops, possible to consume lot of memory</li>
+<li>won&rsquo;t address until add gc</li>
+<li>
+<p>but big step</p>
+</li>
+<li>
+<p>strings important fundamental type, but also quite complex</p>
+</li>
+<li>[reason c support for strings so bad]</li>
+<li>have those now</li>
+<li>also have infrastructure to handle other dynamically-sized values</li>
+<li>now have strings, can build data structure fundamental to most dynamic lang
+  imples, hash table</li>
+<li>for next chapter</li>
+</ul>
+<h2><a href="#design-note" name="design-note"><small>19&#8202;.&#8202;5</small> design note</a></h2>
+<ul>
+<li>design note on string encoding?</li>
+</ul>
+<h2><a href="#challenges" name="challenges"><small>19&#8202;.&#8202;6</small> challenges</a></h2>
+<ul>
+<li>
+<p>challenge to use trailing struct array and store chars inline
+  https://en.wikipedia.org/wiki/Flexible_array_member</p>
+</li>
+<li>
+<p>challenge to support &ldquo;const&rdquo; strings that point to source string and don&rsquo;t
+  free</p>
+</li>
+<li>
+<p>challenge, what should <code>+</code> do when one op is string and other isn&rsquo;t? what
+  do other langs do?</p>
+</li>
+</ul>
 
 <footer>
 <a href="hash-tables.html" class="next">

@@ -786,17 +786,17 @@ static void or_(bool canAssign) {
   patchJump(endJump);
 }
 //< Jumping Forward and Back not-yet
-/* Strings not-yet < Global Variables not-yet
+/* Strings parse-string < Global Variables not-yet
 static void string() {
 */
-//> Strings not-yet
+//> Strings parse-string
 //> Global Variables not-yet
 static void string(bool canAssign) {
 //< Global Variables not-yet
   emitConstant(OBJ_VAL(copyString(parser.previous.start + 1,
                                   parser.previous.length - 2)));
 }
-//< Strings not-yet
+//< Strings parse-string
 //> Global Variables not-yet
 // Compiles a reference to a variable whose name is the given token.
 static void namedVariable(Token name, bool canAssign) {
@@ -976,12 +976,12 @@ ParseRule rules[] = {
 //> Global Variables not-yet
   { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 //< Global Variables not-yet
-/* Compiling Expressions rules < Strings not-yet
+/* Compiling Expressions rules < Strings table-string
   { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING
 */
-//> Strings not-yet
+//> Strings table-string
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
-//< Strings not-yet
+//< Strings table-string
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
 /* Compiling Expressions rules < Jumping Forward and Back not-yet
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
