@@ -71,10 +71,10 @@ typedef struct {
   size_t bytesAllocated;
   size_t nextGC;
 //< Garbage Collection not-yet
-//> Strings not-yet
+//> Strings objects-root
 
   Obj* objects;
-//< Strings not-yet
+//< Strings objects-root
 //> Garbage Collection not-yet
   int grayCount;
   int grayCapacity;
@@ -90,10 +90,10 @@ typedef enum {
 } InterpretResult;
 
 //< interpret-result
-//> Strings not-yet
+//> Strings extern-vm
 extern VM vm;
 
-//< Strings not-yet
+//< Strings extern-vm
 void initVM();
 void freeVM();
 /* A Virtual Machine interpret-h < Scanning on Demand vm-interpret-h

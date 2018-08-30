@@ -1,4 +1,5 @@
-//> Strings not-yet
+//> Strings object-c
+#include <stdio.h>
 #include <string.h>
 
 #include "memory.h"
@@ -8,9 +9,12 @@
 //< Hash Tables not-yet
 #include "value.h"
 #include "vm.h"
+//> allocate-obj
 
 #define ALLOCATE_OBJ(type, objectType) \
     (type*)allocateObject(sizeof(type), objectType)
+//< allocate-obj
+//> allocate-object
 
 static Obj* allocateObject(size_t size, ObjType type) {
   Obj* object = (Obj*)reallocate(NULL, 0, size);
@@ -18,9 +22,11 @@ static Obj* allocateObject(size_t size, ObjType type) {
 //> Garbage Collection not-yet
   object->isDark = false;
 //< Garbage Collection not-yet
-
+//> add-to-list
+  
   object->next = vm.objects;
   vm.objects = object;
+//< add-to-list
 //> Garbage Collection not-yet
 
 #ifdef DEBUG_TRACE_GC
@@ -30,6 +36,7 @@ static Obj* allocateObject(size_t size, ObjType type) {
 //< Garbage Collection not-yet
   return object;
 }
+//< allocate-object
 //> Methods and Initializers not-yet
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
@@ -109,9 +116,10 @@ ObjNative* newNative(NativeFn function) {
 }
 //< Calls and Functions not-yet
 
-/* Strings not-yet < Hash Tables not-yet
+/* Strings allocate-string < Hash Tables not-yet
 static ObjString* allocateString(char* chars, int length) {
 */
+//> allocate-string
 //> Hash Tables not-yet
 static ObjString* allocateString(char* chars, int length,
                                  uint32_t hash) {
@@ -135,8 +143,8 @@ static ObjString* allocateString(char* chars, int length,
 //< Hash Tables not-yet
   return string;
 }
+//< allocate-string
 //> Hash Tables not-yet
-
 static uint32_t hashString(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
   uint32_t hash = 2166136261u;
@@ -152,9 +160,9 @@ static uint32_t hashString(const char* key, int length) {
   return hash;
 }
 //< Hash Tables not-yet
-
+//> take-string
 ObjString* takeString(char* chars, int length) {
-/* Strings not-yet < Hash Tables not-yet
+/* Strings take-string < Hash Tables not-yet
   return allocateString(chars, length);
 */
 //> Hash Tables not-yet
@@ -166,7 +174,7 @@ ObjString* takeString(char* chars, int length) {
   return allocateString(chars, length, hash);
 //< Hash Tables not-yet
 }
-
+//< take-string
 ObjString* copyString(const char* chars, int length) {
 //> Hash Tables not-yet
   uint32_t hash = hashString(chars, length);
@@ -175,12 +183,11 @@ ObjString* copyString(const char* chars, int length) {
   if (interned != NULL) return interned;
 
 //< Hash Tables not-yet
-  // Copy the characters to the heap so the object can own it.
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
 
-/* Strings not-yet < Hash Tables not-yet
+/* Strings object-c < Hash Tables not-yet
   return allocateString(heapChars, length);
 */
 //> Hash Tables not-yet
@@ -198,3 +205,45 @@ ObjUpvalue* newUpvalue(Value* slot) {
   return upvalue;
 }
 //< Closures not-yet
+//> print-object
+void printObject(Value value) {
+  switch (OBJ_TYPE(value)) {
+//> Classes and Instances not-yet
+    case OBJ_CLASS:
+      printf("%s", AS_CLASS(value)->name->chars);
+      break;
+//< Classes and Instances not-yet
+//> Methods and Initializers not-yet
+    case OBJ_BOUND_METHOD:
+//< Methods and Initializers not-yet
+//> Closures not-yet
+    case OBJ_CLOSURE:
+      printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
+      break;
+//< Closures not-yet
+//> Calls and Functions not-yet
+    case OBJ_FUNCTION:
+      printf("<fn %s>", AS_FUNCTION(value)->name->chars);
+      break;
+//< Calls and Functions not-yet
+//> Classes and Instances not-yet
+    case OBJ_INSTANCE:
+      printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
+      break;
+//< Classes and Instances not-yet
+//> Calls and Functions not-yet
+    case OBJ_NATIVE:
+      printf("<native fn>");
+      break;
+//< Calls and Functions not-yet
+    case OBJ_STRING:
+      printf("%s", AS_CSTRING(value));
+      break;
+//> Closures not-yet
+    case OBJ_UPVALUE:
+      printf("upvalue");
+      break;
+//< Closures not-yet
+  }
+}
+//< print-object

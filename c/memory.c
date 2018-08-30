@@ -6,9 +6,9 @@
 #include "compiler.h"
 //< Garbage Collection not-yet
 #include "memory.h"
-//> Strings not-yet
+//> Strings memory-include-vm
 #include "vm.h"
-//< Strings not-yet
+//< Strings memory-include-vm
 //> Garbage Collection not-yet
 
 #ifdef DEBUG_TRACE_GC
@@ -147,8 +147,7 @@ static void blackenObject(Obj* object) {
   }
 }
 //< Garbage Collection not-yet
-//> Strings not-yet
-
+//> Strings free-object
 static void freeObject(Obj* object) {
 //> Garbage Collection not-yet
 #ifdef DEBUG_TRACE_GC
@@ -228,6 +227,7 @@ static void freeObject(Obj* object) {
 //< Closures not-yet
   }
 }
+//< Strings free-object
 //> Garbage Collection not-yet
 
 void collectGarbage() {
@@ -296,7 +296,7 @@ void collectGarbage() {
 #endif
 }
 //< Garbage Collection not-yet
-
+//> Strings free-objects
 void freeObjects() {
   // Free all objects.
   Obj* object = vm.objects;
@@ -310,4 +310,4 @@ void freeObjects() {
   free(vm.grayStack);
 //< Garbage Collection not-yet
 }
-//< Strings not-yet
+//< Strings free-objects

@@ -178,7 +178,6 @@ TOC = [
           'Objects', 'Reference types', 'Heap tracing', 'Concatenation',
           'Polymorphism'
         ],
-        'done': False,
       },
       {
         'name': 'Hash Tables',
