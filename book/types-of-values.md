@@ -578,7 +578,7 @@ You can evaluate `==` on any pair of objects, even objects of different types.
 There's enough complexity that it makes sense to shunt that logic over to a
 separate function. That function always returns a C `bool`, so we can safely
 wrap the result in a `BOOL_VAL`. The function relates to values, so it lives
-over in the value module:
+over in the "value" module:
 
 ^code values-equal-h (2 before, 1 after)
 
