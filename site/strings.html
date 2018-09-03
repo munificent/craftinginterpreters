@@ -37,12 +37,15 @@
 <h3><a href="#top">Strings<small>19</small></a></h3>
 
 <ul>
-    <li><a href="#values-on-the-heap"><small>19.1</small> values on the heap</a></li>
-    <li><a href="#strings"><small>19.2</small> strings</a></li>
-    <li><a href="#operations-on-strings"><small>19.3</small> operations on strings</a></li>
-    <li><a href="#freeing-objects"><small>19.4</small> freeing objects</a></li>
-    <li><a href="#design-note"><small>19.5</small> design note</a></li>
-    <li><a href="#challenges"><small>19.6</small> challenges</a></li>
+    <li><a href="#values-and-objects"><small>19.1</small> Values and Objects</a></li>
+    <li><a href="#struct-inheritance"><small>19.2</small> Struct Inheritance</a></li>
+    <li><a href="#strings"><small>19.3</small> Strings</a></li>
+    <li><a href="#operations-on-strings"><small>19.4</small> Operations on Strings</a></li>
+    <li><a href="#freeing-objects"><small>19.5</small> Freeing objects</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
+    <li class="end-part"><a href="#design-note"><small>note</small>String Encoding
+</a></li>
 </ul>
 
 
@@ -68,12 +71,15 @@
 <h3><a href="#top">Strings<small>19</small></a></h3>
 
 <ul>
-    <li><a href="#values-on-the-heap"><small>19.1</small> values on the heap</a></li>
-    <li><a href="#strings"><small>19.2</small> strings</a></li>
-    <li><a href="#operations-on-strings"><small>19.3</small> operations on strings</a></li>
-    <li><a href="#freeing-objects"><small>19.4</small> freeing objects</a></li>
-    <li><a href="#design-note"><small>19.5</small> design note</a></li>
-    <li><a href="#challenges"><small>19.6</small> challenges</a></li>
+    <li><a href="#values-and-objects"><small>19.1</small> Values and Objects</a></li>
+    <li><a href="#struct-inheritance"><small>19.2</small> Struct Inheritance</a></li>
+    <li><a href="#strings"><small>19.3</small> Strings</a></li>
+    <li><a href="#operations-on-strings"><small>19.4</small> Operations on Strings</a></li>
+    <li><a href="#freeing-objects"><small>19.5</small> Freeing objects</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
+    <li class="end-part"><a href="#design-note"><small>note</small>String Encoding
+</a></li>
 </ul>
 
 
@@ -109,41 +115,39 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
-<ul>
-<li>second chapter on value rep</li>
-<li>so far have three: num, bool nil</li>
-<li>have in common: small and immutable</li>
-<li>worst case, num is two words</li>
-<li>
-<p>small enough can pack everything in union and pay worst case cost every val</p>
-</li>
-<li>
-<p>want to add strings</p>
-</li>
-<li>no max length</li>
-<li>even if clamped to, say, 256 chars, can&rsquo;t burn that on each value</li>
-<li>
-<p>need to support objects of different sizes</p>
-</li>
-<li>
-<p>exactly what heap and dynamic alloc designed for</p>
-</li>
-<li>can alloc as many bytes as needed, on demand</li>
-<li>get back pointer</li>
-</ul>
-<p>&hellip;</p>
-<h2><a href="#values-on-the-heap" name="values-on-the-heap"><small>19&#8202;.&#8202;1</small> values on the heap</a></h2>
-<ul>
-<li>have two-level represent for lox values</li>
-<li>every value is &ldquo;Value&rdquo;</li>
-<li>for small fixed-size, has type tag and stores payload inside value itself</li>
-<li>if value larger, needs heap alloc</li>
-<li>will eventually have multiple heap alloc val types: string, class, instance,
-  fn</li>
-<li>lot in common around mem mgmt, so treat uniformly</li>
-<li>call &ldquo;obj&rdquo;</li>
-<li>one new val type for all heap alloc types:</li>
-</ul>
+<p>Our little VM can represent three types of values right now: numbers, Booleans,
+and <code>nil</code>. Those types have two important things in common: they&rsquo;re immutable
+and they&rsquo;re small. The worst case is number, and even it fits in two 64-bit
+words. That&rsquo;s a small enough price that we can afford to pay it for all values,
+even Booleans and nils which don&rsquo;t need that much space.</p>
+<p>Strings, unfortunately, are not so petite. There&rsquo;s no maximum length for a
+string. Even if we were to artificially cap it at some painfully small limit
+like <span name="pascal">255</span> characters, that&rsquo;s still too much memory to
+spend on every single value.</p>
+<aside name="pascal">
+<p>UCSD Pascal, one of the first implementations of Pascal, had this exact limit.
+Instead of using a terminating null byte to indicate the end of the string like
+C, Pascal strings start with a length value. Since UCSD used only a single byte
+to store the length, strings couldn&rsquo;t be any longer than 255 characters.</p>
+</aside>
+<p>We need a way to support values who size varies, sometimes greatly. This is
+exactly what dynamic allocation on the heap is designed for. We can allocate as
+many bytes as we need for a value. We get back a pointer, and that pointer is
+what we&rsquo;ll use to keep track of the value as it flows through the VM.</p>
+<h2><a href="#values-and-objects" name="values-and-objects"><small>19&#8202;.&#8202;1</small> Values and Objects</a></h2>
+<p>Using the heap for some larger variable-sized values and the stack for smaller
+atomic values leads to a two-level representation. Every value that you can
+store in a variable or return from an expression in Lox will be a Value. For
+small fixed-size types like numbers, the payload is stored directly inside the
+Value itself.</p>
+<p>If the value is larger, the payload lives on the heap. Then the Value&rsquo;s payload
+is a pointer to that blob of memory. We&rsquo;ll eventually have a handful of
+heap-allocated types in clox: strings, classes, instances, functions. When we
+get around to writing a garbage collector, we&rsquo;ll want a way to work with all of
+them uniformly.</p>
+<p>We&rsquo;ll call this shared representation &ldquo;Obj&rdquo;. Each piece of Lox value state that
+lives on the heap is an Obj. We can thus use a single new value type to refer to
+all heap-allocated values:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">VAL_NUMBER</span><span class="p">,</span>
 </pre><div class="source-file"><em>value.h</em><br>
 in enum <em>ValueType</em></div>
@@ -153,10 +157,8 @@ in enum <em>ValueType</em></div>
 
 <div class="source-file-narrow"><em>value.h</em>, in enum <em>ValueType</em></div>
 
-<ul>
-<li>stores pointer to Obj</li>
-<li>Obj itself on heap</li>
-</ul>
+<p>When a Value&rsquo;s type is <code>VAL_OBJ</code>, the payload is a pointer to the heap memory,
+so we add another case to the union for that:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="kt">double</span> <span class="n">number</span><span class="p">;</span>
 </pre><div class="source-file"><em>value.h</em><br>
 in struct <em>Value</em></div>
@@ -166,10 +168,8 @@ in struct <em>Value</em></div>
 
 <div class="source-file-narrow"><em>value.h</em>, in struct <em>Value</em></div>
 
-<ul>
-<li>also have same type macros had for other val types</li>
-<li>tell if val is obj</li>
-</ul>
+<p>As we did with the other value types, we crank out a couple of helpful macros
+for working with Obj values:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)</span>
 </pre><div class="source-file"><em>value.h</em><br>
 add after struct <em>Value</em></div>
@@ -179,68 +179,55 @@ add after struct <em>Value</em></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
 
-<ul>
-<li>extract obj from value</li>
-</ul>
+<p>This evaluates to <code>true</code> if the given Value is an Obj. If so, we can use:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_OBJ(value)     ((value).type == VAL_OBJ)</span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define AS_OBJ(value)     ((value).as.object)      </span>
+<pre class="insert"><span></span><span class="cp">#define AS_OBJ(value)     ((value).as.obj)         </span>
 </pre><pre class="insert-after"><span></span><span class="cp">#define AS_BOOL(value)    ((value).as.boolean)     </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<ul>
-<li>promote raw obj to val</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } })</span>
+<p>It extracts the Obj pointer from the value. We can also go the other direction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } }) </span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define OBJ_VAL(obj)      ((Value){ VAL_OBJ, { .obj = (Obj*)obj } })  </span>
-</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                      
+<pre class="insert"><span></span><span class="cp">#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                       
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<h3><a href="#polymorphic-struct" name="polymorphic-struct"><small>19&#8202;.&#8202;1&#8202;.&#8202;1</small> polymorphic struct</a></h3>
-<ul>
-<li>every heap alloc type is Obj, but not all same</li>
-<li>string needs char array</li>
-<li>fn will need chunk for body</li>
-<li>instance will need array of fields</li>
-<li>how handle different payloads and sizes?</li>
-<li>
-<p>can&rsquo;t use union like did for value since sizes wildly divergent</p>
-</li>
-<li>
-<p>use related technique</p>
-</li>
-<li>[no canonical name, &ldquo;type punning&rdquo;
-  https://en.wikipedia.org/wiki/Type_punning]</li>
-<li>
-<p>&ldquo;polymorphic&rdquo; struct</p>
-</li>
-<li>
-<p>have type tag to tell diff obj apart</p>
-</li>
-<li>then payload fields</li>
-<li>instead of union, separate structs for each type</li>
-<li>tricky part is how to treat different structs uniformly</li>
-<li>
-<p>no inheritance in c</p>
-</li>
-<li>
-<p>explain soon, first get prelim</p>
-</li>
-<li>
-<p>Obj itself contains data used by all heap-alloc types</p>
-</li>
-<li>
-<p>sort of like &ldquo;base class&rdquo;</p>
-</li>
-<li>
-<p>because some tricky cycles, need to fwd declare in value</p>
-</li>
-</ul>
+<p>This takes a bare Obj pointer and wraps it in a full Value.</p>
+<h2><a href="#struct-inheritance" name="struct-inheritance"><small>19&#8202;.&#8202;2</small> Struct Inheritance</a></h2>
+<p>Every heap-allocated value is an Obj, but all <span name="objs">Objs</span> are
+not the same. For strings, we need the array of characters. When we get to
+instances, they will need their data fields. A function object will need its
+chunk of bytecode. How do we handle different payloads and sizes? We can&rsquo;t use
+another union like we did for Value since the sizes are all over the place.</p>
+<aside name="objs">
+<p>No, I don&rsquo;t know how to pronounce &ldquo;objs&rdquo; either. Feels like there should be a
+vowel in there somewhere.</p>
+</aside>
+<p>Instead, we&rsquo;ll use another technique. It&rsquo;s been around for ages, to the point
+that the C specification carves out specific support for it, but I don&rsquo;t know
+that it has a canonical name. It&rsquo;s an example of <a href="https://en.wikipedia.org/wiki/Type_punning"><em>&ldquo;type punning&rdquo;</em></a>, but
+that term is too broad. In the absence of any better ideas, I&rsquo;ll call it &ldquo;struct
+inheritance&rdquo;, because it relies on structs and roughly follows how
+single-inheritance of state works in object-oriented languages.</p>
+<p>Like a tagged union, each Obj starts with a tag field that identifies what kind
+of object it is<span class="em">&mdash;</span>string, instance, etc. Following that are the payload fields.
+Instead of a union for each type, we define a separate struct for each Obj type.
+The tricky part is how to treat these structs uniformly since C has no concept
+of inheritance or polymorphism.</p>
+<p>I&rsquo;ll explain that <span name="foreshadowing">soon</span>, but first lets get the
+preliminary stuff out of the way.</p>
+<aside name="foreshadowing">
+<p>Ooh, foreshadowing!</p>
+</aside>
+<p>The name Obj itself refers to a struct that contains the state shared across all
+object types. It&rsquo;s sort of like the &ldquo;base class&rdquo; for objects. Because of some
+cyclic dependencies between values and objects, we forward-declare it in the
+&ldquo;value&rdquo; module:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;     </span><span class="cp"></span>
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObj</span> <span class="n">Obj</span><span class="p">;</span>
@@ -249,9 +236,7 @@ add after struct <em>Value</em></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<ul>
-<li>actual decl in new module</li>
-</ul>
+<p>And the actual definition is in a new module:</p>
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#ifndef clox_object_h</span>
@@ -269,9 +254,8 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.h</em>, create new file</div>
 
-<ul>
-<li>right now, only contains type tag</li>
-</ul>
+<p>Right now, it only contains the type tag. When add <a href="garbage-collection.html">garbage collection</a>, some
+other bookkeeping information will live here. The type enum is:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>    
@@ -282,10 +266,10 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>add helper macro to extract type given value</li>
-<li>extracts obj then type</li>
-</ul>
+<p>Obviously, that will be more useful in later chapters after we add more
+heap-allocated types. Since we&rsquo;ll be accessing these tag types frequently, it&rsquo;s
+worth making a little macro that extracts the object type tag of a given Obj
+Value:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                                   </span><span class="cp"></span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)</span>
@@ -294,13 +278,16 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>only one type for now, strings</li>
-<li>string payload is in separate struct</li>
-<li>again need, fwd decl</li>
-<li>[annoying part of c, won&rsquo;t do often but need for strings because strings very
-  core to system because of hash tables and string interning]</li>
-</ul>
+<p>That&rsquo;s our foundation. Now let&rsquo;s build strings on top of it. The payload for
+strings is defined in a separate struct. Again we need to <span
+name="forward">forward</span>-declare it:</p>
+<aside name="forward">
+<p>Forward-declarations are an annoying corner of C, a vestige of the days when C
+compilers ran on machines with only a few kilobytes of memory. I try to minimize
+the number of forward declarations needed in this book, but it&rsquo;s hard to
+eliminate all of them, especially in a program as intertwined as a virtual
+machine.</p>
+</aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObj</span> <span class="n">Obj</span><span class="p">;</span>            
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="n">ObjString</span><span class="p">;</span>
@@ -309,9 +296,7 @@ create new file</div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<ul>
-<li>defn</li>
-</ul>
+<p>The definition lives alongside Obj:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                 
 </pre><div class="source-file"><em>object.h</em><br>
 add after enum <em>ObjType</em></div>
@@ -325,63 +310,43 @@ add after enum <em>ObjType</em></div>
 
 <div class="source-file-narrow"><em>object.h</em>, add after enum <em>ObjType</em></div>
 
-<ul>
-<li>string stores array of chars in string</li>
-<li>also number of bytes</li>
-<li>
-<p>(that way don&rsquo;t have to walk chars looking for \0 to get length)</p>
-</li>
-<li>
-<p>because ObjString is Obj, also needs shared state</p>
-</li>
-<li>get by having first field be Obj</li>
-<li>thus ObjString contains all fields of Obj</li>
-<li>C says struct lays out first in order of decl</li>
-<li>for nested structs, fields stored right inline</li>
-<li>so memory for Obj and ObjString look like</li>
-</ul>
+<p>A string object contains an array of characters. Those are stored in a separate
+heap-allocated array so that we only set aside as much room as needed for each
+string. We also store the number of bytes in the array. This isn&rsquo;t strictly
+necessary, but lets us tell how much memory is allocated for the string without
+walking the character array to find the <code>\0</code> terminator.</p>
+<p>Because ObjString is an Obj, it also needs the state all Objs share. It
+accomplishes that by having its first field be an Obj. C specifies that struct
+fields are arranged in memory in the order that they are declared. Also, when
+you nest structs, the inner structs field are expanded right in place. So the
+memory for Obj and for ObjString look like this:</p>
 <p><strong>todo: illustrate</strong></p>
-<ul>
-<li>note that first bytes of ObjString exactly line up with Obj</li>
-<li>not coincidence</li>
-<li>
-<p>c spec requires</p>
-</li>
-<li>
-<p>[spec:]</p>
-<p>```
-6.7.2.1 13</p>
+<p>Note how the first bytes of ObjString exactly line up with Obj. This is not a
+coincidence<span class="em">&mdash;</span>C <name="spec">mandates</name="spec"> it. This is designed to
+enable a clever pattern: You can take a pointer to a struct and safely convert
+to a pointer to its first field and back.</p>
+<aside name="spec">
+<p>The key part of the spec is:</p>
+<blockquote>
+<p>&sect; 6.7.2.1 13</p>
 <p>Within a structure object, the non-bit-field members and the units in which
 bit-fields reside have addresses that increase in the order in which they
 are declared. A pointer to a structure object, suitably converted, points to
 its initial member (or if that member is a bit-field, then to the unit in
 which it resides), and vice versa. There may be unnamed padding within a
-structure object, but not at its beginning.
-```</p>
-</li>
-<li>
-<p>designed to enable clever pattern</p>
-</li>
-<li>
-<p>can convert pointer to a struct to pointer to its first field and back</p>
-</li>
-<li>given an <code>ObjString*</code>, can safely cast to <code>Obj*</code></li>
-<li>
-<p>every ObjString &ldquo;is&rdquo; Obj in oop sense</p>
-</li>
-<li>
-<p>when later add other heap obj types, each struct have Obj as first field</p>
-</li>
-<li>
-<p>can cast other direction, too</p>
-</li>
-<li>
-<p>need to ensure <code>Obj*</code> is actually part of ObjString and not some other obj</p>
-</li>
-<li>
-<p>like for val union, macro to test</p>
-</li>
-</ul>
+structure object, but not at its beginning.</p>
+</blockquote>
+</aside>
+<p>Given an <code>ObjString*</code>, you can safely cast it to <code>Obj*</code> and then access the
+<code>type</code> field from it. Every ObjString &ldquo;is&rdquo; an Obj in the OOP sense of &ldquo;is&rdquo;. When
+we later add other object types, each struct will have an Obj as its first
+field. Any code that wants to work with all objects can treat them as base
+<code>Obj*</code> and ignore any other fields that may happen to follow.</p>
+<p>You can go in the other direction too. Given an <code>Obj*</code>, you can &ldquo;downcast&rdquo; it to
+an <code>ObjString*</code>. Of course, you need to ensure that the <code>Obj*</code> pointer you have
+does point to the <code>obj</code> field of an actual ObjString. Otherwise, you are
+unsafely reinterpreting random bits of memory. To test that, we&rsquo;ll add another
+macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)       </span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)</span>
@@ -390,15 +355,8 @@ structure object, but not at its beginning.
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>takes value, not raw Obj</li>
-<li>
-<p>most code works with values, even when using heap-alloc ones</p>
-</li>
-<li>
-<p>uses inline fn</p>
-</li>
-</ul>
+<p>It takes a Value, not a raw <code>Obj*</code> because most code in the VM works with
+Values. It relies on this inline function:</p>
 <div class="codehilite"><pre class="insert-before"><br><span></span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><br><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">bool</span> <span class="nf">isObjType</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">,</span> <span class="n">ObjType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
@@ -409,25 +367,21 @@ structure object, but not at its beginning.
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>why not just use macro?</li>
-<li>note references arg twice</li>
-<li>if put whole thing in macro would eval arg expr twice</li>
-<li>bad if side effect</li>
-</ul>
+<p>Pop quiz: Why not just put the body of this function right in the macro? What&rsquo;s
+different about this one compared to the others? Right, it&rsquo;s because the body
+uses <code>value</code> twice. A macro is expanded by inserted the argument expression
+directly into the macro body. If a macro uses a parameter more than once, that
+expression gets evaluated multiple times. That can be bad if the expression has
+side effects.</p>
+<p>If you did, say:</p>
 <div class="codehilite"><pre><span></span><span class="n">IS_STRING</span><span class="p">(</span><span class="n">POP</span><span class="p">())</span>
 </pre></div>
 
 
-<ul>
-<li>would pop two elements!</li>
-<li>
-<p>fn fixes</p>
-</li>
-<li>
-<p>once tested value, can unwrap</p>
-</li>
-</ul>
+<p>It would pop two values off the stack! Using a function fixes that. As long as
+we ensure that we set the type tag correctly whenever we create an Obj of some
+type, this macro will tell us when it&rsquo;s safe to cast a value to a specific
+object type. We can do that using these:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)        </span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))         </span>
@@ -437,18 +391,14 @@ structure object, but not at its beginning.
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>two macros</li>
-<li>one to treat as clox ObjString</li>
-<li>useful for getting length</li>
-<li>one to go all the way to raw C char array</li>
-</ul>
-<h2><a href="#strings" name="strings"><small>19&#8202;.&#8202;2</small> strings</a></h2>
-<ul>
-<li>vm can rep strings, now add support to lang</li>
-<li>begin in parser, string literals</li>
-<li>already lex, so handle string token</li>
-</ul>
+<p>These two macros take a Value that is expected to contain a pointer to a valid
+ObjString on the heap. The first one returns the <code>ObjString*</code> pointer. The
+second one steps through that to return the character array itself, since that&rsquo;s
+often what we&rsquo;ll end up needing.</p>
+<h2><a href="#strings" name="strings"><small>19&#8202;.&#8202;3</small> Strings</a></h2>
+<p>OK, our VM can now represent string values. We&rsquo;re ready to actually add strings
+to the language itself. As usual, we begin in the front end. The lexer already
+tokenizes string literals, so it&rsquo;s up to the parser:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_IDENTIFIER</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
@@ -458,9 +408,7 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
-<ul>
-<li>calls</li>
-</ul>
+<p>When the parser hits a string token, it calls:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">string</span><span class="p">()</span> <span class="p">{</span>                                          
@@ -471,28 +419,15 @@ add after <em>number</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
 
-<ul>
-<li>gets raw chars from lexeme</li>
-<li>+1 and -2 are to trim quote chars</li>
-<li>call fn to alloc new ObjString on heap with chars</li>
-<li>
-<p>wrap in Value</p>
-</li>
-<li>
-<p>compiler needs access module</p>
-</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_compiler_h</span>
-<br></pre><div class="source-file"><em>compiler.h</em></div>
-<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;    </span><span class="cp"></span>
-</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;        </span><span class="cp"></span>
-</pre></div>
-
-<div class="source-file-narrow"><em>compiler.h</em></div>
-
-<ul>
-<li>declared</li>
-</ul>
+<p>This takes the string&rsquo;s characters <span name="escape">directly</span> from the
+lexeme. The <code>+ 1</code> and <code>- 2</code> parts are to trim the leading and trailing quotation
+characters from the lexeme. It then creates a string object and wraps it in a
+Value.</p>
+<aside name="escape">
+<p>If Lox supported string escape sequences like <code>\n</code>, we&rsquo;d translate those here.
+Since it doesn&rsquo;t, we can take the characters as they are.</p>
+</aside>
+<p>The new <code>copyString()</code> function is declared in <code>object.h</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                                                       
 <br></pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>    
@@ -501,9 +436,17 @@ add after <em>number</em>()</div>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>module now gets impl file</li>
-</ul>
+<p>Which the compiler needs to include:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_compiler_h</span>
+<br></pre><div class="source-file"><em>compiler.h</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;    </span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;        </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.h</em></div>
+
+<p>Our &ldquo;object&rdquo; module gets an implementation file where we define the new
+function:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;                                    </span><span class="cp"></span>
@@ -525,19 +468,28 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.c</em>, create new file</div>
 
-<ul>
-<li>first thing, allocate new char array on heap</li>
-<li>copies chars from lexeme to that</li>
-<li>[don&rsquo;t forget to terminate string!]</li>
-<li>ensures string owns all of its own memory</li>
-<li>when later free string obj, frees char array</li>
-<li>
-<p>would be bad if tried to free chunk of memory in middle of orig source string</p>
-</li>
-<li>
-<p>uses new macro</p>
-</li>
-</ul>
+<p>First, we allocate a new array on the heap for the string&rsquo;s characters, just big
+enough for the characters and the trailing <span
+name="terminator">terminator</span>. We copy over the characters from the lexeme
+and terminate it.</p>
+<aside name="terminator">
+<p>We need to terminate it explicitly ourselves because the lexeme points at a
+range of characters inside the monolithic source string and isn&rsquo;t terminated.</p>
+<p>Since ObjString stores the length explicitly, we <em>could</em> leave the character
+array unterminated, but slapping a terminator on the end costs us little and
+lets us using existing C standard library functions on the character array.</p>
+</aside>
+<p>You might wonder why the ObjString can&rsquo;t just point back to the original
+characters in the source string. Some ObjStrings will be created dynamically at
+runtime as a result of string operations like concatenation. Those strings
+obviously need to dynamically allocate memory for the characters, which means
+the string needs to <em>free</em> that memory when it&rsquo;s no longer needed. If ObjString
+tried to free a character array that point into the original source code string,
+bad things would happen. So, for strings derived from string literals, we
+pre-emptively copy the characters over to the heap. This way, every ObjString
+reliably owns its character array and can free it.</p>
+<p>This chapter introduces a couple of new low-level macros to make it easier to
+work with dynamic memory. Here is the first:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_memory_h                                 </span>
 <br></pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define ALLOCATE(type, count) \                       </span>
@@ -547,14 +499,8 @@ create new file</div>
 
 <div class="source-file-narrow"><em>memory.h</em></div>
 
-<ul>
-<li>
-<p>simple wrapper to avoid redundancy in c alloc idiom</p>
-</li>
-<li>
-<p>real work in</p>
-</li>
-</ul>
+<p>It allocates an array of a given type, and gives you back a pointer of that
+type. The real work happens in this function:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em></div>
 <pre><span></span><span class="k">static</span> <span class="n">ObjString</span><span class="o">*</span> <span class="nf">allocateString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">ObjString</span><span class="o">*</span> <span class="n">string</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjString</span><span class="p">,</span> <span class="n">OBJ_STRING</span><span class="p">);</span> 
@@ -567,10 +513,9 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.c</em></div>
 
-<ul>
-<li>create new ObjString on heap, then initialize char pointer and len</li>
-<li>uses</li>
-</ul>
+<p>It creates a new ObjString on the heap and then initializes its fields. It&rsquo;s
+sort of like a constructor in an OOP language. As such, it first calls the &ldquo;base
+class&rdquo; constructor to initialize the Obj state, using this macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                                            </span><span class="cp"></span>
 </pre><div class="source-file"><em>object.c</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define ALLOCATE_OBJ(type, objectType) \                   </span>
@@ -580,10 +525,15 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.c</em></div>
 
-<ul>
-<li>lot of little helpers to go through</li>
-<li>[nicely factored code not always super friendly to book format]</li>
-</ul>
+<p><span name="factored">Like</span> the previous macro, this exists mainly to
+avoid the need to redundantly cast a <code>void*</code> back to the desired type. The
+actual functionality is here:</p>
+<aside name="factored">
+<p>Alright, I admit there are a ton of little helper functions and macros to wade
+through here. I&rsquo;ve tried to keep the code minimal and nicely factored, but that
+tends to lead to a scattering of tiny functions. I promise they will pay off in
+later chapters when we reuse them for other object types.</p>
+</aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define ALLOCATE_OBJ(type, objectType) \                   </span>
     <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">allocateObject</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">),</span> <span class="n">objectType</span><span class="p">)</span>        
 </pre><div class="source-file"><em>object.c</em></div>
@@ -597,23 +547,19 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.c</em></div>
 
-<ul>
-<li>allocates heap mem of right size for full obj</li>
-<li>casts to Obj*</li>
-<li>initializes type tag</li>
-<li>
-<p>since ObjString starts with Obj, correctly initializes type tag for string</p>
-</li>
-<li>
-<p>now have new valid string obj living on heap</p>
-</li>
-<li>can compile and execute string literals</li>
-</ul>
-<h2><a href="#operations-on-strings" name="operations-on-strings"><small>19&#8202;.&#8202;3</small> operations on strings</a></h2>
-<ul>
-<li>have string literals, but can&rsquo;t do anything else with strings</li>
-<li>first is making existing print handle new value type</li>
-</ul>
+<p>It allocates an object of the given size on the heap. Note that the size is
+<em>not</em> just the size of Obj itself. We pass in the size so that there is room for
+the extra payload fields needed by the specific object type being created.</p>
+<p>Then it initializes the Obj state<span class="em">&mdash;</span>right now, that&rsquo;s just the type tag. This
+function returns to <code>copyString()</code> which finishes initializing the ObjString
+fields. The <code>string()</code> parser function in the compiler then wraps that in a
+Value and stuffs it in the chunk&rsquo;s constant table. It then emits an instruction
+to load that constant onto the stack.</p>
+<p><em>Voil&agrave;</em>, we can compile and execute string literals.</p>
+<p><strong>todo: illustrate viola</strong></p>
+<h2><a href="#operations-on-strings" name="operations-on-strings"><small>19&#8202;.&#8202;4</small> Operations on Strings</a></h2>
+<p>We have strings, but they don&rsquo;t do much of anything yet. A good first step is to
+make the existing print code not barf on the new value type:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="p">:</span> <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%g&quot;</span><span class="p">,</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">value</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
@@ -623,10 +569,8 @@ in <em>printValue</em>()</div>
 
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
 
-<ul>
-<li>if val is heap obj, call out to helper</li>
-<li>declared over in obj</li>
-</ul>
+<p>If the value is a heap-allocated object, it defers to a helper function over in
+the &ldquo;object&rdquo; module:</p>
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 add after <em>copyString</em>()</div>
 <pre><span></span><span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
@@ -634,9 +578,7 @@ add after <em>copyString</em>()</div>
 
 <div class="source-file-narrow"><em>object.h</em>, add after <em>copyString</em>()</div>
 
-<ul>
-<li>impl</li>
-</ul>
+<p>The implementation looks like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span>                                     
 </pre><div class="source-file"><em>object.c</em><br>
 add after <em>copyString</em>()</div>
@@ -652,31 +594,22 @@ add after <em>copyString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
 
-<ul>
-<li>only have one type for now, so simple</li>
-<li>
-<p>just print string as-is</p>
-</li>
-<li>
-<p>[does not re-escape or quote string. prints string itself, not lox source
-  rep of string as literal]</p>
-</li>
-<li>
-<p>equality operator also needs to handle strings</p>
-</li>
-<li>consider</li>
-</ul>
+<p>We only have a single object type now, but this will sprout additional cases in
+later chapters. For string objects, it simply <span name="term-2">prints</span>
+the character array as a C string.</p>
+<aside name="term-2">
+<p>I told you terminating the string would come in handy.</p>
+</aside>
+<p>The equality operators also need to gracefully handle strings. Consider:</p>
 <div class="codehilite"><pre><span></span><span class="s">&quot;string&quot;</span> <span class="o">==</span> <span class="s">&quot;string&quot;</span>
 </pre></div>
 
 
-<ul>
-<li>two separate literals, so two calls to copyString and two</li>
-<li>separate strings at runtime</li>
-<li>want strings to have value equality</li>
-<li>want print true</li>
-<li>require special support</li>
-</ul>
+<p>These are two separate string literals. The compiler will make two separate
+calls to <code>copyString()</code>, create two distinct ObjString objects and store them as
+two constants in the chunk. They are different objects. But our users (and thus
+we) expect strings to have value equality. The above expression should evaluate
+to <code>true</code>. That requires a little special support:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="p">:</span> <span class="k">return</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">AS_NUMBER</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>              
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
@@ -692,11 +625,12 @@ in <em>valuesEqual</em>()</div>
 
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>()</div>
 
-<ul>
-<li>equal if same chars, even if not same obj in memory</li>
-<li>will revise how do this later, but ok for now</li>
-<li>to use memcmp, need</li>
-</ul>
+<p>If the two values are both strings, then they are equal if their character
+arrays contain the same characters, regardless of whether they are two separate
+objects or the exact same one. This does mean that string equality is slower
+than equality on other types since it has to walk the whole string. We&rsquo;ll revise
+that later, but this gives us the right semantics for now.</p>
+<p>In order to call <code>memcmp()</code>, we need an include:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt; </span><span class="cp"></span>
 </pre><div class="source-file"><em>value.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
@@ -705,11 +639,17 @@ in <em>valuesEqual</em>()</div>
 
 <div class="source-file-narrow"><em>value.c</em></div>
 
-<ul>
-<li>as snippet hints, last op is <code>+</code></li>
-<li>want to concatenate strings</li>
-<li>means <code>OP_ADD</code> more complex</li>
-</ul>
+<h3><a href="#concatenation" name="concatenation"><small>19&#8202;.&#8202;4&#8202;.&#8202;1</small> Concatenation</a></h3>
+<p>Full-featured languages provide lots of operations for working with strings<span class="em">&mdash;</span>ways to access individual characters, the string&rsquo;s length, changing case,
+splitting, joining, searching, etc. When you implement your language, you&rsquo;ll
+likely want all that. But for this book, we are keeping things <em>very</em> minimal.</p>
+<p>The only interesting operation we support on strings is <code>+</code>. If you use that
+operator on two string objects, it produces a new string that&rsquo;s a concatenation
+of the two operands. In other words, we overload &ldquo;+&rdquo; to mean &ldquo;concatenate&rdquo; as
+well as addition. Since Lox is dynamically typed, we can&rsquo;t tell which overload
+is chosen at compile time because we don&rsquo;t know the types of the operands until
+runtime. Thus, the <code>OP_ADD</code> instruction needs to dynamically inspect the
+operands and choose the right behavior:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_LESS</span><span class="p">:</span>     <span class="n">BINARY_OP</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">,</span> <span class="o">&lt;</span><span class="p">);</span> <span class="k">break</span><span class="p">;</span>                 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
@@ -732,12 +672,18 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
 
-<ul>
-<li>if operands both strings, concate</li>
-<li>if both numbers, add</li>
-<li>else error</li>
-<li>concat is in fn</li>
-</ul>
+<p>If both operands are strings, it concatenates. If they&rsquo;re both numbers, it adds
+them. Any other <span name="convert">combination</span> of operand types is a
+runtime error.</p>
+<aside name="convert">
+<p>This is more conservative than most languages. In most languages, if one operand
+is a string, the other can be any type and it will be implicitly converted to a
+string and then the results concatenated.</p>
+<p>I think that&rsquo;s good language design, but would mean writing some tedious
+&ldquo;convert to string&rdquo; code for each type, so I left it out of Lox.</p>
+<p><strong>todo: overlap</strong></p>
+</aside>
+<p>To concatenate strings, we use:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>isFalsey</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">concatenate</span><span class="p">()</span> <span class="p">{</span>                      
@@ -757,15 +703,12 @@ add after <em>isFalsey</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>isFalsey</em>()</div>
 
-<ul>
-<li>verbose as c is</li>
-<li>calc length of result</li>
-<li>alloc char array</li>
-<li>copy two parts</li>
-<li>terminate</li>
-<li>[don&rsquo;t use strcpy() and strcat() since already know length]</li>
-<li>instead of copyString, use new takeString</li>
-</ul>
+<p>It&rsquo;s pretty verbose, as C code that works with strings tends to be. First, we
+calculate the length of the result string based on the lengths of the operands.
+We allocate a character array for the result and then copy the two halves in. As
+always, we carefully ensure the string is terminated.</p>
+<p>Finally, we produce an ObjString to contain those characters. This time we use a
+new function, <code>takeString()</code>:</p>
 <div class="codehilite"><pre class="insert-before"><br><span></span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>      
@@ -775,9 +718,7 @@ add after <em>isFalsey</em>()</div>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>need to include</li>
-</ul>
+<p>The VM needs to include that module:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt; </span><span class="cp"></span>
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
@@ -786,9 +727,7 @@ add after <em>isFalsey</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em></div>
 
-<ul>
-<li>looks like</li>
-</ul>
+<p>The implementation looks like:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateString</em>()</div>
 <pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
@@ -798,83 +737,80 @@ add after <em>allocateString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateString</em>()</div>
 
-<ul>
-<li>where copyString assumes can&rsquo;t own given string, take string is when you
-  can transfer ownership</li>
-<li>since concat() uses ALLOCATE() to create char array, ok for ObjString to take
-  it</li>
-<li>avoids redundant copy</li>
-</ul>
-<h2><a href="#freeing-objects" name="freeing-objects"><small>19&#8202;.&#8202;4</small> freeing objects</a></h2>
-<ul>
-<li>consider</li>
-</ul>
+<p>The previous <code>copyString()</code> function assumes it <em>cannot</em> take ownership of the
+characters you pass in. Instead, it conservatively creates a copy of the
+characters on the heap that the ObjString can own. That&rsquo;s the right thing for
+string literals where the passed-in characters are in the middle of the source
+string.</p>
+<p>But, for concatenation, we&rsquo;ve already dynamically allocated a character array on
+the heap. Making another copy of that would be redundant (and would mean
+<code>takeString()</code> has to remember to free its copy). Instead, this function claims
+ownership of the string you give it.</p>
+<h2><a href="#freeing-objects" name="freeing-objects"><small>19&#8202;.&#8202;5</small> Freeing objects</a></h2>
+<p>Take this innocuous-seeming expression:</p>
 <div class="codehilite"><pre><span></span><span class="s">&quot;st&quot;</span> <span class="o">+</span> <span class="s">&quot;ri&quot;</span> <span class="o">+</span> <span class="s">&quot;ng&quot;</span>
 </pre></div>
 
 
-<ul>
-<li>alloc ObjString for each literal and store in chunk const table</li>
-<li>runs, pushes &ldquo;st&rdquo; and &ldquo;ri&rdquo; on stack</li>
-<li>pops and concats</li>
-<li>allocates new string for &ldquo;stri&rdquo; and pushes</li>
-<li>pushes &ldquo;ng&rdquo;</li>
-<li>
-<p>pops both, concats, pushes &ldquo;string&rdquo;</p>
-</li>
-<li>
-<p>vm no longer has any ref to &ldquo;stri&rdquo; string</p>
-</li>
-<li>memory still allocated on heap</li>
-<li>mem leak</li>
-<li>
-<p>bad people</p>
-</li>
-<li>
-<p>begin period &ldquo;living in sin&rdquo;</p>
-</li>
-<li>vm dynamically allocates memory</li>
-<li>does not free it</li>
-<li>lox language frees user from worrying about managing memory</li>
-<li>doesn&rsquo;t mean we don&rsquo;t have to</li>
-<li>user doesn&rsquo;t have to because we do it for them</li>
-<li>
-<p>our job to ensure unused memory is reclaimed</p>
-</li>
-<li>
-<p>full solution is to impl gc so can reclaim while prog running</p>
-</li>
-<li>alas, need to get quite a few pieces of vm in place before possible to
-  implement gc</li>
-<li>
-<p>so on borrowed time for a while</p>
-</li>
-<li>
-<p>[many hobby langs allocate and don&rsquo;t free and intend to get to gc later</p>
-</li>
-<li>can sink project</li>
-<li>really hard to add later</li>
-<li>
-<p>lots of places in code where pointer can get squirreled away where gc can&rsquo;t
-  find and end up freeing mem still in use]</p>
-</li>
-<li>
-<p>first, need to at least be able to <em>find</em> alloc mem so possible to reclaim
-  mem</p>
-</li>
-<li>totally fine for user program to no longer ref some obj</li>
-<li>but vm internally still needs to be able to find</li>
-<li>many sophisticated techniques for this</li>
-<li>do simplest but still ok for clox</li>
-<li>all heap obj stored in linked list</li>
-<li>can traverse list to find every single alloc obj, whether or not program
-  or stack still has ref to it</li>
-</ul>
+<p>When the compiler chrews through this, it allocates an ObjString for each of those three string literals and stores them in the chunk&rsquo;s constant table and generates this bytecode:</p>
+<div class="codehilite"><pre><span></span>0000    OP_CONSTANT         0 &quot;st&quot;
+0002    OP_CONSTANT         1 &quot;ri&quot;
+0004    OP_ADD
+0005    OP_CONSTANT         2 &quot;ng&quot;
+0007    OP_ADD
+0008    OP_RETURN
+</pre></div>
+
+
+<p>The first two instructions push <code>"st"</code> and <code>"ri"</code> onto the stack. Then the
+<code>OP_ADD</code> pops those and concatenates them. That dynamically allocates a new
+<code>"stri"</code> string on the heap. The VM pushes that and then pushes the <code>"ng"</code>
+constant. The last <code>OP_ADD</code> pops <code>"stri"</code> and <code>"ng"</code>, concatenates them, and
+pushes the result: <code>"string"</code>. Great, that&rsquo;s what we expect.</p>
+<p>But, wait. What happened to that <code>"stri"</code> string? We dynamically allocated but
+it was popped and discarded after the VM concatenated it with <code>"ng"</code>. The VM no
+longer has any reference to it, but we never freed its memory. We&rsquo;ve got
+ourselves a classic memory leak.</p>
+<p>Of course, it&rsquo;s perfectly fine for the <em>Lox program</em> to forget about
+intermediate strings and not worry about freeing them. Lox automatically manages
+memory on the user&rsquo;s behalf. That doesn&rsquo;t mean the responsibility goes away. It
+means it&rsquo;s <em>our</em> job as VM hackers to take care of those allocated bytes.</p>
+<p>The full solution to doing this is to implement a garbage collector that
+reclaims unused memory while the program is running. Unfortunately, I want to
+get a few other languages features in place before we do that so that I can walk
+through a complete GC that handles things like tracing references in objects.
+Until then, we are living on <span name="borrowed">borrowed</span> time. The
+longer we wait to add the collector, the harder it is to do.</p>
+<aside name="borrowed">
+<p>I&rsquo;ve seen a number of language hackers implement large swathes of their language
+before adding a GC. The idea is that garbage collection is just an
+&ldquo;optimization&rdquo; and that for the kind of toy programs you typically run while a
+language is being developed, you actually don&rsquo;t run out of memory before
+reaching the end of the program.</p>
+<p>That&rsquo;s true, but it underestimates how <em>hard</em> it is to add a garbage collector
+after the fact. The collector <em>must</em> ensure it can find every bit of memory that
+<em>is</em> still being used so that it doesn&rsquo;t collect live data. There are hundreds
+of places a language implementation can squirrel away a reference to some
+object. If you don&rsquo;t find all of them, you&rsquo;ve got really painful to track down
+GC bugs.</p>
+<p>It&rsquo;s miserable. I&rsquo;ve seen several language implementations wither and die
+because it proved to hard to get the GC in later. If your language automatically
+manages memory, get that working as soon as you can. It&rsquo;s a cross-cutting
+concern that touches the entire codebase.</p>
+</aside>
+<p>Until then, we should at least do the bare minimum: avoid <em>leaking</em> memory by
+making sure the VM can still find every allocated object even if the Lox program
+itself no longer references them. There are many sophisticated techniques that
+advanced memory managers use to allocate and track memory for objects. We&rsquo;re
+going to take the simplest approach that&rsquo;s still good enough to be practical.</p>
+<p>We&rsquo;ll create a linked list that stores every object. The VM can traverse that
+list to find every single object that has been allocated on the heap, whether or
+not the user&rsquo;s program or stack still has a reference to it.</p>
 <p><strong>illustrate</strong></p>
-<ul>
-<li>instead of creating sep linked list node, use Obj itself as node</li>
-<li>each obj has pointer to next obj in list</li>
-</ul>
+<p>We could define a separate linked list node struct but then we&rsquo;d have to
+allocate those too. Instead, we&rsquo;ll use an <strong>instrusive list</strong><span class="em">&mdash;</span>the Obj struct
+itself will be the linked list node. Each Obj gets a pointer to the next Obj in
+the chain:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">ObjType</span> <span class="n">type</span><span class="p">;</span>     
 </pre><div class="source-file"><em>object.h</em><br>
 add after enum <em>ObjType</em></div>
@@ -884,9 +820,7 @@ add after enum <em>ObjType</em></div>
 
 <div class="source-file-narrow"><em>object.h</em>, add after enum <em>ObjType</em></div>
 
-<ul>
-<li>vm stores pointer to head, first node in list</li>
-</ul>
+<p>The VM stores a pointer to the &ldquo;root&rdquo; or head of the list:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Value</span><span class="o">*</span> <span class="n">stackTop</span><span class="p">;</span>
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
@@ -896,9 +830,8 @@ in struct <em>VM</em></div>
 
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
-<ul>
-<li>when init vm, no obj yet, so head null</li>
-</ul>
+<p>When we first initialize the VM, there are no allocated objects, so the head is
+<code>NULL</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">resetStack</span><span class="p">();</span>     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
@@ -908,10 +841,7 @@ in <em>initVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<ul>
-<li>whenever alloc obj, insert in list</li>
-<li>ensures can find it even if nothing else in vm refs</li>
-</ul>
+<p>Every time we allocate an Obj, we insert it in the list:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">type</span><span class="p">;</span>      
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateObject</em>()</div>
@@ -922,11 +852,11 @@ in <em>allocateObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
-<ul>
-<li>insert at head of list so don&rsquo;t have to track tail</li>
-<li>obj module referencing global vm var</li>
-<li>need to expose</li>
-</ul>
+<p>Since this is a singly-linked list, the easiest place to insert it is as the
+head. That way, we don&rsquo;t need to also store a pointer to the tail and keep it
+updated.</p>
+<p>The &ldquo;object&rdquo; module is directly using the global <code>vm</code> variable from the &ldquo;vm&rdquo;
+module, so we need to expose that externally:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">InterpretResult</span><span class="p">;</span>
 <br></pre><div class="source-file"><em>vm.h</em><br>
 add after enum <em>InterpretResult</em></div>
@@ -936,15 +866,11 @@ add after enum <em>InterpretResult</em></div>
 
 <div class="source-file-narrow"><em>vm.h</em>, add after enum <em>InterpretResult</em></div>
 
-<ul>
-<li>
-<p>lets obj see vm</p>
-</li>
-<li>
-<p>eventually, gc can reclaim while vm running</p>
-</li>
-<li>but when vm done need to free everything still alloc</li>
-</ul>
+<p>Eventually, the garbage collector will free memory while the VM is still
+running. But, even then, there will usually be unused objects still lingering in
+memory when the user&rsquo;s program completes. The VM should free those too.</p>
+<p>There&rsquo;s no sophisticated logic for that. Once the program is done, we can free
+<em>every</em> object. So let&rsquo;s implement that now:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeVM</span><span class="p">()</span> <span class="p">{</span> 
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
@@ -954,10 +880,8 @@ in <em>freeVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
-<ul>
-<li>empty fn finally does something</li>
-<li>calls</li>
-</ul>
+<p>That empty function we defined way back when finally does something! It calls
+this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span><span class="o">*</span> <span class="nf">reallocate</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">previous</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">oldSize</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">newSize</span><span class="p">);</span>
 </pre><div class="source-file"><em>memory.h</em><br>
 add after <em>reallocate</em>()</div>
@@ -967,9 +891,8 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
 
-<ul>
-<li>need some includes</li>
-</ul>
+<p>Before we get to the definition of that, there are a couple of includes we need
+in the &ldquo;vm&rdquo; module:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot; </span><span class="cp"></span>
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
@@ -979,9 +902,7 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em></div>
 
-<ul>
-<li>is</li>
-</ul>
+<p>Here&rsquo;s how we free the objects:</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>reallocate</em>()</div>
 <pre><span></span><span class="kt">void</span> <span class="nf">freeObjects</span><span class="p">()</span> <span class="p">{</span>         
@@ -997,10 +918,8 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em>, add after <em>reallocate</em>()</div>
 
-<ul>
-<li>cs 101 code to walk linked list</li>
-<li>on each obj, calls</li>
-</ul>
+<p>This is a CS 101 textbook implementation of walking a linked list and freeing
+its nodes. For each node, we call:</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>reallocate</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">freeObject</span><span class="p">(</span><span class="n">Obj</span><span class="o">*</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>                     
@@ -1017,13 +936,12 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em>, add after <em>reallocate</em>()</div>
 
-<ul>
-<li>string obj actually two allocs</li>
-<li>objstring itself and separate char array</li>
-<li>free both</li>
-<li>don&rsquo;t need to null pointers or anything</li>
-<li>uses last helper macro</li>
-</ul>
+<p>We need to free the Obj itself, but some object types also allocate other memory
+that they own. For example, strings also have the character array. So when
+freeing an object, we also need a little type-specific code to handle each
+object type&rsquo;s special needs.</p>
+<p>Here that means we free the character array and then free the ObjString. Those
+both use one last memory management macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
 </pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define FREE(type, pointer) \                         </span>
@@ -1033,27 +951,26 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>memory.h</em></div>
 
-<ul>
-<li>resizes mem down to zero</li>
-<li>goes through single reallocate() fn</li>
-<li>will be useful later so can keep track of how much mem outstanding</li>
-<li>
-<p>gc use that to know when to collect</p>
-</li>
-<li>
-<p>since mem module using obj stuff need to include
+<p>It&rsquo;s a tiny <span name="free">wrapper</span> around <code>reallocate()</code> that
+&ldquo;resizes&rdquo; an allocation down to zero bytes.</p>
+<aside name="free">
+<p>Pushing freeing memory through <code>reallocate()</code> might seem perverse. Why not just
+call <code>free()</code>? When we do get to adding a GC, this will help the VM keep track
+of how much memory is still being used. Since all allocation and freeing goes
+through <code>reallocate()</code>, it&rsquo;s easy to keep a running count of the number of bytes
+of memory currently in use.</p>
+</aside>
+<p>As usual, we need a couple of includes to wire everything together:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_memory_h                                 </span>
 <br></pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;                                   </span><span class="cp"></span>
 <br></pre><pre class="insert-after"><span></span><span class="cp">#define ALLOCATE(type, count) \                       </span>
-    <span class="p">(</span><span class="n">type</span><span class="o"><em></span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o"></em></span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
-</pre></div><div class="source-file-narrow"><em>memory.h</em></div></p>
-</li>
-<li>
-<p>put include in header because later ref some obj stuff in memory.h</p>
-</li>
-<li>also needs access to vm to get head of list</li>
-</ul>
+    <span class="p">(</span><span class="n">type</span><span class="o">*</span><span class="p">)</span><span class="n">reallocate</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">count</span><span class="p">))</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.h</em></div>
+
+<p>Then in the implementation file:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;                                               </span><span class="cp"></span>
 </pre><div class="source-file"><em>memory.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                                                   </span><span class="cp"></span>
@@ -1062,46 +979,147 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em></div>
 
+<p>With this, our VM no longer leaks memory. Like a good C program, it cleans up
+its mess before exiting. But it doesn&rsquo;t free any objects while the VM is
+running. Later, when it&rsquo;s possible to write longer-running Lox programs, the VM
+will eat more and more memory as it goes, not relinquishing a single byte until
+the entire program is done.</p>
+<p>We won&rsquo;t address that until we&rsquo;ve added a real garbage collector, but this is a
+big step. We now have the infrastructure to support a variety of different kinds
+of dynamically-allocated objects. And we&rsquo;ve used that to add strings to clox,
+one of the most-used types in most programming languages. Strings in turn enable
+us to build another fundamental data type, especially in dynamic languages: the
+venerable hash table. But that&rsquo;s for the next chapter&hellip;</p>
+<p><strong>todo: link</strong></p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>Each string requires two separate dynamic allocations<span class="em">&mdash;</span>one for the
+    ObjString and a second for the character array. Accessing the characters
+    from a value requires two pointer indirections, which can be bad for
+    performance.</p>
+<p>A more efficient solution is to relies on technique called a &ldquo;<a href="https://en.wikipedia.org/wiki/Flexible_array_member">flexible
+array member</a>&rdquo;. Use that to store the ObjString and its character array in
+a single contiguous allocation.</p>
+</li>
+<li>
+<p>When we create the ObjString for each string literal, we copy the characters
+    onto the heap. That way, when the string is later freed, we know it is safe
+    to free the characters too.</p>
+<p>This is a simpler approach, but wastes some memory, which might be a problem
+on very constrained devices. Instead, we could keep track of which
+ObjStrings own their character array and which are &ldquo;constant strings&rdquo; that
+just point back to the original source string or some other non-freeable
+location. Add support for this.</p>
+</li>
+<li>
+<p>If Lox was your language, what would you have it do when a user tries to use
+    <code>+</code> with one operand a string and the other some other type? Justify your
+    choice. What do other languages do?</p>
+</li>
+</ol>
+</div>
+<div class="design-note">
+<h2><a href="#design-note" name="design-note">Design Note: String Encoding
+</a></h2>
+
+<p>In this book, I try not to shy away from the gnarly problems you&rsquo;ll run into in
+a real language implementation. We might not always use the most sophisticated
+<em>solution</em><span class="em">&mdash;</span>it&rsquo;s an intro book after all<span class="em">&mdash;</span>but I don&rsquo;t think it&rsquo;s fair to
+pretend the problem doesn&rsquo;t exist at all. However, I did skirt around one really
+nasty conundrum: deciding how to represent strings.</p>
+<p>There are two facets to a string representation:</p>
+<ol>
+<li>
+<p><strong>What is a single &ldquo;character&rdquo; in a string?</strong> How many different values are
+    there and what do they represent? The first big standard answer for this was
+    <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a>. It gave you 127 different character values and specified what
+    they were. It was great&hellip; if you only ever cared about English. While it
+    has weird mostly-forgotten characters like &ldquo;record separator&rdquo; and
+    &ldquo;synchronous idle&rdquo;, it doesn&rsquo;t have a single umlaut, acute, or grave. It
+    can&rsquo;t represent &ldquo;jalapeño&rdquo;, &ldquo;na&iuml;ve&rdquo;, &ldquo;Gruyère&rdquo;, or &ldquo;Mötley Crüe&rdquo;.</p>
+<p>Next came <a href="https://en.wikipedia.org/wiki/Unicode">Unicode</a>. Initially, it supported 16,384 different characters
+(&ldquo;code points&rdquo;), which fit nicely in 16 bits with a couple of bits to spare.
+Later that grew and grew and now there are well over 100,000 different code
+points.</p>
+<p>Even that&rsquo;s not enough to represent each possible visible glyph a language
+might support. To handle that, Unicode also has <em>combining characters</em> that
+modify a preceding code point. For example, &ldquo;a&rdquo; followed by the combining
+character &ldquo;¨&rdquo; gives you &ldquo;ä&rdquo;. (To make things more confusing Unicode <em>also</em>
+has a single code point that looks like &ldquo;ä&rdquo;.)</p>
+<p>If a user writes <code>"na&amp;iuml;ve"[3]</code>, would they expect &ldquo;v&rdquo; or &ldquo;¨&rdquo;? The former
+means they are thinking of each code point and its combining characters as a
+single unit<span class="em">&mdash;</span>what Unicode calls an &ldquo;extended grapheme cluster&rdquo;<span class="em">&mdash;</span>the
+latter means they are thinking in individual code points. Which is what your
+users expect?</p>
+</li>
+<li>
+<p><strong>How is a single unit represented in memory?</strong> Most systems using ASCII
+    gave a single byte to each character and left the high bit unused. Unicode
+    has a handful of common encodings. UTF-16 packs most code points into 16
+    bits. That was great when every code point fit in that size. When that
+    overflowed, they added &ldquo;surrogate pairs&rdquo; that use multiple 16-bit code units
+    to represent a single code point. UTF-32 is the next evolution of UTF-16<span class="em">&mdash;</span>    it gives a full 32 bits to each and every code point.</p>
+<p>UTF-8 is a complex than either of those. It uses a variable number of bytes
+to encode a code point. Lower-valued code points fit in fewer bytes. Since
+each character may occupy a different number of bytes, you can&rsquo;t directly
+index into the string to find a specific code point. If you want, say, the
+10th code point, you don&rsquo;t know how many bytes into the string that is
+without walking and decoding all of the preceding code points.</p>
+</li>
+</ol>
+<p>Choosing answers to these questions involves fundamental trade-offs. Like many
+things in engineering, there&rsquo;s no <span name="python">perfect</span> solution:</p>
+<aside name="python">
+<p>A window into how difficult these choices are is Python&rsquo;s migration to 3. Most
+of the pain in moving code to Python 3 is caused by its changes to string
+encoding.</p>
+</aside>
 <ul>
-<li>vm no longer leaking mem</li>
-<li>frees every alloc by when done executing</li>
-<li>but doesn&rsquo;t free while exec</li>
-<li>keeps alloc as long as running, building debt</li>
-<li>doesn&rsquo;t pay off until done</li>
-<li>when can write longer progs with loops, possible to consume lot of memory</li>
-<li>won&rsquo;t address until add gc</li>
 <li>
-<p>but big step</p>
+<p>ASCII is memory efficient and fast, but it kicks non-Latin languages to the
+    side.</p>
 </li>
 <li>
-<p>strings important fundamental type, but also quite complex</p>
-</li>
-<li>[reason c support for strings so bad]</li>
-<li>have those now</li>
-<li>also have infrastructure to handle other dynamically-sized values</li>
-<li>now have strings, can build data structure fundamental to most dynamic lang
-  imples, hash table</li>
-<li>for next chapter</li>
-</ul>
-<h2><a href="#design-note" name="design-note"><small>19&#8202;.&#8202;5</small> design note</a></h2>
-<ul>
-<li>design note on string encoding?</li>
-</ul>
-<h2><a href="#challenges" name="challenges"><small>19&#8202;.&#8202;6</small> challenges</a></h2>
-<ul>
-<li>
-<p>challenge to use trailing struct array and store chars inline
-  https://en.wikipedia.org/wiki/Flexible_array_member</p>
+<p>UTF-32 is fast and supports the whole Unicode range, but tends to waste a
+    lot of memory given that most code points do tend to be in the lower range
+    of values where a full 32 bits aren&rsquo;t needed.</p>
 </li>
 <li>
-<p>challenge to support &ldquo;const&rdquo; strings that point to source string and don&rsquo;t
-  free</p>
+<p>UTF-8 is memory efficient and supports the whole Unicode range, but it&rsquo;s
+    variable-length encoding make it slow to access arbitrary code points.</p>
 </li>
 <li>
-<p>challenge, what should <code>+</code> do when one op is string and other isn&rsquo;t? what
-  do other langs do?</p>
+<p>UTF-16 worse than all of them<span class="em">&mdash;</span>an ugly consequence of Unicode outgrowing
+    its earlier 16-bit range. It&rsquo;s less memory efficient than UTF-8, but is
+    still a variable-length encoding thanks to surrogate pairs. Avoid it if you
+    can. Alas, if your language needs to run on or interoperate with the
+    browser, the JVM, or the CLR, you might be stuck with it, since those all
+    use UTF-16 for their strings and you don&rsquo;t want to have to convert every
+    time you pass a string to the underlying system.</p>
 </li>
 </ul>
+<p>One option is to take the maximal approach and do the &ldquo;rightest&rdquo; thing. Support
+all the Unicode code points. Internally, select an encoding for each string
+based on its contents<span class="em">&mdash;</span>use ASCII if every code point fits in a byte, UTF-16 if
+there are no surrogate pairs, etc. Provide APIs to let users iterate over both
+code points and extended grapheme clusters.</p>
+<p>This covers all your bases but is really complex. It&rsquo;s a lot to implement,
+debug, and optimize. When serializing strings or intereoperating with other
+systems, you have to deal with all of the encodings. Users need to understand
+the two indexing APIs and know which to use when. This is the approach that
+newer big languages tend to take like Perl 6 and Swift.</p>
+<p>A simpler compromise is to always encode using UTF-8 and only expose a code
+point-based API. For users that want to work with grapheme clusters, let them
+use a third-party library for that. This is less Latin-centric than ASCII but
+not much more complex. You lose fast direct indexing by code point, but you can
+usually live without that or afford to make it <code>O(n)</code> instead of <code>O(1)</code>.</p>
+<p>If I was designing a big workhorse language for people writing large
+applications, I&rsquo;d probably go with the maximal approach. For my little embedded
+scripting language <a href="http:wren.io">Wren</a>, I went with UTF-8 and code points.</p>
+</div>
 
 <footer>
 <a href="hash-tables.html" class="next">

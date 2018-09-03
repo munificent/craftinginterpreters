@@ -827,7 +827,7 @@ Since this isn't for end users, we hide it behind a flag:
 
 ^code define-debug-print-code (2 before, 1 after)
 
-When that flag is defined, we use our existing debug module to print out the
+When that flag is defined, we use our existing "debug" module to print out the
 chunk's bytecode:
 
 ^code dump-chunk (1 before, 1 after)
