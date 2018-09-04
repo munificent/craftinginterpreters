@@ -684,7 +684,7 @@ There are two facets to a string representation:
     can't represent "jalapeño", "naïve", "Gruyère", or "Mötley Crüe".
 
     Next came [Unicode][]. Initially, it supported 16,384 different characters
-    ("code points"), which fit nicely in 16 bits with a couple of bits to spare.
+    *(code points)*, which fit nicely in 16 bits with a couple of bits to spare.
     Later that grew and grew and now there are well over 100,000 different code
     points.
 
@@ -694,17 +694,17 @@ There are two facets to a string representation:
     character "¨" gives you "ä". (To make things more confusing Unicode *also*
     has a single code point that looks like "ä".)
 
-    If a user writes `"naïve"[3]`, would they expect "v" or "¨"? The former
-    means they are thinking of each code point and its combining characters as a
-    single unit -- what Unicode calls an "extended grapheme cluster" -- the
-    latter means they are thinking in individual code points. Which is what your
-    users expect?
+    If a user accesses the fourth element in "naïve", do they expect "v" or "¨"
+    as a result? The former means they are thinking of each code point and its
+    combining characters as a single unit -- what Unicode calls an *extended
+    grapheme cluster* -- the latter means they are thinking in individual code
+    points. Which is what your users expect?
 
 2.  **How is a single unit represented in memory?** Most systems using ASCII
     gave a single byte to each character and left the high bit unused. Unicode
     has a handful of common encodings. UTF-16 packs most code points into 16
     bits. That was great when every code point fit in that size. When that
-    overflowed, they added "surrogate pairs" that use multiple 16-bit code units
+    overflowed, they added *surrogate pairs* that use multiple 16-bit code units
     to represent a single code point. UTF-32 is the next evolution of UTF-16 --
     it gives a full 32 bits to each and every code point.
 
@@ -769,6 +769,6 @@ If I was designing a big workhorse language for people writing large
 applications, I'd probably go with the maximal approach. For my little embedded
 scripting language [Wren][], I went with UTF-8 and code points.
 
-[wren]: http:wren.io
+[wren]: http://wren.io
 
 </div>
