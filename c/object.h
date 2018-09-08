@@ -204,6 +204,7 @@ ObjString* takeString(char* chars, int length);
 //< take-string-h
 //> copy-string-h
 ObjString* copyString(const char* chars, int length);
+
 //< copy-string-h
 //> Closures not-yet
 ObjUpvalue* newUpvalue(Value* slot);
@@ -212,7 +213,6 @@ ObjUpvalue* newUpvalue(Value* slot);
 void printObject(Value value);
 //< print-object-h
 //> is-obj-type
-
 static inline bool isObjType(Value value, ObjType type) {
   return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }

@@ -298,7 +298,6 @@ void collectGarbage() {
 //< Garbage Collection not-yet
 //> Strings free-objects
 void freeObjects() {
-  // Free all objects.
   Obj* object = vm.objects;
   while (object != NULL) {
     Obj* next = object->next;
