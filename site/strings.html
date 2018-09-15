@@ -117,7 +117,7 @@
 
 <p>Our little VM can represent three types of values right now: numbers, Booleans,
 and <code>nil</code>. Those types have two important things in common: they&rsquo;re immutable
-and they&rsquo;re small. Numbers are the largest, and even they fit into two 64-bit
+and they&rsquo;re small. Numbers are the largest, and they still fit into two 64-bit
 words. That&rsquo;s a small enough price that we can afford to pay it for all values,
 even Booleans and nils which don&rsquo;t need that much space.</p>
 <p>Strings, unfortunately, are not so petite. There&rsquo;s no maximum length for a
@@ -132,23 +132,23 @@ to store the length, strings couldn&rsquo;t be any longer than 255 characters.</
 </aside>
 <p>We need a way to support values who size varies, sometimes greatly. This is
 exactly what dynamic allocation on the heap is designed for. We can allocate as
-many bytes as we need for a value. We get back a pointer that we&rsquo;ll use to keep
-track of the value as it flows through the VM.</p>
+many bytes as we need. We get back a pointer that we&rsquo;ll use to keep track of the
+value as it flows through the VM.</p>
 <h2><a href="#values-and-objects" name="values-and-objects"><small>19&#8202;.&#8202;1</small> Values and Objects</a></h2>
-<p>Using the heap for some larger variable-sized values and the stack for smaller
-atomic values leads to a two-level representation. Every Lox value that you can
+<p>Using the heap for larger, variable-sized values and the stack for smaller
+atomic ones leads to a two-level representation. Every Lox value that you can
 store in a variable or return from an expression will be a Value. For small
 fixed-size types like numbers, the payload is stored directly inside the Value
 struct itself.</p>
 <p>If the object is larger, its data lives on the heap. Then the Value&rsquo;s payload is
-a pointer to that blob of memory. We&rsquo;ll eventually have a handful of
+a <em>pointer</em> to that blob of memory. We&rsquo;ll eventually have a handful of
 heap-allocated types in clox: strings, instances, functions, you get the idea.
-Each type has its own unique data, but there is also some functionality and
-state they all share that <a href="garbage-collection.html">our future garbage collector</a> will use to manage
-their memory.</p>
-<p>We&rsquo;ll call this common representation <span name="short">&ldquo;Obj&rdquo;</span>. Each
-piece of Lox value state that lives on the heap is an Obj. We can thus use a
-single new ValueType case to refer to all heap-allocated types:</p>
+Each type has its own unique data, but there is also state they all share that
+<a href="garbage-collection.html">our future garbage collector</a> will use to manage their memory.</p>
+<p><img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values."></p>
+<p>We&rsquo;ll call this common representation <span name="short">&ldquo;Obj&rdquo;</span>. Each Lox
+value whose state lives on the heap is an Obj. We can thus use a single new
+ValueType case to refer to all heap-allocated types:</p>
 <aside name="short">
 <p>&ldquo;Obj&rdquo; is short for &ldquo;object&rdquo;, natch.</p>
 </aside>
@@ -258,8 +258,8 @@ create new file</div>
 
 <div class="source-file-narrow"><em>object.h</em>, create new file</div>
 
-<p>Right now, it only contains the type tag. When we add <a href="garbage-collection.html">garbage collection</a>,
-some other bookkeeping information will live here. The type enum is:</p>
+<p>Right now, it only contains the type tag. Shortly, we&rsquo;ll add some other
+bookkeeping information for memory management in there. The type enum is:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>    
@@ -282,8 +282,9 @@ Value:</p>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<p>That&rsquo;s our foundation. Now let&rsquo;s build strings on top of it. The payload for
+<p>That&rsquo;s our foundation. Now, let&rsquo;s build strings on top of it. The payload for
 strings is defined in a separate struct. Again we need to forward-declare it:</p>
+<hr />
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObj</span> <span class="n">Obj</span><span class="p">;</span>            
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="n">ObjString</span><span class="p">;</span>
@@ -316,7 +317,7 @@ accomplishes that by having its first field be an Obj. C specifies that struct
 fields are arranged in memory in the order that they are declared. Also, when
 you nest structs, the inner struct&rsquo;s fields are expanded right in place. So the
 memory for Obj and for ObjString look like this:</p>
-<p><strong>todo: illustrate</strong></p>
+<p><img src="image/strings/obj.png" alt="The memory layout for the fields in Obj and ObjString." /></p>
 <p>Note how the first bytes of ObjString exactly line up with Obj. This is not a
 coincidence<span class="em">&mdash;</span>C <name="spec">mandates</name="spec"> it. This is designed to
 enable a clever pattern: You can take a pointer to a struct and safely convert
@@ -550,8 +551,14 @@ that there is room for the extra payload fields needed by the specific object
 type being created.</p>
 <p>Then it initializes the Obj state<span class="em">&mdash;</span>right now, that&rsquo;s just the type tag. This
 function returns to <code>copyString()</code> which finishes initializing the ObjString
-fields. <em>Voil&agrave;</em>, we can compile and execute string literals.</p>
-<p><strong>todo: illustrate viola</strong></p>
+fields. <span name="viola"><em>Voil&agrave;</em></span>, we can compile and execute string
+literals.</p>
+<aside name="viola">
+<p><img src="image/strings/viola.png" class="above" alt="A viola.">
+
+Why, yes, I did spend two hours drawing a viola just to make a stupid joke about
+misspelling "voil&agrave;".</p>
+</aside>
 <h2><a href="#operations-on-strings" name="operations-on-strings"><small>19&#8202;.&#8202;4</small> Operations on Strings</a></h2>
 <p>Our fancy strings are there, but they don&rsquo;t do much of anything yet. A good
 first step is to make the existing print code not barf on the new value type:</p>
@@ -632,7 +639,6 @@ that later, but this gives us the right semantics for now.</p>
 
 <div class="source-file-narrow"><em>value.c</em></div>
 
-<hr />
 <h3><a href="#concatenation" name="concatenation"><small>19&#8202;.&#8202;4&#8202;.&#8202;1</small> Concatenation</a></h3>
 <p>Full-grown languages provide lots of operations for working with strings<span class="em">&mdash;</span>access to individual characters, the string&rsquo;s length, changing case, splitting,
 joining, searching, etc. When you implement your language, you&rsquo;ll likely want
