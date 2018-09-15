@@ -3,7 +3,7 @@
 
 Our little VM can represent three types of values right now: numbers, Booleans,
 and `nil`. Those types have two important things in common: they're immutable
-and they're small. Numbers are the largest, and even they fit into two 64-bit
+and they're small. Numbers are the largest, and they still fit into two 64-bit
 words. That's a small enough price that we can afford to pay it for all values,
 even Booleans and nils which don't need that much space.
 
@@ -23,29 +23,30 @@ to store the length, strings couldn't be any longer than 255 characters.
 
 We need a way to support values who size varies, sometimes greatly. This is
 exactly what dynamic allocation on the heap is designed for. We can allocate as
-many bytes as we need for a value. We get back a pointer that we'll use to keep
-track of the value as it flows through the VM.
+many bytes as we need. We get back a pointer that we'll use to keep track of the
+value as it flows through the VM.
 
 ## Values and Objects
 
-Using the heap for some larger variable-sized values and the stack for smaller
-atomic values leads to a two-level representation. Every Lox value that you can
+Using the heap for larger, variable-sized values and the stack for smaller
+atomic ones leads to a two-level representation. Every Lox value that you can
 store in a variable or return from an expression will be a Value. For small
 fixed-size types like numbers, the payload is stored directly inside the Value
 struct itself.
 
 If the object is larger, its data lives on the heap. Then the Value's payload is
-a pointer to that blob of memory. We'll eventually have a handful of
+a *pointer* to that blob of memory. We'll eventually have a handful of
 heap-allocated types in clox: strings, instances, functions, you get the idea.
-Each type has its own unique data, but there is also some functionality and
-state they all share that [our future garbage collector][gc] will use to manage
-their memory.
+Each type has its own unique data, but there is also state they all share that
+[our future garbage collector][gc] will use to manage their memory.
+
+<img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values.">
 
 [gc]: garbage-collection.html
 
-We'll call this common representation <span name="short">"Obj"</span>. Each
-piece of Lox value state that lives on the heap is an Obj. We can thus use a
-single new ValueType case to refer to all heap-allocated types:
+We'll call this common representation <span name="short">"Obj"</span>. Each Lox
+value whose state lives on the heap is an Obj. We can thus use a single new
+ValueType case to refer to all heap-allocated types:
 
 <aside name="short">
 
@@ -124,8 +125,8 @@ And the actual definition is in a new module:
 
 ^code object-h
 
-Right now, it only contains the type tag. When we add [garbage collection][],
-some other bookkeeping information will live here. The type enum is:
+Right now, it only contains the type tag. Shortly, we'll add some other
+bookkeeping information for memory management in there. The type enum is:
 
 [garbage collection]: garbage-collection.html
 
@@ -138,8 +139,10 @@ Value:
 
 ^code obj-type-macro (1 before, 2 after)
 
-That's our foundation. Now let's build strings on top of it. The payload for
+That's our foundation. Now, let's build strings on top of it. The payload for
 strings is defined in a separate struct. Again we need to forward-declare it:
+
+---
 
 ^code forward-declare-obj-string (1 before, 2 after)
 
@@ -159,7 +162,7 @@ fields are arranged in memory in the order that they are declared. Also, when
 you nest structs, the inner struct's fields are expanded right in place. So the
 memory for Obj and for ObjString look like this:
 
-**todo: illustrate**
+<img src="image/strings/obj.png" alt="The memory layout for the fields in Obj and ObjString." />
 
 Note how the first bytes of ObjString exactly line up with Obj. This is not a
 coincidence -- C <name="spec">mandates</name="spec"> it. This is designed to
@@ -329,9 +332,17 @@ type being created.
 
 Then it initializes the Obj state -- right now, that's just the type tag. This
 function returns to `copyString()` which finishes initializing the ObjString
-fields. *Voilà*, we can compile and execute string literals.
+fields. <span name="viola">*Voilà*</span>, we can compile and execute string
+literals.
 
-**todo: illustrate viola**
+<aside name="viola">
+
+<img src="image/strings/viola.png" class="above" alt="A viola.">
+
+Why, yes, I did spend two hours drawing a viola just to make a stupid joke about
+misspelling "voilà".
+
+</aside>
 
 ## Operations on Strings
 
