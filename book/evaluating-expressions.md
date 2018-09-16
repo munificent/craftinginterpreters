@@ -351,8 +351,29 @@ equality, which may be different from Java's.
 
 Fortunately, the two are pretty similar. We have to handle `nil`/`null`
 specially so that we don't throw a NullPointerException if we try to call
-`equals()` on `null`. Otherwise, we're fine. `.equals()` on Boolean, Double, and
-String have the behavior we want for Lox.
+`equals()` on `null`. Otherwise, we're fine. <span name="nan">`.equals()`</span>
+on Boolean, Double, and String have the behavior we want for Lox.
+
+<aside name="nan">
+
+What do you expect this to evaluate to:
+
+```lox
+(0 / 0) == (0 / 0)
+```
+
+According to [IEEE 754][], which specifies the behavior of double precision
+numbers, dividing a zero by zero gives you the special "NaN" ("not a number")
+value. Strangely enough, NaN is supposed to be *not* equal itself.
+
+In Java, the `==` operator on doubles preserves that behavior, but the
+`equals()` method on Double does not. Lox uses the latter, so doesn't follow
+IEEE. These kinds of subtle incompatibilities occupy a dismaying fraction of
+language implementer's lives.
+
+[ieee 754]: https://en.wikipedia.org/wiki/IEEE_754
+
+</aside>
 
 And that's it! That's all the code we need to correctly interpret a valid Lox
 expression. But what about an *invalid* one? In particular, what happens when a

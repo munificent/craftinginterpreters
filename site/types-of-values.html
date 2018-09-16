@@ -808,8 +808,16 @@ user-visible behavior.</p>
 <p>The expression <code>a != b</code> has the same semantics as <code>!(a == b)</code>, so the compiler
 is free to compile the former as if it were the latter. Instead of a dedicated
 <code>OP_NOT_EQUAL</code> instruction, it can output an <code>OP_EQUAL</code> followed by an <code>OP_NOT</code>.
-Likewise, <code>a &lt;= b</code> is the same as <code>!(a &gt; b)</code> and <code>a &gt;= b</code> is <code>!(a &lt; b)</code>. Thus,
-we only need three new instructions.</p>
+Likewise, <code>a &lt;= b</code> is the <span name="same">same</span> as <code>!(a &gt; b)</code> and <code>a &gt;=
+b</code> is <code>!(a &lt; b)</code>. Thus, we only need three new instructions.</p>
+<aside class="bottom" name="same">
+<p><em>Is</em> <code>a &lt;= b</code> always the same as <code>!(a &gt; b)</code>? According to <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, all
+comparison operators return false when an operand is NaN. That means <code>NaN &lt;= 1</code>
+is false and <code>NaN &gt; 1</code> is also false. But our desugaring assumes the latter is
+always the negation of the former.</p>
+<p>For the book, we won&rsquo;t get hung up on this, but these kinds of details will
+matter in your real language implementations.</p>
+</aside>
 <p>Over in the parser, though, we do have six new operators to slot into the parse
 table. We use the same <code>binary()</code> parser function from before. Here&rsquo;s the row
 for <code>!=</code>:</p>
