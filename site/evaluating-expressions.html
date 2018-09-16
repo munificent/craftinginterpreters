@@ -514,8 +514,22 @@ in terms of Java matters. We need to correctly implement <em>Lox&rsquo;s</em> no
 equality, which may be different from Java&rsquo;s.</p>
 <p>Fortunately, the two are pretty similar. We have to handle <code>nil</code>/<code>null</code>
 specially so that we don&rsquo;t throw a NullPointerException if we try to call
-<code>equals()</code> on <code>null</code>. Otherwise, we&rsquo;re fine. <code>.equals()</code> on Boolean, Double, and
-String have the behavior we want for Lox.</p>
+<code>equals()</code> on <code>null</code>. Otherwise, we&rsquo;re fine. <span name="nan"><code>.equals()</code></span>
+on Boolean, Double, and String have the behavior we want for Lox.</p>
+<aside name="nan">
+<p>What do you expect this to evaluate to:</p>
+<div class="codehilite"><pre><span></span><span class="p">(</span><span class="mi">0</span> <span class="o">/</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span> <span class="o">/</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+
+
+<p>According to <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, which specifies the behavior of double precision
+numbers, dividing a zero by zero gives you the special &ldquo;NaN&rdquo; (&ldquo;not a number&rdquo;)
+value. Strangely enough, NaN is supposed to be <em>not</em> equal itself.</p>
+<p>In Java, the <code>==</code> operator on doubles preserves that behavior, but the
+<code>equals()</code> method on Double does not. Lox uses the latter, so doesn&rsquo;t follow
+IEEE. These kinds of subtle incompatibilities occupy a dismaying fraction of
+language implementer&rsquo;s lives.</p>
+</aside>
 <p>And that&rsquo;s it! That&rsquo;s all the code we need to correctly interpret a valid Lox
 expression. But what about an <em>invalid</em> one? In particular, what happens when a
 subexpression evaluates to an object of the wrong type for the operation being
