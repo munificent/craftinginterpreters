@@ -1127,13 +1127,13 @@ inside the block's environment. In that `print` statement, both of those
 variables are in scope. In order to find them, the interpreter must search not
 only the current innermost environment, but also any enclosing ones.
 
-<img src="image/statements-and-state/chaining.png" alt="Environments for each scope, linked together." />
-
 We implement this by <span name="cactus">chaining</span> the environments
 together. Each environment has a reference to the environment of the immediately
 enclosing scope. When we look up a variable, we walk that chain from innermost
 out until we find the variable. Starting at the inner scope is how we make local
 variables shadow outer ones.
+
+<img src="image/statements-and-state/chaining.png" alt="Environments for each scope, linked together." />
 
 <aside name="cactus">
 
