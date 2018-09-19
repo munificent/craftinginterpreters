@@ -126,13 +126,13 @@ because it reads nicely, almost like a cast, when you pull the value out.
 
 <img src="image/types-of-values/value.png" alt="The full value struct, with the type and as fields next to each other in memory." />
 
-The type tag comes first followed by the union. You're probably wondering why we
-need a full eight bytes for the type tag when it only needs to store a number
-between zero and three. We *could* pack the enum into a single byte, or even a
-bit field. But most architectures prefer values be aligned to their size. Since
-the union field contains an eight-byte double, the compiler will <span
-name="pad">pad</span> the type field out to eight bytes to keep that double on
-the nearest eight-byte boundary.
+The four-byte type tag comes first, then the union. Most architectures prefer
+values be aligned to their size. Since the union field contains an eight-byte
+double, the compiler adds four bytes of <span name="pad">padding</span> after
+the type field to keep that double on the nearest eight-byte boundary. That
+means we're effectively spending eight bytes on the type tag, which only needs
+to represent a number between zero and three. We could stuff the enum in a
+smaller size, but all that would do is increase the padding.
 
 <aside name="pad">
 
