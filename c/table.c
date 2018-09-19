@@ -22,10 +22,10 @@ void initTable(Table* table) {
 
 void freeTable(Table* table) {
 /* Hash Tables not-yet < Optimization not-yet
-  FREE_ARRAY(Value, table->entries, table->capacity);
+  FREE_ARRAY(Entry, table->entries, table->capacity);
 */
 //> Optimization not-yet
-  FREE_ARRAY(Value, table->entries, table->capacityMask + 1);
+  FREE_ARRAY(Entry, table->entries, table->capacityMask + 1);
 //< Optimization not-yet
   initTable(table);
 }
