@@ -129,6 +129,7 @@ on every single value.</p>
 Instead of using a terminating null byte to indicate the end of the string like
 C, Pascal strings start with a length value. Since UCSD used only a single byte
 to store the length, strings couldn&rsquo;t be any longer than 255 characters.</p>
+<p><img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it."></p>
 </aside>
 <p>We need a way to support values who size varies, sometimes greatly. This is
 exactly what dynamic allocation on the heap is designed for. We can allocate as
@@ -752,7 +753,13 @@ ownership of the string you give it.</p>
 </pre></div>
 
 
-<p>When the compiler chrews through this, it allocates an ObjString for each of those three string literals and stores them in the chunk&rsquo;s constant table and generates this bytecode:</p>
+<p>When the compiler chrews through this, it allocates an ObjString for each of
+those three string literals and stores them in the chunk&rsquo;s constant table and
+generates this <span name="stack">bytecode</span>:</p>
+<aside name="stack">
+<p>Here&rsquo;s what the stack looks like after each instruction:</p>
+<p><img src="image/strings/stack.png" alt="The state of the stack at each instruction."></p>
+</aside>
 <div class="codehilite"><pre><span></span>0000    OP_CONSTANT         0 &quot;st&quot;
 0002    OP_CONSTANT         1 &quot;ri&quot;
 0004    OP_ADD
@@ -775,11 +782,11 @@ We&rsquo;ve got ourselves a classic memory leak.</p>
 intermediate strings and not worry about freeing them. Lox automatically manages
 memory on the user&rsquo;s behalf. The responsibility to manage memory doesn&rsquo;t
 <em>disappear</em>. Instead, it falls on our shoulders as VM implementers.</p>
-<p>The full solution is a garbage collector that reclaims unused memory while the
-program is running. We&rsquo;ve got some other stuff to get in place before we&rsquo;re
-ready to tackle that project. Until then, we are living on <span
-name="borrowed">borrowed</span> time. The longer we wait to add the collector,
-the harder it is to do.</p>
+<p>The full <span name="borrowed">solution</span> is a garbage collector that
+reclaims unused memory while the program is running. We&rsquo;ve got some other stuff
+to get in place before we&rsquo;re ready to tackle that project. Until then, we are
+living on borrowed time. The longer we wait to add the collector, the harder it
+is to do.</p>
 <aside name="borrowed">
 <p>I&rsquo;ve seen a number of people implement large swathes of their language before
 trying to start on the GC. For the kind of toy programs you typically run while
@@ -802,7 +809,6 @@ take the simplest practical approach.</p>
 <p>We&rsquo;ll create a linked list that stores every object. The VM can traverse that
 list to find every single object that has been allocated on the heap, whether or
 not the user&rsquo;s program or the VM&rsquo;s stack still has a reference to it.</p>
-<p><strong>illustrate</strong></p>
 <p>We could define a separate linked list node struct but then we&rsquo;d have to
 allocate those too. Instead, we&rsquo;ll use an <em>instrusive list</em><span class="em">&mdash;</span>the Obj struct
 itself will be the linked list node. Each Obj gets a pointer to the next Obj in
@@ -876,8 +882,8 @@ in <em>freeVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
-<p>That empty function we defined way back when finally does something! It calls
-this:</p>
+<p>That empty function we defined <a href="a-virtual-machine.html#an-instruction-execution-machine">way back when</a> finally does something! It
+calls this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span><span class="o">*</span> <span class="nf">reallocate</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">previous</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">oldSize</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">newSize</span><span class="p">);</span>
 </pre><div class="source-file"><em>memory.h</em><br>
 add after <em>reallocate</em>()</div>

@@ -19,6 +19,8 @@ Instead of using a terminating null byte to indicate the end of the string like
 C, Pascal strings start with a length value. Since UCSD used only a single byte
 to store the length, strings couldn't be any longer than 255 characters.
 
+<img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it.">
+
 </aside>
 
 We need a way to support values who size varies, sometimes greatly. This is
@@ -467,7 +469,17 @@ Behold this innocuous-seeming expression:
 "st" + "ri" + "ng"
 ```
 
-When the compiler chrews through this, it allocates an ObjString for each of those three string literals and stores them in the chunk's constant table and generates this bytecode:
+When the compiler chrews through this, it allocates an ObjString for each of
+those three string literals and stores them in the chunk's constant table and
+generates this <span name="stack">bytecode</span>:
+
+<aside name="stack">
+
+Here's what the stack looks like after each instruction:
+
+<img src="image/strings/stack.png" alt="The state of the stack at each instruction.">
+
+</aside>
 
 ```
 0000    OP_CONSTANT         0 "st"
@@ -494,11 +506,11 @@ intermediate strings and not worry about freeing them. Lox automatically manages
 memory on the user's behalf. The responsibility to manage memory doesn't
 *disappear*. Instead, it falls on our shoulders as VM implementers.
 
-The full solution is a garbage collector that reclaims unused memory while the
-program is running. We've got some other stuff to get in place before we're
-ready to tackle that project. Until then, we are living on <span
-name="borrowed">borrowed</span> time. The longer we wait to add the collector,
-the harder it is to do.
+The full <span name="borrowed">solution</span> is a garbage collector that
+reclaims unused memory while the program is running. We've got some other stuff
+to get in place before we're ready to tackle that project. Until then, we are
+living on borrowed time. The longer we wait to add the collector, the harder it
+is to do.
 
 <aside name="borrowed">
 
@@ -528,8 +540,6 @@ take the simplest practical approach.
 We'll create a linked list that stores every object. The VM can traverse that
 list to find every single object that has been allocated on the heap, whether or
 not the user's program or the VM's stack still has a reference to it.
-
-**illustrate**
 
 We could define a separate linked list node struct but then we'd have to
 allocate those too. Instead, we'll use an *instrusive list* -- the Obj struct
@@ -568,8 +578,10 @@ There's no sophisticated logic for that. Once the program is done, we can free
 
 ^code call-free-objects (1 before, 1 after)
 
-That empty function we defined way back when finally does something! It calls
-this:
+That empty function we defined [way back when][vm] finally does something! It
+calls this:
+
+[vm]: a-virtual-machine.html#an-instruction-execution-machine
 
 ^code free-objects-h (1 before, 2 after)
 
