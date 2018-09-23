@@ -130,8 +130,6 @@ And the actual definition is in a new module:
 Right now, it only contains the type tag. Shortly, we'll add some other
 bookkeeping information for memory management in there. The type enum is:
 
-[garbage collection]: garbage-collection.html
-
 ^code obj-type (1 before, 2 after)
 
 Obviously, that will be more useful in later chapters after we add more
@@ -143,8 +141,6 @@ Value:
 
 That's our foundation. Now, let's build strings on top of it. The payload for
 strings is defined in a separate struct. Again we need to forward-declare it:
-
----
 
 ^code forward-declare-obj-string (1 before, 2 after)
 
@@ -162,12 +158,12 @@ Because ObjString is an Obj, it also needs the state all Objs share. It
 accomplishes that by having its first field be an Obj. C specifies that struct
 fields are arranged in memory in the order that they are declared. Also, when
 you nest structs, the inner struct's fields are expanded right in place. So the
-memory for Obj and for ObjString look like this:
+memory for Obj and for ObjString looks like this:
 
 <img src="image/strings/obj.png" alt="The memory layout for the fields in Obj and ObjString." />
 
 Note how the first bytes of ObjString exactly line up with Obj. This is not a
-coincidence -- C <name="spec">mandates</name="spec"> it. This is designed to
+coincidence -- C <span name="spec">mandates</span> it. This is designed to
 enable a clever pattern: You can take a pointer to a struct and safely convert
 it to a pointer to its first field and back.
 
@@ -195,8 +191,8 @@ field. Any code that wants to work with all objects can treat them as base
 You can go in the other direction too. Given an `Obj*`, you can "downcast" it to
 an `ObjString*`. Of course, you need to ensure that the `Obj*` pointer you have
 does point to the `obj` field of an actual ObjString. Otherwise, you are
-unsafely reinterpreting random bits of memory. To detect that, we add another
-macro:
+unsafely reinterpreting random bits of memory. To detect that such a cast is
+safe, we add another macro:
 
 ^code is-string (1 before, 2 after)
 
@@ -218,7 +214,7 @@ That's bad if the expression has side effects. If we put the body of
 IS_STRING(POP())
 ```
 
-The it would pop two values off the stack! Using a function fixes that.
+Then it would pop two values off the stack! Using a function fixes that.
 
 As long as we ensure that we set the type tag correctly whenever we create an
 Obj of some type, this macro will tell us when it's safe to cast a value to a
@@ -233,8 +229,8 @@ often what we'll end up needing.
 
 ## Strings
 
-OK, our VM can now represent string values. We're ready to actually add strings
-to the language itself. As usual, we begin in the front end. The lexer already
+OK, our VM can now represent string values. It's time to add strings to the
+language itself. As usual, we begin in the front end. The lexer already
 tokenizes string literals, so it's the parser's turn:
 
 ^code table-string (1 before, 1 after)
@@ -244,9 +240,9 @@ When the parser hits a string token, it calls:
 ^code parse-string
 
 This takes the string's characters <span name="escape">directly</span> from the
-lexeme. The `+ 1` and `- 2` parts trim the leading and trailing quotation marks
-from the lexeme. It then creates a string object, wraps it in a Value, and
-stuffs it into the constant table.
+lexeme. The `+ 1` and `- 2` parts trim the leading and trailing quotation marks.
+It then creates a string object, wraps it in a Value, and stuffs it into the
+constant table.
 
 <aside name="escape">
 
@@ -268,10 +264,15 @@ function:
 
 ^code object-c
 
-First, we allocate a new array on the heap for the string's characters, just big
-enough for the characters and the trailing <span
-name="terminator">terminator</span>. We copy over the characters from the lexeme
-and terminate it.
+First, we allocate a new array on the heap, just big enough for the string's
+characters and the trailing <span name="terminator">terminator</span>, using
+this low-level macro that allocates an array with a given element type and
+count:
+
+^code allocate (2 before, 1 after)
+
+Once we have the array, we copy over the characters from the lexeme and
+terminate it.
 
 <aside name="terminator">
 
@@ -291,18 +292,12 @@ runtime as a result of string operations like concatenation. Those strings
 obviously need to dynamically allocate memory for the characters, which means
 the string needs to *free* that memory when it's no longer needed.
 
-If ObjString tried to free a character array that point into the original source
-code string, bad things would happen. So, for strings derived from string
-literals, we pre-emptively copy the characters over to the heap. This way, every
-ObjString reliably owns its character array and can free it.
+If we had an ObjString for a string literal, and tried to free its character
+array which pointed into the original source code string, bad things would
+happen. So, for literals, we preemptively copy the characters over to the heap.
+This way, every ObjString reliably owns its character array and can free it.
 
-This chapter introduces a couple of new low-level macros to make it easier to
-work with dynamic memory. Here is the first:
-
-^code allocate (2 before, 1 after)
-
-It allocates an array with a given element type and count. The real work happens
-in this function:
+The real work of creating a string object happens in this function:
 
 ^code allocate-string
 
@@ -318,10 +313,9 @@ actual functionality is here:
 
 <aside name="factored">
 
-I admit there are a ton of helper functions and macros to wade through here. I
-try to keep the code minimal and nicely factored, but that leads to a scattering
-of tiny functions. They will pay off in later chapters when we reuse them for
-other object types.
+I admit there is a sea of helper functions and macros to wade through. I try to
+keep the code nicely factored, but that leads to a scattering of tiny functions.
+They will pay off in later chapters when we reuse them.
 
 </aside>
 
@@ -341,8 +335,9 @@ literals.
 
 <img src="image/strings/viola.png" class="above" alt="A viola.">
 
-Why, yes, I did spend two hours drawing a viola just to make a stupid joke about
-misspelling "voilà".
+Don't get "voilà" confused with "viola". One means "there it is" and the other
+is a tiny string instrument. Yes, I did spend two hours drawing a viola just to
+mention that.
 
 </aside>
 
@@ -380,9 +375,9 @@ The equality operators also need to gracefully handle strings. Consider:
 
 These are two separate string literals. The compiler will make two separate
 calls to `copyString()`, create two distinct ObjString objects and store them as
-two constants in the chunk. They are different objects in memory. But our users
-(and thus we) expect strings to have value equality. The above expression should
-evaluate to `true`. That requires a little special support:
+two constants in the chunk. They are different objects in the heap. But our
+users (and thus we) expect strings to have value equality. The above expression
+should evaluate to `true`. That requires a little special support:
 
 ^code strings-equal (1 before, 1 after)
 
@@ -390,7 +385,9 @@ If the two values are both strings, then they are equal if their character
 arrays contain the same characters, regardless of whether they are two separate
 objects or the exact same one. This does mean that string equality is slower
 than equality on other types since it has to walk the whole string. We'll revise
-that later, but this gives us the right semantics for now.
+that [later][hash], but this gives us the right semantics for now.
+
+[hash]: hash-tables.html
 
 In order to call `memcmp()`, we need an include:
 
@@ -405,11 +402,10 @@ all that. But for this book, we keep things *very* minimal.
 
 The only interesting operation we support on strings is `+`. If you use that
 operator on two string objects, it produces a new string that's a concatenation
-of the two operands. In other words, we overload `+` to mean "concatenate" as
-well as addition. Since Lox is dynamically typed, we can't tell which overload
-is chosen at compile time because we don't know the types of the operands until
-runtime. Thus, the `OP_ADD` instruction dynamically inspects the operands and
-chooses the right behavior:
+of the two operands. Since Lox is dynamically typed, we can't tell which
+behavior is needed at compile time because we don't know the types of the
+operands until runtime. Thus, the `OP_ADD` instruction dynamically inspects the
+operands and chooses the right operation:
 
 ^code add-strings (1 before, 1 after)
 
@@ -419,9 +415,9 @@ runtime error.
 
 <aside name="convert" class="bottom">
 
-This is more conservative than most languages. In most languages, if one operand
-is a string, the other can be any type and it will be implicitly converted to a
-string and then the results concatenated.
+This is more conservative than most languages. In other languages, if one
+operand is a string, the other can be any type and it will be implicitly
+converted to a string before concatenating the two.
 
 I think that's a fine feature, but would require writing tedious "convert to
 string" code for each type, so I left it out of Lox.
@@ -497,7 +493,7 @@ constant. The last `OP_ADD` pops `"stri"` and `"ng"`, concatenates them, and
 pushes the result: `"string"`. Great, that's what we expect.
 
 But, wait. What happened to that `"stri"` string? We dynamically allocated it,
-then the VM discarded it after concatenated it with `"ng"`. We popped it from
+then the VM discarded it after concatenating it with `"ng"`. We popped it from
 the stack and no longer have a reference to it, but we never freed its memory.
 We've got ourselves a classic memory leak.
 
@@ -506,7 +502,7 @@ intermediate strings and not worry about freeing them. Lox automatically manages
 memory on the user's behalf. The responsibility to manage memory doesn't
 *disappear*. Instead, it falls on our shoulders as VM implementers.
 
-The full <span name="borrowed">solution</span> is a garbage collector that
+The full <span name="borrowed">solution</span> is a [garbage collector][gc] that
 reclaims unused memory while the program is running. We've got some other stuff
 to get in place before we're ready to tackle that project. Until then, we are
 living on borrowed time. The longer we wait to add the collector, the harder it
@@ -537,7 +533,7 @@ no longer references them. There are many sophisticated techniques that advanced
 memory managers use to allocate and track memory for objects. We're going to
 take the simplest practical approach.
 
-We'll create a linked list that stores every object. The VM can traverse that
+We'll create a linked list that stores every Obj. The VM can traverse that
 list to find every single object that has been allocated on the heap, whether or
 not the user's program or the VM's stack still has a reference to it.
 
@@ -599,11 +595,10 @@ its nodes. For each node, we call:
 
 ^code free-object
 
-We need to free not only the Obj itself, since some object types also allocate
-other memory that they own. So when freeing an object, we also need a little
-type-specific code to handle each object type's special needs. Here, that means
-we free the character array and then free the ObjString. Those both use one last
-memory management macro:
+We aren't only freeing the Obj itself. Since some object types also allocate
+other memory that they own, we also need a little type-specific code to handle
+each object type's special needs. Here, that means we free the character array
+and then free the ObjString. Those both use one last memory management macro:
 
 ^code free (1 before, 2 after)
 
@@ -678,12 +673,12 @@ languages: the venerable [hash table][]. But that's for the next chapter...
 ## Design Note: String Encoding
 
 In this book, I try not to shy away from the gnarly problems you'll run into in
-a real language implementation. We might not always use the most sophisticated
-*solution* -- it's an intro book after all -- but I don't think it's honest to
+a real language implementation. We might not always use the most *sophisticated*
+solution -- it's an intro book after all -- but I don't think it's honest to
 pretend the problem doesn't exist at all. However, I did skirt around one really
 nasty conundrum: deciding how to represent strings.
 
-There are two facets to a string representation:
+There are two facets to a string encoding:
 
 1.  **What is a single "character" in a string?** How many different values are
     there and what do they represent? The first big standard answer for this was
@@ -713,8 +708,8 @@ There are two facets to a string representation:
     followed by the combining character "¨" gives you "ä". (To make things more
     confusing Unicode *also* has a single code point that looks like "ä".)
 
-    If a user accesses the fourth "character" in "naïve", do they expect "v" or
-    "¨" as a result? The former means they are thinking of each code point and
+    If a user accesses the fourth "character" in "naïve", do they expect to get
+    back "v" or "¨"? The former means they are thinking of each code point and
     its combining characters as a single unit -- what Unicode calls an *extended
     grapheme cluster* -- the latter means they are thinking in individual code
     points. Which is what your users expect?
@@ -732,7 +727,7 @@ There are two facets to a string representation:
     Since each character may occupy a different number of bytes, you can't
     directly index into the string to find a specific code point. If you want,
     say, the 10th code point, you don't know how many bytes into the string that
-    is without walking and decoding all of the preceding code points.
+    is without walking and decoding all of the preceding ones.
 
 [ascii]: https://en.wikipedia.org/wiki/ASCII
 [unicode]: https://en.wikipedia.org/wiki/Unicode
@@ -744,7 +739,7 @@ name="python">perfect</span> solution:
 <aside name="python">
 
 An example of how difficult this problem is comes from Python. The achingly-long
-painful transition from Python 2 to 3 is hampered mostly by its changes around
+transition from Python 2 to 3 is painful mostly because of its changes around
 string encoding.
 
 </aside>
@@ -759,10 +754,10 @@ string encoding.
 *   UTF-8 is memory efficient and supports the whole Unicode range, but it's
     variable-length encoding make it slow to access arbitrary code points.
 
-*   UTF-16 worse than all of them -- an ugly consequence of Unicode outgrowing
-    its earlier 16-bit range. It's less memory efficient than UTF-8, but is
-    still a variable-length encoding thanks to surrogate pairs. Avoid it if you
-    can. Alas, if your language needs to run on or interoperate with the
+*   UTF-16 is worse than all of them -- an ugly consequence of Unicode
+    outgrowing its earlier 16-bit range. It's less memory efficient than UTF-8,
+    but is still a variable-length encoding thanks to surrogate pairs. Avoid it
+    if you can. Alas, if your language needs to run on or interoperate with the
     browser, the JVM, or the CLR, you might be stuck with it, since those all
     use UTF-16 for their strings and you don't want to have to convert every
     time you pass a string to the underlying system.
