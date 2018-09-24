@@ -1,8 +1,8 @@
 //> Chunks of Bytecode value-c
 #include <stdio.h>
-/* Strings value-include-string < Hash Tables not-yet
+//> Strings value-include-string
 #include <string.h>
-*/
+//< Strings value-include-string
 
 #include "memory.h"
 #include "value.h"
@@ -83,7 +83,7 @@ bool valuesEqual(Value a, Value b) {
 //> Strings strings-equal
     case VAL_OBJ:
 //< Strings strings-equal
-/* Strings strings-equal < Hash Tables not-yet
+/* Strings strings-equal < Hash Tables equal
     {
       ObjString* aString = AS_STRING(a);
       ObjString* bString = AS_STRING(b);
@@ -91,10 +91,9 @@ bool valuesEqual(Value a, Value b) {
           memcmp(aString->chars, bString->chars, aString->length) == 0;
     }
  */
-//> Hash Tables not-yet
-      // Objects have reference equality.
+//> Hash Tables equal
       return AS_OBJ(a) == AS_OBJ(b);
-//< Hash Tables not-yet
+//< Hash Tables equal
   }
 //> Optimization not-yet
 #endif

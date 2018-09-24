@@ -81,9 +81,10 @@
   <div class="number">20</div>
   <h1>Hash Tables</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +99,521 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<p><strong>Error: Unused snippet table-init-table</strong></p>
+<p><strong>Error: Unused snippet table-free-table</strong></p>
+<hr />
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
 
+<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;value.h&quot; </span><span class="cp"></span>
+<br><br></pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, create new file</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;            </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>table.c</em></div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>           
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>      
+<span class="p">}</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;            </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>table.c</em></div>
+<pre class="insert"><span></span><span class="cp">#define TABLE_MAX_LOAD 0.75   </span>
+<br></pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>initTable</em>()</div>
+<pre><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">initTable</span><span class="p">(</span><span class="n">table</span><span class="p">);</span>           
+<span class="p">}</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>initTable</em>()</div>
+
+<p>&hellip;</p>
+<p>// Finds the entry where [key] should be. If the key is not already
+// present in the table, this will be an unused entry. Otherwise, it
+// will be the existing entry for that key.</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>freeTable</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">uint32_t</span> <span class="nf">findEntry</span><span class="p">(</span><span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="p">,</span> <span class="kt">int</span> <span class="n">capacity</span><span class="p">,</span>                 
+                          <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">)</span> <span class="p">{</span>                             
+  <span class="c1">// Figure out where to insert it in the table. Use open addressing and</span>
+  <span class="c1">// basic linear probing.                                              </span>
+  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="p">;</span>
+
+  <span class="c1">// We don&#39;t worry about an infinite loop here because resize() ensures</span>
+  <span class="c1">// there are empty slots in the array.                                </span>
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                            
+    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                                     
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span> <span class="o">||</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="n">key</span><span class="p">)</span> <span class="k">return</span> <span class="n">index</span><span class="p">;</span>          
+
+    <span class="c1">// Try the next slot.                                               </span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">capacity</span><span class="p">;</span>                                     
+  <span class="p">}</span>                                                                     
+<span class="p">}</span>                                                                       
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>freeTable</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>findEntry</em>()</div>
+<pre><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>        
+  <span class="c1">// If the table is empty, we definitely won&#39;t find it.           </span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
+  <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                           
+  <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                            
+
+  <span class="o">*</span><span class="n">value</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>                                           
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                                     
+<span class="p">}</span>                                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>findEntry</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>tableGet</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">resize</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="kt">int</span> <span class="n">capacity</span><span class="p">)</span> <span class="p">{</span>              
+  <span class="c1">// Create the new empty entry array.                        </span>
+  <span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">capacity</span><span class="p">);</span>                 
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">capacity</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>                        
+    <span class="n">entries</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">key</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                    
+    <span class="n">entries</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">value</span> <span class="o">=</span> <span class="n">NIL_VAL</span><span class="p">;</span>                               
+  <span class="p">}</span>
+
+  <span class="c1">// Re-hash the existing entries into the new array.         </span>
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                           
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>                 
+    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                        
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">continue</span><span class="p">;</span>                         
+
+    <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">);</span>
+    <span class="n">Entry</span><span class="o">*</span> <span class="n">dest</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                            
+    <span class="n">dest</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                   
+    <span class="n">dest</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>                               
+    <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>                                           
+  <span class="p">}</span>                                                           
+
+  <span class="c1">// Replace the array.                                       </span>
+  <span class="n">FREE_ARRAY</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">);</span>         
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="n">entries</span><span class="p">;</span>                                   
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span><span class="p">;</span>                                 
+<span class="p">}</span>                                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>tableGet</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>resize</em>()</div>
+<pre><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>         
+  <span class="c1">// If the table is getting too full, make room first.            </span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">*</span> <span class="n">TABLE_MAX_LOAD</span><span class="p">)</span> <span class="p">{</span>       
+    <span class="c1">// Figure out the new table size.                              </span>
+    <span class="kt">int</span> <span class="n">capacity</span> <span class="o">=</span> <span class="n">GROW_CAPACITY</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">);</span>                 
+    <span class="n">resize</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">capacity</span><span class="p">);</span>                                       
+  <span class="p">}</span>
+
+  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
+  <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                           
+  <span class="kt">bool</span> <span class="n">isNewKey</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">;</span>                              
+  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">;</span>                                                
+  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>                                            
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">isNewKey</span><span class="p">)</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>                                    
+  <span class="k">return</span> <span class="n">isNewKey</span><span class="p">;</span>                                                 
+<span class="p">}</span>                                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>resize</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>tableSet</em>()</div>
+<pre><span></span><span class="kt">bool</span> <span class="nf">tableDelete</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">)</span> <span class="p">{</span>                      
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="c1">// Find the entry.                                                  </span>
+  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>   
+  <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                              
+  <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                               
+
+  <span class="c1">// Remove the entry.                                                </span>
+  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                                  
+  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">NIL_VAL</span><span class="p">;</span>                                             
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">--</span><span class="p">;</span>                                                     
+
+  <span class="c1">// Later entries may have been pushed past this one and may need to </span>
+  <span class="c1">// be pushed up to fill the hole. The simplest way to handle that is</span>
+  <span class="c1">// to just re-add them all until we hit an empty entry.             </span>
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                          
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                            
+    <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                                   
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>                                    
+
+    <span class="n">ObjString</span><span class="o">*</span> <span class="n">tempKey</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                  
+    <span class="n">Value</span> <span class="n">tempValue</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>                                   
+    <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                                
+    <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">NIL_VAL</span><span class="p">;</span>                                           
+    <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">--</span><span class="p">;</span>                                                   
+
+    <span class="n">tableSet</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">tempKey</span><span class="p">,</span> <span class="n">tempValue</span><span class="p">);</span>                              
+  <span class="p">}</span>                                                                   
+
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                                        
+<span class="p">}</span>                                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>tableSet</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>tableDelete</em>()</div>
+<pre><span></span><span class="kt">void</span> <span class="nf">tableAddAll</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="p">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>   
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">from</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">from</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>        
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                
+      <span class="n">tableSet</span><span class="p">(</span><span class="n">to</span><span class="p">,</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">,</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">);</span>
+    <span class="p">}</span>                                        
+  <span class="p">}</span>                                          
+<span class="p">}</span>                                            
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>tableDelete</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>tableAddAll</em>()</div>
+<pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span> 
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">)</span> <span class="p">{</span>                             
+  <span class="c1">// If the table is empty, we definitely won&#39;t find it.                </span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+
+  <span class="c1">// Figure out where to insert it in the table. Use open addressing and</span>
+  <span class="c1">// basic linear probing.                                              </span>
+  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">hash</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                              
+
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                            
+    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                              
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>                                
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">length</span> <span class="o">&amp;&amp;</span>                                 
+        <span class="n">memcmp</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>                
+      <span class="c1">// We found it.                                                   </span>
+      <span class="k">return</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                                
+    <span class="p">}</span>                                                                   
+
+    <span class="c1">// Try the next slot.                                               </span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                              
+  <span class="p">}</span>                                                                     
+
+  <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>                                                          
+<span class="p">}</span>                                                                       
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>tableAddAll</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>object.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+function <em>allocateString</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="n">ObjString</span><span class="o">*</span> <span class="nf">allocateString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span> 
+                                 <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">)</span> <span class="p">{</span>         
+</pre><pre class="insert-after"><span></span>  <span class="n">ObjString</span><span class="o">*</span> <span class="n">string</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjString</span><span class="p">,</span> <span class="n">OBJ_STRING</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, function <em>allocateString</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">string</span><span class="o">-&gt;</span><span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="p">;</span>
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>allocateString</em>()</div>
+<pre class="insert"><span></span>  <span class="n">string</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">=</span> <span class="n">hash</span><span class="p">;</span>  
+</pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="n">string</span><span class="p">;</span>        
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">string</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">=</span> <span class="n">hash</span><span class="p">;</span>                   
+<br></pre><div class="source-file"><em>object.c</em><br>
+in <em>allocateString</em>()</div>
+<pre class="insert"><span></span>  <span class="n">tableSet</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">NIL_VAL</span><span class="p">);</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">string</span><span class="p">;</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>allocateString</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">uint32_t</span> <span class="nf">hashString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>             
+  <span class="c1">// FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/     </span>
+  <span class="kt">uint32_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="mi">2166136261u</span><span class="p">;</span>
+
+  <span class="c1">// This is O(n) on the length of the string, but we only call this  </span>
+  <span class="c1">// when a new string is created. Since the creation is also O(n) (to</span>
+  <span class="c1">// copy/initialize all the bytes), we allow this here.              </span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">length</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>                                  
+    <span class="n">hash</span> <span class="o">^=</span> <span class="n">key</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                                                   
+    <span class="n">hash</span> <span class="o">*=</span> <span class="mi">16777619</span><span class="p">;</span>                                                 
+  <span class="p">}</span>                                                                   
+
+  <span class="k">return</span> <span class="n">hash</span><span class="p">;</span>                                                        
+<span class="p">}</span>                                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>allocateString</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>                   
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>takeString</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">hashString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>                       
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">interned</span> <span class="o">=</span> <span class="n">tableFindString</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span>
+                                        <span class="n">hash</span><span class="p">);</span>                     
+  <span class="k">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">interned</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="nf">allocateString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">hash</span><span class="p">);</span>                      
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>takeString</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>             
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>copyString</em>()</div>
+<pre class="insert"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">hashString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>                       
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">interned</span> <span class="o">=</span> <span class="n">tableFindString</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span>
+                                        <span class="n">hash</span><span class="p">);</span>                     
+  <span class="k">if</span> <span class="p">(</span><span class="n">interned</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">interned</span><span class="p">;</span>                           
+<br></pre><pre class="insert-after"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">heapChars</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="p">(</span><span class="kt">char</span><span class="p">,</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>                    
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">heapChars</span><span class="p">[</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>                      
+<br></pre><div class="source-file"><em>object.c</em><br>
+in <em>copyString</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">return</span> <span class="nf">allocateString</span><span class="p">(</span><span class="n">heapChars</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">hash</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>     
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>initVM</em>()</div>
+<pre class="insert"><span></span>  <span class="n">initTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeVM</span><span class="p">()</span> <span class="p">{</span>          
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>freeVM</em>()</div>
+<pre class="insert"><span></span>  <span class="n">freeTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">freeObjects</span><span class="p">();</span>         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">;</span>  
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">};</span>              
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>table.h</em><br>
+create new file</div>
+<pre><span></span><span class="cp">#ifndef clox_table_h</span>
+<span class="cp">#define clox_table_h</span>
+
+<span class="cp">#include</span> <span class="cpf">&quot;common.h&quot; </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;  </span><span class="cp"></span>
+
+<span class="cp">#endif              </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, create new file</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                                                     </span><span class="cp"></span>
+</pre><div class="source-file"><em>table.h</em></div>
+<pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif                                                                 </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                                                     </span><span class="cp"></span>
+</pre><div class="source-file"><em>table.h</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                       
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">;</span>                                                      
+  <span class="n">Value</span> <span class="n">value</span><span class="p">;</span>                                                         
+<span class="p">}</span> <span class="n">Entry</span><span class="p">;</span>                                                               
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Entry</span><span class="p">;</span>                                                               
+</pre><div class="source-file"><em>table.h</em><br>
+add after struct <em>Entry</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                       
+  <span class="kt">int</span> <span class="n">count</span><span class="p">;</span>                                                           
+  <span class="kt">int</span> <span class="n">capacity</span><span class="p">;</span>                                                        
+  <span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="p">;</span>                                                      
+<span class="p">}</span> <span class="n">Table</span><span class="p">;</span>                                                               
+<br></pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after struct <em>Entry</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Table</span><span class="p">;</span>                                                               
+<br></pre><div class="source-file"><em>table.h</em><br>
+add after struct <em>Table</em></div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                          
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after struct <em>Table</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                          
+</pre><div class="source-file"><em>table.h</em><br>
+add after <em>initTable</em>()</div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                          
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after <em>initTable</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                          
+</pre><div class="source-file"><em>table.h</em><br>
+add after <em>freeTable</em>()</div>
+<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">);</span>             
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after <em>freeTable</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">);</span>             
+</pre><div class="source-file"><em>table.h</em><br>
+add after <em>tableGet</em>()</div>
+<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span>              
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after <em>tableGet</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span>              
+</pre><div class="source-file"><em>table.h</em><br>
+add after <em>tableSet</em>()</div>
+<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">tableDelete</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">);</span>                        
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after <em>tableSet</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">tableDelete</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">);</span>                        
+</pre><div class="source-file"><em>table.h</em><br>
+add after <em>tableDelete</em>()</div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">tableAddAll</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="p">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="p">);</span>                              
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after <em>tableDelete</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chunk.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.h</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Value</span><span class="o">*</span> <span class="n">stackTop</span><span class="p">;</span>
+</pre><div class="source-file"><em>vm.h</em><br>
+in struct <em>VM</em></div>
+<pre class="insert"><span></span>  <span class="n">Table</span> <span class="n">strings</span><span class="p">;</span>  
+</pre><pre class="insert-after"><br><span></span>  <span class="n">Obj</span><span class="o">*</span> <span class="n">objects</span><span class="p">;</span>   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">VAL_OBJ</span><span class="p">:</span>                   
+</pre><div class="source-file"><em>value.c</em><br>
+in <em>valuesEqual</em>()<br>
+replace 6 lines</div>
+<pre class="insert"><span></span>      <span class="k">return</span> <span class="nf">AS_OBJ</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">==</span> <span class="n">AS_OBJ</span><span class="p">(</span><span class="n">b</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>(), replace 6 lines</div>
+
+<p>&hellip;</p>
 
 <footer>
 <a href="global-variables.html" class="next">

@@ -111,9 +111,9 @@ void initVM() {
 
   initTable(&vm.globals);
 //< Global Variables not-yet
-//> Hash Tables not-yet
+//> Hash Tables init-strings
   initTable(&vm.strings);
-//< Hash Tables not-yet
+//< Hash Tables init-strings
 //> Methods and Initializers not-yet
 
   vm.initString = copyString("init", 4);
@@ -128,9 +128,9 @@ void freeVM() {
 //> Global Variables not-yet
   freeTable(&vm.globals);
 //< Global Variables not-yet
-//> Hash Tables not-yet
+//> Hash Tables free-strings
   freeTable(&vm.strings);
-//< Hash Tables not-yet
+//< Hash Tables free-strings
 //> Methods and Initializers not-yet
   vm.initString = NULL;
 //< Methods and Initializers not-yet
