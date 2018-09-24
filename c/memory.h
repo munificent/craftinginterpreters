@@ -2,15 +2,20 @@
 #ifndef clox_memory_h
 #define clox_memory_h
 
-//> Strings not-yet
+//> Strings memory-include-object
 #include "object.h"
 
+//< Strings memory-include-object
+//> Strings allocate
 #define ALLOCATE(type, count) \
     (type*)reallocate(NULL, 0, sizeof(type) * (count))
+//> free
 
 #define FREE(type, pointer) \
     reallocate(pointer, sizeof(type), 0)
-//< Strings not-yet
+//< free
+
+//< Strings allocate
 #define GROW_CAPACITY(capacity) \
     ((capacity) < 8 ? 8 : (capacity) * 2)
 //> grow-array
@@ -32,8 +37,8 @@ void grayObject(Obj* object);
 void grayValue(Value value);
 void collectGarbage();
 //< Garbage Collection not-yet
-//> Strings not-yet
+//> Strings free-objects-h
 void freeObjects();
-//< Strings not-yet
+//< Strings free-objects-h
 
 #endif

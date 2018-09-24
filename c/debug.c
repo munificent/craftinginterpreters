@@ -5,9 +5,9 @@
 //< Calls and Functions not-yet
 
 #include "debug.h"
-//> Strings not-yet
+//> Calls and Functions not-yet
 #include "object.h"
-//< Strings not-yet
+//< Calls and Functions not-yet
 //> debug-include-value
 #include "value.h"
 //< debug-include-value

@@ -1,54 +1,11 @@
 //> Chunks of Bytecode value-c
 #include <stdio.h>
-/* Strings not-yet < Hash Tables not-yet
+/* Strings value-include-string < Hash Tables not-yet
 #include <string.h>
 */
 
 #include "memory.h"
 #include "value.h"
-//> Strings not-yet
-
-static void printObject(Value value) {
-  switch (OBJ_TYPE(value)) {
-//> Classes and Instances not-yet
-    case OBJ_CLASS:
-      printf("%s", AS_CLASS(value)->name->chars);
-      break;
-//< Classes and Instances not-yet
-//> Methods and Initializers not-yet
-    case OBJ_BOUND_METHOD:
-//< Methods and Initializers not-yet
-//> Closures not-yet
-    case OBJ_CLOSURE:
-      printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
-      break;
-//< Closures not-yet
-//> Calls and Functions not-yet
-    case OBJ_FUNCTION:
-      printf("<fn %s>", AS_FUNCTION(value)->name->chars);
-      break;
-//< Calls and Functions not-yet
-//> Classes and Instances not-yet
-    case OBJ_INSTANCE:
-      printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
-      break;
-//< Classes and Instances not-yet
-//> Calls and Functions not-yet
-    case OBJ_NATIVE:
-      printf("<native fn>");
-      break;
-//< Calls and Functions not-yet
-    case OBJ_STRING:
-      printf("%s", AS_CSTRING(value));
-      break;
-//> Closures not-yet
-    case OBJ_UPVALUE:
-      printf("upvalue");
-      break;
-//< Closures not-yet
-  }
-}
-//< Strings not-yet
 
 void initValueArray(ValueArray* array) {
   array->values = NULL;
@@ -100,9 +57,9 @@ void printValue(Value value) {
     case VAL_BOOL:   printf(AS_BOOL(value) ? "true" : "false"); break;
     case VAL_NIL:    printf("nil"); break;
     case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
-//> Strings not-yet
+//> Strings call-print-object
     case VAL_OBJ:    printObject(value); break;
-//< Strings not-yet
+//< Strings call-print-object
   }
 //< Types of Values print-value
 //> Optimization not-yet
@@ -123,10 +80,10 @@ bool valuesEqual(Value a, Value b) {
     case VAL_BOOL:   return AS_BOOL(a) == AS_BOOL(b);
     case VAL_NIL:    return true;
     case VAL_NUMBER: return AS_NUMBER(a) == AS_NUMBER(b);
-//> Strings not-yet
+//> Strings strings-equal
     case VAL_OBJ:
-//< Strings not-yet
-/* Strings not-yet < Hash Tables not-yet
+//< Strings strings-equal
+/* Strings strings-equal < Hash Tables not-yet
     {
       ObjString* aString = AS_STRING(a);
       ObjString* bString = AS_STRING(b);

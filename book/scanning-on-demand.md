@@ -317,8 +317,8 @@ all and we can freely copy tokens around. As long as the main source code string
 <aside name="outlive">
 
 I don't mean to sound flippant. We really do need to think about and ensure that
-the source string, which is created far away over in the main module, has a long
-enough lifetime. That's why `runFile()` doesn't free the string until
+the source string, which is created far away over in the "main" module, has a
+long enough lifetime. That's why `runFile()` doesn't free the string until
 `interpret()` finishes executing the code and returns.
 
 </aside>
