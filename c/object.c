@@ -4,9 +4,9 @@
 
 #include "memory.h"
 #include "object.h"
-//> Hash Tables not-yet
+//> Hash Tables object-include-table
 #include "table.h"
-//< Hash Tables not-yet
+//< Hash Tables object-include-table
 #include "value.h"
 #include "vm.h"
 //> allocate-obj
@@ -116,35 +116,35 @@ ObjNative* newNative(NativeFn function) {
 }
 //< Calls and Functions not-yet
 
-/* Strings allocate-string < Hash Tables not-yet
+/* Strings allocate-string < Hash Tables allocate-string
 static ObjString* allocateString(char* chars, int length) {
 */
 //> allocate-string
-//> Hash Tables not-yet
+//> Hash Tables allocate-string
 static ObjString* allocateString(char* chars, int length,
                                  uint32_t hash) {
-//< Hash Tables not-yet
+//< Hash Tables allocate-string
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
   string->chars = chars;
-//> Hash Tables not-yet
+//> Hash Tables allocate-store-hash
   string->hash = hash;
-//< Hash Tables not-yet
+//< Hash Tables allocate-store-hash
 
 //> Garbage Collection not-yet
   push(OBJ_VAL(string));
 //< Garbage Collection not-yet
-//> Hash Tables not-yet
+//> Hash Tables allocate-store-string
   tableSet(&vm.strings, string, NIL_VAL);
 //> Garbage Collection not-yet
   pop();
 //< Garbage Collection not-yet
 
-//< Hash Tables not-yet
+//< Hash Tables allocate-store-string
   return string;
 }
 //< allocate-string
-//> Hash Tables not-yet
+//> Hash Tables hash-string
 static uint32_t hashString(const char* key, int length) {
   // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
   uint32_t hash = 2166136261u;
@@ -159,40 +159,40 @@ static uint32_t hashString(const char* key, int length) {
 
   return hash;
 }
-//< Hash Tables not-yet
+//< Hash Tables hash-string
 //> take-string
 ObjString* takeString(char* chars, int length) {
-/* Strings take-string < Hash Tables not-yet
+/* Strings take-string < Hash Tables take-string
   return allocateString(chars, length);
 */
-//> Hash Tables not-yet
+//> Hash Tables take-string
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length,
                                         hash);
   if (interned != NULL) return interned;
 
   return allocateString(chars, length, hash);
-//< Hash Tables not-yet
+//< Hash Tables take-string
 }
 //< take-string
 ObjString* copyString(const char* chars, int length) {
-//> Hash Tables not-yet
+//> Hash Tables copy-string
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length,
                                         hash);
   if (interned != NULL) return interned;
 
-//< Hash Tables not-yet
+//< Hash Tables copy-string
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
 
-/* Strings object-c < Hash Tables not-yet
+/* Strings object-c < Hash Tables copy-string-allocate
   return allocateString(heapChars, length);
 */
-//> Hash Tables not-yet
+//> Hash Tables copy-string-allocate
   return allocateString(heapChars, length, hash);
-//< Hash Tables not-yet
+//< Hash Tables copy-string-allocate
 }
 //> Closures not-yet
 

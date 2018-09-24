@@ -121,9 +121,9 @@ struct sObjString {
   Obj obj;
   int length;
   char* chars;
-//> Hash Tables not-yet
+//> Hash Tables obj-string-hash
   uint32_t hash;
-//< Hash Tables not-yet
+//< Hash Tables obj-string-hash
 };
 //< obj-string
 //> Closures not-yet
