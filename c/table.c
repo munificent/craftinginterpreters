@@ -276,7 +276,7 @@ void tableRemoveWhite(Table* table) {
   for (int i = 0; i <= table->capacityMask; i++) {
 //< Optimization not-yet
     Entry* entry = &table->entries[i];
-    if (entry->key != NULL && !entry->key->object.isDark) {
+    if (entry->key != NULL && !entry->key->obj.isDark) {
       tableDelete(table, entry->key);
     }
   }

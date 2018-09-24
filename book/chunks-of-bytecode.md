@@ -599,7 +599,7 @@ When we call that function, after disassembling the instruction at the given
 offset, it returns the offset of the *next* instruction. This is because, as
 we'll see later, instructions can have different sizes.
 
-The core of the debug module is this function:
+The core of the "debug" module is this function:
 
 ^code disassemble-instruction
 
@@ -876,7 +876,7 @@ we also look up the actual constant value -- since constants *are* known at
 compile-time after all -- and display the value itself too.
 
 This requires some way to print a Lox Value. That function will live in the
-value module, so we include that:
+"value" module, so we include that:
 
 ^code debug-include-value (1 before, 2 after)
 

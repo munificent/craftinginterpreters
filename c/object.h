@@ -1,14 +1,20 @@
-//> Strings not-yet
+//> Strings object-h
 #ifndef clox_object_h
 #define clox_object_h
 
 #include "common.h"
+//> Calls and Functions not-yet
 #include "chunk.h"
+//< Calls and Functions not-yet
 //> Classes and Instances not-yet
 #include "table.h"
 //< Classes and Instances not-yet
+#include "value.h"
+//> obj-type-macro
 
 #define OBJ_TYPE(value)         (AS_OBJ(value)->type)
+//< obj-type-macro
+//> is-string
 
 //> Methods and Initializers not-yet
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
@@ -29,6 +35,8 @@
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 //< Calls and Functions not-yet
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
+//< is-string
+//> as-string
 
 //> Methods and Initializers not-yet
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
@@ -50,6 +58,8 @@
 //< Calls and Functions not-yet
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
+//< as-string
+//> obj-type
 
 typedef enum {
 //> Methods and Initializers not-yet
@@ -75,18 +85,21 @@ typedef enum {
   OBJ_UPVALUE
 //< Closures not-yet
 } ObjType;
+//< obj-type
 
 struct sObj {
   ObjType type;
 //> Garbage Collection not-yet
   bool isDark;
 //< Garbage Collection not-yet
+//> next-field
   struct sObj* next;
+//< next-field
 };
 //> Calls and Functions not-yet
 
 typedef struct {
-  Obj object;
+  Obj obj;
   int arity;
 //> Closures not-yet
   int upvalueCount;
@@ -98,23 +111,25 @@ typedef struct {
 typedef Value (*NativeFn)(int argCount, Value* args);
 
 typedef struct {
-  Obj object;
+  Obj obj;
   NativeFn function;
 } ObjNative;
 //< Calls and Functions not-yet
+//> obj-string
 
 struct sObjString {
-  Obj object;
+  Obj obj;
   int length;
   char* chars;
 //> Hash Tables not-yet
   uint32_t hash;
 //< Hash Tables not-yet
 };
+//< obj-string
 //> Closures not-yet
 
 typedef struct sUpvalue {
-  Obj object;
+  Obj obj;
 
   // Pointer to the variable this upvalue is referencing.
   Value* value;
@@ -131,7 +146,7 @@ typedef struct sUpvalue {
 } ObjUpvalue;
 
 typedef struct {
-  Obj object;
+  Obj obj;
   ObjFunction* function;
   ObjUpvalue** upvalues;
   int upvalueCount;
@@ -140,7 +155,7 @@ typedef struct {
 //> Classes and Instances not-yet
 
 typedef struct sObjClass {
-  Obj object;
+  Obj obj;
   ObjString* name;
 //> Superclasses not-yet
   struct sObjClass* superclass;
@@ -151,15 +166,15 @@ typedef struct sObjClass {
 } ObjClass;
 
 typedef struct {
-  Obj object;
+  Obj obj;
   ObjClass* klass;
   Table fields;
 } ObjInstance;
 //< Classes and Instances not-yet
-//> Methods and Initializers not-yet
 
+//> Methods and Initializers not-yet
 typedef struct {
-  Obj object;
+  Obj obj;
   Value receiver;
   ObjClosure* method;
 } ObjBoundMethod;
@@ -184,16 +199,23 @@ ObjInstance* newInstance(ObjClass* klass);
 //> Calls and Functions not-yet
 ObjNative* newNative(NativeFn function);
 //< Calls and Functions not-yet
+//> take-string-h
 ObjString* takeString(char* chars, int length);
+//< take-string-h
+//> copy-string-h
 ObjString* copyString(const char* chars, int length);
+
+//< copy-string-h
 //> Closures not-yet
 ObjUpvalue* newUpvalue(Value* slot);
 //< Closures not-yet
-
-// Returns true if [value] is an object of type [type]. Do not call this
-// directly, instead use the [IS___] macro for the type in question.
+//> print-object-h
+void printObject(Value value);
+//< print-object-h
+//> is-obj-type
 static inline bool isObjType(Value value, ObjType type) {
   return IS_OBJ(value) && AS_OBJ(value)->type == type;
 }
 
+//< is-obj-type
 #endif

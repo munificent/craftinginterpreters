@@ -4,9 +4,9 @@
 //< Types of Values include-stdarg
 //> vm-include-stdio
 #include <stdio.h>
-//> Strings not-yet
+//> Strings vm-include-string
 #include <string.h>
-//< Strings not-yet
+//< Strings vm-include-string
 //> Calls and Functions not-yet
 #include <time.h>
 //< Calls and Functions not-yet
@@ -19,10 +19,10 @@
 //> vm-include-debug
 #include "debug.h"
 //< vm-include-debug
-//> Strings not-yet
+//> Strings vm-include-object-memory
 #include "object.h"
 #include "memory.h"
-//< Strings not-yet
+//< Strings vm-include-object-memory
 #include "vm.h"
 
 VM vm; // [one]
@@ -96,9 +96,9 @@ void initVM() {
 //> call-reset-stack
   resetStack();
 //< call-reset-stack
-//> Strings not-yet
+//> Strings init-objects-root
   vm.objects = NULL;
-//< Strings not-yet
+//< Strings init-objects-root
 //> Garbage Collection not-yet
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
@@ -134,9 +134,9 @@ void freeVM() {
 //> Methods and Initializers not-yet
   vm.initString = NULL;
 //< Methods and Initializers not-yet
-//> Strings not-yet
+//> Strings call-free-objects
   freeObjects();
-//< Strings not-yet
+//< Strings call-free-objects
 }
 //> push
 void push(Value value) {
@@ -396,10 +396,9 @@ static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
 //< Types of Values is-falsey
-//> Strings not-yet
-
+//> Strings concatenate
 static void concatenate() {
-/* Strings not-yet < Garbage Collection not-yet
+/* Strings concatenate < Garbage Collection not-yet
   ObjString* b = AS_STRING(pop());
   ObjString* a = AS_STRING(pop());
 */
@@ -421,7 +420,7 @@ static void concatenate() {
 //< Garbage Collection not-yet
   push(OBJ_VAL(result));
 }
-//< Strings not-yet
+//< Strings concatenate
 //> run
 static InterpretResult run() {
 //> Calls and Functions not-yet
@@ -670,10 +669,10 @@ static InterpretResult run() {
 /* A Virtual Machine op-negate < Types of Values op-negate
       case OP_NEGATE:   push(-pop()); break;
 */
-/* Types of Values op-arithmetic < Strings not-yet
+/* Types of Values op-arithmetic < Strings add-strings
       case OP_ADD:      BINARY_OP(NUMBER_VAL, +); break;
 */
-//> Strings not-yet
+//> Strings add-strings
       case OP_ADD: {
         if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
           concatenate();
@@ -687,7 +686,7 @@ static InterpretResult run() {
         }
         break;
       }
-//< Strings not-yet
+//< Strings add-strings
 //> Types of Values op-arithmetic
       case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
       case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
