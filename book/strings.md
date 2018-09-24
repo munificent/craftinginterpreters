@@ -538,7 +538,7 @@ list to find every single object that has been allocated on the heap, whether or
 not the user's program or the VM's stack still has a reference to it.
 
 We could define a separate linked list node struct but then we'd have to
-allocate those too. Instead, we'll use an *instrusive list* -- the Obj struct
+allocate those too. Instead, we'll use an *intrusive list* -- the Obj struct
 itself will be the linked list node. Each Obj gets a pointer to the next Obj in
 the chain:
 
@@ -780,7 +780,7 @@ use a third-party library for that. This is less Latin-centric than ASCII but
 not much more complex. You lose fast direct indexing by code point, but you can
 usually live without that or afford to make it `O(n)` instead of `O(1)`.
 
-If I was designing a big workhorse language for people writing large
+If I were designing a big workhorse language for people writing large
 applications, I'd probably go with the maximal approach. For my little embedded
 scripting language [Wren][], I went with UTF-8 and code points.
 
