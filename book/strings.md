@@ -336,8 +336,8 @@ literals.
 <img src="image/strings/viola.png" class="above" alt="A viola.">
 
 Don't get "voilà" confused with "viola". One means "there it is" and the other
-is a tiny string instrument. Yes, I did spend two hours drawing a viola just to
-mention that.
+is a string instrument, the middle child between a violin and a cello. Yes, I
+did spend two hours drawing a viola just to mention that.
 
 </aside>
 
