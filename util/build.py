@@ -122,7 +122,7 @@ def format_code(language, length, lines):
 
   markup += '```'
 
-  html = markdown.markdown(markup, ['extra', 'codehilite'])
+  html = markdown.markdown(markup, extensions=['extra', 'codehilite'])
 
   if leading_newlines > 0:
     html = html.replace('<pre>', '<pre>' + ('<br>' * leading_newlines))
@@ -381,7 +381,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   contents = contents.replace('<aside', '<aside markdown="1"')
   contents = contents.replace('<div class="challenges">', '<div class="challenges" markdown="1">')
   contents = contents.replace('<div class="design-note">', '<div class="design-note" markdown="1">')
-  body = markdown.markdown(contents, ['extra', 'codehilite', 'smarty'])
+  body = markdown.markdown(contents, extensions=['extra', 'codehilite', 'smarty'])
 
   # Turn aside markers in code into spans.
   # <span class="c1">// [repl]</span>
