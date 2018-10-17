@@ -11,10 +11,10 @@
 #define TABLE_MAX_LOAD 0.75
 
 //< max-load
-//> init-table
 void initTable(Table* table) {
+  // TODO: Note count includes tombstones.
   table->count = 0;
-/* Hash Tables table-init-table < Optimization not-yet
+/* Hash Tables table-c < Optimization not-yet
   table->capacity = 0;
 */
 //> Optimization not-yet
@@ -22,10 +22,9 @@ void initTable(Table* table) {
 //< Optimization not-yet
   table->entries = NULL;
 }
-//< init-table
 //> free-table
 void freeTable(Table* table) {
-/* Hash Tables table-free-table < Optimization not-yet
+/* Hash Tables free-table < Optimization not-yet
   FREE_ARRAY(Value, table->entries, table->capacity);
 */
 //> Optimization not-yet
@@ -36,30 +35,46 @@ void freeTable(Table* table) {
 //< free-table
 //> find-entry
 /* Hash Tables find-entry < Optimization not-yet
-static uint32_t findEntry(Entry* entries, int capacity,
-                          ObjString* key) {
+static Entry* findEntry(Entry* entries, int capacity,
+                        ObjString* key) {
 */
 //> Optimization not-yet
-static uint32_t findEntry(Entry* entries, int capacityMask,
-                          ObjString* key) {
+static Entry* findEntry(Entry* entries, int capacityMask,
+                        ObjString* key) {
 //< Optimization not-yet
-  // Figure out where to insert it in the table. Use open addressing and
-  // basic linear probing.
 /* Hash Tables find-entry < Optimization not-yet
   uint32_t index = key->hash % capacity;
 */
 //> Optimization not-yet
   uint32_t index = key->hash & capacityMask;
 //< Optimization not-yet
-
-  // We don't worry about an infinite loop here because resize() ensures
-  // there are empty slots in the array.
+//> find-entry-tombstone
+  Entry* tombstone = NULL;
+  
+//< find-entry-tombstone
   for (;;) {
     Entry* entry = &entries[index];
 
-    if (entry->key == NULL || entry->key == key) return index;
+/* Hash Tables find-entry < Hash Tables find-tombstone
+    if (entry->key == key || entry->key == NULL) {
+      return entry;
+    }
+*/
+//> find-tombstone
+    if (entry->key == NULL) {
+      if (IS_NIL(entry->value)) {
+        // Empty entry.
+        return tombstone != NULL ? tombstone : entry;
+      } else {
+        // We found a tombstone.
+        if (tombstone == NULL) tombstone = entry;
+      }
+    } else if (entry->key == key) {
+      // We found the key.
+      return entry;
+    }
+//< find-tombstone
 
-    // Try the next slot.
 /* Hash Tables find-entry < Optimization not-yet
     index = (index + 1) % capacity;
 */
@@ -75,27 +90,25 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
   if (table->entries == NULL) return false;
 
 /* Hash Tables table-get < Optimization not-yet
-  uint32_t index = findEntry(table->entries, table->capacity, key);
+  Entry* entry = findEntry(table->entries, table->capacity, key);
 */
 //> Optimization not-yet
-  uint32_t index = findEntry(table->entries, table->capacityMask, key);
+  Entry* entry = findEntry(table->entries, table->capacityMask, key);
 //< Optimization not-yet
-  Entry* entry = &table->entries[index];
   if (entry->key == NULL) return false;
 
   *value = entry->value;
   return true;
 }
 //< table-get
-//> table-resize
-/* Hash Tables table-resize < Optimization not-yet
-static void resize(Table* table, int capacity) {
+//> table-adjust-capacity
+/* Hash Tables table-adjust-capacity < Optimization not-yet
+static void adjustCapacity(Table* table, int capacity) {
 */
 //> Optimization not-yet
-static void resize(Table* table, int capacityMask) {
+static void adjustCapacity(Table* table, int capacityMask) {
 //< Optimization not-yet
-  // Create the new empty entry array.
-/* Hash Tables table-resize < Optimization not-yet
+/* Hash Tables table-adjust-capacity < Optimization not-yet
   Entry* entries = ALLOCATE(Entry, capacity);
   for (int i = 0; i < capacity; i++) {
 */
@@ -106,10 +119,12 @@ static void resize(Table* table, int capacityMask) {
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
   }
-
-  // Re-hash the existing entries into the new array.
+  
+//> re-hash
+//> resize-init-count
   table->count = 0;
-/* Hash Tables table-resize < Optimization not-yet
+//< resize-init-count
+/* Hash Tables re-hash < Optimization not-yet
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization not-yet
@@ -118,58 +133,58 @@ static void resize(Table* table, int capacityMask) {
     Entry* entry = &table->entries[i];
     if (entry->key == NULL) continue;
 
-/* Hash Tables table-resize < Optimization not-yet
-    uint32_t index = findEntry(entries, capacity, entry->key);
+/* Hash Tables re-hash < Optimization not-yet
+    Entry* dest = findEntry(entries, capacity, entry->key);
 */
 //> Optimization not-yet
-    uint32_t index = findEntry(entries, capacityMask, entry->key);
+    Entry* dest = findEntry(entries, capacityMask, entry->key);
 //< Optimization not-yet
-    Entry* dest = &entries[index];
     dest->key = entry->key;
     dest->value = entry->value;
+//> resize-increment-count
     table->count++;
+//< resize-increment-count
   }
+//< re-hash
 
-  // Replace the array.
-/* Hash Tables table-resize < Optimization not-yet
+/* Hash Tables free-old-array < Optimization not-yet
   FREE_ARRAY(Value, table->entries, table->capacity);
 */
 //> Optimization not-yet
   FREE_ARRAY(Value, table->entries, table->capacityMask + 1);
 //< Optimization not-yet
   table->entries = entries;
-/* Hash Tables table-resize < Optimization not-yet
+/* Hash Tables table-adjust-capacity < Optimization not-yet
   table->capacity = capacity;
 */
 //> Optimization not-yet
   table->capacityMask = capacityMask;
 //< Optimization not-yet
 }
-//< table-resize
+//< table-adjust-capacity
 //> table-set
 bool tableSet(Table* table, ObjString* key, Value value) {
-  // If the table is getting too full, make room first.
-/* Hash Tables table-set < Optimization not-yet
+/* Hash Tables table-set-grow < Optimization not-yet
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
-    // Figure out the new table size.
     int capacity = GROW_CAPACITY(table->capacity);
-    resize(table, capacity);
+    adjustCapacity(table, capacity);
 */
 //> Optimization not-yet
   if (table->count + 1 > (table->capacityMask + 1) * TABLE_MAX_LOAD) {
     // Figure out the new table size.
     int capacityMask = GROW_CAPACITY(table->capacityMask + 1) - 1;
-    resize(table, capacityMask);
+    adjustCapacity(table, capacityMask);
 //< Optimization not-yet
+//> table-set-grow
   }
 
+//< table-set-grow
 /* Hash Tables table-set < Optimization not-yet
-  uint32_t index = findEntry(table->entries, table->capacity, key);
+  Entry* entry = findEntry(table->entries, table->capacity, key);
 */
 //> Optimization not-yet
-  uint32_t index = findEntry(table->entries, table->capacityMask, key);
+  Entry* entry = findEntry(table->entries, table->capacityMask, key);
 //< Optimization not-yet
-  Entry* entry = &table->entries[index];
   bool isNewKey = entry->key == NULL;
   entry->key = key;
   entry->value = value;
@@ -184,41 +199,16 @@ bool tableDelete(Table* table, ObjString* key) {
 
   // Find the entry.
 /* Hash Tables table-delete < Optimization not-yet
-  uint32_t index = findEntry(table->entries, table->capacity, key);
+  Entry* entry = findEntry(table->entries, table->capacity, key);
 */
 //> Optimization not-yet
-  uint32_t index = findEntry(table->entries, table->capacityMask, key);
+  Entry* entry = findEntry(table->entries, table->capacityMask, key);
 //< Optimization not-yet
-  Entry* entry = &table->entries[index];
   if (entry->key == NULL) return false;
 
-  // Remove the entry.
+  // Place a tombstone in the entry.
   entry->key = NULL;
-  entry->value = NIL_VAL;
-  table->count--;
-
-  // Later entries may have been pushed past this one and may need to
-  // be pushed up to fill the hole. The simplest way to handle that is
-  // to just re-add them all until we hit an empty entry.
-  for (;;) {
-/* Hash Tables table-delete < Optimization not-yet
-    index = (index + 1) % table->capacity;
-*/
-//> Optimization not-yet
-    index = (index + 1) & table->capacityMask;
-//< Optimization not-yet
-    entry = &table->entries[index];
-
-    if (entry->key == NULL) break;
-
-    ObjString* tempKey = entry->key;
-    Value tempValue = entry->value;
-    entry->key = NULL;
-    entry->value = NIL_VAL;
-    table->count--;
-
-    tableSet(table, tempKey, tempValue);
-  }
+  entry->value = BOOL_VAL(true);
 
   return true;
 }
@@ -304,4 +294,3 @@ void grayTable(Table* table) {
   }
 }
 //< Garbage Collection not-yet
-

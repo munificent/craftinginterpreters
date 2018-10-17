@@ -11,11 +11,10 @@ typedef struct {
   Value value;
 } Entry;
 //< entry
-//> table
 
 typedef struct {
   int count;
-/* Hash Tables table < Optimization not-yet
+/* Hash Tables table-h < Optimization not-yet
   int capacity;
 */
 //> Optimization not-yet
@@ -24,10 +23,8 @@ typedef struct {
   Entry* entries;
 } Table;
 
-//< table
 //> init-table-h
 void initTable(Table* table);
-//< init-table-h
 //> free-table-h
 void freeTable(Table* table);
 //< free-table-h
@@ -53,4 +50,5 @@ void tableRemoveWhite(Table* table);
 void grayTable(Table* table);
 //< Garbage Collection not-yet
 
+//< init-table-h
 #endif

@@ -146,12 +146,8 @@ static ObjString* allocateString(char* chars, int length,
 //< allocate-string
 //> Hash Tables hash-string
 static uint32_t hashString(const char* key, int length) {
-  // FNV-1a hash. See: http://www.isthe.com/chongo/tech/comp/fnv/
   uint32_t hash = 2166136261u;
 
-  // This is O(n) on the length of the string, but we only call this
-  // when a new string is created. Since the creation is also O(n) (to
-  // copy/initialize all the bytes), we allow this here.
   for (int i = 0; i < length; i++) {
     hash ^= key[i];
     hash *= 16777619;
@@ -162,27 +158,34 @@ static uint32_t hashString(const char* key, int length) {
 //< Hash Tables hash-string
 //> take-string
 ObjString* takeString(char* chars, int length) {
-/* Strings take-string < Hash Tables take-string
+/* Strings take-string < Hash Tables take-string-hash
   return allocateString(chars, length);
 */
-//> Hash Tables take-string
+//> Hash Tables take-string-hash
   uint32_t hash = hashString(chars, length);
+//> take-string-intern
   ObjString* interned = tableFindString(&vm.strings, chars, length,
                                         hash);
-  if (interned != NULL) return interned;
+  if (interned != NULL) {
+    FREE_ARRAY(char, chars, length);
+    return interned;
+  }
 
+//< take-string-intern
   return allocateString(chars, length, hash);
-//< Hash Tables take-string
+//< Hash Tables take-string-hash
 }
 //< take-string
 ObjString* copyString(const char* chars, int length) {
-//> Hash Tables copy-string
+//> Hash Tables copy-string-hash
   uint32_t hash = hashString(chars, length);
+//> copy-string-intern
   ObjString* interned = tableFindString(&vm.strings, chars, length,
                                         hash);
   if (interned != NULL) return interned;
+//< copy-string-intern
 
-//< Hash Tables copy-string
+//< Hash Tables copy-string-hash
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
