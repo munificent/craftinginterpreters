@@ -47,7 +47,7 @@ on your PATH.
 You'll need to install a few Python packages:
 
 ```sh
-$ pip3 install markdown jinja2 pygments
+$ pip3 install markdown==2.6.11 jinja2 pygments
 ```
 
 The makefile also assumes Ruby (in particular `gem`) is on your PATH. You'll
