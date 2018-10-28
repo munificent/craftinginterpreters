@@ -364,7 +364,7 @@ What do you expect this to evaluate to:
 
 According to [IEEE 754][], which specifies the behavior of double precision
 numbers, dividing a zero by zero gives you the special "NaN" ("not a number")
-value. Strangely enough, NaN is supposed to be *not* equal itself.
+value. Strangely enough, NaN is supposed to be *not* equal to itself.
 
 In Java, the `==` operator on doubles preserves that behavior, but the
 `equals()` method on Double does not. Lox uses the latter, so doesn't follow

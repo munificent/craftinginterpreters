@@ -547,8 +547,8 @@ a new name to a value:
 ^code environment-define
 
 Not exactly brain surgery, but we have made one interesting semantic choice.
-When we add the key to the map, we don't check to see that if it's already
-present. That means that this program works:
+When we add the key to the map, we don't check to see if it's already present.
+That means that this program works:
 
 ```lox
 var a = "before";
