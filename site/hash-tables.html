@@ -37,11 +37,13 @@
 <h3><a href="#top">Hash Tables<small>20</small></a></h3>
 
 <ul>
-    <li><a href="#addressing-people"><small>20.1</small> addressing people</a></li>
-    <li><a href="#hashing"><small>20.2</small> hashing</a></li>
-    <li><a href="#collisions"><small>20.3</small> collisions</a></li>
-    <li><a href="#building-a-hash-table"><small>20.4</small> building a hash table</a></li>
-    <li><a href="#string-interning"><small>20.5</small> string interning</a></li>
+    <li><a href="#an-array-of-buckets"><small>20.1</small> An Array of Buckets</a></li>
+    <li><a href="#load-factor-and-wrapped-keys"><small>20.2</small> Load Factor and Wrapped Keys</a></li>
+    <li><a href="#collision-resolution"><small>20.3</small> Collision Resolution</a></li>
+    <li><a href="#building-a-hash-table"><small>20.4</small> Building a Hash Table</a></li>
+    <li><a href="#string-interning"><small>20.5</small> String Interning</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -67,11 +69,13 @@
 <h3><a href="#top">Hash Tables<small>20</small></a></h3>
 
 <ul>
-    <li><a href="#addressing-people"><small>20.1</small> addressing people</a></li>
-    <li><a href="#hashing"><small>20.2</small> hashing</a></li>
-    <li><a href="#collisions"><small>20.3</small> collisions</a></li>
-    <li><a href="#building-a-hash-table"><small>20.4</small> building a hash table</a></li>
-    <li><a href="#string-interning"><small>20.5</small> string interning</a></li>
+    <li><a href="#an-array-of-buckets"><small>20.1</small> An Array of Buckets</a></li>
+    <li><a href="#load-factor-and-wrapped-keys"><small>20.2</small> Load Factor and Wrapped Keys</a></li>
+    <li><a href="#collision-resolution"><small>20.3</small> Collision Resolution</a></li>
+    <li><a href="#building-a-hash-table"><small>20.4</small> Building a Hash Table</a></li>
+    <li><a href="#string-interning"><small>20.5</small> String Interning</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -107,289 +111,268 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
-<ul>
-<li>really excited</li>
-<li>get to dig deep on one of most-used but least-understood data structures
-  in programming</li>
-<li>no matter what language use, probably use hash tables every day</li>
+<p>We&rsquo;re getting close to adding variables to our burgeoning virtual machine. That
+means we&rsquo;ll soon need a way to look a value given a variable&rsquo;s name. Later, when
+we add classes, we&rsquo;ll need a way to store fields on instances.</p>
+<p>The perfect data structure for that is a <em>hash table</em>. You probably already know
+what a hash table is, even if you don&rsquo;t know it by that name. If you&rsquo;re a Java
+programmer, you call them &ldquo;HashMaps&rdquo;. C# and Python call them &ldquo;dictionaries&rdquo;. In
+C++, it&rsquo;s just &ldquo;map&rdquo; while Lisp calls them &ldquo;associative arrays&rdquo;. Objects in
+JavaScript and Lua are hash tables under the hood, which is what gives them
+their flexibility.</p>
+<p>Note that C isn&rsquo;t in that list.  In jlox, we could rely on Java&rsquo;s rich standard
+library to spare us the trouble of building one from scratch. Now that we&rsquo;re in
+C, it&rsquo;s up to us. So in this chapter, we&rsquo;re going to cover every inch of
+implementing a hash table.</p>
+<p>A hash table, whatever your language calls it, lets you associate a set of
+<em>keys</em> with a set of <em>values</em>. Each key/value pair is an <em>entry</em> in the table.
+Given a key, you can find its corresponding value. You can add new key/value
+pairs and remove entries by key. If you add a new value for an existing key, it
+replaces the previous entry.</p>
+<p>Hash tables appear in so many languages because they are incredibly powerful.
+Much of this power comes from one key metric: given a key, a hash table returns
+corresponding value in <span name="constant">constant time</span>, <em>regardless
+of how many keys are in the hash table.</em></p>
+<aside name="constant">
+<p>More specifically, the <em>average-case</em> lookup time is constant. Worst-case
+performance can be, well, worse. But, in practice, it&rsquo;s easy to avoid degenerate
+behavior and stay on the fast path.</p>
+</aside>
+<p>That&rsquo;s pretty remarkable when you think about it. Imagine you&rsquo;ve got a big stack
+of business cards and I ask you to find a certain person. The bigger the pile
+is, the longer it will take. Even if the pile is nicely sorted and you can do a
+binary search, you&rsquo;re still talking <code>O(log(n))</code>. But with a hash table it takes
+the same time to find that busines card if the stack has ten cards or a million.</p>
+<h2><a href="#an-array-of-buckets" name="an-array-of-buckets"><small>20&#8202;.&#8202;1</small> An Array of Buckets</a></h2>
+<p>A complete, fast hash table has a couple of moving parts. I&rsquo;ll introduce them
+one at a time by going through a couple of smaller problems and solutions. Eventually, we&rsquo;ll build up to a data structure that can associate any set of names with their values.</p>
+<p>For now, imagine if Lox was a <em>lot</em> more restricted in variable names. What if a
+variable&rsquo;s name could only be a <span name="basic">single</span> lowercase
+letter. How could we very efficiently represent a set of variable names and
+their values?</p>
+<aside name="basic">
+<p>This limitation isn&rsquo;t <em>too</em> far-fetched. The initial versions of BASIC out of
+Dartmouth only allowed variable names to be a single letter followed by one
+optional digit.</p>
+</aside>
+<p>With only 26 possible variables (27 if you consider underscore a letter, I
+guess), the answer is easy. Declare a fixed-size array with 26 elements. Each
+element, we&rsquo;ll follow tradition and call them &ldquo;buckets&rdquo;, represents a variable
+with <code>a</code> starting at zero. If there&rsquo;s a value in the array at some letter&rsquo;s
+index, then that key is present with that value. Otherwise, the bucket is empty
+and that key/value pair isn&rsquo;t in the data structure.</p>
+<p>Memory usage is great<span class="em">&mdash;</span>just a single reasonably-sized array. There&rsquo;s some
+waste from the empty buckets, but it&rsquo;s not huge. There&rsquo;s no overhead for node
+pointers, padding, or other stuff you&rsquo;d get in something like a linked list or
+tree.</p>
+<p>Performance is even better. Given a variable name<span class="em">&mdash;</span>its character<span class="em">&mdash;</span>you can
+subtract the ASCII value of <code>a</code> and use the result to index directly into the
+array. Then you can either lookup the existing value or store a new value
+directly into that slot. It doesn&rsquo;t get much faster than that!</p>
+<p>This is sort of our Platonic ideal data structure. Lightning fast, dead simple,
+and compact in memory. As we add support for more complex keys, we&rsquo;ll have to
+make some concessions, but this is what we&rsquo;re aiming for. Even once we add in
+hash functions, dynamic resizing, and collision resolution, this is still the
+core of every hash table out there<span class="em">&mdash;</span>a contiguous array you can use the key to
+index directly into.</p>
+<h2><a href="#load-factor-and-wrapped-keys" name="load-factor-and-wrapped-keys"><small>20&#8202;.&#8202;2</small> Load Factor and Wrapped Keys</a></h2>
+<p>Confining Lox to single-letter variables makes our job as implementers easier,
+but it&rsquo;s probably on fun programming in a language that only gives you 26
+storage locations. What if we loosened a little to allow variables up to <span
+name="six">eight</span> characters long?</p>
+<aside name="six">
+<p>Again, this restriction isn&rsquo;t so crazy. Early linkers for C only treated the
+first six characters of external identifiers as meaningful. Everything after
+that was ignored. If you&rsquo;ve ever wondered why the C standard library is so
+enamored of abbreviation, it turns out it wasn&rsquo;t entirely because of the small
+screens (or teletypes!) of the day.</p>
+</aside>
+<p>That&rsquo;s small enough that we can pack all eight characters into a 64-bit integer
+and still treat the identifier as an array index. Or, at least, we could if we
+could somehow allocate a 295,148 <em>petabyte</em> array. Memory&rsquo;s gotten cheaper over
+time, but not quite <em>that</em> cheap. Even if we could make an array that big, it
+would be heinously wasteful. Almost every bucket will be empty unless users
+start writing way bigger Lox programs than we&rsquo;ve anticipated.</p>
+<p>Even though out indexes are 64 bits, we clearly don&rsquo;t need an array that large.
+Instead, we can allocate array bigger than the number of entries we need, but
+still a reasonable size. In order to keep the indexes in bounds, we&rsquo;ll wrap them
+around using the modulo operator.</p>
+<p>For example, say we need to store six entries. We could allocate an array of
+maybe 16 elements, plenty enough to store them all with room leftover. We take
+each key string as a 64 bit integer and modulo the array size (<span
+name="power-of-two">16</span>) to fit it in bounds and get a bucket index. Then
+we store the value there as usual.</p>
+<aside name="power-of-two">
+<p>I&rsquo;m using powers of two for the array sizes here, but they don&rsquo;t need to be.
+Some styles of hash table work best with powers of two, including the one we&rsquo;ll
+build in this book. Others prefer prime number array sizes or have other rules.</p>
+</aside>
+<p>We solved our waste problem, but introduced a new one. Any two variables whose
+key number has the same remainder when divided by the array size will end up in
+the same bucket. Variables can <strong>collide</strong>. We do have some control of this by
+tuning the array size. The bigger the array, the fewer collisions are likely to
+occur.</p>
+<p>Hash table implementers track this by measuring the table&rsquo;s <strong>load factor</strong>.
+This is the number of entries divided by the number of buckets. So a hash table
+with five entries and an array of 16 elements has a load factor of 0.3125. The
+higher the load factor, the greater the number of collisions.</p>
+<p>Part of the way we&rsquo;ll address that is by dynamically resizing the array. Just
+like the dynamic arrays we implemented earlier, we&rsquo;ll reallocate and grow the
+hash table&rsquo;s array as it fills up. Unlike a regular dynamic array, though, we
+won&rsquo;t wait until the array is <em>full</em>. Instead, we pick a desired load factor and
+grow the array when it goes over that.</p>
+<h2><a href="#collision-resolution" name="collision-resolution"><small>20&#8202;.&#8202;3</small> Collision Resolution</a></h2>
+<p>Even with a very low load factor, collisions can still occur. The <a href="https://en.wikipedia.org/wiki/Birthday_problem">birthday
+paradox</a> tells us that as the number of entries in the hash table increases,
+the change of colliion increases very quickly. We can pick a large array size to
+reduce that, but it&rsquo;s a losing game. Say we wanted to store a hundred items in a
+hash table. To keep the chance of collision below a still-pretty-high 10%, we
+need an array with at least 47,015 elements. To get the chance below 1% requires
+an array with 492,555 elements, over 4,000 thousand empty buckets for each one
+in use.</p>
+<p><strong>todo: aside or illustration about birthday paradox</strong></p>
+<p>Even then, making collisions rare doesn&rsquo;t mean they are impossible. We still
+have to handle them gracefully when they occur. Users don&rsquo;t like it when their
+programming language can look up variables correctly only <em>most</em> of the time.</p>
+<h3><a href="#separate-chaining" name="separate-chaining"><small>20&#8202;.&#8202;3&#8202;.&#8202;1</small> Separate chaining</a></h3>
+<p>Techniques for resolving collisions fall into two broad categories. The first is
+<strong>separate chaining</strong>. Instead of each bucket containing a single entry, we let
+it contain a collection of them. In the classic implementation, a bucket is a
+pointer to the head of a linked list of entries. To look up an entry, you find
+its bucket, then walk the list of entries until you find one with the matching
+key.</p>
+<p>In catastrophically bad cases where every entry collides in the same bucket, the
+data structure degrades into a single unsorted linked list with O(n) lookup.
+That&rsquo;s bad. In practice, it&rsquo;s easy to avoid that. As long as you keep the load
+factor relatively low, most buckets will have on average one entry or fewer.</p>
+<p>Separate chaining is conceptually simple<span class="em">&mdash;</span>it&rsquo;s literally an array of linked
+lists. Most operations are straightforward to implement, even deletion which, as
+we&rsquo;ll see, can be a pain. But it&rsquo;s not a great fit for modern CPUs. It has a lot
+of overhead from pointers and tends to scatter little linked list <span
+name="node">nodes</span> around in memory which isn&rsquo;t great for cache usage.</p>
+<aside name="node">
+<p>There are a few tricks to optimize this. Many implementations store the first
+entry right in the bucket so that in the common case where there&rsquo;s only one, no
+extra pointer indirection is needed. You can also make each linked list node
+store a few entries to reduce the pointer overhead.</p>
+</aside>
+<h3><a href="#open-addressing" name="open-addressing"><small>20&#8202;.&#8202;3&#8202;.&#8202;2</small> Open addressing</a></h3>
+<p>The other technique is <span name="open">called</span> <strong>open addressing</strong> or
+(confusingly) <strong>closed hashing</strong>. With this technique, all entries live directly
+in the bucket array, with one entry per bucket. If two entries collide in the
+same bucket, we find a different bucket to overflow one of the entries into.
+<em>That</em> bucket could be full too, so you sometimes need to search an entire
+sequence of buckets to find an empty one.</p>
+<aside name="open">
+<p>It&rsquo;s called &ldquo;open&rdquo; addressing because the entry may end up at an address outside
+of its prefered one. It&rsquo;s called &ldquo;closed&rdquo; hashing because all of the entries
+stay inside the array of buckets.</p>
+</aside>
+<p>Storing all entries directly in a single big contiguous array is great for
+keeping the memory representation simple and fast. But it makes all of the
+operations on the hash table more complex. When inserting an entry, its bucket
+may be full, sending us to look at another bucket. That bucket itself may be
+occupied and so on. This process of finding an available bucket is called
+<strong>probing</strong> and the order that you look in the buckets is a <strong>probe sequence</strong>.</p>
+<p>There are a <span name="probe">number</span> of algorithms for determining
+which buckets to probe and how to decide which entry goes in which bucket.
+There&rsquo;s been a ton of research here because even slight tweaks can have a large
+performance impact. And, on a data structure as heavily used as hash tables,
+that performance impact touches a very large number of real-world programs
+across a range of hardware capabilities.</p>
+<aside name="probe">
+<p>If you&rsquo;d like to learn more (and you should, because some of these are really
+cool), look into &ldquo;double hashing&rdquo;, &ldquo;cuckoo hashing&rdquo;, &ldquo;Robin Hood hashing&rdquo;, and
+anything those lead you to.</p>
+</aside>
+<p>As usual in this book, we&rsquo;ll pick the simplest one that gets the job done
+efficiently. That&rsquo;s good old <strong>linear probing</strong>. When looking for an entry, we
+look in the first bucket its key maps to. If it&rsquo;s not in there, we look in the
+very next element in the array, and so on. If we reached the end, we wrap back
+around to the beginning.</p>
+<p><strong>TODO: walk through example inserting a few items in buckets</strong></p>
+<p>The bad thing about linear probing is that it&rsquo;s prone to <strong>clustering</strong>. If you
+have a lot of entries with numerically similar key values, you can end up with a
+lot of colliding overflowing buckets right next to each other. The good thing is
+it&rsquo;s cache friendly. Since you walk the array directly in memory order, it keeps
+the CPU&rsquo;s cache lines full and happy.</p>
+<p>Compared to separate chaining, open addressing can be harder to wrap your head
+around. You can think of open addressing as similar to separate chaining except
+that the list of nodes is threaded through the bucket array itself. Instead of
+storing the links between them in pointers, the connections are calculated
+implicitly by the order that you look through the buckets to find a place for
+the entry.</p>
+<p>The tricky part is that more than one of these implicit lists may be interleaved
+together. Here&rsquo;s an example:</p>
+<p><strong>TODO: walk through example</strong></p>
+<p>In practice, the interleaving turns out to not be much of a problem. Even in
+separate chaining, we need to walk the list to check each entry&rsquo;s key because
+multiple keys can reduce to the same bucket. With open addressing, we need to do
+that same check, and that also covers the case where you are stepping over
+entries that &ldquo;belong&rdquo; to a different original bucket.</p>
+<h3><a href="#hash-functions" name="hash-functions"><small>20&#8202;.&#8202;3&#8202;.&#8202;3</small> Hash functions</a></h3>
+<p>We could now build ourselves a reasonably efficient table for storing variable
+names up to eight characters long, but that limitation is still annoying. We&rsquo;ll
+relax the last constraint and allow arbitrary strings as keys. In order to do
+that, we need a way to take a string of any length and convert it to a
+fixed-size integer.</p>
+<p>Finally, we get to the <em>hash</em> part of hash tables. A <strong>hash function</strong> takes
+some larger blob data and &ldquo;hashes&rdquo; it to produce a fixed-size integer. A <span
+name="crypto">good</span> hash function has three main goals:</p>
+<aside name="crypto">
+<p>Hash functions are also used for cryptography. In that domain, &ldquo;good&rdquo; has a
+<em>much</em> more stringent definition to avoid exposing details about the data being
+hashed. We, thankfully, don&rsquo;t need to worry about those concerns for this book.</p>
+</aside>
+<ol>
 <li>
-<p>&ldquo;map&rdquo;, &ldquo;dictionary&rdquo;, &ldquo;associative array&rdquo;</p>
+<p>It must be <em>deterministic</em>. The same input must always hash to the same
+    number. If the same variable name ends up in different buckets at different
+    points in time, it&rsquo;s gonna get really hard to find them.</p>
 </li>
 <li>
-<p>might know roughly how they work, stuff around &ldquo;hashing&rdquo; the key</p>
-</li>
-<li>in this chapter, cover every inch of impl from scratch</li>
-<li>
-<p>also learn that hash tables have huge amount of variation</p>
-</li>
-<li>
-<p>aside from how cool they are, vital for clox</p>
-</li>
-<li>adding global variables soon, and vm stores them in hash table</li>
-<li>later when add instances of classes, use hash to store fields</li>
-</ul>
-<h2><a href="#addressing-people" name="addressing-people"><small>20&#8202;.&#8202;1</small> addressing people</a></h2>
-<ul>
-<li>probably already know what they are</li>
-<li>let you associate set of keys with set of values</li>
-<li>given a key, can find its value</li>
-<li>can add new key/value pairs and remove</li>
-<li>most important, can find key really fast</li>
-<li>in fact, constant time, regardless of how many keys in there</li>
-<li>
-<p>remarkable when think about it</p>
+<p>It must be <em>uniform</em>. Given a typical set of inputs, it should produce a
+    wide and evenly-distributed range of output numbers, with as few clumps or
+    patterns as possible. You want it <span name="scatter">scatter</span> values
+    across the whole numeric range. That minimizes collisions and clustering,
+    both of which can tank a hash table&rsquo;s performance.</p>
 </li>
 <li>
-<p>imagine have big pile of cards</p>
+<p>It must be <em>fast</em>. Every operation on the hash table requires us to hash the
+    key first. If hashing is slow, it can potentially cancel out the speed of
+    the underlying array storage.</p>
 </li>
-<li>i ask you to go find one</li>
-<li>bigger the pile, the longer it will take</li>
-<li>even if the pile is sorted</li>
-<li>
-<p>[log(n) for binary search, interval search]</p>
-</li>
-<li>
-<p>but with hash table, still takes as much time to find things, regardless of
-  how many keys</p>
-</li>
-<li>
-<p>explain how with analogy</p>
-</li>
-<li>imagine work at post office</li>
-<li>want to verify mail sent to right person</li>
-<li>mail has street address and name on it</li>
-<li>you know who lives at each address</li>
-<li>[assume one person]</li>
-<li>to simplify, only worry about one street</li>
-<li>so, given address number on street, look up name of person</li>
-<li>what&rsquo;s fastest way?</li>
-<li>can take advantage of two things</li>
-<li>no two people have same number</li>
-<li>numbers are in relatively small range</li>
-<li>simply allocate array with as many elements as highest number</li>
-<li>in each element (call &ldquo;bucket&rdquo;), store name of person with that street number</li>
-<li>
-<p>if number doesn&rsquo;t have person, leave bucket empty</p>
-</li>
-<li>
-<p>now, given number, can find person in constant time</p>
-</li>
-<li>just one direct array access</li>
-</ul>
-<h2><a href="#hashing" name="hashing"><small>20&#8202;.&#8202;2</small> hashing</a></h2>
-<ul>
-<li>works for our trivial example where our keys are unique small integers in
-  narrow range</li>
-<li>real world not so nice</li>
-<li>for global variables, want to make strings (var names) to values</li>
-<li>
-<p>strings definitely not small integers in narrow range</p>
-</li>
-<li>
-<p>to use direct array access trick, need to somehow convert string to integer</p>
-</li>
-<li>do that with hash function</li>
-<li>takes some piece of data<span class="em">&mdash;</span>string here<span class="em">&mdash;</span>and produces a number</li>
-<li>consistent: same data always hashes to same value</li>
-<li>
-<p>[wouldn&rsquo;t do if street address for person spontaneously changed]</p>
-</li>
-<li>
-<p>so, given string key, calc hash</p>
-</li>
-<li>then use that as index into array</li>
-<li>value is in array</li>
-<li>right back to constant time</li>
-<li>[time may depend on length of string, but can cache hash
-  doesn&rsquo;t depend on number of keys in table]</li>
-</ul>
-<p><strong>todo: illustrate</strong></p>
-<ul>
-<li>problem</li>
-<li>how do we ensure hash fn generates unique int for strings?</li>
-<li>turns out not possible because of pigeonhole principle</li>
-</ul>
-<p><strong>todo: illustrate</strong></p>
-<ul>
-<li>
-<p>states that if have more pigeons than boxes, then some box must have more
-  than one pigeon</p>
-</li>
-<li>
-<p>in clox, hash to unsigned 32 bit int</p>
-</li>
-<li>4294967296 different values (2^32)</li>
-<li>definitely more than that many possible strings</li>
-<li>even if limit to strings of ten-letter uppercase letters, 141167095653376 different possibilities</li>
-<li>
-<p>thus many strings must share same hash</p>
-</li>
-<li>
-<p>good hash fn makes collisions rare</p>
-</li>
-<li>in practice means that, given likely keys, produces numbers widely distributed</li>
-<li>in range</li>
-<li>&ldquo;hashing&rdquo; takes set of values and scatters them around numeric space like
-  when chopping potato into hash browns and scattering on grill</li>
-</ul>
-<p><strong>todo: illustrate</strong></p>
-<ul>
-<li>
-<p>[original also called &ldquo;scatter tables&rdquo;]</p>
-</li>
-<li>
-<p>even so, if don&rsquo;t know set of keys up front, always possible to end up with
-  pair of keys with same hash</p>
-</li>
-<li>[perfect hashing]</li>
-</ul>
-<h3><a href="#load-factor-and-resizing" name="load-factor-and-resizing"><small>20&#8202;.&#8202;2&#8202;.&#8202;1</small> load factor and resizing</a></h3>
-<ul>
-<li>if assume hash fn generates numbers uniformly distributed across range, odds
-  of collision goes up as number of full buckets increases</li>
-<li>with lots of empty buckets, likely to hit empty one</li>
-<li>as fill up, collision more likely</li>
-<li>
-<p>once all full, obviously inevitable</p>
-</li>
-<li>
-<p>ratio of full buckets to total buckets &ldquo;load factor&rdquo;</p>
-</li>
-<li>lower load factor makes collisions rarer but uses more memory</li>
-<li>[not as good for cpu cache either]</li>
-<li>
-<p>collisions generally degrade perf, so balancing act</p>
-</li>
-<li>
-<p>balance by dynamically resizing array</p>
-</li>
-<li>when load factor gets too high, grow array to add more empty buckets
-  and lower load factor</li>
-<li>get into how to do that later</li>
-</ul>
-<h2><a href="#collisions" name="collisions"><small>20&#8202;.&#8202;3</small> collisions</a></h2>
-<ul>
-<li>even with low load factor, collisions still possible</li>
-<li>even if rare, not good enough to blow up if collision happens</li>
-<li>
-<p>[bloom filter]</p>
-</li>
-<li>
-<p>entry</p>
-</li>
-<li>first thing, since multiple key/val pairs may collide in same bucket,
-    can&rsquo;t assume that if bucket has value, that it matches our key</li>
-<li>key could be different one with same hash</li>
-<li>so when looking up, need to check actual key too</li>
-<li>thus bucket doesn&rsquo;t just store value, stores key/value pair</li>
-<li>
-<p>&ldquo;entry&rdquo;</p>
-</li>
-<li>
-<p>many techniques, two broad categories</p>
-</li>
-<li>separate chaining</li>
-<li>each bucket can contain collection of entries</li>
-<li>simplest is bucket is pointer to head of linked list of entries</li>
-<li>to look up, find bucket O(1), then walk list O(n) in size of list</li>
-<li>in worst case, if all keys have same hash, becomes O(n)</li>
-<li>in practice, good hash fn makes that very rare and most buckets have on
-    average one entry or empty</li>
-<li>low load factor helps</li>
-<li>conceptually simple</li>
-<li>makes deletion easy too</li>
-<li>but wasted lot of memory - lot of little linked list cells</li>
-<li>[many impls opt by storing first entry right in bucket, and storing
-    multiple entries per linked list node]</li>
-<li>lots of pointer chasing, not cache friendly</li>
-<li>
-<p>don&rsquo;t see used often in practice</p>
-</li>
-<li>
-<p>open addressing</p>
-</li>
-<li>store everything in single array of buckets, with one entry per bucket</li>
-<li>to handle collision, multiple entries with same key may overflow into
-    different buckets</li>
-<li>more algorithmically complex to find and manip entries</li>
-<li>
-<p>but simpler layout in memory<span class="em">&mdash;</span>one big contiguous array</p>
-</li>
-<li>
-<p>process to look up becomes:</p>
-<ul>
-<li>hash key</li>
-<li>look in bucket</li>
-<li>if entry there is different key, look in other bucket</li>
-<li>repeat until find bucket with key, or determine no bucket has it</li>
-</ul>
-</li>
-<li>&ldquo;open addressing&rdquo; - address of entry is &ldquo;open&rdquo; in that may not directly
-    match hash</li>
-<li>process is called &ldquo;probing&rdquo;</li>
-<li>different rules for what sequence of buckets to search, what to do when
-    find it, how to tell if not found</li>
-<li>[links to quadratic, robin-hood, double hashing, cuckoo, etc.]</li>
-<li>
-<p>lot of research because so key to perf of many programs</p>
-</li>
-<li>
-<p>linear probing</p>
-</li>
-<li>simplest technique is look in sequential buckets</li>
-<li>if not in first, look next array element, and so on</li>
-<li>wrap around if needed</li>
-<li>
-<p>very cache friendly</p>
-</li>
-<li>
-<p>good hash fn even more important</p>
-</li>
-<li>need to produce not just different values, but widely scattered ones</li>
-<li>that way, likely to have empty buckets between used ones to have room to
-    grow when collisions occur</li>
-<li>if keys <em>cluster</em> to close int values, end up with more collisions</li>
-</ul>
-<p><strong>todo: illustrate cluster</strong></p>
-<ul>
-<li>simple case is when have couple of entries with same hash and following
-  buckets are empty</li>
-</ul>
-<p><strong>todo: illustrate table with chain of entries of same key</strong></p>
-<ul>
-<li>
-<p>can think of as doing separate chaining but where &ldquo;linked list&rdquo; threads
-  through bucket array itself and pointers are calculated implicitly by
-  probing sequence</p>
-</li>
-<li>
-<p>but trailing buckets can also be in use too, so can have multiple chains of
-  interleaved, overlapping buckets</p>
-</li>
-</ul>
-<p><strong>todo: illustrate table with multiple chains of entries of same key</strong></p>
-<ul>
-<li>in practice, ok</li>
-<li>when looking up, check to see if key matches</li>
-<li>also handles cases where keys don&rsquo;t even have same hash</li>
-<li>just want to minimize number of buckets to probe by controlling load factor</li>
-<li>deleting gets harder, though</li>
-<li>
-<p>get into that later</p>
-</li>
-<li>
-<p>enough overview to get started</p>
-</li>
-<li>ok if vague</li>
-<li>plan implement hash table with string keys, open addressing, and linear
-  probing</li>
-</ul>
-<h2><a href="#building-a-hash-table" name="building-a-hash-table"><small>20&#8202;.&#8202;4</small> building a hash table</a></h2>
-<ul>
-<li>great thing about hash table, compared to tree or other data structure is
-  actual structure so simple</li>
-<li>new module</li>
-</ul>
+</ol>
+<aside name="scatter">
+<p>One of the original names for hash tables was &ldquo;scatter table&rdquo; because it takes
+the entries and scatters them throughout the array. The word &ldquo;hash&rdquo; came from
+the idea that a hash function takes the input data, chops it up, and tosses it
+all together into a pile to come up with a single number that touches all of
+those bits.</p>
+</aside>
+<p>If there are a sprinkling of probing techniques for open addressing, then there
+is a whole storm of hash functions out there. Some are old and optimized for
+architectures no one uses any more. Some are designed to be fast, others
+cryptographically secure. Some take advantage of vector instructions on specific
+chips, others aim to maximize portability.</p>
+<p>There are people out there where designing and evaluating hash functions is,
+like, their <em>thing</em>. I admire them, but I&rsquo;m not mathematically astute enough to
+<em>be</em> one. So for clox, I picked a simple, well-work hash function called FNV-1
+that&rsquo;s served me fine over the years. Consider <span name="thing">trying</span>
+out different ones in your code and see if they make a difference.</p>
+<aside name="thing">
+<p>Who knows, maybe it could turn out to be your thing too?</p>
+</aside>
+<p>OK, that&rsquo;s probably about all I can expect you to internalize without seeing
+some real code. I wanted to go through the high level concepts first before we
+start pushing bits around. But now I think it&rsquo;s time to make things concrete.
+Now we&rsquo;re going to build ourselves a hash table that supports string keys, open
+addressing, and linear probing. Don&rsquo;t worry if that still seems vague and scary.
+It will come into focus shortly.</p>
+<h2><a href="#building-a-hash-table" name="building-a-hash-table"><small>20&#8202;.&#8202;4</small> Building a Hash Table</a></h2>
+<p>The great thing about hash tables compared to other classic techniques like
+balanced search trees is that the actual data structure is so simple. Ours goes
+into a new module:</p>
 <div class="codehilite"><div class="source-file"><em>table.h</em><br>
 create new file</div>
 <pre><span></span><span class="cp">#ifndef clox_table_h</span>
@@ -409,13 +392,11 @@ create new file</div>
 
 <div class="source-file-narrow"><em>table.h</em>, create new file</div>
 
-<ul>
-<li>hash table is array of entries</li>
-<li>keep track of both how big array is and how many actual key/value pairs stored
-  in it</li>
-<li>ratio is load factor</li>
-<li>entry</li>
-</ul>
+<p>A hash table is an array of entries. As in our dynamic array earlier, we keep
+track of both the allocated size of the array (<code>capacity</code>) and the number of
+key/value pairs currently stored in it (<code>count</code>). The ratio of count to capacity
+is exactly the load factor of the hash table.</p>
+<p>Each entry is one of these:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>table.h</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>  
@@ -427,17 +408,16 @@ create new file</div>
 
 <div class="source-file-narrow"><em>table.h</em></div>
 
-<ul>
-<li>simple key value pair</li>
-<li>since key is always string, store objstring pointer directly</li>
-<li>faster and smaller than having to unwrap value every time</li>
-<li>
-<p>[supporting other key types]</p>
-</li>
-<li>
-<p>to create new empty hash, declare ctor like fn</p>
-</li>
-</ul>
+<p>It&rsquo;s a simple key/value pair. Since the key is always a <span
+name="string">string</span>, we store the ObjString point directly instead of
+wrapping it in a Value. It&rsquo;s a little faster and smaller this way.</p>
+<aside name="string">
+<p>In clox, we only need to support keys that are strings. Handling other types of
+keys doesn&rsquo;t add much complexity. As long as you can reduce an object to a
+sequence of bits, and compare two objects for equality, it&rsquo;s easy to use it as a
+hash key.</p>
+</aside>
+<p>The create a new empty hash table, we declare a constructor-like function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Table</span><span class="p">;</span>                     
 <br></pre><div class="source-file"><em>table.h</em><br>
 add after struct <em>Table</em></div>
@@ -447,35 +427,30 @@ add after struct <em>Table</em></div>
 
 <div class="source-file-narrow"><em>table.h</em>, add after struct <em>Table</em></div>
 
-<ul>
-<li>new impl file</li>
-<li>get all includes out of the way right now</li>
-<li>much like dynamic ValueArray did earlier (todo: link), start initially
-  empty with null pointer for array</li>
-</ul>
+<p>We need a new implementation file to define that. While we&rsquo;re at it, let&rsquo;s get
+all of the pesky includes out of the way:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 create new file</div>
-<pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;                       </span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;                       </span><span class="cp"></span>
+<pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;           </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;           </span><span class="cp"></span>
 
-<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;                       </span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;                       </span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&quot;table.h&quot;                        </span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                        </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;           </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;           </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;table.h&quot;            </span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;            </span><span class="cp"></span>
 
-<span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>            
-  <span class="c1">// TODO: Note count includes tombstones.</span>
-  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                       
-  <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                    
-  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                  
-<span class="p">}</span>                                         
+<span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>           
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        
+  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>      
+<span class="p">}</span>                             
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, create new file</div>
 
-<ul>
-<li>need to release mem too</li>
-</ul>
+<p>As in our dynamic value array type, a hash table initially starts with zero
+capacity and a null array. We don&rsquo;t allocate anything until needed. Assuming we
+do eventually allocate something, we need to be able to free it too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">initTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>initTable</em>()</div>
@@ -485,10 +460,7 @@ add after <em>initTable</em>()</div>
 
 <div class="source-file-narrow"><em>table.h</em>, add after <em>initTable</em>()</div>
 
-<ul>
-<li>also like dynamic array</li>
-<li>[hash basically is dynamic array, with magic policy for where to put items]</li>
-</ul>
+<p>And its glorious implementation:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>initTable</em>()</div>
 <pre><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>                       
@@ -499,25 +471,22 @@ add after <em>initTable</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>initTable</em>()</div>
 
-<ul>
-<li>recall FREE_ARRAY gracefully handles null, so ok</li>
-</ul>
-<h3><a href="#string-hashes" name="string-hashes"><small>20&#8202;.&#8202;4&#8202;.&#8202;1</small> string hashes</a></h3>
-<ul>
-<li>before can put stuff in hash table, need to be able to hash</li>
-<li>to ensure hash values as widely distributed as possible, hash fn should look
-  at all string bytes</li>
-<li>if only looked at, say, first few chars, would get tons of collisions if had
-  bunch of strings that only differed in suffix</li>
-<li>
-<p>slow, would lose some perf benefit if had to walk string every time looked it
-  up in hash table</p>
-</li>
-<li>
-<p>so do obvious thing: cache hash inside string obj</p>
-</li>
-<li>over in obj module</li>
-</ul>
+<p>Again, it looks just like a dynamic array. In fact, you can think of a hash
+table as basically a dynamic array with a really unusual policy for inserting
+items. We don&rsquo;t need to check for NULL here since <code>FREE_ARRAY()</code> alread handles
+that gracefully.</p>
+<h3><a href="#hashing-strings" name="hashing-strings"><small>20&#8202;.&#8202;4&#8202;.&#8202;1</small> Hashing strings</a></h3>
+<p>Before we can start putting entries in the table, we need to, well, hash them.
+To ensure that the entries get distributed as widely and uniformly as possible
+throughout the array, we want a good hash function that looks at all of the bits
+of the key string. If it only, say, looked at the first few characters, then a
+series of strings that all shared the same prefix would end up colliding in the
+same bucket.</p>
+<p>On the other hand, walking the entire string to calculate the hash is kind of
+slow. We&rsquo;d lose some of the performance benefit of the hash table if we had to
+walk the string every time we looked for a key in the table. So we&rsquo;ll do the
+obvious thing: cache it.</p>
+<p>Over in the &ldquo;object&rdquo; module, we add:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">;</span>  
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">;</span>
@@ -526,16 +495,13 @@ add after <em>initTable</em>()</div>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<ul>
-<li>when first alloc create string obj, also calculate hash and store in struct</li>
-<li>kind of makes sense: allocate has to walk string anyway, already O(n)</li>
-<li>
-<p>good time to get hash too</p>
-</li>
-<li>
-<p>pass hash to internal fn that allocs string obj</p>
-</li>
-</ul>
+<p>Each StringObj stores the hash code for that string. Since strings are immutable
+in Lox, we can calculate once up front and be certain that it will never need to
+be recalculated. Doing it then kind of makes sense. Allocating the string and
+copying its characters over is already an O(n) operation, so it&rsquo;s a good time to
+also do the O(n) calculation of the string&rsquo;s hash.</p>
+<p>Whenever we call the internal function to allocate a string, we pass in its
+hash code:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 function <em>allocateString</em>()<br>
 replace 1 line</div>
@@ -546,9 +512,7 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>object.c</em>, function <em>allocateString</em>(), replace 1 line</div>
 
-<ul>
-<li>simply stores in struct</li>
-</ul>
+<p>That function simply stores the hash in the struct:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">string</span><span class="o">-&gt;</span><span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="p">;</span>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
@@ -558,11 +522,9 @@ in <em>allocateString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 
-<ul>
-<li>alloc called two places, in fn that copies string and one that takes ownership</li>
-<li>of existing string buffer</li>
-<li>start with first</li>
-</ul>
+<p>The fun happens over at the callers. <code>allocateFunction()</code> is called from two
+places: the function that copies a string and the one that takes ownership of
+an existing dynamically-allocated string. We&rsquo;ll start with the first:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()</div>
@@ -572,10 +534,7 @@ in <em>copyString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>()</div>
 
-<ul>
-<li>when called, calc hash of string</li>
-<li>then pass to alloc</li>
-</ul>
+<p>No magic here. We calculate the hash code and then pass it along.</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">heapChars</span><span class="p">[</span><span class="n">length</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>                      
 <br></pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()<br>
@@ -586,9 +545,7 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>(), replace 1 line</div>
 
-<ul>
-<li>take similar</li>
-</ul>
+<p>The other string function is similar:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>takeString</em>()<br>
@@ -600,10 +557,7 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>takeString</em>(), replace 1 line</div>
 
-<ul>
-<li>actual work happens in hash string</li>
-<li>this is literal hash fn</li>
-</ul>
+<p>The actual interesting code is over here:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateString</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">uint32_t</span> <span class="nf">hashString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">)</span> <span class="p">{</span>
@@ -620,33 +574,29 @@ add after <em>allocateString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateString</em>()</div>
 
-<ul>
-<li>hash fn design is a dark art</li>
-<li>touches on algo perf, low level instruction-level perf, statistics, crypto</li>
-<li>[link to austin&rsquo;s evaluation]</li>
-<li>using FNV-1a hash</li>
-<li>(http://www.isthe.com/chongo/tech/comp/fnv/)</li>
-<li>very simple, pretty old, fairly common</li>
-<li>lot more advanced ones do things like use vector instructions</li>
-<li>
-<p>fun area to explore</p>
-</li>
-<li>
-<p>basic idea is simple</p>
-</li>
-<li>start with initial hash value</li>
-<li>walk string</li>
-<li>every char, munge chars bits into hash and then mix things around</li>
-<li>&ldquo;munge&rdquo; and &ldquo;mix&rdquo; get very sophisticated</li>
-<li>lot of number theory over my head</li>
-<li>
-<p>explore on your own</p>
-</li>
-<li>
-<p>now strings know hash, can start putting in tables</p>
-</li>
-<li>first operation is set</li>
-</ul>
+<p>This is the actual bonafide &ldquo;hash function&rdquo; in clox. Designing a good hash
+function is a subtle art. Very well-educated smart people pour months into
+coming up with new ones or doing statistical analyses of them. I personally
+have <em>not</em> sunk that much time into it, so consider any hash function
+recommendations from me to be suspect at best.</p>
+<p>I&rsquo;m using <a href="http://www.isthe.com/chongo/tech/comp/fnv/">FNV-1a</a> here, which has been around forever. My understanding is
+that it&rsquo;s not great, but it&rsquo;s not terrible either, and it&rsquo;s the <em>shortest</em>
+decent hash function I know. Brevity is certainly a virtue in a book that aims
+to show you every line of code.</p>
+<p><strong>todo: aside on name</strong></p>
+<p>The basic idea is pretty simple and many hash functions follow the same pattern.
+You start with some initial hash value, usually a constant with certain
+carefully chosen mathematical properties. Then you walk the data to be hashed.
+For each byte (or sometimes word), you munge the bits into the hash value
+somehow and then mix the resulting bits around some.</p>
+<p>What it means to &ldquo;munge&rdquo; and &ldquo;mix&rdquo; can get pretty sophisticated. Ultimately,
+though, the basic goal is <em>unformity</em><span class="em">&mdash;</span>we want the resulting hash values to be
+as widely scattered around the numeric range as possible to avoid collisions and
+clustering.</p>
+<h3><a href="#inserting-entries" name="inserting-entries"><small>20&#8202;.&#8202;4&#8202;.&#8202;2</small> Inserting entries</a></h3>
+<p>Now that string objects know their hash code, we can start putting them into
+hash tables. You can&rsquo;t do anything useful with an empty hash table, so let&rsquo;s
+start with inserting:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                            
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>freeTable</em>()</div>
@@ -656,11 +606,10 @@ add after <em>freeTable</em>()</div>
 
 <div class="source-file-narrow"><em>table.h</em>, add after <em>freeTable</em>()</div>
 
-<ul>
-<li>adds key/value pair to hash</li>
-<li>if key already present, overwrites</li>
-<li>returns true if key not already present</li>
-</ul>
+<p>This adds the given key/value pair to the given hash table. If an entry for that
+key is already present, the new value overwrites the old one. Otherwise, it
+inserts a new entry. It returns true if a new entry was added.</p>
+<p>Here&rsquo;s the implementation:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>freeTable</em>()</div>
 <pre><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>       
@@ -676,21 +625,15 @@ add after <em>freeTable</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>freeTable</em>()</div>
 
-<ul>
-<li>take string key and use hash to figure out which entry in array it should go
-  in</li>
-<li>check if there is already existing entry in there</li>
-<li>if so, replacing new value with same key</li>
-<li>otherwise, inserting new key and need to bump count</li>
-<li>
-<p>store key/value pair in array</p>
-</li>
-<li>
-<p>one missing piece</p>
-</li>
-<li>haven&rsquo;t actually alloc array yet</li>
-<li>before insert</li>
-</ul>
+<p>Most of the interesting logic is in <code>findEntry()</code> which we&rsquo;ll get to soon. That
+function&rsquo;s job is to take a key and figure out which bucket in the array it
+should go in. It returns a pointer to that bucket<span class="em">&mdash;</span>the Entry in the array.</p>
+<p>Once we have that, inserting is straightforward. We copy the key and value into
+the corresponding fields in the entry. Then we update the hash table&rsquo;s size,
+taking care to not increase the count if we overwrote an already-present key.</p>
+<p>We&rsquo;re missing a little something here, though. We haven&rsquo;t actually allocated the
+entry array yet. Oops! Before we can insert anything, we need to make sure we
+have an array, and that it&rsquo;s big enough:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>       
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()</div>
@@ -703,14 +646,12 @@ in <em>tableSet</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableSet</em>()</div>
 
-<ul>
-<li>similar to code for growing dynamic array</li>
-<li>if capacity not big enough for greater count, realloc and grow array</li>
-<li>[grow using multiplier so that adding new key/val is amortized constant time]</li>
-<li>one diff is max load</li>
-<li>this is how control load factor</li>
-<li>scales capacity down to ensure leave certain amount of empty slots</li>
-</ul>
+<p>This is similar to the code we wrote a while back for growing a dynamic array.
+If we don&rsquo;t have enough capacity to insert an item, we reallocate and grow the
+array. The <code>GROW_CAPACITY()</code> macro takes an existing capacity and grows it by
+a multiple to ensure that we get amortized constant performance over a series
+of inserts.</p>
+<p>The interesting difference here is that <code>TABLE_MAX_LOAD</code> constant:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;            </span><span class="cp"></span>
 <br></pre><div class="source-file"><em>table.c</em></div>
 <pre class="insert"><span></span><span class="cp">#define TABLE_MAX_LOAD 0.75   </span>
@@ -719,20 +660,22 @@ in <em>tableSet</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em></div>
 
-<ul>
-<li>semi arbitrary</li>
-<li>since not using lox for real world prog hard to tune</li>
-<li>in your impl, find realistic dataset care about and tune using that</li>
-<li>note that hash fn and way handle collisions highly affects this</li>
-<li>
-<p>area of research is coming up with better collision strategies that handle
-  higher load factor</p>
-</li>
-<li>
-<p>get to ajdust soon, assume table has array of some capacity</p>
-</li>
-<li>to get bucket</li>
-</ul>
+<p>This is how we manage the table&rsquo;s load factor. We don&rsquo;t grow when the capacity
+is completely full. Instead, we grow the array before then, when the array
+becomes at least <span name="75">75%</span> full.</p>
+<aside name="75">
+<p>75% is a fairly common load factor. Some hash tables go higher, some lower,
+depending on the specific hash function, collision handling strategy and other
+constraints.</p>
+<p>I didn&rsquo;t do a <em>ton</em> of profiling for this specific implementation because it&rsquo;s
+hard to define what a &ldquo;real world&rdquo; data set even <em>is</em> for a toy language like
+Lox. Don&rsquo;t put too much stock in this number. When you build your own hash
+tables, spend a little time tweaking the load factor and see what it does to
+your performance.</p>
+<p><strong>todo: overlap</strong></p>
+</aside>
+<p>We&rsquo;ll get to the implementation of <code>adjustCapacity()</code> soon. First, let&rsquo;s look
+at that <code>findEntry()</code> function you&rsquo;ve been wondering about:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>freeTable</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Entry</span><span class="o">*</span> <span class="nf">findEntry</span><span class="p">(</span><span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="p">,</span> <span class="kt">int</span> <span class="n">capacity</span><span class="p">,</span>
@@ -752,55 +695,59 @@ add after <em>freeTable</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>freeTable</em>()</div>
 
+<p>This function is the real core of the hash table. It&rsquo;s responsible for taking a
+key and an array of buckets and figuring out which bucket the entry belongs in.
+We&rsquo;ll use this both to find existing entries in the hash table, and to find a
+place to insert new ones. This function is also where linear probing and
+collision handling come into play.</p>
+<p>For all that, there isn&rsquo;t much to it. First, we take the key&rsquo;s hash code and
+map it to the array by taking it modulo the array size. This way we do look past
+the end of the array. That gives us an index into the array where, ideally,
+we&rsquo;ll be able to find or place the entry.</p>
+<p>There are a few cases to check for:</p>
 <ul>
-<li>know hash value of string, but covers entire numeric range</li>
-<li>first need to clamp to num array elements</li>
-<li>if actually clamped too high values to max, almost all values would collide
-  in last bucket</li>
-<li>modulo wraps them in range while preserving scattering</li>
 <li>
-<p>overlays ranges on top of each other</p>
+<p>If the key in that entry in the array is <code>NULL</code>, then the bucket is empty.
+    If we&rsquo;re using <code>findEntry()</code> to look for something in the hash table, this
+    means it isn&rsquo;t there. If we&rsquo;re using it to insert, it means we&rsquo;ve found a
+    place to add it.</p>
 </li>
 <li>
-<p>also handle coll</p>
+<p>If the key in the entry is <span name="equal">equal</span> to the key we&rsquo;re
+    looking for, then that key is already present in the table. If we&rsquo;re doing a
+    look-up, that&rsquo;s good<span class="em">&mdash;</span>we found what we&rsquo;re looking for. If we&rsquo;re doing an
+    insert, this means we&rsquo;ll be replacing the value for that key instead of
+    adding a new entry.</p>
 </li>
-<li>so start loop</li>
-<li>first probe in entry where key should be</li>
-<li>if bucket is empty, or bucket has entry with exact same key, found it</li>
-<li>have to check key because bucket could be non-empty but belong to different
-    key</li>
-<li>could either be string that hashes to same value, or even different hash
-    but part of other collision seq that led to it being here</li>
-<li>[== on strings, get to later]</li>
-<li>non-collide</li>
-<li>otherwise, need to find other bucket</li>
-<li>start probing</li>
-<li>linear probing, so just increment</li>
-<li>
-<p>mod is to wrap around if reach end</p>
-</li>
-<li>
-<p>keep stepping through buckets until either find empty one or one with same
-  key</p>
-</li>
-<li>former is adding new key/value</li>
-<li>
-<p>latter is replacing value for existing key</p>
-</li>
-<li>
-<p>infinite loop safe</p>
-</li>
-<li>load factor ensures always empty cells</li>
-<li>pretty simple, but key fn for hash table</li>
-<li>spend large fraction of exec here</li>
-<li>[optimize later]</li>
-<li>returns array index</li>
 </ul>
-<h3><a href="#allocating-and-resizing" name="allocating-and-resizing"><small>20&#8202;.&#8202;4&#8202;.&#8202;2</small> allocating and resizing</a></h3>
+<aside name="equal">
+<p>It looks like we&rsquo;re using <code>==</code> to see if two strings are equal. That doesn&rsquo;t
+work, does it? There could be two copies of the same string at different places
+in memory. Fear not, astute reader. I have just the solution. And, strangely
+enough, it&rsquo;s a hash table that provide the tool we need.</p>
+</aside>
 <ul>
-<li>init table entry</li>
-<li>before can put stuff, need buckets</li>
+<li>Otherwise, the bucket has something in it, but it&rsquo;s a different key. This is
+    a collision. In that case, we need to start probing.</li>
 </ul>
+<p>That&rsquo;s what that for loop does. We start at the bucket where the entry will
+ideally go. If that bucket is empty or has the same key, we&rsquo;re done. Otherwise,
+we advance to the next element<span class="em">&mdash;</span>this is the <em>linear</em> part of &ldquo;linear probing&rdquo;<span class="em">&mdash;</span>and check there.</p>
+<p>If we go past the end of the array, we wrap back around to the beginning. That&rsquo;s
+what the second modulo operator is for. If we loop around, you might be
+wondering about an infinite loop. What if we collide with <em>every</em> bucket?
+Fortunately, that can&rsquo;t happen thanks to our load factor. Because we grow the
+array as soon as it gets close to being full, we know there will always be empty
+buckets in the array. Even in pathologically bad cases with lots of collisions,
+we&rsquo;ll eventually find an empty bucket.</p>
+<p>We exit the loop when we find either an empty bucket or a bucket with the same
+key as the one we&rsquo;re looking for. Then we return a pointer to that entry so the
+caller can either insert something into it or read from it. Way back in
+<code>tableSet()</code>, the function that first kicked this off, it stores the new entry
+in that bucket and we&rsquo;re done.</p>
+<h3><a href="#allocating-and-resizing" name="allocating-and-resizing"><small>20&#8202;.&#8202;4&#8202;.&#8202;3</small> Allocating and resizing</a></h3>
+<p>Before we can put anything in the hash table, we do need an actual table. We
+need to allocate an array of entries. That happens in this function:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>findEntry</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">adjustCapacity</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="kt">int</span> <span class="n">capacity</span><span class="p">)</span> <span class="p">{</span>
@@ -817,36 +764,23 @@ add after <em>findEntry</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>findEntry</em>()</div>
 
-<ul>
-<li>allocs entry array of right size</li>
-<li>initialize all to empty</li>
-<li>
-<p>store in table</p>
-</li>
-<li>
-<p>when set first key, call adjust with non-zero and do first alloc of array</p>
-</li>
-<li>
-<p>works for first alloc, but not resize</p>
-</li>
-<li>
-<p>if table already has entry arrays, need to handle existing entries and arrays</p>
-</li>
-<li>
-<p>need to move old entries over to new larger array</p>
-</li>
-<li>can&rsquo;t just put in same buckets</li>
-<li>remember, took key hash and wrapped mod capacity size</li>
-<li>capacity has changed, so that will produce new value</li>
-<li>
-<p>todo: ex</p>
-</li>
-<li>
-<p>need to recalculate bucket for each entry</p>
-</li>
-<li>changing buckets means new collisions could happen</li>
-<li>easiest, just re-insert every entry using existing logic</li>
-</ul>
+<p>Its job is to allocate grow the hash table&rsquo;s bucket array to <code>capacity</code> entries.
+After it allocates the array, it initializes every element to be an empty bucket
+and then stores the array (and its capacity) in the hash table&rsquo;s main struct.</p>
+<p>When we insert the very first entry into the table, we&rsquo;ll end up calling this
+with a non-zero capacity and it will do the first allocation of the array. The
+code here is fine for that job, but what about when we already have an array and
+we need to grow it?</p>
+<p>Back when we were doing a dynamic array, we could just use <code>realloc()</code> and let
+the C standard library copy everything over. That doesn&rsquo;t work for a hash table.
+Remember that to choose the bucket for each entry, we take its hash key modulo
+the array size. That means that when the array size changes, so do all the
+bucket indexes.</p>
+<p><strong>todo: illustrate example</strong></p>
+<p>We need to recalculate the buckets for each of the existing entries in the hash
+table. That in turn could cause new collisions which we need to resolve. So the
+simplest way to handle that is to rebuild the table from scratch by re-inserting
+every entry into the new empty array:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>                                                        
 <br></pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()</div>
@@ -863,15 +797,11 @@ in <em>adjustCapacity</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
 
-<ul>
-<li>uses find entry but passes in new entry array and capacity</li>
-<li>
-<p>store old entry in new bucket in new array</p>
-</li>
-<li>
-<p>release old arrays</p>
-</li>
-</ul>
+<p>We walk through the old array front to back. Any time we find a non-empty
+bucket, we insert that entry into the new array. This is why <code>findEntry()</code> takes
+a pointer to an entry array and not the whole <code>Table</code> struct. We can call it
+with the new array and capacity before we store those in the struct.</p>
+<p>After that&rsquo;s done, we can release the memory for the old array:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">dest</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>                      
   <span class="p">}</span>                                                  
 <br></pre><div class="source-file"><em>table.c</em><br>
@@ -884,58 +814,11 @@ in <em>adjustCapacity</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
 
-<ul>
-<li>not as easy as growing existing alloc like with array because need to</li>
-<li>move entries around</li>
-</ul>
-<h3><a href="#retrieving-items" name="retrieving-items"><small>20&#8202;.&#8202;4&#8202;.&#8202;3</small> retrieving items</a></h3>
-<ul>
-<li>can insert key/value pairs, next look up</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                             
-</pre><div class="source-file"><em>table.h</em><br>
-add after <em>freeTable</em>()</div>
-<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">);</span>
-</pre><pre class="insert-after"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span> 
-<br></pre></div>
-
-<div class="source-file-narrow"><em>table.h</em>, add after <em>freeTable</em>()</div>
-
-<ul>
-<li>given pointer to key, stores value at given pointer if present</li>
-<li>returns true if found or false</li>
-</ul>
-<div class="codehilite"><div class="source-file"><em>table.c</em><br>
-add after <em>findEntry</em>()</div>
-<pre><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>      
-  <span class="c1">// If the table is empty, we definitely won&#39;t find it.         </span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-
-  <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                          
-
-  <span class="o">*</span><span class="n">value</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>                                         
-  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                                   
-<span class="p">}</span>                                                                
-</pre></div>
-
-<div class="source-file-narrow"><em>table.c</em>, add after <em>findEntry</em>()</div>
-
-<ul>
-<li>this why find entry separate fn</li>
-<li>can reuse here</li>
-<li>almost all ops look up bucket, then differ in what do with it</li>
-<li>find entry returns index of empty bucket if key not found</li>
-<li>so can insert new key on set</li>
-<li>for get, can check that to see if found</li>
-<li>
-<p>if so, fill output param</p>
-</li>
-<li>
-<p>while at it, add couple of other operations</p>
-</li>
-<li>first is helper to add all entries from one table to another</li>
-</ul>
+<p>With that, we have a hash table that we can stuff as many entries into as we
+like. It handles overwriting existing keys and growing itself as needed to
+maintain the desired load capacity.</p>
+<p>While we&rsquo;re at it, let&rsquo;s also define a helper function for copying all of the
+entries of one hash table into another:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableSet</em>()</div>
@@ -945,9 +828,9 @@ add after <em>tableSet</em>()</div>
 
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableSet</em>()</div>
 
-<ul>
-<li>will use this later when implementing inheritance</li>
-</ul>
+<p>We&rsquo;ll use this later when we implement method inheritance but we may as well
+implement it here while we&rsquo;ve got all of the hash table stuff fresh in our
+minds.</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableSet</em>()</div>
 <pre><span></span><span class="kt">void</span> <span class="nf">tableAddAll</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="p">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>   
@@ -962,18 +845,68 @@ add after <em>tableSet</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>tableSet</em>()</div>
 
-<ul>
-<li>simple</li>
-<li>walk bucket array of table</li>
-<li>for every non-empty entry, add to other table</li>
-<li>go through full add process with hashing and collision res</li>
-<li>not really faster way to do it since each table may have diff cap and existing
-  entries affect collision</li>
-</ul>
-<h3><a href="#deleting-entries" name="deleting-entries"><small>20&#8202;.&#8202;4&#8202;.&#8202;4</small> deleting entries</a></h3>
-<ul>
-<li>one more operation, removing entry</li>
-</ul>
+<p>There&rsquo;s not much to say about this. It walks the bucket array of the source hash
+table. Whenever it finds a non-empty bucket, it adds the entry to the
+destination hash table using the <code>tableSet()</code> function we recently defined.</p>
+<p>That goes through the full process of finding a bucket for the entry, resolving
+collisions, etc. That might seem unnecessarily complicated, but since we don&rsquo;t
+know what the destination hash table already contains, there&rsquo;s little we can do
+to optimize it. This function isn&rsquo;t on any critical performance path anyway, so
+simple is best.</p>
+<h3><a href="#retrieving-values" name="retrieving-values"><small>20&#8202;.&#8202;4&#8202;.&#8202;4</small> Retrieving values</a></h3>
+<p>Now that our hash table contains some stuff, let&rsquo;s start pulling things back
+out. Given a key, we can look up the corresponding value, if there is one, with
+this function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                             
+</pre><div class="source-file"><em>table.h</em><br>
+add after <em>freeTable</em>()</div>
+<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span> 
+<span class="kt">void</span> <span class="nf">tableAddAll</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="p">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="p">);</span>                 
+</pre></div>
+
+<div class="source-file-narrow"><em>table.h</em>, add after <em>freeTable</em>()</div>
+
+<p>You pass in a table and a key. If it finds an entry with that key, it returns
+true, otherwise it returns false. If the entry exists, we store the resulting
+value in the <code>value</code> output parameter.</p>
+<p>Since <code>findEntries()</code> already does the hard work, the implementation isn&rsquo;t too
+bad:</p>
+<div class="codehilite"><div class="source-file"><em>table.c</em><br>
+add after <em>findEntry</em>()</div>
+<pre><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>      
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                          
+
+  <span class="o">*</span><span class="n">value</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>                                         
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                                   
+<span class="p">}</span>                                                                
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, add after <em>findEntry</em>()</div>
+
+<p>Obviously, if the table doesn&rsquo;t even have a bucket array, we definitely won&rsquo;t
+find the entry, so we check for that first. Otherwise, we let <code>findEntries()</code>
+work its magic. That returns a pointer to a bucket. If the bucket is empty<span class="em">&mdash;</span>which we detect by seeing if the key is <code>NULL</code><span class="em">&mdash;</span>then it didn&rsquo;t find an entry
+with our key.</p>
+<p>If it does return a non-empty entry, then that&rsquo;s our match. We take its value
+and copy it to the output parameter so the caller can get it. Piece of cake.</p>
+<h3><a href="#deleting-entries" name="deleting-entries"><small>20&#8202;.&#8202;4&#8202;.&#8202;5</small> Deleting entries</a></h3>
+<p>There is one more fundamental operation a full-featured hash table needs to
+support: removing an entry. This seems pretty obvious, if you can add things,
+you should be able to <em>un</em>-add them, right? But you&rsquo;d be surprised how many
+tutorials and books on hash tables omit this completely.</p>
+<p>I could have taken that route too. In fact, we never actually <em>use</em> deletion in
+clox. But if you want to actually understand how to completely implement a hash
+table, this feels important. I can sympathize with their desire to overlook it.
+As we&rsquo;ll see, deleting from a hash table that uses <span
+name="delete">open</span> addressing is tricky.</p>
+<aside name="delete">
+<p>With separate chaining, deleting is as simple as deleting from a linked list.</p>
+</aside>
+<p>The declaration belies its complexity:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">);</span>
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableSet</em>()</div>
@@ -983,50 +916,33 @@ add after <em>tableSet</em>()</div>
 
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableSet</em>()</div>
 
-<ul>
-<li>won&rsquo;t actually use in book</li>
-<li>[considered adding syntax to lox specifically to let use, but seemed
-  gratuitous]</li>
-<li>adding because many hash table tutorials never tell you how to delete</li>
-<li>with separate chaining, easy</li>
-<li>find bucket, then remove from linked list</li>
-<li>open addressing much more subtle</li>
-<li>
-<p>hardest operation!</p>
-</li>
-<li>
-<p>obv soln is to find entry and clear it out</p>
-</li>
-<li>in non-collide case, fine</li>
-</ul>
+<p>The obvious approach is to mirror insertion. Use <code>findEntry()</code> look up the
+entry&rsquo;s bucket. Then clear out the bucket. Done!</p>
+<p>In cases where there are no collisions, that works fine. But if a collision has
+occurred, then the bucket where the entry lives may be part of one or more
+implicit probe sequences. Remember that when we&rsquo;re walking a probe sequence to
+find an entry, we know we&rsquo;ve reached the end of a sequence and the entry isn&rsquo;t
+present when we hit an empty bucket. It&rsquo;s like the probe sequence is a list of
+entries and an empty entry terminates that list.</p>
 <p><strong>todo: illustrate</strong></p>
-<ul>
-<li>but entry may be part of sequence of colliding entries</li>
-<li>remember, use empty bucket to tell when to stop probing</li>
-<li>if clear entry, won&rsquo;t find colliding entries after that slot</li>
-<li>like remove linked list node without relinking prev node to next</li>
-</ul>
+<p>If the entry we&rsquo;re deleting is in the middle of a sequence and we clear it out,
+we break that list in the middle, leaving the trailing entries abandoned and
+unreachable. Sort of like removing a node from a linked list without relinking
+the pointer from the previous node to the next one.</p>
 <p><strong>todo: illustrate</strong></p>
-<ul>
-<li>could shift up subsequence nodes, like deleting from array</li>
-</ul>
+<p>OK, so maybe we treat it like removing an element from an array. We delete the
+entry and then shift up any entries that follow it. Does that work? Sometimes,
+yes. But our deleted entry could be in the middle of a couple of interleaved
+probe sequences. A bucket after it may actually contain an entry in its
+preferred slot. If we move that entry forward, it will shift to <em>before</em> where
+it&rsquo;s supposed to appear. That&rsquo;s also bad.</p>
 <p><strong>todo: illustrate</strong></p>
-<ul>
-<li>but may also have interleaved sequence of entries from collisions in multiple
-  buckets</li>
-</ul>
-<p><strong>todo: illustrate</strong></p>
-<ul>
-<li>if shift up, could shift entry to <em>before</em> its first bucket</li>
-<li>
-<p>bad</p>
-</li>
-<li>
-<p>could fix by removing and then re-adding stuff in cluster after</p>
-</li>
-<li>kind of slow</li>
-<li>instead, trick called &ldquo;tombstones&rdquo;</li>
-</ul>
+<p>Some of the trailing entries need to move forward and some don&rsquo;t. We could
+handle that by deleting the entry and then removing and re-inserting all of the
+entries that follow it so that we re-resolve any collisions and put them where
+they want to go taking the new empty bucket into account.</p>
+<p>That <em>does</em> actually work, thank Zeus. But it&rsquo;s pretty slow. So most
+implementations use a different trick called &ldquo;tombstones&rdquo;. It looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableSet</em>()</div>
 <pre><span></span><span class="kt">bool</span> <span class="nf">tableDelete</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">)</span> <span class="p">{</span>                 
@@ -1046,49 +962,21 @@ add after <em>tableSet</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>tableSet</em>()</div>
 
-<ul>
-<li>first, find entry where key is</li>
-<li>if not present, just stop</li>
-<li>
-<p>silently ignores deleting non-present</p>
-</li>
-<li>
-<p>if found, don&rsquo;t actually remove entry</p>
-</li>
-<li>replace with special value that represents deleted entry</li>
-<li>that way don&rsquo;t have to shift around</li>
-<li>use nil key and non-nil value to rep tombstone</li>
-<li>
-<p>delete simple, but need to handle tombstones in other op</p>
-</li>
-<li>
-<p>when looking for entry for key, use empty entry to know when to stop probing
-  when key not found</p>
-</li>
-<li>need to keep going past tombstone</li>
-<li>
-<p>that way can find stuff after in probe seq</p>
-</li>
-<li>
-<p>if did pass tombstone, remember it</p>
-</li>
-<li>that way if looking for entry to insert key, can reuse tombstone</li>
-<li>so declare locl to track tomb</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="p">;</span>
-</pre><div class="source-file"><em>table.c</em><br>
-in <em>findEntry</em>()</div>
-<pre class="insert"><span></span>  <span class="n">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>              
-<br></pre><pre class="insert-after"><span></span>  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                            
-</pre></div>
-
-<div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>()</div>
-
-<ul>
-<li>when probing check for tomb</li>
-</ul>
-<div class="codehilite"><pre class="insert-before"><br><span></span>
-</pre><div class="source-file"><em>table.c</em><br>
+<p>First, we find the bucket containing the entry we want to delete. (If we don&rsquo;t
+find it, there&rsquo;s nothing to delete, so we bail out.) Then, instead of completely
+clearing it, we replace the entry with a special sentinel entry called a
+&ldquo;tombstone&rdquo;. In clox, we use a <code>NULL</code> key and a <code>true</code> value to indicate a
+tombstone, but any representation that can&rsquo;t be confused with an empty entry or
+a valid one works.</p>
+<p>That&rsquo;s all we need to do to delete an entry. Simple and fast. But all of the
+other operations need to correctly handle tombstones too. A tombstone is a sort
+of zombie entry. It has some of the characteristics of a living present entry,
+and some of the characteristics of a dead empty one.</p>
+<p>When we are following a probe sequence during a lookup, and we hit a tombstone,
+we <em>don&rsquo;t</em> treat it like an empty slot and stop iterating. Instead, we note it
+and keep going:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                  
+<br></pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 3 lines</div>
 <pre class="insert"><span></span>    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                        
@@ -1103,43 +991,58 @@ replace 3 lines</div>
       <span class="c1">// We found the key.                           </span>
       <span class="k">return</span> <span class="n">entry</span><span class="p">;</span>                                  
     <span class="p">}</span>                                                
-</pre><pre class="insert-after"><br><span></span>
+</pre><pre class="insert-after"><br><span></span>    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">capacity</span><span class="p">;</span>                  
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 3 lines</div>
 
-<ul>
-<li>if hit empty entry, done</li>
-<li>need to return entry caller can use to either set or tell if not present</li>
-<li>use tomb if found, otherwise empty entry just hit</li>
-<li>if hit tombstone, just remember and keep going</li>
-<li>
-<p>if found key, same as before</p>
-</li>
-<li>
-<p>deleting adds tombstones</p>
-</li>
-<li>probe seqs tend to get longer</li>
-<li>but when inserting, can reuse tombstone entry</li>
-<li>over time, stabilizes and number of tombstones doesn&rsquo;t get too large</li>
-<li>in practice many hash tables never delete</li>
-<li>
-<p>[for ex in lox, no way to undeclare global var or remove instance field]</p>
-</li>
-<li>
-<p>note don&rsquo;t reduce count when deleting</p>
-</li>
-<li>count includes tombstones</li>
-<li>
-<p>that way, load factor takes tombstones into account and ensure still have
-  empty entries</p>
-</li>
-<li>
-<p>when resizing and have to rehash anyway, tombstones can be discarded</p>
-</li>
-<li>don&rsquo;t know how many non-tomb have, so recalc count</li>
-<li>clear</li>
-</ul>
+<p>We store the first tombstone found during the probe sequence in a local
+variable:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="p">;</span>
+</pre><div class="source-file"><em>table.c</em><br>
+in <em>findEntry</em>()</div>
+<pre class="insert"><span></span>  <span class="n">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>              
+<br></pre><pre class="insert-after"><span></span>  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>()</div>
+
+<p>By iterating through the tombstone, we ensure that deleting an entry doesn&rsquo;t
+break any implicit collision chains so that we can still find entries after it.
+In that sense, the tombstone entry is still &ldquo;there&rdquo;.</p>
+<p>But if, after going past the tombstone (or tombstones), we don&rsquo;t find the entry
+we&rsquo;re looking for, we return the first tombstone&rsquo;s bucket instead of the empty
+entry after the end of the probe sequence. If we&rsquo;re calling <code>findEntry()</code> in
+order to insert a node, that lets us treat the tombstone bucket as empty and
+reuse it for the new entry.</p>
+<p>Reusing tombstone slots automatically like this helps reduce the number of
+tombstones wasting space in the bucket array. In typical use cases where there
+is an even mixture of insertions and deletions, the number of tombstones grows
+for a while and then hits a point where it tends to stabilize.</p>
+<p>Even so, there&rsquo;s no guarantee that a large number of deletes won&rsquo;t cause the
+array to be full of tombstones. In the very worst case, we could end up with
+<em>no</em> empty buckets. That would be bad because, remember the only thing
+preventing an infinite loop in <code>findEntry()</code> is the assumption that we&rsquo;ll
+eventually hit an empty bucket.</p>
+<p>So we need to be thoughtful about how tombstones interact with the table&rsquo;s load
+factor and resizing. The key question is, when calculating the load factor,
+should we treat tombstones like full buckets or empty ones?</p>
+<p>If we treat them like full buckets, then we may end up with a bigger array than
+we probably need because it artificially inflates the load factor. There are
+tombstones we could reuse, but they aren&rsquo;t counted so we end up growing the
+array sometimes.</p>
+<p>But if we treat tombstones like empty buckets and <em>don&rsquo;t</em> include them in the
+load factor, then we run the risk of ending up with <em>no</em> actual empty buckets to
+terminate a lookup. An infinite loop is a much worse problem than a few extra
+array slots, so for load factor, we consider tombstones to be full buckets.</p>
+<p>That&rsquo;s why we don&rsquo;t reduce the count when deleting an entry in the previous
+code. The count is no longer the number of entries in the hash table, it&rsquo;s the
+number of entries and tombstones.</p>
+<p>When we resize the array, we allocate a new array and re-insert all of the
+existing entries into it. During that process, we <em>don&rsquo;t</em> copy the tombstones
+over. They don&rsquo;t add any value and would just slow down lookups. That means we
+need to recalculate the count since it may change during a resize. So we clear
+it out:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>                                          
 <br></pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()</div>
@@ -1149,9 +1052,7 @@ in <em>adjustCapacity</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
 
-<ul>
-<li>then increment each non-tom entry</li>
-</ul>
+<p>Then each time we find a non-tombstone entry, we increment it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">dest</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">;</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()</div>
@@ -1161,63 +1062,72 @@ in <em>adjustCapacity</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>()</div>
 
-<ul>
-<li>interesting how simple delete is but how many other parts need to be touched
-  to support</li>
-<li>given that delete rare, expect would want to localize code there so other
-  ops not slowed</li>
-<li>did some benchmarking</li>
-<li>seems to be faster</li>
-<li>all the textbooks do it this way</li>
-<li>[be suspicious of benchmarks. hash tables many many ways to vary perf.]</li>
-</ul>
-<h2><a href="#string-interning" name="string-interning"><small>20&#8202;.&#8202;5</small> string interning</a></h2>
-<ul>
-<li>have mostly working hash table</li>
-<li>not using it for anything</li>
-<li>also not entirely working</li>
-<li>
-<p>solve both problems</p>
-</li>
-<li>
-<p>reason not working is because use <code>==</code> to check for keys</p>
-</li>
-<li>just does pointer equality</li>
-<li>remember in last chapter added explicit code to compare chars in strings for
-  val equality</li>
-<li>
-<p>needed that so that two strings at different point in mem are still equal
-  if chars equal</p>
-</li>
-<li>
-<p>hash table doesn&rsquo;t do that</p>
-</li>
-<li>could do that, but would be slow</li>
-<li>[in practice, would check string hashes first, so only have to compare chars
-   in very rare cases where entire 32-bit hashes collide]</li>
-<li>instead, use as excuse to introduce common technique</li>
-<li>
-<p>string interning</p>
-</li>
-<li>
-<p>core problem is can have distinct strings in mem with same chars</p>
-</li>
-<li>essentially duplicates</li>
-<li>interning is deduplication</li>
-<li>
-<p>any given seq of chars will only exist in one place in mem</p>
-</li>
-<li>
-<p>[exposed by languages as symbols, smalltalk, lisp, ruby, etc.
-  lua interns all strings]</p>
-</li>
-<li>
-<p>much faster</p>
-</li>
-<li>in order to make work, need to ensure not possible to have same string twice
-  in mem</li>
-<li>do that by keeping table of every string allocated</li>
-</ul>
+<p>I find it interesting that much of the work to support deleting entries was in
+<code>findEntry()</code> and <code>adjustCapacity()</code> to deal with tombstones. The actual delete
+logic is quite simple and fast. In practice, deletions tend to be rare, so you&rsquo;d
+expect a hash table to do as much work in the delete function and leave the
+other functions alone to keep them faster. With our tombstone approach, deletes
+are fast, but lookups get penalized.</p>
+<p>I did a little benchmarking to test this out in a few different deletion
+scenarios. I was surprised to discover that tombstones did end up being faster
+overall compared to doing all the work during deletion to reinsert the affected
+entries.</p>
+<p>But if you think about it, it&rsquo;s not that the tombstone approach pushes the work
+of fully deleting an entry to other operations, it&rsquo;s more that it makes deleting
+<em>lazy</em>. At first, it does the minimal work to turn the entry into a tombstone.
+That can cause a penalty when later lookups have to skip over it. But it also
+allows that tombstone bucked to be reused by a later insert too. That reuse is a
+very efficient way to avoid the cost of rearranging all of the following
+affected entries. You basically recycle a node in the chain of probed entries.
+It&rsquo;s a neat trick.</p>
+<h2><a href="#string-interning" name="string-interning"><small>20&#8202;.&#8202;5</small> String Interning</a></h2>
+<p>Alright, we&rsquo;ve got ourselves a hash table that&rsquo;s mostly working and supports
+the operations it needs. We aren&rsquo;t using it yet. But it&rsquo;s also not <em>totally</em> working right. Right now, we&rsquo;re gonna solve both of those problems at the same time, and learn another classic tool used by interpreters.</p>
+<p>The reason it&rsquo;s not totally working is that when <code>findEntry()</code> checks to see if
+an existing key matches the one it&rsquo;s looking for, it uses <code>==</code> to compare two
+strings for equality. That only returns true if the two keys are the exact same
+string in memory. Two separate strings with the same characters should be
+considered equal, but aren&rsquo;t.</p>
+<p>Remember, back when we added strings in the last chapter, we added explicit
+support to compare the strings character-by-character in order to get true value
+equality. We could do that in <code>findEntry()</code>, but that&rsquo;s <span
+name="hash-collision">slow</span>.</p>
+<aside name="hash-collision">
+<p>In practice, we would first check the full hash codes of the two strings for
+equality first. That distinguishes almost all non-identical strings<span class="em">&mdash;</span>it
+wouldn&rsquo;t be a very good hash function if it didn&rsquo;t. But when the two keys <em>are</em>
+the same string, we still have to resort to comparing characters in order to be
+safe and handle the rare cases where different strings <em>do</em> have the same hash.</p>
+</aside>
+<p>Instead, we&rsquo;ll use a technique called <strong>string interning</strong>. The core problem is
+that it&rsquo;s possible to have different strings in memory with the same characters.
+Those need to behave like equivalent values even though they are distinct
+objects. They&rsquo;re essentially duplicates, and we have to compare all of their
+bytes to detect that.</p>
+<p><span name="intern">String interning</span> is de-duplication. We create a
+collection of interned strings. Any string in the collection is guaranteed to
+distinct from all others. When you &ldquo;intern&rdquo; a string, you look for a matching
+string in the collection. If found, you use that original one. Otherwise, the
+string you have is unique, so you add it to the collection.</p>
+<aside name="intern">
+<p>Languages vary in how much string interning they do and how it&rsquo;s exposed to the
+user. clox, like Lua will intern <em>all</em> strings. Lisp, Scheme, Smalltalk, Ruby
+and others have a separate string-like type called &ldquo;symbol&rdquo; that is implicitly
+interned. (This is why, for example, they suggest you use symbols in Ruby for
+performance.) Java interns constant strings by default, and provides an API to
+let you explicitly intern any string you give it.</p>
+</aside>
+<p>In this way, you know that each sequence of characters is represented by only
+one string in memory. This makes value equality trivial. If two strings points
+to the same address in memory, they are obviously the same string and must be
+equal. And, because we know strings are unique, if two strings point to
+different addresses, they must be distinct strings.</p>
+<p>In other words, pointer equality exactly matches value equality. Which in turn
+means that our existing <code>==</code> in <code>findEntry()</code> does the right thing. Or, at
+least, it will once we intern all the strings.</p>
+<p>In order to reliably de-duplicate all strings, the VM needs to be able to find
+every string that&rsquo;s created. We do that by giving it a hash table to store them
+all:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Value</span><span class="o">*</span> <span class="n">stackTop</span><span class="p">;</span>
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
@@ -1227,10 +1137,7 @@ in struct <em>VM</em></div>
 
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
-<ul>
-<li>vm has table of string</li>
-<li>to use table, need include</li>
-</ul>
+<p>As usual, we need an include:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chunk.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>vm.h</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot;</span><span class="cp"></span>
@@ -1239,9 +1146,7 @@ in struct <em>VM</em></div>
 
 <div class="source-file-narrow"><em>vm.h</em></div>
 
-<ul>
-<li>when vm starts up, empty</li>
-</ul>
+<p>When we spin up a new VM, the string table is empty:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
@@ -1251,10 +1156,12 @@ in <em>initVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<ul>
-<li>free when shut down</li>
-<li>[later get to dealing with gc interaction]</li>
-</ul>
+<p>And when we <span name="gc">shut</span> down the VM, we clean up any resources used by the table:</p>
+<aside name="gc">
+<p>When we implement the garbage collector, we&rsquo;ll handle removing strings from the
+string table if they are no longer needed while the program is running.</p>
+<p>todo: link</p>
+</aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">freeVM</span><span class="p">()</span> <span class="p">{</span>          
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
@@ -1264,17 +1171,9 @@ in <em>freeVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
-<ul>
-<li>to &ldquo;intern&rdquo; string means put in string pool if not already there</li>
-<li>some langs let you intern explicitly</li>
-<li>others like lisp ruby have separate string-like type usually called symbol</li>
-<li>
-<p>lox, like lua, implicitly interns all strings</p>
-</li>
-<li>
-<p>when alloc string, put into table</p>
-</li>
-</ul>
+<p>Some languages have a separate type or an explicit step to intern a string. For
+clox, we&rsquo;ll automatically intern every string. That means whenever we create a
+new unique string, we add it to the table:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">string</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">=</span> <span class="n">hash</span><span class="p">;</span>                   
 <br></pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
@@ -1284,15 +1183,12 @@ in <em>allocateString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 
-<ul>
-<li>need to not do that if already in table</li>
-<li>instead, higher level fns to create strings first look for its char seq in
-  string table</li>
-<li>if found, use that instead of creating new string</li>
-<li>otherwise, store string as key in table</li>
-<li>value not important so just nil</li>
-<li>[basically using hash table as hash set]</li>
-</ul>
+<p>We&rsquo;re using the table more like a hash <em>set</em> than a hash <em>table</em>. The keys are
+the strings and those are all we care about, so we just use <code>nil</code> for the
+values.</p>
+<p>This gets a string into the table assuming that it&rsquo;s unique, but we need to
+actually check for duplication before we get here. We do that in the higher
+level functions that call <code>allocateString()</code>. First:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">hashString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>                       
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>copyString</em>()</div>
@@ -1304,9 +1200,11 @@ in <em>copyString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>copyString</em>()</div>
 
-<ul>
-<li>take little different</li>
-</ul>
+<p>When copying a string into a new LoxString, we look it up in the string table
+first. If we find it, instead of &ldquo;copying&rdquo;, we just return a reference to that
+string.</p>
+<p>Otherwise, we fallthrough, allocate a new string, and store it in the string
+table. Taking ownership of a string is a little different:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">hashString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>                       
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>takeString</em>()</div>
@@ -1321,11 +1219,11 @@ in <em>takeString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>takeString</em>()</div>
 
-<ul>
-<li>takes ownership of given string</li>
-<li>if already have interned one, don&rsquo;t need, so free now</li>
-<li>need another include</li>
-</ul>
+<p>Again, we look up the string in the string table first. If we find it, before we
+return it, we free the memory for the string that was passed in. Since ownership
+is being passed to this function and we no longer need the duplicate string,
+it&rsquo;s up to us to free it.</p>
+<p>Before we get to the new function we need to write, there&rsquo;s one more include:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
 </pre><div class="source-file"><em>object.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
@@ -1334,9 +1232,7 @@ in <em>takeString</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em></div>
 
-<ul>
-<li>relies on new fn, similar to get</li>
-</ul>
+<p>To look up a string in the string table, we use this new function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">tableAddAll</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="p">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="p">);</span>                              
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableAddAll</em>()</div>
@@ -1347,9 +1243,7 @@ add after <em>tableAddAll</em>()</div>
 
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableAddAll</em>()</div>
 
-<ul>
-<li>looks like</li>
-</ul>
+<p>The implementation looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableAddAll</em>()</div>
 <pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span> 
@@ -1381,20 +1275,17 @@ add after <em>tableAddAll</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>tableAddAll</em>()</div>
 
-<ul>
-<li>kind of redundant, but couple of key differences</li>
-<li>first pass in raw string to search for instead of objstring since don&rsquo;t have
-  obj yet</li>
-<li>here is one place in code now where do compare strings char-wise</li>
-<li>
-<p>this where dedupe is happening</p>
-</li>
-<li>
-<p>which means everywhere else, can safely use pointer compare on ObjString</p>
-</li>
-<li>to test for string equals</li>
-<li>including in vm</li>
-</ul>
+<p>It looks like we copy-pasted <code>findEntry()</code>. There is a lot of redundancy, but
+there&rsquo;s a couple of key differences. First, we pass in the raw character array
+of the key we&rsquo;re looking for instead of an ObjString. At the point that we call this, we haven&rsquo;t created an ObjString yet.</p>
+<p>Second, when checking to see if we found the key, we do an actual
+character-by-character string comparison. This is the one place in the VM where
+we actually test strings for textual equality. We do it here to deduplicate
+strings and then the rest of the VM can take for granted that any two strings at
+different addresses in memory must have different contents.</p>
+<p>In fact, now that we&rsquo;ve done that, we can take advantage of it in the bytecode
+interpreter. When a user does <code>==</code> on two objects that happen to be strings, we
+don&rsquo;t need to test the characters any more:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">VAL_OBJ</span><span class="p">:</span>                   
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()<br>
@@ -1405,31 +1296,56 @@ replace 6 lines</div>
 
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>(), replace 6 lines</div>
 
-<ul>
-<li>now have key data structure needed for tracking variables and instance fields</li>
-<li>use it to build string intern table</li>
-<li>saves memory for strings</li>
-<li>nice side effect makes string compares much faster</li>
-<li>important for dynamically typed lang like lox</li>
-<li>method calls dispatched by string name</li>
-<li>so need name comparison to be fast</li>
-<li>why see many dyn langs use explicitly interned &ldquo;symbol&rdquo; type</li>
-<li>what they use for method names</li>
-</ul>
-<p><strong>todo: move part about symbols up?</strong></p>
-<ul>
-<li>challenges<ul>
-<li>lots of knobs to tweak: hash fn, load factor, open/vs closed, etc.
-  research other langs and see what they do</li>
-<li>allow other value types as keys</li>
-<li>write benchmark prog<ul>
-<li>how does choice of strings affect results?</li>
-<li>number of strings?</li>
-</ul>
+<p>We&rsquo;ve added a little overhead when creating strings to intern them. But in
+return, at runtime, the equality operator on strings is much faster. With that,
+we have a full-featured hash table ready for us to use for tracking variables,
+instances, or any other key-value pairs that might show up.</p>
+<p>We also sped up testing strings for equality. This is nice for when the user
+does <code>==</code> on strings. But it&rsquo;s even more critical in a dynamically-typed
+language like Lox where method calls and instance fields are looked up by name
+at runtime. If testing a string for equality is slow, then that means looking up
+a method by name is slow. And if <em>that&rsquo;s</em> slow in your object-oriented language,
+then <em>everything</em> is slow.</p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>In clox, we happen to only need keys that are strings, so the hash table we
+    built is hardcoded for that key type. If we exposed hash tables to Lox users
+    as a first-class collection type, it would useful to support keys of
+    different types.</p>
+<p>Add support for keys of the other primitive types: numbers, Booleans, and
+<code>nil</code>. Later, clox will support user-defined classes. If we want to support
+keys that are instances of those classes, what kind of complexity does that
+add?</p>
 </li>
-</ul>
+<li>
+<p>Hash tables have a lot of knobs you can tweak that affect their performance.
+    You decide whether to use separate chaining or open addressing. Depending on
+    which fork in that road you take, you can tune how many entries are stored
+    in each node, or the probing strategy you use. You control the hash
+    function, load factor, and growth rate.</p>
+<p>All of this variety wasn&rsquo;t created just to give CS doctoral candidates
+something to publish theses on: each has its uses in the many varied domains
+and hardware scenarios where hashing comes into play. Look up a few hash
+table implementations in different open source systems and research the
+details of their hash table. Try to figure out why they made the choices
+they made if you can.</p>
 </li>
-</ul>
+<li>
+<p>Benchmarking a hash table is notoriously difficult. A hash table
+    implementation may perform well with some keysets and poorly with others. It
+    may work well at small sizes but degrade as it grows, or vice versa. It may
+    choke when deletions are common, but fly when they aren&rsquo;t. Creating
+    benchmarks that accurately represent how your users will use the hash table
+    is a challenge.</p>
+<p>Write a handful of different benchmark programs to validate our hash table
+implementation. How does the performance vary between them? Why did you
+choose the specific test cases you chose?</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="global-variables.html" class="next">

@@ -12,7 +12,6 @@
 
 //< max-load
 void initTable(Table* table) {
-  // TODO: Note count includes tombstones.
   table->count = 0;
 /* Hash Tables table-c < Optimization not-yet
   table->capacity = 0;
@@ -86,7 +85,6 @@ static Entry* findEntry(Entry* entries, int capacityMask,
 //< find-entry
 //> table-get
 bool tableGet(Table* table, ObjString* key, Value* value) {
-  // If the table is empty, we definitely won't find it.
   if (table->entries == NULL) return false;
 
 /* Hash Tables table-get < Optimization not-yet
