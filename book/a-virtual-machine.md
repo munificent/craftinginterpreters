@@ -783,7 +783,7 @@ need:
 The addition goes first. The instruction for the left constant, 1.2, is already
 there, so we add another for 3.4. Then we add those two using `OP_ADD`, leaving
 it on the stack. That covers the left side of the division. Next we push the
-5.6, and divide it by the result of the addition. Finally, we negate the result
+5.6, and divide the result of the addition by it. Finally, we negate the result
 of that.
 
 Note how the output of the `OP_ADD` implicitly flows into being an operand of
