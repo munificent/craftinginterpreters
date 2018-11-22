@@ -714,8 +714,9 @@ syntax to get out of the way of the semantics, so they focus on keeping both the
 grammar and libraries simple. Code should be obvious more than beautiful.
 
 Somewhere in the middle you have languages like Java, C# and Python. Eventually
-you reach Ruby, C++, Perl, and D, languages who have stuffed so much syntax into
-their grammar, they are running out of punctuation characters on the keyboard.
+you reach Ruby, C++, Perl, and D, languages which have stuffed so much syntax
+into their grammar, they are running out of punctuation characters on the
+keyboard.
 
 To some degree, location on the spectrum correlates with age. It's relatively
 easy to add bits of syntactic sugar in later releases. New syntax is a crowd

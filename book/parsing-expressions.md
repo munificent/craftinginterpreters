@@ -549,8 +549,8 @@ The code for this is a little different:
 
 Again, we look at the <span name="current">current<span> token to see how to
 parse. If it's a `!` or `-`, we must have a unary expression. In that case, we
-grab the token, and then recursively call `unary()` again to the parse the
-operand. Wrap that all up in a unary expression syntax tree and we're done.
+grab the token, and then recursively call `unary()` again to parse the operand.
+Wrap that all up in a unary expression syntax tree and we're done.
 
 <aside name="current">
 
