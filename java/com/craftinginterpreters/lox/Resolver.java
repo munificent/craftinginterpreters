@@ -12,7 +12,7 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 //< scopes-field
 //> function-type-field
-private FunctionType currentFunction = FunctionType.NONE;
+  private FunctionType currentFunction = FunctionType.NONE;
 //< function-type-field
 
   Resolver(Interpreter interpreter) {
