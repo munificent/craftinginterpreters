@@ -327,7 +327,7 @@ that there is room for the extra payload fields needed by the specific object
 type being created.
 
 Then it initializes the Obj state -- right now, that's just the type tag. This
-function returns to `copyString()` which finishes initializing the ObjString
+function returns to `allocateString()` which finishes initializing the ObjString
 fields. <span name="viola">*Voilà*</span>, we can compile and execute string
 literals.
 
