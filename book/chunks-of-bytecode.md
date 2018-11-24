@@ -926,12 +926,11 @@ in the code array.
 <aside name="side">
 
 This braindead encoding does do one thing right: it keeps the line information
-in a *separate* array instead of interleaving it in the bytecode itself.
-
-Since line information is only used when a runtime error occurs, we don't want
-it next to the bytecode, taking up precious space in the CPU cache and causing
-more cache misses as the interpreter skips past it to get to the real
-instructions it cares about.
+in a *separate* array instead of interleaving it in the bytecode itself. Since
+line information is only used when a runtime error occurs, we don't want it
+between the instructions, taking up precious space in the CPU cache and causing
+more cache misses as the interpreter skips past it to get to the opcodes and
+operands it cares about.
 
 </aside>
 
