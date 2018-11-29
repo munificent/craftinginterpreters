@@ -369,7 +369,7 @@ and larger chunks of syntax.
 
 It's called "recursive *descent*" because it walks *down* the grammar.
 Confusingly, we also use direction metaphorically when talking about "high" and
-"low" precedence, but the orientation is reversed. In a top-down grammar, you
+"low" precedence, but the orientation is reversed. In a top-down parser, you
 reach the lowest-precedence expressions first because they may in turn contain
 subexpressions of higher precedence.
 
