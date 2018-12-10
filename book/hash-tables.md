@@ -49,7 +49,9 @@ dramatically. As we'll see, that's not too far from the trick a hash table uses.
 ## An Array of Buckets
 
 A complete, fast hash table has a couple of moving parts. I'll introduce them
-one at a time by going through a couple of smaller problems and solutions. Eventually, we'll build up to a data structure that can associate any set of names with their values.
+one at a time by going through a couple of smaller problems and solutions.
+Eventually, we'll build up to a data structure that can associate any set of
+names with their values.
 
 For now, imagine if Lox was a *lot* more restricted in variable names. What if a
 variable's name could only be a <span name="basic">single</span> lowercase
@@ -71,10 +73,17 @@ with `a` starting at index zero. If there's a value in the array at some
 letter's index, then that key is present with that value. Otherwise, the bucket
 is empty and that key/value pair isn't in the data structure.
 
-Memory usage is great -- just a single reasonably-sized array. There's some
-waste from the empty buckets, but it's not huge. There's no overhead for node
-pointers, padding, or other stuff you'd get with something like a linked list or
-tree.
+<aside name="bucket">
+
+<img src="image/hash-tables/bucket-array.png" alt="A row of buckets, each
+labeled with a letter of the alphabet." />
+
+</aside>
+
+Memory usage is great -- just a single reasonably-sized <span
+name="bucket">array</span>. There's some waste from the empty buckets, but it's
+not huge. There's no overhead for node pointers, padding, or other stuff you'd
+get with something like a linked list or tree.
 
 Performance is even better. Given a variable name -- its character -- you can
 subtract the ASCII value of `a` and use the result to index directly into the
@@ -117,13 +126,13 @@ that entire range. Instead, we allocate array with enough capacity for the
 entries we need, but still some reasonable size. In order to keep the indexes in
 bounds, we'll wrap them around using the modulo operator.
 
-For example, say we need to store six entries. We allocate an array with 16
-elements, plenty enough to store them all with room leftover. We take each key
-string as a 64 bit integer modulo the array size (<span
-name="power-of-two">16</span>) to fit it in bounds and get a bucket index. Then
-we store the value there as usual.
-
-**todo: illustrate**
+For example, say we want to store "bagel". We allocate an array with eight
+elements, plenty enough to store it and more later. We treat the key string as a
+64-bit integer. On a little-endian machine like Intel, packing those characters
+into a 64-bit word puts the first letter in the least-significant byte. We take
+that integer modulo the array size (<span name="power-of-two">eight</span>) to
+fit it in the bounds and get a bucket index, 2. Then we store the value there as
+usual.
 
 <aside name="power-of-two">
 
@@ -135,15 +144,18 @@ build in this book. Others prefer prime number array sizes or have other rules.
 
 We solved our waste problem, but introduced a new one. Any two variables whose
 key number has the same remainder when divided by the array size will end up in
-the same bucket. Variables can **collide**. We do have some control of this by
-tuning the array size. The bigger the array, the indexes that get mapped to the
-same bucket and the fewer collisions that are likely to occur.
+the same bucket. Variables can **collide**. For example, if we try to add "jam",
+it also ends up in bucket 2:
 
-Hash table implementers track this collision liklihood by measuring the table's
-**load factor**. It's defined as the number of entries divided by the number of
-buckets. So a hash table with five entries and an array of 16 elements has a
-load factor of 0.3125. The higher the load factor, the greater the chance of
-collisions.
+<img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
+
+We do have some control of this by tuning the array size. The bigger the array,
+the indexes that get mapped to the same bucket and the fewer collisions that are
+likely to occur. Hash table implementers track this collision likelihood by
+measuring the table's **load factor**. It's defined as the number of entries
+divided by the number of buckets. So a hash table with five entries and an array
+of 16 elements has a load factor of 0.3125. The higher the load factor, the
+greater the chance of collisions.
 
 One way we mitigate collisions is by dynamically resizing the array. Just like
 the dynamic arrays we implemented earlier, we reallocate and grow the hash
@@ -162,8 +174,6 @@ still-pretty-high 10%, we need an array with at least 47,015 elements. To get
 the chance below 1% requires an array with 492,555 elements, over 4,000 thousand
 empty buckets for each one in use.
 
-**todo: aside or illustration about birthday paradox**
-
 [birthday]: https://en.wikipedia.org/wiki/Birthday_problem
 
 A low load factor can make collisions <span name="pigeon">rarer</span>, but the
@@ -172,8 +182,6 @@ If you've got five pet pigeons and four holes to put them in, at least one hole
 is going to end up with more than one pigeon. With 18,446,744,073,709,551,616
 different variable names, any reasonably-sized array can potentially end up with
 multiple keys in the same bucket.
-
-**todo: illustrate pigeons**
 
 [pigeon]: https://en.wikipedia.org/wiki/Pigeonhole_principle
 
@@ -188,6 +196,8 @@ observation: Take a birdhouse containing 365 pigeonholes, and use each pigeon's
 birthday to assign it to a pigeonhole. You'll need only about 26 randomly-chosen
 pigeons before you get a greater than 50% chance of two pigeons in the same box.
 
+<img src="image/hash-tables/pigeons.png" alt="Two pigeons in the same hole." />
+
 </aside>
 
 ### Separate chaining
@@ -197,6 +207,8 @@ Techniques for resolving collisions fall into two broad categories. The first is
 it contain a collection of them. In the classic implementation, each bucket
 points to a linked list of entries. To look up an entry, you find its bucket and
 then walk the list until you find an entry with the matching key.
+
+<img src="image/hash-tables/chaining.png" alt="An array with eight buckets. Bucket 2 links to a chain of two nodes. Bucket 5 links to a single node." />
 
 In catastrophically bad cases where every entry collides in the same bucket, the
 data structure degrades into a single unsorted linked list with `O(n)` lookup.
@@ -263,8 +275,6 @@ look in the first bucket its key maps to. If it's not in there, we look in the
 very next element in the array, and so on. If we reached the end, we wrap back
 around to the beginning.
 
-**TODO: walk through example inserting a few items in buckets**
-
 The good thing about linear probing is that it's cache friendly. Since you walk
 the array directly in memory order, it keeps the CPU's cache lines full and
 happy. The bad thing is that it's prone to **clustering**. If you have a lot of
@@ -279,9 +289,46 @@ implicitly by the order that you look through the buckets to find a place for
 the entry.
 
 The tricky part is that more than one of these implicit lists may be interleaved
-together. Here's an example:
+together. Let's walk through an example that covers all the interesting cases.
+We'll ignore values for now and just worry about a set of keys. We start with an
+empty array of 8 buckets:
 
-**TODO: walk through example**
+<img src="image/hash-tables/insert-1.png" alt="An array with eight empty buckets." class="wide" />
+
+We decide to insert "bagel". On a little-endian machine like Intel, packing
+those characters into a 64-bit word puts the first letter in the
+least-significant byte. So "b" (ASCII value 98) modulo the array size (8) ends
+up in bucket 2:
+
+<img src="image/hash-tables/insert-2.png" alt="Bagel goes into bucket 2." class="wide" />
+
+Next, we insert "jam". That also wants to go in bucket 2 (106 mod 8 = 2), but
+that bucket's taken. We start probing looking at the next bucket. It's empty, so
+we put it there:
+
+<img src="image/hash-tables/insert-3.png" alt="Jam goes into bucket 3, since 2 is full." class="wide" />
+
+We insert "fruit", which happily lands in bucket 6:
+
+<img src="image/hash-tables/insert-4.png" alt="Fruit goes into bucket 6." class="wide" />
+
+Likewise, "migas" can go in its preferred bucket 5:
+
+<img src="image/hash-tables/insert-5.png" alt="Migas goes into bucket 5." class="wide" />
+
+When we try to insert "eggs", it also wants to be in bucket 5. That's full so we
+skip to 6. Bucket 6 is also full. Note that the entry in there is *not* part of
+the same probe sequence. "Fruit" is in its preferred bucket, 6. So the 5 and 6
+sequences have collided and are interleaved. We skip over that and finally put
+"eggs" in bucket 7:
+
+<img src="image/hash-tables/insert-6.png" alt="Eggs goes into bucket 7 because 5 and 6 are full." class="wide" />
+
+We run into a similar problem with "nuts". It can't land in 6 like it wants to.
+Nor can it go into 7. So we keep going. But we've reached the end of the array,
+so we wrap back around to 0 and put it there:
+
+<img src="image/hash-tables/insert-7.png" alt="Nuts wraps around to bucket 0 because 6 and 7 are full." class="wide" />
 
 In practice, the interleaving turns out to not be much of a problem. Even in
 separate chaining, we need to walk the list to check each entry's key because
@@ -572,9 +619,8 @@ enough, it's a hash table that provides the tool we need.
     That's what that for loop does. We start at the bucket where the entry would
     ideally go. If that bucket is empty or has the same key, we're done.
     Otherwise, we advance to the next element -- this is the *linear* part of
-    "linear probing" -- and check there. If we go past the end of the array, that second modulo operator wraps us back around to the beginning.
-
-    If we loop around,
+    "linear probing" -- and check there. If we go past the end of the array,
+    that second modulo operator wraps us back around to the beginning.
 
 We exit the loop when we find either an empty bucket or a bucket with the same
 key as the one we're looking for. You might be wondering about an infinite loop.
@@ -609,8 +655,6 @@ the C standard library copy everything over. That doesn't work for a hash table.
 Remember that to choose the bucket for each entry, we take its hash key *modulo
 the array size*. That means that if the array size changes, all of the entries
 may end up in different buckets.
-
-**todo: illustrate example**
 
 We need to recalculate the buckets for each of the existing entries in the hash
 table. That in turn could cause new collisions which we need to resolve. So the
@@ -702,48 +746,51 @@ entry's bucket. Then clear out the bucket. Done!
 
 In cases where there are no collisions, that works fine. But if a collision has
 occurred, then the bucket where the entry lives may be part of one or more
-implicit probe sequences. Remember that when we're walking a probe sequence to
-find an entry, we know we've reached the end of a sequence and the entry isn't
-present when we hit an empty bucket. It's like the probe sequence is a list of
-entries and an empty entry terminates that list.
+implicit probe sequences. For example, here's a hash table containing three keys
+all with the same preferred bucket, 2:
 
-**todo: illustrate**
+<img src="image/hash-tables/delete-1.png" alt="A hash table containing 'bagel' in bucket 2, 'biscuit' in bucket 3, and 'jam' in bucket 4." />
 
-If the entry we're deleting is in the middle of a sequence and we clear it out,
-we break that list in the middle, leaving the trailing entries orphaned and
-unreachable. Sort of like removing a node from a linked list without relinking
-the pointer from the previous node to the next one.
+Remember that when we're walking a probe sequence to find an entry, we know
+we've reached the end of a sequence and the entry isn't present when we hit an
+empty bucket. It's like the probe sequence is a list of entries and an empty
+entry terminates that list.
 
-**todo: illustrate**
+If we delete "biscuit" by simply clearing the entry, then we break that probe
+sequence in the middle, leaving the trailing entries orphaned and unreachable.
+Sort of like removing a node from a linked list without relinking the pointer
+from the previous node to the next one.
 
-How about we treat it like removing an element from an array? We delete the
-entry and then shift up any entries that follow it. Does that work? Sometimes,
-yes. But our deleted entry could be part of a probe sequence that is interleaved
-with some entries that are in their preferred buckets. If we move one of those
-entries forward, it will shift to *before* where a search for it begins. That's
-also bad.
+If we later try to look for "jam", we'll start at "bagel", stop at the next
+empty entry, and never find it:
 
-**todo: illustrate**
+<img src="image/hash-tables/delete-2.png" alt="The 'biscuit' entry has been deleted from the hash table, breaking the chain." />
 
-Some of the trailing entries need to move forward and some don't. We could
-handle that by deleting the entry and then removing and re-inserting all of the
-entries that follow it so that we re-resolve any collisions and put them where
-they want to go taking the new empty bucket into account.
+To solve this, most implementations use a trick called <span
+name="tombstone">**"tombstones"**</span>. Instead of clearing the entry on
+deletion, we replace it with a special sentinel entry called a "tombstone". When
+we are following a probe sequence during a lookup, and we hit a tombstone, we
+*don't* treat it like an empty slot and stop iterating. Instead, we keep going
+so that deleting an entry doesn't break any implicit collision chains and we can
+still find entries after it:
 
-That *does* actually work, thank Zeus. But it's pretty slow. So most
-implementations use a different trick called **"tombstones"**. It looks like
-this:
+<img src="image/hash-tables/delete-3.png" alt="Instead of deleting 'biscuit', it's replaced with a tombstone." />
+
+The code looks like this:
 
 ^code table-delete
 
-**TODO: "Here lies entry 'foo' -> 123" tombstone illustration.**
-
 First, we find the bucket containing the entry we want to delete. (If we don't
-find it, there's nothing to delete, so we bail out.) Then, instead of completely
-clearing it, we replace the entry with a special sentinel entry called a
-"tombstone". In clox, we use a `NULL` key and a `true` value to indicate a
-tombstone, but any representation that can't be confused with an empty bucket or
-a valid entry works.
+find it, there's nothing to delete, so we bail out.) We replace the entry with a
+tombstone. In clox, we use a `NULL` key and a `true` value to represent that,
+but any representation that can't be confused with an empty bucket or a valid
+entry works.
+
+<aside name="tombstone">
+
+<img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry bagel -> 3.75, gone but not deleted." />
+
+</aside>
 
 That's all we need to do to delete an entry. Simple and fast. But all of the
 other operations need to correctly handle tombstones too. A tombstone is a sort
@@ -957,7 +1004,8 @@ The implementation looks like this:
 
 It looks like we copy-pasted `findEntry()`. There is a lot of redundancy, but
 there's a couple of key differences. First, we pass in the raw character array
-of the key we're looking for instead of an ObjString. At the point that we call this, we haven't created an ObjString yet.
+of the key we're looking for instead of an ObjString. At the point that we call
+this, we haven't created an ObjString yet.
 
 Second, when checking to see if we found the key, we do an actual
 character-by-character string comparison. This is the one place in the VM where
