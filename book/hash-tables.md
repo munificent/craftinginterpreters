@@ -1,14 +1,14 @@
 ^title Hash Tables
 ^part A Bytecode Virtual Machine
 
-Before we can variables to our burgeoning virtual machine, we need some way to
-look up a value given a variable's name. Later, when we add classes, we'll also
-need a way to store fields on instances. The perfect data structure for problems
-like these is a **hash table**.
+Before we can add variables to our burgeoning virtual machine, we need some way
+to look up a value given a variable's name. Later, when we add classes, we'll
+also need a way to store fields on instances. The perfect data structure for
+these problems and others is a hash table.
 
 You probably already know what a hash table is, even if you don't know it by
 that name. If you're a Java programmer, you call them "HashMaps". C# and Python
-call them "dictionaries". In C++, it's just "map" while Lisp calls them
+users call them "dictionaries". In C++, it's just "map" while Lisp calls them
 "associative arrays". "Objects" in JavaScript and "tables" Lua are hash tables
 under the hood, which is what gives them their flexibility.
 
@@ -19,7 +19,7 @@ remove entries by key. If you add a new value for an existing key, it replaces
 the previous entry.
 
 Hash tables appear in so many languages because they are incredibly powerful.
-Much of this power comes from one key metric: given a key, a hash table returns
+Much of this power comes from one metric: given a key, a hash table returns the
 corresponding value in <span name="constant">constant time</span>, *regardless
 of how many keys are in the hash table.*
 
@@ -27,7 +27,7 @@ of how many keys are in the hash table.*
 
 More specifically, the *average-case* lookup time is constant. Worst-case
 performance can be, well, worse. In practice, it's easy to avoid degenerate
-behavior and stay on the fast path.
+behavior and stay on the happy path.
 
 </aside>
 
@@ -35,8 +35,9 @@ That's pretty remarkable when you think about it. Imagine you've got a big stack
 of business cards and I ask you to find a certain person. The bigger the pile
 is, the longer it will take. Even if the pile is nicely sorted and you've got
 the manual dexterity to do a binary search by hand, you're still talking
-`O(log(n))`. But with a <span name="rolodex">hash table</span> it takes the same
-time to find that busines card when the stack has ten cards and a million.
+`O(log(n))`. But with a <span name="rolodex">hash table</span>, it takes the
+same time to find that busines card when the stack has ten cards as when it has
+a million.
 
 <aside name="rolodex">
 
@@ -49,7 +50,7 @@ dramatically. As we'll see, that's not too far from the trick a hash table uses.
 ## An Array of Buckets
 
 A complete, fast hash table has a couple of moving parts. I'll introduce them
-one at a time by going through a couple of smaller problems and solutions.
+one at a time by working through a couple of toy problems and their solutions.
 Eventually, we'll build up to a data structure that can associate any set of
 names with their values.
 
@@ -97,42 +98,44 @@ hash functions, dynamic resizing, and collision resolution, this is still the
 core of every hash table out there -- a contiguous array of buckets that you
 index directly into.
 
-## Load Factor and Wrapped Keys
+### Load factor and wrapped keys
 
 Confining Lox to single-letter variables makes our job as implementers easier,
 but it's probably no fun programming in a language that only gives you 26
-storage locations. What if we loosened a little to allow variables up to <span
-name="six">eight</span> characters long?
+storage locations. What if we loosened it a little and allowed variables up to
+<span name="six">eight</span> characters long?
 
 <aside name="six">
 
 Again, this restriction isn't so crazy. Early linkers for C only treated the
 first six characters of external identifiers as meaningful. Everything after
 that was ignored. If you've ever wondered why the C standard library is so
-enamored of abbreviation, it turns out it wasn't entirely because of the small
-screens (or teletypes!) of the day.
+enamored of abbreviation -- looking at you, `creat()` -- it turns out it wasn't
+entirely because of the small screens (or teletypes!) of the day.
 
 </aside>
 
 That's small enough that we can pack all eight characters into a 64-bit integer
-and still treat the identifier as an array index. Or, at least, we could if we
-could somehow allocate a 295,148 *petabyte* array. Memory's gotten cheaper over
-time, but not quite *that* cheap. Even if we could make an array that big, it
-would be heinously wasteful. Almost every bucket will be empty unless users
-start writing way bigger Lox programs than we've anticipated.
+and easily turn the string into a number. We can then use it as an array index.
+Or, at least, we could if we could somehow allocate a 295,148 *petabyte* array.
+Memory's gotten cheaper over time, but not quite *that* cheap. Even if we could
+make an array that big, it would be heinously wasteful. Almost every bucket will
+be empty unless users start writing way bigger Lox programs than we've
+anticipated.
 
-Even though our indexes are 64 bits, we clearly don't need an array that covers
-that entire range. Instead, we allocate array with enough capacity for the
-entries we need, but still some reasonable size. In order to keep the indexes in
-bounds, we'll wrap them around using the modulo operator.
+Even though our variable keys cover the full 64 numeric range, we clearly don't
+need an array that that large. Instead, we'll allocate an array with enough
+capacity for the entries we need, but still some reasonable size. We map the
+full 64-bit keys down to that smaller range by taking the value modulo the size
+of the array.
 
 For example, say we want to store "bagel". We allocate an array with eight
 elements, plenty enough to store it and more later. We treat the key string as a
 64-bit integer. On a little-endian machine like Intel, packing those characters
-into a 64-bit word puts the first letter in the least-significant byte. We take
-that integer modulo the array size (<span name="power-of-two">eight</span>) to
-fit it in the bounds and get a bucket index, 2. Then we store the value there as
-usual.
+into a 64-bit word puts the first letter, "b", ASCII value 98 in the
+least-significant byte. We take that integer modulo the array size (<span
+name="power-of-two">8</span>) to fit it in the bounds and get a bucket index, 2.
+Then we store the value there as usual.
 
 <aside name="power-of-two">
 
@@ -142,26 +145,28 @@ build in this book. Others prefer prime number array sizes or have other rules.
 
 </aside>
 
-We solved our waste problem, but introduced a new one. Any two variables whose
-key number has the same remainder when divided by the array size will end up in
-the same bucket. Variables can **collide**. For example, if we try to add "jam",
-it also ends up in bucket 2:
+Using the array size as a modulus lets us map the key's numeric range down to
+fit an array of any size. We can thus control the number of buckets
+independently of the key range. That solves our waste problem, but introduces a
+new one. Any two variables whose key number has the same remainder when divided
+by the array size will end up in the same bucket. Keys can **collide**. For
+example, if we try to add "jam", it also ends up in bucket 2:
 
 <img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
 
 We do have some control of this by tuning the array size. The bigger the array,
-the indexes that get mapped to the same bucket and the fewer collisions that are
-likely to occur. Hash table implementers track this collision likelihood by
-measuring the table's **load factor**. It's defined as the number of entries
-divided by the number of buckets. So a hash table with five entries and an array
-of 16 elements has a load factor of 0.3125. The higher the load factor, the
-greater the chance of collisions.
+the fewere indexes that get mapped to the same bucket and the fewer collisions
+that are likely to occur. Hash table implementers track this collision
+likelihood by measuring the table's **load factor**. It's defined as the number
+of entries divided by the number of buckets. So a hash table with five entries
+and an array of 16 elements has a load factor of 0.3125. The higher the load
+factor, the greater the chance of collisions.
 
-One way we mitigate collisions is by dynamically resizing the array. Just like
-the dynamic arrays we implemented earlier, we reallocate and grow the hash
-table's array as it fills up. Unlike a regular dynamic array, though, we won't
-wait until the array is *full*. Instead, we pick a desired load factor and grow
-the array when it goes over that.
+One way we mitigate collisions is by resizing the array. Just like the dynamic
+arrays we implemented earlier, we reallocate and grow the hash table's array as
+it fills up. Unlike a regular dynamic array, though, we won't wait until the
+array is *full*. Instead, we pick a desired load factor and grow the array when
+it goes over that.
 
 ## Collision Resolution
 
@@ -236,23 +241,22 @@ store a few entries to reduce the pointer overhead.
 The other technique is <span name="open">called</span> **"open addressing"** or
 (confusingly) **"closed hashing"**. With this technique, all entries live
 directly in the bucket array, with one entry per bucket. If two entries collide
-in the same bucket, we find a different bucket to put one of the entries into
-instead.
+in the same bucket, we find a different empty bucket to use instead.
 
 <aside name="open">
 
-It's called "open" addressing because the entry may end up at an address outside
-of its preferred one. It's called "closed" hashing because all of the entries
-stay inside the array of buckets.
+It's called "open" addressing because the entry may end up at an address
+(bucket) outside of its preferred one. It's called "closed" hashing because all
+of the entries stay inside the array of buckets.
 
 </aside>
 
-Storing all entries directly in a single big contiguous array is great for
-keeping the memory representation simple and fast. But it makes all of the
-operations on the hash table more complex. When inserting an entry, its bucket
-may be full, sending us to look at another bucket. That bucket itself may be
-occupied and so on. This process of finding an available bucket is called
-**probing** and the order that you examine buckets is a **probe sequence**.
+Storing all entries in a single big contiguous array is great for keeping the
+memory representation simple and fast. But it makes all of the operations on the
+hash table more complex. When inserting an entry, its bucket may be full,
+sending us to look at another bucket. That bucket itself may be occupied and so
+on. This process of finding an available bucket is called **probing** and the
+order that you examine buckets is a **probe sequence**.
 
 There are a <span name="probe">number</span> of algorithms for determining
 which buckets to probe and how to decide which entry goes in which bucket.
@@ -272,7 +276,7 @@ anything those lead you to.
 As usual in this book, we'll pick the simplest one that gets the job done
 efficiently. That's good old **linear probing**. When looking for an entry, we
 look in the first bucket its key maps to. If it's not in there, we look in the
-very next element in the array, and so on. If we reached the end, we wrap back
+very next element in the array, and so on. If we reach the end, we wrap back
 around to the beginning.
 
 The good thing about linear probing is that it's cache friendly. Since you walk
@@ -285,8 +289,7 @@ Compared to separate chaining, open addressing can be harder to wrap your head
 around. I think of open addressing as similar to separate chaining except that
 the "list" of nodes is threaded through the bucket array itself. Instead of
 storing the links between them in pointers, the connections are calculated
-implicitly by the order that you look through the buckets to find a place for
-the entry.
+implicitly by the order that you look through the buckets.
 
 The tricky part is that more than one of these implicit lists may be interleaved
 together. Let's walk through an example that covers all the interesting cases.
@@ -295,16 +298,14 @@ empty array of 8 buckets:
 
 <img src="image/hash-tables/insert-1.png" alt="An array with eight empty buckets." class="wide" />
 
-We decide to insert "bagel". On a little-endian machine like Intel, packing
-those characters into a 64-bit word puts the first letter in the
-least-significant byte. So "b" (ASCII value 98) modulo the array size (8) ends
-up in bucket 2:
+We decide to insert "bagel". The first letter, "b" (ASCII value 98), modulo the
+array size (8) puts it in bucket 2:
 
 <img src="image/hash-tables/insert-2.png" alt="Bagel goes into bucket 2." class="wide" />
 
 Next, we insert "jam". That also wants to go in bucket 2 (106 mod 8 = 2), but
-that bucket's taken. We start probing looking at the next bucket. It's empty, so
-we put it there:
+that bucket's taken. We keeping probing to the next bucket. It's empty, so we
+put it there:
 
 <img src="image/hash-tables/insert-3.png" alt="Jam goes into bucket 3, since 2 is full." class="wide" />
 
@@ -357,8 +358,8 @@ hashed. We, thankfully, don't need to worry about those concerns for this book.
 </aside>
 
 1.  It must be *deterministic*. The same input must always hash to the same
-    number. If the same variable name ends up in different buckets at different
-    points in time, it's gonna get really hard to find them.
+    number. If the same variable ends up in different buckets at different
+    points in time, it's gonna get really hard to find it.
 
 2.  It must be *uniform*. Given a typical set of inputs, it should produce a
     wide and evenly-distributed range of output numbers, with as few clumps or
@@ -374,17 +375,16 @@ hashed. We, thankfully, don't need to worry about those concerns for this book.
 One of the original names for hash tables was "scatter table" because it takes
 the entries and scatters them throughout the array. The word "hash" came from
 the idea that a hash function takes the input data, chops it up, and tosses it
-all together into a pile to come up with a single number that touches all of
-those bits.
+all together into a pile to come up with a single number from all of those bits.
 
 </aside>
 
 There is a veritable pile of hash functions out there. Some are old and
-optimized for architectures no one uses any more. Some are designed to be fast,
+optimized for architectures no one uses anymore. Some are designed to be fast,
 others cryptographically secure. Some take advantage of vector instructions and
 cache sizes for specific chips, others aim to maximize portability.
 
-There are people out there where designing and evaluating hash functions is,
+There are people out there for whom designing and evaluating hash functions is,
 like, their *jam*. I admire them, but I'm not mathematically astute enough to
 *be* one. So for clox, I picked a simple, well-worn hash function called
 [FNV-1a][] that's served me fine over the years. Consider <span
@@ -429,7 +429,7 @@ wrapping it in a Value. It's a little faster and smaller this way.
 
 In clox, we only need to support keys that are strings. Handling other types of
 keys doesn't add much complexity. As long as you can reduce an object to a
-sequence of bits, and compare two objects for equality, it's easy to use it as a
+sequence of bits, and compare two objects for equality, it's easy to use as a
 hash key.
 
 </aside>
@@ -444,8 +444,8 @@ all of the pesky includes out of the way:
 ^code table-c
 
 As in our dynamic value array type, a hash table initially starts with zero
-capacity and a null array. We don't allocate anything until needed. Assuming we
-do eventually allocate something, we need to be able to free it too:
+capacity and a `NULL` array. We don't allocate anything until needed. Assuming
+we do eventually allocate something, we need to be able to free it too:
 
 ^code free-table-h (1 before, 2 after)
 
@@ -461,24 +461,23 @@ handles that gracefully.
 ### Hashing strings
 
 Before we can start putting entries in the table, we need to, well, hash them.
-To ensure that the entries get distributed as widely and uniformly as possible
-throughout the array, we want a good hash function that looks at all of the bits
-of the key string. If it only, say, looked at the first few characters, then a
-series of strings that all shared the same prefix would end up colliding in the
-same bucket.
+To ensure that the entries get distributed as uniformly throughout the array, we
+want a good hash function that looks at all of the bits of the key string. If it
+only, say, looked at the first few characters, then a series of strings that all
+shared the same prefix would end up colliding in the same bucket.
 
 On the other hand, walking the entire string to calculate the hash is kind of
 slow. We'd lose some of the performance benefit of the hash table if we had to
 walk the string every time we looked for a key in the table. So we'll do the
 obvious thing: cache it.
 
-Over in the "object" module, we add:
+Over in the "object" module in ObjString, we add:
 
 ^code obj-string-hash (1 before, 1 after)
 
-Each StringObj stores the hash code for that string. Since strings are immutable
-in Lox, we can calculate it once up front and be certain that it will never be
-invalidated. Caching it eagerly makes a kind of sense. Allocating the string and
+Each ObjString stores the hash code for that string. Since strings are immutable
+in Lox, we can calculate it once up front and be certain that it will never get
+invalidated. Caching it eagerly makes a kind of sense: Allocating the string and
 copying its characters over is already an `O(n)` operation, so it's a good time
 to also do the `O(n)` calculation of the string's hash.
 
@@ -505,13 +504,13 @@ The other string function is similar:
 
 ^code take-string-hash (1 before, 1 after)
 
-The actual interesting code is over here:
+The interesting code is over here:
 
 ^code hash-string
 
 This is the actual bonafide "hash function" in clox. The algorithm is called
-"FNV-1a", and is the *shortest* decent hash function I know. Brevity is
-certainly a virtue in a book that aims to show you every line of code.
+"FNV-1a", and is the shortest decent hash function I know. Brevity is certainly
+a virtue in a book that aims to show you every line of code.
 
 The basic idea is pretty simple and many hash functions follow the same pattern.
 You start with some initial hash value, usually a constant with certain
@@ -527,14 +526,13 @@ and clustering.
 ### Inserting entries
 
 Now that string objects know their hash code, we can start putting them into
-hash tables. You can't do anything useful with an empty hash table, so let's
-start with inserting:
+hash tables:
 
 ^code table-set-h (1 before, 2 after)
 
 This adds the given key/value pair to the given hash table. If an entry for that
-key is already present, the new value overwrites the old one. It returns true if
-a new entry was added. Here's the implementation:
+key is already present, the new value overwrites the old one. It returns `true`
+if a new entry was added. Here's the implementation:
 
 ^code table-set
 
@@ -584,8 +582,8 @@ at that `findEntry()` function you've been wondering about:
 This function is the real core of the hash table. It's responsible for taking a
 key and an array of buckets and figuring out which bucket the entry belongs in.
 This function is also where linear probing and collision handling come into
-play. We'll use it both to look up existing entries in the hash table, and to
-find where to insert new ones.
+play. We'll use it both to find existing entries in the hash table, and to
+decide where to insert new ones.
 
 For all that, there isn't much to it. First, we take the key's hash code and map
 it to the array by taking it modulo the array size. That gives us an index into
@@ -613,22 +611,19 @@ enough, it's a hash table that provides the tool we need.
 
 </aside>
 
-*   Otherwise, the bucket has an entry in it, but but with a different key. This
-    is a collision. In that case, we start probing.
-
-    That's what that for loop does. We start at the bucket where the entry would
-    ideally go. If that bucket is empty or has the same key, we're done.
-    Otherwise, we advance to the next element -- this is the *linear* part of
-    "linear probing" -- and check there. If we go past the end of the array,
-    that second modulo operator wraps us back around to the beginning.
+*   Otherwise, the bucket has an entry in it, but with a different key. This is
+    a collision. In that case, we start probing. That's what that for loop does.
+    We start at the bucket where the entry would ideally go. If that bucket is
+    empty or has the same key, we're done. Otherwise, we advance to the next
+    element -- this is the *linear* part of "linear probing" -- and check there.
+    If we go past the end of the array, that second modulo operator wraps us
+    back around to the beginning.
 
 We exit the loop when we find either an empty bucket or a bucket with the same
 key as the one we're looking for. You might be wondering about an infinite loop.
 What if we collide with *every* bucket? Fortunately, that can't happen thanks to
 our load factor. Because we grow the array as soon as it gets close to being
-full, we know there will always be empty buckets in the array. Even in
-pathologically bad cases with lots of collisions, we'll eventually find an empty
-bucket.
+full, we know there will always be empty buckets.
 
 Once we exit the loop, we return a pointer to the found entry so the caller can
 either insert something into it or read from it. Way back in `tableSet()`, the
@@ -637,8 +632,8 @@ we're done.
 
 ### Allocating and resizing
 
-Before we can put anything *in* the hash table, we do need a place to actually
-put things in. We need to allocate an array of buckets. That happens in this
+Before we can put entries in the hash table, we do need a place to actually
+store them. We need to allocate an array of buckets. That happens in this
 function:
 
 ^code table-adjust-capacity
@@ -647,14 +642,14 @@ It creates a bucket array with `capacity` entries. After it allocates the array,
 it initializes every element to be an empty bucket and then stores the array
 (and its capacity) in the hash table's main struct. This code is fine for when
 we insert the very first entry into the table, and we require the first
-allocation of the array. But what about when we already have an array and we
-need to grow it?
+allocation of the array. But what about when we already one and we need to grow
+it?
 
 Back when we were doing a dynamic array, we could just use `realloc()` and let
 the C standard library copy everything over. That doesn't work for a hash table.
 Remember that to choose the bucket for each entry, we take its hash key *modulo
-the array size*. That means that if the array size changes, all of the entries
-may end up in different buckets.
+the array size*. That means that when the array size changes, entries may end up
+in different buckets.
 
 We need to recalculate the buckets for each of the existing entries in the hash
 table. That in turn could cause new collisions which we need to resolve. So the
@@ -683,9 +678,9 @@ entries of one hash table into another:
 
 ^code table-add-all-h (1 before, 2 after)
 
-We won't need this until much later when we implement method inheritance, but we
-may as well implement it here while we've got all of the hash table stuff fresh
-in our minds.
+We won't need this until much later when we support method inheritance, but we
+may as well implement it now while we've got all the hash table stuff fresh in
+our minds.
 
 ^code table-add-all
 
@@ -699,11 +694,11 @@ Now that our hash table contains some stuff, let's start pulling things back
 out. Given a key, we can look up the corresponding value, if there is one, with
 this function:
 
-^code table-get-h (1 before, 2 after)
+^code table-get-h (1 before, 1 after)
 
 You pass in a table and a key. If it finds an entry with that key, it returns
-true, otherwise it returns false. If the entry exists, it stores the resulting
-value in the `value` output parameter.
+`true`, otherwise it returns `false`. If the entry exists, it stores the
+resulting value in the `value` output parameter.
 
 Since `findEntries()` already does the hard work, the implementation isn't too
 bad:
@@ -723,7 +718,7 @@ Piece of cake.
 There is one more fundamental operation a full-featured hash table needs to
 support: removing an entry. This seems pretty obvious, if you can add things,
 you should be able to *un*-add them, right? But you'd be surprised how many
-tutorials and books on hash tables omit this completely.
+tutorials on hash tables omit this.
 
 I could have taken that route too. In fact, we never actually *use* deletion in
 clox. But if you want to actually understand how to completely implement a hash
@@ -733,7 +728,8 @@ name="delete">open</span> addressing is tricky.
 
 <aside name="delete">
 
-With separate chaining, deleting is as simple as deleting from a linked list.
+With separate chaining, deleting is as simple as remove a node from a linked
+list.
 
 </aside>
 
@@ -741,7 +737,7 @@ At least the declaration is simple:
 
 ^code table-delete-h (1 before, 2 after)
 
-The obvious approach is to mirror insertion. Use `findEntry()` look up the
+The obvious approach is to mirror insertion. Use `findEntry()` to look up the
 entry's bucket. Then clear out the bucket. Done!
 
 In cases where there are no collisions, that works fine. But if a collision has
@@ -794,18 +790,16 @@ entry works.
 
 That's all we need to do to delete an entry. Simple and fast. But all of the
 other operations need to correctly handle tombstones too. A tombstone is a sort
-of zombie entry. It has some of the characteristics of a living present entry,
-and some of the characteristics of a dead empty one.
+of "half" entry. It has some of the characteristics of a present entry, and some
+of the characteristics of an empty one.
 
 When we are following a probe sequence during a lookup, and we hit a tombstone,
 we *don't* treat it like an empty slot and stop iterating. Instead, we note it
-and keep going. By probing past the tombstone, we ensure that deleting an entry
-doesn't break any implicit collision chains so that we can still find entries
-after it. In that sense, the tombstone entry is still "there".
+and keep going:
 
 ^code find-tombstone (2 before, 2 after)
 
-The first time we pass a tombstone, we note it and store it in a local variable:
+The first time we pass a tombstone, we store it in this local variable:
 
 ^code find-entry-tombstone (1 before, 1 after)
 
@@ -816,8 +810,8 @@ treat the tombstone bucket as empty and reuse it for the new entry.
 
 Reusing tombstone slots automatically like this helps reduce the number of
 tombstones wasting space in the bucket array. In typical use cases where there
-is an even mixture of insertions and deletions, the number of tombstones grows
-for a while and then tends to stabilize.
+is a mixture of insertions and deletions, the number of tombstones grows for a
+while and then tends to stabilize.
 
 Even so, there's no guarantee that a large number of deletes won't cause the
 array to be full of tombstones. In the very worst case, we could end up with
@@ -831,8 +825,8 @@ should we treat tombstones like full buckets or empty ones?
 
 If we treat them like full buckets, then we may end up with a bigger array than
 we probably need because it artificially inflates the load factor. There are
-tombstones we could reuse, but they aren't counted so we end up growing the
-array sometimes.
+tombstones we could reuse, but they aren't treated as unused so we end up
+growing the array prematurely.
 
 But if we treat tombstones like empty buckets and *don't* include them in the
 load factor, then we run the risk of ending up with *no* actual empty buckets to
@@ -845,9 +839,9 @@ number of entries plus tombstones.
 
 When we resize the array, we allocate a new array and re-insert all of the
 existing entries into it. During that process, we *don't* copy the tombstones
-over. They don't add any value and would just slow down lookups. That means we
-need to recalculate the count since it may change during a resize. So we clear
-it out:
+over. They don't add any value since we're rebuilding the probe sequences
+anyway, and would just slow down lookups. That means we need to recalculate the
+count since it may change during a resize. So we clear it out:
 
 ^code resize-init-count (2 before, 1 after)
 
@@ -884,7 +878,8 @@ It's a neat trick.
 
 We've got ourselves a hash table that mostly works, though it has a critical
 flaw in its center. Also, we aren't using it for anything yet. It's time to
-address both of those and also learn a classic technique used by interpreters.
+address both of those and in the process learn a classic technique used by
+interpreters.
 
 The reason the hash table doesn't totally work is that when `findEntry()` checks
 to see if an existing key matches the one it's looking for, it uses `==` to
@@ -915,13 +910,20 @@ characters. Those need to behave like equivalent values even though they are
 distinct objects. They're essentially duplicates, and we have to compare all of
 their bytes to detect that.
 
-<span name="intern">String interning</span> is a process of de-duplication. We
-create a collection of interned strings. Any string in the collection is
-guaranteed to distinct from all others. When you "intern" a string, you look for
-a matching string in the collection. If found, you use that original one.
-Otherwise, the string you have is unique, so you add it to the collection.
+<span name="intern">String interning</span> is a process of deduplication. We
+create a collection of "interned" strings. Any string in that collection is
+guaranteed to be textually distinct from all others. When you intern a string,
+you look for a matching string in the collection. If found, you use that
+original one. Otherwise, the string you have is unique, so you add it to the
+collection.
 
 <aside name="intern">
+
+I'm guessing "intern" is short for "internal". I think the idea is that the
+language's runtime keeps its own "internal" collection of these strings, whereas
+other strings could be user created and floating around in memory. When you
+intern a string, you ask it to add the string to that internal collection and
+return a pointer to it.
 
 Languages vary in how much string interning they do and how it's exposed to the
 user. Lua interns *all* strings, which is what clox will do too. Lisp, Scheme,
@@ -933,14 +935,14 @@ explicitly intern any string you give it.
 </aside>
 
 In this way, you know that each sequence of characters is represented by only
-one string in memory. This makes value equality trivial. If two strings points
+one string in memory. This makes value equality trivial. If two strings point
 to the same address in memory, they are obviously the same string and must be
 equal. And, because we know strings are unique, if two strings point to
 different addresses, they must be distinct strings.
 
 Thus, pointer equality exactly matches value equality. Which in turn means that
 our existing `==` in `findEntry()` does the right thing. Or, at least, it will
-once we intern all the strings. In order to reliably de-duplicate all strings,
+once we intern all the strings. In order to reliably deduplicate all strings,
 the VM needs to be able to find every string that's created. We do that by
 giving it a hash table to store them all:
 
@@ -959,8 +961,8 @@ And when we shut down the VM, we clean up any resources used by the table:
 ^code free-strings (1 before, 1 after)
 
 Some languages have a separate type or an explicit step to intern a string. For
-clox, we'll automatically intern every string. That means whenever we create a
-new unique string, we add it to the table:
+clox, we'll automatically intern every one. That means whenever we create a new
+unique string, we add it to the table:
 
 ^code allocate-store-string (2 before, 1 after)
 
@@ -976,10 +978,10 @@ higher-level functions that call `allocateString()`. Here's one:
 
 When copying a string into a new LoxString, we look it up in the string table
 first. If we find it, instead of "copying", we just return a reference to that
-string.
+string. Otherwise, we fall through, allocate a new string, and store it in the
+string table.
 
-Otherwise, we fallthrough, allocate a new string, and store it in the string
-table. Taking ownership of a string is a little different:
+Taking ownership of a string is a little different:
 
 ^code take-string-intern (1 before, 1 after)
 
@@ -1037,8 +1039,8 @@ then *everything* is slow.
 
 1.  In clox, we happen to only need keys that are strings, so the hash table we
     built is hardcoded for that key type. If we exposed hash tables to Lox users
-    as a first-class collection type, it would useful to support keys of
-    different types.
+    as a first-class collection, it would useful to support different kinds of
+    keys.
 
     Add support for keys of the other primitive types: numbers, Booleans, and
     `nil`. Later, clox will support user-defined classes. If we want to support
@@ -1055,8 +1057,8 @@ then *everything* is slow.
     something to <span name="publish">publish</span> theses on: each has its
     uses in the many varied domains and hardware scenarios where hashing comes
     into play. Look up a few hash table implementations in different open source
-    systems and research the details of their hash table. Try to figure out why
-    they made the choices they made if you can.
+    systems, research the choices they made, and try to figure out why they did
+    things that way.
 
     <aside name="publish">
 
