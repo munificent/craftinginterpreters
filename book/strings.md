@@ -274,7 +274,7 @@ count:
 Once we have the array, we copy over the characters from the lexeme and
 terminate it.
 
-<aside name="terminator">
+<aside name="terminator" class="bottom">
 
 We need to terminate it explicitly ourselves because the lexeme points at a
 range of characters inside the monolithic source string and isn't terminated.
