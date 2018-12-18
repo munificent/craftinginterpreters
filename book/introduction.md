@@ -7,7 +7,7 @@
 
 I'm really excited we're going on this journey together. This is a book on
 implementing interpreters for programming languages. It's also a book on how to
-design a language worth implementing. It's the book I wished I had when I first
+design a language worth implementing. It's the book I wish I had when I first
 started getting into languages, and it's the book I've been writing in my <span
 name="head">head</span> for nearly a decade.
 
