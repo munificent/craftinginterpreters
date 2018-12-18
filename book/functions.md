@@ -567,9 +567,9 @@ Then it implements `call()`:
 ^code function-call
 
 This handful of lines of code is one of the most fundamental, powerful pieces of
-our interpreter. As we saw in [the chapter on statements][statements] and <span
-name="env">state</span>, managing name environments is a core part of a language
-implementation. Functions are deeply tied to that.
+our interpreter. As we saw in [the chapter on statements and <span
+name="env">state</span>][statements], managing name environments is a core part
+of a language implementation. Functions are deeply tied to that.
 
 [statements]: statements-and-state.html
 
