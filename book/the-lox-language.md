@@ -574,13 +574,13 @@ Now's a good time to clarify some terminology. Some people throw around
 We're going to spend a lot of time splitting the finest of downy hairs around
 semantics, so let's sharpen our words. From here on out:
 
-* An **argument** is an actual value you pass to a function when you call it.
-  So a function *call* has an *argument* list. Sometimes you hear "actual
-  parameter" used for these.
+*   An **argument** is an actual value you pass to a function when you call it.
+    So a function *call* has an *argument* list. Sometimes you hear **"actual
+    parameter"** used for these.
 
-* A **parameter** is a variable that holds the value of the argument inside the
-  body of the function. Thus, a function *declaration* has a *parameter* list.
-  Others call these **"formal parameters"** or simply **"formals"**.
+*   A **parameter** is a variable that holds the value of the argument inside
+    the body of the function. Thus, a function *declaration* has a *parameter*
+    list. Others call these **"formal parameters"** or simply **"formals"**.
 
 The body of a function is always a block. Inside it, you can return a value
 using a `return` statement:
