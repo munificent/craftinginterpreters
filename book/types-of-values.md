@@ -527,7 +527,7 @@ need to be able to *un*-generate it in the disassembler:
 That wasn't too bad. Let's keep the momentum going and knock out the equality
 and comparison operators too: `==`, `!=`, `<`, `>`, `<=`, and `>=`. That covers
 all of the operators that return Boolean results except the logical operators
-`&&` and `||`. Since those need to short-circuit -- basically do a little
+`and` and `or`. Since those need to short-circuit -- basically do a little
 control flow -- we aren't ready for them yet.
 
 Here's the new instructions for those operators:

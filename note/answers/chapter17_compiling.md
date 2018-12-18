@@ -67,7 +67,3 @@ that the precedence of the operands is a little unusual. The precedence of the
 last operand is *lower* than the conditional expression itself.
 
 That might be surprising, but it's how C rolls.
-
-## 3
-
-TODO
