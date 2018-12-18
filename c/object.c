@@ -215,6 +215,9 @@ void printObject(Value value) {
 //< Classes and Instances not-yet
 //> Methods and Initializers not-yet
     case OBJ_BOUND_METHOD:
+      printf("<fn %s>",
+             AS_BOUND_METHOD(value)->method->function->name->chars);
+      break;
 //< Methods and Initializers not-yet
 //> Closures not-yet
     case OBJ_CLOSURE:
