@@ -15,8 +15,8 @@
 void disassembleChunk(Chunk* chunk, const char* name) {
   printf("== %s ==\n", name);
   
-  for (int i = 0; i < chunk->count;) {
-    i = disassembleInstruction(chunk, i);
+  for (int offset = 0; offset < chunk->count;) {
+    offset = disassembleInstruction(chunk, offset);
   }
 }
 //> constant-instruction
