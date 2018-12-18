@@ -982,8 +982,8 @@ ParseRule rules[] = {
 //> Types of Values table-false
   { literal,  NULL,    PREC_NONE },       // TOKEN_FALSE
 //< Types of Values table-false
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
 /* Compiling Expressions rules < Types of Values table-nil
   { NULL,     NULL,    PREC_NONE },       // TOKEN_NIL

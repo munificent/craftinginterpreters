@@ -465,7 +465,7 @@ Behold this innocuous-seeming expression:
 "st" + "ri" + "ng"
 ```
 
-When the compiler chrews through this, it allocates an ObjString for each of
+When the compiler chews through this, it allocates an ObjString for each of
 those three string literals and stores them in the chunk's constant table and
 generates this <span name="stack">bytecode</span>:
 
