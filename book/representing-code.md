@@ -645,9 +645,10 @@ if (expr instanceof Expr.Binary) {
 } else // ...
 ```
 
-That's verbose and slow. Also, the Java compiler won't tell us when we forget to
-add support for some new expression class. With an enum, we get a compile
-error when a switch is missing a case.
+But all of those sequential type tests are slow. Expression types whose names
+are alphabetically later would take longer to execute because they'd fall
+through more if cases before finding the right type. That's not my idea of an
+elegant solution.
 
 We have a family of classes and we need to associate a chunk of behavior with
 each one. The natural solution in an object-oriented language like Java is to
