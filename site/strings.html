@@ -302,7 +302,7 @@ strings is defined in a separate struct. Again we need to forward-declare it:</p
 <p>The definition lives alongside Obj:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                 
 </pre><div class="source-file"><em>object.h</em><br>
-add after enum <em>ObjType</em></div>
+add after struct <em>sObj</em></div>
 <pre class="insert"><br><span></span><span class="k">struct</span> <span class="n">sObjString</span> <span class="p">{</span>
   <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>         
   <span class="kt">int</span> <span class="n">length</span><span class="p">;</span>      
@@ -311,7 +311,7 @@ add after enum <em>ObjType</em></div>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#endif             </span>
 </pre></div>
 
-<div class="source-file-narrow"><em>object.h</em>, add after enum <em>ObjType</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObj</em></div>
 
 <p>A string object contains an array of characters. Those are stored in a separate
 heap-allocated array so that we only set aside as much room as needed for each
@@ -361,14 +361,15 @@ safe, we add another macro:</p>
 <p>It takes a Value, not a raw <code>Obj*</code> because most code in the VM works with
 Values. It relies on this inline function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                                                       
-<br></pre><div class="source-file"><em>object.h</em></div>
+<br></pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObjString</em></div>
 <pre class="insert"><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">bool</span> <span class="nf">isObjType</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">,</span> <span class="n">ObjType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">IS_OBJ</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="n">AS_OBJ</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">type</span><span class="p">;</span>   
 <span class="p">}</span>                                                        
 <br></pre><pre class="insert-after"><span></span><span class="cp">#endif                                                   </span>
 </pre></div>
 
-<div class="source-file-narrow"><em>object.h</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
 <p>Pop quiz: Why not just put the body of this function right in the macro? What&rsquo;s
 different about this one compared to the others? Right, it&rsquo;s because the body
@@ -432,12 +433,13 @@ Since it doesn&rsquo;t, we can take the characters as they are.</p>
 </aside>
 <p>To create the string, we use <code>copyString()</code>, which is declared in <code>object.h</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                                                       
-<br></pre><div class="source-file"><em>object.h</em></div>
+<br></pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObjString</em></div>
 <pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>    
 <br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kr">inline</span> <span class="kt">bool</span> <span class="nf">isObjType</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">,</span> <span class="n">ObjType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 
-<div class="source-file-narrow"><em>object.h</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
 <p>Which the compiler needs to include:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_compiler_h</span>
@@ -722,14 +724,15 @@ always, we carefully ensure the string is terminated.</p>
 <p>Finally, we produce an ObjString to contain those characters. This time we use a
 new function, <code>takeString()</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">};</span>                                                   
-<br></pre><div class="source-file"><em>object.h</em></div>
+<br></pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObjString</em></div>
 <pre class="insert"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>      
 </pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
 
 <span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">);</span>                       
 </pre></div>
 
-<div class="source-file-narrow"><em>object.h</em></div>
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
 <p>The implementation looks like:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
@@ -819,12 +822,12 @@ the chain:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">struct</span> <span class="n">sObj</span> <span class="p">{</span>       
   <span class="n">ObjType</span> <span class="n">type</span><span class="p">;</span>     
 </pre><div class="source-file"><em>object.h</em><br>
-add after enum <em>ObjType</em></div>
+in struct <em>sObj</em></div>
 <pre class="insert"><span></span>  <span class="k">struct</span> <span class="n">sObj</span><span class="o">*</span> <span class="n">next</span><span class="p">;</span>
 </pre><pre class="insert-after"><span></span><span class="p">};</span>                  
 </pre></div>
 
-<div class="source-file-narrow"><em>object.h</em>, add after enum <em>ObjType</em></div>
+<div class="source-file-narrow"><em>object.h</em>, in struct <em>sObj</em></div>
 
 <p>The VM stores a pointer to the head of the list:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Value</span><span class="o">*</span> <span class="n">stackTop</span><span class="p">;</span>

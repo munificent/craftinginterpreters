@@ -55,6 +55,7 @@ FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
 TYPE_PATTERN = re.compile(r'(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)')
 TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union)( \w+)? {')
+STRUCT_PATTERN = re.compile(r'struct (s\w+)? {')
 TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
 
 # Reserved words that can appear like a return type in a function declaration
@@ -494,6 +495,10 @@ def load_file(source_code, source_dir, path):
         if '//' not in line and '"' not in line:
           current_location = Location(current_location,
                                       match.group(3), match.group(4))
+
+      match = STRUCT_PATTERN.match(line)
+      if match:
+        current_location = Location(current_location, 'struct', match.group(1))
 
       match = TYPEDEF_PATTERN.match(line)
       if match:
