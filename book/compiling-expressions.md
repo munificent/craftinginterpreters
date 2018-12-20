@@ -265,9 +265,9 @@ There's one last parsing function, another old friend from jlox:
 
 ^code consume
 
-It's similar to `advance()` in that reads the next token. But it also validates
-that the token has an expected type. If not, it reports an error. This function
-is the foundation of most syntax errors in the compiler.
+It's similar to `advance()` in that it reads the next token. But it also
+validates that the token has an expected type. If not, it reports an error. This
+function is the foundation of most syntax errors in the compiler.
 
 OK, that's enough on the front end for now.
 
