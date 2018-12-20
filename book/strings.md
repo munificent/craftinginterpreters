@@ -29,7 +29,7 @@ to store the length, strings couldn't be any longer than 255 characters.
 
 </aside>
 
-We need a way to support values who size varies, sometimes greatly. This is
+We need a way to support values whose size varies, sometimes greatly. This is
 exactly what dynamic allocation on the heap is designed for. We can allocate as
 many bytes as we need. We get back a pointer that we'll use to keep track of the
 value as it flows through the VM.
@@ -525,7 +525,7 @@ But that underestimates how *hard* it is to add a garbage collector later. The
 collector *must* ensure it can find every bit of memory that *is* still being
 used so that it doesn't collect live data. There are hundreds of places a
 language implementation can squirrel away a reference to some object. If you
-don't find all of them, you've got really painful to track down GC bugs.
+don't find all of them, you get nightmarish bugs.
 
 I've seen language implementations die because it was too hard to get the GC in
 later. If your language needs GC, get it working as soon as you can. It's a
