@@ -160,7 +160,7 @@ clox assumes Value is an alias for `double`. We have code that does a straight C
 cast from one to the other. That code is all broken now. So sad.
 
 With our new representation, a Value can *contain* a double, but it's not
-*equivalent* to it. There is an mandatory conversion step to get from one to the
+*equivalent* to it. There is a mandatory conversion step to get from one to the
 other. We need to go through the code and insert those conversions to get clox
 working again.
 
