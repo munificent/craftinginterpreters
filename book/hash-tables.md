@@ -1,6 +1,10 @@
 ^title Hash Tables
 ^part A Bytecode Virtual Machine
 
+> Hash, x. There is no definition for this word -- nobody knows what hash is.
+>
+> <cite>Ambrose Bierce, The Unabridged Devil's Dictionary</cite>
+
 Before we can add variables to our burgeoning virtual machine, we need some way
 to look up a value given a variable's name. Later, when we add classes, we'll
 also need a way to store fields on instances. The perfect data structure for
