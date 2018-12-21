@@ -514,7 +514,7 @@ add after <em>initTable</em>()</div>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>initTable</em>()</div>
 <pre><span></span><span class="kt">void</span> <span class="nf">freeTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">)</span> <span class="p">{</span>                       
-  <span class="n">FREE_ARRAY</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">);</span>
+  <span class="n">FREE_ARRAY</span><span class="p">(</span><span class="n">Entry</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">);</span>
   <span class="n">initTable</span><span class="p">(</span><span class="n">table</span><span class="p">);</span>                                  
 <span class="p">}</span>                                                    
 </pre></div>
@@ -537,12 +537,13 @@ walk the string every time we looked for a key in the table. So we&rsquo;ll do t
 obvious thing: cache it.</p>
 <p>Over in the &ldquo;object&rdquo; module in ObjString, we add:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">;</span>  
-</pre><div class="source-file"><em>object.h</em></div>
+</pre><div class="source-file"><em>object.h</em><br>
+in struct <em>sObjString</em></div>
 <pre class="insert"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">;</span>
 </pre><pre class="insert-after"><span></span><span class="p">};</span>              
 </pre></div>
 
-<div class="source-file-narrow"><em>object.h</em></div>
+<div class="source-file-narrow"><em>object.h</em>, in struct <em>sObjString</em></div>
 
 <p>Each ObjString stores the hash code for that string. Since strings are immutable
 in Lox, we can calculate it once up front and be certain that it will never get
