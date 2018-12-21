@@ -8,9 +8,9 @@
 //> Calls and Functions not-yet
 #include "object.h"
 //< Calls and Functions not-yet
-//> Hash Tables not-yet
+//> Hash Tables vm-include-table
 #include "table.h"
-//< Hash Tables not-yet
+//< Hash Tables vm-include-table
 //> vm-include-value
 #include "value.h"
 //< vm-include-value
@@ -56,10 +56,9 @@ typedef struct {
 //> Global Variables not-yet
   Table globals;
 //< Global Variables not-yet
-//> Hash Tables not-yet
+//> Hash Tables vm-strings
   Table strings;
-
-//< Hash Tables not-yet
+//< Hash Tables vm-strings
 //> Methods and Initializers not-yet
   ObjString* initString;
 //< Methods and Initializers not-yet

@@ -186,7 +186,6 @@ TOC = [
           'Hash functions', 'String hashing', 'Linear probing',
           'Rehashing', 'Reference equality', 'String interning'
         ],
-        'done': False,
       },
       {
         'name': 'Global Variables',
