@@ -47,13 +47,13 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 //< precedence
-/* Compiling Expressions parse-fn-type < Global Variables not-yet
+/* Compiling Expressions parse-fn-type < Global Variables parse-fn-type
 
 typedef void (*ParseFn)();
 */
-//> Global Variables not-yet
+//> Global Variables parse-fn-type
 typedef void (*ParseFn)(bool canAssign);
-//< Global Variables not-yet
+//< Global Variables parse-fn-type
 //> parse-rule
 
 typedef struct {
@@ -219,18 +219,18 @@ static void consume(TokenType type, const char* message) {
   errorAtCurrent(message);
 }
 //< Compiling Expressions consume
-//> Global Variables not-yet
-
+//> Global Variables check
 static bool check(TokenType type) {
   return parser.current.type == type;
 }
-
+//< Global Variables check
+//> Global Variables match
 static bool match(TokenType type) {
   if (!check(type)) return false;
   advance();
   return true;
 }
-//< Global Variables not-yet
+//< Global Variables match
 //> Compiling Expressions emit-byte
 static void emitByte(uint8_t byte) {
   writeChunk(currentChunk(), byte, parser.previous.line);
@@ -435,22 +435,21 @@ static void endScope() {
 //> Compiling Expressions forward-declarations
 
 static void expression();
-//> Global Variables not-yet
+//> Global Variables forward-declarations
 static void statement();
 static void declaration();
-//< Global Variables not-yet
+//< Global Variables forward-declarations
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
 //< Compiling Expressions forward-declarations
-//> Global Variables not-yet
-
+//> Global Variables identifier-constant
 // Creates a string constant for the given identifier token. Returns the
 // index of the constant.
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
-//< Global Variables not-yet
+//< Global Variables identifier-constant
 //> Local Variables not-yet
 static bool identifiersEqual(Token* a, Token* b) {
   if (a->length != b->length) return false;
@@ -575,10 +574,10 @@ static void declareVariable() {
   addLocal(*name);
 }
 //< Local Variables not-yet
-//> Global Variables not-yet
+//> Global Variables parse-variable
 static uint8_t parseVariable(const char* errorMessage) {
   consume(TOKEN_IDENTIFIER, errorMessage);
-/* Global Variables not-yet < Local Variables not-yet
+/* Global Variables parse-variable < Local Variables not-yet
   return identifierConstant(&parser.previous);
 */
 //> Local Variables not-yet
@@ -592,9 +591,10 @@ static uint8_t parseVariable(const char* errorMessage) {
   return 0;
 //< Local Variables not-yet
 }
-
+//< Global Variables parse-variable
+//> Global Variables define-variable
 static void defineVariable(uint8_t global) {
-/* Global Variables not-yet < Local Variables not-yet
+/* Global Variables define-variable < Local Variables not-yet
   emitBytes(OP_DEFINE_GLOBAL, global);
 */
 //> Local Variables not-yet
@@ -607,7 +607,7 @@ static void defineVariable(uint8_t global) {
   }
 //< Local Variables not-yet
 }
-//< Global Variables not-yet
+//< Global Variables define-variable
 //> Calls and Functions not-yet
 static uint8_t argumentList() {
   uint8_t argCount = 0;
@@ -646,12 +646,12 @@ static void and_(bool canAssign) {
 }
 //< Jumping Forward and Back not-yet
 //> Compiling Expressions binary
-/* Compiling Expressions binary < Global Variables not-yet
+/* Compiling Expressions binary < Global Variables binary
 static void binary() {
 */
-//> Global Variables not-yet
+//> Global Variables binary
 static void binary(bool canAssign) {
-//< Global Variables not-yet
+//< Global Variables binary
   // Remember the operator.
   TokenType operatorType = parser.previous.type;
   
@@ -703,12 +703,12 @@ static void dot(bool canAssign) {
 }
 //< Classes and Instances not-yet
 //> Types of Values parse-literal
-/* Types of Values parse-literal < Global Variables not-yet
+/* Types of Values parse-literal < Global Variables parse-literal
 static void literal() {
 */
-//> Global Variables not-yet
+//> Global Variables parse-literal
 static void literal(bool canAssign) {
-//< Global Variables not-yet
+//< Global Variables parse-literal
   switch (parser.previous.type) {
     case TOKEN_FALSE: emitByte(OP_FALSE); break;
     case TOKEN_NIL: emitByte(OP_NIL); break;
@@ -719,23 +719,23 @@ static void literal(bool canAssign) {
 }
 //< Types of Values parse-literal
 //> Compiling Expressions grouping
-/* Compiling Expressions grouping < Global Variables not-yet
+/* Compiling Expressions grouping < Global Variables grouping
 static void grouping() {
 */
-//> Global Variables not-yet
+//> Global Variables grouping
 static void grouping(bool canAssign) {
-//< Global Variables not-yet
+//< Global Variables grouping
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 //< Compiling Expressions grouping
-/* Compiling Expressions number < Global Variables not-yet
+/* Compiling Expressions number < Global Variables number
 static void number() {
 */
 //> Compiling Expressions number
-//> Global Variables not-yet
+//> Global Variables number
 static void number(bool canAssign) {
-//< Global Variables not-yet
+//< Global Variables number
   double value = strtod(parser.previous.start, NULL);
 /* Compiling Expressions number < Types of Values const-number-val
   emitConstant(value);
@@ -771,21 +771,21 @@ static void or_(bool canAssign) {
   patchJump(endJump);
 }
 //< Jumping Forward and Back not-yet
-/* Strings parse-string < Global Variables not-yet
+/* Strings parse-string < Global Variables string
 static void string() {
 */
 //> Strings parse-string
-//> Global Variables not-yet
+//> Global Variables string
 static void string(bool canAssign) {
-//< Global Variables not-yet
+//< Global Variables string
   emitConstant(OBJ_VAL(copyString(parser.previous.start + 1,
                                   parser.previous.length - 2)));
 }
 //< Strings parse-string
-//> Global Variables not-yet
+//> Global Variables named-variable
 // Compiles a reference to a variable whose name is the given token.
 static void namedVariable(Token name, bool canAssign) {
-/* Global Variables not-yet < Local Variables not-yet
+/* Global Variables named-variable < Local Variables not-yet
   int arg = identifierConstant(&name);
 */
 //> Local Variables not-yet
@@ -810,14 +810,14 @@ static void namedVariable(Token name, bool canAssign) {
 //< Local Variables not-yet
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
-/* Global Variables not-yet < Local Variables not-yet
+/* Global Variables named-variable < Local Variables not-yet
     emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
 */
 //> Local Variables not-yet
     emitBytes(setOp, (uint8_t)arg);
 //< Local Variables not-yet
   } else {
-/* Global Variables not-yet < Local Variables not-yet
+/* Global Variables named-variable < Local Variables not-yet
     emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
 */
 //> Local Variables not-yet
@@ -825,11 +825,12 @@ static void namedVariable(Token name, bool canAssign) {
 //< Local Variables not-yet
   }
 }
-
+//< Global Variables named-variable
+//> Global Variables variable
 static void variable(bool canAssign) {
   namedVariable(parser.previous, canAssign);
 }
-//< Global Variables not-yet
+//< Global Variables variable
 //> Superclasses not-yet
 static Token syntheticToken(const char* text) {
   Token token;
@@ -878,12 +879,12 @@ static void this_(bool canAssign) {
 }
 //< Methods and Initializers not-yet
 //> Compiling Expressions unary
-/* Compiling Expressions unary < Global Variables not-yet
+/* Compiling Expressions unary < Global Variables unary
 static void unary() {
 */
-//> Global Variables not-yet
+//> Global Variables unary
 static void unary(bool canAssign) {
-//< Global Variables not-yet
+//< Global Variables unary
   TokenType operatorType = parser.previous.type;
 
   // Compile the operand.
@@ -955,12 +956,12 @@ ParseRule rules[] = {
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS
   { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS_EQUAL
 //< Types of Values table-comparisons
-/* Compiling Expressions rules < Global Variables not-yet
+/* Compiling Expressions rules < Global Variables table-identifier
   { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
 */
-//> Global Variables not-yet
+//> Global Variables table-identifier
   { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
-//< Global Variables not-yet
+//< Global Variables table-identifier
 /* Compiling Expressions rules < Strings table-string
   { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING
 */
@@ -1036,26 +1037,26 @@ static void parsePrecedence(Precedence precedence) {
     return;
   }
 
-/* Compiling Expressions precedence-body < Global Variables not-yet
+/* Compiling Expressions precedence-body < Global Variables prefix-rule
   prefixRule();
 */
-//> Global Variables not-yet
+//> Global Variables prefix-rule
   bool canAssign = precedence <= PREC_ASSIGNMENT;
   prefixRule(canAssign);
-//< Global Variables not-yet
+//< Global Variables prefix-rule
 //> infix
   
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
-/* Compiling Expressions infix < Global Variables not-yet
+/* Compiling Expressions infix < Global Variables infix-rule
     infixRule();
 */
-//> Global Variables not-yet
+//> Global Variables infix-rule
     infixRule(canAssign);
-//< Global Variables not-yet
+//< Global Variables infix-rule
   }
-//> Global Variables not-yet
+//> Global Variables invalid-assign
 
   if (canAssign && match(TOKEN_EQUAL)) {
     // If we get here, we didn't parse the "=" even though we could
@@ -1063,7 +1064,7 @@ static void parsePrecedence(Precedence precedence) {
     error("Invalid assignment target.");
     expression();
   }
-//< Global Variables not-yet
+//< Global Variables invalid-assign
 //< infix
 //< precedence-body
 }
@@ -1220,7 +1221,7 @@ static void funDeclaration() {
   defineVariable(global);
 }
 //< Calls and Functions not-yet
-//> Global Variables not-yet
+//> Global Variables var-declaration
 static void varDeclaration() {
   uint8_t global = parseVariable("Expect variable name.");
 
@@ -1235,14 +1236,15 @@ static void varDeclaration() {
 
   defineVariable(global);
 }
-
+//< Global Variables var-declaration
+//> Global Variables expression-statement
 static void expressionStatement() {
   expression();
   emitByte(OP_POP);
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 
 }
-//< Global Variables not-yet
+//< Global Variables expression-statement
 //> Jumping Forward and Back not-yet
 static void forStatement() {
   // for (var i = 0; i < 10; i = i + 1) print i;
@@ -1344,13 +1346,13 @@ static void ifStatement() {
   patchJump(endJump);
 }
 //< Jumping Forward and Back not-yet
-//> Global Variables not-yet
+//> Global Variables print-statement
 static void printStatement() {
   expression();
   consume(TOKEN_SEMICOLON, "Expect ';' after value.");
   emitByte(OP_PRINT);
 }
-//< Global Variables not-yet
+//< Global Variables print-statement
 //> Calls and Functions not-yet
 static void returnStatement() {
   if (current->type == TYPE_TOP_LEVEL) {
@@ -1394,8 +1396,7 @@ static void whileStatement() {
   emitByte(OP_POP); // Condition.
 }
 //< Jumping Forward and Back not-yet
-//> Global Variables not-yet
-
+//> Global Variables synchronize
 static void synchronize() {
   parser.panicMode = false;
   
@@ -1421,7 +1422,8 @@ static void synchronize() {
     advance();
   }
 }
-
+//< Global Variables synchronize
+//> Global Variables declaration
 static void declaration() {
 //> Classes and Instances not-yet
   if (match(TOKEN_CLASS)) {
@@ -1433,7 +1435,7 @@ static void declaration() {
 //< Classes and Instances not-yet
 //> Calls and Functions not-yet
     funDeclaration();
-/* Global Variables not-yet < Calls and Functions not-yet
+/* Global Variables declaration < Calls and Functions not-yet
   if (match(TOKEN_VAR)) {
 */
   } else if (match(TOKEN_VAR)) {
@@ -1445,9 +1447,10 @@ static void declaration() {
   
   if (parser.panicMode) synchronize();
 }
-
+//< Global Variables declaration
+//> Global Variables statement
 static void statement() {
-/* Global Variables not-yet < Jumping Forward and Back not-yet
+/* Global Variables statement < Jumping Forward and Back not-yet
   if (match(TOKEN_PRINT)) {
 */
 //> Jumping Forward and Back not-yet
@@ -1476,7 +1479,7 @@ static void statement() {
     expressionStatement();
   }
 }
-//< Global Variables not-yet
+//< Global Variables statement
 /* Scanning on Demand compiler-c < Compiling Expressions compile-signature
 
 void compile(const char* source) {
@@ -1526,11 +1529,11 @@ ObjFunction* compile(const char* source) {
 //< init-parser-error
   advance();
 //< Compiling Expressions compile-chunk
-/* Compiling Expressions compile-chunk < Global Variables not-yet
+/* Compiling Expressions compile-chunk < Global Variables compile
   expression();
   consume(TOKEN_EOF, "Expect end of expression.");
 */
-//> Global Variables not-yet
+//> Global Variables compile
   
   if (!match(TOKEN_EOF)) {
     do {
@@ -1538,7 +1541,7 @@ ObjFunction* compile(const char* source) {
     } while (!match(TOKEN_EOF));
   }
 
-//< Global Variables not-yet
+//< Global Variables compile
 /* Compiling Expressions finish-compile < Calls and Functions not-yet
   endCompiler();
 */

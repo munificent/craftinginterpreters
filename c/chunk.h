@@ -17,18 +17,18 @@ typedef enum {
   OP_TRUE,
   OP_FALSE,
 //< Types of Values literal-ops
-//> Global Variables not-yet
+//> Global Variables pop-op
   OP_POP,
-//< Global Variables not-yet
+//< Global Variables pop-op
 //> Local Variables not-yet
   OP_GET_LOCAL,
   OP_SET_LOCAL,
 //< Local Variables not-yet
-//> Global Variables not-yet
+//> Global Variables ops
   OP_GET_GLOBAL,
   OP_DEFINE_GLOBAL,
   OP_SET_GLOBAL,
-//< Global Variables not-yet
+//< Global Variables ops
 //> Closures not-yet
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
@@ -57,9 +57,9 @@ typedef enum {
 //> A Virtual Machine negate-op
   OP_NEGATE,
 //< A Virtual Machine negate-op
-//> Global Variables not-yet
+//> Global Variables op-print
   OP_PRINT,
-//< Global Variables not-yet
+//< Global Variables op-print
 //> Jumping Forward and Back not-yet
   OP_JUMP,
   OP_JUMP_IF_FALSE,
