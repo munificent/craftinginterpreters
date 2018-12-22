@@ -53,9 +53,9 @@ typedef struct {
   int frameCount;
 
 //< Calls and Functions not-yet
-//> Global Variables not-yet
+//> Global Variables vm-globals
   Table globals;
-//< Global Variables not-yet
+//< Global Variables vm-globals
 //> Hash Tables vm-strings
   Table strings;
 //< Hash Tables vm-strings
