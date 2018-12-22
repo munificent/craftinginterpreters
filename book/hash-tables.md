@@ -12,9 +12,9 @@ these problems and others is a hash table.
 
 You probably already know what a hash table is, even if you don't know it by
 that name. If you're a Java programmer, you call them "HashMaps". C# and Python
-users call them "dictionaries". In C++, it's just "map" while Lisp calls them
-"associative arrays". "Objects" in JavaScript and "tables" Lua are hash tables
-under the hood, which is what gives them their flexibility.
+users call them "dictionaries". In C++, it's an "unordered map". "Objects" in
+JavaScript and "tables" Lua are hash tables under the hood, which is what gives
+them their flexibility.
 
 A hash table, whatever your language calls it, associates a set of *keys* with a
 set of *values*. Each key/value pair is an *entry* in the table. Given a key,
@@ -40,7 +40,7 @@ of business cards and I ask you to find a certain person. The bigger the pile
 is, the longer it will take. Even if the pile is nicely sorted and you've got
 the manual dexterity to do a binary search by hand, you're still talking
 `O(log(n))`. But with a <span name="rolodex">hash table</span>, it takes the
-same time to find that busines card when the stack has ten cards as when it has
+same time to find that business card when the stack has ten cards as when it has
 a million.
 
 <aside name="rolodex">
@@ -159,7 +159,7 @@ example, if we try to add "jam", it also ends up in bucket 2:
 <img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
 
 We do have some control of this by tuning the array size. The bigger the array,
-the fewere indexes that get mapped to the same bucket and the fewer collisions
+the fewer indexes that get mapped to the same bucket and the fewer collisions
 that are likely to occur. Hash table implementers track this collision
 likelihood by measuring the table's **load factor**. It's defined as the number
 of entries divided by the number of buckets. So a hash table with five entries
