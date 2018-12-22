@@ -494,9 +494,9 @@ That function simply stores the hash in the struct:
 
 ^code allocate-store-hash (1 before, 2 after)
 
-The fun happens over at the callers. `allocateFunction()` is called from two
-places: the function that copies a string and the one that takes ownership of
-an existing dynamically-allocated string. We'll start with the first:
+The fun happens over at the callers. `allocateString()` is called from two
+places: the function that copies a string and the one that takes ownership of an
+existing dynamically-allocated string. We'll start with the first:
 
 ^code copy-string-hash (1 before, 1 after)
 
