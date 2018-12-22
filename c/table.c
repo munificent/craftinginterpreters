@@ -146,10 +146,10 @@ static void adjustCapacity(Table* table, int capacityMask) {
 //< re-hash
 
 /* Hash Tables free-old-array < Optimization not-yet
-  FREE_ARRAY(Value, table->entries, table->capacity);
+  FREE_ARRAY(Entry, table->entries, table->capacity);
 */
 //> Optimization not-yet
-  FREE_ARRAY(Value, table->entries, table->capacityMask + 1);
+  FREE_ARRAY(Entry, table->entries, table->capacityMask + 1);
 //< Optimization not-yet
   table->entries = entries;
 /* Hash Tables table-adjust-capacity < Optimization not-yet
@@ -259,8 +259,6 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     index = (index + 1) & table->capacityMask;
 //< Optimization not-yet
   }
-
-  return NULL;
 }
 //< table-find-string
 //> Garbage Collection not-yet
