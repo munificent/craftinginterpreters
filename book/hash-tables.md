@@ -13,7 +13,7 @@ these problems and others is a hash table.
 You probably already know what a hash table is, even if you don't know it by
 that name. If you're a Java programmer, you call them "HashMaps". C# and Python
 users call them "dictionaries". In C++, it's an "unordered map". "Objects" in
-JavaScript and "tables" Lua are hash tables under the hood, which is what gives
+JavaScript and "tables" in Lua are hash tables under the hood, which is what gives
 them their flexibility.
 
 A hash table, whatever your language calls it, associates a set of *keys* with a
@@ -127,8 +127,8 @@ make an array that big, it would be heinously wasteful. Almost every bucket will
 be empty unless users start writing way bigger Lox programs than we've
 anticipated.
 
-Even though our variable keys cover the full 64 numeric range, we clearly don't
-need an array that that large. Instead, we'll allocate an array with enough
+Even though our variable keys cover the full 64-bit numeric range, we clearly don't
+need an array that large. Instead, we'll allocate an array with enough
 capacity for the entries we need, but still some reasonable size. We map the
 full 64-bit keys down to that smaller range by taking the value modulo the size
 of the array.
@@ -704,13 +704,13 @@ You pass in a table and a key. If it finds an entry with that key, it returns
 `true`, otherwise it returns `false`. If the entry exists, it stores the
 resulting value in the `value` output parameter.
 
-Since `findEntries()` already does the hard work, the implementation isn't too
+Since `findEntry()` already does the hard work, the implementation isn't too
 bad:
 
 ^code table-get
 
 Obviously, if the table doesn't even have a bucket array, we definitely won't
-find the entry, so we check for that first. Otherwise, we let `findEntries()`
+find the entry, so we check for that first. Otherwise, we let `findEntry()`
 work its magic. That returns a pointer to a bucket. If the bucket is empty --
 which we detect by seeing if the key is `NULL` -- then it didn't find an entry
 with our key. If it does return a non-empty entry, then that's our match. We
@@ -975,7 +975,7 @@ the strings and those are all we care about, so we just use `nil` for the
 values.
 
 This gets a string into the table assuming that it's unique, but we need to
-actually check for duplication before we get here. We do that in two the
+actually check for duplication before we get here. We do that in two of the
 higher-level functions that call `allocateString()`. Here's one:
 
 ^code copy-string-intern (1 before, 2 after)
