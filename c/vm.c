@@ -718,9 +718,9 @@ static InterpretResult run() {
         printf("\n");
         break;
       }
+        
 //< Global Variables interpret-print
 //> Jumping Forward and Back not-yet
-
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
 /* Jumping Forward and Back not-yet < Calls and Functions not-yet

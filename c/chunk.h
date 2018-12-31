@@ -24,11 +24,15 @@ typedef enum {
   OP_GET_LOCAL,
   OP_SET_LOCAL,
 //< Local Variables not-yet
-//> Global Variables ops
+//> Global Variables get-global-op
   OP_GET_GLOBAL,
+//< Global Variables get-global-op
+//> Global Variables define-global-op
   OP_DEFINE_GLOBAL,
+//< Global Variables define-global-op
+//> Global Variables set-global-op
   OP_SET_GLOBAL,
-//< Global Variables ops
+//< Global Variables set-global-op
 //> Closures not-yet
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,

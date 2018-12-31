@@ -47,8 +47,8 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 //< precedence
-/* Compiling Expressions parse-fn-type < Global Variables parse-fn-type
 
+/* Compiling Expressions parse-fn-type < Global Variables parse-fn-type
 typedef void (*ParseFn)();
 */
 //> Global Variables parse-fn-type
@@ -444,8 +444,6 @@ static void parsePrecedence(Precedence precedence);
 
 //< Compiling Expressions forward-declarations
 //> Global Variables identifier-constant
-// Creates a string constant for the given identifier token. Returns the
-// index of the constant.
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
@@ -782,12 +780,16 @@ static void string(bool canAssign) {
                                   parser.previous.length - 2)));
 }
 //< Strings parse-string
-//> Global Variables named-variable
-// Compiles a reference to a variable whose name is the given token.
+/* Global Variables read-named-variable < Global Variables named-variable-signature
+static void namedVariable(Token name) {
+*/
+//> Global Variables named-variable-signature
 static void namedVariable(Token name, bool canAssign) {
-/* Global Variables named-variable < Local Variables not-yet
+//< Global Variables named-variable-signature
+/* Global Variables read-named-variable < Local Variables not-yet
   int arg = identifierConstant(&name);
 */
+//> Global Variables read-named-variable
 //> Local Variables not-yet
   uint8_t getOp, setOp;
   int arg = resolveLocal(current, &name, false);
@@ -806,9 +808,19 @@ static void namedVariable(Token name, bool canAssign) {
     getOp = OP_GET_GLOBAL;
     setOp = OP_SET_GLOBAL;
   }
-
+/* Global Variables read-named-variable < Global Variables named-variable
+ 
+  emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+*/
 //< Local Variables not-yet
+//> named-variable
+  
+/* Global Variables named-variable < Global Variables named-variable-can-assign
+  if (match(TOKEN_EQUAL)) {
+*/
+//> named-variable-can-assign
   if (canAssign && match(TOKEN_EQUAL)) {
+//< named-variable-can-assign
     expression();
 /* Global Variables named-variable < Local Variables not-yet
     emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
@@ -824,8 +836,14 @@ static void namedVariable(Token name, bool canAssign) {
     emitBytes(getOp, (uint8_t)arg);
 //< Local Variables not-yet
   }
+//< named-variable
 }
-//< Global Variables named-variable
+//< Global Variables read-named-variable
+/* Global Variables variable-without-assign < Global Variables variable
+static void variable() {
+  namedVariable(parser.previous);
+}
+*/
 //> Global Variables variable
 static void variable(bool canAssign) {
   namedVariable(parser.previous, canAssign);
@@ -1059,8 +1077,6 @@ static void parsePrecedence(Precedence precedence) {
 //> Global Variables invalid-assign
 
   if (canAssign && match(TOKEN_EQUAL)) {
-    // If we get here, we didn't parse the "=" even though we could
-    // have, so the LHS must not be a valid lvalue.
     error("Invalid assignment target.");
     expression();
   }
@@ -1242,7 +1258,6 @@ static void expressionStatement() {
   expression();
   emitByte(OP_POP);
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
-
 }
 //< Global Variables expression-statement
 //> Jumping Forward and Back not-yet
@@ -1435,17 +1450,24 @@ static void declaration() {
 //< Classes and Instances not-yet
 //> Calls and Functions not-yet
     funDeclaration();
-/* Global Variables declaration < Calls and Functions not-yet
+/* Global Variables match-var < Calls and Functions not-yet
   if (match(TOKEN_VAR)) {
 */
   } else if (match(TOKEN_VAR)) {
 //< Calls and Functions not-yet
+//> match-var
     varDeclaration();
   } else {
     statement();
   }
+//< match-var
+/* Global Variables declaration < Global Variables match-var
+  statement();
+*/
+//> call-synchronize
   
   if (parser.panicMode) synchronize();
+//< call-synchronize
 }
 //< Global Variables declaration
 //> Global Variables statement

@@ -3,7 +3,7 @@
 
 > In the middle of the journey of our life I found myself within a dark woods
 > where the straight way was lost.
-> <cite>Dante Alighieri</cite>
+> <cite>Dante Alighieri, <em>Inferno</em></cite>
 
 This chapter is exciting for not one, not two, but *three* reasons. First, it
 provides the final segment of our VM's execution pipeline. Once in place, we can

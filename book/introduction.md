@@ -3,7 +3,7 @@
 
 > Fairy tales are more than true: not because they tell us that dragons exist, but because they tell us that dragons can be beaten.”
 >
-> <cite>Neil Gaiman</cite>
+> <cite>Neil Gaiman, <em>Coraline</em></cite>
 
 I'm really excited we're going on this journey together. This is a book on
 implementing interpreters for programming languages. It's also a book on how to

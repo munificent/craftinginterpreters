@@ -6,7 +6,7 @@
 > created on stage are often the result of a secret so absurd that the magician
 > would be embarrassed to admit that that was how it was done.
 >
-> <cite>Christopher Priest</cite>
+> <cite>Christopher Priest, <em>The Prestige</em></cite>
 
 We've spent a lot of time talking about how to represent a program as a sequence
 of bytecode instructions, but it feels like learning biology using only dead
