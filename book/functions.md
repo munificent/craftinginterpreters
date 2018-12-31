@@ -6,7 +6,7 @@
 > compounds, and round and round endlessly, growing ever more remote from the
 > basic earthbound imagery that is each language's soil.
 >
-> <cite>Douglas R. Hofstadter</cite>
+> <cite>Douglas R. Hofstadter, <em>I Am a Strange Loop</em></cite>
 
 This chapter marks the culmination of a lot of hard work. The previous chapters
 add useful functionality in their own right, but each also supplies a piece of a

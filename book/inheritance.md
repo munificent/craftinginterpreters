@@ -9,7 +9,7 @@
 > skin stands up, just like it did when we had fur. We are history! Everything
 > we've ever been on the way to becoming us, we still are.
 >
-> <cite>Terry Pratchett</cite>
+> <cite>Terry Pratchett, <em>A Hat Full of Sky</em></cite>
 
 Can you believe it? We've reached the last chapter of [Part II][]. We're almost
 done with our first Lox interpreter. The [previous chapter][] was a big ball of

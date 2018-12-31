@@ -104,14 +104,18 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_SET_LOCAL:
       return byteInstruction("OP_SET_LOCAL", chunk, offset);
 //< Local Variables not-yet
-//> Global Variables disassemble-global
+//> Global Variables disassemble-get-global
     case OP_GET_GLOBAL:
       return constantInstruction("OP_GET_GLOBAL", chunk, offset);
+//< Global Variables disassemble-get-global
+//> Global Variables disassemble-define-global
     case OP_DEFINE_GLOBAL:
       return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
+//< Global Variables disassemble-define-global
+//> Global Variables disassemble-set-global
     case OP_SET_GLOBAL:
       return constantInstruction("OP_SET_GLOBAL", chunk, offset);
-//< Global Variables disassemble-global
+//< Global Variables disassemble-set-global
 //> Closures not-yet
     case OP_GET_UPVALUE:
       return byteInstruction("OP_GET_UPVALUE", chunk, offset);

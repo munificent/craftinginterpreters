@@ -3,7 +3,7 @@
 
 > You are my creator, but I am your master; Obey!
 >
-> <cite>Mary Shelley, Frankenstein</cite>
+> <cite>Mary Shelley, <em>Frankenstein</em></cite>
 
 If you want to properly set the mood for this chapter, try to conjure up a
 thunderstorm, one of those swirling tempests that likes to yank open shutters at

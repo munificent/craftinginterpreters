@@ -3,7 +3,7 @@
 
 > Literature is idiosyncratic arrangements in horizontal lines in only twenty-six symbols, ten arabic numbers, and about eight punctuation marks.
 >
-> <cite>Kurt Vonnegut</cite>
+> <cite>Kurt Vonnegut, <em>A Man Without a Country</em></cite>
 
 Our second interpreter, clox, has three phases -- scanner, compiler, and virtual
 machine. A data structure joins each pair of phases. Tokens flow from scanner to
