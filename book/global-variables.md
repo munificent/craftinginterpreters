@@ -8,545 +8,707 @@
 >
 > <cite>Daphne du Maurier, <em>Rebecca</em></cite>
 
-**todo: quote**
+**todo: more asides**
 
-- last chapter one big cs data structure
-- this not conceptual, just engineering
-- start adding state
-- begin with global variables
-- no scope yet
+**todo: illustrations**
 
-- declaring var is statement, so time to add statements
-- side effects imply statements
-- before worry about globals, get basic statements working
+That [last chapter][hash] was a giant helping of computer science theory. It was
+a lot to digest. This chapter is more dessert or palate cleanser. There's no
+large meaty concepts to chew through, just a handful of bite-sized pieces of
+engineering. We're going to add support for variables to our virtual machine.
 
-## statements
+[hash]: hash-tables.html
 
-- recall two levels of "prec" for statements, statement and decl
-- prohibit decl stmts right inside flow control like:
+We don't have functions or scope yet, so all we'll worry about first is global
+variables. Variables are brought into being using variable declaration
+statements, so we'll be adding state too. There's a deeper connection here.
+Mutating -- assigning to a variable -- is a *side effect*. It doesn't produce
+any interesting value on its own, but it affects the later observable behavior
+of the program when you read that variable.
+
+Statements were made for side effects. Since statements don't produce values,
+they wouldn't be useful at all if our language didn't have any side effects. So,
+with variables, we are adding both statements and a reason to have statements in
+the first place.
+
+## Statements and Declarations
+
+Before we get to variables, let's get our parser and compiler handling
+statements. This actually requires two new categories productions in the
+grammar. If you recall, Lox distinguishes *statements* and *declarations*.
+Declarations are those statements that bind a new name to a value. We don't
+allow them directly inside flow control statements, like:
 
 ```lox
-if (monday) var croissant = "yes"
+if (monday) var croissant = "yes"; // Error.
 ```
 
-- divide statements into those that declare names and those that don't
-- "statement" just ones that don't, like print statement
-- "declaration" rule includes all
-- top level of prog and inside block is decls
+Allowing this would raise some confusing questions around the scope of the
+variable. So, like other languages, we prohibit it syntactically by having two
+separate grammar rules for the subset of statements that are allowed inside a
+control flow body:
 
-- right now "program" is single expr
-- should be list of statements, do now
+```lox
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | returnStmt
+               | whileStmt
+               | block ;
+```
+
+And the set of statements allowed at the top level of a script and inside a
+block:
+
+```lox
+declaration    → classDecl
+               | funDecl
+               | varDecl
+               | statement ;
+```
+
+Since `block` itself is in `statement`, you can always get declarations inside a
+control flow construct by nested them inside a block.
+
+In this chapter, we'll only cover a couple of statements and one
+declaration:
+
+```lox
+statement      → exprStmt
+               | printStmt ;
+
+declaration    → varDecl
+               | statement ;
+```
+
+We'll save the rest for later chapters, but now we'll at least get the
+scaffolding in place for both productions. Up to now, our VM considered a
+"program" to be a single expression since that's all we could parse and compile.
+In a real Lox program, a script is a sequence of declarations. We're ready to do
+that now:
 
 ^code compile (1 before, 1 after)
 
-- until run out of code, keep parsing decls
-- since flow control and blocks contain statements, will be recursive, so
-  forward declare
+We keep compiling declarations until we hit the end of the source file. That
+outer if statement handles the degenerate case where the entire file is empty.
+Since statements and declarations can refer to each other in the grammar, the
+functions for compiling those are recursive. That means forward declarations in
+C:
 
 ^code forward-declarations (1 before, 1 after)
 
-- not doing actual decls yet, so first pass
+The main `compile()` function calls:
 
 ^code declaration
 
-- just calls statement (subsumes)
+We'll get to variable declarations later in the chapter so for now, it just
+forwards to `statement()`:
 
 ^code statement
 
-- do two kinds right now, print and expr
-- if token is "print" keyword, print
-- uses
+**todo: subheader for print stmt somewhere in here?**
+
+We're going to implement print and expression statements. If the first token
+is `print`, it's obviously a print statement. We determine that using this
+helper function:
 
 ^code match
 
-- had similar parsing util fns in jlox
-- if current token is given, consumes and returns true
-- uses
+It should be familiar from jlox. If the current token has the given type, it
+consumes it and returns `true`. Otherwise it leaves it alone and returns
+`false`. We implement this in terms of:
 
 ^code check
 
-- just returns true if current token is given one
-- will use more later
-
-- if did match `print`, call
+It simply returns `true` if the current token has the given type. I know these
+seem pointless now, but they'll pay their way as we reuse them in later
+chapters. If we did match the `print` token, then we compile the rest of the
+statement using:
 
 ^code print-statement
 
-- compiles rest of print statement
-- print evals and prints expr, so compile expr
-- terminated by semicolon
-- then add new instruction to print
+A print statement evaluates an expression and prints the result, so we first
+parse and compile that expression. The grammar expects a semicolon after that,
+so we consume it. Finally, we emit a new instruction to print the
+result.
 
 ^code op-print (1 before, 1 after)
 
-- interp is
+At runtime, we execute this instruction like so:
 
 ^code interpret-print (1 before, 1 after)
 
-- compile expr then emit OP_PRINT instr
-- expr evaluates to value and leaves on stack
-- so print inst pops that and prints it
+We compiled the expression first, so the code for that has produced some value
+and left it on top of the stack. Now we simply pop it and print it.
 
-- key difference between expr and stmt in vm
-- *stack effect* -- way that instruction or chunk of code modifies stack
-- for example, `OP_ADD` pops two and pushes result
-- stack effect -1, stack gets shorter
-- overall compiled expression always leaves one result value on stack
+Note that we don't push anything else after that. Inside the VM, this is a key
+difference between expressions and statements. Each bytecode instruction has a
+**stack effect**. This describes how the instruction modifies the size of the
+stack. For example, `OP_ADD` pops two values and pushes one, leaving the stack
+one element smaller than before.
 
-- statements have side effect, not result value
-- compiled statement never leaves anything on stack
-- important because when get to looping, if statement changed stack size, could
-  overflow or underflow
+You can also consider the combined stack effect of a series of instructions. If
+you add up the stack effects of the series of instructions compiled from any
+expression, it will also total one. The expression leaves the result value on
+the stack.
 
-- while in vm
+The bytecode for a statement has a total stack effect of zero. Since a statement
+produces no values, it ultimately leaves the stack unchanged, though it of
+course uses the stack while it's doing its thing. This is important because when
+we get to flow control and looping, a program might execute a long series of
+statements. If each of them grew or shrank the stack, the VM might overflow or
+underflow the stack.
+
+While we're in the interpreter loop, here's another little change:
 
 ^code op-return (1 before, 1 after)
 
-- when vm just evals on expr, inserted temp OP_RETURN to print result
-- now prog list of stmts
-- OP_RETURN just exits interp loop
-- [revisit again when add fns]
+When the VM only compiled and evaluated a single expression, we had some
+temporary code in `OP_RETURN` to output the value. Now that we have statements
+and `print` we don't need that anymore. We're one step closer to the complete
+implementation of clox. Only one step, though. We'll revisit `OP_RETURN` again
+when we add functions. Right now, it exits the entire interpreter loop.
 
-- as usual, new instr needs dis
+As usual, our new instruction needs support in the disassembler.
 
 ^code disassemble-print (1 before, 1 after)
 
-- that's print
+That's our `print` statement. If you want, give it a whirl:
 
 ```lox
 print 1 + 2;
 print 3 * 4;
 ```
 
-- exciting
-- next expr statement
+I know, mind-blowing, right?
+
+### Expression statements
+
+Wait until you see the next statement:
 
 ^code expression-statement
 
-- just expression at "top level" of statement, terminated by semicolon, like:
+An "expression statement" is simply an expression followed by a semicolon.
+They're how you write an expression in a context where a statement is expected.
+Usually, it's so that you can call a function for its side effect, like:
 
 ```lox
-hi("friend");
+sayHi("friend");
 ```
 
-- semantics are eval expr and discard result
-- compiled code literally that
-- compile expr
-- then emit `OP_POP` to pop and discard value expr leaves on stack
+Semantically, an expression statement evaluates the expression and discards
+the result. The compiler does a literal translation of that. It emits the code
+for the expression, and then an `OP_POP` instruction:
 
 ^code pop-op (1 before, 1 after)
 
-- won't believe impl
+As the name implies, this pops the top value off the stack and forgets it:
 
 ^code interpret-pop (1 before, 2 after)
 
-- or dis
+We can disassemble it too:
 
 ^code disassemble-pop (1 before, 1 after)
 
-- statements
-- way back when first started compiler, put half of support for panic mode
-  error recovery in
-- missing piece is sync
-- want to sync to statement boundary
-- have now
+Expression statements aren't very useful yet since we can't create any
+expressions that have side effects, but they'll be essential when we add
+functions later. The majority of statements in real-world code in languages like
+C are expression statements.
+
+**todo: link**
+
+### Error synchronization
+
+While we're getting this initial structure in place in the compiler, we can tie
+off a loose end we left several chapters back. Like jlox, clox uses panic mode
+error recovery to minimize the number of cascaded compile errors that it
+reports. The compiler exits panic mode when it reaches a synchronization point.
+For Lox, we chose statement boundaries as that point. Now that we have
+statements, we can implement synchronization:
 
 ^code call-synchronize (1 before, 1 after)
 
-- if error occurred while compiling statement, sync before continuing
-- calls
+If we hit a compile error while parsing the previous declaration, we will enter
+panic mode. In that case, after the declaration, we starting synchronizing:
 
 ^code synchronize
 
-- skip tokens until either run out or reach something that looks like statement
-  boundary
-- if pass semicolon, next token should begin statement
-- also if next token is keyword that starts statement, probably good place to
-  stop
+This skips tokens indiscriminately until it reaches something that looks like a
+statement boundary. If the previous token can end a statement -- like a
+semicolon -- then we're right at the boundary. Likewise, if the next token can
+begin one -- usually one of the control flow or declaration keywords -- then
+we're there.
 
-## variable declarations
+## Variable Declarations
 
-- that structure in place, start doing interesting statement
-- refresher
-- global variables resolved dynamically "late bound" in lox
-- intent is to handle mutually recursive fns
-- **todo: example**
-- also plays nicer with repl
-- so don't require var to be declared textually before used
-- just have to define it before use is executed
+Being able to *print* won't win your language any prizes at the programming
+language <span name="fair">fair</span>, so let's move on to something a little
+more interesting and get variables going.
 
-- three operations for variables
-- declare, using `var` statement
-- access using variable name as expression
-- assign new value to existing var using assignment expr
-- do in that order, first decls
+<aside name="fair">
 
-- decl grammar production now does something
+I can't help but imagine a "language fair" like some country 4H thing with rows
+of straw-filled stalls, full of baby languages moo-ing and baa-ing at each
+other.
+
+</aside>
+
+A quick refresher on Lox semantics: Global variables in Lox are "late bound" or
+resolved dynamically. This means you can compile a chunk of code that refers to
+a global variable before it's defined. As long as the code doesn't *execute*
+before the definition happens, everything is fine. In practice, that means you
+can refer to later variables inside the body of functions:
+
+```lox
+fun showVariable() {
+  print global;
+}
+
+var global = "after";
+showVariable();
+```
+
+Code like this might seem odd, but it's handy for defining mutually recursive
+functions. It also plays nicer with the REPL. You can write a little function in
+one line, then define the variable it uses in the next.
+
+The way we choose to implement global variables in the VM is informed by this
+need. If it was a static error to use a global variable before it's defined --
+as it is with *local* variables -- then we might choose to compile them
+differently.
+
+There are three operations we need to support for variables:
+
+*   Declaring a new variable using a `var` statement.
+*   Accessing the value of a variable using an identifier expression.
+*   Storing a new value in an existing variable using an assignment expression.
+
+We can't do anything until we *have* some variables, so we'll start with
+declarations:
 
 ^code match-var (1 before, 2 after)
 
-- if see `var` keyword, call
+The placeholder parsing function we sketched out for the declaration grammar
+rule has an actual production now. If we match a `var` token, we jump to:
 
 ^code var-declaration
 
-- after `var` is identifier for variable name
-- then optional initializer
-- if see `=`, then have initializer
-- otherwise, implicitly init to `nil`
-- finally end with semicolon
+The keyword is followed by the variable name. That's compiled by
+`parseVariable()`, which we'll get to in a second. Then we look for an `=`
+followed by an initializer expression. If the user doesn't initialize the
+variable, the compiler implicitly initializes it to `nil` by emiting an `OP_NIL`
+instruction. Either way, we expect the statement to be terminated with a
+semicolon.
 
-- two new fns here, `parseVariable()` and `defineVariable()`
-- first is helper for compiling reference to identifier
+There are two new functions here for working with variables and identifiers. The
+first one is:
 
 ^code parse-variable
 
-- expects identifier token
-- if not found, reports given compile error
-- otherwise calls
+It requires the next token to be an identifier token. If found, it calls:
 
 ^code identifier-constant
 
-*Creates a string constant for the given identifier token. Returns the index of
-the constant.*
+This function takes the given token and adds its lexeme to the chunk's constant
+table as a string. It then returns the index of that constant in the constant
+table.
 
-- takes lexeme of identifier token and stores as string in chunk's constant
-  table
-- global variables are accessed by name at runtime
-- means vm needs to be able to get to name
-- constant table is how compiler hands string over to runtime
-- fn returns index of string in constant table
+Global variables are accessed by name at runtime. That means the VM -- the
+bytecode interpreter loop -- needs access to the name. A whole string is too big
+to stuff into the bytecode stream as an operand. Instead, we store the string in
+the constant table and the instruction can then refer to it by its index in the
+table.
 
-- [doesn't deduplicate constants. string is interned, but would be good to not
-  use multiple constant table slots for same identifier.]
-
-- take that index and pass to
+So this function returns that index all the way to `varDeclaration()` which
+then passes it along to:
 
 ^code define-variable
 
-- outputs instruction to actually create variable at runtime
-- takes index of var name in const pool as instr operand
+<span name="helper">This</span> outputs the bytecode instruction define the new
+variable at runtime. The index of the variable's name in the constant table is
+the instruction's operand. As usual in a stack-based VM, we emit this
+instruction last. At runtime, we'll execute the code for the variable's
+initializer. That will leave the value on the stack. This instruction will take
+that and store it away for later.
 
-- as usual in stack-based vm, emit this instruction last
-- initializer is evaluated and leaves result on stack
-- this takes that value, creates and stores global
+<aside name="helper">
 
-- [revisit this fn when add locals]
+I know some of these functions seem pretty pointless right now. But we'll get
+more mileage out of them as we add more language features for working with
+names. Function and class declarations both declare new variables, and variable
+and assignment expressions access them.
 
-- new instr
+</aside>
+
+Over in the runtime, we begin with this new instruction:
 
 ^code define-global-op (1 before, 1 after)
 
-- since already have hash table, impl not too hard
+Since we already built our own hash table, the implementation isn't too hard:
 
 ^code interpret-define-global (1 before, 2 after)
 
-- look up variable name
-- take value from top of stack and store in hash table
-- then pop
+We get the name of the variable from the constant table. Then we <span
+name="pop">take</span> the value from top of the stack and store it in a hash
+table with that name as the key.
 
-- [peek then pop to make sure var still on stack while inserting in hash table.
-  otherwise, gc could collect it.]
+<aside name="pop">
 
-- note that don't check to see if already in table
-- recall that lox allows redefining var at top level
-- handy in repl
+Note that we don't *pop* the value until *after* we add it to the hash table.
+That ensures the VM can still find the value if a garbage collection is
+triggered right in the middle of adding it to the hash table. That's a distinct
+possibility since the hash table requires dynamic allocation when it resizes.
 
-- new helper macro
+</aside>
+
+This code doesn't check to see if the key is already in the table. Lox is pretty
+lax with global variables and lets you redefine them without error. That tends
+to be handy in a REPL session, so the VM supports that by simply overwriting the
+value if the key happens to already be in the hash table.
+
+There's another little helper macro:
 
 ^code read-string (1 before, 2 after)
 
-- reads one-byte operand from chunk
-- treats as index into const table
-- reads value at that index and casts to string
-- doesn't check, so only safe to use this macro for code where compile ensures
-  constant has right type
+It reads a one-byte operand from the bytecode chunk. It treats that as an index
+into the chunk's constant table and returns the string at that index. It doesn't
+check that the value *is* a string -- it just indiscriminately casts it. That's
+safe because the compiler never emits an instruction that refers to a non-string
+constant.
 
-- as usual, undef at end of interpret fn
+Because we care about lexical hygiene, we also undefine this macro at the end of
+the interpret function:
 
 ^code undef-read-string (1 before, 1 after)
 
-- need place to store globals
+I keep saying "the hash table", but we don't actually have one yet. We need a
+place to store these globals. Since we want them to persist as long as clox is
+running, we store them right in the VM:
 
 ^code vm-globals (1 before, 1 after)
 
-- give vm hash table for all global variables
-- storing directly in vm ensures they persist across multiple repl entries
-- as with string table, need to initialize empty
+As we did with the string table, we need to initialize the hash table to a valid
+state when the VM boots up:
 
 ^code init-globals (1 before, 1 after)
 
-and then free when done
+And we need to <span name="tear">tear</span> it down when we exit:
+
+<aside name="tear">
+
+Honestly, we don't. The process is going to exit and free everything anyway, but
+it feels undignified to require the operating system to clean up our mess.
+
+</aside>
 
 ^code free-globals (1 before, 1 after)
 
-also have enough inst to dis
+As usual, we want to be able to disassemble the new instruction too:
 
 ^code disassemble-define-global (1 before, 1 after)
 
-- can define global vars
-- but can't actually use them
+And with that, we can define global variables. Not that users can *tell* that
+they've done so, because they can't actually *use* them. So let's fix that next:
 
-## reading variables
+## Reading Variables
 
-- like every lang ever, access var by identifier expr
-- slot into parsing table
+Like every programming language ever, a variable's value is accessed by way of
+the variable's name. We hook up identifier tokens to the expression parser here:
 
 ^code table-identifier (1 before, 1 after)
 
-- calls
+That calls:
 
 ^code variable-without-assign
 
-- indirection little pointless now, but will reuse this later for handling
-  `this` and `super`
+As with declarations, there are a couple of tiny helper functions that seem
+pointless now but will become more useful in later chapters. In particular,
+this function will ultimately be used when compiling `this` expressions too:
 
 ^code read-named-variable
 
-- uses same `identifierConstant()` fn from above to add identifier to constant
-  pool as a string
-- then emit instr to load global var
-- like `OP_DEFINE_GLOBAL`, has operand for index of name in constant table
+It uses the same `identifierConstant()` function from before to take the given
+identifier token and add its lexeme to the chunk's constant table as a string.
+All the remains is to emit an instruction to load the global variable with that
+name:
 
 ^code get-global-op (1 before, 1 after)
 
-- impl mirrors define
+Over in the bytecode interpreter, the implementation mirrors `OP_DEFINE_GLOBAL`:
 
 ^code interpret-get-global (1 before, 1 after)
 
-- get name by looking up operand in constant table
-- then look up in global var hash table
-- if not found, report runtime error and abort
-- otherwise push value onto stack
+We pull the constant table index from the instruction's operand and then look
+up the variable name. Then we use that as a key to look up the variable's value
+in the global's hash table.
+
+If the key isn't present in the hash table, it means that global variable has
+never been defined. That's a runtime error in Lox, so we report it and exit the
+interpreter loop if that happens. Otherwise, we take the value and push it
+onto the stack.
 
 ^code disassemble-get-global (1 before, 1 after)
 
-- little dis
+A little bit of disassembly code, and we're done. Now we can start writing code
+that looks more like an actual programming language:
 
-- with that, starting to feel like real language implementation
-- can store intermediate computation in vars, use for later expressions
-- last operation is assigning vars
+```lox
+var beverage = "cafe au lait";
+var breakfast = "beignets with " + beverage;
+print breakfast;
+```
 
-## assignment
+There's only one operation left...
 
-- this part surprisingly hard
-- not for fundamental reason
-- because of implementation choice
-- compiler parses and generates bytecode in single pass with no intermediate
-  ast
-- assignment difficult
-- in:
+## Assignment
+
+Throughout this book, I've tried to keep you on a fairly safe and easy path. I
+don't avoid hard problems, but I try to not make the solutions harder than they
+need to be. Alas, other design choices in our <span name="jlox">bytecode</span>
+compiler make assignment more annoying to implement than it might otherwise be.
+
+<aside name="jlox">
+
+If you recall, assignment was pretty easy in jlox.
+
+</aside>
+
+Our bytecode VM uses a single-pass compiler. It parses and generates bytecode
+on the fly without any intermediate AST. As soon as it recognizes a piece of
+syntax, it emits code for it. Assignment doesn't naturally fit that. Consider:
 
 ```lox
 menu.brunch(sunday).beverage = "mimosa";
 ```
 
-- don't know entire left-hand side is lvalue until reach `=`
-- in jlox, parsed as regular expression to ast
-- then when hit `=`, transformed left side to new ast
-- can't do that
+In this code, the parser doesn't realize `menu.brunch(sunday).beverage` is the
+target of an assignment and not a normal expression until it reaches `=`, many
+tokens after the first `menu`. By then, the compiler has already emitted
+bytecode for the whole thing.
 
-- not as dire as seems
-- in ex, even though whole thing is lvalue, most evaluated as normal
-- `menu.brunch(sunday)` executes like normal expr
-- compiler can compile it as normal
-- only part different is `.beverage`
-- when see `=` after that, treat as setter, not getter
-- so don't need that much lookahead to handle assignment
-- should be able to fit into single pass
+It's not as dire as it might seem, though. Even though the `.beverage` part
+needs to be compiled a setter and not a getter, the rest of the expression
+behaves the same as if it weren't the target of an assignment. The
+`menu.brunch(sunday)` part can be compiled and executed as usual.
 
-- question how
-- need to intercept compiling expression if followed by `=`
-- do so before generating code
-- so leave it up to each expr that can appear on left of `=` to lookahead
-  and compile appropriately
+Fortunately for us, it's only the very right-most bit of syntax whose behavior
+changes when appearing before a `=`. Even though the receiver of a setter may be
+an arbitrarily long expression, the setter itself is only a `.` followed by an
+identifier, which is right before the `=`. We don't need much look ahead to
+realize `.beverage` should be compiled as a setter and not a getter.
 
-- in lox, only two
+Variables are even easier since they are just a single bare identifier. So the idea is that right *before* compiling an expression that can also be used as an assignment target, we look for a subsequent `=` token. If we see one, we compile it as an assignment or setter instead of a variable access or getter.
 
-```lox
-variable = "value";
-```
-
-- identifier expr on left hand side becomes assignment instead of access
-
-```lox
-object.field = "value";
-```
-
-- getter expr becomes setter
-- do this in later chapter
-- [if had lists, subscript operator would be third case]
-
-- so in fn that compiles named var, look for `=`
+We don't have setters to worry about yet, so all we need to handle is variables:
 
 ^code named-variable (1 before, 1 after)
 
-- if see one, then compile expr on rhs
-- then emit instr to assign to var
-- otherwise, compile as access as normal
+In the parse function for identifier expressions, we look for a subsequent
+equals sign. If we find one, instead of emitting code for a variable access,
+we compile the assigned value and then emit an assignment instruction.
 
-- new instr similar to others
-- take const index as operand
+That's the last instruction we need to add in this chapter:
 
 ^code set-global-op (1 before, 1 after)
 
-- interp similar to defining
+As you'd expect, its runtime behavior is similar to defining a new variable:
 
 ^code interpret-set-global (1 before, 2 after)
 
-- only difference is that runtime error to assign to non-existent var
-- dis
+The only difference is what happens when the key doesn't already exist in the
+globals hash table. If the variable hasn't been defined yet, it's a runtime
+error to try to assign to it. Lox [doesn't do implicit variable
+declaration][implicit].
+
+[implicit]: statements-and-state.html#design-note
+
+And a little disassembly:
 
 ^code disassemble-set-global (1 before, 1 after)
 
-- done?
-- no, made mistake, consider
+So we're done, right? Not quite. We've made a mistake! Take a gander at:
 
 ```lox
 a * b = c + d;
 ```
 
-- walk through parsing
-- first parse `a` using `variable`
-- then enter infix loop of pratt parser
-- hits `+` and calls `binary()`
-- parses right operand
-- gets to `variable` again for `b`
-- that looks for trailing `=`
-- sees it and parses as assignemnt
-- so above compiled like:
+According to Lox's grammar, `=` has the lowest precedence, so this should be
+parsed roughly like:
+
+```lox
+(a * b) = (c + d);
+```
+
+Obviously, `a * b` isn't a <span name="do">valid</span> assignment target, so
+this should be a syntax error. But here's what our parser does:
+
+<aside name="do">
+
+Wouldn't it be wild if it *was*, though? You could imagine some algebra-like
+language that would try to divide the assigned value up in some reasonable way
+and distribute it to `a` and `b`. That's probably a terrible idea.
+
+</aside>
+
+1.  First, `parsePrecedence()` parses `a` using the `variable()` prefix parser.
+1.  After that, it enters the infix parsing loop.
+1.  It reaches the `*` and calls `binary()`.
+1.  That recursively calls `parsePrecedence()` to parse the right-hand operand.
+1.  That calls `variable()` again for parsing `b`.
+1.  Inside that call to `variable()`, it looks for a trailing `=`. It sees one
+    and thus parses the rest of the program as an assignment.
+
+In other words, the parser sees the above code like:
 
 ```lox
 a * (b = c + d);
 ```
 
-- totally wrong
-- both `=` and `+` lower precedence than `*`
-- checking for `=` in `variable` sidesteps precedence handling
+We've messed up the precedence handling because `variable()` doesn't take into
+account the precedence of the surrounding expression that contains the variable.
+If the variable happens to be the right-hand side of an infix operator, or the
+operand of a unary operator, than that containing expression is too high
+precedence to permit the `=`.
 
-- when compiling expr that can precede `=`, also need to know whether or not
-  nested inside larger expr
-- if inside expr with higher precedence than `=`, then can't consume the
-  `=`
-
-- code that tracks precedence is in `parsePrecedence()`
-- it knows prec of current fn
-- to solve, pass in to parsing fns
-- all they need to know is if in low enough prec to allow assignment, so pass
-  bool
-- pass to prefix parse fn (like `variable()`)`
+To fix this, `variable()` should only look for and consume the `=` if it's in
+the context of a low precedence expression. The code that knows the current
+precedence is, logically enough, `parsePrecedence()`. The `variable()` function
+doesn't need to know the actual level. It just cares if it's low enough to allow
+assignment, so we can pass that fact in as a Boolean:
 
 ^code prefix-rule (4 before, 2 after)
 
-- also infix
-
-^code infix-rule (1 before, 1 after)
-
-- setters are infix fns starting with `.`
-- means parse fn type is different
-
-^code parse-fn-type (2 before, 2 after)
-
-- takes bool arg
-- gets passed to `variable`
+Since assignment is itself the lowest precedence expression, the only time we
+allow an assignment is if the precedence is that or lower. That flag makes its
+way to:
 
 ^code variable
 
-- passes through
+Which accepts the parameter:
 
 ^code named-variable-signature (1 after)
 
-- now can use that to tell if allowed to parse `=`
+And then uses it:
 
 ^code named-variable-can-assign (2 before, 1 after)
 
-- `expressionStatement()` calls `expression()`
-- that calls `parsePrecedence(PREC_ASSIGNMENT)`
-- so allows low enough prec to handle `=` in cases like:
+Pretty straight-forward. If the variable is nested inside some expression with
+higher precedence, `canAssign` will be `false` and this will ignore the `=`
+even if there is one there. Then this returns and eventually makes its way back
+to `parsePrecedence()`.
 
-```lox
-variable = "value";
-```
+Then what? What does this do with our broken example from before? Right now, `variable()` won't consume the `=` so that will be the current token. It returns
+back to `parsePrecedence()`. `variable()` is a prefix parser, so then it tries
+to enter the infix parsing loop. There is no parsing function associated with
+`=`, so it skips that loop.
 
-or even chained
-
-```lox
-variable = another = "value";
-```
-
-- but checking `canAssign` correctly prohibits parsing `=` in
-
-```lox
-a * b = c + d;
-```
-
-- what should happen?
-- code is erroneous
-- need to report error
-- do here
+Then `parsePrecedence()` silently returns back to the caller. That isn't right.
+If the `=` doesn't get consumed as part of the expression, nothing else is going
+to consume it. It's an error and we should report it:
 
 ^code invalid-assign (5 before, 1 after)
 
-- infix loop will hit `=`
-- no parse reg for that so exits loop
-- then hit this code which sees `=` and reports as error
-- after reporting error, parses expression
-- user likely has expr after `=`, so consumes that to minimize cascaded errors
+With that, the previous bad program correctly gets an error at compile time. OK,
+*now* are we done? Still not quite. See, we're passing an argument to one of the
+parse functions. But those functions are stored in a table of function pointers,
+so they all need to have the same type. Even though most parse functions don't
+support being used as an assignment target -- setters are the only other one --
+C requires them *all* to take and ignore the parameter.
 
-- changed parse fn type to take param
-- means all parse fns need to accept arg even though others don't handle `=`
+So we got a little grunt work to do. First, let's go ahead and pass the flag
+to the infix parse functions:
+
+^code infix-rule (1 before, 1 after)
+
+We'll need that for setters eventually. Then we'll fix the function type for
+parse functions:
+
+^code parse-fn-type (2 before, 2 after)
+
+And some completely tedious code to accept this parameter in all of our existing
+parse functions:
 
 ^code binary (1 after)
 
-...
+And:
 
 ^code parse-literal (1 after)
 
-...
+And:
 
 ^code grouping (1 after)
 
-...
+And:
 
 ^code number (1 after)
 
-...
+And:
 
 ^code string (1 after)
 
-...
+And, finally:
 
 ^code unary (1 after)
 
-- tedious
-- as with jlox, feels like big milestone
-- no longer simple expression calculator
-- vm has brain
-- can remember and update facts
+That gets us back to a C program we can compile. Fire it up and now you can run:
+
+```lox
+var breakfast = "beignets";
+var beverage = "cafe au lait";
+breakfast = "beignets with " + beverage;
+
+print breakfast;
+```
+
+It's starting to look like real code for an actual language!
 
 <div class="challenges">
 
 ## Challenges
 
-1.  compiler adds var name to constant pool every time encountered
-    optimize by reusing name if already in there
-    what is perf?
+1.  The compiler adds a global variable's name to the constant table as a string
+    every time an identifier is encountered. It creates a new constant each
+    time, even if that variable name is already in a previous slot in the
+    constant table. That's wasteful in the common case when the same variable is
+    referenced multiple times by the same function and increases the odds of
+    filling up the constant table and running out slots, since we only allow 256
+    constants in a single chunk.
 
-2.  resolving global dynamically by name important for some use cases
-    in common case, know global is defined
-    slow
-    how would optimize while still having same behavior?
+    Optimize this. How does your optimization affect the performance of the
+    compiler? Is this the right trade-off?
+
+2.  Looking up a global variable by name in a hash table each time it is used
+    is pretty slow, even with a good hash table. Can you come up with a more
+    efficient way to store and access global variables without changing the
+    semantics?
 
     [todo: answer. globals hash table maps names to indexes. globals stored in
     separate array. at compile time, add/look up name in array. instr operand
     is array index. have special "undefined" value to tell if not defined yet.
 
-3.  when running from repl, may refer to global not defined yet and need to
-    handle gracefully
-    but when running script, after compiling entire script, can tell if there
-    are any globals that are used but never defined
-    still need to handle case where definition isn't executed before use, but
-    if literally is not definition, statically know use will never succeed
+3.  When running in the REPL, a user might write a function that references so
+    unknown global variable. Then, in the next line, they declare the variable.
+    Lox should handle this gracefully by not reporting an "unknown variable"
+    compile error when the function is defined.
 
-    should that be a static error?
+    But when a user runs a Lox *script*, the compiler has access to the full
+    text of the entire program before any code is run. Consider this program:
+
+        :::lox
+        fun useVar() {
+          print oops;
+        }
+
+        var ooops = "too many o's!";
+
+    Here, we can tell statically that `oops` will not be defined because there
+    is *no* declaration of that global anywhere in the program. Note that
+    `useVar()` is never called either, so even though the variable isn't
+    defined, no runtime error will occur because it's never used either.
+
+    We could report mistakes like this a compile errors, at least when running
+    from a script. Do you think we should? Justify your answer. What do other
+    scripting languages you know do?
 
 </div>
