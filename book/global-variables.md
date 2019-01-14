@@ -12,247 +12,39 @@
 
 **todo: illustrations**
 
-That [last chapter][hash] was a giant helping of computer science theory. It was
-a lot to digest. This chapter is more dessert or palate cleanser. There's no
-large meaty concepts to chew through, just a handful of bite-sized pieces of
-engineering. We're going to add support for variables to our virtual machine.
-
-[hash]: hash-tables.html
-
-We don't have functions or scope yet, so all we'll worry about first is global
-variables. Variables are brought into being using variable declaration
-statements, so we'll be adding state too. There's a deeper connection here.
-Mutating -- assigning to a variable -- is a *side effect*. It doesn't produce
-any interesting value on its own, but it affects the later observable behavior
-of the program when you read that variable.
-
-Statements were made for side effects. Since statements don't produce values,
-they wouldn't be useful at all if our language didn't have any side effects. So,
-with variables, we are adding both statements and a reason to have statements in
-the first place.
-
-## Statements and Declarations
-
-Before we get to variables, let's get our parser and compiler handling
-statements. This actually requires two new categories productions in the
-grammar. If you recall, Lox distinguishes *statements* and *declarations*.
-Declarations are those statements that bind a new name to a value. We don't
-allow them directly inside flow control statements, like:
-
-```lox
-if (monday) var croissant = "yes"; // Error.
-```
-
-Allowing this would raise some confusing questions around the scope of the
-variable. So, like other languages, we prohibit it syntactically by having two
-separate grammar rules for the subset of statements that are allowed inside a
-control flow body:
-
-```lox
-statement      → exprStmt
-               | forStmt
-               | ifStmt
-               | printStmt
-               | returnStmt
-               | whileStmt
-               | block ;
-```
-
-And the set of statements allowed at the top level of a script and inside a
-block:
-
-```lox
-declaration    → classDecl
-               | funDecl
-               | varDecl
-               | statement ;
-```
-
-Since `block` itself is in `statement`, you can always get declarations inside a
-control flow construct by nested them inside a block.
-
-In this chapter, we'll only cover a couple of statements and one
-declaration:
-
-```lox
-statement      → exprStmt
-               | printStmt ;
-
-declaration    → varDecl
-               | statement ;
-```
-
-We'll save the rest for later chapters, but now we'll at least get the
-scaffolding in place for both productions. Up to now, our VM considered a
-"program" to be a single expression since that's all we could parse and compile.
-In a real Lox program, a script is a sequence of declarations. We're ready to do
-that now:
-
-^code compile (1 before, 1 after)
-
-We keep compiling declarations until we hit the end of the source file. That
-outer if statement handles the degenerate case where the entire file is empty.
-Since statements and declarations can refer to each other in the grammar, the
-functions for compiling those are recursive. That means forward declarations in
-C:
-
-^code forward-declarations (1 before, 1 after)
-
-The main `compile()` function calls:
-
-^code declaration
-
-We'll get to variable declarations later in the chapter so for now, it just
-forwards to `statement()`:
-
-^code statement
-
-**todo: subheader for print stmt somewhere in here?**
-
-We're going to implement print and expression statements. If the first token
-is `print`, it's obviously a print statement. We determine that using this
-helper function:
-
-^code match
-
-It should be familiar from jlox. If the current token has the given type, it
-consumes it and returns `true`. Otherwise it leaves it alone and returns
-`false`. We implement this in terms of:
-
-^code check
-
-It simply returns `true` if the current token has the given type. I know these
-seem pointless now, but they'll pay their way as we reuse them in later
-chapters. If we did match the `print` token, then we compile the rest of the
-statement using:
-
-^code print-statement
-
-A print statement evaluates an expression and prints the result, so we first
-parse and compile that expression. The grammar expects a semicolon after that,
-so we consume it. Finally, we emit a new instruction to print the
-result.
-
-^code op-print (1 before, 1 after)
-
-At runtime, we execute this instruction like so:
-
-^code interpret-print (1 before, 1 after)
-
-We compiled the expression first, so the code for that has produced some value
-and left it on top of the stack. Now we simply pop it and print it.
-
-Note that we don't push anything else after that. Inside the VM, this is a key
-difference between expressions and statements. Each bytecode instruction has a
-**stack effect**. This describes how the instruction modifies the size of the
-stack. For example, `OP_ADD` pops two values and pushes one, leaving the stack
-one element smaller than before.
-
-You can also consider the combined stack effect of a series of instructions. If
-you add up the stack effects of the series of instructions compiled from any
-expression, it will also total one. The expression leaves the result value on
-the stack.
-
-The bytecode for a statement has a total stack effect of zero. Since a statement
-produces no values, it ultimately leaves the stack unchanged, though it of
-course uses the stack while it's doing its thing. This is important because when
-we get to flow control and looping, a program might execute a long series of
-statements. If each of them grew or shrank the stack, the VM might overflow or
-underflow the stack.
-
-While we're in the interpreter loop, here's another little change:
-
-^code op-return (1 before, 1 after)
-
-When the VM only compiled and evaluated a single expression, we had some
-temporary code in `OP_RETURN` to output the value. Now that we have statements
-and `print` we don't need that anymore. We're one step closer to the complete
-implementation of clox. Only one step, though. We'll revisit `OP_RETURN` again
-when we add functions. Right now, it exits the entire interpreter loop.
-
-As usual, our new instruction needs support in the disassembler.
-
-^code disassemble-print (1 before, 1 after)
-
-That's our `print` statement. If you want, give it a whirl:
-
-```lox
-print 1 + 2;
-print 3 * 4;
-```
-
-I know, mind-blowing, right?
-
-### Expression statements
-
-Wait until you see the next statement:
-
-^code expression-statement
-
-An "expression statement" is simply an expression followed by a semicolon.
-They're how you write an expression in a context where a statement is expected.
-Usually, it's so that you can call a function for its side effect, like:
-
-```lox
-sayHi("friend");
-```
-
-Semantically, an expression statement evaluates the expression and discards
-the result. The compiler does a literal translation of that. It emits the code
-for the expression, and then an `OP_POP` instruction:
-
-^code pop-op (1 before, 1 after)
-
-As the name implies, this pops the top value off the stack and forgets it:
-
-^code interpret-pop (1 before, 2 after)
-
-We can disassemble it too:
-
-^code disassemble-pop (1 before, 1 after)
-
-Expression statements aren't very useful yet since we can't create any
-expressions that have side effects, but they'll be essential when we add
-functions later. The majority of statements in real-world code in languages like
-C are expression statements.
-
-**todo: link**
-
-### Error synchronization
-
-While we're getting this initial structure in place in the compiler, we can tie
-off a loose end we left several chapters back. Like jlox, clox uses panic mode
-error recovery to minimize the number of cascaded compile errors that it
-reports. The compiler exits panic mode when it reaches a synchronization point.
-For Lox, we chose statement boundaries as that point. Now that we have
-statements, we can implement synchronization:
-
-^code call-synchronize (1 before, 1 after)
-
-If we hit a compile error while parsing the previous declaration, we will enter
-panic mode. In that case, after the declaration, we starting synchronizing:
-
-^code synchronize
-
-This skips tokens indiscriminately until it reaches something that looks like a
-statement boundary. If the previous token can end a statement -- like a
-semicolon -- then we're right at the boundary. Likewise, if the next token can
-begin one -- usually one of the control flow or declaration keywords -- then
-we're there.
-
-## Variable Declarations
-
-Being able to *print* won't win your language any prizes at the programming
-language <span name="fair">fair</span>, so let's move on to something a little
-more interesting and get variables going.
-
-<aside name="fair">
-
-I can't help but imagine a "language fair" like some country 4H thing with rows
-of straw-filled stalls, full of baby languages moo-ing and baa-ing at each
-other.
+The [previous chapter][hash] was a long exploration of one big, deep,
+fundamental computer science data structure. Heavy on theory and concept. There
+may have been some discussion of big-O notation and algorithms. This chapter has
+fewer intellectual pretensions. There's no large ideas to learn. Instead, it's a
+handful of straightforward engineering tasks. Once we've completed them, our
+virtual machine will support variables.
+
+Actually, it will only support *global* variables. Locals are coming in the
+next chapter. In jlox, we managed to cram them both into a single chapter,
+because we used the same implementation technique for all variables. We built
+a chain of environment hash tables, one for each scope, all the way up to the
+top. That was a simple, clean way to learn how to manage state.
+
+But it's also *slow*. Allocating a new hash table each time you enter a block or
+call a function is not the road to a fast VM. Given how much code is concerned
+with using variables, if they go slow, everything goes slow. For clox, we'll
+improve that by using a much more efficient strategy for <span
+name="different">local</span> variables, but globals aren't as easily optimized.
+
+<aside name="different">
+
+This is a common meta-strategy in sophisticated language implementations. Often,
+the same language feature will have multiple implementation techniques, each
+tuned for different use patterns. For example, JavaScript VMs often have a
+faster representation for objects that are used more like instances of classes
+compared to other objects whose set of properties is more freely modified. C and
+C++ compilers often have a number of different ways of compiling switch
+statements based on the number of cases and how densely packed the case values
+are.
 
 </aside>
+
+[hash]: hash-tables.html
 
 A quick refresher on Lox semantics: Global variables in Lox are "late bound" or
 resolved dynamically. This means you can compile a chunk of code that refers to
@@ -273,19 +65,260 @@ Code like this might seem odd, but it's handy for defining mutually recursive
 functions. It also plays nicer with the REPL. You can write a little function in
 one line, then define the variable it uses in the next.
 
-The way we choose to implement global variables in the VM is informed by this
-need. If it was a static error to use a global variable before it's defined --
-as it is with *local* variables -- then we might choose to compile them
-differently.
+Local variables work differently. Since a local variable's declaration *always*
+occurs before it is used, the VM can resolve them at compile time, even in a
+simple single-pass compiler. That will let us use a smarter representation for
+locals. But that's for the next chapter. Right now, let's just worry about
+globals.
 
-There are three operations we need to support for variables:
+## Statements
+
+Variables come into being using variable declarations, which means now is also
+the time to add support for statements to our compiler. If you recall, Lox
+splits statements into two categories. "Declarations" are those statements that
+bind a new name to a value. The other kinds of statements -- flow control,
+print, etc. -- are just called "statements". We don't allow declarations
+directly inside flow control statements, like:
+
+```lox
+if (monday) var croissant = "yes"; // Error.
+```
+
+Allowing this would raise confusing questions around the scope of the variable.
+So, like other languages, we prohibit it syntactically by having a separate
+grammar rule for the subset of statements that *are* allowed inside a control
+flow body:
+
+```lox
+statement      → exprStmt
+               | forStmt
+               | ifStmt
+               | printStmt
+               | returnStmt
+               | whileStmt
+               | block ;
+```
+
+Then we use a separate rule for the top level of a script and inside a block:
+
+```lox
+declaration    → classDecl
+               | funDecl
+               | varDecl
+               | statement ;
+```
+
+The `declaration` rule contains the statements that declare names, and also
+includes `statment` to permit the other statement types too. Since `block`
+itself is in `statement`, you can put declarations <span
+name="parens">inside</span> a control flow construct by nesting them inside a
+block.
+
+<aside name="parens">
+
+Blocks works sort of like parentheses do for expressions. A block lets you put
+the "lower precedence" declaration statements in places where only a "higher
+precedence" non-declaring statement is allowed.
+
+</aside>
+
+In this chapter, we'll only cover a couple of statements and one
+declaration:
+
+```lox
+statement      → exprStmt
+               | printStmt ;
+
+declaration    → varDecl
+               | statement ;
+```
+
+Up to now, our VM considered a "program" to be a single expression since that's
+all we could parse and compile. In a real Lox program, a script is a sequence of
+declarations. We're ready to support that now:
+
+^code compile (1 before, 1 after)
+
+We keep compiling declarations until we hit the end of the source file, using:
+
+^code declaration
+
+We'll get to variable declarations later in the chapter so for now, it just
+forwards to `statement()`:
+
+^code statement
+
+Eventually, since blocks can contain declarations and flow control statements
+contain other statements, these two functions will be recursive. We may as well
+write out the forward declarations now:
+
+^code forward-declarations (1 before, 1 after)
+
+### Print statements
+
+We have two statement types to support. Let's start with print statements. If
+the first token is `print`, it's obviously a print statement. We determine that
+using this helper function:
+
+^code match
+
+You may recognize it from jlox. If the current token has the given type, we
+consume the token and return `true`. Otherwise we leave the token alone and
+return `false`. This helper function is implemented in terms of this other
+helper:
+
+^code check
+
+It simply returns `true` if the current token has the given type. It seems a
+little silly to wrap this in a function, but we'll use it more later and I think
+short verb-named functions like this make the parser easier to read.
+
+If we did match the `print` token, then we compile the rest of the statement
+using:
+
+^code print-statement
+
+A print statement evaluates an expression and prints the result, so we first
+parse and compile that expression. The grammar expects a semicolon after that,
+so we consume it. Finally, we emit a new instruction to print the
+result:
+
+^code op-print (1 before, 1 after)
+
+At runtime, we execute this instruction like so:
+
+^code interpret-print (1 before, 1 after)
+
+At this point, we have already executed the code for the expression and the
+result value remains on top of the stack. Now we simply pop it and print it.
+
+Note that we don't push anything else after that. This is a key difference
+between expressions and statements in the VM. Every bytecode instruction has a
+**stack effect** that describes how the instruction modifies the stack. For
+example, `OP_ADD` pops two values and pushes one, leaving the stack one element
+smaller than before.
+
+You can also sum the stack effects of a series of instructions. When you add the
+stack effects of any series of instructions compiled from an expression, it will
+total one. Each expression leaves one result value on the stack.
+
+The bytecode for an entire statement has a total stack effect of zero. Since a
+statement produces no values, it ultimately leaves the stack unchanged, though
+it of course uses the stack while it's doing its thing. This is important
+because when we get to flow control and looping, a program might execute a long
+series of statements. If each statement grew or shrank the stack, it might
+eventually overflow or underflow.
+
+While we're in the interpreter loop, we should delete a bit of code:
+
+^code op-return (1 before, 1 after)
+
+When the VM only compiled and evaluated a single expression, we had some
+temporary code in <span name="return">`OP_RETURN`</span> to output the value.
+Now that we have statements and `print` we don't need that anymore. We're one
+step closer to the complete implementation of clox.
+
+<aside name="return">
+
+We're only one step closer, though. We will revisit `OP_RETURN` again when we
+add functions. Right now, it exits the entire interpreter loop.
+
+</aside>
+
+As usual, a new instruction needs support in the disassembler.
+
+^code disassemble-print (1 before, 1 after)
+
+That's our `print` statement. If you want, give it a whirl:
+
+```lox
+print 1 + 2;
+print 3 * 4;
+```
+
+Exciting!
+
+### Expression statements
+
+Wait until you see the next statement:
+
+^code expression-statement
+
+An "expression statement" is simply an expression followed by a semicolon.
+They're how you write an expression in a context where a statement is expected.
+Usually, it's so that you can call a function for its side effect, like:
+
+```lox
+sayHi("friend");
+```
+
+Semantically, an expression statement evaluates the expression and discards the
+result. The compiler directly encodes those semantics. It emits the code for
+the expression, and then an `OP_POP` instruction:
+
+**todo: illustrate**
+
+^code pop-op (1 before, 1 after)
+
+As the name implies, this pops the top value off the stack and forgets it:
+
+^code interpret-pop (1 before, 2 after)
+
+We can disassemble it too:
+
+^code disassemble-pop (1 before, 1 after)
+
+Expression statements aren't very useful yet since we can't create any
+expressions that have side effects, but they'll be essential when we [add
+functions later][functions]. The majority of statements in real-world code in
+languages like C are expression statements.
+
+[functions]: calls-and-functions.html
+
+### Error synchronization
+
+While we're getting this initial work done in the compiler, we can tie off a
+loose end we left [several chapters back][errors]. Like jlox, clox uses panic
+mode error recovery to minimize the number of cascaded compile errors that it
+reports. The compiler exits panic mode when it reaches a synchronization point.
+For Lox, we chose statement boundaries as that point. Now that we have
+statements, we can implement synchronization:
+
+[errors]: compiling-expressions.html#handling-syntax-errors
+
+^code call-synchronize (1 before, 1 after)
+
+If we hit a compile error while parsing the previous declaration, we will enter
+panic mode. In that case, after the declaration, we starting synchronizing:
+
+^code synchronize
+
+We skip tokens indiscriminately until we reach something that looks like a
+statement boundary. We recognize the boundary by looking for a preceding token
+that can end a statement, like a semicolon. Or we'll look for a subsequent token
+that begins a statement, usually one of the control flow or declaration
+keywords.
+
+## Variable Declarations
+
+Merely being able to *print* doesn't win your language any prizes at the
+programming language <span name="fair">fair</span>, so let's move on to
+something a little more interesting and get variables going. There are three
+operations we need to support:
+
+<aside name="fair">
+
+I can't help but imagine a "language fair" like some country 4H thing. Rows of
+straw-lines stalls full of baby languages *moo*-ing and *baa*-ing at each other.
+
+</aside>
 
 *   Declaring a new variable using a `var` statement.
 *   Accessing the value of a variable using an identifier expression.
 *   Storing a new value in an existing variable using an assignment expression.
 
-We can't do anything until we *have* some variables, so we'll start with
-declarations:
+We can't do either of the last two until we have some variables, so we start
+with declarations:
 
 ^code match-var (1 before, 2 after)
 
@@ -314,23 +347,23 @@ This function takes the given token and adds its lexeme to the chunk's constant
 table as a string. It then returns the index of that constant in the constant
 table.
 
-Global variables are accessed by name at runtime. That means the VM -- the
+Global variables are looked up by name at runtime. That means the VM -- the
 bytecode interpreter loop -- needs access to the name. A whole string is too big
 to stuff into the bytecode stream as an operand. Instead, we store the string in
-the constant table and the instruction can then refer to it by its index in the
-table.
+the constant table and the instruction then refers to the name by its index in
+the table.
 
-So this function returns that index all the way to `varDeclaration()` which
-then passes it along to:
+This function returns that index all the way to `varDeclaration()` which later
+hands it over to:
 
 ^code define-variable
 
-<span name="helper">This</span> outputs the bytecode instruction define the new
-variable at runtime. The index of the variable's name in the constant table is
-the instruction's operand. As usual in a stack-based VM, we emit this
-instruction last. At runtime, we'll execute the code for the variable's
-initializer. That will leave the value on the stack. This instruction will take
-that and store it away for later.
+<span name="helper">This</span> outputs the bytecode instruction that defines
+the new variable and stores its initial value. The index of the variable's name
+in the constant table is the instruction's operand. As usual in a stack-based
+VM, we emit this instruction last. At runtime, we execute the code for the
+variable's initializer first. That leaves the value on the stack. Then this
+instruction takes that and stores it away for later.
 
 <aside name="helper">
 
@@ -345,7 +378,7 @@ Over in the runtime, we begin with this new instruction:
 
 ^code define-global-op (1 before, 1 after)
 
-Since we already built our own hash table, the implementation isn't too hard:
+Thanks to our handy-dandy hash table, the implementation isn't too hard:
 
 ^code interpret-define-global (1 before, 2 after)
 
@@ -363,8 +396,8 @@ possibility since the hash table requires dynamic allocation when it resizes.
 </aside>
 
 This code doesn't check to see if the key is already in the table. Lox is pretty
-lax with global variables and lets you redefine them without error. That tends
-to be handy in a REPL session, so the VM supports that by simply overwriting the
+lax with global variables and lets you redefine them without error. That's
+useful in a REPL session, so the VM supports that by simply overwriting the
 value if the key happens to already be in the hash table.
 
 There's another little helper macro:
@@ -409,12 +442,12 @@ As usual, we want to be able to disassemble the new instruction too:
 ^code disassemble-define-global (1 before, 1 after)
 
 And with that, we can define global variables. Not that users can *tell* that
-they've done so, because they can't actually *use* them. So let's fix that next:
+they've done so, because they can't actually *use* them. So let's fix that next.
 
 ## Reading Variables
 
-Like every programming language ever, a variable's value is accessed by way of
-the variable's name. We hook up identifier tokens to the expression parser here:
+Like every programming language ever, we access a variable's value using its
+name. We hook up identifier tokens to the expression parser here:
 
 ^code table-identifier (1 before, 1 after)
 
@@ -423,21 +456,21 @@ That calls:
 ^code variable-without-assign
 
 As with declarations, there are a couple of tiny helper functions that seem
-pointless now but will become more useful in later chapters. In particular,
-this function will ultimately be used when compiling `this` expressions too:
+pointless now but will become more useful in later chapters. Trust me, there's a
+method to the madness.
 
 ^code read-named-variable
 
-It uses the same `identifierConstant()` function from before to take the given
-identifier token and add its lexeme to the chunk's constant table as a string.
-All the remains is to emit an instruction to load the global variable with that
-name:
+This calls the same `identifierConstant()` function from before to take the
+given identifier token and add its lexeme to the chunk's constant table as a
+string. All the remains is to emit an instruction that loads the global variable
+with that name. Here's the instruction:
 
 ^code get-global-op (1 before, 1 after)
 
 Over in the bytecode interpreter, the implementation mirrors `OP_DEFINE_GLOBAL`:
 
-^code interpret-get-global (1 before, 1 after)
+^code interpret-get-global (1 before, 2 after)
 
 We pull the constant table index from the instruction's operand and then look
 up the variable name. Then we use that as a key to look up the variable's value
@@ -464,9 +497,9 @@ There's only one operation left...
 ## Assignment
 
 Throughout this book, I've tried to keep you on a fairly safe and easy path. I
-don't avoid hard problems, but I try to not make the solutions harder than they
-need to be. Alas, other design choices in our <span name="jlox">bytecode</span>
-compiler make assignment more annoying to implement than it might otherwise be.
+don't avoid hard *problems*, but I try to not make the *solutions* more complex
+than they need to be. Alas, other design choices in our <span
+name="jlox">bytecode</span> compiler make assignment annoying to implement.
 
 <aside name="jlox">
 
@@ -487,24 +520,29 @@ target of an assignment and not a normal expression until it reaches `=`, many
 tokens after the first `menu`. By then, the compiler has already emitted
 bytecode for the whole thing.
 
-It's not as dire as it might seem, though. Even though the `.beverage` part
-needs to be compiled a setter and not a getter, the rest of the expression
+The problem is not as dire as it might seem, though. Even though the `.beverage`
+part must be compiled as a setter and not a getter, the rest of the expression
 behaves the same as if it weren't the target of an assignment. The
 `menu.brunch(sunday)` part can be compiled and executed as usual.
 
-Fortunately for us, it's only the very right-most bit of syntax whose behavior
-changes when appearing before a `=`. Even though the receiver of a setter may be
-an arbitrarily long expression, the setter itself is only a `.` followed by an
-identifier, which is right before the `=`. We don't need much look ahead to
-realize `.beverage` should be compiled as a setter and not a getter.
+Fortunately for us, the only semantic differences on the left side of an
+assignment appear at the very right-most end of the tokens, immediately
+preceding the `=`. Even though the receiver of a setter may be an arbitrarily
+long expression, the setter itself is only a `.` followed by an identifier,
+which is right before the `=`. We don't need much lookahead to realize
+`.beverage` should be compiled as a setter and not a getter.
 
-Variables are even easier since they are just a single bare identifier. So the idea is that right *before* compiling an expression that can also be used as an assignment target, we look for a subsequent `=` token. If we see one, we compile it as an assignment or setter instead of a variable access or getter.
+Variables are even easier since they are just a single bare identifier before a
+`=`. The idea then is that right *before* compiling an expression that can also
+be used as an assignment target, we look for a subsequent `=` token. If we see
+one, we compile it as an assignment or setter instead of a variable access or
+getter.
 
 We don't have setters to worry about yet, so all we need to handle is variables:
 
 ^code named-variable (1 before, 1 after)
 
-In the parse function for identifier expressions, we look for a subsequent
+In the parse function for identifier expressions, we look for a following
 equals sign. If we find one, instead of emitting code for a variable access,
 we compile the assigned value and then emit an assignment instruction.
 
@@ -527,7 +565,7 @@ And a little disassembly:
 
 ^code disassemble-set-global (1 before, 1 after)
 
-So we're done, right? Not quite. We've made a mistake! Take a gander at:
+So we're done, right? Well... not quite. We've made a mistake! Take a gander at:
 
 ```lox
 a * b = c + d;
@@ -545,9 +583,10 @@ this should be a syntax error. But here's what our parser does:
 
 <aside name="do">
 
-Wouldn't it be wild if it *was*, though? You could imagine some algebra-like
-language that would try to divide the assigned value up in some reasonable way
-and distribute it to `a` and `b`. That's probably a terrible idea.
+Wouldn't it be wild if `a * b` *was* as valid assignment target, though? You
+could imagine some algebra-like language that tried to divide the assigned value
+up in some reasonable way and distributed it to `a` and `b`. ...That's probably
+a terrible idea.
 
 </aside>
 
@@ -574,14 +613,14 @@ precedence to permit the `=`.
 To fix this, `variable()` should only look for and consume the `=` if it's in
 the context of a low precedence expression. The code that knows the current
 precedence is, logically enough, `parsePrecedence()`. The `variable()` function
-doesn't need to know the actual level. It just cares if it's low enough to allow
-assignment, so we can pass that fact in as a Boolean:
+doesn't need to know the actual level. It just cares that the precedence is low
+enough to allow assignment, so we pass that fact in as a Boolean:
 
 ^code prefix-rule (4 before, 2 after)
 
-Since assignment is itself the lowest precedence expression, the only time we
-allow an assignment is if the precedence is that or lower. That flag makes its
-way to:
+Since assignment is the lowest precedence expression, the only time we allow an
+assignment is when parsing an assignment expression or top-level expression like
+in an expression statement. That flag makes its way to:
 
 ^code variable
 
@@ -593,31 +632,33 @@ And then uses it:
 
 ^code named-variable-can-assign (2 before, 1 after)
 
-Pretty straight-forward. If the variable is nested inside some expression with
-higher precedence, `canAssign` will be `false` and this will ignore the `=`
-even if there is one there. Then this returns and eventually makes its way back
-to `parsePrecedence()`.
+That's a lot of plumbing to get literally one bit of data to the right place in
+the compiler, but arrived it has. If the variable is nested inside some
+expression with higher precedence, `canAssign` will be `false` and this will
+ignore the `=` even if there is one there. Then this returns and eventually
+makes its way back to `parsePrecedence()`.
 
 Then what? What does this do with our broken example from before? Right now, `variable()` won't consume the `=` so that will be the current token. It returns
 back to `parsePrecedence()`. `variable()` is a prefix parser, so then it tries
 to enter the infix parsing loop. There is no parsing function associated with
 `=`, so it skips that loop.
 
-Then `parsePrecedence()` silently returns back to the caller. That isn't right.
-If the `=` doesn't get consumed as part of the expression, nothing else is going
-to consume it. It's an error and we should report it:
+Then `parsePrecedence()` silently returns back to the caller. That also isn't
+right. If the `=` doesn't get consumed as part of the expression, nothing else
+is going to consume it. It's an error and we should report it:
 
 ^code invalid-assign (5 before, 1 after)
 
 With that, the previous bad program correctly gets an error at compile time. OK,
 *now* are we done? Still not quite. See, we're passing an argument to one of the
 parse functions. But those functions are stored in a table of function pointers,
-so they all need to have the same type. Even though most parse functions don't
-support being used as an assignment target -- setters are the only other one --
-C requires them *all* to take and ignore the parameter.
+so all of the parse functions need to have the same type. Even though most parse
+functions don't support being used as an assignment target -- setters are the
+only other one -- our friendly C compiler requires them *all* to accept the
+parameter.
 
-So we got a little grunt work to do. First, let's go ahead and pass the flag
-to the infix parse functions:
+So we're going to finish off this chapter with some grunt work. First, let's go
+ahead and pass the flag to the infix parse functions:
 
 ^code infix-rule (1 before, 1 after)
 
@@ -651,7 +692,7 @@ And, finally:
 
 ^code unary (1 after)
 
-That gets us back to a C program we can compile. Fire it up and now you can run:
+Phew! We're back to a C program we can compile. Fire it up and now you can run:
 
 ```lox
 var breakfast = "beignets";
@@ -670,10 +711,10 @@ It's starting to look like real code for an actual language!
 1.  The compiler adds a global variable's name to the constant table as a string
     every time an identifier is encountered. It creates a new constant each
     time, even if that variable name is already in a previous slot in the
-    constant table. That's wasteful in the common case when the same variable is
-    referenced multiple times by the same function and increases the odds of
-    filling up the constant table and running out slots, since we only allow 256
-    constants in a single chunk.
+    constant table. That's wasteful in cases where the same variable is
+    referenced multiple times by the same function. That in turn increases the
+    odds of filling up the constant table and running out slots, since we only
+    allow 256 constants in a single chunk.
 
     Optimize this. How does your optimization affect the performance of the
     compiler? Is this the right trade-off?
@@ -687,10 +728,10 @@ It's starting to look like real code for an actual language!
     separate array. at compile time, add/look up name in array. instr operand
     is array index. have special "undefined" value to tell if not defined yet.
 
-3.  When running in the REPL, a user might write a function that references so
+3.  When running in the REPL, a user might write a function that references an
     unknown global variable. Then, in the next line, they declare the variable.
     Lox should handle this gracefully by not reporting an "unknown variable"
-    compile error when the function is defined.
+    compile error when the function is first defined.
 
     But when a user runs a Lox *script*, the compiler has access to the full
     text of the entire program before any code is run. Consider this program:
@@ -707,7 +748,7 @@ It's starting to look like real code for an actual language!
     `useVar()` is never called either, so even though the variable isn't
     defined, no runtime error will occur because it's never used either.
 
-    We could report mistakes like this a compile errors, at least when running
+    We could report mistakes like this as compile errors, at least when running
     from a script. Do you think we should? Justify your answer. What do other
     scripting languages you know do?
 

@@ -288,7 +288,7 @@ static uint8_t makeConstant(Value value) {
     error("Too many constants in one chunk.");
     return 0;
   }
-  
+
   return (uint8_t)constant;
 }
 //< Compiling Expressions make-constant
@@ -652,7 +652,7 @@ static void binary(bool canAssign) {
 //< Global Variables binary
   // Remember the operator.
   TokenType operatorType = parser.previous.type;
-  
+
   // Compile the right operand.
   ParseRule* rule = getRule(operatorType);
   parsePrecedence((Precedence)(rule->precedence + 1));
@@ -809,12 +809,12 @@ static void namedVariable(Token name, bool canAssign) {
     setOp = OP_SET_GLOBAL;
   }
 /* Global Variables read-named-variable < Global Variables named-variable
- 
+
   emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
 */
 //< Local Variables not-yet
 //> named-variable
-  
+
 /* Global Variables named-variable < Global Variables named-variable-can-assign
   if (match(TOKEN_EQUAL)) {
 */
@@ -1063,7 +1063,7 @@ static void parsePrecedence(Precedence precedence) {
   prefixRule(canAssign);
 //< Global Variables prefix-rule
 //> infix
-  
+
   while (precedence <= getRule(parser.current.type)->precedence) {
     advance();
     ParseFn infixRule = getRule(parser.previous.type)->infix;
@@ -1242,10 +1242,8 @@ static void varDeclaration() {
   uint8_t global = parseVariable("Expect variable name.");
 
   if (match(TOKEN_EQUAL)) {
-    // Compile the initializer.
     expression();
   } else {
-    // Default to nil.
     emitByte(OP_NIL);
   }
   consume(TOKEN_SEMICOLON, "Expect ';' after variable declaration.");
@@ -1414,10 +1412,10 @@ static void whileStatement() {
 //> Global Variables synchronize
 static void synchronize() {
   parser.panicMode = false;
-  
+
   while (parser.current.type != TOKEN_EOF) {
     if (parser.previous.type == TOKEN_SEMICOLON) return;
-    
+
     switch (parser.current.type) {
       case TOKEN_CLASS:
       case TOKEN_FUN:
@@ -1428,12 +1426,12 @@ static void synchronize() {
       case TOKEN_PRINT:
       case TOKEN_RETURN:
         return;
-        
+
       default:
         // Do nothing.
         ;
     }
-    
+
     advance();
   }
 }
@@ -1465,7 +1463,7 @@ static void declaration() {
   statement();
 */
 //> call-synchronize
-  
+
   if (parser.panicMode) synchronize();
 //< call-synchronize
 }
@@ -1547,7 +1545,7 @@ ObjFunction* compile(const char* source) {
 */
   parser.hadError = false;
   parser.panicMode = false;
-  
+
 //< init-parser-error
   advance();
 //< Compiling Expressions compile-chunk
@@ -1556,11 +1554,9 @@ ObjFunction* compile(const char* source) {
   consume(TOKEN_EOF, "Expect end of expression.");
 */
 //> Global Variables compile
-  
-  if (!match(TOKEN_EOF)) {
-    do {
-      declaration();
-    } while (!match(TOKEN_EOF));
+
+  while (!match(TOKEN_EOF)) {
+    declaration();
   }
 
 //< Global Variables compile
