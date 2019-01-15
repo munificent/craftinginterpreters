@@ -559,6 +559,8 @@ globals hash table. If the variable hasn't been defined yet, it's a runtime
 error to try to assign to it. Lox [doesn't do implicit variable
 declaration][implicit].
 
+**todo: other difference is does not pop. because assignment is expr.**
+
 [implicit]: statements-and-state.html#design-note
 
 And a little disassembly:
@@ -717,7 +719,7 @@ It's starting to look like real code for an actual language!
     allow 256 constants in a single chunk.
 
     Optimize this. How does your optimization affect the performance of the
-    compiler? Is this the right trade-off?
+    compiler compared to the runtime? Is this the right trade-off?
 
 2.  Looking up a global variable by name in a hash table each time it is used
     is pretty slow, even with a good hash table. Can you come up with a more
