@@ -456,7 +456,7 @@ with the sequence of equality operators. We express that check using a handy
 
 It checks to see if the current token is any of the given types. If so, it
 consumes it and returns `true`. Otherwise, it returns `false` and leaves the
-token where it is.
+parser where it is.
 
 The `match()` method is defined in terms of two more fundamental operations:
 
