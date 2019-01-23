@@ -76,9 +76,9 @@ globals.
 Variables come into being using variable declarations, which means now is also
 the time to add support for statements to our compiler. If you recall, Lox
 splits statements into two categories. "Declarations" are those statements that
-bind a new name to a value. The other kinds of statements -- flow control,
+bind a new name to a value. The other kinds of statements -- control flow,
 print, etc. -- are just called "statements". We don't allow declarations
-directly inside flow control statements, like:
+directly inside control flow statements, like:
 
 ```lox
 if (monday) var croissant = "yes"; // Error.
@@ -148,7 +148,7 @@ forwards to `statement()`:
 
 ^code statement
 
-Eventually, since blocks can contain declarations and flow control statements
+Eventually, since blocks can contain declarations and control flow statements
 contain other statements, these two functions will be recursive. We may as well
 write out the forward declarations now:
 
@@ -169,9 +169,19 @@ helper:
 
 ^code check
 
-It simply returns `true` if the current token has the given type. It seems a
-little silly to wrap this in a function, but we'll use it more later and I think
-short verb-named functions like this make the parser easier to read.
+The `check()` function returns `true` if the current token has the given type.
+It seems a little <span name="read">silly</span> to wrap this in a function, but
+we'll use it more later and I think short verb-named functions like this make
+the parser easier to read.
+
+<aside name="read">
+
+This sounds trivial but hand-written parsers for non-toy languages get pretty
+big. When you have thousands of lines of code, a utility function that turns two
+lines into one and makes the result a little more readable easily earns its
+keep.
+
+</aside>
 
 If we did match the `print` token, then we compile the rest of the statement
 using:
@@ -194,9 +204,17 @@ result value remains on top of the stack. Now we simply pop it and print it.
 
 Note that we don't push anything else after that. This is a key difference
 between expressions and statements in the VM. Every bytecode instruction has a
-**stack effect** that describes how the instruction modifies the stack. For
-example, `OP_ADD` pops two values and pushes one, leaving the stack one element
-smaller than before.
+<span name="effect">**stack effect**</span> that describes how the instruction
+modifies the stack. For example, `OP_ADD` pops two values and pushes one,
+leaving the stack one element smaller than before.
+
+<aside name="effect">
+
+The stack is one element shorter after an `OP_ADD`, so its effect is -1:
+
+<img src="image/global-variables/stack-effect.png" alt="The stack effect of an OP_ADD instruction." />
+
+</aside>
 
 You can also sum the stack effects of a series of instructions. When you add the
 stack effects of any series of instructions compiled from an expression, it will
@@ -205,7 +223,7 @@ total one. Each expression leaves one result value on the stack.
 The bytecode for an entire statement has a total stack effect of zero. Since a
 statement produces no values, it ultimately leaves the stack unchanged, though
 it of course uses the stack while it's doing its thing. This is important
-because when we get to flow control and looping, a program might execute a long
+because when we get to control flow and looping, a program might execute a long
 series of statements. If each statement grew or shrank the stack, it might
 eventually overflow or underflow.
 
@@ -270,8 +288,15 @@ We can disassemble it too:
 
 Expression statements aren't very useful yet since we can't create any
 expressions that have side effects, but they'll be essential when we [add
-functions later][functions]. The majority of statements in real-world code in
-languages like C are expression statements.
+functions later][functions]. The <span name="majority">majority</span> of
+statements in real-world code in languages like C are expression statements.
+
+<aside name="majority">
+
+By my count, 80 of the 149 statements (~53%), in the version of "compiler.c"
+that we have at the end of the chapter are expression statements.
+
+</aside>
 
 [functions]: calls-and-functions.html
 
@@ -520,9 +545,12 @@ target of an assignment and not a normal expression until it reaches `=`, many
 tokens after the first `menu`. By then, the compiler has already emitted
 bytecode for the whole thing.
 
-The problem is not as dire as it might seem, though. Even though the `.beverage`
-part must be compiled as a setter and not a getter, the rest of the expression
-behaves the same as if it weren't the target of an assignment. The
+The problem is not as dire as it might seem, though. Look at how the parser sees that example:
+
+<img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = "mimosa"' statement, showing that 'menu.brunch(sunday)' is an expression." />
+
+Even though the `.beverage` part must be compiled as a setter, everything to the
+left of it is an expression, with the normal expression semantics. The
 `menu.brunch(sunday)` part can be compiled and executed as usual.
 
 Fortunately for us, the only semantic differences on the left side of an
@@ -576,9 +604,7 @@ a * b = c + d;
 According to Lox's grammar, `=` has the lowest precedence, so this should be
 parsed roughly like:
 
-```lox
-(a * b) = (c + d);
-```
+<img src="image/global-variables/ast-good.png" alt="The expected parse, like '(a * b) = (c + d)'." />
 
 Obviously, `a * b` isn't a <span name="do">valid</span> assignment target, so
 this should be a syntax error. But here's what our parser does:
@@ -602,9 +628,7 @@ a terrible idea.
 
 In other words, the parser sees the above code like:
 
-```lox
-a * (b = c + d);
-```
+<img src="image/global-variables/ast-bad.png" alt="The actual parse, like 'a * (b = c + d)'." />
 
 We've messed up the precedence handling because `variable()` doesn't take into
 account the precedence of the surrounding expression that contains the variable.
