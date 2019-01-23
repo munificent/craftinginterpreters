@@ -170,9 +170,9 @@ globals.</p>
 <p>Variables come into being using variable declarations, which means now is also
 the time to add support for statements to our compiler. If you recall, Lox
 splits statements into two categories. &ldquo;Declarations&rdquo; are those statements that
-bind a new name to a value. The other kinds of statements<span class="em">&mdash;</span>flow control,
+bind a new name to a value. The other kinds of statements<span class="em">&mdash;</span>control flow,
 print, etc.<span class="em">&mdash;</span>are just called &ldquo;statements&rdquo;. We don&rsquo;t allow declarations
-directly inside flow control statements, like:</p>
+directly inside control flow statements, like:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">monday</span><span class="p">)</span> <span class="k">var</span> <span class="n">croissant</span> <span class="o">=</span> <span class="s">&quot;yes&quot;</span><span class="p">;</span> <span class="c1">// Error.</span>
 </pre></div>
 
@@ -259,7 +259,7 @@ add after <em>declaration</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>declaration</em>()</div>
 
-<p>Eventually, since blocks can contain declarations and flow control statements
+<p>Eventually, since blocks can contain declarations and control flow statements
 contain other statements, these two functions will be recursive. We may as well
 write out the forward declarations now:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">expression</span><span class="p">();</span>                 
@@ -300,9 +300,16 @@ add after <em>consume</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>consume</em>()</div>
 
-<p>It simply returns <code>true</code> if the current token has the given type. It seems a
-little silly to wrap this in a function, but we&rsquo;ll use it more later and I think
-short verb-named functions like this make the parser easier to read.</p>
+<p>The <code>check()</code> function returns <code>true</code> if the current token has the given type.
+It seems a little <span name="read">silly</span> to wrap this in a function, but
+we&rsquo;ll use it more later and I think short verb-named functions like this make
+the parser easier to read.</p>
+<aside name="read">
+<p>This sounds trivial but hand-written parsers for non-toy languages get pretty
+big. When you have thousands of lines of code, a utility function that turns two
+lines into one and makes the result a little more readable easily earns its
+keep.</p>
+</aside>
 <p>If we did match the <code>print</code> token, then we compile the rest of the statement
 using:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
@@ -347,16 +354,20 @@ in <em>run</em>()</div>
 result value remains on top of the stack. Now we simply pop it and print it.</p>
 <p>Note that we don&rsquo;t push anything else after that. This is a key difference
 between expressions and statements in the VM. Every bytecode instruction has a
-<strong>stack effect</strong> that describes how the instruction modifies the stack. For
-example, <code>OP_ADD</code> pops two values and pushes one, leaving the stack one element
-smaller than before.</p>
+<span name="effect"><strong>stack effect</strong></span> that describes how the instruction
+modifies the stack. For example, <code>OP_ADD</code> pops two values and pushes one,
+leaving the stack one element smaller than before.</p>
+<aside name="effect">
+<p>The stack is one element shorter after an <code>OP_ADD</code>, so its effect is -1:</p>
+<p><img src="image/global-variables/stack-effect.png" alt="The stack effect of an OP_ADD instruction." /></p>
+</aside>
 <p>You can also sum the stack effects of a series of instructions. When you add the
 stack effects of any series of instructions compiled from an expression, it will
 total one. Each expression leaves one result value on the stack.</p>
 <p>The bytecode for an entire statement has a total stack effect of zero. Since a
 statement produces no values, it ultimately leaves the stack unchanged, though
 it of course uses the stack while it&rsquo;s doing its thing. This is important
-because when we get to flow control and looping, a program might execute a long
+because when we get to control flow and looping, a program might execute a long
 series of statements. If each statement grew or shrank the stack, it might
 eventually overflow or underflow.</p>
 <p>While we&rsquo;re in the interpreter loop, we should delete a bit of code:</p>
@@ -452,8 +463,12 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>Expression statements aren&rsquo;t very useful yet since we can&rsquo;t create any
 expressions that have side effects, but they&rsquo;ll be essential when we <a href="calls-and-functions.html">add
-functions later</a>. The majority of statements in real-world code in
-languages like C are expression statements.</p>
+functions later</a>. The <span name="majority">majority</span> of
+statements in real-world code in languages like C are expression statements.</p>
+<aside name="majority">
+<p>By my count, 80 of the 149 statements (~53%), in the version of &ldquo;compiler.c&rdquo;
+that we have at the end of the chapter are expression statements.</p>
+</aside>
 <h3><a href="#error-synchronization" name="error-synchronization"><small>21&#8202;.&#8202;1&#8202;.&#8202;3</small> Error synchronization</a></h3>
 <p>While we&rsquo;re getting this initial work done in the compiler, we can tie off a
 loose end we left <a href="compiling-expressions.html#handling-syntax-errors">several chapters back</a>. Like jlox, clox uses panic
@@ -731,7 +746,6 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>And with that, we can define global variables. Not that users can <em>tell</em> that
 they&rsquo;ve done so, because they can&rsquo;t actually <em>use</em> them. So let&rsquo;s fix that next.</p>
-<hr />
 <h2><a href="#reading-variables" name="reading-variables"><small>21&#8202;.&#8202;3</small> Reading Variables</a></h2>
 <p>Like every programming language ever, we access a variable&rsquo;s value using its
 name. We hook up identifier tokens to the expression parser here:</p>
@@ -845,9 +859,10 @@ syntax, it emits code for it. Assignment doesn&rsquo;t naturally fit that. Consi
 target of an assignment and not a normal expression until it reaches <code>=</code>, many
 tokens after the first <code>menu</code>. By then, the compiler has already emitted
 bytecode for the whole thing.</p>
-<p>The problem is not as dire as it might seem, though. Even though the <code>.beverage</code>
-part must be compiled as a setter and not a getter, the rest of the expression
-behaves the same as if it weren&rsquo;t the target of an assignment. The
+<p>The problem is not as dire as it might seem, though. Look at how the parser sees that example:</p>
+<p><img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = "mimosa"' statement, showing that 'menu.brunch(sunday)' is an expression." /></p>
+<p>Even though the <code>.beverage</code> part must be compiled as a setter, everything to the
+left of it is an expression, with the normal expression semantics. The
 <code>menu.brunch(sunday)</code> part can be compiled and executed as usual.</p>
 <p>Fortunately for us, the only semantic differences on the left side of an
 assignment appear at the very right-most end of the tokens, immediately
@@ -910,6 +925,7 @@ in <em>run</em>()</div>
 globals hash table. If the variable hasn&rsquo;t been defined yet, it&rsquo;s a runtime
 error to try to assign to it. Lox <a href="statements-and-state.html#design-note">doesn&rsquo;t do implicit variable
 declaration</a>.</p>
+<p><strong>todo: other difference is does not pop. because assignment is expr.</strong></p>
 <p>And a little disassembly:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">constantInstruction</span><span class="p">(</span><span class="s">&quot;OP_DEFINE_GLOBAL&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -928,10 +944,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>According to Lox&rsquo;s grammar, <code>=</code> has the lowest precedence, so this should be
 parsed roughly like:</p>
-<div class="codehilite"><pre><span></span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">c</span> <span class="o">+</span> <span class="n">d</span><span class="p">);</span>
-</pre></div>
-
-
+<p><img src="image/global-variables/ast-good.png" alt="The expected parse, like '(a * b) = (c + d)'." /></p>
 <p>Obviously, <code>a * b</code> isn&rsquo;t a <span name="do">valid</span> assignment target, so
 this should be a syntax error. But here&rsquo;s what our parser does:</p>
 <aside name="do">
@@ -950,10 +963,7 @@ a terrible idea.</p>
     and thus parses the rest of the program as an assignment.</li>
 </ol>
 <p>In other words, the parser sees the above code like:</p>
-<div class="codehilite"><pre><span></span><span class="n">a</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">=</span> <span class="n">c</span> <span class="o">+</span> <span class="n">d</span><span class="p">);</span>
-</pre></div>
-
-
+<p><img src="image/global-variables/ast-bad.png" alt="The actual parse, like 'a * (b = c + d)'." /></p>
 <p>We&rsquo;ve messed up the precedence handling because <code>variable()</code> doesn&rsquo;t take into
 account the precedence of the surrounding expression that contains the variable.
 If the variable happens to be the right-hand side of an infix operator, or the
@@ -1154,7 +1164,7 @@ replace 1 line</div>
     odds of filling up the constant table and running out slots, since we only
     allow 256 constants in a single chunk.</p>
 <p>Optimize this. How does your optimization affect the performance of the
-compiler? Is this the right trade-off?</p>
+compiler compared to the runtime? Is this the right trade-off?</p>
 </li>
 <li>
 <p>Looking up a global variable by name in a hash table each time it is used
