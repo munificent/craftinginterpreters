@@ -163,4 +163,31 @@ runtime to ensure the variable has been initialized.
 
 ## 3
 
-TODO
+This question is more subtle than it may seem.
+
+The seemingly safe error is to say that obviously using a variable that is
+never defined anywhere is clearly wrong code so it should be an error. That's
+a reasonable choice.
+
+But when you're in the middle refactoring a large program, you sometimes have
+code in a known broken state. As long as the broken code isn't *called*, it
+might be nice to let the user run the other parts of the program that are OK.
+
+You could try to have your cake and eat it too by making a reference to an
+undeclared variable be a *warning*. That usually means the language reports it
+as an error but still allows the program to be run. That works too, but in
+practice, having shades of gray in your error reporting tends to cause user
+headaches.
+
+Some teams will want things to be black and white by turning all warnings into
+errors, which sacrifices the ability you were trying to provide. Meanwhile,
+other teams have the bad habit of committing code containing unfixed warnings,
+leading to gradually worsening code. You will likely end up in long arguments
+about which diagnostics should be considered fatal errors and which mere
+warnings. People have strangely strong opinions about this stuff.
+
+Personally, I'm pretty error-prone and like tools and languages to help me catch
+my mistakes, so I'd like it to tell me if there's a use of an undeclared
+variable name. If I'm in the middle of refactoring a big codebase, I'm OK with
+having to comment out large regions of it to temporarily silence errors. But
+that's just me.
