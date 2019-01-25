@@ -454,9 +454,9 @@ with the sequence of equality operators. We express that check using a handy
 
 ^code match
 
-It checks to see if the current token is any of the given types. If so, it
-consumes it and returns `true`. Otherwise, it returns `false` and leaves the
-parser where it is.
+This checks to see if the current token is any of the given types. If so, it
+consumes the token and returns `true`. Otherwise, it returns `false` and leaves
+the token as the current one.
 
 The `match()` method is defined in terms of two more fundamental operations:
 
