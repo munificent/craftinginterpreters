@@ -122,7 +122,7 @@ these problems and others is a hash table.</p>
 <p>You probably already know what a hash table is, even if you don&rsquo;t know it by
 that name. If you&rsquo;re a Java programmer, you call them &ldquo;HashMaps&rdquo;. C# and Python
 users call them &ldquo;dictionaries&rdquo;. In C++, it&rsquo;s an &ldquo;unordered map&rdquo;. &ldquo;Objects&rdquo; in
-JavaScript and &ldquo;tables&rdquo; Lua are hash tables under the hood, which is what gives
+JavaScript and &ldquo;tables&rdquo; in Lua are hash tables under the hood, which is what gives
 them their flexibility.</p>
 <p>A hash table, whatever your language calls it, associates a set of <em>keys</em> with a
 set of <em>values</em>. Each key/value pair is an <em>entry</em> in the table. Given a key,
@@ -207,8 +207,8 @@ Memory&rsquo;s gotten cheaper over time, but not quite <em>that</em> cheap. Even
 make an array that big, it would be heinously wasteful. Almost every bucket will
 be empty unless users start writing way bigger Lox programs than we&rsquo;ve
 anticipated.</p>
-<p>Even though our variable keys cover the full 64 numeric range, we clearly don&rsquo;t
-need an array that that large. Instead, we&rsquo;ll allocate an array with enough
+<p>Even though our variable keys cover the full 64-bit numeric range, we clearly don&rsquo;t
+need an array that large. Instead, we&rsquo;ll allocate an array with enough
 capacity for the entries we need, but still some reasonable size. We map the
 full 64-bit keys down to that smaller range by taking the value modulo the size
 of the array.</p>
@@ -900,7 +900,7 @@ add after <em>freeTable</em>()</div>
 <p>You pass in a table and a key. If it finds an entry with that key, it returns
 <code>true</code>, otherwise it returns <code>false</code>. If the entry exists, it stores the
 resulting value in the <code>value</code> output parameter.</p>
-<p>Since <code>findEntries()</code> already does the hard work, the implementation isn&rsquo;t too
+<p>Since <code>findEntry()</code> already does the hard work, the implementation isn&rsquo;t too
 bad:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>findEntry</em>()</div>
@@ -918,7 +918,7 @@ add after <em>findEntry</em>()</div>
 <div class="source-file-narrow"><em>table.c</em>, add after <em>findEntry</em>()</div>
 
 <p>Obviously, if the table doesn&rsquo;t even have a bucket array, we definitely won&rsquo;t
-find the entry, so we check for that first. Otherwise, we let <code>findEntries()</code>
+find the entry, so we check for that first. Otherwise, we let <code>findEntry()</code>
 work its magic. That returns a pointer to a bucket. If the bucket is empty<span class="em">&mdash;</span>which we detect by seeing if the key is <code>NULL</code><span class="em">&mdash;</span>then it didn&rsquo;t find an entry
 with our key. If it does return a non-empty entry, then that&rsquo;s our match. We
 take its value and copy it to the output parameter so the caller can get it.
@@ -1220,7 +1220,7 @@ in <em>allocateString</em>()</div>
 the strings and those are all we care about, so we just use <code>nil</code> for the
 values.</p>
 <p>This gets a string into the table assuming that it&rsquo;s unique, but we need to
-actually check for duplication before we get here. We do that in two the
+actually check for duplication before we get here. We do that in two of the
 higher-level functions that call <code>allocateString()</code>. Here&rsquo;s one:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span> <span class="o">=</span> <span class="n">hashString</span><span class="p">(</span><span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">);</span>                       
 </pre><div class="source-file"><em>object.c</em><br>
