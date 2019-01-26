@@ -1281,29 +1281,29 @@ add after <em>tableAddAll</em>()</div>
 <p>The implementation looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableAddAll</em>()</div>
-<pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span> 
-                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">)</span> <span class="p">{</span>                             
-  <span class="c1">// If the table is empty, we definitely won&#39;t find it.                </span>
+<pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
+                           <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">)</span> <span class="p">{</span>                            
+  <span class="c1">// If the table is empty, we definitely won&#39;t find it.               </span>
   <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
 
-  <span class="c1">// Figure out where to insert it in the table. Use open addressing and</span>
-  <span class="c1">// basic linear probing.                                              </span>
-  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">hash</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                              
+  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">hash</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                             
 
-  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                            
-    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                              
+  <span class="k">for</span> <span class="p">(;;)</span> <span class="p">{</span>                                                           
+    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">[</span><span class="n">index</span><span class="p">];</span>                             
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>                                
-    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">length</span> <span class="o">&amp;&amp;</span>                                 
-        <span class="n">memcmp</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>                
-      <span class="c1">// We found it.                                                   </span>
-      <span class="k">return</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                                
-    <span class="p">}</span>                                                                   
+    <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                                          
+      <span class="c1">// Stop if we find an empty non-tombstone entry.                 </span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">IS_NIL</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">))</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>                           
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">length</span> <span class="o">&amp;&amp;</span>                         
+        <span class="n">memcmp</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>               
+      <span class="c1">// We found it.                                                  </span>
+      <span class="k">return</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                               
+    <span class="p">}</span>                                                                  
 
-    <span class="c1">// Try the next slot.                                               </span>
-    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                              
-  <span class="p">}</span>                                                                     
-<span class="p">}</span>                                                                       
+    <span class="c1">// Try the next slot.                                              </span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                             
+  <span class="p">}</span>                                                                    
+<span class="p">}</span>                                                                      
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>tableAddAll</em>()</div>

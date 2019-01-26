@@ -232,8 +232,6 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   // If the table is empty, we definitely won't find it.
   if (table->entries == NULL) return NULL;
 
-  // Figure out where to insert it in the table. Use open addressing and
-  // basic linear probing.
 /* Hash Tables table-find-string < Optimization not-yet
   uint32_t index = hash % table->capacity;
 */
@@ -244,8 +242,10 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   for (;;) {
     Entry* entry = &table->entries[index];
 
-    if (entry->key == NULL) return NULL;
-    if (entry->key->length == length &&
+    if (entry->key == NULL) {
+      // Stop if we find an empty non-tombstone entry.
+      if (IS_NIL(entry->value)) return NULL;
+    } else if (entry->key->length == length &&
         memcmp(entry->key->chars, chars, length) == 0) {
       // We found it.
       return entry->key;
