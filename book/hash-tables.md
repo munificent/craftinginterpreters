@@ -13,8 +13,8 @@ these problems and others is a hash table.
 You probably already know what a hash table is, even if you don't know it by
 that name. If you're a Java programmer, you call them "HashMaps". C# and Python
 users call them "dictionaries". In C++, it's an "unordered map". "Objects" in
-JavaScript and "tables" in Lua are hash tables under the hood, which is what gives
-them their flexibility.
+JavaScript and "tables" in Lua are hash tables under the hood, which is what
+gives them their flexibility.
 
 A hash table, whatever your language calls it, associates a set of *keys* with a
 set of *values*. Each key/value pair is an *entry* in the table. Given a key,

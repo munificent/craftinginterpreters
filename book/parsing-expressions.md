@@ -400,7 +400,7 @@ rule translates to code roughly like:
 </tbody>
 </table>
 
-It's called "*recursive* descent" because when a grammar rules refers to itself
+It's called "*recursive* descent" because when a grammar rule refers to itself
 -- directly or indirectly -- that translates to recursive method calls.
 
 ### The parser class
