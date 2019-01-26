@@ -167,7 +167,7 @@ ObjString* takeString(char* chars, int length) {
   ObjString* interned = tableFindString(&vm.strings, chars, length,
                                         hash);
   if (interned != NULL) {
-    FREE_ARRAY(char, chars, length);
+    FREE_ARRAY(char, chars, length + 1);
     return interned;
   }
 
