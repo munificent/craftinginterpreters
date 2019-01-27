@@ -395,9 +395,14 @@ that [later][hash], but this gives us the right semantics for now.
 
 [hash]: hash-tables.html
 
-In order to call `memcmp()`, we need an include:
+Finally, in order to use `memcmp()` and the new stuff in the "object" module, we
+need a couple of includes:
 
 ^code value-include-string (1 before, 2 after)
+
+And:
+
+^code value-include-object (2 before, 1 after)
 
 ### Concatenation
 
