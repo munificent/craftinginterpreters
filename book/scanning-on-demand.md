@@ -1,7 +1,9 @@
 ^title Scanning on Demand
 ^part A Bytecode Virtual Machine
 
-> Literature is idiosyncratic arrangements in horizontal lines in only twenty-six symbols, ten arabic numbers, and about eight punctuation marks.
+> Literature is idiosyncratic arrangements in horizontal lines in only
+> twenty-six phonetic symbols, ten Arabic numbers, and about eight punctuation
+> marks.
 >
 > <cite>Kurt Vonnegut</cite>
 
@@ -105,8 +107,8 @@ exceptions and automatically unwind the stack so we wouldn't *really* need to
 handle them. In C, if we don't check for them, they silently get ignored.
 
 This isn't really a book on good C programming practice, but I hate to encourage
-bad style, so lets go ahead and handle the errors. It's good for us, like eating
-our vegetables or flossing.
+bad style, so let's go ahead and handle the errors. It's good for us, like
+eating our vegetables or flossing.
 
 Fortunately, we don't need to do anything particulary clever if a failure
 occurs. If we can't correctly read the user's script, all we can really do is
