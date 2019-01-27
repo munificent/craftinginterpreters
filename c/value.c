@@ -4,6 +4,9 @@
 #include <string.h>
 //< Strings value-include-string
 
+//> Strings value-include-object
+#include "object.h"
+//< Strings value-include-object
 #include "memory.h"
 #include "value.h"
 
