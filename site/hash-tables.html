@@ -805,8 +805,8 @@ add after <em>findEntry</em>()</div>
 it initializes every element to be an empty bucket and then stores the array
 (and its capacity) in the hash table&rsquo;s main struct. This code is fine for when
 we insert the very first entry into the table, and we require the first
-allocation of the array. But what about when we already one and we need to grow
-it?</p>
+allocation of the array. But what about when we already have one and we need to
+grow it?</p>
 <p>Back when we were doing a dynamic array, we could just use <code>realloc()</code> and let
 the C standard library copy everything over. That doesn&rsquo;t work for a hash table.
 Remember that to choose the bucket for each entry, we take its hash key <em>modulo
@@ -1040,10 +1040,10 @@ in <em>findEntry</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>()</div>
 
-<p>If we reach a truly empty entry then then the key isn&rsquo;t present. In that case,
-if we have passed a tombstone, we return its bucket instead of the later empty
-one. If we&rsquo;re calling <code>findEntry()</code> in order to insert a node, that lets us
-treat the tombstone bucket as empty and reuse it for the new entry.</p>
+<p>If we reach a truly empty entry, then the key isn&rsquo;t present. In that case, if we
+have passed a tombstone, we return its bucket instead of the later empty one. If
+we&rsquo;re calling <code>findEntry()</code> in order to insert a node, that lets us treat the
+tombstone bucket as empty and reuse it for the new entry.</p>
 <p>Reusing tombstone slots automatically like this helps reduce the number of
 tombstones wasting space in the bucket array. In typical use cases where there
 is a mixture of insertions and deletions, the number of tombstones grows for a

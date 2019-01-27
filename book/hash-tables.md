@@ -646,8 +646,8 @@ It creates a bucket array with `capacity` entries. After it allocates the array,
 it initializes every element to be an empty bucket and then stores the array
 (and its capacity) in the hash table's main struct. This code is fine for when
 we insert the very first entry into the table, and we require the first
-allocation of the array. But what about when we already one and we need to grow
-it?
+allocation of the array. But what about when we already have one and we need to
+grow it?
 
 Back when we were doing a dynamic array, we could just use `realloc()` and let
 the C standard library copy everything over. That doesn't work for a hash table.
@@ -807,10 +807,10 @@ The first time we pass a tombstone, we store it in this local variable:
 
 ^code find-entry-tombstone (1 before, 1 after)
 
-If we reach a truly empty entry then then the key isn't present. In that case,
-if we have passed a tombstone, we return its bucket instead of the later empty
-one. If we're calling `findEntry()` in order to insert a node, that lets us
-treat the tombstone bucket as empty and reuse it for the new entry.
+If we reach a truly empty entry, then the key isn't present. In that case, if we
+have passed a tombstone, we return its bucket instead of the later empty one. If
+we're calling `findEntry()` in order to insert a node, that lets us treat the
+tombstone bucket as empty and reuse it for the new entry.
 
 Reusing tombstone slots automatically like this helps reduce the number of
 tombstones wasting space in the bucket array. In typical use cases where there
