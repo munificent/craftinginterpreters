@@ -655,11 +655,12 @@ if a new entry was added. Here&rsquo;s the implementation:</p>
 add after <em>freeTable</em>()</div>
 <pre><span></span><span class="kt">bool</span> <span class="nf">tableSet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>       
   <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
-  <span class="kt">bool</span> <span class="n">isNewKey</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">;</span>                            
-  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">;</span>                                              
-  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>
 
+  <span class="kt">bool</span> <span class="n">isNewKey</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">;</span>                            
   <span class="k">if</span> <span class="p">(</span><span class="n">isNewKey</span><span class="p">)</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>                                  
+
+  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">;</span>                                              
+  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">;</span>                                          
   <span class="k">return</span> <span class="n">isNewKey</span><span class="p">;</span>                                               
 <span class="p">}</span>                                                                
 </pre></div>
@@ -669,9 +670,9 @@ add after <em>freeTable</em>()</div>
 <p>Most of the interesting logic is in <code>findEntry()</code> which we&rsquo;ll get to soon. That
 function&rsquo;s job is to take a key and figure out which bucket in the array it
 should go in. It returns a pointer to that bucket<span class="em">&mdash;</span>the Entry in the array.</p>
-<p>Once we have that, inserting is straightforward. We copy the key and value into
-the corresponding fields in the entry. Then we update the hash table&rsquo;s size,
-taking care to not increase the count if we overwrote an already-present key.</p>
+<p>Once we have that, inserting is straightforward. We update the hash table&rsquo;s
+size, taking care to not increase the count if we overwrote an already-present
+key. Then we copy the key and value into the corresponding fields in the entry.</p>
 <p>We&rsquo;re missing a little something here, though. We haven&rsquo;t actually allocated the
 entry array yet. Oops! Before we can insert anything, we need to make sure we
 have an array, and that it&rsquo;s big enough:</p>
@@ -1055,9 +1056,10 @@ eventually hit an empty bucket.</p>
 <p>So we need to be thoughtful about how tombstones interact with the table&rsquo;s load
 factor and resizing. The key question is, when calculating the load factor,
 should we treat tombstones like full buckets or empty ones?</p>
-<p>If we treat them like full buckets, then we may end up with a bigger array than
-we probably need because it artificially inflates the load factor. There are
-tombstones we could reuse, but they aren&rsquo;t treated as unused so we end up
+<h3><a href="#counting-tombstones" name="counting-tombstones"><small>20&#8202;.&#8202;4&#8202;.&#8202;6</small> Counting tombstones</a></h3>
+<p>If we treat tombstones like full buckets, then we may end up with a bigger array
+than we probably need because it artificially inflates the load factor. There
+are tombstones we could reuse, but they aren&rsquo;t treated as unused so we end up
 growing the array prematurely.</p>
 <p>But if we treat tombstones like empty buckets and <em>don&rsquo;t</em> include them in the
 load factor, then we run the risk of ending up with <em>no</em> actual empty buckets to
@@ -1065,7 +1067,20 @@ terminate a lookup. An infinite loop is a much worse problem than a few extra
 array slots, so for load factor, we consider tombstones to be full buckets.</p>
 <p>That&rsquo;s why we don&rsquo;t reduce the count when deleting an entry in the previous
 code. The count is no longer the number of entries in the hash table, it&rsquo;s the
-number of entries plus tombstones.</p>
+number of entries plus tombstones. That implies that we only increment the count
+during insertion if the new entry goes into an entirely empty bucket:</p>
+<div class="codehilite"><pre class="insert-before"><br><span></span>  <span class="kt">bool</span> <span class="n">isNewKey</span> <span class="o">=</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">;</span>                  
+</pre><div class="source-file"><em>table.c</em><br>
+in <em>tableSet</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">isNewKey</span> <span class="o">&amp;&amp;</span> <span class="n">IS_NIL</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">))</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="p">;</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>table.c</em>, in <em>tableSet</em>(), replace 1 line</div>
+
+<p>If we are replacing a tombstone with a new entry, the bucket has already been
+accounted for and the count doesn&rsquo;t change.</p>
 <p>When we resize the array, we allocate a new array and re-insert all of the
 existing entries into it. During that process, we <em>don&rsquo;t</em> copy the tombstones
 over. They don&rsquo;t add any value since we&rsquo;re rebuilding the probe sequences

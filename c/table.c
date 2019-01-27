@@ -183,11 +183,17 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 //> Optimization not-yet
   Entry* entry = findEntry(table->entries, table->capacityMask, key);
 //< Optimization not-yet
+  
   bool isNewKey = entry->key == NULL;
+/* Hash Tables table-set < Hash Tables set-increment-count
+  if (isNewKey) table->count++;
+*/
+//> set-increment-count
+  if (isNewKey && IS_NIL(entry->value)) table->count++;
+//< set-increment-count
+
   entry->key = key;
   entry->value = value;
-
-  if (isNewKey) table->count++;
   return isNewKey;
 }
 //< table-set
