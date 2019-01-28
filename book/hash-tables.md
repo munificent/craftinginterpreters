@@ -465,7 +465,7 @@ handles that gracefully.
 ### Hashing strings
 
 Before we can start putting entries in the table, we need to, well, hash them.
-To ensure that the entries get distributed as uniformly throughout the array, we
+To ensure that the entries get distributed uniformly throughout the array, we
 want a good hash function that looks at all of the bits of the key string. If it
 only, say, looked at the first few characters, then a series of strings that all
 shared the same prefix would end up colliding in the same bucket.
