@@ -180,8 +180,8 @@ increases, the chance of collision increases very quickly. We can pick a large
 array size to reduce that, but it's a losing game. Say we wanted to store a
 hundred items in a hash table. To keep the chance of collision below a
 still-pretty-high 10%, we need an array with at least 47,015 elements. To get
-the chance below 1% requires an array with 492,555 elements, over 4,000 thousand
-empty buckets for each one in use.
+the chance below 1% requires an array with 492,555 elements, over 4,000 empty
+buckets for each one in use.
 
 [birthday]: https://en.wikipedia.org/wiki/Birthday_problem
 
