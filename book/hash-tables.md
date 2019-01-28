@@ -1021,7 +1021,11 @@ there's a couple of key differences. First, we pass in the raw character array
 of the key we're looking for instead of an ObjString. At the point that we call
 this, we haven't created an ObjString yet.
 
-Second, when checking to see if we found the key, we do an actual
+Second, when checking to see if we found the key, we look at the actual strings.
+First, we see if they have the same hash. That's quick to check and if the
+hashes aren't equal, the strings definitely aren't the same.
+
+Finally, just in case there is a hash collision, we do an actual
 character-by-character string comparison. This is the one place in the VM where
 we actually test strings for textual equality. We do it here to deduplicate
 strings and then the rest of the VM can take for granted that any two strings at
