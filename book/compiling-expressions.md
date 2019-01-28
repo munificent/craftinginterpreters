@@ -580,7 +580,7 @@ parser functions with token types. In the rows for `TOKEN_PLUS`, `TOKEN_MINUS`,
 ^code binary
 
 When a prefix parser function is called, the leading token has already been
-consumed. An infix parser function is even more *in media res* -- the left-hand
+consumed. An infix parser function is even more *in medias res* -- the left-hand
 operand has already been compiled and the subsequent infix operator consumed.
 
 The fact that the left operand gets compiled first works out fine. It means at
