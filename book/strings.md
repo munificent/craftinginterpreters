@@ -763,7 +763,7 @@ string encoding.
     values where a full 32 bits aren't needed.
 
 *   UTF-8 is memory efficient and supports the whole Unicode range, but it's
-    variable-length encoding make it slow to access arbitrary code points.
+    variable-length encoding makes it slow to access arbitrary code points.
 
 *   UTF-16 is worse than all of them -- an ugly consequence of Unicode
     outgrowing its earlier 16-bit range. It's less memory efficient than UTF-8,
