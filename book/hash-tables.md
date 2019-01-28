@@ -983,7 +983,7 @@ the strings and those are all we care about, so we just use `nil` for the
 values.
 
 This gets a string into the table assuming that it's unique, but we need to
-actually check for duplication before we get here. We do that in two of the
+actually check for duplication before we get here. We do that in the two
 higher-level functions that call `allocateString()`. Here's one:
 
 ^code copy-string-intern (1 before, 2 after)
