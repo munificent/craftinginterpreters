@@ -114,8 +114,8 @@ storage locations. What if we loosened it a little and allowed variables up to
 Again, this restriction isn't so crazy. Early linkers for C only treated the
 first six characters of external identifiers as meaningful. Everything after
 that was ignored. If you've ever wondered why the C standard library is so
-enamored of abbreviation -- looking at you, `creat()` -- it turns out it wasn't
-entirely because of the small screens (or teletypes!) of the day.
+enamored of abbreviation -- looking at you, `strncmp()` -- it turns out it
+wasn't entirely because of the small screens (or teletypes!) of the day.
 
 </aside>
 
