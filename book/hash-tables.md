@@ -159,12 +159,12 @@ example, if we try to add "jam", it also ends up in bucket 2:
 <img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
 
 We do have some control of this by tuning the array size. The bigger the array,
-the fewer indexes that get mapped to the same bucket and the fewer collisions
-that are likely to occur. Hash table implementers track this collision
-likelihood by measuring the table's **load factor**. It's defined as the number
-of entries divided by the number of buckets. So a hash table with five entries
-and an array of 16 elements has a load factor of 0.3125. The higher the load
-factor, the greater the chance of collisions.
+the fewer the indexes that get mapped to the same bucket and the fewer the
+collisions that are likely to occur. Hash table implementers track this
+collision likelihood by measuring the table's **load factor**. It's defined as
+the number of entries divided by the number of buckets. So a hash table with
+five entries and an array of 16 elements has a load factor of 0.3125. The higher
+the load factor, the greater the chance of collisions.
 
 One way we mitigate collisions is by resizing the array. Just like the dynamic
 arrays we implemented earlier, we reallocate and grow the hash table's array as
