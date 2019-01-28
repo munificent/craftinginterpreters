@@ -1310,6 +1310,7 @@ add after <em>tableAddAll</em>()</div>
       <span class="c1">// Stop if we find an empty non-tombstone entry.                 </span>
       <span class="k">if</span> <span class="p">(</span><span class="n">IS_NIL</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="p">))</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>                           
     <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">==</span> <span class="n">length</span> <span class="o">&amp;&amp;</span>                         
+        <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">==</span> <span class="n">hash</span> <span class="o">&amp;&amp;</span>                                    
         <span class="n">memcmp</span><span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">,</span> <span class="n">chars</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>               
       <span class="c1">// We found it.                                                  </span>
       <span class="k">return</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                               
@@ -1327,7 +1328,10 @@ add after <em>tableAddAll</em>()</div>
 there&rsquo;s a couple of key differences. First, we pass in the raw character array
 of the key we&rsquo;re looking for instead of an ObjString. At the point that we call
 this, we haven&rsquo;t created an ObjString yet.</p>
-<p>Second, when checking to see if we found the key, we do an actual
+<p>Second, when checking to see if we found the key, we look at the actual strings.
+First, we see if they have the same hash. That&rsquo;s quick to check and if the
+hashes aren&rsquo;t equal, the strings definitely aren&rsquo;t the same.</p>
+<p>Finally, just in case there is a hash collision, we do an actual
 character-by-character string comparison. This is the one place in the VM where
 we actually test strings for textual equality. We do it here to deduplicate
 strings and then the rest of the VM can take for granted that any two strings at
