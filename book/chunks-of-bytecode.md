@@ -156,8 +156,9 @@ indirection out of the way. Right down to the metal. Machine code. It even
 *sounds* fast. *"Machine code."*
 
 Compiling directly to the native instruction set the chip supports is what the
-fastest languages do, and has been since the early days when engineers actually
-<span name="hand">hand-wrote</span> programs in machine code.
+fastest languages do. Targeting native code has been the most efficient option
+since way back in the early days when engineers actually <span
+name="hand">hand-wrote</span> programs in machine code.
 
 <aside name="hand">
 
