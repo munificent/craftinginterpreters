@@ -394,7 +394,7 @@ semicolon.
 To access a variable, we define a new kind of primary expression:
 
 ```lox
-primary → "true" | "false" | "nil" | "this"
+primary → "true" | "false" | "nil"
         | NUMBER | STRING
         | "(" expression ")"
         | IDENTIFIER ;
