@@ -292,10 +292,21 @@ out of over the remainder of the book:
 
 You've certainly *called* variadic functions -- ones that take a varying number
 of arguments -- in C before: `printf()` is one. But you may not have *defined*
-your own. This book isn't a C tutorial, so I'll skim it here, but basically the
-`...` and `va_list` stuff let us pass an arbitrary number of arguments to
-`runtimeError()`. It forwards those on to `vfprintf()`, which is the flavor of
-`printf()` that takes an explicit `va_list`.
+your own. This book isn't a C <span name="tutorial">tutorial</span>, so I'll
+skim over it here, but basically the `...` and `va_list` stuff let us pass an
+arbitrary number of arguments to `runtimeError()`. It forwards those on to
+`vfprintf()`, which is the flavor of `printf()` that takes an explicit
+`va_list`.
+
+<aside name="tutorial">
+
+If you are looking for a C tutorial, I love "[The C Programming Language][kr]",
+usually called "K&R" in honor of its authors. It's not entirely up to date, but
+the quality of the writing more than makes up for it.
+
+[kr]: https://www.cs.princeton.edu/~bwk/cbook.html
+
+</aside>
 
 Callers can pass a format string to `runtimeError()` followed by a number of
 arguments, just like they can when calling `printf()` directly. `runtimeError()`
