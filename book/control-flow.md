@@ -449,7 +449,7 @@ code.
 
 ## For Loops
 
-We're down to the last flow control construct, <span name="for">Ye Olde</span>
+We're down to the last control flow construct, <span name="for">Ye Olde</span>
 C-style for loop. I probably don't need to remind you, but it looks like this:
 
 ```lox
@@ -482,7 +482,7 @@ being looped over supports.
 Those are great. For Lox, though, we're limited by building up the interpreter a
 chapter at a time. We don't have objects and methods yet, so we have no way of
 defining an iteration protocol that the for loop could use. So we'll stick with
-the old school C for loop. Think of it as "vintage". The fixie of flow control
+the old school C for loop. Think of it as "vintage". The fixie of control flow
 statements.
 
 </aside>

@@ -5,7 +5,7 @@
 > sometimes that a Thing which seemed very Thingish inside you is quite
 > different when it gets out into the open and has other people looking at it.
 >
-> <cite>A.A. Milne</cite>
+> <cite>A.A. Milne, <em>Winnie-the-Pooh</em></cite>
 
 The past few chapters were huge, packed full of complex techniques and pages of
 code. In this chapter, there's only one new concept to learn and a scattering of

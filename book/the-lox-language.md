@@ -377,14 +377,15 @@ typical operator menagerie out of our little language. No bitwise, shift,
 modulo, or conditional operators. I'm not grading you, but you will get bonus
 points in my heart if you augment your own implementation of Lox with them.
 
+Those are the expression forms (except for a couple related to specific features
+that we'll get to later), so let's move up a level.
+
 ## Statements
 
-Those are the expression forms (except for a couple related to specific features
-that we'll get to later), so let's move up a level. Now we're at statements.
-Where an expression's main job is to produce a *value*, a statement's job is to
-produce an *effect*. Since, by definition, statements don't evaluate to a value,
-to be useful they have to otherwise change the world in some way -- usually
-modifying some state, reading input, or producing output.
+Now we're at statements. Where an expression's main job is to produce a *value*,
+a statement's job is to produce an *effect*. Since, by definition, statements
+don't evaluate to a value, to be useful they have to otherwise change the world
+in some way -- usually modifying some state, reading input, or producing output.
 
 You've seen a couple of kinds of statements already. The first one was:
 

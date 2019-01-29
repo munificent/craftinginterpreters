@@ -107,10 +107,10 @@ void initVM() {
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
 //< Garbage Collection not-yet
-//> Global Variables not-yet
+//> Global Variables init-globals
 
   initTable(&vm.globals);
-//< Global Variables not-yet
+//< Global Variables init-globals
 //> Hash Tables init-strings
   initTable(&vm.strings);
 //< Hash Tables init-strings
@@ -125,9 +125,9 @@ void initVM() {
 }
 
 void freeVM() {
-//> Global Variables not-yet
+//> Global Variables free-globals
   freeTable(&vm.globals);
-//< Global Variables not-yet
+//< Global Variables free-globals
 //> Hash Tables free-strings
   freeTable(&vm.strings);
 //< Hash Tables free-strings
@@ -448,9 +448,9 @@ static InterpretResult run() {
 #define READ_CONSTANT() \
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
 //< Closures not-yet
-//> Global Variables not-yet
+//> Global Variables read-string
 #define READ_STRING() AS_STRING(READ_CONSTANT())
-//< Global Variables not-yet
+//< Global Variables read-string
 //> binary-op
 
 //< binary-op
@@ -522,9 +522,9 @@ static InterpretResult run() {
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
 //< Types of Values interpret-literals
-//> Global Variables not-yet
+//> Global Variables interpret-pop
       case OP_POP: pop(); break;
-//< Global Variables not-yet
+//< Global Variables interpret-pop
 //> Local Variables not-yet
 
       case OP_GET_LOCAL: {
@@ -549,7 +549,7 @@ static InterpretResult run() {
         break;
       }
 //< Local Variables not-yet
-//> Global Variables not-yet
+//> Global Variables interpret-get-global
 
       case OP_GET_GLOBAL: {
         ObjString* name = READ_STRING();
@@ -561,6 +561,8 @@ static InterpretResult run() {
         push(value);
         break;
       }
+//< Global Variables interpret-get-global
+//> Global Variables interpret-define-global
 
       case OP_DEFINE_GLOBAL: {
         ObjString* name = READ_STRING();
@@ -568,6 +570,8 @@ static InterpretResult run() {
         pop();
         break;
       }
+//< Global Variables interpret-define-global
+//> Global Variables interpret-set-global
 
       case OP_SET_GLOBAL: {
         ObjString* name = READ_STRING();
@@ -577,7 +581,7 @@ static InterpretResult run() {
         }
         break;
       }
-//< Global Variables not-yet
+//< Global Variables interpret-set-global
 //> Closures not-yet
 
       case OP_GET_UPVALUE: {
@@ -707,16 +711,16 @@ static InterpretResult run() {
         push(NUMBER_VAL(-AS_NUMBER(pop())));
         break;
 //< Types of Values op-negate
-//> Global Variables not-yet
+//> Global Variables interpret-print
 
       case OP_PRINT: {
         printValue(pop());
         printf("\n");
         break;
       }
-//< Global Variables not-yet
+        
+//< Global Variables interpret-print
 //> Jumping Forward and Back not-yet
-
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
 /* Jumping Forward and Back not-yet < Calls and Functions not-yet
@@ -844,7 +848,10 @@ static InterpretResult run() {
 
 //< Closures not-yet
       case OP_RETURN: {
-/* A Virtual Machine print-return < Global Variables not-yet
+//> Global Variables op-return
+        // Exit interpreter.
+//< Global Variables op-return
+/* A Virtual Machine print-return < Global Variables op-return
         printValue(pop());
         printf("\n");
 */
@@ -909,9 +916,9 @@ static InterpretResult run() {
 //> undef-read-constant
 #undef READ_CONSTANT
 //< undef-read-constant
-//> Global Variables not-yet
+//> Global Variables undef-read-string
 #undef READ_STRING
-//< Global Variables not-yet
+//< Global Variables undef-read-string
 //> undef-binary-op
 #undef BINARY_OP
 //< undef-binary-op

@@ -6,7 +6,7 @@
 > it, you are suddenly astonished and ask yourself how in the world it all came
 > about.
 >
-> <cite>Thor Heyerdahl</cite>
+> <cite>Thor Heyerdahl, <em>Kon-Tiki</em></cite>
 
 Oh, no! Our language implementation is taking on water! Way back when we [added
 variables and blocks][statements], we had scoping nice and tight. But when we

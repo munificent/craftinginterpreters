@@ -3,7 +3,7 @@
 
 > Take big bites. Anything worth doing is worth overdoing.
 >
-> <cite>Robert A. Heinlein</cite>
+> <cite>Robert A. Heinlein, <em>Time Enough for Love</em></cite>
 
 The first step in any compiler or interpreter is <span
 name="lexing">scanning</span>. The scanner takes in raw source code as a series

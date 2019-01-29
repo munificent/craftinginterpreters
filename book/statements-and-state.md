@@ -2,7 +2,7 @@
 ^part A Tree-Walk Interpreter
 
 > All my life, my heart has yearned for a thing I cannot name.
-> <cite>Andre Breton</cite>
+> <cite>Andre Breton, <em>Mad Love</em></cite>
 
 The interpreter we have so far feels less like programming in a real language
 and more like using a calculator. "Programming" to me means building up a system
