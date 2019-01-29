@@ -193,7 +193,6 @@ TOC = [
           'Statements', 'Variable declaration', 'Assignment',
           'Global variables table'
         ],
-        'done': False,
       },
       {
         'name': 'Local Variables',

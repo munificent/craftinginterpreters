@@ -94,24 +94,28 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_FALSE:
       return simpleInstruction("OP_FALSE", offset);
 //< Types of Values disassemble-literals
-//> Global Variables not-yet
+//> Global Variables disassemble-pop
     case OP_POP:
       return simpleInstruction("OP_POP", offset);
-//< Global Variables not-yet
+//< Global Variables disassemble-pop
 //> Local Variables not-yet
     case OP_GET_LOCAL:
       return byteInstruction("OP_GET_LOCAL", chunk, offset);
     case OP_SET_LOCAL:
       return byteInstruction("OP_SET_LOCAL", chunk, offset);
 //< Local Variables not-yet
-//> Global Variables not-yet
+//> Global Variables disassemble-get-global
     case OP_GET_GLOBAL:
       return constantInstruction("OP_GET_GLOBAL", chunk, offset);
+//< Global Variables disassemble-get-global
+//> Global Variables disassemble-define-global
     case OP_DEFINE_GLOBAL:
       return constantInstruction("OP_DEFINE_GLOBAL", chunk, offset);
+//< Global Variables disassemble-define-global
+//> Global Variables disassemble-set-global
     case OP_SET_GLOBAL:
       return constantInstruction("OP_SET_GLOBAL", chunk, offset);
-//< Global Variables not-yet
+//< Global Variables disassemble-set-global
 //> Closures not-yet
     case OP_GET_UPVALUE:
       return byteInstruction("OP_GET_UPVALUE", chunk, offset);
@@ -154,10 +158,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_NEGATE:
       return simpleInstruction("OP_NEGATE", offset);
 //< A Virtual Machine disassemble-negate
-//> Global Variables not-yet
+//> Global Variables disassemble-print
     case OP_PRINT:
       return simpleInstruction("OP_PRINT", offset);
-//< Global Variables not-yet
+//< Global Variables disassemble-print
 //> Jumping Forward and Back not-yet
     case OP_JUMP:
       return jumpInstruction("OP_JUMP", 1, chunk, offset);
