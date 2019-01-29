@@ -444,7 +444,7 @@ function to compile the `!` operator in [the next chapter][next].
 As in `grouping()`, we recursively call `expression()` to compile the operand.
 After that, we emit the bytecode to perform the negation. It might seem a little
 weird to write the negate instruction *after* its operand's bytecode since the
-`-` appears on the left, but think about in terms of order of execution:
+`-` appears on the left, but think about it in terms of order of execution:
 
 1. We evaluate the operand first which leaves its value on the stack.
 
