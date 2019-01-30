@@ -199,7 +199,7 @@ Yacc is a tool that takes in a grammar file and produces a source file for a
 compiler, so it's sort of like a "compiler" that outputs a compiler, which is
 where we get the term "compiler-compiler".
 
-Yacc wasn't the first of its ilk, which is why it's named "Yacc" -- *Yet
+Yacc wasn't the first of its ilke, which is why it's named "Yacc" -- *Yet
 Another* Compiler-Compiler. A later similar tool is [Bison][], named as a pun on
 the pronunciation of Yacc like "yak".
 
