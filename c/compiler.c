@@ -3,9 +3,9 @@
 //> Compiling Expressions compiler-include-stdlib
 #include <stdlib.h>
 //< Compiling Expressions compiler-include-stdlib
-//> Local Variables not-yet
+//> Local Variables compiler-include-string
 #include <string.h>
-//< Local Variables not-yet
+//< Local Variables compiler-include-string
 
 #include "common.h"
 #include "compiler.h"
@@ -62,7 +62,7 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 //< parse-rule
-//> Local Variables not-yet
+//> Local Variables local-struct
 
 typedef struct {
   // The name of the local variable.
@@ -79,6 +79,7 @@ typedef struct {
   bool isUpvalue;
 //< Closures not-yet
 } Local;
+//< Local Variables local-struct
 //> Closures not-yet
 
 typedef struct {
@@ -102,6 +103,7 @@ typedef enum {
   TYPE_TOP_LEVEL
 } FunctionType;
 //< Calls and Functions not-yet
+//> Local Variables compiler-struct
 
 typedef struct Compiler {
 //> Calls and Functions not-yet
@@ -126,7 +128,7 @@ typedef struct Compiler {
   // local scope. 0 is global scope.
   int scopeDepth;
 } Compiler;
-//< Local Variables not-yet
+//< Local Variables compiler-struct
 //> Methods and Initializers not-yet
 
 typedef struct ClassCompiler {
@@ -142,9 +144,9 @@ typedef struct ClassCompiler {
 Parser parser;
 
 //< Compiling Expressions parser
-//> Local Variables not-yet
+//> Local Variables current-compiler
 Compiler* current = NULL;
-//< Local Variables not-yet
+//< Local Variables current-compiler
 //> Methods and Initializers not-yet
 
 ClassCompiler* currentClass = NULL;
@@ -313,8 +315,8 @@ static void patchJump(int offset) {
   currentChunk()->code[offset + 1] = jump & 0xff;
 }
 //< Jumping Forward and Back not-yet
-//> Local Variables not-yet
-/* Local Variables not-yet < Calls and Functions not-yet
+//> Local Variables init-compiler
+/* Local Variables init-compiler < Calls and Functions not-yet
 static void initCompiler(Compiler* compiler) {
 */
 //> Calls and Functions not-yet
@@ -325,7 +327,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
   compiler->type = type;
 //< Calls and Functions not-yet
   compiler->localCount = 0;
-/* Local Variables not-yet < Calls and Functions not-yet
+/* Local Variables init-compiler < Calls and Functions not-yet
   compiler->scopeDepth = 0;
 */
 //> Calls and Functions not-yet
@@ -373,7 +375,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
 //< Methods and Initializers not-yet
 //< Calls and Functions not-yet
 }
-//< Local Variables not-yet
+//< Local Variables init-compiler
 //> Compiling Expressions end-compiler
 /* Compiling Expressions end-compiler < Calls and Functions not-yet
 static void endCompiler() {
@@ -406,19 +408,20 @@ static ObjFunction* endCompiler() {
 //< Calls and Functions not-yet
 }
 //< Compiling Expressions end-compiler
-//> Local Variables not-yet
-
+//> Local Variables begin-scope
 static void beginScope() {
   current->scopeDepth++;
 }
-
+//< Local Variables begin-scope
+//> Local Variables end-scope
 static void endScope() {
   current->scopeDepth--;
-
+//> pop-locals
+  
   while (current->localCount > 0 &&
          current->locals[current->localCount - 1].depth >
             current->scopeDepth) {
-/* Local Variables not-yet < Closures not-yet
+/* Local Variables pop-locals < Closures not-yet
     emitByte(OP_POP);
 */
 //> Closures not-yet
@@ -430,8 +433,9 @@ static void endScope() {
 //< Closures not-yet
     current->localCount--;
   }
+//< pop-locals
 }
-//< Local Variables not-yet
+//< Local Variables end-scope
 //> Compiling Expressions forward-declarations
 
 static void expression();
@@ -448,29 +452,36 @@ static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start, name->length)));
 }
 //< Global Variables identifier-constant
-//> Local Variables not-yet
+//> Local Variables identifiers-equal
 static bool identifiersEqual(Token* a, Token* b) {
   if (a->length != b->length) return false;
   return memcmp(a->start, b->start, a->length) == 0;
 }
-
-static int resolveLocal(Compiler* compiler, Token* name,
-                        bool inFunction) {
+//< Local Variables identifiers-equal
+//> Local Variables resolve-local
+static int resolveLocal(Compiler* compiler, Token* name) {
   // Look it up in the local scopes. Look in reverse order so that the
   // most nested variable is found first and shadows outer ones.
   for (int i = compiler->localCount - 1; i >= 0; i--) {
     Local* local = &compiler->locals[i];
-    if (identifiersEqual(name, &local->name))
-    {
-      if (!inFunction && local->depth == -1) {
+    if (identifiersEqual(name, &local->name)) {
+//> Calls and Functions not-yet
+      if (compiler == current && local->depth == -1) {
+//< Calls and Functions not-yet
+/* Local Variables own-initializer-error < Calls and Functions not-yet
+      if (local->depth == -1) {
+*/
+//> own-initializer-error
         error("Cannot read local variable in its own initializer.");
       }
+//< own-initializer-error
       return i;
     }
   }
 
   return -1;
 }
+//< Local Variables resolve-local
 //> Closures not-yet
 
 // Adds an upvalue to [compiler]'s function with the given properties.
@@ -510,7 +521,7 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   if (compiler->enclosing == NULL) return -1;
 
   // See if it's a local variable in the immediately enclosing function.
-  int local = resolveLocal(compiler->enclosing, name, true);
+  int local = resolveLocal(compiler->enclosing, name);
   if (local != -1) {
     // Mark the local as an upvalue so we know to close it when it goes
     // out of scope.
@@ -534,26 +545,27 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
   return -1;
 }
 //< Closures not-yet
-
+//> Local Variables add-local
 static void addLocal(Token name) {
   if (current->localCount == UINT8_COUNT) {
     error("Too many local variables in function.");
     return;
   }
 
-  Local* local = &current->locals[current->localCount];
+  Local* local = &current->locals[current->localCount++];
   local->name = name;
-
-  // The local is declared but not yet defined.
+/* Local Variables add-local < Local Variables declare-undefined
+  local->depth = current->scopeDepth;
+*/
+//> declare-undefined
   local->depth = -1;
+//< declare-undefined
 //> Closures not-yet
   local->isUpvalue = false;
 //< Closures not-yet
-  current->localCount++;
 }
-
-// Allocates a local slot for the value currently on the stack, if
-// we're in a local scope.
+//< Local Variables add-local
+//> Local Variables declare-variable
 static void declareVariable() {
   // Global variables are implicitly declared.
   if (current->scopeDepth == 0) return;
@@ -571,39 +583,33 @@ static void declareVariable() {
 
   addLocal(*name);
 }
-//< Local Variables not-yet
+//< Local Variables declare-variable
 //> Global Variables parse-variable
 static uint8_t parseVariable(const char* errorMessage) {
   consume(TOKEN_IDENTIFIER, errorMessage);
-/* Global Variables parse-variable < Local Variables not-yet
-  return identifierConstant(&parser.previous);
-*/
-//> Local Variables not-yet
-
-  // If it's a global variable, create a string constant for it.
-  if (current->scopeDepth == 0) {
-    return identifierConstant(&parser.previous);
+//> Local Variables parse-local
+  
+  if (current->scopeDepth > 0) {
+    declareVariable();
+    return 0;
   }
-
-  declareVariable();
-  return 0;
-//< Local Variables not-yet
+  
+//< Local Variables parse-local
+  return identifierConstant(&parser.previous);
 }
 //< Global Variables parse-variable
 //> Global Variables define-variable
 static void defineVariable(uint8_t global) {
-/* Global Variables define-variable < Local Variables not-yet
-  emitBytes(OP_DEFINE_GLOBAL, global);
-*/
-//> Local Variables not-yet
-  if (current->scopeDepth == 0) {
-    emitBytes(OP_DEFINE_GLOBAL, global);
-  } else {
+//> Local Variables define-local
+  if (current->scopeDepth > 0) {
     // Mark the local as defined now.
     current->locals[current->localCount - 1].depth =
         current->scopeDepth;
+    return;
   }
-//< Local Variables not-yet
+  
+//< Local Variables define-local
+  emitBytes(OP_DEFINE_GLOBAL, global);
 }
 //< Global Variables define-variable
 //> Calls and Functions not-yet
@@ -786,33 +792,31 @@ static void namedVariable(Token name) {
 //> Global Variables named-variable-signature
 static void namedVariable(Token name, bool canAssign) {
 //< Global Variables named-variable-signature
-/* Global Variables read-named-variable < Local Variables not-yet
+/* Global Variables read-named-variable < Local Variables named-local
   int arg = identifierConstant(&name);
 */
 //> Global Variables read-named-variable
-//> Local Variables not-yet
+//> Local Variables named-local
   uint8_t getOp, setOp;
-  int arg = resolveLocal(current, &name, false);
+  int arg = resolveLocal(current, &name);
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
-//< Local Variables not-yet
 //> Closures not-yet
   } else if ((arg = resolveUpvalue(current, &name)) != -1) {
     getOp = OP_GET_UPVALUE;
     setOp = OP_SET_UPVALUE;
 //< Closures not-yet
-//> Local Variables not-yet
   } else {
     arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;
     setOp = OP_SET_GLOBAL;
   }
+//< Local Variables named-local
 /* Global Variables read-named-variable < Global Variables named-variable
 
   emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
 */
-//< Local Variables not-yet
 //> named-variable
 
 /* Global Variables named-variable < Global Variables named-variable-can-assign
@@ -822,19 +826,19 @@ static void namedVariable(Token name, bool canAssign) {
   if (canAssign && match(TOKEN_EQUAL)) {
 //< named-variable-can-assign
     expression();
-/* Global Variables named-variable < Local Variables not-yet
+/* Global Variables named-variable < Local Variables emit-set
     emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
 */
-//> Local Variables not-yet
+//> Local Variables emit-set
     emitBytes(setOp, (uint8_t)arg);
-//< Local Variables not-yet
+//< Local Variables emit-set
   } else {
-/* Global Variables named-variable < Local Variables not-yet
+/* Global Variables named-variable < Local Variables emit-get
     emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
 */
-//> Local Variables not-yet
+//> Local Variables emit-get
     emitBytes(getOp, (uint8_t)arg);
-//< Local Variables not-yet
+//< Local Variables emit-get
   }
 //< named-variable
 }
@@ -1100,7 +1104,7 @@ void expression() {
 //< expression-body
 }
 //< Compiling Expressions expression
-//> Local Variables not-yet
+//> Local Variables block
 static void block() {
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     declaration();
@@ -1108,7 +1112,7 @@ static void block() {
 
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
-//< Local Variables not-yet
+//< Local Variables block
 //> Calls and Functions not-yet
 static void function(FunctionType type) {
   Compiler compiler;
@@ -1489,12 +1493,12 @@ static void statement() {
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
 //< Jumping Forward and Back not-yet
-//> Local Variables not-yet
+//> Local Variables parse-block
   } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
     block();
     endScope();
-//< Local Variables not-yet
+//< Local Variables parse-block
   } else {
     expressionStatement();
   }
@@ -1528,14 +1532,14 @@ ObjFunction* compile(const char* source) {
     if (token.type == TOKEN_EOF) break;
   }
 */
-//> Local Variables not-yet
-  Compiler mainCompiler;
-//< Local Variables not-yet
-/* Local Variables not-yet < Calls and Functions not-yet
-  initCompiler(&mainCompiler);
+//> Local Variables compiler
+  Compiler compiler;
+//< Local Variables compiler
+/* Local Variables compiler < Calls and Functions not-yet
+  initCompiler(&compiler);
 */
 //> Calls and Functions not-yet
-  initCompiler(&mainCompiler, 0, TYPE_TOP_LEVEL);
+  initCompiler(&compiler, 0, TYPE_TOP_LEVEL);
 //< Calls and Functions not-yet
 //> Compiling Expressions compile-chunk
 //> init-parser-error

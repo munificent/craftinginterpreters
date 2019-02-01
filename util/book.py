@@ -200,7 +200,7 @@ TOC = [
           'Blocks', 'Scope depth', 'Stack variables', 'Name resolution',
           'Byte argument instructions'
         ],
-        'done': False,
+        'done': True,
       },
       {
         'name': 'Jumping Forward and Back',
