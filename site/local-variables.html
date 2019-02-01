@@ -37,7 +37,7 @@
 <h3><a href="#top">Local Variables<small>22</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#snippets"><small>22.1</small> snippets</a></li>
 </ul>
 
 
@@ -63,7 +63,7 @@
 <h3><a href="#top">Local Variables<small>22</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#snippets"><small>22.1</small> snippets</a></li>
 </ul>
 
 
@@ -81,9 +81,10 @@
   <div class="number">22</div>
   <h1>Local Variables</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +99,423 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<h2><a href="#snippets" name="snippets"><small>22&#8202;.&#8202;1</small> snippets</a></h2>
+<h3><a href="#compiler" name="compiler"><small>22&#8202;.&#8202;1&#8202;.&#8202;1</small> compiler</a></h3>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ParseRule</span><span class="p">;</span>                                                        
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after struct <em>ParseRule</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">Compiler</span> <span class="p">{</span>                                           
+  <span class="c1">// The currently in scope local variables.                        </span>
+  <span class="n">Local</span> <span class="n">locals</span><span class="p">[</span><span class="n">UINT8_COUNT</span><span class="p">];</span>
 
+  <span class="c1">// The number of local variables currently in scope.              </span>
+  <span class="kt">int</span> <span class="n">localCount</span><span class="p">;</span>                                                   
+
+  <span class="c1">// The current level of block scope nesting. Zero is the outermost</span>
+  <span class="c1">// local scope. 0 is global scope.                                </span>
+  <span class="kt">int</span> <span class="n">scopeDepth</span><span class="p">;</span>                                                   
+<span class="p">}</span> <span class="n">Compiler</span><span class="p">;</span>                                                         
+</pre><pre class="insert-after"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>ParseRule</em></div>
+
+<p>&hellip;</p>
+<p><strong>todo: move comments into prose.</strong></p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ParseRule</span><span class="p">;</span>                                                           
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after struct <em>ParseRule</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                                       
+  <span class="c1">// The name of the local variable.                                   </span>
+  <span class="n">Token</span> <span class="n">name</span><span class="p">;</span>
+
+  <span class="c1">// The depth in the scope chain that this variable was declared at.  </span>
+  <span class="c1">// Zero is the outermost scope--parameters for a method, or the first</span>
+  <span class="c1">// local block in top level code. One is the scope within that, etc. </span>
+  <span class="kt">int</span> <span class="n">depth</span><span class="p">;</span>                                                           
+<span class="p">}</span> <span class="n">Local</span><span class="p">;</span>                                                               
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">Compiler</span> <span class="p">{</span>                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>ParseRule</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#undef DEBUG_TRACE_EXECUTION       </span>
+</pre><div class="source-file"><em>common.h</em></div>
+<pre class="insert"><br><span></span><span class="cp">#define UINT8_COUNT (UINT8_MAX + 1)</span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif                             </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>common.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>           
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+add after struct <em>Compiler</em></div>
+<pre class="insert"><span></span><span class="n">Compiler</span><span class="o">*</span> <span class="n">current</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+</pre><pre class="insert-after"><br><span></span><span class="n">Chunk</span><span class="o">*</span> <span class="n">compilingChunk</span><span class="p">;</span>   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Compiler</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>emitConstant</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">initCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                   
+  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                   
+  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="p">;</span>                         
+<span class="p">}</span>                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>    
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>compile</em>()</div>
+<pre class="insert"><span></span>  <span class="n">Compiler</span> <span class="n">compiler</span><span class="p">;</span>      
+  <span class="n">initCompiler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">compilingChunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">;</span> 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
+
+<h3><a href="#block-syntax" name="block-syntax"><small>22&#8202;.&#8202;1&#8202;.&#8202;2</small> block syntax</a></h3>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_PRINT</span><span class="p">))</span> <span class="p">{</span>            
+    <span class="n">printStatement</span><span class="p">();</span>                  
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">beginScope</span><span class="p">();</span>                      
+    <span class="n">block</span><span class="p">();</span>                           
+    <span class="n">endScope</span><span class="p">();</span>                        
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>expression</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">block</span><span class="p">()</span> <span class="p">{</span>                                     
+  <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">check</span><span class="p">(</span><span class="n">TOKEN_RIGHT_BRACE</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">check</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">declaration</span><span class="p">();</span>                                        
+  <span class="p">}</span>
+
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_BRACE</span><span class="p">,</span> <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span><span class="p">);</span>  
+<span class="p">}</span>                                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>expression</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>endCompiler</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">beginScope</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="o">++</span><span class="p">;</span>  
+<span class="p">}</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>beginScope</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">endScope</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="o">--</span><span class="p">;</span>
+<span class="p">}</span>                       
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>beginScope</em>()</div>
+
+<h3><a href="#declare-locals" name="declare-locals"><small>22&#8202;.&#8202;1&#8202;.&#8202;3</small> declare locals</a></h3>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="p">,</span> <span class="n">errorMessage</span><span class="p">);</span>    
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>parseVariable</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>              
+    <span class="n">declareVariable</span><span class="p">();</span>                        
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>                                 
+  <span class="p">}</span>                                           
+<br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="nf">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>parseVariable</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>identifierConstant</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">declareVariable</span><span class="p">()</span> <span class="p">{</span>                                         
+  <span class="c1">// Global variables are implicitly declared.                          </span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+
+  <span class="c1">// See if a local variable with this name is already declared in this </span>
+  <span class="c1">// scope.                                                             </span>
+  <span class="n">Token</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">;</span>                                       
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>                  
+    <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                                 
+    <span class="k">if</span> <span class="p">(</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">&lt;</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">identifiersEqual</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span> <span class="p">{</span>                         
+      <span class="n">error</span><span class="p">(</span><span class="s">&quot;Variable with this name already declared in this scope.&quot;</span><span class="p">);</span> 
+    <span class="p">}</span>                                                                   
+  <span class="p">}</span>                                                                     
+
+  <span class="n">addLocal</span><span class="p">(</span><span class="o">*</span><span class="n">name</span><span class="p">);</span>                                                      
+<span class="p">}</span>                                                                       
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>identifierConstant</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">identifiersEqual</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">a</span><span class="p">,</span> <span class="n">Token</span><span class="o">*</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>  
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">!=</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>         
+  <span class="k">return</span> <span class="n">memcmp</span><span class="p">(</span><span class="n">a</span><span class="o">-&gt;</span><span class="n">start</span><span class="p">,</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">start</span><span class="p">,</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>                                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
+</pre><div class="source-file"><em>compiler.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>identifiersEqual</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">addLocal</span><span class="p">(</span><span class="n">Token</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>                       
+  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">==</span> <span class="n">UINT8_COUNT</span><span class="p">)</span> <span class="p">{</span>              
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Too many local variables in function.&quot;</span><span class="p">);</span>      
+    <span class="k">return</span><span class="p">;</span>                                              
+  <span class="p">}</span>
+
+  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="p">];</span>
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>                                    
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="p">;</span>                    
+<span class="p">}</span>                                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifiersEqual</em>()</div>
+
+<p><strong>todo: add -1 for declared-not-yet-defined in separate step?</strong></p>
+<p><strong>note: don&rsquo;t need to do anything in defineVariable() since already on stack.</strong></p>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="o">--</span><span class="p">;</span>                                 
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endScope</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">while</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span>                      
+         <span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="n">depth</span> <span class="o">&gt;</span>
+            <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="p">)</span> <span class="p">{</span>                       
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                                    
+    <span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">--</span><span class="p">;</span>                               
+  <span class="p">}</span>                                                      
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endScope</em>()</div>
+
+<p>&hellip;</p>
+<h3><a href="#get-and-set-local" name="get-and-set-local"><small>22&#8202;.&#8202;1&#8202;.&#8202;4</small> get and set local</a></h3>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">namedVariable</span><span class="p">(</span><span class="n">Token</span> <span class="n">name</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>namedVariable</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="kt">uint8_t</span> <span class="n">getOp</span><span class="p">,</span> <span class="n">setOp</span><span class="p">;</span>                                
+  <span class="kt">int</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">resolveLocal</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">name</span><span class="p">);</span>              
+  <span class="k">if</span> <span class="p">(</span><span class="n">arg</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>                                     
+    <span class="n">getOp</span> <span class="o">=</span> <span class="n">OP_GET_LOCAL</span><span class="p">;</span>                              
+    <span class="n">setOp</span> <span class="o">=</span> <span class="n">OP_SET_LOCAL</span><span class="p">;</span>                              
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                             
+    <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">name</span><span class="p">);</span>                   
+    <span class="n">getOp</span> <span class="o">=</span> <span class="n">OP_GET_GLOBAL</span><span class="p">;</span>                             
+    <span class="n">setOp</span> <span class="o">=</span> <span class="n">OP_SET_GLOBAL</span><span class="p">;</span>                             
+  <span class="p">}</span>                                                    
+</pre><pre class="insert-after"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">canAssign</span> <span class="o">&amp;&amp;</span> <span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EQUAL</span><span class="p">))</span> <span class="p">{</span>               
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>identifiersEqual</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">resolveLocal</span><span class="p">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="p">,</span> <span class="n">Token</span><span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>            
+  <span class="c1">// Look it up in the local scopes. Look in reverse order so that the</span>
+  <span class="c1">// most nested variable is found first and shadows outer ones.      </span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>               
+    <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                              
+    <span class="k">if</span> <span class="p">(</span><span class="n">identifiersEqual</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span> <span class="p">{</span>                       
+      <span class="k">return</span> <span class="n">i</span><span class="p">;</span>                                                       
+    <span class="p">}</span>                                                                 
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>                                                          
+<span class="p">}</span>                                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifiersEqual</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                         
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>namedVariable</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">emitBytes</span><span class="p">(</span><span class="n">getOp</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">arg</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">canAssign</span> <span class="o">&amp;&amp;</span> <span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EQUAL</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">expression</span><span class="p">();</span>                       
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>namedVariable</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">emitBytes</span><span class="p">(</span><span class="n">setOp</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">arg</span><span class="p">);</span>     
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_POP</span><span class="p">,</span>       
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_GET_LOCAL</span><span class="p">,</span> 
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_GET_GLOBAL</span><span class="p">,</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_POP</span><span class="p">:</span> <span class="n">pop</span><span class="p">();</span> <span class="k">break</span><span class="p">;</span>   
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_LOCAL</span><span class="p">:</span> <span class="p">{</span>         
+        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>
+        <span class="n">push</span><span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">[</span><span class="n">slot</span><span class="p">]);</span>      
+        <span class="k">break</span><span class="p">;</span>                     
+      <span class="p">}</span>                            
+</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_GLOBAL</span><span class="p">:</span> <span class="p">{</span>        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_GET_LOCAL</span><span class="p">,</span> 
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_SET_LOCAL</span><span class="p">,</span> 
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_GET_GLOBAL</span><span class="p">,</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="p">}</span>                            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_SET_LOCAL</span><span class="p">:</span> <span class="p">{</span>         
+        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>
+        <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>  
+        <span class="k">break</span><span class="p">;</span>                     
+      <span class="p">}</span>                            
+</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_GLOBAL</span><span class="p">:</span> <span class="p">{</span>        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p><strong>note: does not pop because assign is expr, not stmt</strong></p>
+<h3><a href="#use-in-initializer" name="use-in-initializer"><small>22&#8202;.&#8202;1&#8202;.&#8202;5</small> use in initializer</a></h3>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>          
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>addLocal</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>           
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                              
+<span class="k">static</span> <span class="kt">void</span> <span class="n">declareVariable</span><span class="p">()</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">defineVariable</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">global</span><span class="p">)</span> <span class="p">{</span>        
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>defineVariable</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>                    
+    <span class="c1">// Mark the local as defined now.               </span>
+    <span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="n">depth</span> <span class="o">=</span>
+        <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="p">;</span>                        
+    <span class="k">return</span><span class="p">;</span>                                         
+  <span class="p">}</span>                                                 
+<br></pre><pre class="insert-after"><span></span>  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_DEFINE_GLOBAL</span><span class="p">,</span> <span class="n">global</span><span class="p">);</span>              
+<span class="p">}</span>                                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>defineVariable</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="p">(</span><span class="n">identifiersEqual</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span> <span class="p">{</span>                     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>resolveLocal</em>()</div>
+<pre class="insert"><span></span>      <span class="k">if</span> <span class="p">(</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>                                     
+        <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot read local variable in its own initializer.&quot;</span><span class="p">);</span>
+      <span class="p">}</span>                                                             
+</pre><pre class="insert-after"><span></span>      <span class="k">return</span> <span class="n">i</span><span class="p">;</span>                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveLocal</em>()</div>
+
+<p>&hellip;</p>
+<h3><a href="#disassemble" name="disassemble"><small>22&#8202;.&#8202;1&#8202;.&#8202;6</small> disassemble</a></h3>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_POP&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>           
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_GET_LOCAL</span><span class="p">:</span>                                      
+      <span class="k">return</span> <span class="n">byteInstruction</span><span class="p">(</span><span class="s">&quot;OP_GET_LOCAL&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+    <span class="k">case</span> <span class="nl">OP_SET_LOCAL</span><span class="p">:</span>                                      
+      <span class="k">return</span> <span class="n">byteInstruction</span><span class="p">(</span><span class="s">&quot;OP_SET_LOCAL&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_GET_GLOBAL</span><span class="p">:</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>debug.c</em><br>
+add after <em>simpleInstruction</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">byteInstruction</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">];</span>                               
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%-16s %4d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">slot</span><span class="p">);</span>                                    
+  <span class="k">return</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span>                                                    
+<span class="p">}</span>                                                                       
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, add after <em>simpleInstruction</em>()</div>
+
+<hr />
+<p>notes:</p>
+<p>Talk about what the stack frame would look like if we allowed variables to be
+declared in the middle of an expression.</p>
+<p>storing compiler structs on stack means deep nesting could be problem. deep
+nesting also problem with recursive descent in general. may be good to set
+max depth and check on recursive calls.</p>
+<p>lot of work in compiler, only two new instructions. this is goal: any work do
+in compiler only done once, code in runtime executes every time.</p>
+<p>no parser changes (aside from block) because grammar already there. just that
+existing &ldquo;var&rdquo; stmt, ident expr, and assign expr mean different things when
+referring to local.</p>
 
 <footer>
 <a href="jumping-forward-and-back.html" class="next">

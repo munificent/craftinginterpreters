@@ -525,11 +525,11 @@ static InterpretResult run() {
 //> Global Variables interpret-pop
       case OP_POP: pop(); break;
 //< Global Variables interpret-pop
-//> Local Variables not-yet
+//> Local Variables interpret-get-local
 
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/* Local Variables not-yet < Calls and Functions not-yet
+/* Local Variables interpret-get-local < Calls and Functions not-yet
         push(vm.stack[slot]);
 */
 //> Calls and Functions not-yet
@@ -537,10 +537,12 @@ static InterpretResult run() {
 //< Calls and Functions not-yet
         break;
       }
+//< Local Variables interpret-get-local
+//> Local Variables interpret-set-local
 
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/* Local Variables not-yet < Calls and Functions not-yet
+/* Local Variables interpret-set-local < Calls and Functions not-yet
         vm.stack[slot] = peek(0);
 */
 //> Calls and Functions not-yet
@@ -548,7 +550,7 @@ static InterpretResult run() {
 //< Calls and Functions not-yet
         break;
       }
-//< Local Variables not-yet
+//< Local Variables interpret-set-local
 //> Global Variables interpret-get-global
 
       case OP_GET_GLOBAL: {

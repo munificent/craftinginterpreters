@@ -53,13 +53,13 @@ static int simpleInstructionN(const char* name, int n, int offset) {
   return offset + 1;
 }
 //< Calls and Functions not-yet
-//> Local Variables not-yet
+//> Local Variables byte-instruction
 static int byteInstruction(const char* name, Chunk* chunk, int offset) {
   uint8_t slot = chunk->code[offset + 1];
   printf("%-16s %4d\n", name, slot);
   return offset + 2;
 }
-//< Local Variables not-yet
+//< Local Variables byte-instruction
 //> Jumping Forward and Back not-yet
 static int jumpInstruction(const char* name, int sign, Chunk* chunk,
                            int offset) {
@@ -98,12 +98,12 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_POP:
       return simpleInstruction("OP_POP", offset);
 //< Global Variables disassemble-pop
-//> Local Variables not-yet
+//> Local Variables disassemble-local
     case OP_GET_LOCAL:
       return byteInstruction("OP_GET_LOCAL", chunk, offset);
     case OP_SET_LOCAL:
       return byteInstruction("OP_SET_LOCAL", chunk, offset);
-//< Local Variables not-yet
+//< Local Variables disassemble-local
 //> Global Variables disassemble-get-global
     case OP_GET_GLOBAL:
       return constantInstruction("OP_GET_GLOBAL", chunk, offset);
