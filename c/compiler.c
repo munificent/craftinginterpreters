@@ -65,12 +65,7 @@ typedef struct {
 //> Local Variables local-struct
 
 typedef struct {
-  // The name of the local variable.
   Token name;
-
-  // The depth in the scope chain that this variable was declared at.
-  // Zero is the outermost scope--parameters for a method, or the first
-  // local block in top level code. One is the scope within that, etc.
   int depth;
 //> Closures not-yet
 
@@ -115,17 +110,11 @@ typedef struct Compiler {
   FunctionType type;
 
 //< Calls and Functions not-yet
-  // The currently in scope local variables.
   Local locals[UINT8_COUNT];
-
-  // The number of local variables currently in scope.
   int localCount;
 //> Closures not-yet
   Upvalue upvalues[UINT8_COUNT];
 //< Closures not-yet
-
-  // The current level of block scope nesting. Zero is the outermost
-  // local scope. 0 is global scope.
   int scopeDepth;
 } Compiler;
 //< Local Variables compiler-struct
