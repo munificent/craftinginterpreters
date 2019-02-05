@@ -21,3 +21,11 @@ the ip for each function could be stored as static data with the function.
 --
 
 Talk about combining the CallFrame stack with the value stack.
+
+--
+
+old comment on depth field in Local:
+
+// The depth in the scope chain that this variable was declared at.
+// Zero is the outermost scope--parameters for a method, or the first
+// local block in top level code. One is the scope within that, etc.
