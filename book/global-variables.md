@@ -113,7 +113,7 @@ block.
 
 <aside name="parens">
 
-Blocks works sort of like parentheses do for expressions. A block lets you put
+Blocks work sort of like parentheses do for expressions. A block lets you put
 the "lower precedence" declaration statements in places where only a "higher
 precedence" non-declaring statement is allowed.
 
