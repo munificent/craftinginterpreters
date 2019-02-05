@@ -658,7 +658,7 @@ In other words, the parser sees the above code like:
 We've messed up the precedence handling because `variable()` doesn't take into
 account the precedence of the surrounding expression that contains the variable.
 If the variable happens to be the right-hand side of an infix operator, or the
-operand of a unary operator, than that containing expression is too high
+operand of a unary operator, then that containing expression is too high
 precedence to permit the `=`.
 
 To fix this, `variable()` should only look for and consume the `=` if it's in
