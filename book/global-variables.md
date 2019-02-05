@@ -11,7 +11,7 @@
 The [previous chapter][hash] was a long exploration of one big, deep,
 fundamental computer science data structure. Heavy on theory and concept. There
 may have been some discussion of big-O notation and algorithms. This chapter has
-fewer intellectual pretensions. There's no large ideas to learn. Instead, it's a
+fewer intellectual pretensions. There's no large idea to learn. Instead, it's a
 handful of straightforward engineering tasks. Once we've completed them, our
 virtual machine will support variables.
 
