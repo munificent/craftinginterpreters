@@ -449,8 +449,6 @@ static bool identifiersEqual(Token* a, Token* b) {
 //< Local Variables identifiers-equal
 //> Local Variables resolve-local
 static int resolveLocal(Compiler* compiler, Token* name) {
-  // Look it up in the local scopes. Look in reverse order so that the
-  // most nested variable is found first and shadows outer ones.
   for (int i = compiler->localCount - 1; i >= 0; i--) {
     Local* local = &compiler->locals[i];
     if (identifiersEqual(name, &local->name)) {
@@ -536,11 +534,13 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
 //< Closures not-yet
 //> Local Variables add-local
 static void addLocal(Token name) {
+//> too-many-locals
   if (current->localCount == UINT8_COUNT) {
     error("Too many local variables in function.");
     return;
   }
 
+//< too-many-locals
   Local* local = &current->locals[current->localCount++];
   local->name = name;
 /* Local Variables add-local < Local Variables declare-undefined
@@ -558,7 +558,8 @@ static void addLocal(Token name) {
 static void declareVariable() {
   // Global variables are implicitly declared.
   if (current->scopeDepth == 0) return;
-
+//> existing-in-scope
+  
   // See if a local variable with this name is already declared in this
   // scope.
   Token* name = &parser.previous;
@@ -569,6 +570,7 @@ static void declareVariable() {
       error("Variable with this name already declared in this scope.");
     }
   }
+//< existing-in-scope
 
   addLocal(*name);
 }
@@ -578,10 +580,8 @@ static uint8_t parseVariable(const char* errorMessage) {
   consume(TOKEN_IDENTIFIER, errorMessage);
 //> Local Variables parse-local
   
-  if (current->scopeDepth > 0) {
-    declareVariable();
-    return 0;
-  }
+  declareVariable();
+  if (current->scopeDepth > 0) return 0;
   
 //< Local Variables parse-local
   return identifierConstant(&parser.previous);

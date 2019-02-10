@@ -29,3 +29,9 @@ old comment on depth field in Local:
 // The depth in the scope chain that this variable was declared at.
 // Zero is the outermost scope--parameters for a method, or the first
 // local block in top level code. One is the scope within that, etc.
+
+--
+
+storing compiler structs on stack means deep nesting could be problem. deep
+nesting also problem with recursive descent in general. may be good to set
+max depth and check on recursive calls.
