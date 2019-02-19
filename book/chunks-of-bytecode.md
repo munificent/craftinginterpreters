@@ -595,8 +595,8 @@ Here's a start at the implementation file:
 To disassemble a chunk, we print a little header (so we can tell *which* chunk
 we're looking at) and then crank through the bytecode, disassembling each
 instruction. The way we iterate through the code is a little odd. Instead of
-incrementing `i` in the loop, we let `disassembleInstruction()` do it for us.
-When we call that function, after disassembling the instruction at the given
+incrementing `offset` in the loop, we let `disassembleInstruction()` do it for
+us. When we call that function, after disassembling the instruction at the given
 offset, it returns the offset of the *next* instruction. This is because, as
 we'll see later, instructions can have different sizes.
 
