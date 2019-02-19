@@ -589,15 +589,17 @@ static uint8_t parseVariable(const char* errorMessage) {
 //< Global Variables parse-variable
 //> Global Variables define-variable
 static void defineVariable(uint8_t global) {
-//> Local Variables define-local
+//> Local Variables define-variable
   if (current->scopeDepth > 0) {
+//> define-local
     // Mark the local as defined now.
     current->locals[current->localCount - 1].depth =
         current->scopeDepth;
+//< define-local
     return;
   }
   
-//< Local Variables define-local
+//< Local Variables define-variable
   emitBytes(OP_DEFINE_GLOBAL, global);
 }
 //< Global Variables define-variable
