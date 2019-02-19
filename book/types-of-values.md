@@ -454,7 +454,7 @@ matter of taste.
 
 ^code interpret-literals (5 before, 1 after)
 
-This is pretty self-explanatory. Each instructions summons the appropriate value
+This is pretty self-explanatory. Each instruction summons the appropriate value
 and pushes it onto the stack. We shouldn't forget our disassembler either:
 
 ^code disassemble-literals (2 before, 1 after)
