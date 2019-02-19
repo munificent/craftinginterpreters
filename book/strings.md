@@ -723,7 +723,7 @@ There are two facets to a string encoding:
     back "v" or "¨"? The former means they are thinking of each code point and
     its combining characters as a single unit -- what Unicode calls an *extended
     grapheme cluster* -- the latter means they are thinking in individual code
-    points. Which is what your users expect?
+    points. Which do your users expect?
 
 2.  **How is a single unit represented in memory?** Most systems using ASCII
     gave a single byte to each character and left the high bit unused. Unicode
