@@ -856,8 +856,8 @@ OK, let's weave it into our expression classes. We'll also <span
 name="context">refine</span> the pattern a little. In the pastry example, the
 visit and `accept()` methods don't return anything. In practice, visitors often
 want to define operations that produce values. But what return type should
-`accept()` have? We can't assume every visitor wants to produce the same type,
-so we'll use generics to let each one pick.
+`accept()` have? We can't assume every visitor class wants to produce the same
+type, so we'll use generics to let each implementation fill in a return type.
 
 <aside name="context">
 
