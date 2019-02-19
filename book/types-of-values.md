@@ -541,7 +541,7 @@ all of the operators that return Boolean results except the logical operators
 `and` and `or`. Since those need to short-circuit -- basically do a little
 control flow -- we aren't ready for them yet.
 
-Here's the new instructions for those operators:
+Here are the new instructions for those operators:
 
 ^code comparison-ops (1 before, 1 after)
 
