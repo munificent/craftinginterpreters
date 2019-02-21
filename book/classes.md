@@ -1329,7 +1329,7 @@ actual quantification.
     tools, ecosystem, etc.). People talk about how many pages are in a
     language's spec, or how many keywords it has. It's how much the user has to
     load into their wetware before they can be productive in the system. It is
-    the antonym to simplicity.
+    the antonym of simplicity.
 
 Reducing complexity *does* increase power. The smaller the denominator, the
 larger the resulting value, so our intuition that simplicity is good is valid.
