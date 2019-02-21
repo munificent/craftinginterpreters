@@ -762,7 +762,7 @@ And another include over in the "chunk.c" implementation file:
 
 ^code chunk-c-include-value (1 before, 2 after)
 
-Ah, C, and it's Stone Age modularity story. Where were we? Right. When we
+Ah, C, and its Stone Age modularity story. Where were we? Right. When we
 initialize a new chunk, we initialize its constant list too:
 
 ^code chunk-init-constant-array (1 before, 1 after)
