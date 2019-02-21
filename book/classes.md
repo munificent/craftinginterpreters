@@ -48,11 +48,11 @@ approach.
 
 <aside name="multimethods">
 
-Multimethods are the one you're least likely to be familiar with. I'd love to
-talk more about them -- I designed [a hobby language][magpie] around them once
-and they are *super rad* -- but there are only so many pages I can fit in. If
-you'd like to learn more, take a look at [CLOS][] (the object system in Common
-Lisp), [Dylan][], [Julia][], or [Perl 6][].
+Multimethods are the approach you're least likely to be familiar with. I'd love
+to talk more about them -- I designed [a hobby language][magpie] around them
+once and they are *super rad* -- but there are only so many pages I can fit in.
+If you'd like to learn more, take a look at [CLOS][] (the object system in
+Common Lisp), [Dylan][], [Julia][], or [Perl 6][].
 
 [clos]: https://en.wikipedia.org/wiki/Common_Lisp_Object_System
 [magpie]: http://magpie-lang.org/
