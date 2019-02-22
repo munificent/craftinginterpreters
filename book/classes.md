@@ -750,9 +750,9 @@ important semantic point.
 
 ^code lox-class-find-method
 
-You can probably guess this method is going to get more interesting later. We
-pass in the instance, but we aren't using it yet. For now, a simple map lookup
-on the class's method table is enough to get us started. Give it a try:
+You can probably guess this method is going to get more interesting later. For
+now, a simple map lookup on the class's method table is enough to get us
+started. Give it a try:
 
 <span name="crunch"></span>
 
@@ -929,11 +929,11 @@ the block for the method body.
 The resolver has a new *scope* for `this`, so the interpreter needs to create a
 corresponding environment for it. Remember, we always have to keep the
 resolver's scope chains and the interpreter's linked environments in sync with
-each other. At runtime, we create the environment when the method is looked up
-on the instance. We replace the previous line of code that simply returned the
+each other. At runtime, we create the environment after we find the method on
+the instance. We replace the previous line of code that simply returned the
 method's LoxFunction with this:
 
-^code lox-class-find-method-bind (1 before, 1 after)
+^code lox-instance-bind-method (1 before, 1 after)
 
 Note the new call to `bind()`. That looks like so:
 
