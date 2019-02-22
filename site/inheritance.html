@@ -351,14 +351,14 @@ subclass. In other words, methods are inherited from the superclass.</p>
 <p>This lines up with one of the goals of inheritance<span class="em">&mdash;</span>to give users a way to
 reuse code across classes. Implementing this in our interpreter is
 astonishingly easy:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">methods</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">).</span><span class="na">bind</span><span class="o">(</span><span class="n">instance</span><span class="o">);</span>     
-    <span class="o">}</span>                                              
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">methods</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>          
+    <span class="o">}</span>                                    
 <br></pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in <em>findMethod</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                      
-      <span class="k">return</span> <span class="n">superclass</span><span class="o">.</span><span class="na">findMethod</span><span class="o">(</span><span class="n">instance</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>
-    <span class="o">}</span>                                              
-<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                   
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>            
+      <span class="k">return</span> <span class="n">superclass</span><span class="o">.</span><span class="na">findMethod</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+    <span class="o">}</span>                                    
+<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                         
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, in <em>findMethod</em>()</div>
@@ -691,15 +691,13 @@ can&rsquo;t hide the hacks and cut corners by leaving them as an &ldquo;exercise
 reader&rdquo;.</p>
 </aside>
 <p>Now we&rsquo;re ready to look up and bind the method, starting at the superclass:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">LoxInstance</span> <span class="n">object</span> <span class="o">=</span> <span class="o">(</span><span class="n">LoxInstance</span><span class="o">)</span><span class="n">environment</span><span class="o">.</span><span class="na">getAt</span><span class="o">(</span>
-        <span class="n">distance</span> <span class="o">-</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>                          
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">LoxInstance</span> <span class="n">object</span> <span class="o">=</span> <span class="o">(</span><span class="n">LoxInstance</span><span class="o">)</span><span class="n">environment</span><span class="o">.</span><span class="na">getAt</span><span class="o">(</span>           
+        <span class="n">distance</span> <span class="o">-</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>                                     
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitSuperExpr</em>()</div>
-<pre class="insert"><br><span></span>    <span class="n">LoxFunction</span> <span class="n">method</span> <span class="o">=</span> <span class="n">superclass</span><span class="o">.</span><span class="na">findMethod</span><span class="o">(</span>         
-        <span class="n">object</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>
-
-    <span class="k">return</span> <span class="n">method</span><span class="o">;</span>                                      
-</pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                     
+<pre class="insert"><br><span></span>    <span class="n">LoxFunction</span> <span class="n">method</span> <span class="o">=</span> <span class="n">superclass</span><span class="o">.</span><span class="na">findMethod</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>
+    <span class="k">return</span> <span class="n">method</span><span class="o">.</span><span class="na">bind</span><span class="o">(</span><span class="n">object</span><span class="o">);</span>                                    
+</pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                                
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitSuperExpr</em>()</div>
@@ -709,15 +707,15 @@ expression, except that we call <code>findMethod()</code> on the superclass inst
 the class of the current object.</p>
 <p>That&rsquo;s basically it. Except, of course, that we might <em>fail</em> to find the method.
 So we check for that too:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">LoxFunction</span> <span class="n">method</span> <span class="o">=</span> <span class="n">superclass</span><span class="o">.</span><span class="na">findMethod</span><span class="o">(</span>               
-        <span class="n">object</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>                          
+<div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">LoxFunction</span> <span class="n">method</span> <span class="o">=</span> <span class="n">superclass</span><span class="o">.</span><span class="na">findMethod</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitSuperExpr</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">method</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                                     
-      <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">,</span>                     
-          <span class="s">&quot;Undefined property &#39;&quot;</span> <span class="o">+</span> <span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="o">);</span>
-    <span class="o">}</span>                                                         
-</pre><pre class="insert-after"><br><span></span>    <span class="k">return</span> <span class="n">method</span><span class="o">;</span>                                            
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">method</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                                          
+      <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">,</span>                          
+          <span class="s">&quot;Undefined property &#39;&quot;</span> <span class="o">+</span> <span class="n">expr</span><span class="o">.</span><span class="na">method</span><span class="o">.</span><span class="na">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="o">);</span>     
+    <span class="o">}</span>                                                              
+<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="n">method</span><span class="o">.</span><span class="na">bind</span><span class="o">(</span><span class="n">object</span><span class="o">);</span>                                    
+  <span class="o">}</span>                                                                
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitSuperExpr</em>()</div>

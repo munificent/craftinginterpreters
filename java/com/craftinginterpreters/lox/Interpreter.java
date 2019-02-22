@@ -420,17 +420,16 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< super-find-this
 //> super-find-method
 
-    LoxFunction method = superclass.findMethod(
-        object, expr.method.lexeme);
+    LoxFunction method = superclass.findMethod(expr.method.lexeme);
 //> super-no-method
 
     if (method == null) {
       throw new RuntimeError(expr.method,
           "Undefined property '" + expr.method.lexeme + "'.");
     }
-//< super-no-method
 
-    return method;
+//< super-no-method
+    return method.bind(object);
 //< super-find-method
   }
 //< Inheritance interpreter-visit-super
