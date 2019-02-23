@@ -228,9 +228,15 @@ void printObject(Value value) {
       break;
 //< Closures not-yet
 //> Calls and Functions not-yet
-    case OBJ_FUNCTION:
-      printf("<fn %s>", AS_FUNCTION(value)->name->chars);
+    case OBJ_FUNCTION: {
+      ObjString *name = AS_FUNCTION(value)->name;
+      if (name) {
+        printf("<fn %p>", AS_FUNCTION(value)->name->chars);
+      } else {
+        printf("<fn anon%ju>", (uintmax_t)(uintptr_t)AS_FUNCTION(value));
+      }
       break;
+    }
 //< Calls and Functions not-yet
 //> Classes and Instances not-yet
     case OBJ_INSTANCE:
