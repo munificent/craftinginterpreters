@@ -224,19 +224,23 @@ void printObject(Value value) {
 //< Methods and Initializers not-yet
 //> Closures not-yet
     case OBJ_CLOSURE:
-      printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
+      if (AS_CLOSURE(value)->function &&
+          AS_CLOSURE(value)->function->name &&
+          AS_CLOSURE(value)->function->name->chars) {
+        printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
+      } else {
+        printf("<fn uninit%ju>", (uintmax_t)(uintptr_t)AS_CLOSURE(value));
+      }
       break;
 //< Closures not-yet
 //> Calls and Functions not-yet
-    case OBJ_FUNCTION: {
-      ObjString *name = AS_FUNCTION(value)->name;
-      if (name) {
-        printf("<fn %p>", AS_FUNCTION(value)->name->chars);
+    case OBJ_FUNCTION:
+      if (AS_FUNCTION(value)->name) {
+          printf("<fn %s>", AS_FUNCTION(value)->name->chars);
       } else {
-        printf("<fn anon%ju>", (uintmax_t)(uintptr_t)AS_FUNCTION(value));
+          printf("<fn uninit%ju>", (uintmax_t)(uintptr_t)AS_FUNCTION(value));
       }
       break;
-    }
 //< Calls and Functions not-yet
 //> Classes and Instances not-yet
     case OBJ_INSTANCE:
