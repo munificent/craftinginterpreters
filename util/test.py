@@ -461,6 +461,7 @@ c_interpreter('chap21_global', {
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/variable/local_from_method.lox': 'skip',
@@ -511,6 +512,7 @@ c_interpreter('chap22_local', {
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/variable/local_from_method.lox': 'skip',
@@ -559,6 +561,7 @@ c_interpreter('chap23_jumping', {
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/variable/local_from_method.lox': 'skip',
@@ -595,6 +598,7 @@ c_interpreter('chap24_calls', {
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/return/in_method.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
@@ -623,6 +627,7 @@ c_interpreter('chap25_closures', {
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/return/in_method.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
@@ -651,6 +656,7 @@ c_interpreter('chap26_garbage', {
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/return/in_method.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
@@ -665,10 +671,12 @@ c_interpreter('chap27_classes', {
   'test/expressions': 'skip',
 
   # No inheritance.
+  'test/class/local_inherit_other.lox': 'skip',
   'test/class/local_inherit_self.lox': 'skip',
   'test/class/inherit_self.lox': 'skip',
   'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
 
   # No methods.
@@ -696,10 +704,12 @@ c_interpreter('chap28_methods', {
   'test/expressions': 'skip',
 
   # No inheritance.
+  'test/class/local_inherit_other.lox': 'skip',
   'test/class/local_inherit_self.lox': 'skip',
   'test/class/inherit_self.lox': 'skip',
   'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
 })
 

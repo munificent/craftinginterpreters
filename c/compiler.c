@@ -452,13 +452,8 @@ static int resolveLocal(Compiler* compiler, Token* name) {
   for (int i = compiler->localCount - 1; i >= 0; i--) {
     Local* local = &compiler->locals[i];
     if (identifiersEqual(name, &local->name)) {
-//> Calls and Functions not-yet
-      if (compiler == current && local->depth == -1) {
-//< Calls and Functions not-yet
-/* Local Variables own-initializer-error < Calls and Functions not-yet
-      if (local->depth == -1) {
-*/
 //> own-initializer-error
+      if (local->depth == -1) {
         error("Cannot read local variable in its own initializer.");
       }
 //< own-initializer-error
@@ -587,14 +582,19 @@ static uint8_t parseVariable(const char* errorMessage) {
   return identifierConstant(&parser.previous);
 }
 //< Global Variables parse-variable
+//> Local Variables mark-initialized
+static void markInitialized() {
+  if (current->scopeDepth == 0) return;
+  current->locals[current->localCount - 1].depth =
+      current->scopeDepth;
+}
+//< Local Variables mark-initialized
 //> Global Variables define-variable
 static void defineVariable(uint8_t global) {
 //> Local Variables define-variable
   if (current->scopeDepth > 0) {
 //> define-local
-    // Mark the local as defined now.
-    current->locals[current->localCount - 1].depth =
-        current->scopeDepth;
+    markInitialized();
 //< define-local
     return;
   }
@@ -1170,8 +1170,14 @@ static void method() {
 //> Classes and Instances not-yet
 static void classDeclaration() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
+//> Methods and Initializers not-yet
+  Token className = parser.previous;
+//< Methods and Initializers not-yet
   uint8_t nameConstant = identifierConstant(&parser.previous);
   declareVariable();
+
+  emitBytes(OP_CLASS, nameConstant);
+  defineVariable(nameConstant);
 
 //> Methods and Initializers not-yet
   ClassCompiler classCompiler;
@@ -1191,6 +1197,11 @@ static void classDeclaration() {
 //> Superclasses not-yet
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
+    
+    if (identifiersEqual(&className, &parser.previous)) {
+      error("A class cannot inherit from itself.");
+    }
+    
     classCompiler.hasSuperclass = true;
 
     beginScope();
@@ -1198,16 +1209,17 @@ static void classDeclaration() {
     // Store the superclass in a local variable named "super".
     variable(false);
     addLocal(syntheticToken("super"));
+    defineVariable(0);
 
-    emitBytes(OP_SUBCLASS, nameConstant);
-  } else {
-    emitBytes(OP_CLASS, nameConstant);
+    namedVariable(className, false);
+    emitByte(OP_INHERIT);
   }
 //< Superclasses not-yet
 
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
 //> Methods and Initializers not-yet
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+    namedVariable(className, false);
     method();
   }
 //< Methods and Initializers not-yet
@@ -1218,7 +1230,6 @@ static void classDeclaration() {
     endScope();
   }
 //< Superclasses not-yet
-  defineVariable(nameConstant);
 //> Methods and Initializers not-yet
 
   currentClass = currentClass->enclosing;
@@ -1228,6 +1239,7 @@ static void classDeclaration() {
 //> Calls and Functions not-yet
 static void funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
+  markInitialized();
   function(TYPE_FUNCTION);
   defineVariable(global);
 }

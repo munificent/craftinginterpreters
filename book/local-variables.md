@@ -620,10 +620,14 @@ a special sentinel value, `-1`:
 
 ^code declare-undefined (1 before, 2 after)
 
-Later, once the variable's initializer has been compiled, we update that with
-the real scope depth:
+Later, once the variable's initializer has been compiled, we mark it as being
+initialized:
 
 ^code define-local (1 before, 2 after)
+
+That calls:
+
+^code mark-initialized
 
 So this is *really* what "declaring" and "defining" a variable means in the
 compiler. "Declaring" is when it's added to the scope, and "defining" is when it

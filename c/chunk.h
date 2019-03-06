@@ -113,7 +113,7 @@ typedef enum {
   OP_CLASS,
 //< Classes and Instances not-yet
 //> Superclasses not-yet
-  OP_SUBCLASS,
+  OP_INHERIT,
 //< Superclasses not-yet
 //> Methods and Initializers not-yet
   OP_METHOD
