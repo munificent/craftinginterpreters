@@ -240,8 +240,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       return constantInstruction("OP_CLASS", chunk, offset);
 //< Classes and Instances not-yet
 //> Superclasses not-yet
-    case OP_SUBCLASS:
-      return constantInstruction("OP_SUBCLASS", chunk, offset);
+    case OP_INHERIT:
+      return simpleInstruction("OP_INHERIT", offset);
 //< Superclasses not-yet
 //> Methods and Initializers not-yet
     case OP_METHOD:

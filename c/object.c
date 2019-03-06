@@ -49,18 +49,9 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
 }
 //< Methods and Initializers not-yet
 //> Classes and Instances not-yet
-
-/* Classes and Instances not-yet < Superclasses not-yet
 ObjClass* newClass(ObjString* name) {
-*/
-//> Superclasses not-yet
-ObjClass* newClass(ObjString* name, ObjClass* superclass) {
-//< Superclasses not-yet
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
-//> Superclasses not-yet
-  klass->superclass = superclass;
-//< Superclasses not-yet
 //> Methods and Initializers not-yet
   initTable(&klass->methods);
 //< Methods and Initializers not-yet

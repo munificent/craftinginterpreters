@@ -368,29 +368,9 @@ static void defineMethod(ObjString* name) {
   ObjClass* klass = AS_CLASS(peek(1));
   tableSet(&klass->methods, name, method);
   pop();
+  pop();
 }
 //< Methods and Initializers not-yet
-/* Classes and Instances not-yet < Superclasses not-yet
-
-static void createClass(ObjString* name) {
-  ObjClass* klass = newClass(name);
-*/
-//> Classes and Instances not-yet
-//> Superclasses not-yet
-
-static void createClass(ObjString* name, ObjClass* superclass) {
-  ObjClass* klass = newClass(name, superclass);
-//< Superclasses not-yet
-  push(OBJ_VAL(klass));
-//> Superclasses not-yet
-
-  // Inherit methods.
-  if (superclass != NULL) {
-    tableAddAll(&superclass->methods, &klass->methods);
-  }
-//< Superclasses not-yet
-}
-//< Classes and Instances not-yet
 //> Types of Values is-falsey
 static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
@@ -881,24 +861,21 @@ static InterpretResult run() {
 //> Classes and Instances not-yet
 
       case OP_CLASS:
-/* Classes and Instances not-yet < Superclasses not-yet
-        createClass(READ_STRING());
-*/
-//> Superclasses not-yet
-        createClass(READ_STRING(), NULL);
-//< Superclasses not-yet
+        push(OBJ_VAL(newClass(READ_STRING())));
         break;
 //< Classes and Instances not-yet
 //> Superclasses not-yet
 
-      case OP_SUBCLASS: {
-        Value superclass = peek(0);
+      case OP_INHERIT: {
+        Value superclass = peek(1);
         if (!IS_CLASS(superclass)) {
           runtimeError("Superclass must be a class.");
           return INTERPRET_RUNTIME_ERROR;
         }
-
-        createClass(READ_STRING(), AS_CLASS(superclass));
+        
+        ObjClass* subclass = AS_CLASS(peek(0));
+        tableAddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
+        pop(); // Subclass.
         break;
       }
 //< Superclasses not-yet
