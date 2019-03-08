@@ -555,8 +555,6 @@ static void declareVariable() {
   if (current->scopeDepth == 0) return;
 //> existing-in-scope
   
-  // See if a local variable with this name is already declared in this
-  // scope.
   Token* name = &parser.previous;
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];

@@ -57,7 +57,7 @@ static int simpleInstructionN(const char* name, int n, int offset) {
 static int byteInstruction(const char* name, Chunk* chunk, int offset) {
   uint8_t slot = chunk->code[offset + 1];
   printf("%-16s %4d\n", name, slot);
-  return offset + 2;
+  return offset + 2; // [debug]
 }
 //< Local Variables byte-instruction
 //> Jumping Forward and Back not-yet

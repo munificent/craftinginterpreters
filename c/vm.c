@@ -510,7 +510,7 @@ static InterpretResult run() {
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
 /* Local Variables interpret-get-local < Calls and Functions not-yet
-        push(vm.stack[slot]);
+        push(vm.stack[slot]); // [slot]
 */
 //> Calls and Functions not-yet
         push(frame->slots[slot]);
