@@ -159,7 +159,7 @@ the stack when a statement begins executing. Blocks are strictly nested. When a
 block ends, it always takes the innermost, most recently declared locals with
 it. Since those are also the locals that came into scope last, they should be on
 top of the stack where we need them.</p>
-<p><strong>todo: illustrate examples</strong></p>
+<p><img src="image/local-variables/scopes.png" alt="A series of local variables come into and out of scope in a stack-like fashion." /></p>
 <aside name="harmony">
 <p>This alignment obviously isn&rsquo;t coincidental. I designed Lox to be amenable to
 single-pass compilation to stack-based bytecode. But I didn&rsquo;t have to tweak the
@@ -300,10 +300,10 @@ no way to create and destroy scopes, or add and resolve variables. We&rsquo;ll a
 those as we need them. First, let&rsquo;s start building some language features.</p>
 <h2><a href="#block-statements" name="block-statements"><small>22&#8202;.&#8202;2</small> Block Statements</a></h2>
 <p>Before we can have any local variables, we need some local scopes. These come
-from two things: function bodies and blocks. Functions are a big chunk of work
-that we&rsquo;ll tackle in <a href="calls-and-functions.html">a later chapter</a>, so for now we&rsquo;re only going
-to do blocks. As usual, we start with the syntax. The new grammar we&rsquo;ll
-introduce is:</p>
+from two things: function bodies and <span name="block">blocks</span>. Functions
+are a big chunk of work that we&rsquo;ll tackle in <a href="calls-and-functions.html">a later chapter</a>, so
+for now we&rsquo;re only going to do blocks. As usual, we start with the syntax. The
+new grammar we&rsquo;ll introduce is:</p>
 <div class="codehilite"><pre><span></span><span class="n">statement</span>      <span class="err">→</span> <span class="n">exprStmt</span>
                <span class="err">|</span> <span class="n">printStmt</span>
                <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
@@ -312,6 +312,14 @@ introduce is:</p>
 </pre></div>
 
 
+<aside name="block">
+<p>When you think about it, &ldquo;block&rdquo; is a weird name. Used metaphorically, &ldquo;block&rdquo;
+usually means a small indivisible unit, but for some reason, the Algol 60
+committee decided to use it to refer to a <em>compound</em> structure<span class="em">&mdash;</span>a series of
+statements. It could be worse, I suppose. Algol 58 called <code>begin</code> and <code>end</code>
+&ldquo;statement parentheses&rdquo;.</p>
+<p><img src="image/local-variables/block.png" alt="A cinder block." class="above" /></p>
+</aside>
 <p>Blocks are a kind of statement, so the rule for them goes in the <code>statement</code>
 production. The corresponding code to compile one looks like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">statement</span><span class="p">()</span> <span class="p">{</span>              
@@ -389,6 +397,7 @@ the variable name, adds its lexeme to the chunk&rsquo;s constant table as a stri
 and then returns the constant table index where it was added. Then, after
 <code>varDeclaration()</code> compiles the initializer, it calls <code>defineVariable()</code> to emit
 the bytecode for storing the variable&rsquo;s value in the global variable hash table.</p>
+<p><img src="image/local-variables/declaration.png" alt="The code flow within varDeclaration()." /></p>
 <p>Both of those helpers need a few changes to support local variables. In
 <code>parseVariable()</code>, we add:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="p">,</span> <span class="n">errorMessage</span><span class="p">);</span>    
@@ -427,7 +436,11 @@ remaining temporary. We also know that new locals are allocated at the top of
 the stack&hellip; right where that value already is. Thus, there&rsquo;s nothing to do. The
 temporary simply <em>becomes</em> the local variable. It doesn&rsquo;t get much more
 efficient than that.</p>
-<p><strong>todo: illustrate.</strong></p>
+<p><span name="locals"></span></p>
+<p><img src="image/local-variables/local-slots.png" alt="Walking through the bytecode execution showing that each initializer's result ends up in the local's slot." /></p>
+<aside name="locals">
+<p>The code on the left compiles to the sequence of instructions on the right.</p>
+</aside>
 <p>OK, so what&rsquo;s &ldquo;declaring&rdquo; about? Here&rsquo;s what that does:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
@@ -688,7 +701,6 @@ the first local variable is at index zero, the next one is at index one, and so
 on. In other words, the locals array in the compiler has the <em>exact</em> same layout
 as the VM&rsquo;s stack will have at runtime. The variable&rsquo;s index in the locals array
 is the same as its stack slot. How convenient!</p>
-<p><strong>todo: illustrate?</strong></p>
 <p>If we make it through the whole array without finding a variable with the given
 name, it must not be a local. In that case, we return <code>-1</code> to signal that it
 wasn&rsquo;t found and should be assumed to be a global variable instead.</p>
@@ -865,8 +877,12 @@ but it&rsquo;s in a special &ldquo;uninitialized&rdquo; state.</p>
 an identifier expression that points back to this variable, we&rsquo;ll see that it is
 not initialized yet and flag it as an error. After we finish compiling the
 initializer, we mark the variable as initialized and ready for normal use.</p>
-<p><strong>todo: illustrate &ldquo;var a = b + c;&rdquo; with markers at &ldquo;a&rdquo; saying &ldquo;declared
-uninitialized&rdquo; and a marker after &ldquo;c&rdquo; saying &ldquo;ready for use&rdquo;.</strong></p>
+<p><span name="phases"></span>
+<img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." /></p>
+<aside name="phases">
+<p>As the compiler works its way through the variable declaration, the variable
+crosses through each phase towards becoming fully available for use.</p>
+</aside>
 <p>To implement this, when we declare a local, we need to indicate this
 &ldquo;uninitialized&rdquo; state somehow. We could add a new field, but let&rsquo;s be a little
 more parsimonious with memory. Instead, we&rsquo;ll set the variable&rsquo;s scope depth to

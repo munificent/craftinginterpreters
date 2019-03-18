@@ -63,7 +63,7 @@ block ends, it always takes the innermost, most recently declared locals with
 it. Since those are also the locals that came into scope last, they should be on
 top of the stack where we need them.
 
-**todo: illustrate examples**
+<img src="image/local-variables/scopes.png" alt="A series of local variables come into and out of scope in a stack-like fashion." />
 
 <aside name="harmony">
 
@@ -182,10 +182,10 @@ those as we need them. First, let's start building some language features.
 ## Block Statements
 
 Before we can have any local variables, we need some local scopes. These come
-from two things: function bodies and blocks. Functions are a big chunk of work
-that we'll tackle in [a later chapter][functions], so for now we're only going
-to do blocks. As usual, we start with the syntax. The new grammar we'll
-introduce is:
+from two things: function bodies and <span name="block">blocks</span>. Functions
+are a big chunk of work that we'll tackle in [a later chapter][functions], so
+for now we're only going to do blocks. As usual, we start with the syntax. The
+new grammar we'll introduce is:
 
 ```lox
 statement      → exprStmt
@@ -194,6 +194,18 @@ statement      → exprStmt
 
 block          → "{" declaration* "}" ;
 ```
+
+<aside name="block">
+
+When you think about it, "block" is a weird name. Used metaphorically, "block"
+usually means a small indivisible unit, but for some reason, the Algol 60
+committee decided to use it to refer to a *compound* structure -- a series of
+statements. It could be worse, I suppose. Algol 58 called `begin` and `end`
+"statement parentheses".
+
+<img src="image/local-variables/block.png" alt="A cinder block." class="above" />
+
+</aside>
 
 Blocks are a kind of statement, so the rule for them goes in the `statement`
 production. The corresponding code to compile one looks like this:
@@ -247,6 +259,8 @@ and then returns the constant table index where it was added. Then, after
 `varDeclaration()` compiles the initializer, it calls `defineVariable()` to emit
 the bytecode for storing the variable's value in the global variable hash table.
 
+<img src="image/local-variables/declaration.png" alt="The code flow within varDeclaration()." />
+
 Both of those helpers need a few changes to support local variables. In
 `parseVariable()`, we add:
 
@@ -272,7 +286,15 @@ the stack... right where that value already is. Thus, there's nothing to do. The
 temporary simply *becomes* the local variable. It doesn't get much more
 efficient than that.
 
-**todo: illustrate.**
+<span name="locals"></span>
+
+<img src="image/local-variables/local-slots.png" alt="Walking through the bytecode execution showing that each initializer's result ends up in the local's slot." />
+
+<aside name="locals">
+
+The code on the left compiles to the sequence of instructions on the right.
+
+</aside>
 
 OK, so what's "declaring" about? Here's what that does:
 
@@ -455,8 +477,6 @@ on. In other words, the locals array in the compiler has the *exact* same layout
 as the VM's stack will have at runtime. The variable's index in the locals array
 is the same as its stack slot. How convenient!
 
-**todo: illustrate?**
-
 If we make it through the whole array without finding a variable with the given
 name, it must not be a local. In that case, we return `-1` to signal that it
 wasn't found and should be assumed to be a global variable instead.
@@ -616,8 +636,15 @@ an identifier expression that points back to this variable, we'll see that it is
 not initialized yet and flag it as an error. After we finish compiling the
 initializer, we mark the variable as initialized and ready for normal use.
 
-**todo: illustrate "var a = b + c;" with markers at "a" saying "declared
-uninitialized" and a marker after "c" saying "ready for use".**
+<span name="phases"></span>
+<img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." />
+
+<aside name="phases">
+
+As the compiler works its way through the variable declaration, the variable
+crosses through each phase towards becoming fully available for use.
+
+</aside>
 
 To implement this, when we declare a local, we need to indicate this
 "uninitialized" state somehow. We could add a new field, but let's be a little
