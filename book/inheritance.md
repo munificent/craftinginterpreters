@@ -138,21 +138,21 @@ doesn't usually do anything useful. However, Lox allows class declarations even
 inside blocks, so it's possible the superclass name refers to a local variable.
 In that case, we need to make sure it's resolved.
 
-<aside name="self">
-
-We resolve the superclass between declaring and defining the class name to
-handle this edge case:
+Because even well-intentioned programmers sometimes write weird code, there's a
+silly edge case we need to worry about while we're in here. Take a look at:
 
 ```lox
 class Oops < Oops {}
 ```
 
-If the class's name is declared but not defined when the superclass expression
-is evaluated, it becomes an error to mention it, like we want.
+There's no way this will do anything useful and if we let it go until the
+runtime, it will break the expectation the interpreter has about there not being
+cycles in the inheritance chain. The safest thing is to detect it statically and
+report it as an error:
 
-</aside>
+^code inherit-self (2 before, 1 after)
 
-Once that's done, we move to the interpreter:
+Assuming the code resolves without error, it travels to the interpreter:
 
 ^code interpret-superclass (1 before, 1 after)
 

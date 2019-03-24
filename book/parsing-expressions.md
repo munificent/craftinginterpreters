@@ -132,7 +132,7 @@ is by defining rules for precedence and associativity.
 
 *   **Associativity** determines which operator is evaluated first in a series
     of the *same* operator. When an operator is **left-associative** (think
-    "left-to-right"), operators on the left evaluate before ones of the right.
+    "left-to-right"), operators on the left evaluate before those on the right.
     Since `-` is left-associative, this expression:
 
         :::lox
@@ -740,8 +740,8 @@ augment the grammar with a rule that matches the erroneous syntax. The parser
 safely parses it but then reports it as an error instead of producing a syntax
 tree.
 
-For example, some languages have an unary `+` operator, like `+123`, but Lox
-does not. Instead of getting confused when the parser stumbles onto a `+` at the
+For example, some languages have a unary `+` operator, like `+123`, but Lox does
+not. Instead of getting confused when the parser stumbles onto a `+` at the
 beginning of an expression, we could extend the unary rule to allow it:
 
 ```lox
