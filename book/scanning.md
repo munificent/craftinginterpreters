@@ -545,7 +545,7 @@ newline inside a string.
 Finally, the last interesting bit is that when we create the token, we also
 produce the actual string *value* that will be used later by the interpreter.
 Here, that conversion only requires a `substring()` to strip off the surrounding
-quotes. If Lox supported escapes sequences like `\n`, we'd unescape those here.
+quotes. If Lox supported escape sequences like `\n`, we'd unescape those here.
 
 ### Number literals
 
