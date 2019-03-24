@@ -20,10 +20,12 @@ typedef enum {
 //> Global Variables pop-op
   OP_POP,
 //< Global Variables pop-op
-//> Local Variables not-yet
+//> Local Variables get-local-op
   OP_GET_LOCAL,
+//< Local Variables get-local-op
+//> Local Variables set-local-op
   OP_SET_LOCAL,
-//< Local Variables not-yet
+//< Local Variables set-local-op
 //> Global Variables get-global-op
   OP_GET_GLOBAL,
 //< Global Variables get-global-op
@@ -111,7 +113,7 @@ typedef enum {
   OP_CLASS,
 //< Classes and Instances not-yet
 //> Superclasses not-yet
-  OP_SUBCLASS,
+  OP_INHERIT,
 //< Superclasses not-yet
 //> Methods and Initializers not-yet
   OP_METHOD

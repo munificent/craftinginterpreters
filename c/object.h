@@ -157,9 +157,6 @@ typedef struct {
 typedef struct sObjClass {
   Obj obj;
   ObjString* name;
-//> Superclasses not-yet
-  struct sObjClass* superclass;
-//< Superclasses not-yet
 //> Methods and Initializers not-yet
   Table methods;
 //< Methods and Initializers not-yet
@@ -181,12 +178,9 @@ typedef struct {
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 //< Methods and Initializers not-yet
-/* Classes and Instances not-yet < Superclasses not-yet
+//> Classes and Instances not-yet
 ObjClass* newClass(ObjString* name);
-*/
-//> Superclasses not-yet
-ObjClass* newClass(ObjString* name, ObjClass* superclass);
-//< Superclasses not-yet
+//< Classes and Instances not-yet
 //> Closures not-yet
 ObjClosure* newClosure(ObjFunction* function);
 //< Closures not-yet

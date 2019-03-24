@@ -237,13 +237,13 @@ replace 1 line</div>
 <p>If we didn&rsquo;t parse a superclass clause, the superclass expression will be
 <code>null</code>. We&rsquo;ll have to make sure the later passes check for that. The first of
 those is the resolver:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>           
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>            
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">);</span>   
     <span class="o">}</span>                             
-</pre><pre class="insert-after"><br><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>            
+</pre><pre class="insert-after"><br><span></span>    <span class="n">beginScope</span><span class="o">();</span>                 
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -254,17 +254,30 @@ top level, the superclass name will most likely be a global variable, so this
 doesn&rsquo;t usually do anything useful. However, Lox allows class declarations even
 inside blocks, so it&rsquo;s possible the superclass name refers to a local variable.
 In that case, we need to make sure it&rsquo;s resolved.</p>
-<aside name="self">
-<p>We resolve the superclass between declaring and defining the class name to
-handle this edge case:</p>
+<p>Because even well-intentioned programmers sometimes write weird code, there&rsquo;s a
+silly edge case we need to worry about while we&rsquo;re in here. Take a look at:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Oops</span> <span class="o">&lt;</span> <span class="vg">Oops</span> <span class="p">{}</span>
 </pre></div>
 
 
-<p>If the class&rsquo;s name is declared but not defined when the superclass expression
-is evaluated, it becomes an error to mention it, like we want.</p>
-</aside>
-<p>Once that&rsquo;s done, we move to the interpreter:</p>
+<p>There&rsquo;s no way this will do anything useful and if we let it go until the
+runtime, it will break the expectation the interpreter has about there not being
+cycles in the inheritance chain. The safest thing is to detect it statically and
+report it as an error:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>                                         
+<br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
+in <em>visitClassStmt</em>()</div>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span>                             
+        <span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">))</span> <span class="o">{</span>
+      <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">.</span><span class="na">name</span><span class="o">,</span>                          
+          <span class="s">&quot;A class cannot inherit from itself.&quot;</span><span class="o">);</span>              
+    <span class="o">}</span>                                                          
+<br></pre><pre class="insert-after"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
+
+<p>Assuming the code resolves without error, it travels to the interpreter:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Void</span> <span class="nf">visitClassStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="na">Class</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>     
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
@@ -565,7 +578,8 @@ the method&rsquo;s environment, like so:</p>
 <p>That&rsquo;s a lot of machinery, but we&rsquo;ll get through it a step at a time. Before we
 can get to creating the environment at runtime, we need to handle the
 corresponding scope chain in the resolver:</p>
-<div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>                 
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span><span class="o">);</span>        
+    <span class="o">}</span>                                  
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="na">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>     

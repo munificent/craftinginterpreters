@@ -74,8 +74,17 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 //< set-current-class
     declare(stmt.name);
+    define(stmt.name);
 //> Inheritance resolve-superclass
 
+//> inherit-self
+    if (stmt.superclass != null &&
+        stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
+      Lox.error(stmt.superclass.name,
+          "A class cannot inherit from itself.");
+    }
+
+//< inherit-self
     if (stmt.superclass != null) {
 //> set-current-subclass
       currentClass = ClassType.SUBCLASS;
@@ -83,8 +92,6 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
       resolve(stmt.superclass);
     }
 //< Inheritance resolve-superclass
-
-    define(stmt.name);
 //> Inheritance begin-super-scope
 
     if (stmt.superclass != null) {
