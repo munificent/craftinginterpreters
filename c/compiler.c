@@ -233,8 +233,7 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte2);
 }
 //< Compiling Expressions emit-bytes
-//> Jumping Forward and Back not-yet
-
+//> Jumping Forward and Back emit-loop
 static void emitLoop(int loopStart) {
   emitByte(OP_LOOP);
 
@@ -244,17 +243,15 @@ static void emitLoop(int loopStart) {
   emitByte((offset >> 8) & 0xff);
   emitByte(offset & 0xff);
 }
-
-// Emits [instruction] followed by a placeholder for a jump offset. The
-// placeholder can be patched by calling [jumpPatch]. Returns the index
-// of the placeholder.
+//< Jumping Forward and Back emit-loop
+//> Jumping Forward and Back emit-jump
 static int emitJump(uint8_t instruction) {
   emitByte(instruction);
   emitByte(0xff);
   emitByte(0xff);
   return currentChunk()->count - 2;
 }
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back emit-jump
 //> Compiling Expressions emit-return
 static void emitReturn() {
 /* Calls and Functions not-yet < Methods and Initializers not-yet
@@ -288,10 +285,7 @@ static void emitConstant(Value value) {
   emitBytes(OP_CONSTANT, makeConstant(value));
 }
 //< Compiling Expressions emit-constant
-//> Jumping Forward and Back not-yet
-// Replaces the placeholder argument for a previous CODE_JUMP or
-// CODE_JUMP_IF instruction with an offset that jumps to the current
-// end of bytecode.
+//> Jumping Forward and Back patch-jump
 static void patchJump(int offset) {
   // -2 to adjust for the bytecode for the jump offset itself.
   int jump = currentChunk()->count - offset - 2;
@@ -303,7 +297,7 @@ static void patchJump(int offset) {
   currentChunk()->code[offset] = (jump >> 8) & 0xff;
   currentChunk()->code[offset + 1] = jump & 0xff;
 }
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back patch-jump
 //> Local Variables init-compiler
 /* Local Variables init-compiler < Calls and Functions not-yet
 static void initCompiler(Compiler* compiler) {
@@ -619,15 +613,8 @@ static uint8_t argumentList() {
   return argCount;
 }
 //< Calls and Functions not-yet
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back and
 static void and_(bool canAssign) {
-  // left operand...
-  // OP_JUMP_IF       ------.
-  // OP_POP // left operand |
-  // right operand...       |
-  //   <--------------------'
-  // ...
-
   // Short circuit if the left operand is false.
   int endJump = emitJump(OP_JUMP_IF_FALSE);
 
@@ -637,7 +624,7 @@ static void and_(bool canAssign) {
 
   patchJump(endJump);
 }
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back and
 //> Compiling Expressions binary
 /* Compiling Expressions binary < Global Variables binary
 static void binary() {
@@ -738,17 +725,8 @@ static void number(bool canAssign) {
 //< Types of Values const-number-val
 }
 //< Compiling Expressions number
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back or
 static void or_(bool canAssign) {
-  // left operand...
-  // OP_JUMP_IF       ---.
-  // OP_JUMP          ---+--.
-  //   <-----------------'  |
-  // OP_POP // left operand |
-  // right operand...       |
-  //   <--------------------'
-  // ...
-
   // If the operand is *true* we want to keep it, so when it's false,
   // jump to the code to evaluate the right operand.
   int elseJump = emitJump(OP_JUMP_IF_FALSE);
@@ -763,7 +741,7 @@ static void or_(bool canAssign) {
   parsePrecedence(PREC_OR);
   patchJump(endJump);
 }
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back or
 /* Strings parse-string < Global Variables string
 static void string() {
 */
@@ -980,12 +958,12 @@ ParseRule rules[] = {
   { string,   NULL,    PREC_NONE },       // TOKEN_STRING
 //< Strings table-string
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
-/* Compiling Expressions rules < Jumping Forward and Back not-yet
+/* Compiling Expressions rules < Jumping Forward and Back table-and
   { NULL,     NULL,    PREC_AND },        // TOKEN_AND
 */
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back table-and
   { NULL,     and_,    PREC_AND },        // TOKEN_AND
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back table-and
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
 /* Compiling Expressions rules < Types of Values table-false
@@ -1003,12 +981,12 @@ ParseRule rules[] = {
 //> Types of Values table-nil
   { literal,  NULL,    PREC_NONE },       // TOKEN_NIL
 //< Types of Values table-nil
-/* Compiling Expressions rules < Jumping Forward and Back not-yet
+/* Compiling Expressions rules < Jumping Forward and Back table-or
   { NULL,     NULL,    PREC_OR },         // TOKEN_OR
 */
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back table-or
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back table-or
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
 /* Compiling Expressions rules < Superclasses not-yet
@@ -1263,27 +1241,17 @@ static void expressionStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
 }
 //< Global Variables expression-statement
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back for-statement
 static void forStatement() {
-  // for (var i = 0; i < 10; i = i + 1) print i;
-  //
-  //   var i = 0;
-  // start:                      <--.
-  //   if (i < 10) goto exit;  --.  |
-  //   goto body;  -----------.  |  |
-  // increment:            <--+--+--+--.
-  //   i = i + 1;             |  |  |  |
-  //   goto start;  ----------+--+--'  |
-  // body:                 <--'  |     |
-  //   print i;                  |     |
-  //   goto increment;  ---------+-----'
-  // exit:                    <--'
-
-  // Create a scope for the loop variable.
+//> for-begin-scope
   beginScope();
 
-  // The initialization clause.
+//< for-begin-scope
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
+/* Jumping Forward and Back for-statement < Jumping Forward and Back for-initializer
+  consume(TOKEN_SEMICOLON, "Expect ';'.");
+*/
+//> for-initializer
   if (match(TOKEN_VAR)) {
     varDeclaration();
   } else if (match(TOKEN_SEMICOLON)) {
@@ -1291,10 +1259,14 @@ static void forStatement() {
   } else {
     expressionStatement();
   }
+//< for-initializer
 
   int loopStart = currentChunk()->count;
 
-  // The exit condition.
+/* Jumping Forward and Back for-statement < Jumping Forward and Back for-exit
+  consume(TOKEN_SEMICOLON, "Expect ';'.");
+*/
+//> for-exit
   int exitJump = -1;
   if (!match(TOKEN_SEMICOLON)) {
     expression();
@@ -1304,8 +1276,12 @@ static void forStatement() {
     exitJump = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP); // Condition.
   }
-
-  // Increment step.
+  
+//< for-exit
+/* Jumping Forward and Back for-statement < Jumping Forward and Back for-increment
+  consume(TOKEN_SEMICOLON, "Expect ')' after for clauses.");
+*/
+//> for-increment
   if (!match(TOKEN_RIGHT_PAREN)) {
     // We don't want to execute the increment before the body, so jump
     // over it.
@@ -1325,21 +1301,25 @@ static void forStatement() {
 
     patchJump(bodyJump);
   }
+//< for-increment
 
-  // Compile the body.
   statement();
 
-  // Jump back to the beginning (or the increment).
   emitLoop(loopStart);
-
+//> exit-jump
+  
   if (exitJump != -1) {
     patchJump(exitJump);
     emitByte(OP_POP); // Condition.
   }
+//< exit-jump
+//> for-end-scope
 
-  endScope(); // Loop variable.
+  endScope();
+//< for-end-scope
 }
-
+//< Jumping Forward and Back for-statement
+//> Jumping Forward and Back if-statement
 static void ifStatement() {
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
@@ -1363,7 +1343,7 @@ static void ifStatement() {
 
   patchJump(endJump);
 }
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back if-statement
 //> Global Variables print-statement
 static void printStatement() {
   expression();
@@ -1392,7 +1372,7 @@ static void returnStatement() {
   }
 }
 //< Calls and Functions not-yet
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back white-statement
 static void whileStatement() {
   int loopStart = currentChunk()->count;
 
@@ -1413,7 +1393,7 @@ static void whileStatement() {
   patchJump(exitJump);
   emitByte(OP_POP); // Condition.
 }
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back white-statement
 //> Global Variables synchronize
 static void synchronize() {
   parser.panicMode = false;
@@ -1475,25 +1455,24 @@ static void declaration() {
 //< Global Variables declaration
 //> Global Variables statement
 static void statement() {
-/* Global Variables statement < Jumping Forward and Back not-yet
   if (match(TOKEN_PRINT)) {
-*/
-//> Jumping Forward and Back not-yet
-  if (match(TOKEN_FOR)) {
+    printStatement();
+//> Jumping Forward and Back parse-for
+  } else if (match(TOKEN_FOR)) {
     forStatement();
+//< Jumping Forward and Back parse-for
+//> Jumping Forward and Back parse-if
   } else if (match(TOKEN_IF)) {
     ifStatement();
-  } else if (match(TOKEN_PRINT)) {
-//< Jumping Forward and Back not-yet
-    printStatement();
+//< Jumping Forward and Back parse-if
 //> Calls and Functions not-yet
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
 //< Calls and Functions not-yet
-//> Jumping Forward and Back not-yet
+//> Jumping Forward and Back parse-while
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
-//< Jumping Forward and Back not-yet
+//< Jumping Forward and Back parse-while
 //> Local Variables parse-block
   } else if (match(TOKEN_LEFT_BRACE)) {
     beginScope();
