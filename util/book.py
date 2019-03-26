@@ -203,12 +203,12 @@ TOC = [
         'done': True,
       },
       {
-        'name': 'Jumping Forward and Back',
+        'name': 'Jumping Back and Forth',
         'topics': [
           'Jump instructions', 'Conditional jumps', 'Control flow statements',
           'Short-circuiting', 'Backpatching'
         ],
-        'done': False,
+        'done': True,
       },
       {
         'name': 'Calls and Functions',

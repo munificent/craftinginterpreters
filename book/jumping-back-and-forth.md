@@ -1,7 +1,7 @@
-^title Jumping Forward and Back
+^title Jumping Back and Forth
 ^part A Bytecode Virtual Machine
 
-**todo: chapter title wraps and overlaps**
+**todo: chapter title overlaps**
 
 **todo: aside on "goto considered harmful"?**
 
