@@ -250,10 +250,10 @@ hackers spend their entire careers here, squeezing every drop of performance
 they can out of their compilers to get their benchmarks a fraction of a percent
 faster. It can become a sort of obsession.
 
-We're going to <span name="rathole">hop over that rathole</span> in this book.
-Many successful languages have surprisingly few compile-time optimizations. For
-example, Lua and CPython generate relatively unoptimized code, and focus most of
-their performance effort on the runtime.
+We're mostly going to <span name="rathole">hop over that rathole</span> in this
+book. Many successful languages have surprisingly few compile-time
+optimizations. For example, Lua and CPython generate relatively unoptimized
+code, and focus most of their performance effort on the runtime.
 
 <aside name="rathole">
 
@@ -409,7 +409,7 @@ a call to the later function.
 ### Tree-walk interpreters
 
 Some programming languages begin executing code right after parsing it to an AST
-(with maybe a bit of static analysis applied). To run the program, it traverses
+(with maybe a bit of static analysis applied). To run the program, they traverse
 the syntax tree one branch and leaf at a time, evaluating each node as it goes.
 
 This style of interpretation is common for student projects and little
