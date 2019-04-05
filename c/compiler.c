@@ -615,11 +615,9 @@ static uint8_t argumentList() {
 //< Calls and Functions not-yet
 //> Jumping Back and Forth and
 static void and_(bool canAssign) {
-  // Short circuit if the left operand is false.
   int endJump = emitJump(OP_JUMP_IF_FALSE);
 
-  // Compile the right operand.
-  emitByte(OP_POP); // Left operand.
+  emitByte(OP_POP);
   parsePrecedence(PREC_AND);
 
   patchJump(endJump);
@@ -727,16 +725,11 @@ static void number(bool canAssign) {
 //< Compiling Expressions number
 //> Jumping Back and Forth or
 static void or_(bool canAssign) {
-  // If the operand is *true* we want to keep it, so when it's false,
-  // jump to the code to evaluate the right operand.
   int elseJump = emitJump(OP_JUMP_IF_FALSE);
-
-  // If we get here, the operand is true, so jump to the end to keep it.
   int endJump = emitJump(OP_JUMP);
 
-  // Compile the right operand.
   patchJump(elseJump);
-  emitByte(OP_POP); // Left operand.
+  emitByte(OP_POP);
 
   parsePrecedence(PREC_OR);
   patchJump(endJump);
@@ -1325,23 +1318,27 @@ static void ifStatement() {
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
-  // Jump to the else branch if the condition is false.
-  int elseJump = emitJump(OP_JUMP_IF_FALSE);
-
-  // Compile the then branch.
-  emitByte(OP_POP); // Condition.
+  int thenJump = emitJump(OP_JUMP_IF_FALSE);
+//> pop-then
+  emitByte(OP_POP);
+//< pop-then
   statement();
 
-  // Jump over the else branch when the if branch is taken.
-  int endJump = emitJump(OP_JUMP);
+//> jump-over-else
+  int elseJump = emitJump(OP_JUMP);
 
-  // Compile the else branch.
-  patchJump(elseJump);
-  emitByte(OP_POP); // Condition.
-
+//< jump-over-else
+  patchJump(thenJump);
+//> pop-end
+  emitByte(OP_POP);
+//< pop-end
+//> compile-else
+  
   if (match(TOKEN_ELSE)) statement();
-
-  patchJump(endJump);
+//< compile-else
+//> patch-else
+  patchJump(elseJump);
+//< patch-else
 }
 //< Jumping Back and Forth if-statement
 //> Global Variables print-statement
@@ -1372,28 +1369,29 @@ static void returnStatement() {
   }
 }
 //< Calls and Functions not-yet
-//> Jumping Back and Forth white-statement
+//> Jumping Back and Forth while-statement
 static void whileStatement() {
+//> loop-start
   int loopStart = currentChunk()->count;
 
+//< loop-start
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
   expression();
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
-  // Jump out of the loop if the condition is false.
   int exitJump = emitJump(OP_JUMP_IF_FALSE);
 
-  // Compile the body.
-  emitByte(OP_POP); // Condition.
+  emitByte(OP_POP);
   statement();
-
-  // Loop back to the start.
+//> loop
+  
   emitLoop(loopStart);
-
+//< loop
+  
   patchJump(exitJump);
-  emitByte(OP_POP); // Condition.
+  emitByte(OP_POP);
 }
-//< Jumping Back and Forth white-statement
+//< Jumping Back and Forth while-statement
 //> Global Variables synchronize
 static void synchronize() {
   parser.panicMode = false;

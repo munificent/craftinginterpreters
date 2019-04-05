@@ -209,6 +209,7 @@ TOC = [
           'Short-circuiting', 'Backpatching'
         ],
         'done': True,
+        'design_note': 'Considering Goto Harmful'
       },
       {
         'name': 'Calls and Functions',
