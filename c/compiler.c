@@ -782,7 +782,7 @@ static void namedVariable(Token name) {
 static void namedVariable(Token name, bool canAssign) {
 //< Global Variables named-variable-signature
 /* Global Variables read-named-variable < Local Variables named-local
-  int arg = identifierConstant(&name);
+  uint8_t arg = identifierConstant(&name);
 */
 //> Global Variables read-named-variable
 //> Local Variables named-local
@@ -804,7 +804,7 @@ static void namedVariable(Token name, bool canAssign) {
 //< Local Variables named-local
 /* Global Variables read-named-variable < Global Variables named-variable
 
-  emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+  emitBytes(OP_GET_GLOBAL, arg);
 */
 //> named-variable
 
