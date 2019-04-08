@@ -1259,8 +1259,8 @@ static void varDeclaration() {
 //> Global Variables expression-statement
 static void expressionStatement() {
   expression();
-  emitByte(OP_POP);
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  emitByte(OP_POP);
 }
 //< Global Variables expression-statement
 //> Jumping Forward and Back not-yet
