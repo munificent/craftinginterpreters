@@ -348,7 +348,7 @@ Our implementation is fine for a correct Lox program, but what about invalid
 code? Let's aim to be robust. The first error to handle is not really the user's
 fault, but more a limitation of the VM. The instructions to work with local
 variables refer to them by slot index. That index is stored in a single-byte
-operand, which means the VM only supports up to 255 local variables in scope at
+operand, which means the VM only supports up to 256 local variables in scope at
 one time.
 
 If we try to go over that, not only could we not refer to them at runtime, the
