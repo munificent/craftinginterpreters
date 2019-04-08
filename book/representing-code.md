@@ -224,11 +224,10 @@ book. Sorry.
 </aside>
 
 ```lox
-breakfast → protein "with" bread ;
+breakfast → protein "with" breakfast "on the side" ;
 breakfast → protein ;
 breakfast → bread ;
 
-protein   → protein "and" protein ;
 protein   → "bacon" ;
 protein   → "sausage" ;
 protein   → cooked "eggs" ;
@@ -248,42 +247,52 @@ the grammar, here `breakfast`. There are three productions for that, and we
 randomly pick the first one. Our resulting string looks like:
 
 ```text
-protein "with" bread
+protein "with" breakfast "on the side"
 ```
 
 We need to expand that first nonterminal, `protein`, so we pick a production for
 that. Let's pick:
 
 ```lox
-protein → protein "and" protein ;
-```
-
-Note that the production refers to its own rule. This is the key difference
-between context-free and regular languages. The former are allowed to recurse.
-It is exactly this that lets them nest and compose.
-
-We could keep picking the first production for `protein` over and over again
-yielding all manner of breakfasts like "bacon and sausage and sausage and bacon
-and...". We won't though. We need to again pick a production for `protein` in
-the inner reference to `protein "and" protein`. This time we'll pick `"bacon"`.
-We finally hit a terminal, so we set that as the first word in the resulting
-string.
-
-Now we pop back out to the first `protein "and" protein`. The next symbol is
-`"and"`, a terminal, so we add that. Then we hit another `protein`. This
-time, we pick:
-
-```lox
 protein → cooked "eggs" ;
 ```
 
-We need a production for `cooked` and pick `"poached"`. That's a terminal, so
-we add that. Now we're back to the `protein`, so we add `"eggs"`. We bounce back
-to `breakfast` and add `"with"`. Now all that's left is to pick a production for
-`bread`. We'll pick `"English muffin"`. That's again a terminal, so we add
-that and we're done:
+Next, we need a production for `cooked` and pick `"poached"`. That's a terminal,
+so we add that. Now our string looks like:
+
+```text
+"poached" "eggs" "with" breakfast "on the side"
+```
+
+The next non-terminal is `breakfast` again. The first `breakfast` production we
+chose recursively refers back to the `breakfast` rule. Recursion like this
+usually indicates that the language is context-free instead of regular. In
+particular, this kind of nested recursion where the recursive nonterminal has
+productions on <span name="nest">both</span> sides of it means that it's not
+regular.
+
+<aside name="nest">
+
+Imagine that we've recursively expanded the `breakfast` rule here several times,
+like "bacon with bacon with bacon with bacon ...". In order to complete the
+string, we'll need to add an equivalent number of "on the side" bits to the end.
+Keeping track of that number of trailing parts is beyond the capabilities of a
+simple regular grammar. A regular grammar can *repeat*, but it can't *count*.
+
+</aside>
+
+We could keep picking the first production for `breakfast` over and over again
+yielding all manner of breakfasts like "bacon with sausage with scrambled eggs
+with bacon ...". We won't though. This time we'll pick `bread`. There are three
+rules for that, each of which contains only a nonterminal. We'll pick "English
+muffin".
+
+With that, every nonterminal in the string has been expanded until it finally
+contains only terminals and we're left with:
 
 <img src="image/representing-code/breakfast.png" alt='"Playing" the grammar to generate a string.' />
+
+Throw in some ham and Hollandaise, and you've got eggs Benedict.
 
 Any time we hit a rule that had multiple productions, we just picked one
 arbitrarily. It is this flexibility that allows a short number of grammar rules
