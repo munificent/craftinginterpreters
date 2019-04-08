@@ -417,7 +417,7 @@ need an include:
 <aside name="hash">
 
 It would be a nice little optimization if we could check their hashes, but
-tokens aren't full LoxStrings, so we haven't calculated their hash yet.
+tokens aren't full LoxStrings, so we haven't calculated their hashes yet.
 
 </aside>
 
