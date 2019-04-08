@@ -513,10 +513,10 @@ later instructions can find it.
 
 <aside name="slot">
 
-It seems to redundant to push the local's value onto the stack since it's
-already on the stack lower down somewhere. The problem is that the other
-bytecode instructions only look for data at the *top* of the stack. This is the
-core aspect that makes our bytecode instruction set *stack*-based.
+It seems redundant to push the local's value onto the stack since it's already
+on the stack lower down somewhere. The problem is that the other bytecode
+instructions only look for data at the *top* of the stack. This is the core
+aspect that makes our bytecode instruction set *stack*-based.
 [Register-based][reg] bytecode instruction sets avoid these pointless stack
 juggling instructions at the cost of having larger instructions with more
 operands.
