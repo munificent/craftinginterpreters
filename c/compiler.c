@@ -553,9 +553,9 @@ static void addLocal(Token name) {
 static void declareVariable() {
   // Global variables are implicitly declared.
   if (current->scopeDepth == 0) return;
-//> existing-in-scope
-  
+
   Token* name = &parser.previous;
+//> existing-in-scope
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];
     if (local->depth != -1 && local->depth < current->scopeDepth) break;
@@ -563,8 +563,8 @@ static void declareVariable() {
       error("Variable with this name already declared in this scope.");
     }
   }
-//< existing-in-scope
 
+//< existing-in-scope
   addLocal(*name);
 }
 //< Local Variables declare-variable

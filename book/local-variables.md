@@ -658,7 +658,7 @@ To implement this, when we declare a local, we need to indicate this
 more parsimonious with memory. Instead, we'll set the variable's scope depth to
 a special sentinel value, `-1`:
 
-^code declare-undefined (1 before, 2 after)
+^code declare-undefined (1 before, 1 after)
 
 Later, once the variable's initializer has been compiled, we mark it
 initialized:
