@@ -166,9 +166,10 @@ That's all the state we need for now.
 This is a very different representation from what we had in jlox, but it still
 lets us answer all of the same questions our compiler needs to ask of the
 lexical environment. The next question is how the compiler *gets* at this state.
-If we were <span name="thread">principled</span> engineers, we'd probably pass a
-pointer to a Compiler around between all of the various functions in the front
-end. But that would mean a lot of boring changes to the code we already wrote,
+If we were <span name="thread">principled</span> engineers, we'd give each
+function in the front end a parameter that accepts a pointer to a Compiler. We'd
+create a Compiler at the beginning and carefully thread it through each function
+call. But that would mean a lot of boring changes to the code we already wrote,
 so here's a global variable:
 
 <aside name="thread">
