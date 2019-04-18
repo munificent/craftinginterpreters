@@ -1276,22 +1276,15 @@ static void forStatement() {
 */
 //> for-increment
   if (!match(TOKEN_RIGHT_PAREN)) {
-    // We don't want to execute the increment before the body, so jump
-    // over it.
     int bodyJump = emitJump(OP_JUMP);
 
-    int incrementStart = currentChunk()->count;
+    int incrementStart = currentChunk()->count;    
     expression();
     emitByte(OP_POP);
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
 
-    // After the increment, start the whole loop over.
     emitLoop(loopStart);
-
-    // At the end of the body, we want to jump to the increment, not
-    // the top of the loop.
     loopStart = incrementStart;
-
     patchJump(bodyJump);
   }
 //< for-increment
@@ -1316,7 +1309,7 @@ static void forStatement() {
 static void ifStatement() {
   consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
   expression();
-  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition."); // [paren]
 
   int thenJump = emitJump(OP_JUMP_IF_FALSE);
 //> pop-then
