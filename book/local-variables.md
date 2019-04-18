@@ -1,6 +1,10 @@
 ^title Local Variables
 ^part A Bytecode Virtual Machine
 
+> Our memory is a more perfect world than the universe: it gives back life to
+> those who no longer exist.
+> <cite>Guy de Maupassant</cite>
+
 The [last chapter][] introduced variables to clox, but only of the <span
 name="global">global</span> variety. In this chapter, we'll extend that to
 support blocks, block scope, and local variables. In jlox, we managed to pack
