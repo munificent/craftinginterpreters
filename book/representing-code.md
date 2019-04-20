@@ -224,21 +224,24 @@ book. Sorry.
 </aside>
 
 ```lox
-breakfast → protein "with" breakfast "on the side" ;
-breakfast → protein ;
-breakfast → bread ;
+breakfast  → protein "with" breakfast "on the side" ;
+breakfast  → protein ;
+breakfast  → bread ;
 
-protein   → "bacon" ;
-protein   → "sausage" ;
-protein   → cooked "eggs" ;
+protein    → crispiness "crispy" "bacon" ;
+protein    → "sausage" ;
+protein    → cooked "eggs" ;
 
-cooked    → "scrambled" ;
-cooked    → "poached" ;
-cooked    → "fried" ;
+crispiness → "really" ;
+crispiness → really "really" ;
 
-bread     → "toast" ;
-bread     → "biscuits" ;
-bread     → "English muffin" ;
+cooked     → "scrambled" ;
+cooked     → "poached" ;
+cooked     → "fried" ;
+
+bread      → "toast" ;
+bread      → "biscuits" ;
+bread      → "English muffin" ;
 ```
 
 We can use that grammar to generate random breakfasts. Let's play a round and
@@ -327,7 +330,7 @@ expressions in the body of a rule:
     may be repeated zero or more times.
 
         :::lox
-        protein → protein ( "and" protein )* ;
+        crispiness → "really" "really"* ;
 
 <aside name="purity">
 
@@ -340,19 +343,22 @@ recursion.
 *   A postfix `+` is similar, but requires the preceding production to appear
     at least once.
 
+        :::lox
+        crispiness → "really"+ ;
+
 *   A postfix `?` is for an optional production. The thing before it can appear
     zero or one time, but not more.
 
         :::lox
-        breakfast → protein ( "with" bread )? ;
+        breakfast → protein ( "with" breakfast "on the side" )? ;
 
 With all of that sugar, our breakfast grammar condenses down to:
 
 ```lox
-breakfast → protein ( "and" protein )* ( "with" bread )?
+breakfast → protein ( "with" breakfast "on the side" )? ;
           | bread ;
 
-protein   → "bacon"
+protein   → "really"+ "crispy" "bacon"
           | "sausage"
           | ( "scrambled" | "poached" | "fried" ) "eggs" ;
 
