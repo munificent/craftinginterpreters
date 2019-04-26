@@ -17,9 +17,9 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private FunctionType currentFunction = FunctionType.NONE;
 //< function-type-field
 
-//> function-type-field
+//> globals-field
   private final Set<String> globals = new HashSet<>();
-//< function-type-field
+//< globals-field
 
 
   Resolver(Interpreter interpreter) {
