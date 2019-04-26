@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.HashSet;
+import java.util.Set;
 
 class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Interpreter interpreter;
@@ -14,6 +16,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //> function-type-field
   private FunctionType currentFunction = FunctionType.NONE;
 //< function-type-field
+
+//> function-type-field
+  private final Set<String> globals = new HashSet<>();
+//< function-type-field
+
 
   Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
@@ -377,7 +384,15 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //< end-scope
 //> declare
   private void declare(Token name) {
-    if (scopes.isEmpty()) return;
+    if (scopes.isEmpty()){
+      if(globals.contains(name.lexeme)){
+        Lox.error(name,
+                "Variable with this name already declared in this scope.");
+      } else {
+        globals.add(name.lexeme);
+      }
+      return;
+    }
 
     Map<String, Boolean> scope = scopes.peek();
 //> duplicate-variable
