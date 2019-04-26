@@ -51,9 +51,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 //< Classes class-type
 //> resolve-statements
   void resolve(List<Stmt> statements) {
+    beginScope();
     for (Stmt statement : statements) {
       resolve(statement);
     }
+    endScope();
   }
 //< resolve-statements
 //> visit-block-stmt
