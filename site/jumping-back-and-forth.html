@@ -154,35 +154,8 @@ some code, we need an instruction that looks at the value on top of the stack.
 If it&rsquo;s falsey, it adds a given offset to the <code>ip</code> to jump over a range of
 instructions. Otherwise, it does nothing and lets execution proceed to the
 next instruction as usual.</p>
-<p>Using that, a program like this:</p>
-<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span> <span class="k">print</span><span class="p">(</span><span class="s">&quot;was true&quot;</span><span class="p">);</span>
-<span class="k">print</span><span class="p">(</span><span class="s">&quot;after&quot;</span><span class="p">);</span>
-</pre></div>
-
-
-<p>Compiles to something <span name="rough">roughly</span> like:</p>
-<p><strong>TODO: illustrate</strong></p>
-<div class="codehilite"><pre><span></span>// Evaluate condition expression:
-OP_GET_GLOBAL       &#39;condition&#39;
-OP_JUMP_IF_FALSE    jump to ----.
-                                |
-// Code for then branch:        |
-OP_CONSTANT         &#39;was true&#39;  |
-OP_PRINT                        |
-                                |
-.-------------------------------&#39;
-v
-OP_CONSTANT         &#39;after&#39;
-OP_PRINT
-</pre></div>
-
-
-<aside name="rough">
-<p>I say &ldquo;roughly&rdquo;, because there&rsquo;s a bit more stack juggling and stuff we&rsquo;ll need
-to do as you&rsquo;ll see further on in the chapter.</p>
-</aside>
-<p>Note that at the bytecode level, there&rsquo;s nothing that looks like what we think
-of &ldquo;<a href="https://en.wikipedia.org/wiki/Structured_programming">structured programming</a>&rdquo;. In that paradigm, all control flow strictly
+<p>At the bytecode level, there&rsquo;s nothing that looks like what we think of
+&ldquo;<a href="https://en.wikipedia.org/wiki/Structured_programming">structured programming</a>&rdquo;. In that paradigm, all control flow strictly
 follows a nested block structure. But there&rsquo;s nothing in our bytecode
 instructions to prevent you from jumping into the middle of a block, or from one
 scope into another. The VM don&rsquo;t care.</p>
@@ -246,15 +219,19 @@ It&rsquo;s just there because an unmatched <code>)</code> looks wrong to us huma
 <p>First we compile the condition expression, bracketed by parentheses. At runtime,
 that will leave the condition value on top of the stack. We&rsquo;ll use that to
 determine whether to enter the then branch or skip it.</p>
-<p><strong>todo: illustrate flow</strong></p>
-<p>Then we emit the new <code>OP_JUMP_IF_FALSE</code> instruction. That jumps over all of the compiled code inside the then branch if the condition turns out to be false. But we have a problem. How do we know how far to jump? We haven&rsquo;t compiled the then branch yet, so we don&rsquo;t know how much bytecode it contains.</p>
-<p>To fix that, we use a classic trick called <strong>backpatching</strong>. We&rsquo;ll emit the jump
-instruction now with a placeholder offset. We keep track of where that temporary
-instruction is. Then we compile the then body. Once that&rsquo;s done, we will know
-how far to jump. So we go back and replace that placeholder offset with the real
-one now that we can calculate it. Sort of like sewing a patch onto the existing
-fabric of the compiled code.</p>
-<p><strong>todo: illustrate sewing patch.</strong></p>
+<p>Then we emit the new <code>OP_JUMP_IF_FALSE</code> instruction. That jumps over all of the
+compiled code inside the then branch if the condition turns out to be false.</p>
+<p><img src="image/jumping-back-and-forth/if-without-else.png" alt="Flowchart of the compiled bytecode of an if statement." /></p>
+<p>But we have a problem. How do we know how far to jump? We haven&rsquo;t compiled the
+then branch yet, so we don&rsquo;t know how much bytecode it contains.</p>
+<p>To fix that, we use a classic trick called <span
+name="patch"><strong>backpatching</strong></span>. We&rsquo;ll emit the jump instruction now with a
+placeholder offset. We keep track of where that temporary instruction is. Then
+we compile the then body. Once that&rsquo;s done, we will know how far to jump. So we
+go back and replace that placeholder offset with the real one now that we can
+calculate it. Sort of like sewing a patch onto the existing fabric of the
+compiled code.</p>
+<p><img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." /></p>
 <p>We encode this trick into two helper functions:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
@@ -399,12 +376,12 @@ in <em>ifStatement</em>()</div>
 <p>When the condition is falsey, we&rsquo;ll jump over the then branch. If there&rsquo;s an
 else branch, the <code>ip</code> will land right at the beginning of its code. But that&rsquo;s
 not enough, though. Here&rsquo;s the flow we have right now:</p>
-<p><strong>todo: illustrate broken flow</strong></p>
+<p><img src="image/jumping-back-and-forth/bad-else.png" alt="Flowchart of the compiled bytecode with the then branch incorrectly falling through to the else branch." /></p>
 <p>If the condition is truthy, we execute the then branch like we want. But after
 that, execution rolls right on through into the else branch. Oops! When the
 condition is true, after we run the then branch, we need to jump over the else
 branch. That way, in each path, we only execute a single branch, like this:</p>
-<p><strong>todo: illustrate correct flow</strong></p>
+<p><img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." /></p>
 <p>To implement that, we need another jump from the end of the then branch:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">statement</span><span class="p">();</span>                     
 <br></pre><div class="source-file"><em>compiler.c</em><br>
@@ -482,7 +459,7 @@ in <em>ifStatement</em>()</div>
 else branch even if the user didn&rsquo;t write an else clause. In the case where they
 left it off, all it does is discard the condition value.</p>
 <p>The full correct flow looks like this:</p>
-<p><strong>todo: illustrate flow with empty else that just pops</strong></p>
+<p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." /></p>
 <p>Everything is working right. All that remains it a little disassembler support:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_PRINT&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>                
 </pre><div class="source-file"><em>debug.c</em><br>
@@ -561,16 +538,7 @@ expression. Otherwise, we discard the left-hand value and the result of the <cod
 expression is the result of evaluating the right operand.</p>
 <p>Those four lines of code right there produce exactly that. The flow looks like
 this:</p>
-<p><strong>todo: illustrate</strong></p>
-<div class="codehilite"><pre><span></span>// left operand...
-// OP_JUMP_IF       ------.
-// OP_POP // left operand |
-// right operand...       |
-//   &lt;--------------------&#39;
-// ...
-</pre></div>
-
-
+<p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an '&&' expression." /></p>
 <p>Now you can see why <code>OP_JUMP_IF_FALSE</code> <span name="instr">leaves</span> the
 value on top of the stack. When the left-hand side of the <code>&amp;&amp;</code> is falsey, that
 value needs to stick around to be the result of the entire expression.</p>
@@ -618,18 +586,7 @@ in terms of the jump instructions we already have.</p>
 That statement is an unconditional jump over the code for the right operand.
 This little dance effectively does a jump when the value is truthy. The flow
 looks like this:</p>
-<p><strong>todo: illustrate</strong></p>
-<div class="codehilite"><pre><span></span>// left operand...
-// OP_JUMP_IF       ---.
-// OP_JUMP          ---+--.
-//   &lt;-----------------&#39;  |
-// OP_POP // left operand |
-// right operand...       |
-//   &lt;--------------------&#39;
-// ...
-</pre></div>
-
-
+<p><img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of an '||' expression." /></p>
 <p>If I&rsquo;m honest with you, this isn&rsquo;t the best way to do this. There are more
 instructions to dispatch and more overhead. There&rsquo;s no good reason why <code>||</code>
 should be slower than <code>&amp;&amp;</code>. But it is kind of fun to see that it&rsquo;s possible to
@@ -781,7 +738,7 @@ in <em>disassembleInstruction</em>()</div>
 <p>That&rsquo;s our while statement. It contains two jumps<span class="em">&mdash;</span>a conditional forward one
 to escape the loop when the condition isn&rsquo;t met, and an unconditional loop
 backwards after we have executed the body. The flow looks like this:</p>
-<p><strong>todo: illustrate</strong></p>
+<p><img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." /></p>
 <h2><a href="#for-statements" name="for-statements"><small>23&#8202;.&#8202;4</small> For Statements</a></h2>
 <p>The other looping statement in Lox is the venerable for loop, inherited from C.
 It&rsquo;s got a lot more going on with it compared to a while loop. It has three
@@ -992,27 +949,9 @@ Later, when emit the loop instruction after the body statement, this will cause
 it to jump up to the <em>increment</em> expression instead of the top of the loop like
 it does if there is no increment. This is how we stitch the increment in to run
 after the body.</p>
-<p>It&rsquo;s a little hairy, but it all works out. A loop like:</p>
-<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">print</span> <span class="n">i</span><span class="p">;</span>
-</pre></div>
-
-
-<p>Compiles to a flow like:</p>
-<p><strong>todo: illustrate</strong></p>
-<div class="codehilite"><pre><span></span>  var i = 0;
-start:                      &lt;--.
-  if (i &lt; 10) goto exit;  --.  |
-  goto body;  -----------.  |  |
-increment:            &lt;--+--+--+--.
-  i = i + 1;             |  |  |  |
-  goto start;  ----------+--+--&#39;  |
-body:                 &lt;--&#39;  |     |
-  print i;                  |     |
-  goto increment;  ---------+-----&#39;
-exit:                    &lt;--&#39;
-</pre></div>
-
-
+<p>It&rsquo;s a little hairy, but it all works out. A complete loop with all the clauses
+compiles to a flow like:</p>
+<p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." /></p>
 <p>Again, we didn&rsquo;t need to touch the runtime. It&rsquo;s all in the compiler. We&rsquo;ve
 taken a big <span name="leap">leap</span> forward in our VM<span class="em">&mdash;</span>clox is now
 Turing complete. We&rsquo;ve also covered quite a bit of new syntax: three statements

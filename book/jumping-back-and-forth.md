@@ -49,41 +49,8 @@ If it's falsey, it adds a given offset to the `ip` to jump over a range of
 instructions. Otherwise, it does nothing and lets execution proceed to the
 next instruction as usual.
 
-Using that, a program like this:
-
-```lox
-if (condition) print("was true");
-print("after");
-```
-
-Compiles to something <span name="rough">roughly</span> like:
-
-**TODO: illustrate**
-
-```text
-// Evaluate condition expression:
-OP_GET_GLOBAL       'condition'
-OP_JUMP_IF_FALSE    jump to ----.
-                                |
-// Code for then branch:        |
-OP_CONSTANT         'was true'  |
-OP_PRINT                        |
-                                |
-.-------------------------------'
-v
-OP_CONSTANT         'after'
-OP_PRINT
-```
-
-<aside name="rough">
-
-I say "roughly", because there's a bit more stack juggling and stuff we'll need
-to do as you'll see further on in the chapter.
-
-</aside>
-
-Note that at the bytecode level, there's nothing that looks like what we think
-of "[structured programming][]". In that paradigm, all control flow strictly
+At the bytecode level, there's nothing that looks like what we think of
+"[structured programming][]". In that paradigm, all control flow strictly
 follows a nested block structure. But there's nothing in our bytecode
 instructions to prevent you from jumping into the middle of a block, or from one
 scope into another. The VM don't care.
@@ -138,18 +105,23 @@ First we compile the condition expression, bracketed by parentheses. At runtime,
 that will leave the condition value on top of the stack. We'll use that to
 determine whether to enter the then branch or skip it.
 
-**todo: illustrate flow**
+Then we emit the new `OP_JUMP_IF_FALSE` instruction. That jumps over all of the
+compiled code inside the then branch if the condition turns out to be false.
 
-Then we emit the new `OP_JUMP_IF_FALSE` instruction. That jumps over all of the compiled code inside the then branch if the condition turns out to be false. But we have a problem. How do we know how far to jump? We haven't compiled the then branch yet, so we don't know how much bytecode it contains.
+<img src="image/jumping-back-and-forth/if-without-else.png" alt="Flowchart of the compiled bytecode of an if statement." />
 
-To fix that, we use a classic trick called **backpatching**. We'll emit the jump
-instruction now with a placeholder offset. We keep track of where that temporary
-instruction is. Then we compile the then body. Once that's done, we will know
-how far to jump. So we go back and replace that placeholder offset with the real
-one now that we can calculate it. Sort of like sewing a patch onto the existing
-fabric of the compiled code.
+But we have a problem. How do we know how far to jump? We haven't compiled the
+then branch yet, so we don't know how much bytecode it contains.
 
-**todo: illustrate sewing patch.**
+To fix that, we use a classic trick called <span
+name="patch">**backpatching**</span>. We'll emit the jump instruction now with a
+placeholder offset. We keep track of where that temporary instruction is. Then
+we compile the then body. Once that's done, we will know how far to jump. So we
+go back and replace that placeholder offset with the real one now that we can
+calculate it. Sort of like sewing a patch onto the existing fabric of the
+compiled code.
+
+<img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
 
 We encode this trick into two helper functions:
 
@@ -252,14 +224,14 @@ When the condition is falsey, we'll jump over the then branch. If there's an
 else branch, the `ip` will land right at the beginning of its code. But that's
 not enough, though. Here's the flow we have right now:
 
-**todo: illustrate broken flow**
+<img src="image/jumping-back-and-forth/bad-else.png" alt="Flowchart of the compiled bytecode with the then branch incorrectly falling through to the else branch." />
 
 If the condition is truthy, we execute the then branch like we want. But after
 that, execution rolls right on through into the else branch. Oops! When the
 condition is true, after we run the then branch, we need to jump over the else
 branch. That way, in each path, we only execute a single branch, like this:
 
-**todo: illustrate correct flow**
+<img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." />
 
 To implement that, we need another jump from the end of the then branch:
 
@@ -303,7 +275,7 @@ left it off, all it does is discard the condition value.
 
 The full correct flow looks like this:
 
-**todo: illustrate flow with empty else that just pops**
+<img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." />
 
 Everything is working right. All that remains it a little disassembler support:
 
@@ -353,16 +325,7 @@ expression is the result of evaluating the right operand.
 Those four lines of code right there produce exactly that. The flow looks like
 this:
 
-**todo: illustrate**
-
-```
-// left operand...
-// OP_JUMP_IF       ------.
-// OP_POP // left operand |
-// right operand...       |
-//   <--------------------'
-// ...
-```
+<img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an '&&' expression." />
 
 Now you can see why `OP_JUMP_IF_FALSE` <span name="instr">leaves</span> the
 value on top of the stack. When the left-hand side of the `&&` is falsey, that
@@ -399,18 +362,7 @@ That statement is an unconditional jump over the code for the right operand.
 This little dance effectively does a jump when the value is truthy. The flow
 looks like this:
 
-**todo: illustrate**
-
-```
-// left operand...
-// OP_JUMP_IF       ---.
-// OP_JUMP          ---+--.
-//   <-----------------'  |
-// OP_POP // left operand |
-// right operand...       |
-//   <--------------------'
-// ...
-```
+<img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of an '||' expression." />
 
 If I'm honest with you, this isn't the best way to do this. There are more
 instructions to dispatch and more overhead. There's no good reason why `||`
@@ -505,7 +457,7 @@ That's our while statement. It contains two jumps -- a conditional forward one
 to escape the loop when the condition isn't met, and an unconditional loop
 backwards after we have executed the body. The flow looks like this:
 
-**todo: illustrate**
+<img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
 
 ## For Statements
 
@@ -652,29 +604,10 @@ it to jump up to the *increment* expression instead of the top of the loop like
 it does if there is no increment. This is how we stitch the increment in to run
 after the body.
 
-It's a little hairy, but it all works out. A loop like:
+It's a little hairy, but it all works out. A complete loop with all the clauses
+compiles to a flow like:
 
-```lox
-for (var i = 0; i < 10; i = i + 1) print i;
-```
-
-Compiles to a flow like:
-
-**todo: illustrate**
-
-```
-  var i = 0;
-start:                      <--.
-  if (i < 10) goto exit;  --.  |
-  goto body;  -----------.  |  |
-increment:            <--+--+--+--.
-  i = i + 1;             |  |  |  |
-  goto start;  ----------+--+--'  |
-body:                 <--'  |     |
-  print i;                  |     |
-  goto increment;  ---------+-----'
-exit:                    <--'
-```
+<img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." />
 
 Again, we didn't need to touch the runtime. It's all in the compiler. We've
 taken a big <span name="leap">leap</span> forward in our VM -- clox is now
