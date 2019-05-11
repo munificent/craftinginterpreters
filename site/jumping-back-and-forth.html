@@ -251,7 +251,7 @@ add after <em>emitBytes</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
 
 <p>The first emits a bytecode instruction and writes a placeholder operand for the
-jump offset. We pass in the op code as an argument because later we&rsquo;ll have two
+jump offset. We pass in the opcode as an argument because later we&rsquo;ll have two
 different instructions that use this helper. We use two bytes for the jump
 offset operand. A 16-bit <span name="offset">offset</span> lets us jump over up
 to 65,536 bytes of code, which should be plenty for our needs.</p>
@@ -551,7 +551,7 @@ this:</p>
 value on top of the stack. When the left-hand side of the <code>&amp;&amp;</code> is falsey, that
 value sticks around to become the result of the entire expression.</p>
 <aside name="instr">
-<p>We&rsquo;ve got plenty of space left in our op code range, so we could have separate
+<p>We&rsquo;ve got plenty of space left in our opcode range, so we could have separate
 instructions for conditional jumps that implicitly pop and those that don&rsquo;t, I
 suppose. But I&rsquo;m trying to keep things minimal for the book. In your bytecode
 VM, it&rsquo;s worth exploring adding more specialized instructions and see how they
@@ -604,12 +604,11 @@ indulgences.</p>
 are the control flow features that only jump <em>forward</em> over code. Other
 languages often have some kind of multi-way branching statement like <code>switch</code>
 and maybe a conditional expression like <code>?:</code>, but Lox keeps it simple.</p>
-<hr />
 <h2><a href="#while-statements" name="while-statements"><small>23&#8202;.&#8202;3</small> While Statements</a></h2>
-<p>That takes us to the <em>looping</em> statements. In these, control flow is also used
-to jump <em>backwards</em> so that code can be executed more than once. Lox only has
-two, <code>while</code> and <code>for</code>. While loops are (much) simpler, so we kick off the party
-with its keyword:</p>
+<p>That takes us to the <em>looping</em> statements, which jump <em>backwards</em> so that code
+can be executed more than once. Lox only has two loop constructs, <code>while</code> and
+<code>for</code>. While loops are (much) simpler, so we kick off the party with its
+keyword:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">ifStatement</span><span class="p">();</span>                     
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
@@ -640,14 +639,12 @@ add after <em>printStatement</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
 
-<p>The first bit is similar to if statements<span class="em">&mdash;</span>we compile the condition
-expression, surrounded by mandatory parentheses. That&rsquo;s followed by a jump
-instruction that skips over the subsequent body statement if the condition is
-falsey.</p>
+<p>Most of this mirrors if statements<span class="em">&mdash;</span>we compile the condition expression,
+surrounded by mandatory parentheses. That&rsquo;s followed by a jump instruction that
+skips over the subsequent body statement if the condition is falsey.</p>
 <p>We patch the jump after compiling the body, and take care to <span
-name="pop">pop</span> the condition value from the stack along both branches. In
-other words, this <em>is</em> just like an if statement. What&rsquo;s missing is the loop
-part. That looks like this:</p>
+name="pop">pop</span> the condition value from the stack on either path. The
+only difference from an if statement is the loop. That looks like this:</p>
 <aside name="pop">
 <p>Really starting to second-guess my decision to use the same jump instructions
 for the logical operators.</p>
@@ -676,11 +673,11 @@ in <em>whileStatement</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>whileStatement</em>()</div>
 
-<p>After executing the body of a while loop, we need to jump all the way back to
-before the condition. That way, we re-evaluate the condition expression on each
-iteration. We store chunk&rsquo;s current instruction count in <code>loopStart</code> to record
-the offset in the bytecode right before the condition expression we&rsquo;re about to
-compile. Then we pass that into this helper function:</p>
+<p>After executing the body of a while loop, we jump all the way back to before the
+condition. That way, we re-evaluate the condition expression on each iteration.
+We store chunk&rsquo;s current instruction count in <code>loopStart</code> to record the offset
+in the bytecode right before the condition expression we&rsquo;re about to compile.
+Then we pass that into this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitLoop</span><span class="p">(</span><span class="kt">int</span> <span class="n">loopStart</span><span class="p">)</span> <span class="p">{</span>                    
@@ -706,7 +703,7 @@ instruction&rsquo;s own operands which we also need to jump over.</p>
 <code>OP_LOOP</code> and <code>OP_JUMP</code>. Both just add an offset to the <code>ip</code>. We could have used
 a single instruction for both and given it a signed offset operand. But I
 figured it was a little easier to sidestep the annoying bit juggling required to
-manually pack a signed 16-bit integer into two bytes, and we&rsquo;ve got the op code
+manually pack a signed 16-bit integer into two bytes, and we&rsquo;ve got the opcode
 space available, so why not use it?</p>
 <p>The new instruction is:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_JUMP_IF_FALSE</span><span class="p">,</span>
@@ -732,8 +729,8 @@ in <em>run</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>See, literally the only difference from <code>OP_JUMP</code> is a subtraction instead of an
-addition. Disassembly is similar too:</p>
+<p>The only difference from <code>OP_JUMP</code> is a subtraction instead of an addition.
+Disassembly is similar too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_JUMP_IF_FALSE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
@@ -815,9 +812,6 @@ implementation of <span name="infinite">infinite</span> loops now.</p>
 <p>Alas, without <code>return</code> statements, there isn&rsquo;t any way to terminate it short of
 a runtime error.</p>
 </aside>
-<p>The flow so far looks like this:</p>
-<p><strong>todo: illustrate first desugaring to if and while, then desugaring that to the
-jump control flow those compile to to show the overall structure</strong></p>
 <h3><a href="#initializer-clause" name="initializer-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;1</small> Initializer clause</a></h3>
 <p>Now, we&rsquo;ll add the first clause, the initializer. It only executes once, before
 the body, so it&rsquo;s straightforward:</p>
@@ -854,7 +848,7 @@ in <em>forStatement</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
-<p>And at the end:</p>
+<p>And closing it at the end:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()</div>
@@ -888,9 +882,9 @@ replace 1 line</div>
 clause is omitted, the next token must be a semicolon, so we look for that to
 tell. If there isn&rsquo;t a semicolon, there must be a condition expression.</p>
 <p>In that case, we compile it. Then, just like with while, we emit a conditional
-jump that looks at the condition value and jumps out of the loop if it&rsquo;s falsey.
-Since the jump leaves the value on the stack, we pop it before executing the
-body. That ensures we discard it when the condition is true.</p>
+jump that exits the loop if the condition is falsey. Since the jump leaves the
+value on the stack, we pop it before executing the body. That ensures we discard
+it when the condition is true.</p>
 <p>After the loop body, we need to patch that jump:</p>
 <div class="codehilite"><pre class="insert-before"><br><span></span>  <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>             
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -904,20 +898,17 @@ in <em>forStatement</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
-<p>We only do this if there is a condition clause. If there isn&rsquo;t, there&rsquo;s no jump
+<p>We only do this when there is a condition clause. If there isn&rsquo;t, there&rsquo;s no jump
 to patch and no condition to pop.</p>
 <h3><a href="#increment-clause" name="increment-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;3</small> Increment clause</a></h3>
 <p>I&rsquo;ve saved the best for last, the increment clause. It&rsquo;s pretty convoluted. It
 appears textually before the body, but executes <em>after</em> it. If we parsed to an
 AST and generated code in a separate pass, we could simply traverse into and
-compile the body of the for statement AST node before compiling the increment
-clause.</p>
+compile the for statement AST&rsquo;s body field before its increment clause.</p>
 <p>Unfortunately, we can&rsquo;t compile the increment clause later, since our compiler
 only makes a single pass over the code. Instead, we&rsquo;ll jump over the increment,
 run the body, jump back up to the increment, run it, and then go to the next
 iteration.</p>
-<p>Something like:</p>
-<p><strong>todo: illustrate increment part of flow</strong></p>
 <p>I know, a little weird, but, hey, it beats manually managing ASTs in memory in
 C, right? Here&rsquo;s the code:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>                                                             
@@ -944,22 +935,22 @@ replace 1 line</div>
 <p>Again, it&rsquo;s optional. Since this is the last clause, when omitted, the next
 token will be the closing parenthesis. When an increment is present, we need to
 compile it now, but it shouldn&rsquo;t execute yet. So, first, we emit an
-unconditional jump. It hops over the increment clause&rsquo;s code to the body of the
+unconditional jump that hops over the increment clause&rsquo;s code to the body of the
 loop.</p>
-<p>Next, we compile the increment expression itself. This is usually an assignment
-expression. Whatever it is, we only execute it for its side effect, so we also
-emit a pop to discard its value.</p>
+<p>Next, we compile the increment expression itself. This is usually an assignment.
+Whatever it is, we only execute it for its side effect, so we also emit a pop to
+discard its value.</p>
 <p>The last part is a little tricky. First, we emit a loop instruction. This is the
 main loop that takes us back to the top of the for loop<span class="em">&mdash;</span>right before the
 condition expression if there is one. That loop happens right after the
 increment, since the increment executes at the end of each loop iteration.</p>
-<p>Then we set <code>loopStart</code> to the offset where the increment expression begins.
-Later, when emit the loop instruction after the body statement, this will cause
-it to jump up to the <em>increment</em> expression instead of the top of the loop like
-it does if there is no increment. This is how we stitch the increment in to run
-after the body.</p>
-<p>It&rsquo;s a little hairy, but it all works out. A complete loop with all the clauses
-compiles to a flow like:</p>
+<p>Then we change <code>loopStart</code> to point to the offset where the increment expression
+begins. Later, when emit the loop instruction after the body statement, this
+will cause it to jump up to the <em>increment</em> expression instead of the top of the
+loop like it does when there is no increment. This is how we stitch the
+increment in to run after the body.</p>
+<p>It&rsquo;s a little convoluted, but it all works out. A complete loop with all the
+clauses compiles to a flow like this:</p>
 <p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." /></p>
 <p>Again, we didn&rsquo;t need to touch the runtime. It&rsquo;s all in the compiler. We&rsquo;ve
 taken a big <span name="leap">leap</span> forward in our VM<span class="em">&mdash;</span>clox is now
@@ -985,7 +976,7 @@ That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM
 
 <p>To execute a switch statement, first evaluate the parenthesed switch value
 expression. Then walk the cases. For each case, evaluate its value
-expression. If the value is the equal to the switch value, execute the
+expression. If the case value is equal to the switch value, execute the
 statements under the case and then exit the switch statement. Otherwise, try
 the next case. If no case matches and there is a <code>default</code> clause, execute
 its statements.</p>
@@ -1008,9 +999,9 @@ declared inside the body of the loop or in blocks nested inside the loop
 when a continue is executed?</p>
 </li>
 <li>
-<p>Control flow constructs have been mostly unchanged since Algol68. It seems
-    like most language evolution is around making code more declarative and
-    high level, so imperative control flow doesn&rsquo;t get much attention.</p>
+<p>Control flow constructs have been mostly unchanged since Algol 68. Language
+    evolution since then has focused on making code more declarative and high
+    level, so imperative control flow hasn&rsquo;t gotten much attention.</p>
 <p>For fun, try to invent a useful novel control flow feature for Lox. It can
 be a refinement of an existing form or something entirely new. In practice,
 it&rsquo;s hard to come up with something useful enough at this low expressiveness
@@ -1026,24 +1017,22 @@ and behavior, but it&rsquo;s a good chance to practice your design skills.</p>
 <p>Discovering that all of our beautiful structured control flow in Lox is actually
 compiled to raw unstructured jumps is like the moment in Scooby Doo when the
 monster rips the mask off their face. It was goto all along! Except in this
-case, the monster is the one under the mask.</p>
-<p>We all know goto is evil bad horrible. But&hellip; why?</p>
+case, the monster is <em>under</em> the mask. We all know goto is evil. But&hellip; why?</p>
 <p>It is true that you can write outrageously unmaintainable code using goto. But I
-don&rsquo;t think most programmers around today have seen any of that stuff first
-hand. It&rsquo;s been a long time since that style was common. These days, it&rsquo;s just a
-boogie man we invoke in scary stories around the campfire.</p>
-<p>The reason we rarely confront that monster in person these days is because
-Edsger Dijktra slayed it with his famous letter &ldquo;Goto Considered Harmful&rdquo;
-published in <em>Communications of the ACM</em>. Debate around structured programming
-had been fierce for some time with adherents on both sides, but I think Dijkstra
-deserves the most credit for effectively ending it. Most new languages today
-have no unstructured jump structures.</p>
+don&rsquo;t think most programmers around today have seen that first hand. It&rsquo;s been a
+long time since that style was common. These days, it&rsquo;s a boogie man we invoke
+in scary stories around the campfire.</p>
+<p>The reason we rarely confront that monster in person is because Edsger Dijktra
+slayed it with his famous letter &ldquo;Goto Considered Harmful&rdquo;, published in
+<em>Communications of the ACM</em>. Debate around structured programming had been
+fierce for some time with adherents on both sides, but I think Dijkstra deserves
+the most credit for effectively ending it. Most new languages today have no
+unstructured jump statements.</p>
 <p>A one-and-a-half page letter that almost single-handedly destroyed a language
-feature must be pretty impressive stuff. If you haven&rsquo;t read it, I highly
-encourage you to do so. It&rsquo;s a seminal piece of computer science lore, one of
-our tribe&rsquo;s ancestral songs. Also, it&rsquo;s a nice short bit of practice for reading
-academic CS <span name="style">writing</span>, which is a useful skill to
-develop.</p>
+feature must be pretty impressive stuff. If you haven&rsquo;t read it, I encourage you
+to do so. It&rsquo;s a seminal piece of computer science lore, one of our tribe&rsquo;s
+ancestral songs. Also, it&rsquo;s a nice short bit of practice for reading academic CS
+<span name="style">writing</span>, which is a useful skill to develop.</p>
 <aside name="style">
 <p>That is, if you can get past Dijkstra&rsquo;s insufferable faux-modest self-aggrandizing writing style:</p>
 <blockquote>
@@ -1052,19 +1041,20 @@ disastrous effects&hellip; . At that time I did not attach too much importance t
 this discovery; I now submit my considerations for publication because in very
 recent discussions in which the subject turned up, I have been urged to do so.</p>
 </blockquote>
-<p>Oh, yet another one of my many discoveries. I couldn&rsquo;t even be bothered to write
+<p>Ah, yet another one of my many discoveries. I couldn&rsquo;t even be bothered to write
 it up until the clamoring masses begged me to.</p>
 </aside>
-<p>I&rsquo;ve read it through a number of times, as well as a few critiques, responses, and commentaries. I ended up with mixed feelings, at best.</p>
-<p>At a very high level I&rsquo;m with him. His general argument is something like this:</p>
+<p>I&rsquo;ve read it through a number of times, as well as a few critiques, responses,
+and commentaries. I ended up with mixed feelings, at best. At a very high level
+I&rsquo;m with him. His general argument is something like this:</p>
 <ol>
 <li>
 <p>As programmers, we write programs<span class="em">&mdash;</span>static text<span class="em">&mdash;</span>but what we care about
     is the actual running program<span class="em">&mdash;</span>its dynamic behavior.</p>
 </li>
 <li>
-<p>But we&rsquo;re better at reasoning about static things than dynamic things. He
-    doesn&rsquo;t provide any evidence to support this claim, but I agree with it.</p>
+<p>We&rsquo;re better at reasoning about static things than dynamic things. (He
+    doesn&rsquo;t provide any evidence to support this claim, but I accept with it.)</p>
 </li>
 <li>
 <p>Thus, the more we can make the dynamic execution of the program reflect its
@@ -1072,11 +1062,10 @@ it up until the clamoring masses begged me to.</p>
 </li>
 </ol>
 <p>This is a good start. Drawing our attention to the separation between the code
-we write and the code as its runs inside the machine is an interesting insight.</p>
-<p>Then he tries to define a &ldquo;correspondence&rdquo; between program text and execution.
+we write and the code as its runs inside the machine is an interesting insight.
+Then he tries to define a &ldquo;correspondence&rdquo; between program text and execution.
 For someone who spent literally his entire career advocating greater rigor in
-programming, his definition is pretty hand-wavey.</p>
-<p>He says:</p>
+programming, his definition is pretty hand-wavey. He says:</p>
 <blockquote>
 <p>Let us now consider how we can characterize the progress of a process. (You
 may think about this question in a very concrete manner: suppose that a
@@ -1086,23 +1075,22 @@ process until the very same point?)</p>
 </blockquote>
 <p>Imagine it like this. You have two computers with the same program running on
 the same exact same inputs<span class="em">&mdash;</span>so totally deterministic. You pause one of them at
-an arbitrary point in the program. What data would you need to send to the other
-computer to be able to stop it exactly as far along as the first one was?</p>
+an arbitrary point in its execution. What data would you need to send to the
+other computer to be able to stop it exactly as far along as the first one was?</p>
 <p>If your program only allows simple statements like assignment, it&rsquo;s easy. You
 just need to know the point after the last statement you executed. Basically a
 breakpoint, the <code>ip</code> in our VM, or the line number in an error message.</p>
 <p>Adding branching control flow like if and switch doesn&rsquo;t add any more to this.
-Even if the marker points inside on of branches, we can still tell we are.</p>
+Even if the marker points inside a branch, we can still tell we are.</p>
 <p>Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
 multiple places. To pause the second machine at exactly the same point in <em>the
 entire program&rsquo;s</em> execution, you need to pause it on the <em>right</em> call to that
 function.</p>
-<p>So you need to know not just the current statement, but, for function call that
-hasn&rsquo;t returned yet, you need to know the location of the callsite. In other
+<p>So you need to know not just the current statement, but, for function calls that
+haven&rsquo;t returned yet, you need to know the locations of the callsites. In other
 words, a callstack, though I don&rsquo;t think that word existed when Dijkstra wrote
-this.</p>
-<p>Groovy.</p>
+this. Groovy.</p>
 <p>He notes that loops make things harder. If you pause in the middle of a loop
 body, you don&rsquo;t know how many iterations have run. So he says you also need to
 keep an iteration count. And, since loops can nest, you need a stack of those
@@ -1123,9 +1111,9 @@ uniquely by a counter counting the number of actions performed since program
 start (viz. a kind of normalized clock). The difficulty is that such a
 coordinate, although unique, is utterly unhelpful.</p>
 </blockquote>
-<p>But&hellip; that&rsquo;s effectively what loop counters <em>do</em>. It&rsquo;s not like every loop is a
-simple &ldquo;for every integer from 0 to 10&rdquo; incrementing count. Many are while loops
-with complex conditionals.</p>
+<p>But&hellip; that&rsquo;s effectively what loop counters do, and he was fine with those.
+It&rsquo;s not like every loop is a simple &ldquo;for every integer from 0 to 10&rdquo;
+incrementing count. Many are while loops with complex conditionals.</p>
 <p>Taking an example close to home, consider the core bytecode execution loop at
 the heart of clox. Dijkstra argues that that loop is tractable because we can
 simply count how many times the loop has run to reason about its progress. But

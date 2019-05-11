@@ -136,7 +136,7 @@ We encode this trick into two helper functions:
 ^code emit-jump
 
 The first emits a bytecode instruction and writes a placeholder operand for the
-jump offset. We pass in the op code as an argument because later we'll have two
+jump offset. We pass in the opcode as an argument because later we'll have two
 different instructions that use this helper. We use two bytes for the jump
 offset operand. A 16-bit <span name="offset">offset</span> lets us jump over up
 to 65,536 bytes of code, which should be plenty for our needs.
@@ -345,7 +345,7 @@ value sticks around to become the result of the entire expression.
 
 <aside name="instr">
 
-We've got plenty of space left in our op code range, so we could have separate
+We've got plenty of space left in our opcode range, so we could have separate
 instructions for conditional jumps that implicitly pop and those that don't, I
 suppose. But I'm trying to keep things minimal for the book. In your bytecode
 VM, it's worth exploring adding more specialized instructions and see how they
@@ -387,14 +387,12 @@ are the control flow features that only jump *forward* over code. Other
 languages often have some kind of multi-way branching statement like `switch`
 and maybe a conditional expression like `?:`, but Lox keeps it simple.
 
----
-
 ## While Statements
 
-That takes us to the *looping* statements. In these, control flow is also used
-to jump *backwards* so that code can be executed more than once. Lox only has
-two, `while` and `for`. While loops are (much) simpler, so we kick off the party
-with its keyword:
+That takes us to the *looping* statements, which jump *backwards* so that code
+can be executed more than once. Lox only has two loop constructs, `while` and
+`for`. While loops are (much) simpler, so we kick off the party with its
+keyword:
 
 ^code parse-while (1 before, 1 after)
 
@@ -402,15 +400,13 @@ That calls:
 
 ^code while-statement
 
-The first bit is similar to if statements -- we compile the condition
-expression, surrounded by mandatory parentheses. That's followed by a jump
-instruction that skips over the subsequent body statement if the condition is
-falsey.
+Most of this mirrors if statements -- we compile the condition expression,
+surrounded by mandatory parentheses. That's followed by a jump instruction that
+skips over the subsequent body statement if the condition is falsey.
 
 We patch the jump after compiling the body, and take care to <span
-name="pop">pop</span> the condition value from the stack along both branches. In
-other words, this *is* just like an if statement. What's missing is the loop
-part. That looks like this:
+name="pop">pop</span> the condition value from the stack on either path. The
+only difference from an if statement is the loop. That looks like this:
 
 <aside name="pop">
 
@@ -432,11 +428,11 @@ All we need to do is capture that location as we compile it:
 
 ^code loop-start (1 before, 1 after)
 
-After executing the body of a while loop, we need to jump all the way back to
-before the condition. That way, we re-evaluate the condition expression on each
-iteration. We store chunk's current instruction count in `loopStart` to record
-the offset in the bytecode right before the condition expression we're about to
-compile. Then we pass that into this helper function:
+After executing the body of a while loop, we jump all the way back to before the
+condition. That way, we re-evaluate the condition expression on each iteration.
+We store chunk's current instruction count in `loopStart` to record the offset
+in the bytecode right before the condition expression we're about to compile.
+Then we pass that into this helper function:
 
 ^code emit-loop
 
@@ -451,7 +447,7 @@ From the VM's perspective, there really is no semantic difference between
 `OP_LOOP` and `OP_JUMP`. Both just add an offset to the `ip`. We could have used
 a single instruction for both and given it a signed offset operand. But I
 figured it was a little easier to sidestep the annoying bit juggling required to
-manually pack a signed 16-bit integer into two bytes, and we've got the op code
+manually pack a signed 16-bit integer into two bytes, and we've got the opcode
 space available, so why not use it?
 
 The new instruction is:
@@ -462,8 +458,8 @@ And in the VM, its implementation is:
 
 ^code op-loop (1 before, 1 after)
 
-See, literally the only difference from `OP_JUMP` is a subtraction instead of an
-addition. Disassembly is similar too:
+The only difference from `OP_JUMP` is a subtraction instead of an addition.
+Disassembly is similar too:
 
 ^code disassemble-loop (1 before, 1 after)
 
@@ -525,11 +521,6 @@ a runtime error.
 
 </aside>
 
-The flow so far looks like this:
-
-**todo: illustrate first desugaring to if and while, then desugaring that to the
-jump control flow those compile to to show the overall structure**
-
 ### Initializer clause
 
 Now, we'll add the first clause, the initializer. It only executes once, before
@@ -549,7 +540,7 @@ loop body. We ensure that by wrapping the whole statement in a scope:
 
 ^code for-begin-scope (1 before, 1 after)
 
-And at the end:
+And closing it at the end:
 
 ^code for-end-scope (1 before, 1 after)
 
@@ -564,15 +555,15 @@ clause is omitted, the next token must be a semicolon, so we look for that to
 tell. If there isn't a semicolon, there must be a condition expression.
 
 In that case, we compile it. Then, just like with while, we emit a conditional
-jump that looks at the condition value and jumps out of the loop if it's falsey.
-Since the jump leaves the value on the stack, we pop it before executing the
-body. That ensures we discard it when the condition is true.
+jump that exits the loop if the condition is falsey. Since the jump leaves the
+value on the stack, we pop it before executing the body. That ensures we discard
+it when the condition is true.
 
 After the loop body, we need to patch that jump:
 
 ^code exit-jump (2 before, 1 after)
 
-We only do this if there is a condition clause. If there isn't, there's no jump
+We only do this when there is a condition clause. If there isn't, there's no jump
 to patch and no condition to pop.
 
 ### Increment clause
@@ -580,17 +571,12 @@ to patch and no condition to pop.
 I've saved the best for last, the increment clause. It's pretty convoluted. It
 appears textually before the body, but executes *after* it. If we parsed to an
 AST and generated code in a separate pass, we could simply traverse into and
-compile the body of the for statement AST node before compiling the increment
-clause.
+compile the for statement AST's body field before its increment clause.
 
 Unfortunately, we can't compile the increment clause later, since our compiler
 only makes a single pass over the code. Instead, we'll jump over the increment,
 run the body, jump back up to the increment, run it, and then go to the next
 iteration.
-
-Something like:
-
-**todo: illustrate increment part of flow**
 
 I know, a little weird, but, hey, it beats manually managing ASTs in memory in
 C, right? Here's the code:
@@ -600,26 +586,26 @@ C, right? Here's the code:
 Again, it's optional. Since this is the last clause, when omitted, the next
 token will be the closing parenthesis. When an increment is present, we need to
 compile it now, but it shouldn't execute yet. So, first, we emit an
-unconditional jump. It hops over the increment clause's code to the body of the
+unconditional jump that hops over the increment clause's code to the body of the
 loop.
 
-Next, we compile the increment expression itself. This is usually an assignment
-expression. Whatever it is, we only execute it for its side effect, so we also
-emit a pop to discard its value.
+Next, we compile the increment expression itself. This is usually an assignment.
+Whatever it is, we only execute it for its side effect, so we also emit a pop to
+discard its value.
 
 The last part is a little tricky. First, we emit a loop instruction. This is the
 main loop that takes us back to the top of the for loop -- right before the
 condition expression if there is one. That loop happens right after the
 increment, since the increment executes at the end of each loop iteration.
 
-Then we set `loopStart` to the offset where the increment expression begins.
-Later, when emit the loop instruction after the body statement, this will cause
-it to jump up to the *increment* expression instead of the top of the loop like
-it does if there is no increment. This is how we stitch the increment in to run
-after the body.
+Then we change `loopStart` to point to the offset where the increment expression
+begins. Later, when emit the loop instruction after the body statement, this
+will cause it to jump up to the *increment* expression instead of the top of the
+loop like it does when there is no increment. This is how we stitch the
+increment in to run after the body.
 
-It's a little hairy, but it all works out. A complete loop with all the clauses
-compiles to a flow like:
+It's a little convoluted, but it all works out. A complete loop with all the
+clauses compiles to a flow like this:
 
 <img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." />
 
@@ -650,7 +636,7 @@ I couldn't resist the pun. I regret nothing.
 
     To execute a switch statement, first evaluate the parenthesed switch value
     expression. Then walk the cases. For each case, evaluate its value
-    expression. If the value is the equal to the switch value, execute the
+    expression. If the case value is equal to the switch value, execute the
     statements under the case and then exit the switch statement. Otherwise, try
     the next case. If no case matches and there is a `default` clause, execute
     its statements.
@@ -673,9 +659,9 @@ I couldn't resist the pun. I regret nothing.
     declared inside the body of the loop or in blocks nested inside the loop
     when a continue is executed?
 
-1.  Control flow constructs have been mostly unchanged since Algol68. It seems
-    like most language evolution is around making code more declarative and
-    high level, so imperative control flow doesn't get much attention.
+1.  Control flow constructs have been mostly unchanged since Algol 68. Language
+    evolution since then has focused on making code more declarative and high
+    level, so imperative control flow hasn't gotten much attention.
 
     For fun, try to invent a useful novel control flow feature for Lox. It can
     be a refinement of an existing form or something entirely new. In practice,
@@ -692,28 +678,25 @@ I couldn't resist the pun. I regret nothing.
 Discovering that all of our beautiful structured control flow in Lox is actually
 compiled to raw unstructured jumps is like the moment in Scooby Doo when the
 monster rips the mask off their face. It was goto all along! Except in this
-case, the monster is the one under the mask.
-
-We all know goto is evil bad horrible. But... why?
+case, the monster is *under* the mask. We all know goto is evil. But... why?
 
 It is true that you can write outrageously unmaintainable code using goto. But I
-don't think most programmers around today have seen any of that stuff first
-hand. It's been a long time since that style was common. These days, it's just a
-boogie man we invoke in scary stories around the campfire.
+don't think most programmers around today have seen that first hand. It's been a
+long time since that style was common. These days, it's a boogie man we invoke
+in scary stories around the campfire.
 
-The reason we rarely confront that monster in person these days is because
-Edsger Dijktra slayed it with his famous letter "Goto Considered Harmful"
-published in *Communications of the ACM*. Debate around structured programming
-had been fierce for some time with adherents on both sides, but I think Dijkstra
-deserves the most credit for effectively ending it. Most new languages today
-have no unstructured jump structures.
+The reason we rarely confront that monster in person is because Edsger Dijktra
+slayed it with his famous letter "Goto Considered Harmful", published in
+*Communications of the ACM*. Debate around structured programming had been
+fierce for some time with adherents on both sides, but I think Dijkstra deserves
+the most credit for effectively ending it. Most new languages today have no
+unstructured jump statements.
 
 A one-and-a-half page letter that almost single-handedly destroyed a language
-feature must be pretty impressive stuff. If you haven't read it, I highly
-encourage you to do so. It's a seminal piece of computer science lore, one of
-our tribe's ancestral songs. Also, it's a nice short bit of practice for reading
-academic CS <span name="style">writing</span>, which is a useful skill to
-develop.
+feature must be pretty impressive stuff. If you haven't read it, I encourage you
+to do so. It's a seminal piece of computer science lore, one of our tribe's
+ancestral songs. Also, it's a nice short bit of practice for reading academic CS
+<span name="style">writing</span>, which is a useful skill to develop.
 
 <aside name="style">
 
@@ -724,32 +707,29 @@ That is, if you can get past Dijkstra's insufferable faux-modest self-aggrandizi
 > this discovery; I now submit my considerations for publication because in very
 > recent discussions in which the subject turned up, I have been urged to do so.
 
-Oh, yet another one of my many discoveries. I couldn't even be bothered to write
+Ah, yet another one of my many discoveries. I couldn't even be bothered to write
 it up until the clamoring masses begged me to.
 
 </aside>
 
-I've read it through a number of times, as well as a few critiques, responses, and commentaries. I ended up with mixed feelings, at best.
-
-At a very high level I'm with him. His general argument is something like this:
+I've read it through a number of times, as well as a few critiques, responses,
+and commentaries. I ended up with mixed feelings, at best. At a very high level
+I'm with him. His general argument is something like this:
 
 1.  As programmers, we write programs -- static text -- but what we care about
     is the actual running program -- its dynamic behavior.
 
-2.  But we're better at reasoning about static things than dynamic things. He
-    doesn't provide any evidence to support this claim, but I agree with it.
+2.  We're better at reasoning about static things than dynamic things. (He
+    doesn't provide any evidence to support this claim, but I accept with it.)
 
 3.  Thus, the more we can make the dynamic execution of the program reflect its
     textual structure, the better.
 
 This is a good start. Drawing our attention to the separation between the code
 we write and the code as its runs inside the machine is an interesting insight.
-
 Then he tries to define a "correspondence" between program text and execution.
 For someone who spent literally his entire career advocating greater rigor in
-programming, his definition is pretty hand-wavey.
-
-He says:
+programming, his definition is pretty hand-wavey. He says:
 
 > Let us now consider how we can characterize the progress of a process. (You
 > may think about this question in a very concrete manner: suppose that a
@@ -759,15 +739,15 @@ He says:
 
 Imagine it like this. You have two computers with the same program running on
 the same exact same inputs -- so totally deterministic. You pause one of them at
-an arbitrary point in the program. What data would you need to send to the other
-computer to be able to stop it exactly as far along as the first one was?
+an arbitrary point in its execution. What data would you need to send to the
+other computer to be able to stop it exactly as far along as the first one was?
 
 If your program only allows simple statements like assignment, it's easy. You
 just need to know the point after the last statement you executed. Basically a
 breakpoint, the `ip` in our VM, or the line number in an error message.
 
 Adding branching control flow like if and switch doesn't add any more to this.
-Even if the marker points inside on of branches, we can still tell we are.
+Even if the marker points inside a branch, we can still tell we are.
 
 Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
@@ -775,12 +755,10 @@ multiple places. To pause the second machine at exactly the same point in *the
 entire program's* execution, you need to pause it on the *right* call to that
 function.
 
-So you need to know not just the current statement, but, for function call that
-hasn't returned yet, you need to know the location of the callsite. In other
+So you need to know not just the current statement, but, for function calls that
+haven't returned yet, you need to know the locations of the callsites. In other
 words, a callstack, though I don't think that word existed when Dijkstra wrote
-this.
-
-Groovy.
+this. Groovy.
 
 He notes that loops make things harder. If you pause in the middle of a loop
 body, you don't know how many iterations have run. So he says you also need to
@@ -803,9 +781,9 @@ that one approach is unsatisfactory:
 > start (viz. a kind of normalized clock). The difficulty is that such a
 > coordinate, although unique, is utterly unhelpful.
 
-But... that's effectively what loop counters *do*. It's not like every loop is a
-simple "for every integer from 0 to 10" incrementing count. Many are while loops
-with complex conditionals.
+But... that's effectively what loop counters do, and he was fine with those.
+It's not like every loop is a simple "for every integer from 0 to 10"
+incrementing count. Many are while loops with complex conditionals.
 
 Taking an example close to home, consider the core bytecode execution loop at
 the heart of clox. Dijkstra argues that that loop is tractable because we can
