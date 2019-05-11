@@ -56,6 +56,8 @@ environment.
 You also need [Sass][] installed and on your PATH. Follow the instructions there
 to install it for your OS.
 
+[sass]: https://sass-lang.com/
+
 In order to compile the two interpreters, you need some C compiler on your path
 as well as `javac`.
 
