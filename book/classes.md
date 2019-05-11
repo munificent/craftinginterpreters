@@ -1307,6 +1307,7 @@ them better? We language nerds have a tendency to fetishize minimalism.
 Personally, I think simplicity is only part of the equation. What we really want
 to give the user is *power*, which I define as:
 
+    :::text
     power = breadth × ease ÷ complexity
 
 None of these are precise numeric measures. I'm using math as analogy here, not

@@ -547,9 +547,9 @@ static void addLocal(Token name) {
 static void declareVariable() {
   // Global variables are implicitly declared.
   if (current->scopeDepth == 0) return;
-//> existing-in-scope
-  
+
   Token* name = &parser.previous;
+//> existing-in-scope
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];
     if (local->depth != -1 && local->depth < current->scopeDepth) break;
@@ -557,8 +557,8 @@ static void declareVariable() {
       error("Variable with this name already declared in this scope.");
     }
   }
-//< existing-in-scope
 
+//< existing-in-scope
   addLocal(*name);
 }
 //< Local Variables declare-variable
@@ -753,7 +753,7 @@ static void namedVariable(Token name) {
 static void namedVariable(Token name, bool canAssign) {
 //< Global Variables named-variable-signature
 /* Global Variables read-named-variable < Local Variables named-local
-  int arg = identifierConstant(&name);
+  uint8_t arg = identifierConstant(&name);
 */
 //> Global Variables read-named-variable
 //> Local Variables named-local
@@ -775,7 +775,7 @@ static void namedVariable(Token name, bool canAssign) {
 //< Local Variables named-local
 /* Global Variables read-named-variable < Global Variables named-variable
 
-  emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+  emitBytes(OP_GET_GLOBAL, arg);
 */
 //> named-variable
 
@@ -1230,8 +1230,8 @@ static void varDeclaration() {
 //> Global Variables expression-statement
 static void expressionStatement() {
   expression();
-  emitByte(OP_POP);
   consume(TOKEN_SEMICOLON, "Expect ';' after expression.");
+  emitByte(OP_POP);
 }
 //< Global Variables expression-statement
 //> Jumping Back and Forth for-statement

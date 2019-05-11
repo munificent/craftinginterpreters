@@ -42,27 +42,21 @@ though I can't help you out much.
 
 Most of the work is orchestrated by make. The build scripts, test runner, and
 other utilities are all written in Python 3. The makefile assumes `python3` is
-on your PATH.
-
-You'll need to install a few Python packages:
-
-```sh
-$ pip3 install markdown==2.6.11 jinja2 pygments
-```
-
-The makefile also assumes Ruby (in particular `gem`) is on your PATH. You'll
-need to install this gem:
+on your PATH, but it only uses that to set up a Python venv environement which
+it then uses for everything else:
 
 ```sh
-$ gem install sass
+$ make setup
 ```
 
-In order to get syntax highlighting for Lox itself working, you need to plug in
-its custom Pygments lexer:
+This creates the Python environment at `util/env` and installs the required
+packages into it. All other Python scripts in the repo invoke Python from this
+environment.
 
-```sh
-$ (cd util/pygments && python3 setup.py develop)
-```
+You also need [Sass][] installed and on your PATH. Follow the instructions there
+to install it for your OS.
+
+[sass]: https://sass-lang.com/
 
 In order to compile the two interpreters, you need some C compiler on your path
 as well as `javac`.

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -200,7 +199,6 @@ TOC = [
           'Blocks', 'Scope depth', 'Stack variables', 'Name resolution',
           'Byte argument instructions'
         ],
-        'done': True,
       },
       {
         'name': 'Jumping Back and Forth',

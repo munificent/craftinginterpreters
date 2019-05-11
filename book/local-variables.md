@@ -1,9 +1,11 @@
 ^title Local Variables
 ^part A Bytecode Virtual Machine
 
-> Our memory is a more perfect world than the universe: it gives back life to
-> those who no longer exist.
-> <cite>Guy de Maupassant</cite>
+> And as imagination bodies forth<br/>
+> The forms of things unknown, the poet's pen<br/>
+> Turns them to shapes and gives to airy nothing<br/>
+> A local habitation and a name.
+> <cite>William Shakespeare, <em>A Midsummer Night's Dream</em></cite>
 
 The [last chapter][] introduced variables to clox, but only of the <span
 name="global">global</span> variety. In this chapter, we'll extend that to
@@ -164,9 +166,10 @@ That's all the state we need for now.
 This is a very different representation from what we had in jlox, but it still
 lets us answer all of the same questions our compiler needs to ask of the
 lexical environment. The next question is how the compiler *gets* at this state.
-If we were <span name="thread">principled</span> engineers, we'd probably pass a
-pointer to a Compiler around between all of the various functions in the front
-end. But that would mean a lot of boring changes to the code we already wrote,
+If we were <span name="thread">principled</span> engineers, we'd give each
+function in the front end a parameter that accepts a pointer to a Compiler. We'd
+create a Compiler at the beginning and carefully thread it through each function
+call. But that would mean a lot of boring changes to the code we already wrote,
 so here's a global variable:
 
 <aside name="thread">
@@ -345,7 +348,7 @@ Our implementation is fine for a correct Lox program, but what about invalid
 code? Let's aim to be robust. The first error to handle is not really the user's
 fault, but more a limitation of the VM. The instructions to work with local
 variables refer to them by slot index. That index is stored in a single-byte
-operand, which means the VM only supports up to 255 local variables in scope at
+operand, which means the VM only supports up to 256 local variables in scope at
 one time.
 
 If we try to go over that, not only could we not refer to them at runtime, the
@@ -414,7 +417,7 @@ need an include:
 <aside name="hash">
 
 It would be a nice little optimization if we could check their hashes, but
-tokens aren't full LoxStrings, so we haven't calculated their hash yet.
+tokens aren't full LoxStrings, so we haven't calculated their hashes yet.
 
 </aside>
 
@@ -511,10 +514,10 @@ later instructions can find it.
 
 <aside name="slot">
 
-It seems to redundant to push the local's value onto the stack since it's
-already on the stack lower down somewhere. The problem is that the other
-bytecode instructions only look for data at the *top* of the stack. This is the
-core aspect that makes our bytecode instruction set *stack*-based.
+It seems redundant to push the local's value onto the stack since it's already
+on the stack lower down somewhere. The problem is that the other bytecode
+instructions only look for data at the *top* of the stack. This is the core
+aspect that makes our bytecode instruction set *stack*-based.
 [Register-based][reg] bytecode instruction sets avoid these pointless stack
 juggling instructions at the cost of having larger instructions with more
 operands.
@@ -655,7 +658,7 @@ To implement this, when we declare a local, we need to indicate this
 more parsimonious with memory. Instead, we'll set the variable's scope depth to
 a special sentinel value, `-1`:
 
-^code declare-undefined (1 before, 2 after)
+^code declare-undefined (1 before, 1 after)
 
 Later, once the variable's initializer has been compiled, we mark it
 initialized:
