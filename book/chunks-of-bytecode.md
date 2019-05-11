@@ -630,7 +630,7 @@ instructions will have more going on.
 
 If we run our nascent interpreter now, it actually prints something:
 
-```
+```text
 == test chunk ==
 0000 OP_RETURN
 ```
@@ -993,7 +993,7 @@ visually clear, we show a `|` for any instruction that comes from the same
 source line as the preceding one. The resulting output for our hand-written
 chunk looks like:
 
-```
+```text
 == test chunk ==
 0000  123 OP_CONSTANT         0 '1.2'
 0002    | OP_RETURN

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./util/env/bin/python3
 
 from os.path import join
 from subprocess import Popen, PIPE

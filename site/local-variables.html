@@ -112,9 +112,11 @@
 </div>
 
 <blockquote>
-<p>Our memory is a more perfect world than the universe: it gives back life to
-those who no longer exist.
-<cite>Guy de Maupassant</cite></p>
+<p>And as imagination bodies forth<br/>
+The forms of things unknown, the poet&rsquo;s pen<br/>
+Turns them to shapes and gives to airy nothing<br/>
+A local habitation and a name.
+<cite>William Shakespeare, <em>A Midsummer Night&rsquo;s Dream</em></cite></p>
 </blockquote>
 <p>The <a href="global-variables.html">last chapter</a> introduced variables to clox, but only of the <span
 name="global">global</span> variety. In this chapter, we&rsquo;ll extend that to
@@ -264,9 +266,10 @@ That&rsquo;s all the state we need for now.</p>
 <p>This is a very different representation from what we had in jlox, but it still
 lets us answer all of the same questions our compiler needs to ask of the
 lexical environment. The next question is how the compiler <em>gets</em> at this state.
-If we were <span name="thread">principled</span> engineers, we&rsquo;d probably pass a
-pointer to a Compiler around between all of the various functions in the front
-end. But that would mean a lot of boring changes to the code we already wrote,
+If we were <span name="thread">principled</span> engineers, we&rsquo;d give each
+function in the front end a parameter that accepts a pointer to a Compiler. We&rsquo;d
+create a Compiler at the beginning and carefully thread it through each function
+call. But that would mean a lot of boring changes to the code we already wrote,
 so here&rsquo;s a global variable:</p>
 <aside name="thread">
 <p>In particular, if we ever want to use our compiler in a multi-threaded
@@ -458,6 +461,7 @@ add after <em>identifierConstant</em>()</div>
   <span class="c1">// Global variables are implicitly declared.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
 
+  <span class="n">Token</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">;</span>             
   <span class="n">addLocal</span><span class="p">(</span><span class="o">*</span><span class="n">name</span><span class="p">);</span>                            
 <span class="p">}</span>                                             
 </pre></div>
@@ -498,7 +502,7 @@ pointing into it are fine.</p>
 code? Let&rsquo;s aim to be robust. The first error to handle is not really the user&rsquo;s
 fault, but more a limitation of the VM. The instructions to work with local
 variables refer to them by slot index. That index is stored in a single-byte
-operand, which means the VM only supports up to 255 local variables in scope at
+operand, which means the VM only supports up to 256 local variables in scope at
 one time.</p>
 <p>If we try to go over that, not only could we not refer to them at runtime, the
 compiler would overrwrite its own locals array. Let&rsquo;s prevent that:</p>
@@ -547,18 +551,18 @@ when the scopes overlap such that both are visible at the same time. That&rsquo;
 shadowing, and Lox does allow that. It&rsquo;s only an error to have two variables
 with the same name in the <em>same</em> local scope.</p>
 <p>We detect that error like so:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>                                 
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Token</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">;</span>                                       
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>declareVariable</em>()</div>
-<pre class="insert"><br><span></span>  <span class="n">Token</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">;</span>                                       
-  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>                  
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>                  
     <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                                 
     <span class="k">if</span> <span class="p">(</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">&lt;</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">identifiersEqual</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">))</span> <span class="p">{</span>                         
       <span class="n">error</span><span class="p">(</span><span class="s">&quot;Variable with this name already declared in this scope.&quot;</span><span class="p">);</span> 
     <span class="p">}</span>                                                                   
   <span class="p">}</span>                                                                     
-</pre><pre class="insert-after"><br><span></span>  <span class="n">addLocal</span><span class="p">(</span><span class="o">*</span><span class="n">name</span><span class="p">);</span>                                                      
+<br></pre><pre class="insert-after"><span></span>  <span class="n">addLocal</span><span class="p">(</span><span class="o">*</span><span class="n">name</span><span class="p">);</span>                                                      
+<span class="p">}</span>                                                                       
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declareVariable</em>()</div>
@@ -586,7 +590,7 @@ the same, we check the characters using <code>memcmp()</code>. To get to <code>m
 need an include:</p>
 <aside name="hash">
 <p>It would be a nice little optimization if we could check their hashes, but
-tokens aren&rsquo;t full LoxStrings, so we haven&rsquo;t calculated their hash yet.</p>
+tokens aren&rsquo;t full LoxStrings, so we haven&rsquo;t calculated their hashes yet.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
 </pre><div class="source-file"><em>compiler.c</em></div>
@@ -746,10 +750,10 @@ in <em>run</em>()</div>
 loads the value from that index and then pushes it on top of the stack where
 later instructions can find it.</p>
 <aside name="slot">
-<p>It seems to redundant to push the local&rsquo;s value onto the stack since it&rsquo;s
-already on the stack lower down somewhere. The problem is that the other
-bytecode instructions only look for data at the <em>top</em> of the stack. This is the
-core aspect that makes our bytecode instruction set <em>stack</em>-based.
+<p>It seems redundant to push the local&rsquo;s value onto the stack since it&rsquo;s already
+on the stack lower down somewhere. The problem is that the other bytecode
+instructions only look for data at the <em>top</em> of the stack. This is the core
+aspect that makes our bytecode instruction set <em>stack</em>-based.
 <a href="a-virtual-machine.html#design-note">Register-based</a> bytecode instruction sets avoid these pointless stack
 juggling instructions at the cost of having larger instructions with more
 operands.</p>
@@ -893,13 +897,12 @@ and ready for normal use.</p>
 &ldquo;uninitialized&rdquo; state somehow. We could add a new field, but let&rsquo;s be a little
 more parsimonious with memory. Instead, we&rsquo;ll set the variable&rsquo;s scope depth to
 a special sentinel value, <code>-1</code>:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>          
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addLocal</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>           
-</pre><pre class="insert-after"><span></span><span class="p">}</span>                              
-<span class="k">static</span> <span class="kt">void</span> <span class="n">declareVariable</span><span class="p">()</span> <span class="p">{</span>
+<pre class="insert"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> 
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                    
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>(), replace 1 line</div>
