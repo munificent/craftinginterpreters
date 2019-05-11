@@ -87,7 +87,7 @@ typedef struct {
   bool isLocal;
 } Upvalue;
 //< Closures not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions function-type-enum
 
 typedef enum {
   TYPE_FUNCTION,
@@ -95,21 +95,18 @@ typedef enum {
   TYPE_INITIALIZER,
   TYPE_METHOD,
 //< Methods and Initializers not-yet
-  TYPE_TOP_LEVEL
+  TYPE_SCRIPT
 } FunctionType;
-//< Calls and Functions not-yet
+//< Calls and Functions function-type-enum
 //> Local Variables compiler-struct
 
 typedef struct Compiler {
-//> Calls and Functions not-yet
-  // The compiler for the enclosing function, if any.
+//> Calls and Functions compiler-struct-fields
   struct Compiler* enclosing;
-
-  // The function being compiled.
   ObjFunction* function;
   FunctionType type;
 
-//< Calls and Functions not-yet
+//< Calls and Functions compiler-struct-fields
   Local locals[UINT8_COUNT];
   int localCount;
 //> Closures not-yet
@@ -140,21 +137,22 @@ Compiler* current = NULL;
 
 ClassCompiler* currentClass = NULL;
 //< Methods and Initializers not-yet
-/* Compiling Expressions compiling-chunk < Calls and Functions not-yet
+//> Compiling Expressions compiling-chunk
 
+/* Compiling Expressions compiling-chunk < Calls and Functions current-chunk
 Chunk* compilingChunk;
 
 static Chunk* currentChunk() {
   return compilingChunk;
 }
-
 */
-//> Calls and Functions not-yet
-
+//> Calls and Functions current-chunk
 static Chunk* currentChunk() {
   return &current->function->chunk;
 }
-//< Calls and Functions not-yet
+//< Calls and Functions current-chunk
+
+//< Compiling Expressions compiling-chunk
 //> Compiling Expressions error-at
 static void errorAt(Token* token, const char* message) {
 //> check-panic-mode
@@ -257,7 +255,7 @@ static int emitJump(uint8_t instruction) {
 //< Jumping Forward and Back not-yet
 //> Compiling Expressions emit-return
 static void emitReturn() {
-/* Calls and Functions not-yet < Methods and Initializers not-yet
+/* Calls and Functions return-nil < Methods and Initializers not-yet
   emitByte(OP_NIL);
 */
 //> Methods and Initializers not-yet
@@ -305,39 +303,30 @@ static void patchJump(int offset) {
 }
 //< Jumping Forward and Back not-yet
 //> Local Variables init-compiler
-/* Local Variables init-compiler < Calls and Functions not-yet
+/* Local Variables init-compiler < Calls and Functions init-compiler
 static void initCompiler(Compiler* compiler) {
 */
-//> Calls and Functions not-yet
+//> Calls and Functions init-compiler
 static void initCompiler(Compiler* compiler, int scopeDepth,
                          FunctionType type) {
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
-//< Calls and Functions not-yet
+//< Calls and Functions init-compiler
   compiler->localCount = 0;
-/* Local Variables init-compiler < Calls and Functions not-yet
+/* Local Variables init-compiler < Calls and Functions init-scope-and-function
   compiler->scopeDepth = 0;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions init-scope-and-function
   compiler->scopeDepth = scopeDepth;
   compiler->function = newFunction();
-//< Calls and Functions not-yet
+//< Calls and Functions init-scope-and-function
   current = compiler;
-//> Calls and Functions not-yet
+//> Calls and Functions init-function
 
-  switch (type) {
-//> Methods and Initializers not-yet
-    case TYPE_INITIALIZER:
-    case TYPE_METHOD:
-//< Methods and Initializers not-yet
-    case TYPE_FUNCTION:
-      current->function->name = copyString(parser.previous.start,
-                                           parser.previous.length);
-      break;
-    case TYPE_TOP_LEVEL:
-      current->function->name = NULL;
-      break;
+  if (type != TYPE_SCRIPT) {
+    current->function->name = copyString(parser.previous.start,
+                                         parser.previous.length);
   }
 
   // The first slot is always implicitly declared.
@@ -346,7 +335,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
 //> Closures not-yet
   local->isUpvalue = false;
 //< Closures not-yet
-/* Calls and Functions not-yet < Methods and Initializers not-yet
+/* Calls and Functions init-function < Methods and Initializers not-yet
   local->name.start = "";
   local->name.length = 0;
 */
@@ -362,39 +351,39 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.length = 0;
   }
 //< Methods and Initializers not-yet
-//< Calls and Functions not-yet
+//< Calls and Functions init-function
 }
 //< Local Variables init-compiler
 //> Compiling Expressions end-compiler
-/* Compiling Expressions end-compiler < Calls and Functions not-yet
+/* Compiling Expressions end-compiler < Calls and Functions end-compiler
 static void endCompiler() {
 */
-//> Calls and Functions not-yet
+//> Calls and Functions end-compiler
 static ObjFunction* endCompiler() {
-//< Calls and Functions not-yet
+//< Calls and Functions end-compiler
   emitReturn();
-//> Calls and Functions not-yet
-
+//> Calls and Functions end-function
   ObjFunction* function = current->function;
-//< Calls and Functions not-yet
+  
+//< Calls and Functions end-function
 //> dump-chunk
 #ifdef DEBUG_PRINT_CODE
   if (!parser.hadError) {
-/* Compiling Expressions dump-chunk < Calls and Functions not-yet
+/* Compiling Expressions dump-chunk < Calls and Functions disassemble-end
     disassembleChunk(currentChunk(), "code");
 */
-//> Calls and Functions not-yet
+//> Calls and Functions disassemble-end
     disassembleChunk(currentChunk(),
-        function->name != NULL ? function->name->chars : "<top>");
-//< Calls and Functions not-yet
+        function->name != NULL ? function->name->chars : "<script>");
+//< Calls and Functions disassemble-end
   }
 #endif
 //< dump-chunk
-//> Calls and Functions not-yet
+//> Calls and Functions restore-enclosing
+  
   current = current->enclosing;
-
   return function;
-//< Calls and Functions not-yet
+//< Calls and Functions restore-enclosing
 }
 //< Compiling Expressions end-compiler
 //> Local Variables begin-scope
@@ -601,7 +590,7 @@ static void defineVariable(uint8_t global) {
   emitBytes(OP_DEFINE_GLOBAL, global);
 }
 //< Global Variables define-variable
-//> Calls and Functions not-yet
+//> Calls and Functions argument-list
 static uint8_t argumentList() {
   uint8_t argCount = 0;
   if (!check(TOKEN_RIGHT_PAREN)) {
@@ -618,7 +607,7 @@ static uint8_t argumentList() {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
   return argCount;
 }
-//< Calls and Functions not-yet
+//< Calls and Functions argument-list
 //> Jumping Forward and Back not-yet
 static void and_(bool canAssign) {
   // left operand...
@@ -671,12 +660,12 @@ static void binary(bool canAssign) {
   }
 }
 //< Compiling Expressions binary
-//> Calls and Functions not-yet
+//> Calls and Functions compile-call
 static void call(bool canAssign) {
   uint8_t argCount = argumentList();
   emitByte(OP_CALL_0 + argCount);
 }
-//< Calls and Functions not-yet
+//< Calls and Functions compile-call
 //> Classes and Instances not-yet
 static void dot(bool canAssign) {
   consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
@@ -919,12 +908,12 @@ static void unary(bool canAssign) {
 //< Compiling Expressions unary
 //> Compiling Expressions rules
 ParseRule rules[] = {
-/* Compiling Expressions rules < Calls and Functions not-yet
+/* Compiling Expressions rules < Calls and Functions infix-left-paren
   { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
 */
-//> Calls and Functions not-yet
+//> Calls and Functions infix-left-paren
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
-//< Calls and Functions not-yet
+//< Calls and Functions infix-left-paren
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE [big]
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
@@ -1102,7 +1091,7 @@ static void block() {
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
 }
 //< Local Variables block
-//> Calls and Functions not-yet
+//> Calls and Functions compile-function
 static void function(FunctionType type) {
   Compiler compiler;
   initCompiler(&compiler, 1, type);
@@ -1131,7 +1120,7 @@ static void function(FunctionType type) {
   // Create the function object.
   endScope();
   ObjFunction* function = endCompiler();
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions compile-function < Closures not-yet
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
 */
 //> Closures not-yet
@@ -1147,7 +1136,7 @@ static void function(FunctionType type) {
   }
 //< Closures not-yet
 }
-//< Calls and Functions not-yet
+//< Calls and Functions compile-function
 //> Methods and Initializers not-yet
 static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
@@ -1234,14 +1223,14 @@ static void classDeclaration() {
 //< Methods and Initializers not-yet
 }
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions fun-declaration
 static void funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
   markInitialized();
   function(TYPE_FUNCTION);
   defineVariable(global);
 }
-//< Calls and Functions not-yet
+//< Calls and Functions fun-declaration
 //> Global Variables var-declaration
 static void varDeclaration() {
   uint8_t global = parseVariable("Expect variable name.");
@@ -1371,9 +1360,9 @@ static void printStatement() {
   emitByte(OP_PRINT);
 }
 //< Global Variables print-statement
-//> Calls and Functions not-yet
+//> Calls and Functions return-statement
 static void returnStatement() {
-  if (current->type == TYPE_TOP_LEVEL) {
+  if (current->type == TYPE_SCRIPT) {
     error("Cannot return from top-level code.");
   }
 
@@ -1391,7 +1380,7 @@ static void returnStatement() {
     emitByte(OP_RETURN);
   }
 }
-//< Calls and Functions not-yet
+//< Calls and Functions return-statement
 //> Jumping Forward and Back not-yet
 static void whileStatement() {
   int loopStart = currentChunk()->count;
@@ -1446,18 +1435,18 @@ static void declaration() {
 //> Classes and Instances not-yet
   if (match(TOKEN_CLASS)) {
     classDeclaration();
-/* Calls and Functions not-yet < Classes and Instances not-yet
+/* Calls and Functions match-fun < Classes and Instances not-yet
   if (match(TOKEN_FUN)) {
 */
   } else if (match(TOKEN_FUN)) {
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions match-fun
     funDeclaration();
-/* Global Variables match-var < Calls and Functions not-yet
+/* Global Variables match-var < Calls and Functions match-fun
   if (match(TOKEN_VAR)) {
 */
   } else if (match(TOKEN_VAR)) {
-//< Calls and Functions not-yet
+//< Calls and Functions match-fun
 //> match-var
     varDeclaration();
   } else {
@@ -1486,10 +1475,10 @@ static void statement() {
   } else if (match(TOKEN_PRINT)) {
 //< Jumping Forward and Back not-yet
     printStatement();
-//> Calls and Functions not-yet
+//> Calls and Functions match-return
   } else if (match(TOKEN_RETURN)) {
     returnStatement();
-//< Calls and Functions not-yet
+//< Calls and Functions match-return
 //> Jumping Forward and Back not-yet
   } else if (match(TOKEN_WHILE)) {
     whileStatement();
@@ -1506,17 +1495,14 @@ static void statement() {
 }
 //< Global Variables statement
 /* Scanning on Demand compiler-c < Compiling Expressions compile-signature
-
 void compile(const char* source) {
 */
-/* Compiling Expressions compile-signature < Calls and Functions not-yet
-
+/* Compiling Expressions compile-signature < Calls and Functions compile-signature
 bool compile(const char* source, Chunk* chunk) {
 */
-//> Calls and Functions not-yet
-
+//> Calls and Functions compile-signature
 ObjFunction* compile(const char* source) {
-//< Calls and Functions not-yet
+//< Calls and Functions compile-signature
   initScanner(source);
 /* Scanning on Demand dump-tokens < Compiling Expressions compile-chunk
   int line = -1;
@@ -1536,18 +1522,18 @@ ObjFunction* compile(const char* source) {
 //> Local Variables compiler
   Compiler compiler;
 //< Local Variables compiler
-/* Local Variables compiler < Calls and Functions not-yet
+/* Local Variables compiler < Calls and Functions call-init-compiler
   initCompiler(&compiler);
 */
-//> Calls and Functions not-yet
-  initCompiler(&compiler, 0, TYPE_TOP_LEVEL);
-//< Calls and Functions not-yet
+//> Calls and Functions call-init-compiler
+  initCompiler(&compiler, 0, TYPE_SCRIPT);
+//< Calls and Functions call-init-compiler
+/* Compiling Expressions init-compile-chunk < Calls and Functions call-init-compiler
+  compilingChunk = chunk;
+*/
 //> Compiling Expressions compile-chunk
 //> init-parser-error
 
-/* Compiling Expressions init-compile-chunk < Calls and Functions not-yet
-  compilingChunk = chunk;
-*/
   parser.hadError = false;
   parser.panicMode = false;
 
@@ -1565,19 +1551,16 @@ ObjFunction* compile(const char* source) {
   }
 
 //< Global Variables compile
-/* Compiling Expressions finish-compile < Calls and Functions not-yet
+/* Compiling Expressions finish-compile < Calls and Functions call-end-compiler
   endCompiler();
 */
-/* Compiling Expressions return-had-error < Calls and Functions not-yet
+/* Compiling Expressions return-had-error < Calls and Functions call-end-compiler
   return !parser.hadError;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions call-end-compiler
   ObjFunction* function = endCompiler();
-
-  // If there was a compile error, the code is not valid, so don't
-  // create a function.
   return parser.hadError ? NULL : function;
-//< Calls and Functions not-yet
+//< Calls and Functions call-end-compiler
 }
 //> Garbage Collection not-yet
 

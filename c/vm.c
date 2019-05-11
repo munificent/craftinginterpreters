@@ -7,9 +7,9 @@
 //> Strings vm-include-string
 #include <string.h>
 //< Strings vm-include-string
-//> Calls and Functions not-yet
+//> Calls and Functions vm-include-time
 #include <time.h>
-//< Calls and Functions not-yet
+//< Calls and Functions vm-include-time
 
 //< vm-include-stdio
 #include "common.h"
@@ -26,18 +26,18 @@
 #include "vm.h"
 
 VM vm; // [one]
-//> Calls and Functions not-yet
+//> Calls and Functions clock-native
 
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
-//< Calls and Functions not-yet
+//< Calls and Functions clock-native
 //> reset-stack
 static void resetStack() {
   vm.stackTop = vm.stack;
-//> Calls and Functions not-yet
+//> Calls and Functions reset-frame-count
   vm.frameCount = 0;
-//< Calls and Functions not-yet
+//< Calls and Functions reset-frame-count
 //> Closures not-yet
   vm.openUpvalues = NULL;
 //< Closures not-yet
@@ -51,15 +51,15 @@ static void runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-/* Types of Values runtime-error < Calls and Functions not-yet
+/* Types of Values runtime-error < Calls and Functions runtime-error-stack
   size_t instruction = vm.ip - vm.chunk->code;
   fprintf(stderr, "[line %d] in script\n",
           vm.chunk->lines[instruction]);
 */
-//> Calls and Functions not-yet
+//> Calls and Functions runtime-error-stack
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions runtime-error-stack < Closures not-yet
     ObjFunction* function = frame->function;
 */
 //> Closures not-yet
@@ -76,13 +76,12 @@ static void runtimeError(const char* format, ...) {
       fprintf(stderr, "%s()\n", function->name->chars);
     }
   }
-//< Calls and Functions not-yet
+//< Calls and Functions runtime-error-stack
 
   resetStack();
 }
 //< Types of Values runtime-error
-//> Calls and Functions not-yet
-
+//> Calls and Functions define-native
 static void defineNative(const char* name, NativeFn function) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
   push(OBJ_VAL(newNative(function)));
@@ -90,7 +89,7 @@ static void defineNative(const char* name, NativeFn function) {
   pop();
   pop();
 }
-//< Calls and Functions not-yet
+//< Calls and Functions define-native
 
 void initVM() {
 //> call-reset-stack
@@ -118,10 +117,10 @@ void initVM() {
 
   vm.initString = copyString("init", 4);
 //< Methods and Initializers not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions define-native-clock
 
   defineNative("clock", clockNative);
-//< Calls and Functions not-yet
+//< Calls and Functions define-native-clock
 }
 
 void freeVM() {
@@ -155,16 +154,14 @@ static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
 //< Types of Values peek
-/* Calls and Functions not-yet < Closures not-yet
-
+/* Calls and Functions call < Closures not-yet
 static bool call(ObjFunction* function, int argCount) {
   if (argCount != function->arity) {
     runtimeError("Expected %d arguments but got %d.",
         function->arity, argCount);
 */
-//> Calls and Functions not-yet
+//> Calls and Functions call
 //> Closures not-yet
-
 static bool call(ObjClosure* closure, int argCount) {
   if (argCount != closure->function->arity) {
     runtimeError("Expected %d arguments but got %d.",
@@ -179,7 +176,7 @@ static bool call(ObjClosure* closure, int argCount) {
   }
 
   CallFrame* frame = &vm.frames[vm.frameCount++];
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions call < Closures not-yet
   frame->function = function;
   frame->ip = function->chunk.code;
 */
@@ -192,7 +189,8 @@ static bool call(ObjClosure* closure, int argCount) {
   frame->slots = vm.stackTop - (argCount + 1);
   return true;
 }
-
+//< Calls and Functions call
+//> Calls and Functions call-value
 static bool callValue(Value callee, int argCount) {
   if (IS_OBJ(callee)) {
     switch (OBJ_TYPE(callee)) {
@@ -233,7 +231,7 @@ static bool callValue(Value callee, int argCount) {
         return call(AS_CLOSURE(callee), argCount);
 
 //< Closures not-yet
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions call-value < Closures not-yet
       case OBJ_FUNCTION:
         return call(AS_FUNCTION(callee), argCount);
 
@@ -255,7 +253,7 @@ static bool callValue(Value callee, int argCount) {
   runtimeError("Can only call functions and classes.");
   return false;
 }
-//< Calls and Functions not-yet
+//< Calls and Functions call-value
 //> Methods and Initializers not-yet
 
 static bool invokeFromClass(ObjClass* klass, ObjString* name,
@@ -403,24 +401,24 @@ static void concatenate() {
 //< Strings concatenate
 //> run
 static InterpretResult run() {
-//> Calls and Functions not-yet
+//> Calls and Functions run
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
 
-/* A Virtual Machine run < Calls and Functions not-yet
+/* A Virtual Machine run < Calls and Functions run
 #define READ_BYTE() (*vm.ip++)
 */
-/* A Virtual Machine read-constant < Calls and Functions not-yet
+/* A Virtual Machine read-constant < Calls and Functions run
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Forward and Back not-yet < Calls and Functions run
 #define READ_SHORT() \
     (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
 #define READ_BYTE() (*frame->ip++)
 #define READ_SHORT() \
     (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
-//< Calls and Functions not-yet
-/* Calls and Functions not-yet < Closures not-yet
+//< Calls and Functions run
+/* Calls and Functions run < Closures not-yet
 #define READ_CONSTANT() \
     (frame->function->chunk.constants.values[READ_BYTE()])
 */
@@ -468,10 +466,10 @@ static InterpretResult run() {
     }
     printf("\n");
 //< trace-stack
-/* A Virtual Machine trace-execution < Calls and Functions not-yet
+/* A Virtual Machine trace-execution < Calls and Functions trace-execution
     disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 */
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions trace-execution < Closures not-yet
     disassembleInstruction(&frame->function->chunk,
         (int)(frame->ip - frame->function->chunk.code));
 */
@@ -509,12 +507,12 @@ static InterpretResult run() {
 
       case OP_GET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/* Local Variables interpret-get-local < Calls and Functions not-yet
+/* Local Variables interpret-get-local < Calls and Functions push-local
         push(vm.stack[slot]); // [slot]
 */
-//> Calls and Functions not-yet
+//> Calls and Functions push-local
         push(frame->slots[slot]);
-//< Calls and Functions not-yet
+//< Calls and Functions push-local
         break;
       }
 //< Local Variables interpret-get-local
@@ -522,12 +520,12 @@ static InterpretResult run() {
 
       case OP_SET_LOCAL: {
         uint8_t slot = READ_BYTE();
-/* Local Variables interpret-set-local < Calls and Functions not-yet
+/* Local Variables interpret-set-local < Calls and Functions set-local
         vm.stack[slot] = peek(0);
 */
-//> Calls and Functions not-yet
+//> Calls and Functions set-local
         frame->slots[slot] = peek(0);
-//< Calls and Functions not-yet
+//< Calls and Functions set-local
         break;
       }
 //< Local Variables interpret-set-local
@@ -705,38 +703,38 @@ static InterpretResult run() {
 //> Jumping Forward and Back not-yet
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Forward and Back not-yet < Calls and Functions jump
         vm.ip += offset;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions jump
         frame->ip += offset;
-//< Calls and Functions not-yet
+//< Calls and Functions jump
         break;
       }
 
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Forward and Back not-yet < Calls and Functions jump-if-false
         if (isFalsey(peek(0))) vm.ip += offset;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions jump-if-false
         if (isFalsey(peek(0))) frame->ip += offset;
-//< Calls and Functions not-yet
+//< Calls and Functions jump-if-false
         break;
       }
 
       case OP_LOOP: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Forward and Back not-yet < Calls and Functions loop
         vm.ip -= offset;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions loop
         frame->ip -= offset;
-//< Calls and Functions not-yet
+//< Calls and Functions loop
         break;
       }
 //< Jumping Forward and Back not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions interpret-call
 
       case OP_CALL_0:
       case OP_CALL_1:
@@ -751,12 +749,14 @@ static InterpretResult run() {
         if (!callValue(peek(argCount), argCount)) {
           return INTERPRET_RUNTIME_ERROR;
         }
+//> reset-frame-after-call
         frame = &vm.frames[vm.frameCount - 1];
+//< reset-frame-after-call
         break;
       }
-//< Calls and Functions not-yet
+        
+//< Calls and Functions interpret-call
 //> Methods and Initializers not-yet
-
       case OP_INVOKE_0:
       case OP_INVOKE_1:
       case OP_INVOKE_2:
@@ -837,10 +837,10 @@ static InterpretResult run() {
         printValue(pop());
         printf("\n");
 */
-/* A Virtual Machine run < Calls and Functions not-yet
+/* A Virtual Machine run < Calls and Functions interpret-return
         return INTERPRET_OK;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions interpret-return
         Value result = pop();
 //> Closures not-yet
 
@@ -856,7 +856,7 @@ static InterpretResult run() {
 
         frame = &vm.frames[vm.frameCount - 1];
         break;
-//< Calls and Functions not-yet
+//< Calls and Functions interpret-return
       }
 //> Classes and Instances not-yet
 
@@ -921,7 +921,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/* Compiling Expressions interpret-chunk < Calls and Functions not-yet
+/* Compiling Expressions interpret-chunk < Calls and Functions interpret
   Chunk chunk;
   initChunk(&chunk);
  
@@ -933,12 +933,12 @@ InterpretResult interpret(const char* source) {
   vm.chunk = &chunk;
   vm.ip = vm.chunk->code;
 */
-//> Calls and Functions not-yet
+//> Calls and Functions interpret
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-//< Calls and Functions not-yet
-/* Calls and Functions not-yet < Closures not-yet
+//< Calls and Functions interpret
+/* Calls and Functions interpret < Closures not-yet
   callValue(OBJ_VAL(function), 0);
 */
 //> Garbage Collection not-yet
@@ -958,7 +958,10 @@ InterpretResult interpret(const char* source) {
 //> Compiling Expressions interpret-chunk
   
   InterpretResult result = run();
-/* Compiling Expressions interpret-chunk < Calls and Functions not-yet
+//> Calls and Functions end-interpret
+  // ?!
+//< Calls and Functions end-interpret
+/* Compiling Expressions interpret-chunk < Calls and Functions end-interpret
 
   freeChunk(&chunk);
 */
