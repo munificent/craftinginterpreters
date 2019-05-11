@@ -998,6 +998,7 @@ when we start parsing Lox code into syntax trees.
 1.  Earlier, I said that the `|`, `*`, and `+` forms we added to our grammar
     metasyntax were just syntactic sugar. Given this grammar:
 
+        :::lox
         expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )*
              | IDENTIFIER
              | NUMBER
