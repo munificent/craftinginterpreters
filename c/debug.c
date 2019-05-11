@@ -1,13 +1,13 @@
 //> Chunks of Bytecode debug-c
 #include <stdio.h>
-//> Calls and Functions not-yet
+//> Calls and Functions debug-include-string
 #include <string.h>
-//< Calls and Functions not-yet
+//< Calls and Functions debug-include-string
 
 #include "debug.h"
-//> Calls and Functions not-yet
+//> Calls and Functions debug-include-object
 #include "object.h"
-//< Calls and Functions not-yet
+//< Calls and Functions debug-include-object
 //> debug-include-value
 #include "value.h"
 //< debug-include-value
@@ -47,12 +47,12 @@ static int simpleInstruction(const char* name, int offset) {
   return offset + 1;
 }
 //< simple-instruction
-//> Calls and Functions not-yet
+//> Calls and Functions simple-instruction-n
 static int simpleInstructionN(const char* name, int n, int offset) {
   printf("%s_%d\n", name, n);
   return offset + 1;
 }
-//< Calls and Functions not-yet
+//< Calls and Functions simple-instruction-n
 //> Local Variables byte-instruction
 static int byteInstruction(const char* name, Chunk* chunk, int offset) {
   uint8_t slot = chunk->code[offset + 1];
@@ -170,7 +170,7 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_LOOP:
       return jumpInstruction("OP_LOOP", -1, chunk, offset);
 //< Jumping Forward and Back not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions disassemble-call
     case OP_CALL_0:
     case OP_CALL_1:
     case OP_CALL_2:
@@ -182,7 +182,7 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_CALL_8:
       return simpleInstructionN("OP_CALL", instruction - OP_CALL_0,
                                 offset);
-//< Calls and Functions not-yet
+//< Calls and Functions disassemble-call
 //> Methods and Initializers not-yet
     case OP_INVOKE_0:
     case OP_INVOKE_1:

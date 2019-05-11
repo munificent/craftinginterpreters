@@ -71,7 +71,7 @@ typedef enum {
   OP_JUMP_IF_FALSE,
   OP_LOOP,
 //< Jumping Forward and Back not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions op-call
   OP_CALL_0,
   OP_CALL_1,
   OP_CALL_2,
@@ -81,7 +81,7 @@ typedef enum {
   OP_CALL_6,
   OP_CALL_7,
   OP_CALL_8,
-//< Calls and Functions not-yet
+//< Calls and Functions op-call
 //> Methods and Initializers not-yet
   OP_INVOKE_0,
   OP_INVOKE_1,
