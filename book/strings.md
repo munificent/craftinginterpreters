@@ -488,7 +488,7 @@ Here's what the stack looks like after each instruction:
 
 </aside>
 
-```
+```text
 0000    OP_CONSTANT         0 "st"
 0002    OP_CONSTANT         1 "ri"
 0004    OP_ADD

@@ -2,9 +2,14 @@ BUILD_DIR := build
 
 default: book clox jlox
 
+# Create the Python environment and install packages into it.
+setup:
+	@ python3 -m venv util/env
+	@ ./util/env/bin/pip install -r util/requirements.txt
+
 # Build the site.
 book:
-	@ python3 util/build.py
+	@ ./util/build.py
 
 # Compile a debug build of clox.
 debug:
@@ -12,33 +17,33 @@ debug:
 
 # Run a local development server for the site that rebuilds automatically.
 serve:
-	@ python3 util/build.py --serve
+	@ ./util/build.py --serve
 
 # Run the tests for the final versions of clox and jlox.
 test: debug jlox
 	# TODO: Get this working even if the first returns non-zero.
-	@ python3 util/test.py clox
-	@ python3 util/test.py jlox
+	@ ./util/test.py clox
+	@ ./util/test.py jlox
 
 # Run the tests for the final version of clox.
 test_clox: debug
-	@ python3 util/test.py clox
+	@ ./util/test.py clox
 
 # Run the tests for final version of jlox.
 test_jlox: jlox
-	@ python3 util/test.py jlox
+	@ ./util/test.py jlox
 
 # Run the tests for every chapter's version of clox.
 test_c: debug c_chapters
-	@ python3 util/test.py c
+	@ ./util/test.py c
 
 # Run the tests for every chapter's version of jlox.
 test_java: jlox java_chapters
-	@ python3 util/test.py java
+	@ ./util/test.py java
 
 # Run the tests for every chapter's version of clox and jlox.
 test_all: debug jlox c_chapters java_chapters
-	@ python3 util/test.py all
+	@ ./util/test.py all
 
 # Remove all build outputs and intermediate files.
 clean:
@@ -154,6 +159,6 @@ diffs: split_chapters java_chapters
 	@ -diff --new-file gen/chap29_superclasses/ gen/chap30_optimization/ > build/diffs/chap30_optimization.diff
 
 split_chapters:
-	@ python3 util/split_chapters.py
+	@ ./util/split_chapters.py
 
 .PHONY: book c_chapters clean clox debug default diffs java_chapters jlox serve split_chapters test test_all test_c test_java

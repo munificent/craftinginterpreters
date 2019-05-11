@@ -163,7 +163,7 @@ that implies the second call to `showA()` should print the same thing.
 
 Alas, it prints:
 
-```
+```text
 global
 block
 ```
