@@ -752,9 +752,9 @@ of code together into *functions*.
 
 A bunch of smart language nerds noticed that neither style made it easy to add
 *both* rows and columns to the <span name="multi">table</span>. They called this
-the "expression problem" because -- like we are here -- the example problem they
-used was about expression types in an interpreter, but also because it relates
-to how "expressive" a language is.
+difficulty the "expression problem" because -- like we are now -- they first ran
+into it when they were trying to figure out the best way to model expression
+syntax tree nodes in a compiler.
 
 <aside name="multi">
 
