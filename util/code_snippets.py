@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -76,6 +75,11 @@ class SourceCode:
 
 
   def find_snippet_tag(self, chapter, name):
+    if not chapter in self.snippet_tags:
+      print('Error: "{}" does not contain snippet "{}".'.format(chapter, name),
+          file=sys.stderr)
+      return None
+
     snippets = self.snippet_tags[chapter]
 
     if name in snippets:

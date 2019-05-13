@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./util/env/bin/python3
 # -*- coding: utf-8 -*-
 
 import codecs

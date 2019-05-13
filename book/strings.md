@@ -305,7 +305,7 @@ This way, every ObjString reliably owns its character array and can free it.
 
 The real work of creating a string object happens in this function:
 
-^code allocate-string
+^code allocate-string (2 before)
 
 It creates a new ObjString on the heap and then initializes its fields. It's
 sort of like a constructor in an OOP language. As such, it first calls the "base
@@ -488,7 +488,7 @@ Here's what the stack looks like after each instruction:
 
 </aside>
 
-```
+```text
 0000    OP_CONSTANT         0 "st"
 0002    OP_CONSTANT         1 "ri"
 0004    OP_ADD

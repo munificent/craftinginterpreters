@@ -165,7 +165,7 @@ and output the right bytecode.
 First up, the front half of the compiler. This function's name should sound
 familiar:
 
-^code advance
+^code advance (1 before)
 
 Just like in jlox, it steps forward through the token stream. It asks the
 scanner for the next token and stores it for later use. Before doing that, it

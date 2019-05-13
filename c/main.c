@@ -16,6 +16,7 @@
 #include "vm.h"
 //< A Virtual Machine main-include-vm
 //> Scanning on Demand repl
+
 static void repl() {
   char line[1024];
   for (;;) {

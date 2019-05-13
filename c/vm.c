@@ -33,6 +33,7 @@ static Value clockNative(int argCount, Value* args) {
 }
 //< Calls and Functions clock-native
 //> reset-stack
+
 static void resetStack() {
   vm.stackTop = vm.stack;
 //> Calls and Functions reset-frame-count
@@ -410,7 +411,7 @@ static InterpretResult run() {
 /* A Virtual Machine read-constant < Calls and Functions run
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
-/* Jumping Forward and Back not-yet < Calls and Functions run
+/* Jumping Back and Forth read-short < Calls and Functions run
 #define READ_SHORT() \
     (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
@@ -556,6 +557,7 @@ static InterpretResult run() {
       case OP_SET_GLOBAL: {
         ObjString* name = READ_STRING();
         if (tableSet(&vm.globals, name, peek(0))) {
+          tableDelete(&vm.globals, name); // [delete]
           runtimeError("Undefined variable '%s'.", name->chars);
           return INTERPRET_RUNTIME_ERROR;
         }
@@ -700,10 +702,10 @@ static InterpretResult run() {
       }
         
 //< Global Variables interpret-print
-//> Jumping Forward and Back not-yet
+//> Jumping Back and Forth op-jump
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions jump
+/* Jumping Back and Forth op-jump < Calls and Functions jump
         vm.ip += offset;
 */
 //> Calls and Functions jump
@@ -712,9 +714,11 @@ static InterpretResult run() {
         break;
       }
 
+//< Jumping Back and Forth op-jump
+//> Jumping Back and Forth op-jump-if-false
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions jump-if-false
+/* Jumping Back and Forth op-jump-if-false < Calls and Functions jump-if-false
         if (isFalsey(peek(0))) vm.ip += offset;
 */
 //> Calls and Functions jump-if-false
@@ -722,10 +726,12 @@ static InterpretResult run() {
 //< Calls and Functions jump-if-false
         break;
       }
+//< Jumping Back and Forth op-jump-if-false
+//> Jumping Back and Forth op-loop
 
       case OP_LOOP: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions loop
+/* Jumping Back and Forth op-loop < Calls and Functions loop
         vm.ip -= offset;
 */
 //> Calls and Functions loop
@@ -733,7 +739,7 @@ static InterpretResult run() {
 //< Calls and Functions loop
         break;
       }
-//< Jumping Forward and Back not-yet
+//< Jumping Back and Forth op-loop
 //> Calls and Functions interpret-call
 
       case OP_CALL_0:
@@ -889,9 +895,9 @@ static InterpretResult run() {
   }
 
 #undef READ_BYTE
-//> Jumping Forward and Back not-yet
+//> Jumping Back and Forth undef-read-short
 #undef READ_SHORT
-//< Jumping Forward and Back not-yet
+//< Jumping Back and Forth undef-read-short
 //> undef-read-constant
 #undef READ_CONSTANT
 //< undef-read-constant
