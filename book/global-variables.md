@@ -610,6 +610,15 @@ globals hash table. If the variable hasn't been defined yet, it's a runtime
 error to try to assign to it. Lox [doesn't do implicit variable
 declaration][implicit].
 
+<aside name="delete">
+
+The call to `tableSet()` stores the value in the global variable table even if
+the variable wasn't previously defined. That fact is visible in a REPL session,
+since it keeps running even after the runtime error is reported. So we also take
+care to delete that zombie value from the table.
+
+</aside>
+
 The other difference is that setting a variable doesn't pop the value off the
 stack. Remember, assignment is an expression, so it needs to leave that value
 there in case the assignment is nested inside some larger expression.
