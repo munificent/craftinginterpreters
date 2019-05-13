@@ -66,11 +66,15 @@ typedef enum {
 //> Global Variables op-print
   OP_PRINT,
 //< Global Variables op-print
-//> Jumping Forward and Back not-yet
+//> Jumping Back and Forth jump-op
   OP_JUMP,
+//< Jumping Back and Forth jump-op
+//> Jumping Back and Forth jump-if-false-op
   OP_JUMP_IF_FALSE,
+//< Jumping Back and Forth jump-if-false-op
+//> Jumping Back and Forth loop-op
   OP_LOOP,
-//< Jumping Forward and Back not-yet
+//< Jumping Back and Forth loop-op
 //> Calls and Functions not-yet
   OP_CALL_0,
   OP_CALL_1,
