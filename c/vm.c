@@ -33,6 +33,7 @@ static Value clockNative(int argCount, Value* args) {
 }
 //< Calls and Functions not-yet
 //> reset-stack
+
 static void resetStack() {
   vm.stackTop = vm.stack;
 //> Calls and Functions not-yet
