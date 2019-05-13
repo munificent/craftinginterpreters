@@ -927,6 +927,7 @@ in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_SET_GLOBAL</span><span class="p">:</span> <span class="p">{</span>                                     
         <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="p">();</span>                        
         <span class="k">if</span> <span class="p">(</span><span class="n">tableSet</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">globals</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span> <span class="p">{</span>             
+          <span class="n">tableDelete</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">globals</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span> <span name="delete"></span>
           <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Undefined variable &#39;%s&#39;.&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>                       
         <span class="p">}</span>                                                       
@@ -941,6 +942,12 @@ in <em>run</em>()</div>
 globals hash table. If the variable hasn&rsquo;t been defined yet, it&rsquo;s a runtime
 error to try to assign to it. Lox <a href="statements-and-state.html#design-note">doesn&rsquo;t do implicit variable
 declaration</a>.</p>
+<aside name="delete">
+<p>The call to <code>tableSet()</code> stores the value in the global variable table even if
+the variable wasn&rsquo;t previously defined. That fact is visible in a REPL session,
+since it keeps running even after the runtime error is reported. So we also take
+care to delete that zombie value from the table.</p>
+</aside>
 <p>The other difference is that setting a variable doesn&rsquo;t pop the value off the
 stack. Remember, assignment is an expression, so it needs to leave that value
 there in case the assignment is nested inside some larger expression.</p>
