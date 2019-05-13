@@ -413,7 +413,7 @@ static InterpretResult run() {
 /* A Virtual Machine read-constant < Calls and Functions not-yet
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()])
 */
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Back and Forth read-short < Calls and Functions not-yet
 #define READ_SHORT() \
     (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 */
@@ -704,10 +704,10 @@ static InterpretResult run() {
       }
         
 //< Global Variables interpret-print
-//> Jumping Forward and Back not-yet
+//> Jumping Back and Forth op-jump
       case OP_JUMP: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Back and Forth op-jump < Calls and Functions not-yet
         vm.ip += offset;
 */
 //> Calls and Functions not-yet
@@ -716,9 +716,11 @@ static InterpretResult run() {
         break;
       }
 
+//< Jumping Back and Forth op-jump
+//> Jumping Back and Forth op-jump-if-false
       case OP_JUMP_IF_FALSE: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Back and Forth op-jump-if-false < Calls and Functions not-yet
         if (isFalsey(peek(0))) vm.ip += offset;
 */
 //> Calls and Functions not-yet
@@ -726,10 +728,12 @@ static InterpretResult run() {
 //< Calls and Functions not-yet
         break;
       }
+//< Jumping Back and Forth op-jump-if-false
+//> Jumping Back and Forth op-loop
 
       case OP_LOOP: {
         uint16_t offset = READ_SHORT();
-/* Jumping Forward and Back not-yet < Calls and Functions not-yet
+/* Jumping Back and Forth op-loop < Calls and Functions not-yet
         vm.ip -= offset;
 */
 //> Calls and Functions not-yet
@@ -737,7 +741,7 @@ static InterpretResult run() {
 //< Calls and Functions not-yet
         break;
       }
-//< Jumping Forward and Back not-yet
+//< Jumping Back and Forth op-loop
 //> Calls and Functions not-yet
 
       case OP_CALL_0:
@@ -891,9 +895,9 @@ static InterpretResult run() {
   }
 
 #undef READ_BYTE
-//> Jumping Forward and Back not-yet
+//> Jumping Back and Forth undef-read-short
 #undef READ_SHORT
-//< Jumping Forward and Back not-yet
+//< Jumping Back and Forth undef-read-short
 //> undef-read-constant
 #undef READ_CONSTANT
 //< undef-read-constant
