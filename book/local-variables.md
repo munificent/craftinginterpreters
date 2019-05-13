@@ -120,7 +120,7 @@ There's a lot of state we need to track in the compiler to make this whole thing
 go, so let's get started there. In jlox, we used a linked chain of "environment"
 HashMaps to track what local variables are currently in scope. That's sort of
 the classic, schoolbook way of representing lexical scope. For clox, as usual,
-we're going a little closer to the metal. The state all lives in this new
+we're going a little closer to the metal. All of the state lives in this new
 struct:
 
 ^code compiler-struct (1 before, 2 after)

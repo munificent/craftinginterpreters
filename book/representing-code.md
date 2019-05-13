@@ -260,8 +260,8 @@ that. Let's pick:
 protein → cooked "eggs" ;
 ```
 
-Next, we need a production for `cooked` and pick `"poached"`. That's a terminal,
-so we add that. Now our string looks like:
+Next, we need a production for `cooked`, and so we pick `"poached"`. That's a
+terminal, so we add that. Now our string looks like:
 
 ```text
 "poached" "eggs" "with" breakfast "on the side"
