@@ -33,5 +33,5 @@
     raise a runtime error to let the user know something got weird. That's what
     Python and Ruby do.
 
-    On the other hand, given that Lox gives the user know what to catch and
+    On the other hand, given that Lox gives the user no way to catch and
     handle runtime errors, not throwing one might be more flexible.

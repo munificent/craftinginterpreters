@@ -43,7 +43,7 @@ functions or functions stored directly in variables.
 
 </aside>
 
-```
+```lox
 getCallback()();
 ```
 
@@ -823,7 +823,7 @@ count(1);
 
 The Java callstack currently looks roughly like this:
 
-```
+```text
 Interpreter.visitReturnStmt()
 Interpreter.visitIfStmt()
 Interpreter.executeBlock()

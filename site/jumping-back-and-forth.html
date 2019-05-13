@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
+<title>Jumping Back and Forth &middot; Crafting Interpreters</title>
+
+<!-- Tell mobile browsers we're optimized for them and they don't need to crop
+     the viewport. -->
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="style.css" />
+
+<!-- Oh, God, Source Code Pro is so beautiful it makes me want to cry. -->
+<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600' rel='stylesheet' type='text/css'>
+<link rel="icon" type="image/png" href="image/favicon.png" />
+<script src="jquery-1.10.1.min.js"></script>
+<script src="script.js"></script>
+
+<!-- Google analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-42804721-2', 'auto');
+  ga('send', 'pageview');
+</script>
+
+</head>
+<body id="top">
+
+<!-- <div class="scrim"></div> -->
+<nav class="wide">
+  <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+  <div class="contents">
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top">Jumping Back and Forth<small>23</small></a></h3>
+
+<ul>
+    <li><a href="#if-statements"><small>23.1</small> If Statements</a></li>
+    <li><a href="#logical-operators"><small>23.2</small> Logical Operators</a></li>
+    <li><a href="#while-statements"><small>23.3</small> While Statements</a></li>
+    <li><a href="#for-statements"><small>23.4</small> For Statements</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
+    <li class="end-part"><a href="#design-note"><small>note</small>Considering Goto Harmful
+</a></li>
+</ul>
+
+
+<div class="prev-next">
+    <a href="local-variables.html" title="Local Variables" class="left">&larr;&nbsp;Previous</a>
+    <a href="a-bytecode-virtual-machine.html" title="A Bytecode Virtual Machine">&uarr;&nbsp;Up</a>
+    <a href="calls-and-functions.html" title="Calls and Functions" class="right">Next&nbsp;&rarr;</a>
+</div>  </div>
+</nav>
+
+<nav class="narrow">
+<a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+<a href="local-variables.html" title="Local Variables" class="prev">←</a>
+<a href="calls-and-functions.html" title="Calls and Functions" class="next">→</a>
+</nav>
+
+<div class="page">
+<div class="nav-wrapper">
+<nav class="floating">
+  <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
+  <div class="expandable">
+<!-- If there is a part, it must be a chapter within a part. -->
+<h3><a href="#top">Jumping Back and Forth<small>23</small></a></h3>
+
+<ul>
+    <li><a href="#if-statements"><small>23.1</small> If Statements</a></li>
+    <li><a href="#logical-operators"><small>23.2</small> Logical Operators</a></li>
+    <li><a href="#while-statements"><small>23.3</small> While Statements</a></li>
+    <li><a href="#for-statements"><small>23.4</small> For Statements</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
+    <li class="end-part"><a href="#design-note"><small>note</small>Considering Goto Harmful
+</a></li>
+</ul>
+
+
+<div class="prev-next">
+    <a href="local-variables.html" title="Local Variables" class="left">&larr;&nbsp;Previous</a>
+    <a href="a-bytecode-virtual-machine.html" title="A Bytecode Virtual Machine">&uarr;&nbsp;Up</a>
+    <a href="calls-and-functions.html" title="Calls and Functions" class="right">Next&nbsp;&rarr;</a>
+</div>  </div>
+  <a id="expand-nav">≡</a>
+</nav>
+</div>
+
+<article class="chapter">
+
+  <div class="number">23</div>
+  <h1>Jumping Back and Forth</h1>
+
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
+
+  <!-- Begin MailChimp Signup Form -->
+  <div id="mc_embed_signup">
+  <form action="//gameprogrammingpatterns.us7.list-manage.com/subscribe/post?u=0952ca43ed2536d6717766b88&amp;id=6e96334109" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Your email address" required>
+    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_0952ca43ed2536d6717766b88_6e96334109" tabindex="-1" value=""></div>
+    <input type="submit" value="Sign me up!" name="subscribe" id="mc-embedded-subscribe" class="button">
+  </form>
+  </div>
+  <!--End mc_embed_signup-->
+  <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
+</div>
+
+<blockquote>
+<p>The order that our mind imagines is like a net, or like a ladder, built to attain something. But afterward you must throw the ladder away, because you discover that, even if it was useful, it was meaningless.</p>
+<p><cite>Umberto Eco, <em>The Name of the Rose</em></cite></p>
+</blockquote>
+<p>It&rsquo;s taken a while to get here, but we&rsquo;re finally ready to add control flow to
+our virtual machine. In the tree-walk interpreter we built for jlox, we
+implemented Lox&rsquo;s control flow in terms of Java&rsquo;s. To execute a Lox if
+statement, we used a Java if statement to run the chosen branch. That works, but
+isn&rsquo;t entirely satisfying. By what magic does the <em>JVM</em> or a native CPU
+implement if statements? Now that we have our own bytecode VM to hack on, we can answer that.</p>
+<p>When we talk about &ldquo;control flow&rdquo;, what are we referring to? By &ldquo;flow&rdquo; we mean
+the way execution moves through the text of the program. Almost like there is a
+little robot inside the computer wandering through our program, executing each
+piece of code. Flow is the path that robot takes, and by <em>controlling</em> it, we
+drive which pieces of code it executes.</p>
+<p>In jlox, the robot&rsquo;s locus of attention<span class="em">&mdash;</span>the <em>current</em> bit of code<span class="em">&mdash;</span>was
+implicit based on which AST nodes were stored in various Java variables and what
+Java code we were in the middle of running. In clox, it is much more explicit.
+The VM&rsquo;s <code>ip</code> field stores the address of the current bytecode instruction. The
+value of that field is exactly &ldquo;where we are&rdquo; in the program.</p>
+<p>Execution proceeds normally by incrementing the <code>ip</code>. But we can mutate that
+value however we want to. So in order to implement control flow, all that&rsquo;s
+necessary is to change the <code>ip</code> in more interesting ways. The simplest control flow construct is an if statement with no else clause:</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">condition</span><span class="p">)</span> <span class="k">print</span><span class="p">(</span><span class="s">&quot;condition was truthy&quot;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>The VM evaluates the bytecode for the condition expression. If the result is
+truthy, then it continues along and executes the print statement in the body.
+The interesting case is when the condition is falsey. When that happens,
+execution skips over the then branch and proceeds to the next statement.</p>
+<p>To skip over a chunk of code, we simply set the <code>ip</code> field to the address of the
+bytecode instruction following that code. To <em>conditionally</em> skip over some
+code, we need an instruction that looks at the value on top of the stack. If
+it&rsquo;s falsey, it adds a given offset to the <code>ip</code> to jump over a range of
+instructions. Otherwise, it does nothing and lets execution proceed to the next
+instruction as usual.</p>
+<p>When we compile to bytecode, the explicit nested block structure of the code
+evaporates, leaving only a flat series of instructions behind. Lox is a
+<a href="https://en.wikipedia.org/wiki/Structured_programming">structured programming</a> language, but clox bytecode isn&rsquo;t. The right<span class="em">&mdash;</span>or
+wrong depending on how you look at it<span class="em">&mdash;</span>set of bytecode instructions could jump
+into the middle of a block, or from one scope into another.</p>
+<p>The VM will happily execute that, even if the result leaves the stack in an
+unknown, inconsistent state. So even though the bytecode is unstructured, we&rsquo;ll
+take care to ensure that our compiler only generates clean code that maintains
+the same structure and nesting that Lox itself does.</p>
+<p>This is exactly how real CPUs behave. Even though we might program them using
+higher-level languages that mandate structured control flow, the compiler lowers
+that down to raw jumps. At the bottom, it turns out goto is the only real
+control flow.</p>
+<p>Anyway, I didn&rsquo;t mean to get all philosophical. The important bit is that if we
+have that one conditional jump instruction, that&rsquo;s enough to implement Lox&rsquo;s if
+statement, as long as it doesn&rsquo;t have an <code>else</code> clause. So let&rsquo;s go ahead and
+get started with that.</p>
+<h2><a href="#if-statements" name="if-statements"><small>23&#8202;.&#8202;1</small> If Statements</a></h2>
+<p>This many chapters in, you know the drill. Any new feature starts in the front
+end and works its way through the pipeline. If statements are, well,
+statements, so that&rsquo;s where we hook them into the parser:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_PRINT</span><span class="p">))</span> <span class="p">{</span>            
+    <span class="n">printStatement</span><span class="p">();</span>                  
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_IF</span><span class="p">))</span> <span class="p">{</span>        
+    <span class="n">ifStatement</span><span class="p">();</span>                     
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="p">))</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>When we see an <code>if</code> keyword, we hand off compilation to this function:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>expressionStatement</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">ifStatement</span><span class="p">()</span> <span class="p">{</span>                                            
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span><span class="p">);</span>                 
+  <span class="n">expression</span><span class="p">();</span>                                                        
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span><span class="p">);</span> <span name="paren"></span>
+
+  <span class="kt">int</span> <span class="n">thenJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="p">);</span>                           
+  <span class="n">statement</span><span class="p">();</span>                                                         
+
+  <span class="n">patchJump</span><span class="p">(</span><span class="n">thenJump</span><span class="p">);</span>                                                 
+<span class="p">}</span>                                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
+
+<aside name="paren">
+<p>Have you ever noticed that the <code>(</code> after the <code>if</code> keyword doesn&rsquo;t actually do
+anything useful? The language would be just as unambiguous and easy to parse
+without it, like:</p>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="n">condition</span><span class="p">)</span> <span class="k">print</span><span class="p">(</span><span class="s">&quot;looks weird&quot;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>The closing <code>)</code> is useful because it separates the condition expression from the
+body. Some languages use a <code>then</code> keyword instead. But the opening <code>(</code> doesn&rsquo;t
+do anything. It&rsquo;s just there because unmatched parentheses look bad to us
+humans.</p>
+</aside>
+<p>First we compile the condition expression, bracketed by parentheses. At runtime,
+that will leave the condition value on top of the stack. We&rsquo;ll use that to
+determine whether to execute the then branch or skip it.</p>
+<p>Then we emit a new <code>OP_JUMP_IF_FALSE</code> instruction. It has an operand for how
+much to offset the <code>ip</code><span class="em">&mdash;</span>how many bytes of code to skip. If the condition is
+falsey, it adjusts the <code>ip</code> by that amount. Something like this:</p>
+<aside name="legend">
+<p>The boxes with the torn edges here represent the blob of bytecode generated by
+compiling some sub-clause of a control flow construct. So the &ldquo;condition
+expression&rdquo; box is all of the instructions emitted when we compiled that
+expression.</p>
+</aside>
+<p><span name="legend"></span></p>
+<p><img src="image/jumping-back-and-forth/if-without-else.png" alt="Flowchart of the compiled bytecode of an if statement." /></p>
+<p>But we have a problem. When we&rsquo;re writing the <code>OP_JUMP_IF_FALSE</code> instruction&rsquo;s
+operand, how do we know how far to jump? We haven&rsquo;t compiled the then branch
+yet, so we don&rsquo;t know how much bytecode it contains.</p>
+<p>To fix that, we use a classic trick called <span
+name="patch"><strong>backpatching</strong></span>. We emit the jump instruction first with a
+placeholder offset. We keep track of where that temporary instruction is. Next,
+we compile the then body. Once that&rsquo;s done, we know how far to jump. So we go
+back and replace that placeholder offset with the real one now that we can
+calculate it. Sort of like sewing a patch onto the existing fabric of the
+compiled code.</p>
+<p><img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." /></p>
+<p>We encode this trick into two helper functions:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>emitBytes</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">emitJump</span><span class="p">(</span><span class="kt">uint8_t</span> <span class="n">instruction</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">instruction</span><span class="p">);</span>                  
+  <span class="n">emitByte</span><span class="p">(</span><span class="mh">0xff</span><span class="p">);</span>                         
+  <span class="n">emitByte</span><span class="p">(</span><span class="mh">0xff</span><span class="p">);</span>                         
+  <span class="k">return</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="mi">2</span><span class="p">;</span>       
+<span class="p">}</span>                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
+
+<p>The first emits a bytecode instruction and writes a placeholder operand for the
+jump offset. We pass in the opcode as an argument because later we&rsquo;ll have two
+different instructions that use this helper. We use two bytes for the jump
+offset operand. A 16-bit <span name="offset">offset</span> lets us jump over up
+to 65,536 bytes of code, which should be plenty for our needs.</p>
+<aside name="offset">
+<p>Some instruction sets have separate &ldquo;long&rdquo; jump instructions that take larger
+operands for when you need to jump a greater distance.</p>
+</aside>
+<p>The function returns the offset of the emitted instruction in the chunk. After
+compiling the then branch, we take that offset and pass it to:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>emitConstant</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">patchJump</span><span class="p">(</span><span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>                           
+  <span class="c1">// -2 to adjust for the bytecode for the jump offset itself.</span>
+  <span class="kt">int</span> <span class="n">jump</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">jump</span> <span class="o">&gt;</span> <span class="n">UINT16_MAX</span><span class="p">)</span> <span class="p">{</span>                                    
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Too much code to jump over.&quot;</span><span class="p">);</span>                     
+  <span class="p">}</span>                                                           
+
+  <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">jump</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="p">;</span>          
+  <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">jump</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="p">;</span>             
+<span class="p">}</span>                                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
+
+<p>This goes back into the bytecode and replaces the operand at the given location
+with the calculated jump offset. We call <code>patchJump()</code> right before we emit the
+next instruction that we want the jump to land on, so it uses the current
+bytecode count to determine how far to jump. In the case of an if statement,
+that means right after we compile the then branch and before we compile the next
+statement.</p>
+<p>That&rsquo;s all we need at compile time. Let&rsquo;s get the new instruction working:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_PRINT</span><span class="p">,</span>        
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_JUMP_IF_FALSE</span><span class="p">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_RETURN</span><span class="p">,</span>       
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>Over in the VM, we interpret it like so:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="p">}</span>                                        
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP_IF_FALSE</span><span class="p">:</span> <span class="p">{</span>                 
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>        
+        <span class="k">if</span> <span class="p">(</span><span class="n">isFalsey</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span> <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>                                 
+      <span class="p">}</span>                                        
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>This is the first instruction we&rsquo;ve added that takes a 16-bit operand. To read
+that from the chunk, we use this new macro:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define READ_CONSTANT() (vm.chunk-&gt;constants.values[READ_BYTE()])</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span><span class="cp">#define READ_SHORT() \                                           </span>
+    <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint16_t</span><span class="p">)((</span><span class="n">vm</span><span class="p">.</span><span class="n">ip</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">vm</span><span class="p">.</span><span class="n">ip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>       
+</pre><pre class="insert-after"><span></span><span class="cp">#define READ_STRING() AS_STRING(READ_CONSTANT())                 </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>It yanks the next two bytes from the chunk and builds a 16-bit unsigned integer
+out of them. As usual, we clean up our macro when we&rsquo;re done with it:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#undef READ_BYTE    </span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span><span class="cp">#undef READ_SHORT   </span>
+</pre><pre class="insert-after"><span></span><span class="cp">#undef READ_CONSTANT</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>After reading the offset, we check the condition value on top of the stack.
+<span name="if">If</span> it&rsquo;s falsey, we apply this jump offset to the <code>ip</code>.
+Otherwise, we leave it alone and execution will automatically proceed to the
+next instruction following the jump instruction.</p>
+<p>In the case where the condition is falsey, we don&rsquo;t need to do any other work.
+We&rsquo;ve offset the <code>ip</code>, so when the outer instruction dispatch loop turns again,
+it will pick up execution at that new instruction, past all of the code in the
+then branch.</p>
+<aside name="if">
+<p>I said we wouldn&rsquo;t use C&rsquo;s if statement to implement Lox&rsquo;s control flow, but we
+do use one here to determine whether or not to offset the instruction pointer.
+But we aren&rsquo;t really using C for <em>control flow</em>. If we wanted to, we could do
+the same thing purely arithmatically. Let&rsquo;s assume we have a function <code>falsey()</code>
+that takes a Lox Value and returns 1 if it&rsquo;s falsey or 0 otherwise. Then we could implement the jump
+instruction like:</p>
+<div class="codehilite"><pre><span></span><span class="k">case</span> <span class="nl">OP_JUMP_IF_FALSE</span><span class="p">:</span> <span class="p">{</span>
+  <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+  <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">falsey</span><span class="p">()</span> <span class="o">*</span> <span class="n">offset</span><span class="p">;</span>
+  <span class="k">break</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The <code>falsey()</code> function would probably use some control flow to handle the
+different value types, but that&rsquo;s an implementation detail of that function and
+doesn&rsquo;t affect how our VM does its own control flow.</p>
+</aside>
+<p>Note that the jump instruction doesn&rsquo;t pop the condition value off the stack. So
+we aren&rsquo;t totally done here, since this leaves an extra value floating around on
+the stack. We&rsquo;ll clean that up soon. Ignoring that for the moment, we do have a
+working if statement in Lox now, with only one little instruction required to
+support it at runtime in the VM.</p>
+<h3><a href="#else-clauses" name="else-clauses"><small>23&#8202;.&#8202;1&#8202;.&#8202;1</small> Else clauses</a></h3>
+<p>A if statement without support for else clauses is like Morticia Addams without
+Gomez. So, after we compile the then branch, we look for an <code>else</code> keyword. If
+we find one, we compile the else branch:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">patchJump</span><span class="p">(</span><span class="n">thenJump</span><span class="p">);</span>               
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>ifStatement</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_ELSE</span><span class="p">))</span> <span class="n">statement</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
+
+<p>When the condition is falsey, we&rsquo;ll jump over the then branch. If there&rsquo;s an
+else branch, the <code>ip</code> will land right at the beginning of its code. But that&rsquo;s
+not enough, though. Here&rsquo;s the flow that leads to:</p>
+<p><img src="image/jumping-back-and-forth/bad-else.png" alt="Flowchart of the compiled bytecode with the then branch incorrectly falling through to the else branch." /></p>
+<p>If the condition is truthy, we execute the then branch like we want. But after
+that, execution rolls right on through into the else branch. Oops! When the
+condition is true, after we run the then branch, we need to jump over the else
+branch. That way, in either case, we only execute a single branch, like this:</p>
+<p><img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." /></p>
+<p>To implement that, we need another jump from the end of the then branch:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">statement</span><span class="p">();</span>                     
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>ifStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">elseJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP</span><span class="p">);</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">patchJump</span><span class="p">(</span><span class="n">thenJump</span><span class="p">);</span>             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
+
+<p>We patch that offset after the end of the else body:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_ELSE</span><span class="p">))</span> <span class="n">statement</span><span class="p">();</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>ifStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="n">patchJump</span><span class="p">(</span><span class="n">elseJump</span><span class="p">);</span>               
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
+
+<p>After executing the then branch this jumps to the next statement after the else.
+Unlike the other jump, this jump is unconditional. We always take it, so we need
+another instruction that expresses that:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_PRINT</span><span class="p">,</span>        
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_JUMP</span><span class="p">,</span>         
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_JUMP_IF_FALSE</span><span class="p">,</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>We interpret it like so:</p>
+<div class="codehilite"><pre class="insert-before"><br><span></span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP</span><span class="p">:</span> <span class="p">{</span>                  
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+        <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>               
+        <span class="k">break</span><span class="p">;</span>                         
+      <span class="p">}</span>                                
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP_IF_FALSE</span><span class="p">:</span> <span class="p">{</span>         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>Nothing too surprising here<span class="em">&mdash;</span>the only difference is that it doesn&rsquo;t check a
+condition and always applies the offset.</p>
+<p>We have then and else branches working now, so we&rsquo;re close. The last bit is to
+clean up that condition value we left on the stack. Remember, each statement is
+required to have zero stack effect<span class="em">&mdash;</span>after the statement is finished executing,
+the stack should be as tall as it was before.</p>
+<p>We could have the <code>OP_JUMP_IF_FALSE</code> instruction pop the condition itself, but
+soon we&rsquo;ll use that same instruction for the logical operators where we don&rsquo;t
+want the condition popped. Instead, we&rsquo;ll have the compiler emit a couple of
+explicit <code>OP_POP</code> instructions when compiling an if statement. We need to take
+care that every execution path through the generated code pops the condition.</p>
+<p>When the condition is truthy, we pop it right before the code inside the then
+branch:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">thenJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>ifStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                         
+</pre><pre class="insert-after"><span></span>  <span class="n">statement</span><span class="p">();</span>                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
+
+<p>Otherwise, we pop it at the beginning of the else branch:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">patchJump</span><span class="p">(</span><span class="n">thenJump</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>ifStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>   
+</pre><pre class="insert-after"><br><span></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
+
+<p>This little instruction here also means that every if statement has an implicit
+else branch even if the user didn&rsquo;t write an else clause. In the case where they
+left it off, all it does is discard the condition value.</p>
+<p>The full correct flow looks like this:</p>
+<p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." /></p>
+<p>If you trace through you can see that it always executes a single branch and
+ensures the condition is popped first. All that remains it a little disassembler
+support:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_PRINT&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>                
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_JUMP</span><span class="p">:</span>                                                  
+      <span class="k">return</span> <span class="n">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_JUMP&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>         
+    <span class="k">case</span> <span class="nl">OP_JUMP_IF_FALSE</span><span class="p">:</span>                                         
+      <span class="k">return</span> <span class="n">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_JUMP_IF_FALSE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span>                                                
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>These two instructions have a new format with a 16-bit operand, so we add a new
+utility function to disassemble them:</p>
+<div class="codehilite"><div class="source-file"><em>debug.c</em><br>
+add after <em>byteInstruction</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">jumpInstruction</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="kt">int</span> <span class="n">sign</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">,</span>  
+                           <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>                              
+  <span class="kt">uint16_t</span> <span class="n">jump</span> <span class="o">=</span> <span class="p">(</span><span class="kt">uint16_t</span><span class="p">)(</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">);</span>           
+  <span class="n">jump</span> <span class="o">|=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">2</span><span class="p">];</span>                                    
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%-16s %4d -&gt; %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">+</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">jump</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">3</span><span class="p">;</span>                                                  
+<span class="p">}</span>                                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, add after <em>byteInstruction</em>()</div>
+
+<p>There we go, that&rsquo;s one complete control flow construct. If this were an 80&rsquo;s
+movie, the montage music would kick in and the rest of the control flow syntax
+would take care of itself. Alas, the <span name="80s">80s</span> are long over,
+so we&rsquo;ll have to grind it out ourselves.</p>
+<aside name="80s">
+<p>My enduring love of Depeche Mode notwithstanding.</p>
+</aside>
+<h2><a href="#logical-operators" name="logical-operators"><small>23&#8202;.&#8202;2</small> Logical Operators</a></h2>
+<p>You probably remember this from jlox, but the logical operators <code>&amp;&amp;</code> and <code>||</code>
+aren&rsquo;t just another pair of binary operators like <code>+</code> and <code>-</code>. Because they
+short-circuit and may not evaluate their right operand depending on the value of
+the left one, they work more like control flow expressions.</p>
+<p>They&rsquo;re basically a little variation on an if statement with an else clause. The
+easiest way to explain them is to just show you the compiler code and the
+control flow it produces in the resulting bytecode. Starting with <code>&amp;&amp;</code>, we hook
+it into the expression parsing table here:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="n">number</span><span class="p">,</span>   <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NUMBER</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">and_</span><span class="p">,</span>    <span class="n">PREC_AND</span> <span class="p">},</span>        <span class="c1">// TOKEN_AND   </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_CLASS </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>That hands off to:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>defineVariable</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">and_</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>         
+  <span class="kt">int</span> <span class="n">endJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="p">);</span>
+
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                        
+  <span class="n">parsePrecedence</span><span class="p">(</span><span class="n">PREC_AND</span><span class="p">);</span>               
+
+  <span class="n">patchJump</span><span class="p">(</span><span class="n">endJump</span><span class="p">);</span>                      
+<span class="p">}</span>                                          
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>defineVariable</em>()</div>
+
+<p>At the point this is called, the left-hand side expression has already been
+compiled. That means at runtime, its value will be on top of the stack. If that
+value is falsey, then we know the entire <code>&amp;&amp;</code> must be false, so we skip the
+right operand and leave the left-hand side value as the result of the entire
+expression. Otherwise, we discard the left-hand value and the result of the <code>&amp;&amp;</code>
+expression is the result of evaluating the right operand.</p>
+<p>Those four lines of code right there produce exactly that. The flow looks like
+this:</p>
+<p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an '&&' expression." /></p>
+<p>Now you can see why <code>OP_JUMP_IF_FALSE</code> <span name="instr">leaves</span> the
+value on top of the stack. When the left-hand side of the <code>&amp;&amp;</code> is falsey, that
+value sticks around to become the result of the entire expression.</p>
+<aside name="instr">
+<p>We&rsquo;ve got plenty of space left in our opcode range, so we could have separate
+instructions for conditional jumps that implicitly pop and those that don&rsquo;t, I
+suppose. But I&rsquo;m trying to keep things minimal for the book. In your bytecode
+VM, it&rsquo;s worth exploring adding more specialized instructions and see how they
+affect performance.</p>
+</aside>
+<h3><a href="#logical-or-operator" name="logical-or-operator"><small>23&#8202;.&#8202;2&#8202;.&#8202;1</small> Logical or operator</a></h3>
+<p>The <code>||</code> operator is a little more complex. First we add it to the parse table:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="n">literal</span><span class="p">,</span>  <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NIL  </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">or_</span><span class="p">,</span>     <span class="n">PREC_OR</span> <span class="p">},</span>         <span class="c1">// TOKEN_OR   </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_PRINT</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>Which calls:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>number</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">or_</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>           
+  <span class="kt">int</span> <span class="n">elseJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="p">);</span>
+  <span class="kt">int</span> <span class="n">endJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP</span><span class="p">);</span>
+
+  <span class="n">patchJump</span><span class="p">(</span><span class="n">elseJump</span><span class="p">);</span>                      
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                         
+
+  <span class="n">parsePrecedence</span><span class="p">(</span><span class="n">PREC_OR</span><span class="p">);</span>                 
+  <span class="n">patchJump</span><span class="p">(</span><span class="n">endJump</span><span class="p">);</span>                       
+<span class="p">}</span>                                           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
+
+<p>In an <code>||</code> expression, if the left-hand side is <em>truthy</em>, then we skip over the
+right operand. Thus we need to jump when a value is truthy. We could add a
+separate instruction, but just to show how our compiler is free to map the
+language&rsquo;s semantics to whatever instruction sequence it wants, I implemented it
+in terms of the jump instructions we already have.</p>
+<p>When the left-hand side is falsey, it does a tiny jump over the next statement.
+That statement is an unconditional jump over the code for the right operand.
+This little dance effectively does a jump when the value is truthy. The flow
+looks like this:</p>
+<p><img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of an '||' expression." /></p>
+<p>If I&rsquo;m honest with you, this isn&rsquo;t the best way to do this. There are more
+instructions to dispatch and more overhead. There&rsquo;s no good reason why <code>||</code>
+should be slower than <code>&amp;&amp;</code>. But it is kind of fun to see that it&rsquo;s possible to
+implement both operators without adding any new instructions. Forgive me my
+indulgences.</p>
+<p>OK, those are the three <em>branching</em> constructs in Lox. By that, I mean, these
+are the control flow features that only jump <em>forward</em> over code. Other
+languages often have some kind of multi-way branching statement like <code>switch</code>
+and maybe a conditional expression like <code>?:</code>, but Lox keeps it simple.</p>
+<h2><a href="#while-statements" name="while-statements"><small>23&#8202;.&#8202;3</small> While Statements</a></h2>
+<p>That takes us to the <em>looping</em> statements, which jump <em>backwards</em> so that code
+can be executed more than once. Lox only has two loop constructs, <code>while</code> and
+<code>for</code>. While loops are (much) simpler, so we kick off the party with its
+keyword:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">ifStatement</span><span class="p">();</span>                     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_WHILE</span><span class="p">))</span> <span class="p">{</span>     
+    <span class="n">whileStatement</span><span class="p">();</span>                  
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="p">))</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>That calls:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>printStatement</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">whileStatement</span><span class="p">()</span> <span class="p">{</span>                              
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span><span class="p">);</span>   
+  <span class="n">expression</span><span class="p">();</span>                                             
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">exitJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="p">);</span>                
+
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                                         
+  <span class="n">statement</span><span class="p">();</span>                                              
+
+  <span class="n">patchJump</span><span class="p">(</span><span class="n">exitJump</span><span class="p">);</span>                                      
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                                         
+<span class="p">}</span>                                                           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
+
+<p>Most of this mirrors if statements<span class="em">&mdash;</span>we compile the condition expression,
+surrounded by mandatory parentheses. That&rsquo;s followed by a jump instruction that
+skips over the subsequent body statement if the condition is falsey.</p>
+<p>We patch the jump after compiling the body, and take care to <span
+name="pop">pop</span> the condition value from the stack on either path. The
+only difference from an if statement is the loop. That looks like this:</p>
+<aside name="pop">
+<p>Really starting to second-guess my decision to use the same jump instructions
+for the logical operators.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">statement</span><span class="p">();</span>        
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>whileStatement</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">patchJump</span><span class="p">(</span><span class="n">exitJump</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>whileStatement</em>()</div>
+
+<p>After the body, we call this function to emit a &ldquo;loop&rdquo; instruction. That
+instruction needs to know how far back to jump. When jumping forward, we had to
+emit the instruction in two stages since we didn&rsquo;t know how far we were going to
+jump until after we emitted the jump instruction. We don&rsquo;t have that problem
+now. We&rsquo;ve already compiled the point in code that we want to jump back to<span class="em">&mdash;</span>it&rsquo;s right before the condition expression.</p>
+<p>All we need to do is capture that location as we compile it:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">whileStatement</span><span class="p">()</span> <span class="p">{</span>                           
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>whileStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span>                 
+<br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>whileStatement</em>()</div>
+
+<p>After executing the body of a while loop, we jump all the way back to before the
+condition. That way, we re-evaluate the condition expression on each iteration.
+We store chunk&rsquo;s current instruction count in <code>loopStart</code> to record the offset
+in the bytecode right before the condition expression we&rsquo;re about to compile.
+Then we pass that into this helper function:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>emitBytes</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitLoop</span><span class="p">(</span><span class="kt">int</span> <span class="n">loopStart</span><span class="p">)</span> <span class="p">{</span>                    
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_LOOP</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">loopStart</span> <span class="o">+</span> <span class="mi">2</span><span class="p">;</span>    
+  <span class="k">if</span> <span class="p">(</span><span class="n">offset</span> <span class="o">&gt;</span> <span class="n">UINT16_MAX</span><span class="p">)</span> <span class="n">error</span><span class="p">(</span><span class="s">&quot;Loop body too large.&quot;</span><span class="p">);</span>
+
+  <span class="n">emitByte</span><span class="p">((</span><span class="n">offset</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="p">);</span>                        
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">offset</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="p">);</span>                               
+<span class="p">}</span>                                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
+
+<p>It&rsquo;s a bit like <code>emitJump()</code> and <code>patchJump()</code> combined. It emits a new loop
+instruction, which unconditionally jumps <em>backwards</em> by a given offset. Like the
+jump instructions, after that we have a 16-bit operand. We calculate the offset
+from the instruction we&rsquo;re currently at to the <code>loopStart</code> point that we want to
+jump back to. The <code>+ 2</code> is to take into account the size of the <code>OP_LOOP</code>
+instruction&rsquo;s own operands which we also need to jump over.</p>
+<p>From the VM&rsquo;s perspective, there really is no semantic difference between
+<code>OP_LOOP</code> and <code>OP_JUMP</code>. Both just add an offset to the <code>ip</code>. We could have used
+a single instruction for both and given it a signed offset operand. But I
+figured it was a little easier to sidestep the annoying bit juggling required to
+manually pack a signed 16-bit integer into two bytes, and we&rsquo;ve got the opcode
+space available, so why not use it?</p>
+<p>The new instruction is:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_JUMP_IF_FALSE</span><span class="p">,</span>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_LOOP</span><span class="p">,</span>         
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_RETURN</span><span class="p">,</span>       
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>And in the VM, its implementation is:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="p">}</span>                                
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_LOOP</span><span class="p">:</span> <span class="p">{</span>                  
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+        <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">-=</span> <span class="n">offset</span><span class="p">;</span>               
+        <span class="k">break</span><span class="p">;</span>                         
+      <span class="p">}</span>                                
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>The only difference from <code>OP_JUMP</code> is a subtraction instead of an addition.
+Disassembly is similar too:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_JUMP_IF_FALSE&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_LOOP</span><span class="p">:</span>                                                  
+      <span class="k">return</span> <span class="n">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_LOOP&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>        
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span>                                                
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>That&rsquo;s our while statement. It contains two jumps<span class="em">&mdash;</span>a conditional forward one
+to escape the loop when the condition isn&rsquo;t met, and an unconditional loop
+backwards after we have executed the body. The flow looks like this:</p>
+<p><img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." /></p>
+<h2><a href="#for-statements" name="for-statements"><small>23&#8202;.&#8202;4</small> For Statements</a></h2>
+<p>The other looping statement in Lox is the venerable for loop, inherited from C.
+It&rsquo;s got a lot more going on with it compared to a while loop. It has three
+clauses, all of which are optional:</p>
+<p><span name="detail"></span></p>
+<ul>
+<li>
+<p>The initializer can be a variable declaration or an expression. It runs once
+    at the beginning of the statement.</p>
+</li>
+<li>
+<p>The condition clause is an expression. Like in a while loop, we exit the
+    loop when it evaluates to something falsey.</p>
+</li>
+<li>
+<p>The increment expression runs once at the end of each loop iteration.</p>
+</li>
+</ul>
+<aside name="detail">
+<p>If you want a refresher, the corresponding chapter in part I goes through the
+semantics <a href="control-flow.html#for-loops">in more detail</a>.</p>
+</aside>
+<p>In jlox, the parser desugared a for loop to a synthesized AST for a while loop
+with some extra stuff before it and at the end of the body. We&rsquo;ll do something
+similiar, though we won&rsquo;t go through anything like an AST. Instead, our bytecode
+compiler will use the jump and loop instructions we already have.</p>
+<p>We&rsquo;ll work our way through the implementation a piece at a time, starting with
+the <code>for</code> keyword:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">printStatement</span><span class="p">();</span>           
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_FOR</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">forStatement</span><span class="p">();</span>             
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_IF</span><span class="p">))</span> <span class="p">{</span> 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>It calls a helper function. If we only supported for loops with empty clauses
+like <code>for (;;)</code>, then we could implement it like this:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>expressionStatement</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">forStatement</span><span class="p">()</span> <span class="p">{</span>                                
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span><span class="p">);</span>     
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span>                    
+
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="p">);</span>                  
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="p">);</span>
+
+  <span class="n">statement</span><span class="p">();</span>                                              
+
+  <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>                                      
+<span class="p">}</span>                                                           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
+
+<p>There&rsquo;s a bunch of mandatory punctuation at the top. Then we compile the body.
+Like we did for while loops, we record the bytecode offset at the top of the
+body and emit a loop to jump back to that point after it. We&rsquo;ve got a working
+implementation of <span name="infinite">infinite</span> loops now.</p>
+<aside name="infinite">
+<p>Alas, without <code>return</code> statements, there isn&rsquo;t any way to terminate it short of
+a runtime error.</p>
+</aside>
+<h3><a href="#initializer-clause" name="initializer-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;1</small> Initializer clause</a></h3>
+<p>Now, we&rsquo;ll add the first clause, the initializer. It only executes once, before
+the body, so it&rsquo;s straightforward:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>forStatement</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_VAR</span><span class="p">))</span> <span class="p">{</span>                              
+    <span class="n">varDeclaration</span><span class="p">();</span>                                  
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                 
+    <span class="c1">// No initializer.                                 </span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                             
+    <span class="n">expressionStatement</span><span class="p">();</span>                             
+  <span class="p">}</span>                                                    
+</pre><pre class="insert-after"><br><span></span>  <span class="kt">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span>               
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
+
+<p>The syntax is a little complex since we allow either a variable declaration or
+an expression. We use the presence of the <code>var</code> keyword to tell which we have.
+For the expression case, we call <code>expressionStatement()</code> instead of
+<code>expression()</code>. That looks for a semicolon, which we need here too, and almost
+emits an <code>OP_POP</code> instruction to discard the value. We don&rsquo;t want the
+initializer to leave anything on the stack.</p>
+<p>If a for statement declares a variable, that variable should be scoped to the
+loop body. We ensure that by wrapping the whole statement in a scope:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">forStatement</span><span class="p">()</span> <span class="p">{</span>                           
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>forStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="n">beginScope</span><span class="p">();</span>                                        
+<br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
+
+<p>And closing it at the end:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>forStatement</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">endScope</span><span class="p">();</span>         
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
+
+<h3><a href="#condition-clause" name="condition-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;2</small> Condition clause</a></h3>
+<p>Next, is the condition expression that can be used to exit the loop:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span>                         
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>forStatement</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">exitJump</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>                                             
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                                 
+    <span class="n">expression</span><span class="p">();</span>                                                
+    <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span><span class="p">);</span>
+
+    <span class="c1">// Jump out of the loop if the condition is false.           </span>
+    <span class="n">exitJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="p">);</span>                       
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span> <span class="c1">// Condition.                              </span>
+  <span class="p">}</span>                                                              
+<br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="p">);</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
+
+<p>Since the clause is optional, we need to see if it&rsquo;s actually present. If the
+clause is omitted, the next token must be a semicolon, so we look for that to
+tell. If there isn&rsquo;t a semicolon, there must be a condition expression.</p>
+<p>In that case, we compile it. Then, just like with while, we emit a conditional
+jump that exits the loop if the condition is falsey. Since the jump leaves the
+value on the stack, we pop it before executing the body. That ensures we discard
+it when the condition is true.</p>
+<p>After the loop body, we need to patch that jump:</p>
+<div class="codehilite"><pre class="insert-before"><br><span></span>  <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>             
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>forStatement</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">exitJump</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">{</span>            
+    <span class="n">patchJump</span><span class="p">(</span><span class="n">exitJump</span><span class="p">);</span>           
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span> <span class="c1">// Condition.</span>
+  <span class="p">}</span>                                
+</pre><pre class="insert-after"><br><span></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
+
+<p>We only do this when there is a condition clause. If there isn&rsquo;t, there&rsquo;s no jump
+to patch and no condition to pop.</p>
+<h3><a href="#increment-clause" name="increment-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;3</small> Increment clause</a></h3>
+<p>I&rsquo;ve saved the best for last, the increment clause. It&rsquo;s pretty convoluted. It
+appears textually before the body, but executes <em>after</em> it. If we parsed to an
+AST and generated code in a separate pass, we could simply traverse into and
+compile the for statement AST&rsquo;s body field before its increment clause.</p>
+<p>Unfortunately, we can&rsquo;t compile the increment clause later, since our compiler
+only makes a single pass over the code. Instead, we&rsquo;ll jump over the increment,
+run the body, jump back up to the increment, run it, and then go to the next
+iteration.</p>
+<p>I know, a little weird, but, hey, it beats manually managing ASTs in memory in
+C, right? Here&rsquo;s the code:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>                                                             
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>forStatement</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">))</span> <span class="p">{</span>                              
+    <span class="kt">int</span> <span class="n">bodyJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="p">(</span><span class="n">OP_JUMP</span><span class="p">);</span>
+
+    <span class="kt">int</span> <span class="n">incrementStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="p">;</span>                 
+    <span class="n">expression</span><span class="p">();</span>                                               
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                                           
+    <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="p">);</span>
+
+    <span class="n">emitLoop</span><span class="p">(</span><span class="n">loopStart</span><span class="p">);</span>                                        
+    <span class="n">loopStart</span> <span class="o">=</span> <span class="n">incrementStart</span><span class="p">;</span>                                 
+    <span class="n">patchJump</span><span class="p">(</span><span class="n">bodyJump</span><span class="p">);</span>                                        
+  <span class="p">}</span>                                                             
+</pre><pre class="insert-after"><br><span></span>  <span class="n">statement</span><span class="p">();</span>                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
+
+<p>Again, it&rsquo;s optional. Since this is the last clause, when omitted, the next
+token will be the closing parenthesis. When an increment is present, we need to
+compile it now, but it shouldn&rsquo;t execute yet. So, first, we emit an
+unconditional jump that hops over the increment clause&rsquo;s code to the body of the
+loop.</p>
+<p>Next, we compile the increment expression itself. This is usually an assignment.
+Whatever it is, we only execute it for its side effect, so we also emit a pop to
+discard its value.</p>
+<p>The last part is a little tricky. First, we emit a loop instruction. This is the
+main loop that takes us back to the top of the for loop<span class="em">&mdash;</span>right before the
+condition expression if there is one. That loop happens right after the
+increment, since the increment executes at the end of each loop iteration.</p>
+<p>Then we change <code>loopStart</code> to point to the offset where the increment expression
+begins. Later, when emit the loop instruction after the body statement, this
+will cause it to jump up to the <em>increment</em> expression instead of the top of the
+loop like it does when there is no increment. This is how we stitch the
+increment in to run after the body.</p>
+<p>It&rsquo;s a little convoluted, but it all works out. A complete loop with all the
+clauses compiles to a flow like this:</p>
+<p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." /></p>
+<p>Again, we didn&rsquo;t need to touch the runtime. It&rsquo;s all in the compiler. We&rsquo;ve
+taken a big <span name="leap">leap</span> forward in our VM<span class="em">&mdash;</span>clox is now
+Turing complete. We&rsquo;ve also covered quite a bit of new syntax: three statements
+and two expression forms. Even so, it only took three new simple instructions.
+That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM.</p>
+<aside name="leap">
+<p>I couldn&rsquo;t resist the pun. I regret nothing.</p>
+</aside>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>In addition to if statements, most C-family languages have a multi-way
+    <code>switch</code> statement. Add one to clox. The grammar is:</p>
+<div class="codehilite"><pre><span></span><span class="n">switchStmt</span>  <span class="err">→</span> <span class="s">&quot;switch&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span>
+              <span class="s">&quot;{&quot;</span> <span class="n">switchCase</span><span class="o">*</span> <span class="n">defaultCase</span><span class="err">?</span> <span class="s">&quot;}&quot;</span> <span class="p">;</span>
+<span class="n">switchCase</span>  <span class="err">→</span> <span class="s">&quot;case&quot;</span> <span class="n">expression</span> <span class="s">&quot;:&quot;</span> <span class="n">statement</span><span class="o">*</span> <span class="p">;</span>
+<span class="n">defaultCase</span> <span class="err">→</span> <span class="s">&quot;default&quot;</span> <span class="s">&quot;:&quot;</span> <span class="n">statement</span><span class="o">*</span> <span class="p">;</span>
+</pre></div>
+
+
+<p>To execute a switch statement, first evaluate the parenthesed switch value
+expression. Then walk the cases. For each case, evaluate its value
+expression. If the case value is equal to the switch value, execute the
+statements under the case and then exit the switch statement. Otherwise, try
+the next case. If no case matches and there is a <code>default</code> clause, execute
+its statements.</p>
+<p>To keep things simpler, we&rsquo;re omitting fallthrough and <code>break</code> statements.
+Each case automatically jumps to the end of the switch statement after its
+statements are done.</p>
+</li>
+<li>
+<p>In jlox, we had a challenge to add support for break statements. This time,
+    let&rsquo;s do continue:</p>
+<div class="codehilite"><pre><span></span><span class="n">continueStmt</span> <span class="err">→</span> <span class="s">&quot;continue&quot;</span> <span class="s">&quot;;&quot;</span> <span class="p">;</span>
+</pre></div>
+
+
+<p>A continue statement jumps to the top of the nearest enclosing loop. In a
+for loop, this skips evaluating the increment clause, if there is one. It&rsquo;s
+a compile-time error to have a continue statement not enclosed in a loop.</p>
+<p>Make sure to think about scope. What should happen to local variables
+declared inside the body of the loop or in blocks nested inside the loop
+when a continue is executed?</p>
+</li>
+<li>
+<p>Control flow constructs have been mostly unchanged since Algol 68. Language
+    evolution since then has focused on making code more declarative and high
+    level, so imperative control flow hasn&rsquo;t gotten much attention.</p>
+<p>For fun, try to invent a useful novel control flow feature for Lox. It can
+be a refinement of an existing form or something entirely new. In practice,
+it&rsquo;s hard to come up with something useful enough at this low expressiveness
+level to outweigh the cost of forcing a user to learn an unfamiliar notation
+and behavior, but it&rsquo;s a good chance to practice your design skills.</p>
+</li>
+</ol>
+</div>
+<div class="design-note">
+<h2><a href="#design-note" name="design-note">Design Note: Considering Goto Harmful
+</a></h2>
+
+<p>Discovering that all of our beautiful structured control flow in Lox is actually
+compiled to raw unstructured jumps is like the moment in Scooby Doo when the
+monster rips the mask off their face. It was goto all along! Except in this
+case, the monster is <em>under</em> the mask. We all know goto is evil. But&hellip; why?</p>
+<p>It is true that you can write outrageously unmaintainable code using goto. But I
+don&rsquo;t think most programmers around today have seen that first hand. It&rsquo;s been a
+long time since that style was common. These days, it&rsquo;s a boogie man we invoke
+in scary stories around the campfire.</p>
+<p>The reason we rarely confront that monster in person is because Edsger Dijktra
+slayed it with his famous letter &ldquo;Goto Considered Harmful&rdquo;, published in
+<em>Communications of the ACM</em>. Debate around structured programming had been
+fierce for some time with adherents on both sides, but I think Dijkstra deserves
+the most credit for effectively ending it. Most new languages today have no
+unstructured jump statements.</p>
+<p>A one-and-a-half page letter that almost single-handedly destroyed a language
+feature must be pretty impressive stuff. If you haven&rsquo;t read it, I encourage you
+to do so. It&rsquo;s a seminal piece of computer science lore, one of our tribe&rsquo;s
+ancestral songs. Also, it&rsquo;s a nice short bit of practice for reading academic CS
+<span name="style">writing</span>, which is a useful skill to develop.</p>
+<aside name="style">
+<p>That is, if you can get past Dijkstra&rsquo;s insufferable faux-modest self-aggrandizing writing style:</p>
+<blockquote>
+<p>More recently I discovered why the use of the go to statement has such
+disastrous effects&hellip; . At that time I did not attach too much importance to
+this discovery; I now submit my considerations for publication because in very
+recent discussions in which the subject turned up, I have been urged to do so.</p>
+</blockquote>
+<p>Ah, yet another one of my many discoveries. I couldn&rsquo;t even be bothered to write
+it up until the clamoring masses begged me to.</p>
+</aside>
+<p>I&rsquo;ve read it through a number of times, as well as a few critiques, responses,
+and commentaries. I ended up with mixed feelings, at best. At a very high level
+I&rsquo;m with him. His general argument is something like this:</p>
+<ol>
+<li>
+<p>As programmers, we write programs<span class="em">&mdash;</span>static text<span class="em">&mdash;</span>but what we care about
+    is the actual running program<span class="em">&mdash;</span>its dynamic behavior.</p>
+</li>
+<li>
+<p>We&rsquo;re better at reasoning about static things than dynamic things. (He
+    doesn&rsquo;t provide any evidence to support this claim, but I accept with it.)</p>
+</li>
+<li>
+<p>Thus, the more we can make the dynamic execution of the program reflect its
+    textual structure, the better.</p>
+</li>
+</ol>
+<p>This is a good start. Drawing our attention to the separation between the code
+we write and the code as its runs inside the machine is an interesting insight.
+Then he tries to define a &ldquo;correspondence&rdquo; between program text and execution.
+For someone who spent literally his entire career advocating greater rigor in
+programming, his definition is pretty hand-wavey. He says:</p>
+<blockquote>
+<p>Let us now consider how we can characterize the progress of a process. (You
+may think about this question in a very concrete manner: suppose that a
+process, considered as a time succession of actions, is stopped after an
+arbitrary action, what data do we have to fix in order that we can redo the
+process until the very same point?)</p>
+</blockquote>
+<p>Imagine it like this. You have two computers with the same program running on
+the same exact same inputs<span class="em">&mdash;</span>so totally deterministic. You pause one of them at
+an arbitrary point in its execution. What data would you need to send to the
+other computer to be able to stop it exactly as far along as the first one was?</p>
+<p>If your program only allows simple statements like assignment, it&rsquo;s easy. You
+just need to know the point after the last statement you executed. Basically a
+breakpoint, the <code>ip</code> in our VM, or the line number in an error message.</p>
+<p>Adding branching control flow like if and switch doesn&rsquo;t add any more to this.
+Even if the marker points inside a branch, we can still tell we are.</p>
+<p>Once you add function calls, you need something more. You could have paused the
+first computer in the middle of a function, but that function may be called from
+multiple places. To pause the second machine at exactly the same point in <em>the
+entire program&rsquo;s</em> execution, you need to pause it on the <em>right</em> call to that
+function.</p>
+<p>So you need to know not just the current statement, but, for function calls that
+haven&rsquo;t returned yet, you need to know the locations of the callsites. In other
+words, a callstack, though I don&rsquo;t think that word existed when Dijkstra wrote
+this. Groovy.</p>
+<p>He notes that loops make things harder. If you pause in the middle of a loop
+body, you don&rsquo;t know how many iterations have run. So he says you also need to
+keep an iteration count. And, since loops can nest, you need a stack of those
+(presumably interleaved with the call stack pointers since you can be in loops
+in outer calls too).</p>
+<p>This is where it gets weird. So we&rsquo;re really building to something now, and you
+expect him to explain how goto breaks all of this. Instead, he just says:</p>
+<blockquote>
+<p>The unbridled use of the go to statement has an immediate consequence that it
+becomes terribly hard to find a meaningful set of coordinates in which to
+describe the process progress.</p>
+</blockquote>
+<p>He doesn&rsquo;t prove that this is hard, or say why. He just says it. He does say
+that one approach is unsatisfactory:</p>
+<blockquote>
+<p>With the go to statement one can, of course, still describe the progress
+uniquely by a counter counting the number of actions performed since program
+start (viz. a kind of normalized clock). The difficulty is that such a
+coordinate, although unique, is utterly unhelpful.</p>
+</blockquote>
+<p>But&hellip; that&rsquo;s effectively what loop counters do, and he was fine with those.
+It&rsquo;s not like every loop is a simple &ldquo;for every integer from 0 to 10&rdquo;
+incrementing count. Many are while loops with complex conditionals.</p>
+<p>Taking an example close to home, consider the core bytecode execution loop at
+the heart of clox. Dijkstra argues that that loop is tractable because we can
+simply count how many times the loop has run to reason about its progress. But
+that loop runs once for each executed instruction in some user&rsquo;s compiled Lox
+program. Does knowing that it executed 6,201 bytecode instructions really tell
+us VM maintainers <em>anything</em> edifying about the state of the interpreter?</p>
+<p>In fact, this particular example points to a deeper truth. Böhm and Jacopini
+<a href="https://en.wikipedia.org/wiki/Structured_program_theorem">proved</a> that <em>any</em> control flow using goto can be transformed into one using
+just sequencing, loops, and branches. Our bytecode interpreter loop is a living
+example of that proof: it implements the unstructured control flow of the clox
+bytecode instruction set without using any gotos itself.</p>
+<p>That seems to offer a counter-argument to Dijkstra&rsquo;s claim: you <em>can</em> define a
+correspondence for a program using gotos by transforming it to one that doesn&rsquo;t
+and then use the correspondence from that program, which<span class="em">&mdash;</span>according to him<span class="em">&mdash;</span>is acceptable because it only uses branches and loops.</p>
+<p>But, honestly, my argument here is also weak. I think both of us are basically
+doing pretend math and using fake logic to make what should be an empirical,
+human-centered argument. Dijkstra is right that some code using goto is really
+bad. Much of that could and should be turned into clearer code by using
+structured control flow.</p>
+<p>By eliminating goto completely from languages, you&rsquo;re definitely prevented from
+writing bad code using gotos. It may be that forcing users to use structured
+control flow and making it an uphill battle to write goto-like code using those constructs is a net win for all of our productivity.</p>
+<p>But I do wonder sometimes if we threw out the baby with the bathwater. In the
+absence of goto, we often resort to more complex structured patterns. The
+&ldquo;switch inside a loop&rdquo; is a classic one. Another is using a guard variable to
+exit out of a series of nested loops:</p>
+<p><span name="break">
+</span>
+</p>
+<div class="codehilite"><pre><span></span><span class="c1">// See if the matrix contains a zero.</span>
+<span class="kt">bool</span> <span class="n">found</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="p">;</span> <span class="n">x</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="p">;</span> <span class="n">y</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">zSize</span><span class="p">;</span> <span class="n">z</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="n">z</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;found&quot;</span><span class="p">);</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="k">break</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Is that really better than:</p>
+<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="p">;</span> <span class="n">x</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="p">;</span> <span class="n">y</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">zSize</span><span class="p">;</span> <span class="n">z</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="n">z</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;found&quot;</span><span class="p">);</span>
+        <span class="k">goto</span> <span class="n">done</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="nl">done</span><span class="p">:</span>
+</pre></div>
+
+
+<aside name="break">
+<p>You could do this without <code>break</code> statements<span class="em">&mdash;</span>themselves a limited goto-ish
+construct<span class="em">&mdash;</span>by inserting <code>!found &amp;&amp;</code> at the beginning of the condition clause
+of each loop.</p>
+</aside>
+<p>I guess what I really don&rsquo;t like is that we&rsquo;re making language design and
+engineering decisions today based on fear. Few people today have any subtle
+understanding of the problems and benefits of goto. Instead, we just think it&rsquo;s
+bad. Personally, I&rsquo;ve never found fear a good place to start from when trying to
+do good, creative work.</p>
+</div>
+
+<footer>
+<a href="calls-and-functions.html" class="next">
+  Next Chapter: &ldquo;Calls and Functions&rdquo; &rarr;
+</a>
+Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2018</a>
+</footer>
+</article>
+
+</div>
+</body>
+</html>

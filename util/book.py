@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -200,15 +199,15 @@ TOC = [
           'Blocks', 'Scope depth', 'Stack variables', 'Name resolution',
           'Byte argument instructions'
         ],
-        'done': True,
       },
       {
-        'name': 'Jumping Forward and Back',
+        'name': 'Jumping Back and Forth',
         'topics': [
           'Jump instructions', 'Conditional jumps', 'Control flow statements',
           'Short-circuiting', 'Backpatching'
         ],
-        'done': False,
+        'done': True,
+        'design_note': 'Considering Goto Harmful'
       },
       {
         'name': 'Calls and Functions',

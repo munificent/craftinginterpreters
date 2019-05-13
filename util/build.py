@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!./util/env/bin/python3
 # -*- coding: utf-8 -*-
 
 import codecs
@@ -192,6 +192,14 @@ def insert_snippet(snippets, arg, contents, errors):
   location = []
   if show_location:
     location = snippet.describe_location()
+
+  # Make sure every snippet shows the reader where it goes.
+  if (show_location and len(location) <= 1
+      and before_lines == 0 and after_lines == 0):
+    print("No location or context for {}".format(name))
+    errors.append("No location or context for {}".format(name))
+    contents += "**ERROR: No location or context for {}**\n".format(name)
+    return contents
 
   # TODO: Show indentation in snippets somehow.
 

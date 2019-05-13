@@ -50,7 +50,7 @@ We'll need a few system headers, so let's get them all out of the way:
 
 And now to get the REPL up and REPL-ing:
 
-^code repl
+^code repl (1 before)
 
 A quality REPL handles input that spans multiple lines gracefully and doesn't
 have a hardcoded line length limit. This REPL here is a little more, ahem,
@@ -252,13 +252,13 @@ This loops indefinitely. Each turn through the loop, it scans one token and
 prints it. When it reaches a special "end of file" token, it stops. For example,
 if we run the interpreter on this program:
 
-```
+```lox
 print 1 + 2;
 ```
 
 It prints out:
 
-```
+```text
    1 31 'print'
    | 21 '1'
    |  7 '+'
@@ -793,6 +793,7 @@ writing the simplest code I can is sufficient to accomplish that.
 
     Would print:
 
+        :::text
         Tea will be ready in 6 minutes.
 
     What token types would you define to implement a scanner for string
