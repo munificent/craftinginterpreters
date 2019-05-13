@@ -833,8 +833,7 @@ name="elegant">elegant</span>.</p>
 <aside name="elegant">
 <p>No, not even Scheme.</p>
 </aside>
-<p>We&rsquo;ve got one more edge case to deal with before we end this chapter. Take a
-look at this strange beastie:</p>
+<p>We&rsquo;ve got one more edge case to deal with before we end this chapter. Recall this strange beastie we first met in <a href="resolving-and-binding.html#resolving-variable-declarations">jlox&rsquo;s implementation of variable resolution</a>:</p>
 <div class="codehilite"><pre><span></span><span class="p">{</span>
   <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="p">;</span>
   <span class="p">{</span>
@@ -844,53 +843,14 @@ look at this strange beastie:</p>
 </pre></div>
 
 
-<p>I know, right? What was the <span name="author">author</span> even thinking when
-they wrote this? But, really, though, what <em>were</em> they thinking? What do they
-expect this to do? If anyone were to actually write this code, they probably
-expect the <code>a</code> in the initializer to refer to the <em>outer</em> <code>a</code>. In other words,
-they are initializing the shadowing inner <code>a</code> with the value of the shadowed
-one. I suppose that&rsquo;s something someone could want to do.</p>
-<aside name="author">
-<p>I guess this is a rhetorical question since <em>I&rsquo;m</em> the author of this dollop of
-code. All I had in mind was showing you some ugly corner of the language that we
-are obliged to deal with.</p>
-</aside>
-<p>But what about:</p>
-<div class="codehilite"><pre><span></span><span class="p">{</span>
-  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>Should this try to initialize the local <code>a</code> with the value of some
-hopefully-defined global <code>a</code>? Or does the <code>a</code> in the initializer also refer to
-the local?</p>
-<p>The key question is when, precisely, does a variable come into scope. Is a
-variable in scope in its own initializer? If the answer is &ldquo;yes&rdquo;, that&rsquo;s
-definitely not <span name="lambda"><em>useful</em></span>. The variable doesn&rsquo;t have a
-value yet&hellip; since we haven&rsquo;t finished executing its initializer.</p>
-<aside name="lambda">
-<p>It <em>could</em> be useful if Lox supported lambdas<span class="em">&mdash;</span>function expressions. In that
-case, the initializer could be a function that referred to the variable being
-initialized. As long as the function isn&rsquo;t <em>invoked</em> until after the initializer
-completes, this would be a useful way to have a recursive local function.</p>
-</aside>
-<p>We could answer &ldquo;no&rdquo; and say the variable doesn&rsquo;t come into being until after
-the initializer completes. That would enable the prior example. But, honestly,
-code like that is really confusing. Programmers expect code to roughly execute
-from left to right. It would feel strange if the variable didn&rsquo;t come into scope
-as soon as you went &ldquo;past&rdquo; its name.</p>
-<p>The safest solution is to simply make this a compile error. Tell the user they
-did something odd and let them sort it out. In practice, you almost never see
-code like this anyway, so it&rsquo;s safer to prohibit it than to try to support it
-with some behavior few users are likely to guess correctly.</p>
-<p>The way we make this work is by making &ldquo;come into scope&rdquo; a two-phase process:</p>
+<p>We slayed it then by splitting a variable&rsquo;s declaration into two phases, and
+we&rsquo;ll do that again here:</p>
 <p><img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." /></p>
 <p>As soon as the variable declaration begins<span class="em">&mdash;</span>in other words, before its
 initializer<span class="em">&mdash;</span>the name is declared in the current scope. The variable exists,
-but it&rsquo;s in a special &ldquo;uninitialized&rdquo; state. Then we compile the initializer. If
-at any point in that expression we resolve an identifier that points back to
-this variable, we&rsquo;ll see that it is not initialized yet and flag it as an error.
+but in a special &ldquo;uninitialized&rdquo; state. Then we compile the initializer. If at
+any point in that expression we resolve an identifier that points back to this
+variable, we&rsquo;ll see that it is not initialized yet and flag it as an error.
 After we finish compiling the initializer, we mark the variable as initialized
 and ready for normal use.</p>
 <p>To implement this, when we declare a local, we need to indicate this

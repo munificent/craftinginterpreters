@@ -577,8 +577,9 @@ No, not even Scheme.
 
 </aside>
 
-We've got one more edge case to deal with before we end this chapter. Take a
-look at this strange beastie:
+We've got one more edge case to deal with before we end this chapter. Recall this strange beastie we first met in [jlox's implementation of variable resolution][shadow]:
+
+[shadow]: resolving-and-binding.html#resolving-variable-declarations
 
 ```lox
 {
@@ -589,67 +590,16 @@ look at this strange beastie:
 }
 ```
 
-I know, right? What was the <span name="author">author</span> even thinking when
-they wrote this? But, really, though, what *were* they thinking? What do they
-expect this to do? If anyone were to actually write this code, they probably
-expect the `a` in the initializer to refer to the *outer* `a`. In other words,
-they are initializing the shadowing inner `a` with the value of the shadowed
-one. I suppose that's something someone could want to do.
-
-<aside name="author">
-
-I guess this is a rhetorical question since *I'm* the author of this dollop of
-code. All I had in mind was showing you some ugly corner of the language that we
-are obliged to deal with.
-
-</aside>
-
-But what about:
-
-```lox
-{
-  var a = a;
-}
-```
-
-Should this try to initialize the local `a` with the value of some
-hopefully-defined global `a`? Or does the `a` in the initializer also refer to
-the local?
-
-The key question is when, precisely, does a variable come into scope. Is a
-variable in scope in its own initializer? If the answer is "yes", that's
-definitely not <span name="lambda">*useful*</span>. The variable doesn't have a
-value yet... since we haven't finished executing its initializer.
-
-<aside name="lambda">
-
-It *could* be useful if Lox supported lambdas -- function expressions. In that
-case, the initializer could be a function that referred to the variable being
-initialized. As long as the function isn't *invoked* until after the initializer
-completes, this would be a useful way to have a recursive local function.
-
-</aside>
-
-We could answer "no" and say the variable doesn't come into being until after
-the initializer completes. That would enable the prior example. But, honestly,
-code like that is really confusing. Programmers expect code to roughly execute
-from left to right. It would feel strange if the variable didn't come into scope
-as soon as you went "past" its name.
-
-The safest solution is to simply make this a compile error. Tell the user they
-did something odd and let them sort it out. In practice, you almost never see
-code like this anyway, so it's safer to prohibit it than to try to support it
-with some behavior few users are likely to guess correctly.
-
-The way we make this work is by making "come into scope" a two-phase process:
+We slayed it then by splitting a variable's declaration into two phases, and
+we'll do that again here:
 
 <img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." />
 
 As soon as the variable declaration begins -- in other words, before its
 initializer -- the name is declared in the current scope. The variable exists,
-but it's in a special "uninitialized" state. Then we compile the initializer. If
-at any point in that expression we resolve an identifier that points back to
-this variable, we'll see that it is not initialized yet and flag it as an error.
+but in a special "uninitialized" state. Then we compile the initializer. If at
+any point in that expression we resolve an identifier that points back to this
+variable, we'll see that it is not initialized yet and flag it as an error.
 After we finish compiling the initializer, we mark the variable as initialized
 and ready for normal use.
 
