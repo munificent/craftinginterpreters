@@ -50,7 +50,7 @@ We'll need a few system headers, so let's get them all out of the way:
 
 And now to get the REPL up and REPL-ing:
 
-^code repl
+^code repl (1 before)
 
 A quality REPL handles input that spans multiple lines gracefully and doesn't
 have a hardcoded line length limit. This REPL here is a little more, ahem,

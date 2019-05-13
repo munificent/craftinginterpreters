@@ -189,6 +189,7 @@ static void errorAtCurrent(const char* message) {
 }
 //< Compiling Expressions error-at-current
 //> Compiling Expressions advance
+
 static void advance() {
   parser.previous = parser.current;
 
