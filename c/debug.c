@@ -1,13 +1,13 @@
 //> Chunks of Bytecode debug-c
 #include <stdio.h>
-//> Calls and Functions debug-include-string
+//> Methods and Initializers not-yet
 #include <string.h>
-//< Calls and Functions debug-include-string
+//< Methods and Initializers not-yet
 
 #include "debug.h"
-//> Calls and Functions debug-include-object
+//> Closures not-yet
 #include "object.h"
-//< Calls and Functions debug-include-object
+//< Closures not-yet
 //> debug-include-value
 #include "value.h"
 //< debug-include-value
