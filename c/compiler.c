@@ -88,7 +88,6 @@ typedef struct {
 } Upvalue;
 //< Closures not-yet
 //> Calls and Functions function-type-enum
-
 typedef enum {
   TYPE_FUNCTION,
 //> Methods and Initializers not-yet
@@ -101,12 +100,14 @@ typedef enum {
 //> Local Variables compiler-struct
 
 typedef struct Compiler {
-//> Calls and Functions compiler-struct-fields
+//> Calls and Functions enclosing-field
   struct Compiler* enclosing;
+//< Calls and Functions enclosing-field
+//> Calls and Functions function-fields
   ObjFunction* function;
   FunctionType type;
 
-//< Calls and Functions compiler-struct-fields
+//< Calls and Functions function-fields
   Local locals[UINT8_COUNT];
   int localCount;
 //> Closures not-yet
@@ -302,22 +303,20 @@ static void patchJump(int offset) {
 static void initCompiler(Compiler* compiler) {
 */
 //> Calls and Functions init-compiler
-static void initCompiler(Compiler* compiler, int scopeDepth,
-                         FunctionType type) {
+static void initCompiler(Compiler* compiler, FunctionType type) {
+//> store-enclosing
   compiler->enclosing = current;
+//< store-enclosing
   compiler->function = NULL;
   compiler->type = type;
 //< Calls and Functions init-compiler
   compiler->localCount = 0;
-/* Local Variables init-compiler < Calls and Functions init-scope-and-function
   compiler->scopeDepth = 0;
-*/
-//> Calls and Functions init-scope-and-function
-  compiler->scopeDepth = scopeDepth;
-  compiler->function = newFunction();
-//< Calls and Functions init-scope-and-function
-  current = compiler;
 //> Calls and Functions init-function
+  compiler->function = newFunction();
+//< Calls and Functions init-function
+  current = compiler;
+//> Calls and Functions init-function-name
 
   if (type != TYPE_SCRIPT) {
     current->function->name = copyString(parser.previous.start,
@@ -326,7 +325,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
 
   // The first slot is always implicitly declared.
   Local* local = &current->locals[current->localCount++];
-  local->depth = current->scopeDepth;
+  local->depth = 0;
 //> Closures not-yet
   local->isUpvalue = false;
 //< Closures not-yet
@@ -346,7 +345,7 @@ static void initCompiler(Compiler* compiler, int scopeDepth,
     local->name.length = 0;
   }
 //< Methods and Initializers not-yet
-//< Calls and Functions init-function
+//< Calls and Functions init-function-name
 }
 //< Local Variables init-compiler
 //> Compiling Expressions end-compiler
@@ -374,11 +373,13 @@ static ObjFunction* endCompiler() {
   }
 #endif
 //< dump-chunk
-//> Calls and Functions restore-enclosing
+//> Calls and Functions return-function
   
+//> restore-enclosing
   current = current->enclosing;
+//< restore-enclosing
   return function;
-//< Calls and Functions restore-enclosing
+//< Calls and Functions return-function
 }
 //< Compiling Expressions end-compiler
 //> Local Variables begin-scope
@@ -1066,7 +1067,8 @@ static void block() {
 //> Calls and Functions compile-function
 static void function(FunctionType type) {
   Compiler compiler;
-  initCompiler(&compiler, 1, type);
+  initCompiler(&compiler, type);
+  beginScope();
 
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
@@ -1090,7 +1092,6 @@ static void function(FunctionType type) {
   block();
 
   // Create the function object.
-  endScope();
   ObjFunction* function = endCompiler();
 /* Calls and Functions compile-function < Closures not-yet
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
@@ -1333,10 +1334,12 @@ static void printStatement() {
 //< Global Variables print-statement
 //> Calls and Functions return-statement
 static void returnStatement() {
+//> return-from-script
   if (current->type == TYPE_SCRIPT) {
     error("Cannot return from top-level code.");
   }
 
+//< return-from-script
   if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
@@ -1465,6 +1468,7 @@ static void statement() {
   }
 }
 //< Global Variables statement
+
 /* Scanning on Demand compiler-c < Compiling Expressions compile-signature
 void compile(const char* source) {
 */
@@ -1497,7 +1501,7 @@ ObjFunction* compile(const char* source) {
   initCompiler(&compiler);
 */
 //> Calls and Functions call-init-compiler
-  initCompiler(&compiler, 0, TYPE_SCRIPT);
+  initCompiler(&compiler, TYPE_SCRIPT);
 //< Calls and Functions call-init-compiler
 /* Compiling Expressions init-compile-chunk < Calls and Functions call-init-compiler
   compilingChunk = chunk;

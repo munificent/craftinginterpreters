@@ -157,6 +157,8 @@ static Value peek(int distance) {
 //< Types of Values peek
 /* Calls and Functions call < Closures not-yet
 static bool call(ObjFunction* function, int argCount) {
+*/
+/* Calls and Functions check-arity < Closures not-yet
   if (argCount != function->arity) {
     runtimeError("Expected %d arguments but got %d.",
         function->arity, argCount);
@@ -168,14 +170,18 @@ static bool call(ObjClosure* closure, int argCount) {
     runtimeError("Expected %d arguments but got %d.",
         closure->function->arity, argCount);
 //< Closures not-yet
+//> check-arity
     return false;
   }
 
+//< check-arity
+//> check-overflow
   if (vm.frameCount == FRAMES_MAX) {
     runtimeError("Stack overflow.");
     return false;
   }
-
+  
+//< check-overflow
   CallFrame* frame = &vm.frames[vm.frameCount++];
 /* Calls and Functions call < Closures not-yet
   frame->function = function;
@@ -237,6 +243,7 @@ static bool callValue(Value callee, int argCount) {
         return call(AS_FUNCTION(callee), argCount);
 
 */
+//> call-native
       case OBJ_NATIVE: {
         NativeFn native = AS_NATIVE(callee);
         Value result = native(argCount, vm.stackTop - argCount);
@@ -244,14 +251,14 @@ static bool callValue(Value callee, int argCount) {
         push(result);
         return true;
       }
+//< call-native
 
       default:
-        // Do nothing.
+        runtimeError("Can only call functions and classes.");
         break;
     }
   }
-
-  runtimeError("Can only call functions and classes.");
+  
   return false;
 }
 //< Calls and Functions call-value
@@ -755,9 +762,9 @@ static InterpretResult run() {
         if (!callValue(peek(argCount), argCount)) {
           return INTERPRET_RUNTIME_ERROR;
         }
-//> reset-frame-after-call
+//> update-frame-after-call
         frame = &vm.frames[vm.frameCount - 1];
-//< reset-frame-after-call
+//< update-frame-after-call
         break;
       }
         
@@ -836,9 +843,9 @@ static InterpretResult run() {
 
 //< Closures not-yet
       case OP_RETURN: {
-//> Global Variables op-return
+/* Global Variables op-return < Calls and Functions interpret-return
         // Exit interpreter.
-//< Global Variables op-return
+*/
 /* A Virtual Machine print-return < Global Variables op-return
         printValue(pop());
         printf("\n");
@@ -927,7 +934,7 @@ InterpretResult interpret(const char* source) {
   compile(source);
   return INTERPRET_OK;
 */
-/* Compiling Expressions interpret-chunk < Calls and Functions interpret
+/* Compiling Expressions interpret-chunk < Calls and Functions interpret-stub
   Chunk chunk;
   initChunk(&chunk);
  
@@ -939,11 +946,17 @@ InterpretResult interpret(const char* source) {
   vm.chunk = &chunk;
   vm.ip = vm.chunk->code;
 */
-//> Calls and Functions interpret
+//> Calls and Functions interpret-stub
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-//< Calls and Functions interpret
+//< Calls and Functions interpret-stub
+/* Calls and Functions interpret-stub < Calls and Functions interpret
+  CallFrame* frame = &vm.frames[vm.frameCount++];
+  frame->function = function;
+  frame->ip = function->chunk.code;
+  frame->slots = vm.stackTop - 1;
+*/
 /* Calls and Functions interpret < Closures not-yet
   callValue(OBJ_VAL(function), 0);
 */

@@ -14,7 +14,9 @@
 //> vm-include-value
 #include "value.h"
 //< vm-include-value
+//> stack-max
 
+//< stack-max
 /* A Virtual Machine stack-max < Calls and Functions frame-max
 #define STACK_MAX 256
 */

@@ -37,7 +37,15 @@
 <h3><a href="#top">Calls and Functions<small>24</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#stuff-to-mention"><small>24.1</small> stuff to mention</a></li>
+    <li><a href="#function-objects"><small>24.2</small> Function Objects</a></li>
+    <li><a href="#compiling-to-function-objects"><small>24.3</small> Compiling to Function Objects</a></li>
+    <li><a href="#call-frames"><small>24.4</small> Call Frames</a></li>
+    <li><a href="#function-declarations"><small>24.5</small> Function Declarations</a></li>
+    <li><a href="#function-calls"><small>24.6</small> Function Calls</a></li>
+    <li><a href="#native-functions"><small>24.7</small> Native Functions</a></li>
+    <li><a href="#return-statements"><small>24.8</small> Return Statements</a></li>
+    <li><a href="#stack-traces"><small>24.9</small> Stack Traces</a></li>
 </ul>
 
 
@@ -63,7 +71,15 @@
 <h3><a href="#top">Calls and Functions<small>24</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#stuff-to-mention"><small>24.1</small> stuff to mention</a></li>
+    <li><a href="#function-objects"><small>24.2</small> Function Objects</a></li>
+    <li><a href="#compiling-to-function-objects"><small>24.3</small> Compiling to Function Objects</a></li>
+    <li><a href="#call-frames"><small>24.4</small> Call Frames</a></li>
+    <li><a href="#function-declarations"><small>24.5</small> Function Declarations</a></li>
+    <li><a href="#function-calls"><small>24.6</small> Function Calls</a></li>
+    <li><a href="#native-functions"><small>24.7</small> Native Functions</a></li>
+    <li><a href="#return-statements"><small>24.8</small> Return Statements</a></li>
+    <li><a href="#stack-traces"><small>24.9</small> Stack Traces</a></li>
 </ul>
 
 
@@ -81,9 +97,10 @@
   <div class="number">24</div>
   <h1>Calls and Functions</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -98,7 +115,1030 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<h2><a href="#stuff-to-mention" name="stuff-to-mention"><small>24&#8202;.&#8202;1</small> stuff to mention</a></h2>
+<ul>
+<li>function prototype<span class="em">&mdash;</span>code but not closure<span class="em">&mdash;</span>is stored as constant in containing chunk</li>
+<li>
+<p>how early fortran compilers used self-modifying code to handle returns</p>
+</li>
+<li>
+<p>challenge to store ip in local variable and see how affects performance</p>
+</li>
+</ul>
+<h2><a href="#function-objects" name="function-objects"><small>24&#8202;.&#8202;2</small> Function Objects</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">struct</span> <span class="n">sObj</span><span class="o">*</span> <span class="n">next</span><span class="p">;</span>
+<span class="p">};</span>                  
+</pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObj</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>    
+  <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>          
+  <span class="kt">int</span> <span class="n">arity</span><span class="p">;</span>        
+  <span class="n">Chunk</span> <span class="n">chunk</span><span class="p">;</span>      
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span><span class="p">;</span>  
+<span class="p">}</span> <span class="n">ObjFunction</span><span class="p">;</span>      
+</pre><pre class="insert-after"><br><span></span><span class="k">struct</span> <span class="n">sObjString</span> <span class="p">{</span> 
+</pre></div>
 
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObj</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chunk.h&quot; </span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">;</span>                               
+<span class="p">};</span>                                             
+<br></pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObjString</em></div>
+<pre class="insert"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">newFunction</span><span class="p">();</span>                    
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>allocateObject</em>()</div>
+<pre><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">newFunction</span><span class="p">()</span> <span class="p">{</span>                                      
+  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjFunction</span><span class="p">,</span> <span class="n">OBJ_FUNCTION</span><span class="p">);</span>
+
+  <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                            
+  <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                          
+  <span class="n">initChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">);</span>                                    
+  <span class="k">return</span> <span class="n">function</span><span class="p">;</span>                                                
+<span class="p">}</span>                                                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span> 
+</pre><div class="source-file"><em>object.h</em><br>
+in enum <em>ObjType</em></div>
+<pre class="insert"><span></span>  <span class="n">OBJ_FUNCTION</span><span class="p">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">OBJ_STRING</span><span class="p">,</span>  
+<span class="p">}</span> <span class="n">ObjType</span><span class="p">;</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                          
+</pre><div class="source-file"><em>memory.c</em><br>
+in <em>freeObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span> <span class="p">{</span>                           
+      <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>
+      <span class="n">freeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">);</span>                 
+      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjFunction</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>                   
+      <span class="k">break</span><span class="p">;</span>                                       
+    <span class="p">}</span>                                              
+<br></pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span> <span class="p">{</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                             
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>printObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                   
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                                             
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)         </span>
+<br></pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING) </span>
+<br></pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>&hellip;</p>
+<h2><a href="#compiling-to-function-objects" name="compiling-to-function-objects"><small>24&#8202;.&#8202;3</small> Compiling to Function Objects</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">Compiler</span> <span class="p">{</span>   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>Compiler</em></div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">;</span>    
+  <span class="n">FunctionType</span> <span class="n">type</span><span class="p">;</span>        
+<br></pre><pre class="insert-after"><span></span>  <span class="n">Local</span> <span class="n">locals</span><span class="p">[</span><span class="n">UINT8_COUNT</span><span class="p">];</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after struct <em>Local</em></div>
+<pre><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>  
+  <span class="n">TYPE_FUNCTION</span><span class="p">,</span>
+  <span class="n">TYPE_SCRIPT</span>   
+<span class="p">}</span> <span class="n">FunctionType</span><span class="p">;</span> 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Local</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Compiler</span><span class="o">*</span> <span class="n">current</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                               
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+function <em>currentChunk</em>()<br>
+replace 5 lines</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="n">Chunk</span><span class="o">*</span> <span class="nf">currentChunk</span><span class="p">()</span> <span class="p">{</span>                          
+  <span class="k">return</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">;</span>                     
+<span class="p">}</span>                                                       
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>currentChunk</em>(), replace 5 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Compiler</span> <span class="n">compiler</span><span class="p">;</span>                   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>compile</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">initCompiler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="p">,</span> <span class="n">TYPE_SCRIPT</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 2 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+function <em>initCompiler</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">initCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="p">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                     
+  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">type</span><span class="p">;</span>                                         
+</pre><pre class="insert-after"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>initCompiler</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>          
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">newFunction</span><span class="p">();</span>
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>            
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>            
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="p">;</span>                                            
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">!=</span> <span class="n">TYPE_SCRIPT</span><span class="p">)</span> <span class="p">{</span>                                     
+    <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">copyString</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span>  
+                                         <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// The first slot is always implicitly declared.               </span>
+  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="p">];</span>        
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                              
+</pre><pre class="insert-after"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p><strong>todo: move local slot init to separate snippet</strong></p>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">)</span> <span class="p">{</span>                                            
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">disassembleChunk</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span>                                 
+        <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">?</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="nl">chars</span> <span class="p">:</span> <span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+function <em>endCompiler</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">endCompiler</span><span class="p">()</span> <span class="p">{</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">emitReturn</span><span class="p">();</span>                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>endCompiler</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitReturn</span><span class="p">();</span>                             
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="p">;</span>
+<br></pre><pre class="insert-after"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE                     </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">disassembleChunk</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span>                                 
+        <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">?</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="nl">chars</span> <span class="p">:</span> <span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>                                                                  
+<span class="cp">#endif                                                               </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">return</span> <span class="n">function</span><span class="p">;</span>                                                   
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                          </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>compiler.h</em><br>
+function <em>compile</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif                                   </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.h</em>, function <em>compile</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+function <em>compile</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>compile</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">))</span> <span class="p">{</span>              
+    <span class="n">declaration</span><span class="p">();</span>                         
+  <span class="p">}</span>                                        
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>compile</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">endCompiler</span><span class="p">();</span>   
+  <span class="k">return</span> <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">?</span> <span class="nb">NULL</span> <span class="o">:</span> <span class="n">function</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                          
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 2 lines</div>
+
+<p>&hellip;</p>
+<h2><a href="#call-frames" name="call-frames"><small>24&#8202;.&#8202;4</small> Call Frames</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>               
+</pre><div class="source-file"><em>vm.h</em><br>
+in struct <em>VM</em><br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">CallFrame</span> <span class="n">frames</span><span class="p">[</span><span class="n">FRAMES_MAX</span><span class="p">];</span>
+  <span class="kt">int</span> <span class="n">frameCount</span><span class="p">;</span>              
+<br></pre><pre class="insert-after"><span></span>  <span class="n">Value</span> <span class="n">stack</span><span class="p">[</span><span class="n">STACK_MAX</span><span class="p">];</span>      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em>, replace 2 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define STACK_MAX 256   </span>
+</pre><div class="source-file"><em>vm.h</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>        
+  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">;</span>
+  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">ip</span><span class="p">;</span>          
+  <span class="n">Value</span><span class="o">*</span> <span class="n">slots</span><span class="p">;</span>         
+<span class="p">}</span> <span class="n">CallFrame</span><span class="p">;</span>            
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                          </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>vm.h</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="cp">#define FRAMES_MAX 64                       </span>
+<span class="cp">#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">;</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>resetStack</em>()</div>
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>     
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>resetStack</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="n">InterpretResult</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>                                        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+
+<span class="cp">#define READ_BYTE() (*frame-&gt;ip++)                                    </span>
+<span class="cp">#define READ_SHORT() \                                                </span>
+    <span class="p">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint16_t</span><span class="p">)((</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="cp">#define READ_CONSTANT() \                                             </span>
+    <span class="p">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">constants</span><span class="p">.</span><span class="n">values</span><span class="p">[</span><span class="n">READ_BYTE</span><span class="p">()])</span>            
+</pre><pre class="insert-after"><span></span><span class="cp">#define READ_STRING() AS_STRING(READ_CONSTANT())                      </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 4 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_GET_LOCAL</span><span class="p">:</span> <span class="p">{</span>         
+        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">push</span><span class="p">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]);</span>  
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                     
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_SET_LOCAL</span><span class="p">:</span> <span class="p">{</span>           
+        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>  
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                       
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP</span><span class="p">:</span> <span class="p">{</span>                  
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>           
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP_IF_FALSE</span><span class="p">:</span> <span class="p">{</span>                     
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="p">(</span><span class="n">isFalsey</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_LOOP</span><span class="p">:</span> <span class="p">{</span>                  
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-=</span> <span class="n">offset</span><span class="p">;</span>           
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                                       
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">disassembleInstruction</span><span class="p">(</span><span class="o">&amp;</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">,</span>     
+        <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">));</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#endif                                                  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">InterpretResult</span> <span class="nf">interpret</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>interpret</em>()<br>
+replace 10 lines</div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">compile</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>             
+  <span class="k">if</span> <span class="p">(</span><span class="n">function</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="p">;</span>
+
+  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>      
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                          
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">;</span>                    
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>                      
+</pre><pre class="insert-after"><br><span></span>  <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">();</span>                      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 10 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>interpret</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="c1">// ?!                          </span>
+</pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">result</span><span class="p">;</span>                 
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 2 lines</div>
+
+<p><strong>todo: figure out how to handle deletion</strong></p>
+<p>&hellip;</p>
+<h2><a href="#function-declarations" name="function-declarations"><small>24&#8202;.&#8202;5</small> Function Declarations</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">declaration</span><span class="p">()</span> <span class="p">{</span>     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>declaration</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_FUN</span><span class="p">))</span> <span class="p">{</span>       
+    <span class="n">funDeclaration</span><span class="p">();</span>           
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_VAR</span><span class="p">))</span> <span class="p">{</span>
+</pre><pre class="insert-after"><span></span>    <span class="n">varDeclaration</span><span class="p">();</span>           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>declaration</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>block</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">funDeclaration</span><span class="p">()</span> <span class="p">{</span>                            
+  <span class="kt">uint8_t</span> <span class="n">global</span> <span class="o">=</span> <span class="n">parseVariable</span><span class="p">(</span><span class="s">&quot;Expect function name.&quot;</span><span class="p">);</span>
+  <span class="n">markInitialized</span><span class="p">();</span>                                      
+  <span class="n">function</span><span class="p">(</span><span class="n">TYPE_FUNCTION</span><span class="p">);</span>                                
+  <span class="n">defineVariable</span><span class="p">(</span><span class="n">global</span><span class="p">);</span>                                 
+<span class="p">}</span>                                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>block</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>block</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">function</span><span class="p">(</span><span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>                             
+  <span class="n">Compiler</span> <span class="n">compiler</span><span class="p">;</span>                                                  
+  <span class="n">initCompiler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>                                      
+  <span class="n">beginScope</span><span class="p">();</span>
+
+  <span class="c1">// Compile the parameter list.                                      </span>
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span><span class="p">);</span>       
+
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">check</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">))</span> <span class="p">{</span>                                    
+    <span class="k">do</span> <span class="p">{</span>                                                              
+      <span class="kt">uint8_t</span> <span class="n">paramConstant</span> <span class="o">=</span> <span class="n">parseVariable</span><span class="p">(</span><span class="s">&quot;Expect parameter name.&quot;</span><span class="p">);</span>
+      <span class="n">defineVariable</span><span class="p">(</span><span class="n">paramConstant</span><span class="p">);</span>                                  
+
+      <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">++</span><span class="p">;</span>                                     
+      <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="p">{</span>                             
+        <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot have more than 8 parameters.&quot;</span><span class="p">);</span>                 
+      <span class="p">}</span>                                                               
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_COMMA</span><span class="p">));</span>                                     
+  <span class="p">}</span>                                                                   
+
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span><span class="p">);</span>         
+
+  <span class="c1">// The body.                                                        </span>
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="p">,</span> <span class="s">&quot;Expect &#39;{&#39; before function body.&quot;</span><span class="p">);</span>      
+  <span class="n">block</span><span class="p">();</span>                                                            
+
+  <span class="c1">// Create the function object.                                      </span>
+  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">endCompiler</span><span class="p">();</span>                              
+  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_CONSTANT</span><span class="p">,</span> <span class="n">makeConstant</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">)));</span>            
+<span class="p">}</span>                                                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>block</em>()</div>
+
+<p><strong>todo: split up into pieces?</strong></p>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">Compiler</span> <span class="p">{</span>    
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>Compiler</em></div>
+<pre class="insert"><span></span>  <span class="k">struct</span> <span class="n">Compiler</span><span class="o">*</span> <span class="n">enclosing</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">;</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">initCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="p">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span> <span class="o">=</span> <span class="n">current</span><span class="p">;</span>                                 
+</pre><pre class="insert-after"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">?</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="nl">chars</span> <span class="p">:</span> <span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>                                                                  
+<span class="cp">#endif                                                               </span>
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="p">;</span>                                      
+</pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">function</span><span class="p">;</span>                                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
+
+<p>&hellip;</p>
+<h2><a href="#function-calls" name="function-calls"><small>24&#8202;.&#8202;6</small> Function Calls</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ParseRule</span> <span class="n">rules</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>                                         
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>unary</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">grouping</span><span class="p">,</span> <span class="n">call</span><span class="p">,</span>    <span class="n">PREC_CALL</span> <span class="p">},</span>       <span class="c1">// TOKEN_LEFT_PAREN </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RIGHT_PAREN</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>(), replace 1 line</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>binary</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">call</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>  
+  <span class="kt">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">argumentList</span><span class="p">();</span>
+  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_CALL_0</span> <span class="o">+</span> <span class="n">argCount</span><span class="p">);</span>   
+<span class="p">}</span>                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>binary</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>defineVariable</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">argumentList</span><span class="p">()</span> <span class="p">{</span>                             
+  <span class="kt">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                     
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">check</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">))</span> <span class="p">{</span>                          
+    <span class="k">do</span> <span class="p">{</span>                                                    
+      <span class="n">expression</span><span class="p">();</span>                                         
+      <span class="n">argCount</span><span class="o">++</span><span class="p">;</span>
+
+      <span class="k">if</span> <span class="p">(</span><span class="n">argCount</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="p">{</span>                                   
+        <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot have more than 8 arguments.&quot;</span><span class="p">);</span>        
+      <span class="p">}</span>                                                     
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_COMMA</span><span class="p">));</span>                           
+  <span class="p">}</span>                                                         
+
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">argCount</span><span class="p">;</span>                                          
+<span class="p">}</span>                                                           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>defineVariable</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_LOOP</span><span class="p">,</span>  
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_CALL_0</span><span class="p">,</span>
+  <span class="n">OP_CALL_1</span><span class="p">,</span>
+  <span class="n">OP_CALL_2</span><span class="p">,</span>
+  <span class="n">OP_CALL_3</span><span class="p">,</span>
+  <span class="n">OP_CALL_4</span><span class="p">,</span>
+  <span class="n">OP_CALL_5</span><span class="p">,</span>
+  <span class="n">OP_CALL_6</span><span class="p">,</span>
+  <span class="n">OP_CALL_7</span><span class="p">,</span>
+  <span class="n">OP_CALL_8</span><span class="p">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_RETURN</span><span class="p">,</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-=</span> <span class="n">offset</span><span class="p">;</span>                       
+        <span class="k">break</span><span class="p">;</span>                                     
+      <span class="p">}</span>                                            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_CALL_0</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_1</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_2</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_3</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_4</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_5</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_6</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_7</span><span class="p">:</span>                              
+      <span class="k">case</span> <span class="nl">OP_CALL_8</span><span class="p">:</span> <span class="p">{</span>                            
+        <span class="kt">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">instruction</span> <span class="o">-</span> <span class="n">OP_CALL_0</span><span class="p">;</span>    
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">callValue</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="n">argCount</span><span class="p">),</span> <span class="n">argCount</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>          
+        <span class="p">}</span>                                          
+        <span class="k">break</span><span class="p">;</span>                                     
+      <span class="p">}</span>                                            
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>peek</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">callValue</span><span class="p">(</span><span class="n">Value</span> <span class="n">callee</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>          
+  <span class="k">if</span> <span class="p">(</span><span class="n">IS_OBJ</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                                      
+    <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                              
+      <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                     
+        <span class="k">return</span> <span class="n">call</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">callee</span><span class="p">),</span> <span class="n">argCount</span><span class="p">);</span>
+
+      <span class="k">default</span><span class="o">:</span>                                               
+        <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Can only call functions and classes.&quot;</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>                                               
+    <span class="p">}</span>                                                        
+  <span class="p">}</span>                                                          
+
+  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                              
+<span class="p">}</span>                                                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>peek</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">call</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>       
+  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>             
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                                 
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">;</span>
+
+  <span class="c1">// +1 to include either the called function or the receiver.</span>
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-</span> <span class="p">(</span><span class="n">argCount</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>                
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                                
+<span class="p">}</span>                                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">call</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+add after <em>call</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">argCount</span> <span class="o">!=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="p">)</span> <span class="p">{</span>                   
+    <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Expected %d arguments but got %d.&quot;</span><span class="p">,</span>  
+        <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="p">,</span> <span class="n">argCount</span><span class="p">);</span>                    
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                      
+  <span class="p">}</span>                                                    
+<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>call</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>                                              
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>call</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="n">FRAMES_MAX</span><span class="p">)</span> <span class="p">{</span>             
+    <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Stack overflow.&quot;</span><span class="p">);</span>             
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                
+  <span class="p">}</span>                                              
+<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>     
+        <span class="p">}</span>                                     
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                                
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">function</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="p">;</span>
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>interpret</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span>  <span class="n">callValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>                     
+</pre><pre class="insert-after"><br><span></span>  <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">();</span>                      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                             
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">pop</span><span class="p">();</span>
+
+        <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">--</span><span class="p">;</span>                            
+        <span class="k">if</span> <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_OK</span><span class="p">;</span>
+
+        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">;</span>                 
+        <span class="n">push</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>                               
+
+        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>      
+        <span class="k">break</span><span class="p">;</span>                                      
+</pre><pre class="insert-after"><span></span>      <span class="p">}</span>                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitReturn</span><span class="p">()</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>emitReturn</em>()</div>
+<pre class="insert"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NIL</span><span class="p">);</span>       
+</pre><pre class="insert-after"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_RETURN</span><span class="p">);</span>    
+<span class="p">}</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>emitReturn</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_LOOP&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>        
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_CALL_0</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_1</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_2</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_3</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_4</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_5</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_6</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_7</span><span class="p">:</span>                                                
+    <span class="k">case</span> <span class="nl">OP_CALL_8</span><span class="p">:</span>                                                
+      <span class="k">return</span> <span class="n">simpleInstructionN</span><span class="p">(</span><span class="s">&quot;OP_CALL&quot;</span><span class="p">,</span> <span class="n">instruction</span> <span class="o">-</span> <span class="n">OP_CALL_0</span><span class="p">,</span>
+                                <span class="n">offset</span><span class="p">);</span>                           
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span>                                                
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>debug.c</em><br>
+add after <em>simpleInstruction</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">simpleInstructionN</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s_%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">);</span>                                       
+  <span class="k">return</span> <span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>                                                
+<span class="p">}</span>                                                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, add after <em>simpleInstruction</em>()</div>
+
+<p>&hellip;</p>
+<h2><a href="#native-functions" name="native-functions"><small>24&#8202;.&#8202;7</small> Native Functions</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ObjFunction</span><span class="p">;</span>                                       
+</pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>ObjFunction</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="nf">Value</span> <span class="p">(</span><span class="o">*</span><span class="n">NativeFn</span><span class="p">)(</span><span class="kt">int</span> <span class="n">argCount</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">args</span><span class="p">);</span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                     
+  <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>                                           
+  <span class="n">NativeFn</span> <span class="n">function</span><span class="p">;</span>                                 
+<span class="p">}</span> <span class="n">ObjNative</span><span class="p">;</span>                                         
+</pre><pre class="insert-after"><br><span></span><span class="k">struct</span> <span class="n">sObjString</span> <span class="p">{</span>                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjFunction</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">newFunction</span><span class="p">();</span>                    
+</pre><div class="source-file"><em>object.h</em><br>
+add after <em>newFunction</em>()</div>
+<pre class="insert"><span></span><span class="n">ObjNative</span><span class="o">*</span> <span class="nf">newNative</span><span class="p">(</span><span class="n">NativeFn</span> <span class="n">function</span><span class="p">);</span>       
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after <em>newFunction</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>newFunction</em>()</div>
+<pre><span></span><span class="n">ObjNative</span><span class="o">*</span> <span class="nf">newNative</span><span class="p">(</span><span class="n">NativeFn</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>                 
+  <span class="n">ObjNative</span><span class="o">*</span> <span class="n">native</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjNative</span><span class="p">,</span> <span class="n">OBJ_NATIVE</span><span class="p">);</span>
+  <span class="n">native</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                            
+  <span class="k">return</span> <span class="n">native</span><span class="p">;</span>                                          
+<span class="p">}</span>                                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>newFunction</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span> 
+  <span class="n">OBJ_FUNCTION</span><span class="p">,</span>
+</pre><div class="source-file"><em>object.h</em><br>
+in enum <em>ObjType</em></div>
+<pre class="insert"><span></span>  <span class="n">OBJ_NATIVE</span><span class="p">,</span>  
+</pre><pre class="insert-after"><span></span>  <span class="n">OBJ_STRING</span><span class="p">,</span>  
+<span class="p">}</span> <span class="n">ObjType</span><span class="p">;</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjFunction</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                    
+    <span class="p">}</span>                           
+<br></pre><div class="source-file"><em>memory.c</em><br>
+in <em>freeObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span>            
+      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjNative</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>  
+      <span class="k">break</span><span class="p">;</span>                    
+<br></pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span> <span class="p">{</span>          
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                                             
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>printObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span>                                     
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;native fn&gt;&quot;</span><span class="p">);</span>                             
+      <span class="k">break</span><span class="p">;</span>                                             
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)  </span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))          </span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))-&gt;function)</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))            </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">return</span> <span class="nf">call</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">callee</span><span class="p">),</span> <span class="n">argCount</span><span class="p">);</span>             
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>callValue</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span> <span class="p">{</span>                                        
+        <span class="n">NativeFn</span> <span class="n">native</span> <span class="o">=</span> <span class="n">AS_NATIVE</span><span class="p">(</span><span class="n">callee</span><span class="p">);</span>                    
+        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">native</span><span class="p">(</span><span class="n">argCount</span><span class="p">,</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-</span> <span class="n">argCount</span><span class="p">);</span>
+        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-=</span> <span class="n">argCount</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>                            
+        <span class="n">push</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>                                           
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                            
+      <span class="p">}</span>                                                         
+</pre><pre class="insert-after"><br><span></span>      <span class="k">default</span><span class="o">:</span>                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>runtimeError</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">defineNative</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="n">NativeFn</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">copyString</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">strlen</span><span class="p">(</span><span class="n">name</span><span class="p">))));</span>          
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">newNative</span><span class="p">(</span><span class="n">function</span><span class="p">)));</span>                          
+  <span class="n">tableSet</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">globals</span><span class="p">,</span> <span class="n">AS_STRING</span><span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>  
+  <span class="n">pop</span><span class="p">();</span>                                                       
+  <span class="n">pop</span><span class="p">();</span>                                                       
+<span class="p">}</span>                                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>runtimeError</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">VM</span> <span class="n">vm</span><span class="p">;</span> <span name="one"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="n">Value</span> <span class="nf">clockNative</span><span class="p">(</span><span class="kt">int</span> <span class="n">argCount</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span> 
+  <span class="k">return</span> <span class="n">NUMBER_VAL</span><span class="p">((</span><span class="kt">double</span><span class="p">)</span><span class="n">clock</span><span class="p">()</span> <span class="o">/</span> <span class="n">CLOCKS_PER_SEC</span><span class="p">);</span>
+<span class="p">}</span>                                                     
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">resetStack</span><span class="p">()</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>initVM</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">defineNative</span><span class="p">(</span><span class="s">&quot;clock&quot;</span><span class="p">,</span> <span class="n">clockNative</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;time.h&gt;  </span><span class="cp"></span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_vm_h  </span>
+<br></pre><div class="source-file"><em>vm.h</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
+
+<p>&hellip;</p>
+<h2><a href="#return-statements" name="return-statements"><small>24&#8202;.&#8202;8</small> Return Statements</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">ifStatement</span><span class="p">();</span>                 
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_RETURN</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">returnStatement</span><span class="p">();</span>             
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_WHILE</span><span class="p">))</span> <span class="p">{</span> 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>printStatement</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">returnStatement</span><span class="p">()</span> <span class="p">{</span>                                
+  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                                
+    <span class="n">emitReturn</span><span class="p">();</span>                                              
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                     
+    <span class="n">expression</span><span class="p">();</span>                                              
+    <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span><span class="p">);</span>
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_RETURN</span><span class="p">);</span>                                       
+  <span class="p">}</span>                                                            
+<span class="p">}</span>                                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
+
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">returnStatement</span><span class="p">()</span> <span class="p">{</span>                 
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>returnStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TYPE_SCRIPT</span><span class="p">)</span> <span class="p">{</span>           
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot return from top-level code.&quot;</span><span class="p">);</span>
+  <span class="p">}</span>                                             
+<br></pre><pre class="insert-after"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>returnStatement</em>()</div>
+
+<h2><a href="#stack-traces" name="stack-traces"><small>24&#8202;.&#8202;9</small> Stack Traces</a></h2>
+<p>&hellip;</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">fputs</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">stderr</span><span class="p">);</span>                                           
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>runtimeError</em>()<br>
+replace 3 lines</div>
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>                 
+    <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                            
+    <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="p">;</span>                     
+    <span class="c1">// -1 because the IP is sitting on the next instruction to be</span>
+    <span class="c1">// executed.                                                 </span>
+    <span class="kt">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>   
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] in &quot;</span><span class="p">,</span>                             
+            <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">lines</span><span class="p">[</span><span class="n">instruction</span><span class="p">]);</span>                 
+    <span class="k">if</span> <span class="p">(</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                                
+      <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;script</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                               
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                     
+      <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;%s()</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>          
+    <span class="p">}</span>                                                            
+  <span class="p">}</span>                                                              
+</pre><pre class="insert-after"><br><span></span>  <span class="n">resetStack</span><span class="p">();</span>                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 3 lines</div>
+
+<p>&hellip;</p>
 
 <footer>
 <a href="closures.html" class="next">
