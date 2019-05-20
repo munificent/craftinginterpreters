@@ -404,7 +404,7 @@ Most of this mirrors if statements -- we compile the condition expression,
 surrounded by mandatory parentheses. That's followed by a jump instruction that
 skips over the subsequent body statement if the condition is falsey.
 
-We patch the jump after compiling the body, and take care to <span
+We patch the jump after compiling the body and take care to <span
 name="pop">pop</span> the condition value from the stack on either path. The
 only difference from an if statement is the loop. That looks like this:
 
