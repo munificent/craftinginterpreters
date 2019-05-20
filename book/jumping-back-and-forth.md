@@ -219,7 +219,7 @@ support it at runtime in the VM.
 
 ### Else clauses
 
-A if statement without support for else clauses is like Morticia Addams without
+An if statement without support for else clauses is like Morticia Addams without
 Gomez. So, after we compile the then branch, we look for an `else` keyword. If
 we find one, we compile the else branch:
 
