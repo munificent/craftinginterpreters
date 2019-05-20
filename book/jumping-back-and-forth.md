@@ -193,7 +193,7 @@ then branch.
 I said we wouldn't use C's if statement to implement Lox's control flow, but we
 do use one here to determine whether or not to offset the instruction pointer.
 But we aren't really using C for *control flow*. If we wanted to, we could do
-the same thing purely arithmatically. Let's assume we have a function `falsey()`
+the same thing purely arithmetically. Let's assume we have a function `falsey()`
 that takes a Lox Value and returns 1 if it's falsey or 0 otherwise. Then we could implement the jump
 instruction like:
 
@@ -531,7 +531,7 @@ the body, so it's straightforward:
 The syntax is a little complex since we allow either a variable declaration or
 an expression. We use the presence of the `var` keyword to tell which we have.
 For the expression case, we call `expressionStatement()` instead of
-`expression()`. That looks for a semicolon, which we need here too, and almost
+`expression()`. That looks for a semicolon, which we need here too, and also
 emits an `OP_POP` instruction to discard the value. We don't want the
 initializer to leave anything on the stack.
 
