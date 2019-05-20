@@ -219,7 +219,7 @@ support it at runtime in the VM.
 
 ### Else clauses
 
-A if statement without support for else clauses is like Morticia Addams without
+An if statement without support for else clauses is like Morticia Addams without
 Gomez. So, after we compile the then branch, we look for an `else` keyword. If
 we find one, we compile the else branch:
 
@@ -720,7 +720,7 @@ I'm with him. His general argument is something like this:
     is the actual running program -- its dynamic behavior.
 
 2.  We're better at reasoning about static things than dynamic things. (He
-    doesn't provide any evidence to support this claim, but I accept with it.)
+    doesn't provide any evidence to support this claim, but I accept it.)
 
 3.  Thus, the more we can make the dynamic execution of the program reflect its
     textual structure, the better.
