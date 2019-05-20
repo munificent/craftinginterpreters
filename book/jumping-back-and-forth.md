@@ -868,7 +868,7 @@ of each loop.
 I guess what I really don't like is that we're making language design and
 engineering decisions today based on fear. Few people today have any subtle
 understanding of the problems and benefits of goto. Instead, we just think it's
-bad. Personally, I've never found fear a good place to start from when trying to
-do good, creative work.
+"considered harmful". Personally, I've never found dogma a good starting place
+for quality creative work.
 
 </div>
