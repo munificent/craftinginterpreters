@@ -603,7 +603,7 @@ condition expression if there is one. That loop happens right after the
 increment, since the increment executes at the end of each loop iteration.
 
 Then we change `loopStart` to point to the offset where the increment expression
-begins. Later, when emit the loop instruction after the body statement, this
+begins. Later, when we emit the loop instruction after the body statement, this
 will cause it to jump up to the *increment* expression instead of the top of the
 loop like it does when there is no increment. This is how we stitch the
 increment in to run after the body.
