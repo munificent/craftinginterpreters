@@ -1,6 +1,18 @@
 ^title Calls and Functions
 ^part A Bytecode Virtual Machine
 
+- Function Objects
+- Compiling to Function Objects
+- Call Frames
+- Function Declarations
+- Function Calls
+- Native Functions
+- Return Statements
+- Stack Traces
+
+
+
+
 ## stuff to mention
 
 - function prototype -- code but not closure -- is stored as constant in containing chunk

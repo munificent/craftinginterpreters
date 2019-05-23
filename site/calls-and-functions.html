@@ -115,6 +115,16 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<ul>
+<li>Function Objects</li>
+<li>Compiling to Function Objects</li>
+<li>Call Frames</li>
+<li>Function Declarations</li>
+<li>Function Calls</li>
+<li>Native Functions</li>
+<li>Return Statements</li>
+<li>Stack Traces</li>
+</ul>
 <h2><a href="#stuff-to-mention" name="stuff-to-mention"><small>24&#8202;.&#8202;1</small> stuff to mention</a></h2>
 <ul>
 <li>function prototype<span class="em">&mdash;</span>code but not closure<span class="em">&mdash;</span>is stored as constant in containing chunk</li>
@@ -298,9 +308,7 @@ replace 1 line</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">newFunction</span><span class="p">();</span>
-  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>            
-  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>            
-</pre><pre class="insert-after"><span></span><span class="p">}</span>                                    
+</pre><pre class="insert-after"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="p">;</span>                
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
@@ -317,7 +325,9 @@ in <em>initCompiler</em>()</div>
   <span class="c1">// The first slot is always implicitly declared.               </span>
   <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="p">];</span>        
   <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                              
-</pre><pre class="insert-after"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>                                        
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>                                        
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                        
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
@@ -761,20 +771,21 @@ in <em>run</em>()</div>
 <p>&hellip;</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>peek</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">callValue</span><span class="p">(</span><span class="n">Value</span> <span class="n">callee</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>          
-  <span class="k">if</span> <span class="p">(</span><span class="n">IS_OBJ</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                                      
-    <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                              
-      <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                     
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">callValue</span><span class="p">(</span><span class="n">Value</span> <span class="n">callee</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>    
+  <span class="k">if</span> <span class="p">(</span><span class="n">IS_OBJ</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                                
+    <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                        
+      <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                               
         <span class="k">return</span> <span class="n">call</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">callee</span><span class="p">),</span> <span class="n">argCount</span><span class="p">);</span>
 
-      <span class="k">default</span><span class="o">:</span>                                               
-        <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Can only call functions and classes.&quot;</span><span class="p">);</span>
-        <span class="k">break</span><span class="p">;</span>                                               
-    <span class="p">}</span>                                                        
-  <span class="p">}</span>                                                          
+      <span class="k">default</span><span class="o">:</span>                                         
+        <span class="c1">// Non-callable object type.                   </span>
+        <span class="k">break</span><span class="p">;</span>                                         
+    <span class="p">}</span>                                                  
+  <span class="p">}</span>                                                    
 
-  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                              
-<span class="p">}</span>                                                            
+  <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Can only call functions and classes.&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                        
+<span class="p">}</span>                                                      
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>

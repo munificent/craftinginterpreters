@@ -329,7 +329,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 //> Closures not-yet
   local->isUpvalue = false;
 //< Closures not-yet
-/* Calls and Functions init-function < Methods and Initializers not-yet
+/* Calls and Functions init-function-name < Methods and Initializers not-yet
   local->name.start = "";
   local->name.length = 0;
 */
