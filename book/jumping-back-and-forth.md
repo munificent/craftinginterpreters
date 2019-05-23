@@ -1,7 +1,9 @@
 ^title Jumping Back and Forth
 ^part A Bytecode Virtual Machine
 
-> The order that our mind imagines is like a net, or like a ladder, built to attain something. But afterward you must throw the ladder away, because you discover that, even if it was useful, it was meaningless.
+> The order that our mind imagines is like a net, or like a ladder, built to
+> attain something. But afterward you must throw the ladder away, because you
+> discover that, even if it was useful, it was meaningless.
 >
 > <cite>Umberto Eco, <em>The Name of the Rose</em></cite>
 
@@ -10,7 +12,8 @@ our virtual machine. In the tree-walk interpreter we built for jlox, we
 implemented Lox's control flow in terms of Java's. To execute a Lox if
 statement, we used a Java if statement to run the chosen branch. That works, but
 isn't entirely satisfying. By what magic does the *JVM* or a native CPU
-implement if statements? Now that we have our own bytecode VM to hack on, we can answer that.
+implement if statements? Now that we have our own bytecode VM to hack on, we can
+answer that.
 
 When we talk about "control flow", what are we referring to? By "flow" we mean
 the way execution moves through the text of the program. Almost like there is a
@@ -26,7 +29,8 @@ value of that field is exactly "where we are" in the program.
 
 Execution proceeds normally by incrementing the `ip`. But we can mutate that
 value however we want to. So in order to implement control flow, all that's
-necessary is to change the `ip` in more interesting ways. The simplest control flow construct is an if statement with no else clause:
+necessary is to change the `ip` in more interesting ways. The simplest control
+flow construct is an if statement with no else clause:
 
 ```lox
 if (condition) print("condition was truthy");
@@ -194,8 +198,8 @@ I said we wouldn't use C's if statement to implement Lox's control flow, but we
 do use one here to determine whether or not to offset the instruction pointer.
 But we aren't really using C for *control flow*. If we wanted to, we could do
 the same thing purely arithmetically. Let's assume we have a function `falsey()`
-that takes a Lox Value and returns 1 if it's falsey or 0 otherwise. Then we could implement the jump
-instruction like:
+that takes a Lox Value and returns 1 if it's falsey or 0 otherwise. Then we
+could implement the jump instruction like:
 
 ```c
 case OP_JUMP_IF_FALSE: {
@@ -374,7 +378,7 @@ That statement is an unconditional jump over the code for the right operand.
 This little dance effectively does a jump when the value is truthy. The flow
 looks like this:
 
-<img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of an '||' expression." />
+<img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of a logical or expression." />
 
 If I'm honest with you, this isn't the best way to do this. There are more
 instructions to dispatch and more overhead. There's no good reason why `||`
@@ -563,8 +567,8 @@ After the loop body, we need to patch that jump:
 
 ^code exit-jump (2 before, 1 after)
 
-We only do this when there is a condition clause. If there isn't, there's no jump
-to patch and no condition to pop.
+We only do this when there is a condition clause. If there isn't, there's no
+jump to patch and no condition to pop.
 
 ### Increment clause
 
@@ -700,7 +704,8 @@ ancestral songs. Also, it's a nice short bit of practice for reading academic CS
 
 <aside name="style">
 
-That is, if you can get past Dijkstra's insufferable faux-modest self-aggrandizing writing style:
+That is, if you can get past Dijkstra's insufferable faux-modest
+self-aggrandizing writing style:
 
 > More recently I discovered why the use of the go to statement has such
 > disastrous effects... . At that time I did not attach too much importance to
@@ -747,7 +752,7 @@ just need to know the point after the last statement you executed. Basically a
 breakpoint, the `ip` in our VM, or the line number in an error message.
 
 Adding branching control flow like if and switch doesn't add any more to this.
-Even if the marker points inside a branch, we can still tell we are.
+Even if the marker points inside a branch, we can still tell where we are.
 
 Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
@@ -813,7 +818,8 @@ structured control flow.
 
 By eliminating goto completely from languages, you're definitely prevented from
 writing bad code using gotos. It may be that forcing users to use structured
-control flow and making it an uphill battle to write goto-like code using those constructs is a net win for all of our productivity.
+control flow and making it an uphill battle to write goto-like code using those
+constructs is a net win for all of our productivity.
 
 But I do wonder sometimes if we threw out the baby with the bathwater. In the
 absence of goto, we often resort to more complex structured patterns. The
