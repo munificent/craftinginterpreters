@@ -41,7 +41,7 @@ running. This is not to say theory isn't important. Being able to reason
 precisely and <span name="formal">formally</span> about syntax and semantics is
 a vital skill when working on a language. But, personally, I learn best by
 doing. It's hard for me to wade through paragraphs full of abstract concepts and
-really absorb them. But if I've coded something, ran it, and debugged it, then I
+really absorb them. But if I've coded something, run it, and debugged it, then I
 *get* it.
 
 <aside name="formal">
