@@ -821,7 +821,7 @@ fun count(n) {
 count(1);
 ```
 
-The Java callstack currently looks roughly like this:
+The Java call stack currently looks roughly like this:
 
 ```text
 Interpreter.visitReturnStmt()
@@ -859,8 +859,8 @@ and not actual error handling, we don't need overhead like stack traces.
 
 For the record, I'm not generally a fan of using exceptions for control flow.
 But inside a heavily recursive tree-walk interpreter, it's the way to go. Since
-our own syntax tree evaluation is so heavily tied to the Java callstack, we're
-pressed to do some heavyweight callstack manipulation occasionally, and
+our own syntax tree evaluation is so heavily tied to the Java call stack, we're
+pressed to do some heavyweight call stack manipulation occasionally, and
 exceptions are a powerful tool for that.
 
 </aside>

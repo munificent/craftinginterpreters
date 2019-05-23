@@ -769,7 +769,7 @@ parser's own state?
 
 With recursive descent, the parser's state -- which rules it is in the middle of
 recognizing -- is not stored explicitly in fields. Instead, we use Java's
-own callstack to track what the parser is doing. Each rule in the process of
+own call stack to track what the parser is doing. Each rule in the process of
 being parsed is a callframe on the stack. In order to reset that state, we need
 to clear out those callframes.
 
