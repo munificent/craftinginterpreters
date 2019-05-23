@@ -58,7 +58,7 @@ List<List<String>> nestedList;
 
 Should technically by a syntax error in a fully spec-compliant implementation
 of Java or C#. However, all practical implementations don't follow the letter
-of the spec and instead to what users want.
+of the spec and instead do what users want.
 
 C++, as of C++0x, does actually specify this:
 
@@ -97,8 +97,8 @@ parser that can handle them gracefully, but:
     So even though it's *technically* usable elsewhere, it's effectively fully
     reserved.
 
-That being said, sometimes you have to do them. Once your language is in wide
-use, reserving a new keyword is a breaking change to any code that was
+That being said, sometimes you have no other option. Once your language is in
+wide use, reserving a new keyword is a breaking change to any code that was
 previously using that name. If you can only reserve it inside a new context that
 didn't previously exist (for example, async functions in C#), or in a context
 where an identifier can't appear, then you can reserve it only in that context
