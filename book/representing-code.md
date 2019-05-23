@@ -233,7 +233,7 @@ protein    → "sausage" ;
 protein    → cooked "eggs" ;
 
 crispiness → "really" ;
-crispiness → really "really" ;
+crispiness → "really" crispiness ;
 
 cooked     → "scrambled" ;
 cooked     → "poached" ;
