@@ -1273,7 +1273,7 @@ static void forStatement() {
   
 //< for-exit
 /* Jumping Back and Forth for-statement < Jumping Back and Forth for-increment
-  consume(TOKEN_SEMICOLON, "Expect ')' after for clauses.");
+  consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
 */
 //> for-increment
   if (!match(TOKEN_RIGHT_PAREN)) {
