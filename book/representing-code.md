@@ -355,7 +355,7 @@ recursion.
 With all of that sugar, our breakfast grammar condenses down to:
 
 ```lox
-breakfast → protein ( "with" breakfast "on the side" )? ;
+breakfast → protein ( "with" breakfast "on the side" )?
           | bread ;
 
 protein   → "really"+ "crispy" "bacon"
