@@ -254,11 +254,12 @@ static bool callValue(Value callee, int argCount) {
 //< call-native
 
       default:
-        runtimeError("Can only call functions and classes.");
+        // Non-callable object type.
         break;
     }
   }
   
+  runtimeError("Can only call functions and classes.");
   return false;
 }
 //< Calls and Functions call-value
