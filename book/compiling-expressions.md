@@ -193,8 +193,8 @@ happens using this:
 
 ^code error-at-current
 
-It pulls the location out of the current token in order to tell the user where
-the error occurred and forwards to `errorAt()`. More often, we'll report an
+We pull the location out of the current token in order to tell the user where
+the error occurred and forward it to `errorAt()`. More often, we'll report an
 error at the location of the token we just consumed, so we give the shorter name
 to this other function:
 
