@@ -762,7 +762,7 @@ function.
 
 So you need to know not just the current statement, but, for function calls that
 haven't returned yet, you need to know the locations of the callsites. In other
-words, a callstack, though I don't think that word existed when Dijkstra wrote
+words, a call stack, though I don't think that term existed when Dijkstra wrote
 this. Groovy.
 
 He notes that loops make things harder. If you pause in the middle of a loop

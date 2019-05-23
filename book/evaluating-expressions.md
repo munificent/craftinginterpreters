@@ -596,7 +596,7 @@ put this method there too:
 
 It uses the token associated with the RuntimeError to tell the user what line of
 code was executing when the error occurred. It would be even better to give the
-user an entire callstack to show how they *got* to be executing that code. But
+user an entire call stack to show how they *got* to be executing that code. But
 we don't have function calls yet, so I guess we don't have to worry about it.
 
 After showing the error, it sets this field:

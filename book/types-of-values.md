@@ -325,7 +325,7 @@ compiled from.
 
 Just showing the immediate line where the error occurred doesn't provide much
 context. Better would be a full stack trace. But we don't even have functions to
-call yet, so there is no callstack to trace.
+call yet, so there is no call stack to trace.
 
 </aside>
 
