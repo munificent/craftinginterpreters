@@ -249,8 +249,6 @@ add after <em>declaration</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">statement</span><span class="p">()</span> <span class="p">{</span>  
   <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_PRINT</span><span class="p">))</span> <span class="p">{</span>
     <span class="n">printStatement</span><span class="p">();</span>      
-  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                 
-    <span class="n">expressionStatement</span><span class="p">();</span> 
   <span class="p">}</span>                        
 <span class="p">}</span>                          
 </pre></div>
@@ -409,7 +407,19 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>Exciting!</p>
 <h3><a href="#expression-statements" name="expression-statements"><small>21&#8202;.&#8202;1&#8202;.&#8202;2</small> Expression statements</a></h3>
-<p>Wait until you see the next statement:</p>
+<p>Wait until you see the next statement. If we <em>don&rsquo;t</em> see a <code>print</code> keyword, then
+we must be looking at an expression statement:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">printStatement</span><span class="p">();</span>     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                
+    <span class="n">expressionStatement</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                       
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>It&rsquo;s parsed like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">expressionStatement</span><span class="p">()</span> <span class="p">{</span>                        
@@ -442,7 +452,8 @@ in enum <em>OpCode</em></div>
 
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
-<p>As the name implies, this pops the top value off the stack and forgets it:</p>
+<p>As the name implies, that instruction pops the top value off the stack and
+forgets it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="p">:</span> <span class="n">push</span><span class="p">(</span><span class="n">BOOL_VAL</span><span class="p">(</span><span class="nb">false</span><span class="p">));</span> <span class="k">break</span><span class="p">;</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
