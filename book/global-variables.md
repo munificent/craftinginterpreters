@@ -261,7 +261,12 @@ Exciting!
 
 ### Expression statements
 
-Wait until you see the next statement:
+Wait until you see the next statement. If we *don't* see a `print` keyword, then
+we must be looking at an expression statement:
+
+^code parse-expressions-statement (1 before, 1 after)
+
+It's parsed like so:
 
 ^code expression-statement
 
@@ -281,7 +286,8 @@ expression, and then an `OP_POP` instruction:
 
 ^code pop-op (1 before, 1 after)
 
-As the name implies, this pops the top value off the stack and forgets it:
+As the name implies, that instruction pops the top value off the stack and
+forgets it:
 
 ^code interpret-pop (1 before, 2 after)
 

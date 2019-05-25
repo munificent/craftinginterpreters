@@ -1471,8 +1471,10 @@ static void statement() {
     block();
     endScope();
 //< Local Variables parse-block
+//> parse-expressions-statement
   } else {
     expressionStatement();
+//< parse-expressions-statement
   }
 }
 //< Global Variables statement
