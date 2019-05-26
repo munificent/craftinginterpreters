@@ -656,9 +656,9 @@ I couldn't resist the pun. I regret nothing.
         continueStmt → "continue" ";" ;
 
     A continue statement jumps directly to the top of the nearest enclosing
-    loop, skipping the rest of the loop body. Inside a for loop, a continue also
-    skips evaluating the increment clause, if there is one. It's a compile-time
-    error to have a continue statement not enclosed in a loop.
+    loop, skipping the rest of the loop body. Inside a for loop, a continue
+    jumps to the increment clause, if there is one. It's a compile-time error to
+    have a continue statement not enclosed in a loop.
 
     Make sure to think about scope. What should happen to local variables
     declared inside the body of the loop or in blocks nested inside the loop
