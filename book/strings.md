@@ -692,13 +692,13 @@ nasty conundrum: deciding how to represent strings.
 There are two facets to a string encoding:
 
 1.  **What is a single "character" in a string?** How many different values are
-    there and what do they represent? The first big standard answer for this was
-    [ASCII][]. It gave you 127 different character values and specified what
-    they were. It was great... if you only ever cared about English. While it
-    has weird, mostly-forgotten characters like "record separator" and
-    "synchronous idle", it doesn't have a single umlaut, acute, or grave. It
-    can't represent "jalapeño", "naïve", <span name="gruyere">"Gruyère"</span>,
-    or "Mötley Crüe".
+    there and what do they represent? The first widely-adopted standard answer
+    to this was [ASCII][]. It gave you 127 different character values and
+    specified what they were. It was great... if you only ever cared about
+    English. While it has weird, mostly-forgotten characters like "record
+    separator" and "synchronous idle", it doesn't have a single umlaut, acute,
+    or grave. It can't represent "jalapeño", "naïve", <span
+    name="gruyere">"Gruyère"</span>, or "Mötley Crüe".
 
     <aside name="gruyere">
 
