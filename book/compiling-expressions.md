@@ -770,7 +770,7 @@ That's the whole thing. Really. Here's how the entire function works: At the
 beginning of `parsePrecedence()`, we look up a prefix parser for the current
 token. The first token is *always* going to belong to some kind of prefix
 expression, by definition. It may turn out to be nested as an operand inside one
-or more infix expressions, but as you read the code from the left to right, the
+or more infix expressions, but as you read the code from left to right, the
 first thing you hit is always some prefix expression.
 
 After parsing that, which may consume more tokens, the prefix expression is
