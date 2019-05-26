@@ -1055,8 +1055,8 @@ then *everything* is slow.
 
 1.  In clox, we happen to only need keys that are strings, so the hash table we
     built is hardcoded for that key type. If we exposed hash tables to Lox users
-    as a first-class collection, it would useful to support different kinds of
-    keys.
+    as a first-class collection, it would be useful to support different kinds
+    of keys.
 
     Add support for keys of the other primitive types: numbers, Booleans, and
     `nil`. Later, clox will support user-defined classes. If we want to support
