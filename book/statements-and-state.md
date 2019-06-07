@@ -994,7 +994,7 @@ dynamically scoped. They believed dynamic scope was faster to execute. Today,
 thanks to early Scheme hackers, we know that isn't true. If anything, it's the
 opposite.
 
-Dynamic scope for variables lives on some corners. Emacs Lisp defaults to
+Dynamic scope for variables lives on in some corners. Emacs Lisp defaults to
 dynamic scope for variables. The [`binding`][binding] macro in Clojure provides
 it. The widely-disliked [`with` statement][with] in JavaScript turns properties
 on an object into dynamically-scoped variables.
