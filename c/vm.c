@@ -192,7 +192,6 @@ static bool call(ObjClosure* closure, int argCount) {
   frame->ip = closure->function->chunk.code;
 //< Closures not-yet
 
-  // +1 to include either the called function or the receiver.
   frame->slots = vm.stackTop - (argCount + 1);
   return true;
 }
@@ -750,16 +749,8 @@ static InterpretResult run() {
 //< Jumping Back and Forth op-loop
 //> Calls and Functions interpret-call
 
-      case OP_CALL_0:
-      case OP_CALL_1:
-      case OP_CALL_2:
-      case OP_CALL_3:
-      case OP_CALL_4:
-      case OP_CALL_5:
-      case OP_CALL_6:
-      case OP_CALL_7:
-      case OP_CALL_8: {
-        int argCount = instruction - OP_CALL_0;
+      case OP_CALL: {
+        int argCount = READ_BYTE();
         if (!callValue(peek(argCount), argCount)) {
           return INTERPRET_RUNTIME_ERROR;
         }
@@ -771,17 +762,9 @@ static InterpretResult run() {
         
 //< Calls and Functions interpret-call
 //> Methods and Initializers not-yet
-      case OP_INVOKE_0:
-      case OP_INVOKE_1:
-      case OP_INVOKE_2:
-      case OP_INVOKE_3:
-      case OP_INVOKE_4:
-      case OP_INVOKE_5:
-      case OP_INVOKE_6:
-      case OP_INVOKE_7:
-      case OP_INVOKE_8: {
+      case OP_INVOKE: {
+        int argCount = READ_BYTE();
         ObjString* method = READ_STRING();
-        int argCount = instruction - OP_INVOKE_0;
         if (!invoke(method, argCount)) {
           return INTERPRET_RUNTIME_ERROR;
         }
@@ -791,17 +774,9 @@ static InterpretResult run() {
 //< Methods and Initializers not-yet
 //> Superclasses not-yet
 
-      case OP_SUPER_0:
-      case OP_SUPER_1:
-      case OP_SUPER_2:
-      case OP_SUPER_3:
-      case OP_SUPER_4:
-      case OP_SUPER_5:
-      case OP_SUPER_6:
-      case OP_SUPER_7:
-      case OP_SUPER_8: {
+      case OP_SUPER: {
+        int argCount = READ_BYTE();
         ObjString* method = READ_STRING();
-        int argCount = instruction - OP_SUPER_0;
         ObjClass* superclass = AS_CLASS(pop());
         if (!invokeFromClass(superclass, method, argCount)) {
           return INTERPRET_RUNTIME_ERROR;
@@ -956,7 +931,7 @@ InterpretResult interpret(const char* source) {
   CallFrame* frame = &vm.frames[vm.frameCount++];
   frame->function = function;
   frame->ip = function->chunk.code;
-  frame->slots = vm.stackTop - 1;
+  frame->slots = vm.stackTop;
 */
 /* Calls and Functions interpret < Closures not-yet
   callValue(OBJ_VAL(function), 0);
@@ -977,15 +952,15 @@ InterpretResult interpret(const char* source) {
 //< Scanning on Demand vm-interpret-c
 //> Compiling Expressions interpret-chunk
   
-  InterpretResult result = run();
-//> Calls and Functions end-interpret
-  // ?!
-//< Calls and Functions end-interpret
 /* Compiling Expressions interpret-chunk < Calls and Functions end-interpret
+  InterpretResult result = run();
 
   freeChunk(&chunk);
-*/
   return result;
+*/
+//> Calls and Functions end-interpret
+  return run();
+//< Calls and Functions end-interpret
 //< Compiling Expressions interpret-chunk
 }
 //< interpret

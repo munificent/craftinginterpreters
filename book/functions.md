@@ -174,10 +174,6 @@ cases like this, so we'll add the same limit to jlox.
 
 ^code check-max-arity (1 before, 1 after)
 
-Yeah, *eight* is gratuitously low. I picked that mainly to minimize some boring
-copy/paste code in the C interpreter. You could go up to probably 32 or so
-without any problems if you feel like it. It's your language.
-
 Note that the code here *reports* an error if it encounters too many arguments,
 but it doesn't *throw* the error. Throwing it is how we kick into panic mode
 which is what we want if the parser is in a confused state and doesn't know
