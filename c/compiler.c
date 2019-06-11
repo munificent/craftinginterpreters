@@ -322,14 +322,15 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     current->function->name = copyString(parser.previous.start,
                                          parser.previous.length);
   }
+//< Calls and Functions init-function-name
+//> Calls and Functions init-function-slot
 
-  // The first slot is always implicitly declared.
   Local* local = &current->locals[current->localCount++];
   local->depth = 0;
 //> Closures not-yet
   local->isUpvalue = false;
 //< Closures not-yet
-/* Calls and Functions init-function-name < Methods and Initializers not-yet
+/* Calls and Functions init-function-slot < Methods and Initializers not-yet
   local->name.start = "";
   local->name.length = 0;
 */
@@ -345,7 +346,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     local->name.length = 0;
   }
 //< Methods and Initializers not-yet
-//< Calls and Functions init-function-name
+//< Calls and Functions init-function-slot
 }
 //< Local Variables init-compiler
 //> Compiling Expressions end-compiler
@@ -358,7 +359,7 @@ static ObjFunction* endCompiler() {
   emitReturn();
 //> Calls and Functions end-function
   ObjFunction* function = current->function;
-  
+
 //< Calls and Functions end-function
 //> dump-chunk
 #ifdef DEBUG_PRINT_CODE
@@ -374,7 +375,7 @@ static ObjFunction* endCompiler() {
 #endif
 //< dump-chunk
 //> Calls and Functions return-function
-  
+
 //> restore-enclosing
   current = current->enclosing;
 //< restore-enclosing
@@ -391,7 +392,7 @@ static void beginScope() {
 static void endScope() {
   current->scopeDepth--;
 //> pop-locals
-  
+
   while (current->localCount > 0 &&
          current->locals[current->localCount - 1].depth >
             current->scopeDepth) {
@@ -557,10 +558,10 @@ static void declareVariable() {
 static uint8_t parseVariable(const char* errorMessage) {
   consume(TOKEN_IDENTIFIER, errorMessage);
 //> Local Variables parse-local
-  
+
   declareVariable();
   if (current->scopeDepth > 0) return 0;
-  
+
 //< Local Variables parse-local
   return identifierConstant(&parser.previous);
 }
@@ -581,7 +582,7 @@ static void defineVariable(uint8_t global) {
 //< define-local
     return;
   }
-  
+
 //< Local Variables define-variable
   emitBytes(OP_DEFINE_GLOBAL, global);
 }
@@ -592,11 +593,13 @@ static uint8_t argumentList() {
   if (!check(TOKEN_RIGHT_PAREN)) {
     do {
       expression();
-      argCount++;
+//> arg-limit
 
-      if (argCount > 8) {
-        error("Cannot have more than 8 arguments.");
+      if (argCount == 255) {
+        error("Cannot have more than 255 arguments.");
       }
+//< arg-limit
+      argCount++;
     } while (match(TOKEN_COMMA));
   }
 
@@ -650,7 +653,7 @@ static void binary(bool canAssign) {
 //> Calls and Functions compile-call
 static void call(bool canAssign) {
   uint8_t argCount = argumentList();
-  emitByte(OP_CALL_0 + argCount);
+  emitBytes(OP_CALL, argCount);
 }
 //< Calls and Functions compile-call
 //> Classes and Instances not-yet
@@ -664,7 +667,8 @@ static void dot(bool canAssign) {
 //> Methods and Initializers not-yet
   } else if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
-    emitBytes(OP_INVOKE_0 + argCount, name);
+    emitBytes(OP_INVOKE, argCount);
+    emitByte(name);
 //< Methods and Initializers not-yet
   } else {
     emitBytes(OP_GET_PROPERTY, name);
@@ -835,7 +839,8 @@ static void super_(bool canAssign) {
     uint8_t argCount = argumentList();
 
     pushSuperclass();
-    emitBytes(OP_SUPER_0 + argCount, name);
+    emitBytes(OP_SUPER, argCount);
+    emitByte(name);
   } else {
     pushSuperclass();
     emitBytes(OP_GET_SUPER, name);
@@ -1072,7 +1077,7 @@ static void function(FunctionType type) {
 
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
-
+//> parameters
   if (!check(TOKEN_RIGHT_PAREN)) {
     do {
       uint8_t paramConstant = parseVariable("Expect parameter name.");
@@ -1084,7 +1089,7 @@ static void function(FunctionType type) {
       }
     } while (match(TOKEN_COMMA));
   }
-
+//< parameters
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
 
   // The body.
@@ -1157,11 +1162,11 @@ static void classDeclaration() {
 //> Superclasses not-yet
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
-    
+
     if (identifiersEqual(&className, &parser.previous)) {
       error("A class cannot inherit from itself.");
     }
-    
+
     classCompiler.hasSuperclass = true;
 
     beginScope();
@@ -1260,7 +1265,7 @@ static void forStatement() {
     exitJump = emitJump(OP_JUMP_IF_FALSE);
     emitByte(OP_POP); // Condition.
   }
-  
+
 //< for-exit
 /* Jumping Back and Forth for-statement < Jumping Back and Forth for-increment
   consume(TOKEN_SEMICOLON, "Expect ')' after for clauses.");
@@ -1269,7 +1274,7 @@ static void forStatement() {
   if (!match(TOKEN_RIGHT_PAREN)) {
     int bodyJump = emitJump(OP_JUMP);
 
-    int incrementStart = currentChunk()->count;    
+    int incrementStart = currentChunk()->count;
     expression();
     emitByte(OP_POP);
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
@@ -1284,7 +1289,7 @@ static void forStatement() {
 
   emitLoop(loopStart);
 //> exit-jump
-  
+
   if (exitJump != -1) {
     patchJump(exitJump);
     emitByte(OP_POP); // Condition.
@@ -1317,7 +1322,7 @@ static void ifStatement() {
   emitByte(OP_POP);
 //< pop-end
 //> compile-else
-  
+
   if (match(TOKEN_ELSE)) statement();
 //< compile-else
 //> patch-else
@@ -1370,10 +1375,10 @@ static void whileStatement() {
   emitByte(OP_POP);
   statement();
 //> loop
-  
+
   emitLoop(loopStart);
 //< loop
-  
+
   patchJump(exitJump);
   emitByte(OP_POP);
 }
