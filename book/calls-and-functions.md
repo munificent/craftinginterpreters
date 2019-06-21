@@ -6,89 +6,102 @@
 >
 > <cite>David Wheeler</cite>
 
-- big chapter, lot to get through
-- add functions, but not useful if can't call
-- add calls, but not useful if nothing to call
-- both
-
-- supporting fn calls large structural change in vm
-- vm has stack already, partway there
-- but no notion of *call* stack
-- big three pieces in this chapter
-  - compiler support for compiling function declarations
-    - runtime representation for function object
-  - function calls
-  - vm support for call stack
-
-- as much as possible, try to build up program in little pieces
-- try to keep you in runnable state as much as possible
-- but all three of these pieces depend on each other
-- so need patience in this chapter
-- will have to get through lot of code before get back to something that
-  compiles and runs
-- but once it does, much more powerful!
+OK, this is a big chapter. I try to break things down into incremental steps,
+but sometimes you gotta just hike the whole trail. The next major piece is
+adding functions to clox. We could just add function declarations, but that's
+not very useful if you can't call them. We could add calls, but there's nothing
+to call. And all of the runtime support needed in the VM to support both of
+those isn't very rewarding if they aren't hooked up to anything you can see. So
+we're going to do it all. It's a lot, but it will feel good when it's in and
+working.
 
 ## Function Objects
 
-- most interesting change around call stacks, but first write some code
-- can't do much without having fns, start there
-- from vm pers, what is fn?
+The most interesting structural change in the VM we'll make is around the stack.
+We already have a stack for local variables and temporaries, so we're partway
+there. But we have no notion of a *call* stack. Before we can make much
+progress, we'll have to address that. But first, let's write some code. I always
+feel better once I start moving.
 
-- contains executable code, which means bytecode
-- could compile entire program to one monolithic chunk
-- each fn would have pointer to where its bytecode begins
-- would mean that have single constant pool for entire program
-- end up needing larger operand for constants since more of them
-- instead, think cleaner model is give each fn own chunk
+We can't do much without having some kind of representation for functions, so
+we'll start there. From the VM's perspective, what is a function?
 
-- will need some other metadata too, so put in now
-- struct
+It has a body of code that can be executed, so that means some bytecode. We
+could compile the entire program and all of its function declarations into one
+big monolithic chunk. Each function would have a pointer to the first
+instruction of its code inside the chunk. We'd have a single constant pool for
+the entire program, which means we'd need larger operands to refer to them.
+
+This is roughly how compilation to native code works where the end result really
+is one big blob of machine code. But for our bytecode VM, we can do something a
+little higher level. I think a cleaner, simpler model is to give each function
+its own Chunk. We'll want some other metadata too, so let's go ahead and stuff
+it all in a struct now:
 
 ^code obj-function (2 before, 2 after)
 
-- fns first class, so struct is also lox obj
-- arity is number of parameters fn expects
-- used to check that right number of args passed
-- store name so we can show it in runtime errors
-- then chunk of code for body of fn and constants in it
-- need incl
+Functions are first class in Lox, so they need to be actual Lox objects. Thus it
+has the same `Obj obj` header all object types share. The `arity` field stores
+the number of parameters the function expects. Then, in addition to the chunk,
+we store the function's <span name="name">name</span>. That will be handy for
+reporting readable runtime errors.
+
+<aside name="name">
+
+For some reason, humans don't seem to find numeric bytecode offsets particularly
+illumating in crash dumps.
+
+</aside>
+
+This is the first time the "object" module has needed to reference Chunk, so we
+need an include:
 
 ^code object-include-chunk (1 before, 1 after)
 
-- as with other obj types, have some stuff to work with them
-- ctor
+Like we did with the other object types, we've got some accoutrements to make
+them a little easier to work with in C. Sort of a poor man's object orientation.
+First, we'll declare a function to create a new, uh, function:
 
 ^code new-function-h (3 before, 1 after)
 
-- impl
+The implementation is over here:
 
 ^code new-function
 
-- creates new empty fn
-- instead of passing in things like name and arity, leave blank and caller
-  fill in later
+It uses the same procedure we've seen to allocate memory and initialize the
+object's header so that the VM knows what type of object it is. Instead of
+passing in data to set up the function, we just initialize it in a sort of
+"blank" state -- zero arity, no name, and no code. That stuff will get filled in
+later after the function is created.
 
-- runtime obj rep needs to track what kind of obj
-- so add new enum case
+Since we have a new type of object, we need a new object type in the enum:
 
 ^code obj-type-function (1 before, 2 after)
 
-- when done with fn, can free it
+When you're done with a function object, you need to return its bits it borrowed
+back to the operating system:
 
 ^code free-function (1 before, 1 after)
 
-- responsible for freeing memory fn obj owns and then fn itself
-- in this case, mainly chunk
+This switch case is <span name="free-name">responsible</span> for freeing the
+ObjFunction itself as well as any other memory it owns. In this case, the latter
+is just the chunk, so we call Chunk's destructor-like function.
 
-- [don't need to worry about freeing name. since name is lox obj, gc will handle
-  it once add gc]
+<aside name="free-name">
 
-- in fn to print obj, need to handle fn type
+We don't need to explicitly free the function's name because it's an ObjString.
+That means we can let the garbage collector manage its lifetime for us. Or, at
+least, we'll be able to once we [implement a garbage collector][gc].
+
+[gc]: garbage-collection.html
+
+</aside>
+
+Over in the function to print objects, we also have to add a case:
 
 ^code print-function (1 before, 1 after)
 
-- show fns name to make things little easier for user
-- so if do:
+This shows the function's name. For example:
 
 ```lox
 fun someFunction() {}
@@ -96,179 +109,222 @@ fun someFunction() {}
 print someFunction;
 ```
 
-- prints "<fn someFunction>"
+Run that and it prints out `<fn someFunction>`. I don't know, maybe that will be
+useful to someone?
 
-- couple of macros for doing type tests and conversions
+Finally, we have a couple of macros for converting values to functions. To make
+sure your value actually *is* a function:
 
 ^code is-function (2 before, 1 after)
 
-- returns true if given value is fn obj
-- then, once know have fn, can cast value to that type
+Assuming that returns true, you can then safely cast the Value to an ObjFunction
+pointer using:
 
 ^code as-function (2 before, 1 after)
 
-- ok have working fn
-- got warmed up, time for something harder
+With that, our object model knows how to represent functions. You should feel
+warmed up now, so let's move on to something a little harder.
 
 ## Compiling to Function Objects
 
-- compiler now assumes compiling to only one chunk
-- each fn has own chunk
-- when fn declaration begins compiler needs to handle switching to new chunk
-  for fn
-- then at end of fn, go back to previous chunk
-- since fns just declarations, can nest arbitrarily deeply too
-- so compiler needs to handle tracking which chunk
+Right now, our compiler assumes it is always compiling to one single chunk. With
+a chunk for each function, the compiler needs to switch to that function's chunk
+before compiling its body. At the end of the function body, the compiler needs
+to return to the previous chunk it was working with.
 
-- alsonot all code is inside fn, though
-- unlike c, top level of lox script contains imperative code
-- so still need to handle top level code
-- before get fn decls working, reorganize compiler to handle this
+That's fine for code inside function bodies, but what about code that isn't? The
+"top level" of a Lox program is also imperative code and we need a chunk to
+compile that into. We can simplify the compiler and VM by placing that top level
+code inside an implicitly-defined function too. That way, the compiler is always
+within some kind of function body, and the VM always runs code by invoking a
+function. It's as if the entire program lives inside an automatic `main()`
+function.
 
-- to simplify, will wrap top level code in own implicit fn
-- interpreter runs program by automatically calling that fn
-- that way, compiler always inside some fn
-- tracks it:
+Before we get to user-defined functions, then, let's do the reorganization to
+support that implicit function. It starts with the Compiler struct. Instead of
+pointing directly to a Chunk that it writes to, it will instead have a reference
+to the current function object it is building:
 
 ^code function-fields (1 before, 1 after)
 
-- need type to distinguish when compiling top level code from code inside fn
-  decl
+We also have a little FunctionType enum. This lets the compiler tell when it's
+compiling top level code versus the body of a function. Most of the compiler
+doesn't care about this -- that's why it's a useful abstraction -- but in one or
+two places the distinction is meaningful. We'll get to one later.
 
 ^code function-type-enum
 
-- two are mostly the same, but some differences
-- ex: can't have return statement at top level
-- this lets compiler know context
+Every place in the compiler that was writing to the Chunk now needs to go
+through that function pointer. Fortunately, many <span
+name="current">chapters</span> ago, we encapsulated in the `currentChunk()`
+helper function. We only need to fix that and the rest of the compiler is happy:
 
-- most compiler code writes to chunk being compiled
-- gets at chunk through `currentChunk()` helper
-- put that there as indirection so that we could change "current" chunk without
-  having to rewrite a bunch
-- now:
+<aside name="current">
+
+It's almost like I had a crystal ball that could see into the future and knew
+we'd need to change the code later. But, really, it's because I wrote all the
+code for the book before any of the text.
+
+</aside>
 
 ^code current-chunk (2 before, 2 after)
 
-- current chunk is always chunk owned by fn currently compiling
+The current chunk is always simply the chunk owned by the function we're in the
+middle of compiling. Next, we need to actually create that function. Previously,
+the VM passed a Chunk into the compiler for it to fill with code. Instead, the
+compiler will create and return a function that contains the compiled top-level
+code -- which is all we support right now -- of the user's program.
 
-- next, need to create that fn
-- right now, don't have fn decls, so just need one for top level code
-- in entrypoint fn
+We start threading this through in `compile()`, which is the main entry point
+into the compiler:
 
 ^code call-init-compiler (1 before, 2 after)
 
-- bunch of changes in how compiler gets init
-- first clear out new fields
+There are a bunch of changes in how the compiler is initialized. First, we clear
+out the new Compiler fields:
 
 ^code init-compiler (1 after)
 
-- then create fn obj
+Then we allocate a new function object to compile into:
 
 ^code init-function (1 before, 1 after)
 
-- [weird to null fn field only to initialize a bit later. need for gc.]
+<span name="null"></span>
 
-- seems strange
-- fn is runtime representation of fn object, but creating at compile time
-- sort of bridge compile time and runtime world
-- similar to how we handle other literals like strings
-- fn basically *is* literal
-- fn decl is syntax that creates fn object
-- so compiler creates fn objects during comp
-- at runtime, just invoke them
-- [can do this because fn obj just contains code, name, and arity
-  - all of that known at compile time and constant
-  - when have closures (link) get more complex]
+<aside name="null">
 
-- another strange thing
+I know, it looks dumb to null the `function` field only to immediately assign it
+a value a few lines later. This is one of those weird corners of the VM that
+will make more sense once we have a garbage collector. We clear the field to
+ensure that if a collection happens when allocating the function, the GC doesn't
+see the uninitialized field.
+
+</aside>
+
+This might seem a little strange. A function object is the *runtime*
+representation of a function, but here we are creating it at compile time. The
+way to think of it is that a function is similar to string and number literals.
+It forms a bridge between the compile time and runtime world. When we get to
+function declarations, those really *are* literals -- they are a built in syntax
+that creates a value of a built-in type.
+
+So the <span name="closure">compiler</span> creates function objects during
+compilation. Then, at runtime, they are simply invoked.
+
+<aside name="closure">
+
+We can create the function objects at compile time because they contain only
+data that is available at compile time. The function's code, name, and arity
+are all fixed. When we add closures in the [next chapter][closures], which
+capture variables at runtime, the story gets more complex.
+
+[closures]: closures.html
+
+</aside>
+
+Here is another strange bit of code:
 
 ^code init-function-slot (1 before, 1 after)
 
-- recall locals array used by compiler to track which stack slot associated
-  with which local variable or temporary
-- from now on, compiler pre-emptively claims slot zero for special use
-- trust me, explain why further in
+Remember that the compiler's `locals` array keeps track of which stack slots are
+associated with which local variables or temporaries. From now on, the compiler
+implicitly claims stack slot zero for the VM's own internal use. We give it an
+empty name so that the user can't write an identifier that refers to it. I'll
+explain what this is about when it becomes useful.
 
-- that's init, then over in other end
+That's initializing the compiler. We also need a couple of changes in the other
+end when we finish compiling some code:
 
 ^code end-compiler (1 after)
 
-- right now, compiler is called by `interpret()`
-- passes in chunk, which compiler fills in with code
-- now going to change it
-- instead of passing in chunk, compiler will create own fn obj for top level
-  code and return it
-- grabs fn from global compiler struct
+Right now, when `interpret()` calls into the compiler, it passes in a Chunk to
+be written to. Now that the compiler creates the function object itself, we
+return that function. We grab it from the current compiler:
 
 ^code end-function (1 before, 1 after)
 
-- then returns it
+And then returns it to `compile()`:
 
 ^code return-function (1 before, 1 after)
 
-- while in here
-- have some diagnostic code in compiler to print generated bytecode so we can
-  debug
-- need to fix up to handle chunk being in fn
+Now's a good time to make another tweak in this function. Earlier, we added some
+diagnostic code to have the VM dump the disassembled bytecode so we can debug
+the compiler. We need to fix that now that the generated chunk is wrapped in a
+function:
 
 ^code disassemble-end (2 before, 2 after)
 
-- need to adjust main `compile()` fn that is entrypoint to compiler to handle
-- adjust signature in head
+Bumping up a level to `compile()`, we adjust its signature:
 
 ^code compile-h (2 before, 2 after)
 
-- instead of taking chunk, returns fn
-- likewise in defn
+Instead of taking a chunk, now it returns a function. Over in the
+implementation:
 
 ^code compile-signature (1 after)
 
-- then in impl
+Finally we get to some actual code. At the very end of the function:
 
 ^code call-end-compiler (4 before, 1 after)
 
-- get fn from compiler
-- if compiled without error, return it
-- otherwise, signal compilation error by returning null
-- eventually, we'll update `interpret()` to call this, but have to do other
-  stuff first
+We get the function object from the compiler. If there were no compile errors,
+we return it. Otherwise, we signal an error by returning `NULL`. This way, the
+VM doesn't try to work with a function that may contain invalid bytecode.
+
+Eventually, we will update `interpret()` to handle the new declaration of
+`compile()`, but first we have some other more significant changes to make.
 
 ## Call Frames
 
-- ready for big conceptual leap
-- before can impl fn decls and calls, need to get vm ready to handle them
-- two main problems need to worry about
+It's time for a big conceptual leap. Before we can implement function
+declarations and calls, we need to get the VM ready to handle them. There are
+two main problems we need to worry about:
 
-### allocating locals
+### Allocating local variables
 
-- compiler allocates stack slots to locals
-- how does that work when locals dstribu across multiple fns
+The compiler allocates stack slots for local variables. How should that work
+when the set of local variables in a program is distributed across multiple
+functions?
 
-- one option would be to keep totally separate
-- each fn gets own dedicated set of slots
-- slots never used for any other fn ever
-- sort of like declaring every local var `static` in c
-- each local in entire program has own bit of memory it owns forever
+One option would be to keep them totally separate. Each function would get its
+own dedicate set of slots in the VM stack that it would own <span
+name="static">forever</span>, even when the function isn't in the middle of
+being called. Each local variable in the entire program would have a bit of
+memory in the VM that it keeps to itself.
 
-- believe it or not, early pl did this
-- first fortran compilers worked this way
-- compiler basically statically alloc memory for all locals
+<aside name="static">
 
-- obv problem really wasteful
-- have memory set aside for local even when fn not being called
-- more fundamental problem, though, recursion
-- can be "in" two or more calls to same fn at same time
-- when that happens, each fn needs own copy of its locals
-- [early fortran didn't support recursion specifically for this reason.
-  recursion was considered advanced feature at the time]
+It's basically what you'd get if you declared every local variable in a C
+program using `static`.
 
-- could solve this by dynamically allocating locals as needed
-- but don't want perf hit of doing full heap alloc for each local variable when
-  comes into scope
-- instead, do mixture of static and dynamic alloc
+</aside>
 
-- even with fns in mix, locals still conveniently have stack semantics
-- consider
+Believe it or not, early programming language implementations worked this way.
+The first Fortran compilers statically allocated memory for each variable. The
+obvious problem is that it's really inefficient. Most functions are not in the
+middle of being called at any point in time, so sitting on unused memory for
+them is wasteful.
+
+The more fundamental problem, though, is <span
+name="recursion">recursion</span>. With recursion, you can be "in" multiple
+calls of the same function at the same time. Each needs its own memory for its
+local variables.
+
+<aside name="fortran">
+
+Early versions of Fortran avoided this problem by disallowing recursion
+entirely. Recursion was considered an advanced, esoteric feature at the time.
+
+</aside>
+
+In jlox, we solved this by dynamically allocating memory for an environment each
+time a function was called or a block entered. In clox, we don't want that kind
+of performance cost on every function call. Instead, our solution has a bit of
+the flavor of Fortran's static allocation and a bit of something more dynamic.
+
+The value array in the VM works on the observation that local variables and
+temporaries have stack semantics. Fortunately for us, that's still true even
+when you add function calls into the mix. Here's an example:
 
 ```lox
 fun first() {
@@ -284,16 +340,31 @@ fun second() {
 
 first();
 ```
-
-- as exec flows through fn calls, locals still behave in lifo
-- so can still alloc locals on stack
 
 **todo: illustrate flow**
 
-- ideally, still want to know *where* on stack at compile time
-- for perf, want to do as little computation as possible
-- in above example, c ends up in slot 1 and d in slot 2, but not always case
-- consider:
+As execution flows through the two calls, every local variable obeys the
+principle that any variable declared later will be discarded before the variable
+itself needs to be. This is true even across calls. We know we'll be done with
+`c` and `d` before we are `a`. So we should still be able to allocate local
+variables on the VM's value stack.
+
+Ideally, we still determine *where* on the stack each variable will go at
+compile time. That keeps the bytecode instructions for working with variables
+simple and fast. In the above example, we could <span
+name="imagime">imagine</span> doing so in a straightforward way:
+
+<aside name="imagine">
+
+I say "imagine" because the compiler can't actually figure this out. Because
+functions are first class in Lox, we can't determine which functions call which
+others at compile time.
+
+</aside>
+
+**todo: illustrate that each local goes in one slot**
+
+But that doesn't always work out. Consider:
 
 ```lox
 fun first() {
@@ -311,320 +382,424 @@ fun second() {
 first();
 ```
 
-- in first call to `second()`, go in slots 1 and 2
-- in second call, need to make room for b on stack, so go in 2 and 3
-- compiler can't pin down exact slot for each local in fn
-- but note that *relative* slots for c and d always same
-- key insight
+In the first call to `second()`, `c` and `d` would go into slots 1 and 2. But in
+the second call, we need to have made room for `b`, so `c` and `d` need to be in
+slots 2 and 3. Thus the compiler can't pin down an exact slot for each local
+variable across function calls. But *within* a given function, the *relative*
+locations of each local variable are fixed. Variable `d` is always in the slot
+right after `c`. This is the key insight.
 
-- when call fn, don't know where top of stack is because can be called in many
-  different contexts
-- but wherever that top happens to be when fn call begins, know exactly where
-  locals are relative to that
-- so, like many prob, solve with level of indirection
-- for each fn call, vm stores first slot on stack where fn's own slots begin
-- locals and temporaries inside fn accessed relative to that
-- compiler calcs offset
-- vm at runtime adds location of first slot to get real slot
-- first slot called "frame pointer" or "base pointer" in cpu
+When a function is called, we don't know where the top of the stack will be
+because it can be called from different contexts. But, wherever that top happens
+to be, we do know where all of the function's local variables will be relative
+to that top. So, like many problems, we solve our allocation problem with a
+level of indirection.
 
-- so first piece of data
-- for each fn in process of being executed by vm, keep track of address or
-  offset of first stack slot used by fn
+At the beginning of each function call, the VM records the location of the first
+slot where that function's own locals begin. The instructions for working with
+local variables access them by an offset relative to that. At compile time, we
+calculate those offsets. At runtime, we just need to adjust the offset by the
+location we recorded when the function call started.
 
-### return addresses
+**todo: illustrate window**
 
-- right now vm executes instrs one at a time by incrementing ip
-- only interesting logic control flow where ip offset directly
-- fn calls pretty easy: set ip to point to first instr in fn's chunk
-- what about when fn is done?
-- need to return back to chunk called fn from and pick up at instr right after
-  call
+It's as if the function gets a "window" or "frame" within the larger stack where
+it can store its locals. The position of the *call frame* is determined at
+runtime, but within and relative to that region, we know where to find things.
+The historical name for this recorded location where the function's locals start
+is a "frame pointer" because it points to the beginning of the function's call
+frame. Sometimes you hear "base pointer", because it points to the base stack
+slot on top of which all of the function's variables live.
 
-- for each fn call, need to store where called from
-- called "return address" because address of instr that will return to
-- note not property of fn itself, property of fn call
-- because of recursion, same fn may be in middle of multiple calls simul
-- need to track for each fn invocation
+That's our first piece of data we need to track. Every time we call a function,
+the VM needs to track of the first stack slot where that function's variables
+begin.
 
-- [self-modifying code]
+### Return addresses
 
-### call stack
+Right now, the VM works its way through instruction sequence by incrementing the
+`ip` field. The only interesting logic in there is the control flow instructions
+which offset the `ip` by larger amounts. *Calling* a function is pretty
+straightforward -- simply set `ip` to point to the first instruction in that
+function's chunk. But what about when the function is done?
 
-- so for each fn call vm is exec need struct to track data about call
-- looks like
+The VM needs to return back to the chunk where the function was called from and
+resume execution at the instruction immediately after the call. This, for each
+function call, we need to track where we jump back to when the call completes.
+This is called a "return address" because it's the address of the instruction
+that the VM switches to after the call.
+
+Again, thanks to <span name="return">recursion</span>, there may be multiple
+return addresses for a single function, so this is a property of each
+*invocation* and not the function itself.
+
+**todo: illustrate code with arrows pointing back to where it returns**
+
+<aside name="return">
+
+The authors of early Fortran compilers had a clever trick for implementing
+return addresses. Since they *didn't* support recursion, any given function only
+needed a single return address at any point in time. So when a function was
+called at runtime, the program would *modify its own code* to change a jump
+instruction at the end of the function to jump back to its caller. Sometimes the
+line between genius and madness is hair thin.
+
+</aside>
+
+### The call stack
+
+So for each live function invocation -- each call that hasn't returned yet -- we
+need to track where on the stack that function's locals begin, and where the
+caller should resume. We'll put this, along with some other stuff, in a new
+struct:
 
 ^code call-frame (1 before, 2 after)
 
-- [most native archs do not use separate stack to track call frames
-  instead return address and frame pointer of caller stored directly on value
-  stack]
+Each CallFrame represents a single ongoing function call. The `slots` field
+points directly into the VM's value stack. It points to the first slot that this
+function can use. I gave it a plural name because -- thanks to C's weird
+"pointers are sort of arrays" thing -- we'll treat it like an array.
 
-- each call frame reps one ongoing fn call
-- little different from how described above, but accomplishes same goal
-- instead of storing return address in callframe for callee, callers stores own
-  ip
-- when return, jump to ip in call frame of fn returning to
-- also store fn itself, so we can look up things like constants
-- then store pointer to first slot on stack fn can use for locals and temps
-- refer to as "slots" because will treat it like array
-- [c treating pointers and arrays as similar weird but handy here]
+The implementation of return addresses is a little different from what I
+described above. Instead of storing the return address in the callee's frame,
+the caller stores its own `ip`. When we return from a function, the VM will jump
+to the `ip` of the caller's CallFrame and resume from there.
 
-- each time fn called, need to allocate one of these
-- could dynamically allocate those
-- [many lisp impls do because of call/cc]
+I also stuffed a pointer to the function being called in here. We'll use that to
+look up constants in its chunk and for a few other things.
 
-- as usual, try to avoid heap alloc for perf
-- fn calls happen all the time, need to be fast
-- fortunately, same obs as locals: fn calls have stack semantics
-- if `first()` calls `second()`, `second()` must complete before `first()` does
-- [not true if lang has coroutines]
+Each time a function is called, we need to create one of these structs. We could
+<span name="heap">dynamically</span> allocate them on the heap, but that's slow.
+Function calls are a core operation, so they need to be as fast as possible.
+Fortunately, we can make the same observation we made for variables: function
+calls have stack semantics. If `first()` calls `second()`, the call to
+`second()` must complete because `first()` does.
 
-- so vm can allocate array of these up front and treat like stack
+<aside name="heap">
+
+Many Lisp implementations dynamically allocate stack frames because it
+simplifies implementing continuations.
+
+</aside>
+
+So over in the VM, we can create an array of these CallFrame structs up front
+and treat it like a stack, just like we do with the Value array:
 
 ^code frame-array (1 before, 1 after)
 
-- to keep clox simple, just have fixed max size
-- `frameCount` is current size of stack
+This array replaces the `chunk` and `ip` fields we used to have directly in the
+VM. Now each CallFrame has its own `ip` and its own pointer to the ObjFunction
+that it's executing. From there, we can get to the function's chunk.
+
+The new `frameCount` field in the VM stores the current height of the stack -- the
+number of ongoing function calls. To keep clox simple, the array's capacity is
+fixed. This means, as in many language implementations, there is a maximum call
+depth we can handle. For clox, it's:
 
 ^code frame-max (2 before, 2 after)
 
-- means lox program has max call depth
-- [many langs work this way. most lisps do "tail call optimization" to avoid
-  using too many for deeply recursive fns. some langs can grow stack
-  dynamically.]
-
-- when create vm, starts empty
+We also define the value stack's size in terms of that to make sure we have
+plenty of stack slots even in very deep call trees. When the VM starts up, the
+CallFrame stack is empty:
 
 ^code reset-frame-count (1 before, 1 after)
 
-- grungy work going through bytecode interp and using call frames
-- every time read or write value from stack, need to change to relative to
-  current call frame's stack pointer
-- likewise, vm no long has single ip
-- instead, need to use ip from current call frame
-- start at top and grind way through
+Now, we've got some grunt work ahead of us. We've moved `ip` out of the VM
+struct and into CallFrame. We need to fix every bit of code in the VM that
+touches `ip` to handle that. Also, the instructions that access local variables
+by stack slot need to be updated to do so relative to the current CallFrame's
+`slots` field.
+
+We'll start at the top and plow through it:
 
 ^code run (1 before, 1 after)
 
-- first store current call frame in local variable
-- [could read vm array each time, but encourages c compiler to store current
-  frame in register, which likely helps perf]
-- replace macros for reading operands with ones that read from call frame's
-  ip
+First, we store the curreent topmost CallFrame in a <span
+name="local">local</span> variable inside the main bytecode execution function.
+We replace the macros for reading bytecode with versions that read from that
+frame's `ip` since that will reliably point to the current chunk being executed.
 
-- into instrs
+<aside name="local">
+
+We could access the current frame by going through the CallFrame array every
+time, but that's verbose. More importantly, storing the frame in a local
+variable encourages the C compiler to keep that pointer in a register. That
+speeds up access to the frame's `ip`. There's no *guarantee* that the compiler
+will do this, but there's a good chance it will.
+
+</aside>
+
+Now onto each instruction:
 
 ^code push-local (2 before, 1 after)
 
-- to read local, treat call frame's stack pointer as array
-- operand has slot relative to that
-- same for set
+Previously, this read the given local slot directly from the VM's stack array,
+which meant it read the given slot starting at the very bottom of the stack.
+Now, it access's the current frame's `slots` array, which means it accesses the
+given numbered slot relative to the beginning of that frame.
+
+Setting a local variable works the same way:
 
 ^code set-local (2 before, 1 after)
 
-- jump instrs that modify ip do it for current frmae
+The jump instructions used to modify the VM's `ip` field. Now, they do the same
+for the current frame's `ip`:
 
 ^code jump (2 before, 1 after)
 
-- conditional jump
+And the conditional jump:
 
 ^code jump-if-false (2 before, 1 after)
 
-- backwards jump
+And our backwards-jumping loop instruction:
 
 ^code loop (2 before, 1 after)
 
-- also need to fix up diagnostic code for debugging the vm
+We have some diagnostic code that prints each instruction as it executes to help
+us debug our VM. That needs to work with the new structure too:
 
 ^code trace-execution (1 before, 1 after)
 
-- instead of hardcoded chunk and single ip, reads ip and chunk from call frame
+Instead of passing in the VM's `chunk` and `ip` fields, now we read from the
+current CallFrame.
 
-- not too bad actually
-- last bit is code that calls into main `run()` fn
+You know, that wasn't too bad, actually. Most instructions just use the macros
+so didn't need to be touched. Next, we jump up a level to the code that calls
+`run()`:
 
 ^code interpret-stub (1 before, 2 after)
 
-- wire up new compiler
-- call compiler to get top level code compiled to a fn
-- if returns null, there was a compile error, so return that and don't try to
-  run anything
+We finally get to wire up our earlier compiler changes to the back end changes
+we just made. First we pass the source code to the compiler. It returns us the
+ObjFunction it created containing the compiled top level code. If it returns
+`NULL`, it means there was some compile-time error which it has already
+reported. In that case, we bail out since we can't run anything.
 
-- otherwise, create initial call frame to invoke synthetic fn for running
-  top level code
-- contains fn for code
-- initialize ip to point to first instr in chunk
-- then point call frame's slot pointer to bottom of stack
+Otherwise, we set up the prepare an initial CallFrame to execute that function's
+code. We point to the function, initialize frame's the `ip` to point to the
+beginning of the function's bytecode, and set up its stack window to start at
+the very bottom of the VM's value stack.
 
-- then at end, don't need to worry about freeing hardcoded chunk any more
-  since owned by fn
+This gets the interpreter ready to start executing code. When it finishes, it
+used to free the hardcoded chunk in the VM. Now that the ObjFunction owns that
+code, we don't need to do that anymore, so the end of `interpret()` is simply:
 
 ^code end-interpret (2 before, 1 after)
 
-- after that, ready to run!
-- if did everything write, clox now does... exactly what it did before
-- but go infra in place for fns and calls
+Assuming we did all of that correctly, we finally got clox back to a runnable
+state. Fire it up and it does... exactly what it did before. We haven't added
+any new features yet. But all of the infrastructure is there ready for us now.
+Let's take advantage of it.
 
 ## Function Declarations
 
-- before can call, need some fns to call so decl first
-- start with keyword
+Before we can do call expressions, we need something to call, so we'll do
+function declarations first. The <span name="fun">fun</span> gets started with
+a keyword:
+
+<aside name="fun">
+
+Yes, I am proud of myself for this, thank you for asking.
+
+</aside>
 
 ^code match-fun (1 before, 1 after)
 
-- calls
+That passes off control to:
 
 ^code fun-declaration
 
-- fns just first-class values stored in named vars
-- so parse name like any other var decl
-- at top level, creates global
-- inside block or other fn, creates local var
-- last chapter, explained two stage init for vars
-- ensured can't access var inside own initializer
-- fns don't have problem
-- safe to access fn inside own body because by time fn invoked, fully defined
-- in fact want to enable this to allow recursion on local fns
-- so mark name initialized immediately before compiling body
+Functions are first class values and a function declaration simply creates and
+stores one in a newly-declared variable. So we parse the name just like any
+other variable declaration. A function declaration at the top level will bind
+the function to a global variable. Inside a block or other function, a function
+declaration creates a local variable.
 
-- to parse and compile function itself -- param list and body -- use helper
-- that generates code that will leave fn object on stack
-- then call definevar to emit code to store that fn obj in named variable for
-  fn
+In an earlier chapter, I explained how variables [get defined in two
+stages][stage]. This ensures you can't access a variable's value inside the
+variable's own initializer. That would be bad because the variable doesn't
+*have* a value yet.
 
-- use separate helper because will use it later for compiling method defns
-- start simple
+[stage]: local-variables.html#another-scope-edge-case
+
+Functions don't suffer from this problem. It's safe for a function to refer to
+its own name inside its body. You can't *call* the function and execute the body
+until after it's fully defined, so you'll never see the variable in an
+uninitialized state. Practically speaking, it's useful to allow this in order to
+support recursive local functions.
+
+To make that work, we mark the function declaration's variable as initialized as
+soon as we compile the name, before we call the body. That way it can be
+accessed inside the body without generating an error.
+
+Next, we compile the function itself -- its parameter list and block body. For
+that, we use a separate helper function. That function generates code that
+leaves the resulting function object on top of the stack. After that, we call
+`defineVariable()` to store that function back into the variable we declared for
+it.
+
+We use a separate helper function to compile the parameters and body because
+we'll reuse it later for parsing method declarations inside classes. Let's build
+it incrementally, starting with this:
 
 ^code compile-function
 
-- for now, no parameters
-- just parses empty parens followed by body
-- body starts with brace
-- then call block() which knows how to compile rest of block including closing
-  curly
+For now, we won't worry about parameters. It parses an empty pair of parentheses
+followed by the body. The body starts with a left curly brace, which we parse
+here. Then we call our existing `block()` function which knows how to compile
+the rest of a block including the closing brace.
 
-- interesting part is compiler stuff
-- compiler struct stores things like what slots owned by what local vars
-- how many blocks of nesting currently in
-- all of that specific to single fn
-- how to handle compiling multiple fns simultaneously?
-- [remember even top level code compiled in implicit fn, so always inside at
-  least one fn]
+The interesting part is the compiler stuff. The Compiler struct stores data like
+which slots are owned by which local variables, how many blocks of nesting we're
+currently in, etc. All of that is specific to a single function. But now the
+front end needs to handle compiling multiple functions <span
+name="nested">nested</span> within each other. How do we manage that?
 
-- trick is create separate compiler struct for each one
-- when begin compiling fn, create new compiler on c stack
-- initcompiler sets that to current one
-- so all other compiler fns then compile into new compiler
-- after fn body, call end compiler to get resulting fn obj
-- then store that in constant table of surrounding fn's chunk
+<aside name="nested">
 
-- but how do we get back to surrounding fn?
-- when set new fn as current, lost it
-- fix that by treating compiler structs as stack
-- each compiler points to surrounding compiler in linked list all the way back
-  to top
+Remember that the compiler treats top level code as the body of an implicit
+function, so as soon as we add *any* function declarations, we're in a world of
+nested functions.
+
+</aside>
+
+The trick, as you can see, is to create a separate Compiler for each function
+being compiled. When we start compiling a function declaration, we create a new
+Compiler on the C stack and initialize it. `initCompiler()` sets it to be the
+current function, so when we compile the body, it will write to the chunk owned
+by the new compiler's function.
+
+After we reach the end of the function's block body, we call `endCompiler()`.
+That yields the newly compiled function object. We then store that as a constant
+in the surrounding function's constant table. But, wait, how do we get back to
+the surrounding function? We lost it when `initCompiler()` overwrote the current
+compiler pointer.
+
+We fix that by treating the series of nested Compiler structs as a stack. Unlike
+the Value and CallFrame stacks in the VM, we won't use an array. Instead, we use
+a linked list. Each Compiler points back to the Compiler for the function that
+encloses it, all the way back to the root Compiler for the top level code:
 
 ^code enclosing-field (1 before, 1 after)
 
-- when create new compiler, remembers pointer to current one
+When initializing a new compiler, we capture the current one in that pointer:
 
 ^code store-enclosing (1 before, 1 after)
 
-- then when innermost compiler ends, restores previous current
+Then when a compiler finishes, it pops itself off the stack by restoring the
+previous compiler as the current one:
 
 ^code restore-enclosing (4 before, 1 after)
 
-- because compiler uses recursive descent and compiler structs stored right on
-  c stack, don't even need to dynamically alloc
-- [does mean amount of function nesting practically limited by depth of c stack
-  deeply nested fns could crash compiler. maybe good to set
-max depth and check on recursive calls.
+Because our compiler uses <span name="compiler">recursive</span> descent and
+these Compiler structs are stored right on the C stack, we don't even need to
+dynamically allocate them.
 
-- couple loose ends
-- fn not very useful without params
+<aside name="compiler">
+
+Using the native stack for Compiler structs does mean our compiler has a
+practical limit on how deeply nested function declarations can be. Go too far
+and you could overflow the C stack. If we want the compiler to be more robust
+against pathological or even potentially malicious code -- a very real concern
+for tools like JavaScript VMs -- it would be good to have our compiler
+artificially limit the amount of function nesting it permits.
+
+</aside>
+
+Functions aren't very useful if you can't pass them parameters, so let's do that
+next:
 
 ^code parameters (1 before, 1 after)
 
-- semantically, param just local variable in outermost scope of fn
-- use existing compiler code to declare named local
-- but no code to initialize value, get to that later with fn calls
-- also keep track of fn's arity by noting how many params parsed
+Semantically, a parameter is just a local variable declared in the outermost
+lexical scope of the function body. We can use the existing compiler support for
+declaring named local variables to parse and compile parameters. Unlike with
+local variables which have initializers, there's no code here to initialize the
+parameter's value. We'll see how that works later when we do argument passing in
+function calls.
 
-- last piece of data in fn obj is fn name
-- call initcompiler right after parsing name, so it can grab it from previous
-  token
+We also keep track of the function's arity by counting how many parameters we
+parse. The other piece of metadata we store with a function is its name. When
+parsing a function, we call `initCompiler()` right after we parse the function's
+name. That means we can grab the name right then from the previous token:
 
-^code init-function-name (1 before, 1 after)
+^code init-function-name (1 before, 2 after)
 
-- creates copy of it because remember lexeme just points into source string
-- fn obj exists at runtime after compilation done, so need new heap alloc
-  string with longer lifetime
+Note that we're careful to create a copy of the name string. Remember, the
+lexeme points directly into the original source code string. That string may be
+freed once the code is finished compiling. The function object we create in the
+compiler outlives the compiler and persists until runtime. So it needs its own
+heap allocated name string that it can keep around.
 
-- ok, can now compile fn decls
+Rad. Now we can compile function declarations, like:
 
 ```lox
 fun areWeHavingItYet() {
   print "Yes we are!";
 }
+
+print areWeHavingItYet;
 ```
 
-- just can't call them
+We just can't do anything <span name="useful">useful</span> with them.
+
+<aside name="useful">
+
+We can print them! I guess that's not very useful, though.
+
+</aside>
 
 ## Function Calls
 
-- making good progress
-- don't think of it this way, but fn call expression really infix op
-- have expression that evals to fn on left
-- [high precedence, so usually lhs is just identifier or result of other fn]
-- then `(` in middle, followed by args and `)`
-- so hook into pratt parser as infix op
+We're making good progress. One more section and we'll actually start to see
+some interesting behavior. The next piece is being able to call functions. We
+don't usually think of it this way, but a function call expression is sort of
+like an infix `(` operator. You have a high precedence expression the left for
+the thing being called -- usually just a single identifier. Then the `(` in the
+middle, followed by the argument expressions separated by commas, then a final
+`)` to wrap it up at the end.
+
+It's a weird perspective, but it explains how to hook the syntax into our
+parsing table:
 
 ^code infix-left-paren (1 before, 1 after)
 
-- calls
+When the parser encounters a left parenthesis following an expression, it calls:
 
 ^code compile-call
 
-- already consumed `(`, so then compile arguments
-- returns number of args in call
-- after that, emit new call instruction using count as operand
-- use helper because will also use for compiling arg lists in method and super
-  calls
+We've already consumed the `(` token, so next we compile the arguments using a
+separate `argumentList()` helper. That returns the number of arguments it
+compiled. Each argument expression will leave its value the stack in preparation
+for the call. After that, we emit a new `OP_CALL` instruction to invoke the
+function. We use the number of passed arguments as an operand. That way, the VM
+knows how many slots on top of the stack are used for the call.
+
+We parse the arguments using this guy:
 
 ^code argument-list
 
-- seen similar code in jlox
-- keeps chewing through args as long as we find commas
-- then consumes final closing paren
+It's similar to what we wrote for jlox. It keeps chewing through arguments as
+long as it finds a comma after each expression. Once it runs out, it consumes
+the final closing parenthesis and we're done.
 
-- also put limit on how many args can pass to fn
+Well, almost. Back in jlox, we added a compile-time check that you don't pass
+more than 255 arguments to a call. At the time, I said that was because clox
+would need a similar limit. Now you understand why -- since we stuff the
+argument count into the bytecode as a single-byte operand, we can only go up to
+255. We need to verify that in this compiler too:
 
 ^code arg-limit (1 before, 1 after)
 
-- put limit in in jlox, now see why
-- two real limits in vm
-- 1-byte arg count operand in call instr, so only up to 255
-- only 256 local slots, and slot 0 already claimed so really 255
-- assuming not too many args, emits new instr
+That's the front end. Let's skip over to the back end, with a quick stop in the
+middle to declare the new instruction:
 
 ^code op-call (1 before, 1 after)
 
-- head over to vm
-- before look at code, think about state of stack and what need to do
-- to call fn, need to get fn obj being called
-- create call frame
-- also need to collect args and bind to fn's parameters
-- want to do that as fast as possible
-
-- when compile call, compile fn first
-- usually just identifier expr when eval leaves obj on stack
-- so fn obj sitting on stack
-- then compile args in order, so args on top
-
-- finally emit call instr which begins call
-
-- for ex:
+Before we get to the implementation, let's think about what the stack looks like
+at the point of a call and what we need to do from there. When we reach the call
+instruction, we have already executed the expression for the function being
+called followed by its arguments. So, if our program looks like:
 
 ```lox
 fun addThree(a, b, c) {
@@ -634,130 +809,175 @@ fun addThree(a, b, c) {
 addThree(1, 2, 3);
 ```
 
-- at point that exec call instr, stack looks like:
+If we pause the VM right on the `OP_CALL` instruction for that call to
+`addThree()`, the stack looks like this:
 
 **todo: illustrate**
 
-- when compiled `addThree`, compiler alloc local slot zero
-- then after that, one slot for each param
-- so when start exec body, want stack slots for fn to look like:
+Now let's ruminate on the callee side. When the compiler compiled the
+`addThree()` function itself, it automatically allocated slot zero. Then, after
+that, it allocated local slots for each parameter, in order. To perform a call
+to `addThree()`, we need to create a CallFrame and initialize it with the
+function being called and a region of stack slots that it can use. Then we need
+to collect the arguments passed to the function and get them into the
+corresponding slots for the parameters.
+
+When the VM starts executing the body of `addThree()`, we want its stack window
+to look like this:
 
 **todo: illustrate**
 
-- need call frame with pointer to first slot
-- then need arg values in slots 1 - num params
-- can think of call frame's stack pointer as taking window of entire stack
-  and given fn that window into stack
-- stack pointer points to first slot in window
-- other end of window grows and shrinks as fn allocs locals and temps
+Do you notice how the argument slots the caller sets up and the parameter slots
+the callee needs are both in exactly the right order? How convenient! This is no
+coincidence. When I talked about each CallFrame having its own window into the
+stack, I never said those windows would be *disjoint*.
 
-- code that calls fn allocs temp slots to store each arg in
-- after call, no longer needs them
-- because temps always at top of stack above locals, know that caller won't
-  be using any slots above arg temps
-- so can do clever trick: overlap the windows
+There's nothing preventing us from overlapping them, like this:
 
 **todo: illustrate**
 
-- when call fn, set up new call frame
-- stack pointer point to just before first arg already on stack
-- that way param slots exactly line up with where arg value already stored
-- don't need to do any copying to bind arg to param!
-- means callee's window overlaps callers
-- ok, because caller won't do any work until callee returns
-- and know that caller doesn't have any useful data in stack above args since
-  those were most recently pushed
+<span name="lua">The</span> top of the caller's stack contains the function
+being called followed by the arguments in order. We know the caller doesn't have
+any other slots above those in use because any temporaries needed when
+evaluating argument expressions have been discarded by now. Then the bottom of
+the callee's stack overlaps so that the parameter slots exactly line up with
+where the argument values already live.
 
-- impl
+<aside name="lua">
+
+Different bytecode VMs and real CPU architectures have different *calling
+conventions*, which is the specific mechanism they use to pass arguments, store
+the return address, etc. The mechanism I use here is based very heavily on Lua's
+very clean, fast virtual machine.
+
+</aside>
+
+This means that we don't need to do *any* work to "bind an argument to a
+parameter". There's no copying values between slots or across environments. The
+arguments automagically land exactly where they need to be. It's hard to beat
+that.
+
+Time to implement it:
+
+---
 
 ^code interpret-call (3 before, 1 after)
 
-- need to know how many args passed to fn to know how much stack windows
-  overlap
-- that's why put in bytecode operand which read here
-- actual set up happen in helper fn
-- some calls can cause runtime error, so returns false if call not successful
-- in that case, interp exits with error
+We need to know the function being called and how many arguments are being
+passed to it. We get the latter from the instruction's operand. That also tells
+where to find the function on the stack since it appears right before the first
+operand.
 
-- if successful, will have new frame on callframe stack
-- interp caches current frame in local, so need to update
+All of the work happens in a separate `callValue()` function. If that returns
+`false`, it means the call caused some sort of runtime error. When that happens,
+we abort the interpreter.
+
+If it's successful, there will be a new frame on the CallFrame stack for the
+called function. The `run()` function has its own cached pointer to the current
+frame, so we need to update that:
 
 ^code update-frame-after-call (2 before, 1 after)
 
-- since interp pulls ip from this frame, when bytecode dispatch loop circles to
-  next instr, jumps into body of called fn and begins exec
-
-- to set up new call frame
+Since the bytecode dispatch loop reads from that `frame` variable, when it goes
+to execute the next instruction, it will read the `ip` from the newly called
+function and jump to its code. We set up the call frame here:
 
 ^code call-value
 
-- lox dyn type, so nothing to prevent weird code like
+There's more going on here than just initializing a new CallFrame. Because Lox
+is dynamically typed, there's nothing to prevent a user from writing bad code
+like:
 
 ```lox
 var notAFunction = 123;
 notAFunction();
 ```
 
-- compiler can't prevent so have to check type at runtime
-- if value being called not fn, report runtime error and abort
-- otherwise, actual call happens in
+If that happens, the runtime needs to safely report an error and halt. So the
+first thing we do is check the type of the value that we're trying to call like
+a function. If it's not one, we error out. Otherwise, the actual call happens
+here:
 
 ^code call
 
-- just inits next callframe on stack
-- store ref to fn being called
-- set up frame's ip to point to first instr in chunk
-- then set up stack pointer to give callee window into stack
+This simply initializes the next CallFrame on the stack. It stores a pointer to
+the function being called and points the frame's `ip` to the beginning of the
+function's bytecode. Finally, it sets up the `slots` pointer to give the frame
+its window into the stack. The arithmetic there ensures that the arguments
+already on the stack line up with the function's parameters:
 
-- start at top of stack, which is right after last arg pushed
-- subtract number of args to overlap window for params
-- then subtrack one more
-- this special pre-alloc slot 0 compiler set up
-- contains ref to fn being called
+**todo: illustrate window with offsets for `argCount` and 1**
 
-- not super useful now
-- when add methods, slot will contain object method is called on
-- this
+The `+ 1` is a little funny. That's corresponds to local slot zero, which the
+compiler automatically allocates for private use. It's a little pointless right
+now, but will be useful when we get to methods later.
 
-### runtime errors
+Let's take a quick side trip. Now that we have a nice little function for
+initiating a CallFrame, we may as well use it to set up the first frame for
+executing the top level code:
 
-- overlapping windows works perfectly because num args matches param
-- user could call with too many or too few
-- runtime error
+^code interpret (2 before, 2 after)
+
+OK, now back to calls...
+
+### Runtime error checking
+
+The overlapping stack windows work based on the assumption that the function's
+declared number of parameters and the actual number of arguments passed are in
+agreement. But, again, because Lox ain't statically typed, a foolish user could
+pass too many or too few arguments. In Lox, we've defined that to be a runtime
+error, which we report like so:
 
 ^code check-arity (1 before, 1 after)
 
-- this why store arity in fn obj
-- other error more internal limitation
+Pretty straightforward. This is why we store the arity of each function inside
+the FunctionObj for it.
 
-- call frame array has fixed size
-- don't want to wander into random memory
+There's another error we need to report that's less to do with the user's
+foolishness than our own. Because the CallFrame array has a fixed size, we need
+to ensure a deep call chain doesn't overflow it:
 
 ^code check-overflow (2 before, 1 after)
 
-- if too many call frames, runtime error
-- in practice, almost always because of runaway recursion
+In practice, if a program gets close to this limit, it's most likely to be a bug
+in some runaway recursive code. While we're on the subject of runtime errors,
+let's spend a little time making them more useful. Stopping on a runtime error
+is important to prevent the VM from crashing and burning in some ill-defined
+way. But simply aborting doesn't help the user fix their code which *caused*
+that error.
 
-- while on subject of runtime errors
-- make more helpful for dev
-- when runtime error occurs, programmers wants to know how got into bad state
-- right now, just print line that error occurred on and abort
-- not super helpful
-
-- now that have call stack and fns know names, can show entire call stack
-  on runtime error
-- tells user not just where error occurred, but how program to go be executing
-  that fn
-- critical when multiple ways to reach given line
-- looks like
+The classic tool to aid debugging runtime failures is a *stack trace* -- a print
+out of each function that was still executing when the program died and where
+the execution was at the point that it died. Now that we have a call stack and
+we've convienently stored each function's name, we can show that entire stack on
+a runtime error. It looks like this:
 
 ^code runtime-error-stack (2 before, 2 after)
 
-- after printing error message, walk call stack from top to bottom
-- for each frame, find line number corresponding to current ip
-- then print that and each fn name
+After printing the error message itself, we walk the call stack from <span
+name="top">top</span> (the most recently called function) to bottom (the top
+level code). For each frame, we find the line number that corresponds to the
+current `ip` inside that frame's function. Then we print that along with the
+function name.
 
-- for ex, if run this broken prog:
+<aside name="top">
+
+There seems to be some disagreement on which order stack frames should be shown
+in a trace. Most put the innermost function as the first line and work their way
+towards the bottome of the stack. Python prints them out in the opposite order.
+So reading from top to bottom tells you how your program got to where it is and
+the last line is where the error actually occurred.
+
+There's a logic to that style. On the other hand, the "[inverted pyramid][]"
+from journalism tells us we should put the most important information *first* in
+a block of text. In a stack trace, that's the innermost function where the error
+actually occurred. Most other language implementations do that.
+
+[inverted pyramid]: https://en.wikipedia.org/wiki/Inverted_pyramid_(journalism)
+
+</aside>
+
+For example, if you run this broken program:
 
 ```lox
 fun a() { b(); }
@@ -769,7 +989,7 @@ fun c() {
 a();
 ```
 
-- prints out
+It prints out:
 
 ```text
 Expected 0 arguments but got 2.
@@ -779,43 +999,43 @@ Expected 0 arguments but got 2.
 [line 13] in script
 ```
 
-- not bad
+That doesn't look too bad, does it?
 
-### calling the top level code
+### Returning from functions
 
-- now that have nice fn for initiating call, can use to set up first stack
-  frame for exec top level code
-
-^code interpret (2 before, 2 after)
-
-- getting close
-- can call fns
-- but can't return from them
-
-- have temp code in return op to exit interp
-- can now have real impl
+We're getting close. We can call functions and the VM will execute them. But we
+can't *return* from them yet. We've had an `OP_RETURN` instruction for quite
+some time, but it's always had some kind of temporary code hanging out in it
+just to get us out of the bytecode loop. The time has arrived for a real
+implementation:
 
 ^code interpret-return (1 before, 1 after)
 
-- when fn returns value, will be on top of stack
-- grab that
-- then discard call frame for fn returning
-- if that last frame, means top level code done, exit interp
-- otherwise, returning to caller
-- update vm top of stack to first slot of fn just returned
-- that right below where args were on stack
-- those were temps pushed right before call, so done now
-- thus stack back to what it was before call
-- push return value in that new location
+When a function returns a value, that value will be on top of the stack. We're
+about to discard the called function's entire stack window, so we pop that off
+and hang on to it first.
+
+Then we discard the CallFrame for the returning function. If that was the very
+last CallFrame, it means we've finished executing the top level code and the
+entire program is done, so we exit the interpreter.
+
+Otherwise, we need to clean up the callee's leftover bits on the stack. We
+discard all of the stack slots used by the called function for its local
+variables and parameters. We're also done with the arguments that the callee
+placed on the stack. In short, the top of the stack ends up being right at the
+beginning of the returning function's stack window. Everything below that point
+is still live slots used by the caller that we're returning to.
 
 **todo: illustrate**
 
-- then update cached frame to point to frame of fn returning to
-- that call frame still has own ip, pointing to instr right after call
-- bytecode loop will read that ip and proceed from there
+We push the return value back onto the stack at that new lower location. Then we
+update the `run()` function's cached copy of the current frame pointer. Just
+like when we began a call, in the next iteration of the bytecode dispatch loop,
+it will read `ip` from that frame and execution will jump back to the caller,
+right where it left off immediately after the `OP_CALL` instruction.
 
-- popping return value assumes fn actually did return value, but fn can
-  implicitly complete by reaching end of body:
+Note that we assume here that the function *did* actually return a value, but
+a function can implicitly return by reaching the end of its body:
 
 ```lox
 fun noReturn() {
@@ -826,181 +1046,208 @@ fun noReturn() {
 print noReturn();
 ```
 
-- in that case, lang specified to implicitly return nil
-- need to make that happen
+We need to handle that correctly too. The language is specified to implicitly
+return `nil` in that case. To make that happen, we add this:
 
 ^code return-nil (1 before, 2 after)
 
-- when emit return op at end of fn body, push implicit nil return value
+The compiler calls this to emit the `OP_RETURN` at the end of a function body.
+Now, before that, we emit an instruction to push `nil` onto the stack.
 
-- almost done, just need to dis new instr
+We're almost done with the core support. As usual, the new instruction means the
+disassembler needs to handle it too:
 
 ^code disassemble-call (1 before, 1 after)
 
-- have working fn calls!
+We have working function calls! They can even take parameters! It almost looks
+like we know what we're doing here.
 
 ## Return Statements
 
-- implicitly returning nil fine for some, but useful if fns can actually return
-  values
-- some langs implicitly return result of last expr
-- lox require explicit return stmt
-- do now
-
-- new statement, start from keyword
+Being able to pass data to functions is nice, but it would be nice if they could
+pass data *back* too. Some languages implicitly return the value of the last
+expression in the body. Lox requires an explicit return statement for a function
+to produce a value. We'll add that next:
 
 ^code match-return (1 before, 1 after)
 
-- hand off to
+That jumps to:
 
 ^code return-statement
 
-- return value is optional
-- so check for semicolon
-- if no value, implicitly return nil by emiting nil instr
-- otherwise compile return value
-- either way, return value on top of stack
-- then emit return instr, just like implicit one at end of body
+The return value is optional, so the parser looks for a semicolon token to tell
+if a value was provided. If not, it implicitly returns `nil` by emitting an
+instruction for that. Otherwise, it compiles the return value expression. In
+either case, it ends with an `OP_RETURN` instruction.
 
-- compile error to worry about too
-- lox top level code is imperative code can have arbitrary statements
-- shouldn't be able to have return statement though
+This new statement gives us a compile error to worry about too. Returns are
+useful for returning from functions but the top level of a Lox program is
+imperative code too. You shouldn't be able to <span name="return">return</span>
+from there:
 
 ```lox
 return "What?!";
 ```
 
-- compile time error to have return stmt outside of n
+<aside name="return">
+
+Allowing this isn't the worst idea in the world. It would give you a natural way
+to terminate a script early. You could maybe even use returning a number to
+indicate the process's exit code.
+
+</aside>
+
+We've specified that it's a compile error to have a return statement outside of
+any function:
 
 ^code return-from-script (1 before, 1 after)
 
-- fns full featured now
-- args, params, returns, recursion
-- all working
+This is one of the reasons we added that FunctionType enum to the compiler.
 
-- but user defined fns can't *do* anything
-- ultimately all user code defined in terms of primitive op lang provides
-- right now, only visible thing is print statement
-
-- most langs expose functionality by providing "built in", "native", or
-  "primitive" fns
-- these look like normal fns to caller, but not impl in lang itself
-- instead written in lower level impl lang
+Our VM is getting more and more powerful. We've got functions, calls,
+parameters, returns. You can define lots of different functions that can call
+each other in interesting ways. But, ultimately, they can't really *do*
+anything. The only user visible thing a Lox program can do, regardless of its
+complexity, is print. To add more capabilities, we need to expose them to the
+user...
 
 ## Native Functions
 
-- lox is toy lang mainly because doesn't have many
-- clox doesn't have any right now
-- adding more can turn into actual useful lang
-- but not very educational
-- seen one, seen em all
-- just do one
+If users want to write programs that check the time, read user input, or access
+the file system, we could conceivably add new instructions and keywords for each
+operation, but that obviously doesn't scale well. Instead, most languages expose
+functionality by provided "built in", "native" , or "primitive" functions. From
+the user's perspective, these look like regular functions in the language that
+they can call. But the functions are *implemented* in the underlying host
+language -- in our case C. That lets them access functionality that isn't
+otherwise exposed to the language. These functions are the windows between the
+world of Lox and the world of C.
 
-- even for that, need lot of machinery to support
-- native fns very different from existing fn obj
-- no bytecode chunk to point to
-- when called, don't push vm callframe because no chunk
+Lox feels like a "toy" language mainly because it has almost no built in
+capabilities. At the language level, it's fairly complete -- it's got closures,
+classes, inheritance, and other fun stuff. It's really the lack of native
+functions that make it feel small and not useful for real work. Right now, clox
+has *no* native functions. Adding a suite of them will go a very long way
+towards turning it into a useful language.
 
-- handle by making them entirely different obj type
+But adding a long list of platform capabilities isn't actually very educational.
+Once you've seen how to bind one bit of C code to Lox, you get the idea. But
+even supporting *one* native function requires us to build out all the
+machinery. So we'll go through that and do all the hard work. Then, when that's
+done, we'll add one tiny native function just to show it works.
+
+The reason we need new machinery is because, from the implementation's
+perspective, native functions are different from Lox functions. They have no
+bytecode chunk. Instead, they somehow reference a piece of native C code. When
+they are called, they don't push a CallFrame, because there's no bytecode code
+for that frame to point to.
+
+We handle this by defining native functions as an entirely different object
+type:
 
 ^code obj-native (1 before, 2 after)
 
-- native fn is different obj
-- has typical lox obj header
-- then pointer to c fn that impls native functionality
-- fn gets passed the arg count and pointer to first arg on stack
-- returns value that is result
+The representation is simpler than ObjFunction -- just an Obj header and a
+pointer to the C function that implements the native behavior. The native
+function gets passed the argument count and a pointer to the first argument on
+the stack. It accesses the arguments through that pointer. Once it's done, it
+returns the result value.
 
-- new obj type means few pieces
-- declare ctor-like fn to create one
+As always, a new object type carries some accoutrement with it. To create an
+ObjNative, we declare a constructor-like function:
 
 ^code new-native-h (1 before, 1 after)
 
-- impl in module
+And an implementation:
 
 ^code new-native
 
-- takes pointer to c fn that it wraps
-- allocs struct and sets type so runtime knows what kind of obj
-- new enum case
+The constructor takes a C function pointer to wrap in an ObjNative. It sets up
+the object header and stores the function. For the header, we need a new object
+type:
 
 ^code obj-type-native (2 before, 2 after)
 
-- when done with, need to free
+The VM also needs to know how to deallocate a native function object:
 
 ^code free-native (4 before, 1 after)
 
-- not much here since struct doesn't own any extra memory
-- also need to handle printing obj
+There isn't much here since ObjNative doesn't own any extra memory. The other
+capability all objects support is being printed:
 
 ^code print-native (2 before, 1 after)
 
-- and couple of macros use for type tests and cast from value
+In order to support dynamic typing, we have a macro to see if a value is a
+native function:
 
 ^code is-native (1 before, 1 after)
 
-- after tested type, safe to cast
+Assuming that returns true, this macro converts a Value to an ObjNative:
 
 ^code as-native (1 before, 1 after)
 
-- now native fn are obj like any other
-- can store in var, etc.
-- aren't called like other fns
-- instead, in vm when handle call instr, look at type and handle natives
-  specially
+All of this baggage lets the VM treat native functions like any other object.
+You can store them in variables, pass them around, you get the idea. Of course,
+the operation we actually care about is *calling* them -- using one as the left
+hand operand in a call expression.
+
+Over in `callValue()` we add another type case:
 
 ^code call-native (2 before, 2 after)
 
-- don't need to mess with vm call frame stack at all
-- just immediately call c fn and rely on c stack
-- get result value back
-- then like lox fn call, discard arg slots and store result back on stack
-- after that, fn done
+If the object being called is a native function, we invoke the C function right
+then and there. There's no need to muck with CallFrames or anything. We just
+hand off to C, get the result and stuff it back in the stack. This makes native
+functions as fast as we can get.
 
-- user has no way to create own native fns
-- need to be wired directly into c code in vm
-- provide to user by having them pre-defined in global vars
-
-- add utility fn in vm to add one
+With this, users should be able to call native functions, but there aren't any
+to call. Unlike regular Lox functions, they have no way to create their own.
+That's our job as VM implementers. We'll start with a utility function to define
+a new native function exposed to Lox programs:
 
 ^code define-native
 
-- creates native fn obj for given c fn
-- then stores in global var hash table under given name
-- first, have to wrap raw c string in lox string obj
+It takes a pointer to a C function and the name for the function. We wrap the
+function in an ObjFunction and then store that in a global variable with the
+given name.
 
-- probably wondering why tossing name and fn on stack only to pop
-- weird, right?
+You're probably wondering why we push and pop the name and function on the
+stack. That's kind of weird looking, right? This is the kind of stuff you have
+to worry about when <span name="worry">garbage</span> collection gets involved.
+Both `copyString()` and `newNative()` dynamically allocate memory. That means
+once we have a GC, they can potentially trigger a collection. If that happens,
+we need to ensure the collector knows we're not done with the name and
+ObjFunction so that it doesn't free them out from under us. Storing them on the
+value stack accomplishes that.
 
-- this is kind of stuff have to do when have gc
-- we don't yet, but will soon
-- creating string, native fn, and storing entry in hash all dynamically alloc
-  mem
-- means any of them could trigger gc
-- if gc happens in middle of fn, need to make sure vm doesn't get confused and
-  accidentally free string for name or native obj
-- storing on stack helps vm find them
-- [don't worry if confusing, make sense when add gc]
+<aside name="worry">
 
-- for all that, only going to add one native
-- returns elapsed exec time in seconds
-- [use for profiling later]
+Don't worry if you didn't follow all that. It will make a lot more sense once we
+get around to implementing the GC.
+
+</aside>
+
+It feels a little silly, but after all of that work, we're only going to add one
+little native function:
 
 ^code clock-native (1 before, 2 after)
 
-- bind it to global "clock"
+This returns the elapsed time since the program started running in seconds. It's
+handy for benchmarking Lox programs. In Lox, we'll name it `clock()`:
 
 ^code define-native-clock (1 before, 1 after)
 
-- need couple of includes for this to work
+The "vm" module needs a couple of includes to wire this all up. First to access
+the c standard library `clock()`:
 
 ^code vm-include-time (1 before, 2 after)
 
-- also
+And then to access the object stuff:
 
 ^code vm-include-object (2 before, 1 after)
 
-- give try
+Phew, that was a long hike. Let's see how far we've come. Type this in and try
+it out:
 
 ```lox
 fun fib(n) {
@@ -1013,31 +1260,52 @@ print fib(35);
 print clock() - start;
 ```
 
-- can now not just write inefficient fib, but can measure just how ineffic
-- not smartest way to calc fib, but good test of fn call perf
-- on my machine, clox ~5x faster jlox
-- not bad
+We can write a really inefficient recursive Fibonacci function. Even better, we
+can measure just *how* ineffecient it is. This is, of course, not the smartest
+way to calculate a Fibonacci number. But it is a good way to stress test a
+language implementation's support for function calls. On my machine, this in
+clox about five times faster than it does in jlox. That's quite an improvement.
+You can start to see how our stack-based bytecode architecture pays its way.
 
 <div class="challenges">
 
 ## Challenges
 
-1. reading writing ip address one of most frequent oper in bytecode loop
-   - right now, access through pointer to current call frame, requires indirection
-   - cache ip of current fn in local var in run()
-   - make sure to update correctly when call frame pushed or popped
-   - how does affect perf?
+1.  Reading and write the `ip` field is one of the most frequent operations
+    inside the bytecode loop. Right now, we access it through a pointer to the
+    current CallFrame. That requires a pointer indirection. That can force the
+    computer to bypass the cache and hit main memory, which can be a real
+    performance sink.
 
-2. - native fns in clox have no way of reporting runtime error
-   - cannot define native that fails
-   - add support for reporting runtime error from native fn
+    Ideally, we'd be able to keep the `ip` in a native CPU register. C doesn't
+    let us *require* that without dropping into inline assembly, but we can
+    structure the code to encourage the compiler to make that optimization. If
+    we store the `ip` directly in a C local variable and mark it `register`,
+    there's a good chance the C compiler will listen to our polite request.
 
-3. - add more natives to clox to do useful things
-   - what did you add?
-   - write some code using them?
-   - how does it affect how the language feels and how useful it is?
+    This does mean we need to be careful to load and store it back into the
+    correct CallFrame when starting and ending function calls. Implement this
+    optimization. Write a couple of benchmarks and see how it affects the
+    performance. Do you think the extra code complexity is worth it?
 
-4. - instead of separate callframe array, store data for callers directly on
-     value stack
+2.  Right now, there's no way for a native function to signal a runtime error.
+    In a real implementation, this is something we'd need to support because
+    native functions live in the statically-typed world of C but are called
+    from dynamically-typed Lox land. If a user, say, tries to pass a string to
+    `sin()`, that native function needs to report a runtime error.
+
+    Extend the native function system to support that. How does this capability
+    affect performance of native calls?
+
+3.  Add some more native functions to do things you find useful. Write some
+    programs using those. What did you add? How do they affect the feel of the
+    language and how useful it is?
+
+4.  Instead of a separate CallFrame stack, most native CPU architectures and
+    many virtual machines use a single stack to track both values and calls.
+    They push the base pointer and return address to the stack at the beginning
+    of a call and pop them when the call completes. Implement that. (You may
+    find it easier to implement this on top of the solution to challenge 1.) Do
+    a little benchmarking and see how it affects function call performance.
 
 </div>

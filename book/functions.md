@@ -582,21 +582,9 @@ those parameters -- no other code outside of the function can see them. This
 means each function gets its own environment where it stores those variables.
 
 Further, this environment must be created dynamically. Each function *call* gets
-its own environment. Otherwise, <span name="fortran">recursion</span> would
-break. If there are multiple calls to the same function in play at the same
-time, each needs its *own* environment, even though they are all calls to the
-same function.
-
-<aside name="fortran">
-
-Early versions of Fortran did not support recursion. This let compilers
-statically allocate memory for each function's parameters, since only one set of
-them would ever be needed for any given function declaration.
-
-Imagine using `static` for all of your local variables in C, and you have the
-idea.
-
-</aside>
+its own environment. Otherwise, recursion would break. If there are multiple
+calls to the same function in play at the same time, each needs its *own*
+environment, even though they are all calls to the same function.
 
 For example, here's a convoluted way to count to three:
 

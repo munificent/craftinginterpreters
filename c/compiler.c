@@ -1346,7 +1346,7 @@ static void returnStatement() {
 
 //< return-from-script
   if (match(TOKEN_SEMICOLON)) {
-    emitReturn();
+    emitByte(OP_NIL);
   } else {
 //> Methods and Initializers not-yet
     if (current->type == TYPE_INITIALIZER) {
@@ -1356,8 +1356,8 @@ static void returnStatement() {
 //< Methods and Initializers not-yet
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
-    emitByte(OP_RETURN);
   }
+  emitByte(OP_RETURN);
 }
 //< Calls and Functions return-statement
 //> Jumping Back and Forth while-statement
