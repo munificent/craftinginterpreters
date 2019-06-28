@@ -180,7 +180,7 @@ static bool call(ObjClosure* closure, int argCount) {
     runtimeError("Stack overflow.");
     return false;
   }
-  
+
 //< check-overflow
   CallFrame* frame = &vm.frames[vm.frameCount++];
 /* Calls and Functions call < Closures not-yet
@@ -252,12 +252,12 @@ static bool callValue(Value callee, int argCount) {
       }
 //< call-native
 
-      default:
+      default: // [switch]
         // Non-callable object type.
         break;
     }
   }
-  
+
   runtimeError("Can only call functions and classes.");
   return false;
 }
@@ -486,7 +486,7 @@ static InterpretResult run() {
         (int)(frame->ip - frame->closure->function->chunk.code));
 //< Closures not-yet
 #endif
-    
+
 //< trace-execution
     uint8_t instruction;
     switch (instruction = READ_BYTE()) {
@@ -647,7 +647,7 @@ static InterpretResult run() {
         push(BOOL_VAL(valuesEqual(a, b)));
         break;
       }
-        
+
 //< Types of Values interpret-equal
 //> Types of Values interpret-comparison
       case OP_GREATER:  BINARY_OP(BOOL_VAL, >); break;
@@ -707,7 +707,7 @@ static InterpretResult run() {
         printf("\n");
         break;
       }
-        
+
 //< Global Variables interpret-print
 //> Jumping Back and Forth op-jump
       case OP_JUMP: {
@@ -759,7 +759,7 @@ static InterpretResult run() {
 //< update-frame-after-call
         break;
       }
-        
+
 //< Calls and Functions interpret-call
 //> Methods and Initializers not-yet
       case OP_INVOKE: {
@@ -861,7 +861,7 @@ static InterpretResult run() {
           runtimeError("Superclass must be a class.");
           return INTERPRET_RUNTIME_ERROR;
         }
-        
+
         ObjClass* subclass = AS_CLASS(peek(0));
         tableAddAll(&AS_CLASS(superclass)->methods, &subclass->methods);
         pop(); // Subclass.
@@ -913,7 +913,7 @@ InterpretResult interpret(const char* source) {
 /* Compiling Expressions interpret-chunk < Calls and Functions interpret-stub
   Chunk chunk;
   initChunk(&chunk);
- 
+
   if (!compile(source, &chunk)) {
     freeChunk(&chunk);
     return INTERPRET_COMPILE_ERROR;
@@ -951,7 +951,7 @@ InterpretResult interpret(const char* source) {
 //< Closures not-yet
 //< Scanning on Demand vm-interpret-c
 //> Compiling Expressions interpret-chunk
-  
+
 /* Compiling Expressions interpret-chunk < Calls and Functions end-interpret
   InterpretResult result = run();
 
