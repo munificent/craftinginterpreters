@@ -398,6 +398,13 @@ We detect that error like so:
 
 ^code existing-in-scope (1 before, 2 after)
 
+<aside name="negative">
+
+Don't worry about that odd `depth != -1` part yet. We'll get to what that's
+about later.
+
+</aside>
+
 Local variables are appended to the array when they're declared, which means the
 current scope is always at the end of the array. When we declare a new variable,
 we start at the end and work backwards looking for an existing variable with the

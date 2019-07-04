@@ -544,7 +544,7 @@ static void declareVariable() {
 //> existing-in-scope
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];
-    if (local->depth != -1 && local->depth < current->scopeDepth) break;
+    if (local->depth != -1 && local->depth < current->scopeDepth) break; // [negative]
     if (identifiersEqual(name, &local->name)) {
       error("Variable with this name already declared in this scope.");
     }
@@ -887,7 +887,7 @@ static void unary(bool canAssign) {
 //> Compiling Expressions rules
 ParseRule rules[] = {
 /* Compiling Expressions rules < Calls and Functions infix-left-paren
-  { grouping, NULL,    PREC_CALL },       // TOKEN_LEFT_PAREN
+  { grouping, NULL,    PREC_NONE },       // TOKEN_LEFT_PAREN
 */
 //> Calls and Functions infix-left-paren
   { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
@@ -897,7 +897,7 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
 /* Compiling Expressions rules < Classes and Instances not-yet
-  { NULL,     NULL,    PREC_CALL },       // TOKEN_DOT
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_DOT
 */
 //> Classes and Instances not-yet
   { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
@@ -914,18 +914,18 @@ ParseRule rules[] = {
   { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
 //< Types of Values table-not
 /* Compiling Expressions rules < Types of Values table-equal
-  { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_BANG_EQUAL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG_EQUAL
 */
 //> Types of Values table-equal
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
 //< Types of Values table-equal
   { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
 /* Compiling Expressions rules < Types of Values table-comparisons
-  { NULL,     NULL,    PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
-  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_GREATER
-  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
-  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_LESS
-  { NULL,     NULL,    PREC_COMPARISON }, // TOKEN_LESS_EQUAL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL_EQUAL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_GREATER
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_GREATER_EQUAL
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_LESS
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_LESS_EQUAL
 */
 //> Types of Values table-comparisons
   { NULL,     binary,  PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
@@ -948,7 +948,7 @@ ParseRule rules[] = {
 //< Strings table-string
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
 /* Compiling Expressions rules < Jumping Back and Forth table-and
-  { NULL,     NULL,    PREC_AND },        // TOKEN_AND
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_AND
 */
 //> Jumping Back and Forth table-and
   { NULL,     and_,    PREC_AND },        // TOKEN_AND
@@ -971,7 +971,7 @@ ParseRule rules[] = {
   { literal,  NULL,    PREC_NONE },       // TOKEN_NIL
 //< Types of Values table-nil
 /* Compiling Expressions rules < Jumping Back and Forth table-or
-  { NULL,     NULL,    PREC_OR },         // TOKEN_OR
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_OR
 */
 //> Jumping Back and Forth table-or
   { NULL,     or_,     PREC_OR },         // TOKEN_OR
