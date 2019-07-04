@@ -192,7 +192,7 @@ static bool call(ObjClosure* closure, int argCount) {
   frame->ip = closure->function->chunk.code;
 //< Closures not-yet
 
-  frame->slots = vm.stackTop - (argCount + 1);
+  frame->slots = vm.stackTop - argCount - 1;
   return true;
 }
 //< Calls and Functions call

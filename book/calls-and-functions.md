@@ -321,20 +321,23 @@ true even when you add function calls into the mix. Here's an example:
 
 ```lox
 fun first() {
-  var a = "a";
+  var a = 1;
   second();
-  var b = "b";
+  var b = 2;
 }
 
 fun second() {
-  var c = "c";
-  var d = "d";
+  var c = 3;
+  var d = 4;
 }
 
 first();
 ```
 
-**todo: illustrate flow**
+Step through the program and look at which variables are in memory at each point
+in time:
+
+<img src="image/calls-and-functions/calls.png" alt="Tracing through the execution of the previous program, showing the stack of variables at each step." />
 
 As execution flows through the two calls, every local variable obeys the
 principle that any variable declared later will be discarded before the variable
@@ -345,7 +348,8 @@ variables on the VM's value stack.
 Ideally, we still determine *where* on the stack each variable will go at
 compile time. That keeps the bytecode instructions for working with variables
 simple and fast. In the above example, we could <span
-name="imagime">imagine</span> doing so in a straightforward way:
+name="imagine">imagine</span> doing so in a straightforward way, but that
+doesn't always work out. Consider:
 
 <aside name="imagine">
 
@@ -355,21 +359,17 @@ others at compile time.
 
 </aside>
 
-**todo: illustrate that each local goes in one slot**
-
-But that doesn't always work out. Consider:
-
 ```lox
 fun first() {
-  var a = "a";
+  var a = 1;
   second();
-  var b = "b";
+  var b = 2;
   second();
 }
 
 fun second() {
-  var c = "c";
-  var d = "d";
+  var c = 3;
+  var d = 4;
 }
 
 first();
@@ -394,7 +394,7 @@ local variables access them by an slot index relative to that. At compile time,
 we calculate those relative slots. At runtime, we convert that relative slot to
 an absolute stack index by adding the function call's starting slot.
 
-**todo: illustrate window**
+<img src="image/calls-and-functions/window.png" alt="The stack at the two points when second() is called, with a window hovering over each one showing the pair of stack slots used by the function.." />
 
 It's as if the function gets a "window" or "frame" within the larger stack where
 it can store its locals. The position of the **call frame** is determined at
@@ -425,8 +425,6 @@ that the VM switches to after the call.
 Again, thanks to <span name="return">recursion</span>, there may be multiple
 return addresses for a single function, so this is a property of each
 *invocation* and not the function itself.
-
-**todo: illustrate code with arrows pointing back to where it returns**
 
 <aside name="return">
 
@@ -694,9 +692,12 @@ previous compiler as the current one:
 
 ^code restore-enclosing (4 before, 1 after)
 
-Because our compiler uses <span name="compiler">recursive</span> descent and
-these Compiler structs are stored right on the C stack, we don't even need to
-dynamically allocate them.
+Note that we don't even need to <span name="compiler">dynamically</span>
+allocate the Compiler structs. Each is stored as a local variable in the C stack
+-- either in `compile()` or `function()`. The linked list of Compilers threads
+through the C stack. The reason we can get an unbounded number of them is
+because our compiler uses recursive descent, so `function()` ends up calling
+itself recursively when you have nested function declarations.
 
 <aside name="compiler">
 
@@ -706,8 +707,6 @@ and you could overflow the C stack. If we want the compiler to be more robust
 against pathological or even potentially malicious code -- a very real concern
 for tools like JavaScript VMs -- it would be good to have our compiler
 artificially limit the amount of function nesting it permits.
-
-**todo: overlap**
 
 </aside>
 
@@ -806,30 +805,31 @@ call instruction, we have already executed the expression for the function being
 called followed by its arguments. Say our program looks like:
 
 ```lox
-fun addThree(a, b, c) {
+fun sum(a, b, c) {
   print a + b + c;
 }
 
-addThree(1, 2, 3);
+print 4 + sum(5, 6, 7);
 ```
 
-If we pause the VM right on the `OP_CALL` instruction for that call to
-`addThree()`, the stack looks like this:
+If we pause the VM right on the `OP_CALL` instruction for that call to `sum()`,
+the stack looks like this:
 
-**todo: illustrate**
+<img src="image/calls-and-functions/argument-stack.png" alt="Stack: 4, fn sum, 5, 6, 7." />
 
-Now let's ruminate on the callee side. When the compiler compiled the
-`addThree()` function itself, it automatically allocated slot zero. Then, after
-that, it allocated local slots for each parameter, in order. To perform a call
-to `addThree()`, we need to create a CallFrame and initialize it with the
-function being called and a region of stack slots that it can use. Then we need
-to collect the arguments passed to the function and somehow get them into the
-corresponding slots for the parameters.
 
-When the VM starts executing the body of `addThree()`, we want its stack window
-to look like this:
+Now let's ruminate on the callee side. When the compiler compiled the `sum()`
+function itself, it automatically allocated slot zero. Then, after that, it
+allocated local slots for each parameter, in order. To perform a call to
+`sum()`, we need to create a CallFrame and initialize it with the function being
+called and a region of stack slots that it can use. Then we need to collect the
+arguments passed to the function and somehow get them into the corresponding
+slots for the parameters.
 
-**todo: illustrate**
+When the VM starts executing the body of `sum()`, we want its stack window to
+look like this:
+
+<img src="image/calls-and-functions/parameter-window.png" alt="The same stack with the sum() function's call frame window surrounding fn sum, 5, 6, and 7." />
 
 Do you notice how the argument slots the caller sets up and the parameter slots
 the callee needs are both in exactly the right order? How convenient! This is no
@@ -838,7 +838,7 @@ stack, I never said those windows would be *disjoint*.
 
 There's nothing preventing us from overlapping them, like this:
 
-**todo: illustrate**
+<img src="image/calls-and-functions/overlapping-windows.png" alt="The same stack with the top-level call frame covering the entire stack and the sum() function's call frame window surrounding fn sum, 5, 6, and 7." />
 
 <span name="lua">The</span> top of the caller's stack contains the function
 being called followed by the arguments in order. We know the caller doesn't have
@@ -912,9 +912,9 @@ function's bytecode. Finally, it sets up the `slots` pointer to give the frame
 its window into the stack. The arithmetic there ensures that the arguments
 already on the stack line up with the function's parameters:
 
-**todo: illustrate window with offsets for `argCount` and 1**
+<img src="image/calls-and-functions/arithmetic.png" alt="The arithmetic to calculate frame-&gt;slots from stackTop and argCount." />
 
-The funny little `+ 1` is to skip over local slot zero, which the compiler
+The funny little `- 1` is to skip over local slot zero, which the compiler
 automatically allocated for private use. It's pointless right now, but will be
 useful when we get to methods.
 
