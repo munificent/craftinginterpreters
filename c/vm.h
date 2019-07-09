@@ -25,12 +25,12 @@
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
 typedef struct {
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures call-frame-closure
   ObjFunction* function;
 */
-//> Closures not-yet
+//> Closures call-frame-closure
   ObjClosure* closure;
-//< Closures not-yet
+//< Closures call-frame-closure
   uint8_t* ip;
   Value* slots;
 } CallFrame;
@@ -62,9 +62,9 @@ typedef struct {
 //> Methods and Initializers not-yet
   ObjString* initString;
 //< Methods and Initializers not-yet
-//> Closures not-yet
+//> Closures open-upvalues-field
   ObjUpvalue* openUpvalues;
-//< Closures not-yet
+//< Closures open-upvalues-field
 //> Garbage Collection not-yet
 
   size_t bytesAllocated;

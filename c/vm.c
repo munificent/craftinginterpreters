@@ -39,9 +39,9 @@ static void resetStack() {
 //> Calls and Functions not-yet
   vm.frameCount = 0;
 //< Calls and Functions not-yet
-//> Closures not-yet
+//> Closures init-open-upvalues
   vm.openUpvalues = NULL;
-//< Closures not-yet
+//< Closures init-open-upvalues
 }
 //< reset-stack
 //> Types of Values runtime-error
@@ -60,12 +60,12 @@ static void runtimeError(const char* format, ...) {
 //> Calls and Functions not-yet
   for (int i = vm.frameCount - 1; i >= 0; i--) {
     CallFrame* frame = &vm.frames[i];
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures runtime-error-function
     ObjFunction* function = frame->function;
 */
-//> Closures not-yet
+//> Closures runtime-error-function
     ObjFunction* function = frame->closure->function;
-//< Closures not-yet
+//< Closures runtime-error-function
     // -1 because the IP is sitting on the next instruction to be
     // executed.
     size_t instruction = frame->ip - function->chunk.code - 1;
@@ -156,7 +156,7 @@ static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
 //< Types of Values peek
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures call
 
 static bool call(ObjFunction* function, int argCount) {
   if (argCount != function->arity) {
@@ -164,13 +164,13 @@ static bool call(ObjFunction* function, int argCount) {
         function->arity, argCount);
 */
 //> Calls and Functions not-yet
-//> Closures not-yet
+//> Closures call
 
 static bool call(ObjClosure* closure, int argCount) {
   if (argCount != closure->function->arity) {
     runtimeError("Expected %d arguments but got %d.",
         closure->function->arity, argCount);
-//< Closures not-yet
+//< Closures call
     return false;
   }
 
@@ -180,14 +180,14 @@ static bool call(ObjClosure* closure, int argCount) {
   }
 
   CallFrame* frame = &vm.frames[vm.frameCount++];
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures call-init-closure
   frame->function = function;
   frame->ip = function->chunk.code;
 */
-//> Closures not-yet
+//> Closures call-init-closure
   frame->closure = closure;
   frame->ip = closure->function->chunk.code;
-//< Closures not-yet
+//< Closures call-init-closure
 
   // +1 to include either the called function or the receiver.
   frame->slots = vm.stackTop - (argCount + 1);
@@ -228,13 +228,12 @@ static bool callValue(Value callee, int argCount) {
         return true;
       }
 //< Classes and Instances not-yet
-//> Closures not-yet
-
+//> Closures call-value-closure
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
 
-//< Closures not-yet
-/* Calls and Functions not-yet < Closures not-yet
+//< Closures call-value-closure
+/* Calls and Functions not-yet < Closures call-value-closure
       case OBJ_FUNCTION:
         return call(AS_FUNCTION(callee), argCount);
 
@@ -304,8 +303,7 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
   return true;
 }
 //< Methods and Initializers not-yet
-//> Closures not-yet
-
+//> Closures capture-upvalue
 // Captures the local variable [local] into an [Upvalue]. If that local
 // is already in an upvalue, the existing one is used. (This is
 // important to ensure that multiple closures closing over the same
@@ -346,7 +344,8 @@ static ObjUpvalue* captureUpvalue(Value* local) {
 
   return createdUpvalue;
 }
-
+//< Closures capture-upvalue
+//> Closures close-upvalues
 static void closeUpvalues(Value* last) {
   while (vm.openUpvalues != NULL &&
          vm.openUpvalues->value >= last) {
@@ -361,7 +360,7 @@ static void closeUpvalues(Value* last) {
     vm.openUpvalues = upvalue->next;
   }
 }
-//< Closures not-yet
+//< Closures close-upvalues
 //> Methods and Initializers not-yet
 
 static void defineMethod(ObjString* name) {
@@ -421,14 +420,14 @@ static InterpretResult run() {
 #define READ_SHORT() \
     (frame->ip += 2, (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 //< Calls and Functions not-yet
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures read-constant
 #define READ_CONSTANT() \
     (frame->function->chunk.constants.values[READ_BYTE()])
 */
-//> Closures not-yet
+//> Closures read-constant
 #define READ_CONSTANT() \
     (frame->closure->function->chunk.constants.values[READ_BYTE()])
-//< Closures not-yet
+//< Closures read-constant
 //> Global Variables read-string
 #define READ_STRING() AS_STRING(READ_CONSTANT())
 //< Global Variables read-string
@@ -472,14 +471,14 @@ static InterpretResult run() {
 /* A Virtual Machine trace-execution < Calls and Functions not-yet
     disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 */
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures disassemble-instruction
     disassembleInstruction(&frame->function->chunk,
         (int)(frame->ip - frame->function->chunk.code));
 */
-//> Closures not-yet
+//> Closures disassemble-instruction
     disassembleInstruction(&frame->closure->function->chunk,
         (int)(frame->ip - frame->closure->function->chunk.code));
-//< Closures not-yet
+//< Closures disassemble-instruction
 #endif
     
 //< trace-execution
@@ -566,20 +565,22 @@ static InterpretResult run() {
         break;
       }
 //< Global Variables interpret-set-global
-//> Closures not-yet
+//> Closures interpret-get-upvalue
 
       case OP_GET_UPVALUE: {
         uint8_t slot = READ_BYTE();
         push(*frame->closure->upvalues[slot]->value);
         break;
       }
+//< Closures interpret-get-upvalue
+//> Closures interpret-set-upvalue
 
       case OP_SET_UPVALUE: {
         uint8_t slot = READ_BYTE();
         *frame->closure->upvalues[slot]->value = peek(0);
         break;
       }
-//< Closures not-yet
+//< Closures interpret-set-upvalue
 //> Classes and Instances not-yet
 
       case OP_GET_PROPERTY: {
@@ -802,7 +803,7 @@ static InterpretResult run() {
         break;
       }
 //< Superclasses not-yet
-//> Closures not-yet
+//> Closures interpret-closure
 
       case OP_CLOSURE: {
         ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
@@ -811,7 +812,7 @@ static InterpretResult run() {
         // upvalues so that it doesn't get collected.
         ObjClosure* closure = newClosure(function);
         push(OBJ_VAL(closure));
-
+//> interpret-capture-upvalues
         // Capture upvalues.
         for (int i = 0; i < closure->upvalueCount; i++) {
           uint8_t isLocal = READ_BYTE();
@@ -825,16 +826,18 @@ static InterpretResult run() {
             closure->upvalues[i] = frame->closure->upvalues[index];
           }
         }
-
+//< interpret-capture-upvalues
         break;
       }
-
+      
+//< Closures interpret-closure
+//> Closures interpret-close-upvalue
       case OP_CLOSE_UPVALUE:
         closeUpvalues(vm.stackTop - 1);
         pop();
         break;
 
-//< Closures not-yet
+//< Closures interpret-close-upvalue
       case OP_RETURN: {
 //> Global Variables op-return
         // Exit interpreter.
@@ -848,11 +851,11 @@ static InterpretResult run() {
 */
 //> Calls and Functions not-yet
         Value result = pop();
-//> Closures not-yet
+//> Closures return-close-upvalues
 
         // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
-//< Closures not-yet
+//< Closures return-close-upvalues
 
         vm.frameCount--;
         if (vm.frameCount == 0) return INTERPRET_OK;
@@ -944,22 +947,19 @@ InterpretResult interpret(const char* source) {
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
 //< Calls and Functions not-yet
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions not-yet < Closures interpret
   callValue(OBJ_VAL(function), 0);
 */
+//> Closures interpret
 //> Garbage Collection not-yet
   push(OBJ_VAL(function));
 //< Garbage Collection not-yet
-//> Closures not-yet
   ObjClosure* closure = newClosure(function);
-//< Closures not-yet
 //> Garbage Collection not-yet
   pop();
 //< Garbage Collection not-yet
-//> Closures not-yet
   callValue(OBJ_VAL(closure), 0);
-
-//< Closures not-yet
+//< Closures interpret
 //< Scanning on Demand vm-interpret-c
 //> Compiling Expressions interpret-chunk
   
