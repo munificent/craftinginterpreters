@@ -926,26 +926,21 @@ InterpretResult interpret(const char* source) {
   ObjFunction* function = compile(source);
   if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
+  push(OBJ_VAL(function));
 //< Calls and Functions interpret-stub
 /* Calls and Functions interpret-stub < Calls and Functions interpret
   CallFrame* frame = &vm.frames[vm.frameCount++];
   frame->function = function;
   frame->ip = function->chunk.code;
-  frame->slots = vm.stackTop;
+  frame->slots = vm.stack;
 */
 /* Calls and Functions interpret < Closures not-yet
   callValue(OBJ_VAL(function), 0);
 */
-//> Garbage Collection not-yet
-  push(OBJ_VAL(function));
-//< Garbage Collection not-yet
 //> Closures not-yet
   ObjClosure* closure = newClosure(function);
-//< Closures not-yet
-//> Garbage Collection not-yet
   pop();
-//< Garbage Collection not-yet
-//> Closures not-yet
+  push(OBJ_VAL(closure));
   callValue(OBJ_VAL(closure), 0);
 
 //< Closures not-yet

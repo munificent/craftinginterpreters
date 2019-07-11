@@ -544,7 +544,10 @@ static void declareVariable() {
 //> existing-in-scope
   for (int i = current->localCount - 1; i >= 0; i--) {
     Local* local = &current->locals[i];
-    if (local->depth != -1 && local->depth < current->scopeDepth) break; // [negative]
+    if (local->depth != -1 && local->depth < current->scopeDepth) {
+      break; // [negative]
+    }
+    
     if (identifiersEqual(name, &local->name)) {
       error("Variable with this name already declared in this scope.");
     }
@@ -1156,9 +1159,6 @@ static void classDeclaration() {
   currentClass = &classCompiler;
 
 //< Methods and Initializers not-yet
-/* Classes and Instances not-yet < Superclasses not-yet
-  emitBytes(OP_CLASS, nameConstant);
-*/
 //> Superclasses not-yet
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
@@ -1346,7 +1346,7 @@ static void returnStatement() {
 
 //< return-from-script
   if (match(TOKEN_SEMICOLON)) {
-    emitByte(OP_NIL);
+    emitReturn();
   } else {
 //> Methods and Initializers not-yet
     if (current->type == TYPE_INITIALIZER) {
@@ -1356,8 +1356,8 @@ static void returnStatement() {
 //< Methods and Initializers not-yet
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
+    emitByte(OP_RETURN);
   }
-  emitByte(OP_RETURN);
 }
 //< Calls and Functions return-statement
 //> Jumping Back and Forth while-statement
