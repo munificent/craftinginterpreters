@@ -213,11 +213,22 @@ void printObject(Value value) {
 //< Methods and Initializers not-yet
 //> Closures not-yet
     case OBJ_CLOSURE:
+// TODO: Omit this.
+//      if (AS_CLOSURE(value)->function->name == NULL) {
+//        printf("<script>");
+//        break;
+//      }
       printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
       break;
 //< Closures not-yet
 //> Calls and Functions print-function
     case OBJ_FUNCTION:
+//> omit
+      if (AS_FUNCTION(value)->name == NULL) {
+        printf("<script>");
+        break;
+      }
+//< omit
       printf("<fn %s>", AS_FUNCTION(value)->name->chars);
       break;
 //< Calls and Functions print-function
