@@ -78,8 +78,7 @@ ObjClosure* newClosure(ObjFunction* function) {
   return closure;
 }
 //< Closures new-closure
-//> Calls and Functions not-yet
-
+//> Calls and Functions new-function
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
 
@@ -91,7 +90,7 @@ ObjFunction* newFunction() {
   initChunk(&function->chunk);
   return function;
 }
-//< Calls and Functions not-yet
+//< Calls and Functions new-function
 //> Classes and Instances not-yet
 
 ObjInstance* newInstance(ObjClass* klass) {
@@ -101,14 +100,13 @@ ObjInstance* newInstance(ObjClass* klass) {
   return instance;
 }
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
-
+//> Calls and Functions new-native
 ObjNative* newNative(NativeFn function) {
   ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
   native->function = function;
   return native;
 }
-//< Calls and Functions not-yet
+//< Calls and Functions new-native
 
 /* Strings allocate-string < Hash Tables allocate-string
 static ObjString* allocateString(char* chars, int length) {
@@ -219,24 +217,36 @@ void printObject(Value value) {
 //< Methods and Initializers not-yet
 //> Closures print-closure
     case OBJ_CLOSURE:
+//> omit
+//      if (AS_CLOSURE(value)->function->name == NULL) {
+//        printf("<script>");
+//        break;
+//      }
+//< omit
       printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
       break;
 //< Closures print-closure
-//> Calls and Functions not-yet
+//> Calls and Functions print-function
     case OBJ_FUNCTION:
+//> omit
+      if (AS_FUNCTION(value)->name == NULL) {
+        printf("<script>");
+        break;
+      }
+//< omit
       printf("<fn %s>", AS_FUNCTION(value)->name->chars);
       break;
-//< Calls and Functions not-yet
+//< Calls and Functions print-function
 //> Classes and Instances not-yet
     case OBJ_INSTANCE:
       printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
       break;
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions print-native
     case OBJ_NATIVE:
       printf("<native fn>");
       break;
-//< Calls and Functions not-yet
+//< Calls and Functions print-native
     case OBJ_STRING:
       printf("%s", AS_CSTRING(value));
       break;

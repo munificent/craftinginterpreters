@@ -57,15 +57,17 @@ This "operator" has higher precedence than any other operator, even the unary
 ones. So we slot it into the grammar by having the `unary` rule bubble up to a
 new `call` rule:
 
+<span name="curry"></span>
+
 ```lox
 unary → ( "!" | "-" ) unary | call ;
 call  → primary ( "(" arguments? ")" )* ;
 ```
 
-This rule matches a primary expression followed by zero or <span
-name="curry">more</span> function calls. If there are no parentheses, this
-parses a bare primary expression. Otherwise, each call is recognized by a pair
-of parentheses with an optional list of arguments inside. The argument list grammar is:
+This rule matches a primary expression followed by zero or more function calls.
+If there are no parentheses, this parses a bare primary expression. Otherwise,
+each call is recognized by a pair of parentheses with an optional list of
+arguments inside. The argument list grammar is:
 
 <aside name="curry">
 
@@ -118,17 +120,17 @@ change it to call, well, `call()`:
 
 ^code unary-call (3 before, 1 after)
 
-That looks like this:
+Its definition is:
 
 ^code call
 
-It doesn't quite line up with the grammar rules. I moved a few things around to
-make the code cleaner -- one of the luxuries we have with a hand-written parser.
-But it's roughly similar to how we parse infix operators. First, it parses a
-primary expression, the "left operand" to the call. Then, each time it sees a
-`(`, it calls `finishCall()` to parse the call expression using the previously
-parsed expression as the callee. The returned expression becomes the new `expr`
-and it loops to see if the result is itself called.
+The code here doesn't quite line up with the grammar rules. I moved a few things
+around to make the code cleaner -- one of the luxuries we have with a
+hand-written parser. But it's roughly similar to how we parse infix operators.
+First, we parse a primary expression, the "left operand" to the call. Then, each
+time we see a `(`, we call `finishCall()` to parse the call expression using the
+previously parsed expression as the callee. The returned expression becomes the
+new `expr` and we loop to see if the result is itself called.
 
 The `while (true)` and the explicit `break` look dumb. It would be simpler as
 `while (match(LEFT_PAREN))`. It will make sense later when we add more code to
@@ -139,14 +141,14 @@ The code to parse the argument list is in this helper:
 ^code finish-call
 
 This is more or less the `arguments` grammar rule translated to code, except
-that it also handles the zero-argument case. It does that first, by seeing if
-the next token is `)`. If it is, it doesn't try to parse any arguments.
+that we also handle the zero-argument case. We check for that case first by
+seeing if the next token is `)`. If it is, we don't try to parse any arguments.
 
-Otherwise, it parses an expression, then looks for a comma indicating that there
-is another argument after that. It keeps doing that as long as it finds commas
-after each expression. When it doesn't find a comma, then the argument list
-must be done and it consumes the expected closing parenthesis. Finally, it wraps
-the callee and those arguments up into a call expression.
+Otherwise, we parse an expression, then look for a comma indicating that there
+is another argument after that. We keep doing that as long as we find commas
+after each expression. When we don't find a comma, then the argument list must
+be done and we consume the expected closing parenthesis. Finally, we wrap the
+callee and those arguments up into a call expression.
 
 ### Maximum argument counts
 
@@ -154,7 +156,7 @@ Right now, the loop where we parse arguments has no bound. If you want to call a
 function and pass a million arguments to it, the parser would have no problem
 with it. Do we want to limit that?
 
-Other languages have different approaches. The C standard says a conforming
+Other languages have various approaches. The C standard says a conforming
 implementation has to support *at least* 127 arguments to a function, but
 doesn't say there's any upper limit. The Java specification says a method can
 accept *no more than* <span name="254">255</span> arguments.
@@ -173,10 +175,6 @@ want our two interpreters to be compatible with each other, even in weird corner
 cases like this, so we'll add the same limit to jlox.
 
 ^code check-max-arity (1 before, 1 after)
-
-Yeah, *eight* is gratuitously low. I picked that mainly to minimize some boring
-copy/paste code in the C interpreter. You could go up to probably 32 or so
-without any problems if you feel like it. It's your language.
 
 Note that the code here *reports* an error if it encounters too many arguments,
 but it doesn't *throw* the error. Throwing it is how we kick into panic mode
@@ -198,15 +196,15 @@ expression node:
 
 ^code visit-call
 
-First, it evaluates the expression for the callee. Typically, this expression is
+First, we evaluate the expression for the callee. Typically, this expression is
 just an identifier that looks up the function by its name, but it could be
-anything. Then it evaluates each of the argument expressions in order and stores
+anything. Then we evaluate each of the argument expressions in order and store
 the resulting values in a list.
 
 <aside name="in-order">
 
 This is another one of those subtle semantic choices. Since argument expressions
-may have side effects, the order they are evaluated may be user visible. Even
+may have side effects, the order they are evaluated could be user visible. Even
 so, some languages like Scheme and C don't specify an order. This gives
 compilers freedom to reorder them for efficiency, but means users may be
 unpleasantly surprised if arguments aren't evaluated in the order they expect.
@@ -232,7 +230,7 @@ There isn't too much to it:
 
 ^code callable
 
-We pass it the interpreter in case the class implementing `call()` needs it. We
+We pass in the interpreter in case the class implementing `call()` needs it. We
 also give it the list of evaluated argument values. The implementer's job is
 then to return the value that the call expression produces.
 
@@ -387,8 +385,7 @@ tell time. There's no way to do that now -- you can't implement a useful clock
 
 So we'll add `clock()`, a native function that returns the number of seconds
 that have passed since some fixed point in time. The difference between two
-calls to this tell you how much time elapsed between the two calls.
-
+successive invocations tell you how much time elapsed between the two calls.
 This function is defined in the global scope, so lets ensure the interpreter has
 access to that:
 
@@ -586,21 +583,9 @@ those parameters -- no other code outside of the function can see them. This
 means each function gets its own environment where it stores those variables.
 
 Further, this environment must be created dynamically. Each function *call* gets
-its own environment. Otherwise, <span name="fortran">recursion</span> would
-break. If there are multiple calls to the same function in play at the same
-time, each needs its *own* environment, even though they are all calls to the
-same function.
-
-<aside name="fortran">
-
-Early versions of Fortran did not support recursion. This let compilers
-statically allocate memory for each function's parameters, since only one set of
-them would ever be needed for any given function declaration.
-
-Imagine using `static` for all of your local variables in C, and you have the
-idea.
-
-</aside>
+its own environment. Otherwise, recursion would break. If there are multiple
+calls to the same function in play at the same time, each needs its *own*
+environment, even though they are all calls to the same function.
 
 For example, here's a convoluted way to count to three:
 

@@ -217,7 +217,6 @@ TOC = [
           'Return statements', 'Function objects', 'Call frames',
           'Stack overflow'
         ],
-        'done': False,
       },
       {
         'name': 'Closures',

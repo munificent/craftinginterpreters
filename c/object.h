@@ -3,9 +3,9 @@
 #define clox_object_h
 
 #include "common.h"
-//> Calls and Functions not-yet
+//> Calls and Functions object-include-chunk
 #include "chunk.h"
-//< Calls and Functions not-yet
+//< Calls and Functions object-include-chunk
 //> Classes and Instances not-yet
 #include "table.h"
 //< Classes and Instances not-yet
@@ -25,15 +25,15 @@
 //> Closures is-closure
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 //< Closures is-closure
-//> Calls and Functions not-yet
+//> Calls and Functions is-function
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
-//< Calls and Functions not-yet
+//< Calls and Functions is-function
 //> Classes and Instances not-yet
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions is-native
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
-//< Calls and Functions not-yet
+//< Calls and Functions is-native
 #define IS_STRING(value)        isObjType(value, OBJ_STRING)
 //< is-string
 //> as-string
@@ -47,15 +47,15 @@
 //> Closures as-closure
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 //< Closures as-closure
-//> Calls and Functions not-yet
+//> Calls and Functions as-function
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
-//< Calls and Functions not-yet
+//< Calls and Functions as-function
 //> Classes and Instances not-yet
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions as-native
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
-//< Calls and Functions not-yet
+//< Calls and Functions as-native
 #define AS_STRING(value)        ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)       (((ObjString*)AS_OBJ(value))->chars)
 //< as-string
@@ -71,15 +71,15 @@ typedef enum {
 //> Closures obj-type-closure
   OBJ_CLOSURE,
 //< Closures obj-type-closure
-//> Calls and Functions not-yet
+//> Calls and Functions obj-type-function
   OBJ_FUNCTION,
-//< Calls and Functions not-yet
+//< Calls and Functions obj-type-function
 //> Classes and Instances not-yet
   OBJ_INSTANCE,
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions obj-type-native
   OBJ_NATIVE,
-//< Calls and Functions not-yet
+//< Calls and Functions obj-type-native
   OBJ_STRING,
 //> Closures obj-type-upvalue
   OBJ_UPVALUE
@@ -96,7 +96,7 @@ struct sObj {
   struct sObj* next;
 //< next-field
 };
-//> Calls and Functions not-yet
+//> Calls and Functions obj-function
 
 typedef struct {
   Obj obj;
@@ -107,6 +107,8 @@ typedef struct {
   Chunk chunk;
   ObjString* name;
 } ObjFunction;
+//< Calls and Functions obj-function
+//> Calls and Functions obj-native
 
 typedef Value (*NativeFn)(int argCount, Value* args);
 
@@ -114,7 +116,7 @@ typedef struct {
   Obj obj;
   NativeFn function;
 } ObjNative;
-//< Calls and Functions not-yet
+//< Calls and Functions obj-native
 //> obj-string
 
 struct sObjString {
@@ -188,15 +190,15 @@ ObjClass* newClass(ObjString* name);
 //> Closures new-closure-h
 ObjClosure* newClosure(ObjFunction* function);
 //< Closures new-closure-h
-//> Calls and Functions not-yet
+//> Calls and Functions new-function-h
 ObjFunction* newFunction();
-//< Calls and Functions not-yet
+//< Calls and Functions new-function-h
 //> Classes and Instances not-yet
 ObjInstance* newInstance(ObjClass* klass);
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions new-native-h
 ObjNative* newNative(NativeFn function);
-//< Calls and Functions not-yet
+//< Calls and Functions new-native-h
 //> take-string-h
 ObjString* takeString(char* chars, int length);
 //< take-string-h

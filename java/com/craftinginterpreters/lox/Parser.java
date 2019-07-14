@@ -414,8 +414,8 @@ class Parser {
     if (!check(RIGHT_PAREN)) {
       do {
 //> check-max-arity
-        if (arguments.size() >= 8) {
-          error(peek(), "Cannot have more than 8 arguments.");
+        if (arguments.size() >= 255) {
+          error(peek(), "Cannot have more than 255 arguments.");
         }
 //< check-max-arity
         arguments.add(expression());
