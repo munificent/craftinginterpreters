@@ -12,12 +12,12 @@
 /* Scanning on Demand compiler-h < Compiling Expressions compile-h
 void compile(const char* source);
 */
-/* Compiling Expressions compile-h < Calls and Functions not-yet
+/* Compiling Expressions compile-h < Calls and Functions compile-h
 bool compile(const char* source, Chunk* chunk);
 */
-//> Calls and Functions not-yet
+//> Calls and Functions compile-h
 ObjFunction* compile(const char* source);
-//< Calls and Functions not-yet
+//< Calls and Functions compile-h
 //> Garbage Collection not-yet
 void grayCompilerRoots();
 //< Garbage Collection not-yet

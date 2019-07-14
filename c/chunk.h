@@ -77,38 +77,14 @@ typedef enum {
 //> Jumping Back and Forth loop-op
   OP_LOOP,
 //< Jumping Back and Forth loop-op
-//> Calls and Functions not-yet
-  OP_CALL_0,
-  OP_CALL_1,
-  OP_CALL_2,
-  OP_CALL_3,
-  OP_CALL_4,
-  OP_CALL_5,
-  OP_CALL_6,
-  OP_CALL_7,
-  OP_CALL_8,
-//< Calls and Functions not-yet
+//> Calls and Functions op-call
+  OP_CALL,
+//< Calls and Functions op-call
 //> Methods and Initializers not-yet
-  OP_INVOKE_0,
-  OP_INVOKE_1,
-  OP_INVOKE_2,
-  OP_INVOKE_3,
-  OP_INVOKE_4,
-  OP_INVOKE_5,
-  OP_INVOKE_6,
-  OP_INVOKE_7,
-  OP_INVOKE_8,
+  OP_INVOKE,
 //< Methods and Initializers not-yet
 //> Superclasses not-yet
-  OP_SUPER_0,
-  OP_SUPER_1,
-  OP_SUPER_2,
-  OP_SUPER_3,
-  OP_SUPER_4,
-  OP_SUPER_5,
-  OP_SUPER_6,
-  OP_SUPER_7,
-  OP_SUPER_8,
+  OP_SUPER,
 //< Superclasses not-yet
 //> Closures closure-op
   OP_CLOSURE,

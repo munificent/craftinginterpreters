@@ -188,7 +188,7 @@ Here's a little function to initialize the compiler:
 
 When we first start up the VM, we call it to get everything into a clean state:
 
-^code compiler (1 before, 2 after)
+^code compiler (1 before, 1 after)
 
 Our compiler has the data it needs, but not the operations on that data. There's
 no way to create and destroy scopes, or add and resolve variables. We'll add
@@ -397,6 +397,13 @@ with the same name in the *same* local scope.
 We detect that error like so:
 
 ^code existing-in-scope (1 before, 2 after)
+
+<aside name="negative">
+
+Don't worry about that odd `depth != -1` part yet. We'll get to what that's
+about later.
+
+</aside>
 
 Local variables are appended to the array when they're declared, which means the
 current scope is always at the end of the array. When we declare a new variable,

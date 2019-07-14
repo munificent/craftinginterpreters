@@ -1,13 +1,13 @@
 //> Chunks of Bytecode debug-c
 #include <stdio.h>
-//> Calls and Functions not-yet
+//> Methods and Initializers not-yet
 #include <string.h>
-//< Calls and Functions not-yet
+//< Methods and Initializers not-yet
 
 #include "debug.h"
-//> Calls and Functions not-yet
+//> Closures not-yet
 #include "object.h"
-//< Calls and Functions not-yet
+//< Closures not-yet
 //> debug-include-value
 #include "value.h"
 //< debug-include-value
@@ -32,10 +32,11 @@ static int constantInstruction(const char* name, Chunk* chunk,
 }
 //< constant-instruction
 //> Methods and Initializers not-yet
-static int constantInstructionN(const char* name, int n, Chunk* chunk,
+static int invokeInstruction(const char* name, Chunk* chunk,
                                 int offset) {
-  uint8_t constant = chunk->code[offset + 1];
-  printf("%s_%-*d %4d '", name, 15 - (int)strlen(name), n, constant);
+  uint8_t argCount = chunk->code[offset + 1];
+  uint8_t constant = chunk->code[offset + 2];
+  printf("%-16s (%d args) %4d '", name, argCount, constant);
   printValue(chunk->constants.values[constant]);
   printf("'\n");
   return offset + 2;
@@ -47,12 +48,6 @@ static int simpleInstruction(const char* name, int offset) {
   return offset + 1;
 }
 //< simple-instruction
-//> Calls and Functions not-yet
-static int simpleInstructionN(const char* name, int n, int offset) {
-  printf("%s_%d\n", name, n);
-  return offset + 1;
-}
-//< Calls and Functions not-yet
 //> Local Variables byte-instruction
 static int byteInstruction(const char* name, Chunk* chunk, int offset) {
   uint8_t slot = chunk->code[offset + 1];
@@ -172,44 +167,17 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_LOOP:
       return jumpInstruction("OP_LOOP", -1, chunk, offset);
 //< Jumping Back and Forth disassemble-loop
-//> Calls and Functions not-yet
-    case OP_CALL_0:
-    case OP_CALL_1:
-    case OP_CALL_2:
-    case OP_CALL_3:
-    case OP_CALL_4:
-    case OP_CALL_5:
-    case OP_CALL_6:
-    case OP_CALL_7:
-    case OP_CALL_8:
-      return simpleInstructionN("OP_CALL", instruction - OP_CALL_0,
-                                offset);
-//< Calls and Functions not-yet
+//> Calls and Functions disassemble-call
+    case OP_CALL:
+      return byteInstruction("OP_CALL", chunk, offset);
+//< Calls and Functions disassemble-call
 //> Methods and Initializers not-yet
-    case OP_INVOKE_0:
-    case OP_INVOKE_1:
-    case OP_INVOKE_2:
-    case OP_INVOKE_3:
-    case OP_INVOKE_4:
-    case OP_INVOKE_5:
-    case OP_INVOKE_6:
-    case OP_INVOKE_7:
-    case OP_INVOKE_8:
-      return constantInstructionN(
-          "OP_INVOKE_", instruction - OP_INVOKE_0, chunk, offset);
+    case OP_INVOKE:
+      return invokeInstruction("OP_INVOKE", chunk, offset);
 //< Methods and Initializers not-yet
 //> Superclasses not-yet
-    case OP_SUPER_0:
-    case OP_SUPER_1:
-    case OP_SUPER_2:
-    case OP_SUPER_3:
-    case OP_SUPER_4:
-    case OP_SUPER_5:
-    case OP_SUPER_6:
-    case OP_SUPER_7:
-    case OP_SUPER_8:
-      return constantInstructionN(
-          "OP_SUPER_", instruction - OP_SUPER_0, chunk, offset);
+    case OP_SUPER:
+      return invokeInstruction("OP_SUPER_", chunk, offset);
 //< Superclasses not-yet
 //> Closures disassemble-closure
     case OP_CLOSURE: {

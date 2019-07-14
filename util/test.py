@@ -163,6 +163,7 @@ java_interpreter('chap08_statements', {
   'test/operator/equals_class.lox': 'skip',
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/return/in_method.lox': 'skip',
@@ -228,6 +229,7 @@ java_interpreter('chap09_control', {
   'test/operator/equals_class.lox': 'skip',
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/return/in_method.lox': 'skip',
@@ -277,6 +279,7 @@ java_interpreter('chap10_functions', {
   'test/operator/equals_class.lox': 'skip',
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/return/in_method.lox': 'skip',
@@ -314,6 +317,7 @@ java_interpreter('chap11_resolving', {
   'test/operator/equals_class.lox': 'skip',
   'test/operator/equals_method.lox': 'skip',
   'test/operator/not_class.lox': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
   'test/this': 'skip',
   'test/return/in_method.lox': 'skip',
@@ -338,10 +342,12 @@ java_interpreter('chap12_classes', {
   'test/limit/stack_overflow.lox': 'skip',
 
   # No inheritance.
+  'test/class/local_inherit_other.lox': 'skip',
   'test/class/local_inherit_self.lox': 'skip',
   'test/class/inherit_self.lox': 'skip',
   'test/class/inherited_method.lox': 'skip',
   'test/inheritance': 'skip',
+  'test/regression/394.lox': 'skip',
   'test/super': 'skip',
 })
 
