@@ -628,8 +628,7 @@ is a &ldquo;frame pointer&rdquo; because it points to the beginning of the funct
 frame. Sometimes you hear &ldquo;base pointer&rdquo;, because it points to the base stack
 slot on top of which all of the function&rsquo;s variables live.</p>
 <p>That&rsquo;s the first piece of data we need to track. Every time we call a function,
-the VM needs to track of the first stack slot where that function&rsquo;s variables
-begin.</p>
+the VM determines first stack slot where that function&rsquo;s variables begin.</p>
 <h3><a href="#return-addresses" name="return-addresses"><small>24&#8202;.&#8202;3&#8202;.&#8202;2</small> Return addresses</a></h3>
 <p>Right now, the VM works its way through the instruction stream by incrementing
 the <code>ip</code> field. The only interesting behavior is around control flow
@@ -860,10 +859,11 @@ replace 10 lines</div>
 <pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">compile</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>             
   <span class="k">if</span> <span class="p">(</span><span class="n">function</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="p">;</span>
 
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">));</span>                             
   <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>      
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                          
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">;</span>                    
-  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span><span class="p">;</span>                          
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">;</span>                             
 </pre><pre class="insert-after"><br><span></span>  <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">();</span>                      
 </pre></div>
 
@@ -874,19 +874,21 @@ we just made. First, we pass the source code to the compiler. It returns us a
 new ObjFunction containing the compiled top-level code. If we get <code>NULL</code> back,
 it means there was some compile-time error which the compiler has already
 reported. In that case, we bail out since we can&rsquo;t run anything.</p>
-<p>Otherwise, we prepare an initial CallFrame to execute the new function&rsquo;s code.
-We point to the function, initialize frame&rsquo;s the <code>ip</code> to point to the beginning
-of the function&rsquo;s bytecode, and set up its stack window to start at the very
-bottom of the VM&rsquo;s value stack.</p>
+<p>Otherwise, we store the function on the stack and prepare an initial CallFrame
+to execute its code. Now you can see why the compiler sets aside local variable
+stack slot zero<span class="em">&mdash;</span>that stores the function being called. In the new CallFrame,
+we point to the function, initialize its <code>ip</code> to point to the beginning of the
+function&rsquo;s bytecode, and set up its stack window to start at the very bottom of
+the VM&rsquo;s value stack.</p>
 <p>This gets the interpreter ready to start executing code. After finishing, the VM
 used to free the hardcoded chunk. Now that the ObjFunction owns that code, we
 don&rsquo;t need to do that anymore, so the end of <code>interpret()</code> is simply:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span><span class="p">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">;</span>
 <br></pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
 replace 4 lines</div>
-<pre class="insert"><span></span>  <span class="k">return</span> <span class="nf">run</span><span class="p">();</span>              
-</pre><pre class="insert-after"><span></span><span class="p">}</span>                            
+<pre class="insert"><span></span>  <span class="k">return</span> <span class="nf">run</span><span class="p">();</span>           
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                         
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
@@ -1200,7 +1202,7 @@ like at the point of a call and what we need to do from there. When we reach the
 call instruction, we have already executed the expression for the function being
 called followed by its arguments. Say our program looks like:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">sum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">print</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="k">print</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">sum</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">);</span>
@@ -1344,12 +1346,12 @@ useful when we get to methods.</p>
 <p>Time for a quick side trip. Now that we have a handy function for initiating a
 CallFrame, we may as well use it to set up the first frame for executing the top
 level code:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">function</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="p">;</span>
-<br></pre><div class="source-file"><em>vm.c</em><br>
+<div class="codehilite"><pre class="insert-before"><br><span></span>  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">));</span>        
+</pre><div class="source-file"><em>vm.c</em><br>
 in <em>interpret</em>()<br>
 replace 4 lines</div>
-<pre class="insert"><span></span>  <span class="n">callValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>                     
-</pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="nf">run</span><span class="p">();</span>                                        
+<pre class="insert"><span></span>  <span class="n">callValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="nf">run</span><span class="p">();</span>                   
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
@@ -1500,6 +1502,14 @@ and parameters. That includes the same slots the caller used to pass the
 arguments. Now that the call is done, the caller doesn&rsquo;t need them anymore. This
 means the top of the stack ends up right at the beginning of the returning
 function&rsquo;s stack window.</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">sum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">print</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">sum</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">);</span>
+</pre></div>
+
+
 <p><strong>todo: illustrate</strong></p>
 <p>We push the return value back onto the stack at that new lower location. Then we
 update the <code>run()</code> function&rsquo;s cached pointer to the current frame. Just like
@@ -1563,12 +1573,12 @@ in <em>statement</em>()</div>
 add after <em>printStatement</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">returnStatement</span><span class="p">()</span> <span class="p">{</span>                                
   <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                                
-    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NIL</span><span class="p">);</span>                                          
+    <span class="n">emitReturn</span><span class="p">();</span>                                              
   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                     
     <span class="n">expression</span><span class="p">();</span>                                              
     <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span><span class="p">);</span>
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_RETURN</span><span class="p">);</span>                                       
   <span class="p">}</span>                                                            
-  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_RETURN</span><span class="p">);</span>                                         
 <span class="p">}</span>                                                              
 </pre></div>
 
