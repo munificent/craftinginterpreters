@@ -405,8 +405,7 @@ frame. Sometimes you hear "base pointer", because it points to the base stack
 slot on top of which all of the function's variables live.
 
 That's the first piece of data we need to track. Every time we call a function,
-the VM needs to track of the first stack slot where that function's variables
-begin.
+the VM determines first stack slot where that function's variables begin.
 
 ### Return addresses
 
@@ -575,10 +574,12 @@ new ObjFunction containing the compiled top-level code. If we get `NULL` back,
 it means there was some compile-time error which the compiler has already
 reported. In that case, we bail out since we can't run anything.
 
-Otherwise, we prepare an initial CallFrame to execute the new function's code.
-We point to the function, initialize frame's the `ip` to point to the beginning
-of the function's bytecode, and set up its stack window to start at the very
-bottom of the VM's value stack.
+Otherwise, we store the function on the stack and prepare an initial CallFrame
+to execute its code. Now you can see why the compiler sets aside local variable
+stack slot zero -- that stores the function being called. In the new CallFrame,
+we point to the function, initialize its `ip` to point to the beginning of the
+function's bytecode, and set up its stack window to start at the very bottom of
+the VM's value stack.
 
 This gets the interpreter ready to start executing code. After finishing, the VM
 used to free the hardcoded chunk. Now that the ObjFunction owns that code, we
@@ -806,7 +807,7 @@ called followed by its arguments. Say our program looks like:
 
 ```lox
 fun sum(a, b, c) {
-  print a + b + c;
+  return a + b + c;
 }
 
 print 4 + sum(5, 6, 7);
