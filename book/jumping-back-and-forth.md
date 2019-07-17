@@ -732,7 +732,7 @@ I'm with him. His general argument is something like this:
     textual structure, the better.
 
 This is a good start. Drawing our attention to the separation between the code
-we write and the code as its runs inside the machine is an interesting insight.
+we write and the code as it runs inside the machine is an interesting insight.
 Then he tries to define a "correspondence" between program text and execution.
 For someone who spent literally his entire career advocating greater rigor in
 programming, his definition is pretty hand-wavey. He says:
