@@ -651,7 +651,7 @@ this should be a syntax error. But here's what our parser does:
 
 <aside name="do">
 
-Wouldn't it be wild if `a * b` *was* as valid assignment target, though? You
+Wouldn't it be wild if `a * b` *was* a valid assignment target, though? You
 could imagine some algebra-like language that tried to divide the assigned value
 up in some reasonable way and distribute it to `a` and `b`. ...That's probably
 a terrible idea.
