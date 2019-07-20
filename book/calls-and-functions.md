@@ -1033,7 +1033,7 @@ arguments. Now that the call is done, the caller doesn't need them anymore. This
 means the top of the stack ends up right at the beginning of the returning
 function's stack window.
 
-**todo: illustrate**
+<img src="image/calls-and-functions/return.png" alt="Each step of the return process: popping the return value, discarding the call frame, pushing the return value." />
 
 We push the return value back onto the stack at that new lower location. Then we
 update the `run()` function's cached pointer to the current frame. Just like
