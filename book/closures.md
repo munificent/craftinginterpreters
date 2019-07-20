@@ -1,10 +1,51 @@
 ^title Closures
 ^part A Bytecode Virtual Machine
 
+### outline
+
+- intro
+  - have fns but no closures
+    - ex of closure
+  - harder because local vars on stack
+    - assumes lifetime of var has stack semantics
+    - ex of local living past return of fn
+  - want add support for closures while keeping perf of locals on stack
+  - take approach used by lua
+    - [good fit for clox since also single-pass bytecode vm]
+  - build in stages, intro concepts as needed
+
+- closure obj
+  - currently, fn objects created at compile time
+  - just obj bound to name
+  - no instr to "create" fn at runtime, simply loaded from const table
+  - for closure, some runtime obj needs to be created
+
+    ```lox
+    fun makeClosure(value) {
+      fun closure() {
+        print value;
+      }
+      return closure;
+    }
+
+    var doughnut = makeClosure("doughnut");
+    var bagel = makeClosure("bagel");
+    doughnut();
+    bagel();
+    ```
+
+  - two fns must be diff since do different things
+  - first step is create runtime rep of closure
+  - wrap fn which contains static part of fn -- code and const
+  - eventually contain runtime state needed to close over vars
+  - every fn in clox wrapped in closure, even if doesn't close over anything
+  - simplifies vm because doesn't need to handle calling both closure and bare
+    fn
+
+- open upvalues
+
 ### todo
 
-- re-read jlox chapter on closures
-- see if it should be "upvar" to match lua
 - quote
 - challenges
   - instead of always wrapping fn in closure, only do so if it has upvalues
@@ -31,7 +72,7 @@
   - OP_CLOSURE
   - update vm to go through that to get to fn
 
-### obj
+## closure obj
 
 ...
 
@@ -120,7 +161,7 @@ does not know when to create closure.**
 
 ^code interpret (2 before, 2 after)
 
-## compiling upvalues
+## compiling open upvalues
 
 - compiler upvalue struct
 - resolve outer locals
