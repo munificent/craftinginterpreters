@@ -238,7 +238,7 @@ static bool callValue(Value callee, int argCount) {
 
 //< Closures not-yet
 /* Calls and Functions call-value < Closures not-yet
-      case OBJ_FUNCTION:
+      case OBJ_FUNCTION: // [switch]
         return call(AS_FUNCTION(callee), argCount);
 
 */
@@ -252,7 +252,7 @@ static bool callValue(Value callee, int argCount) {
       }
 //< call-native
 
-      default: // [switch]
+      default:
         // Non-callable object type.
         break;
     }
