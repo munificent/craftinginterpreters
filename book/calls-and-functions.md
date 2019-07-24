@@ -1342,11 +1342,4 @@ optimizations we can do in our VM.
     programs using those. What did you add? How do they affect the feel of the
     language and how practical it is?
 
-4.  Instead of a separate CallFrame stack, most native CPU architectures and
-    many virtual machines use a single stack to track both values and calls.
-    They push the base pointer and return address to the stack at the beginning
-    of a call and pop them when the call completes. Implement that. (You may
-    find it easier to implement this on top of the solution to challenge 1.) Do
-    a little benchmarking and see how it affects function call performance.
-
 </div>
