@@ -2,30 +2,32 @@
 #ifndef clox_vm_h
 #define clox_vm_h
 
-/* A Virtual Machine vm-h < Calls and Functions not-yet
+/* A Virtual Machine vm-h < Calls and Functions vm-include-object
 #include "chunk.h"
 */
-//> Calls and Functions not-yet
+//> Calls and Functions vm-include-object
 #include "object.h"
-//< Calls and Functions not-yet
+//< Calls and Functions vm-include-object
 //> Hash Tables vm-include-table
 #include "table.h"
 //< Hash Tables vm-include-table
 //> vm-include-value
 #include "value.h"
 //< vm-include-value
-/* A Virtual Machine stack-max < Calls and Functions not-yet
+//> stack-max
 
+//< stack-max
+/* A Virtual Machine stack-max < Calls and Functions frame-max
 #define STACK_MAX 256
 */
-//> Calls and Functions not-yet
-// TODO: Don't depend on frame count for stack count since we have
-// stack before frames?
+//> Calls and Functions frame-max
 #define FRAMES_MAX 64
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
+//< Calls and Functions frame-max
+//> Calls and Functions call-frame
 
 typedef struct {
-/* Calls and Functions not-yet < Closures not-yet
+/* Calls and Functions call-frame < Closures not-yet
   ObjFunction* function;
 */
 //> Closures not-yet
@@ -34,25 +36,24 @@ typedef struct {
   uint8_t* ip;
   Value* slots;
 } CallFrame;
-//< Calls and Functions not-yet
+//< Calls and Functions call-frame
 
 typedef struct {
-/* A Virtual Machine vm-h < Calls and Functions not-yet
+/* A Virtual Machine vm-h < Calls and Functions frame-array
   Chunk* chunk;
 */
-/* A Virtual Machine ip < Calls and Functions not-yet
+/* A Virtual Machine ip < Calls and Functions frame-array
   uint8_t* ip;
 */
+//> Calls and Functions frame-array
+  CallFrame frames[FRAMES_MAX];
+  int frameCount;
+  
+//< Calls and Functions frame-array
 //> vm-stack
   Value stack[STACK_MAX];
   Value* stackTop;
 //< vm-stack
-//> Calls and Functions not-yet
-
-  CallFrame frames[FRAMES_MAX];
-  int frameCount;
-
-//< Calls and Functions not-yet
 //> Global Variables vm-globals
   Table globals;
 //< Global Variables vm-globals

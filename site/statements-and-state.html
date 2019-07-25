@@ -514,15 +514,13 @@ statement is not allowed to be one that declares a name. This is OK:</p>
 
 
 <p>We <em>could</em> allow the latter, but it&rsquo;s confusing. What is the scope of that
-<code>beverage</code> variable? If it goes <em>past</em> the if, then it means in some cases, the
-variable exists and in others it doesn&rsquo;t. That makes it really hard for the
-compiler or a human to reason about the code. But if the variable <em>doesn&rsquo;t</em> live
-past the if, then what&rsquo;s the point of declaring it at all?</p>
-<p>Code like this is weird, so C, Java, and friends all disallow it. Instead, it&rsquo;s
-as if there are two levels of <span name="brace">&ldquo;precedence&rdquo;</span> for
-statements. Some places where a statement is allowed<span class="em">&mdash;</span>like inside a block or
-at the top level<span class="em">&mdash;</span>allow any kind of statement, including declarations. Others
-only allow the &ldquo;higher&rdquo; precedence statements that don&rsquo;t declare names.</p>
+<code>beverage</code> variable? Does it persist after the if statement? If so, what is its
+value on days other than Monday? Does the variable exist at all on those days?</p>
+<p>Code like this is weird, so C, Java, and friends all disallow it. It&rsquo;s as if
+there are two levels of <span name="brace">&ldquo;precedence&rdquo;</span> for statements.
+Some places where a statement is allowed<span class="em">&mdash;</span>like inside a block or at the top
+level<span class="em">&mdash;</span>allow any kind of statement, including declarations. Others only allow
+the &ldquo;higher&rdquo; precedence statements that don&rsquo;t declare names.</p>
 <aside name="brace">
 <p>In this analogy, a block statement, where you stuff a series of statements
 inside a pair of curly braces, works sort of like parentheses for expressions. A
@@ -873,8 +871,8 @@ for even and odd numbers work, but you&rsquo;d get a runtime error in:</p>
 
 
 <p>As with type errors in the expression evaluation code, we report a runtime error
-by throwing an exception, giving it the token for the variable so we can tell
-the user where in their code they messed up.</p>
+by throwing an exception. The exception contains the variable&rsquo;s token so we can
+tell the user where in their code they messed up.</p>
 <h3><a href="#interpreting-global-variables" name="interpreting-global-variables"><small>8&#8202;.&#8202;3&#8202;.&#8202;1</small> Interpreting global variables</a></h3>
 <p>The Interpreter class gets an instance of the new Environment class:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kd">class</span> <span class="nc">Interpreter</span> <span class="kd">implements</span> <span class="n">Expr</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;,</span> <span class="n">Stmt</span><span class="o">.</span><span class="na">Visitor</span><span class="o">&lt;</span><span class="n">Void</span><span class="o">&gt;</span> <span class="o">{</span>
@@ -906,9 +904,10 @@ add after <em>visitPrintStmt</em>()</div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitPrintStmt</em>()</div>
 
-<p>If the variable has an initializer, it evaluates it. If not, we have another
-choice to make. We could make it a syntax error by <em>requiring</em> an initializer.
-Most languages don&rsquo;t, though, so it feels a little harsh to do so in Lox.</p>
+<p>If the variable has an initializer, we evaluate it. If not, we have another
+choice to make. We could have made this a syntax error in the parser by
+<em>requiring</em> an initializer. Most languages don&rsquo;t, though, so it feels a little
+harsh to do so in Lox.</p>
 <p>We could make it a runtime error. We&rsquo;d let you define an uninitialized variable,
 but if you accessed before assigning to it, a runtime error would occur. It&rsquo;s
 not a bad idea, but most dynamically typed languages don&rsquo;t do that. Instead,
@@ -1205,10 +1204,10 @@ statically reading the code.</p>
 use it in programming languages, it usually means a thing you can figure out
 from source code itself without having to execute anything.</p>
 <p>Lexical scope came onto the scene with ALGOL. Earlier languages were often
-dynamically scoped. They believed dynamic scope was faster to execute. Today,
-thanks to early Scheme hackers, we know that isn&rsquo;t true. If anything, it&rsquo;s the
-opposite.</p>
-<p>Dynamic scope for variables lives on some corners. Emacs Lisp defaults to
+dynamically scoped. Computer scientists back then believed dynamic scope was
+faster to execute. Today, thanks to early Scheme hackers, we know that isn&rsquo;t
+true. If anything, it&rsquo;s the opposite.</p>
+<p>Dynamic scope for variables lives on in some corners. Emacs Lisp defaults to
 dynamic scope for variables. The <a href="http://clojuredocs.org/clojure.core/binding"><code>binding</code></a> macro in Clojure provides
 it. The widely-disliked <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/with"><code>with</code> statement</a> in JavaScript turns properties
 on an object into dynamically-scoped variables.</p>
@@ -1372,7 +1371,7 @@ the chain. The other constructor creates a new local scope nested inside the
 given outer one.</p>
 <p>We don&rsquo;t have to touch the <code>define()</code> method<span class="em">&mdash;</span>a new variable is always
 declared in the current innermost scope. But variable lookup and assignment work
-with existing variables and they need to walk the chain to find it. First,
+with existing variables and they need to walk the chain to find them. First,
 lookup:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">values</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">);</span>                 
     <span class="o">}</span>                                                 
@@ -1389,8 +1388,8 @@ in <em>get</em>()</div>
 in turn does the same thing <span name="recurse">recursively</span>, so this
 will ultimately walk the entire chain. Assignment rolls the same way:</p>
 <aside name="recurse">
-<p>It&rsquo;s faster to iteratively walk the chain, but I think the recursive solution is
-prettier. We&rsquo;ll do something <em>much</em> faster in clox.</p>
+<p>It&rsquo;s likely faster to iteratively walk the chain, but I think the recursive
+solution is prettier. We&rsquo;ll do something <em>much</em> faster in clox.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">values</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="na">lexeme</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
       <span class="k">return</span><span class="o">;</span>                        
@@ -1419,9 +1418,9 @@ the grammar:</p>
 </pre></div>
 
 
-<p>It&rsquo;s a (possibly empty) series of statements or declarations surrounded by curly
-braces. A block is itself a statement and can appear anywhere a statement is
-allowed. Its <span name="block-ast">syntax tree</span> node looks like this:</p>
+<p>A block is a (possibly empty) series of statements or declarations surrounded by
+curly braces. A block is itself a statement and can appear anywhere a statement
+is allowed. The <span name="block-ast">syntax tree</span> node looks like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">defineAst</span><span class="o">(</span><span class="n">outputDir</span><span class="o">,</span> <span class="s">&quot;Stmt&quot;</span><span class="o">,</span> <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
@@ -1467,9 +1466,9 @@ add after <em>expressionStatement</em>()</div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expressionStatement</em>()</div>
 
-<p>It creates an empty list and then parses statements and adds them to the list
-until it reaches the end of the block, marked by the closing <code>}</code>. Note that the
-loop also has an explicit check for <code>isAtEnd()</code>. We have to be careful to avoid
+<p>We create an empty list and then parse statements and add them to the list until
+we reach the end of the block, marked by the closing <code>}</code>. Note that the loop
+also has an explicit check for <code>isAtEnd()</code>. We have to be careful to avoid
 infinite loops, even when parsing invalid code. If the user forgot a closing
 <code>}</code>, the parser needs to not get stuck.</p>
 <p>That&rsquo;s it for syntax. For semantics, we add another visit method to Interpreter:</p>
@@ -1514,12 +1513,12 @@ previous value. As is always good practice in Java, it restores the previous
 environment using a finally clause. That way it gets restored even if an
 exception is thrown.</p>
 <aside name="param">
-<p>Explicitly changing and restoring a mutable <code>environment</code> field may seem a
-little inelegant. Another classic approach is to explicitly pass the environment
-as a parameter to each visit method. To &ldquo;change&rdquo; the enviroment, you pass a
-different one as you recurse down the tree. You don&rsquo;t have to restore the old
-one, since the new one lives on the Java stack and is implicitly discarded when
-the interpreter returns from the block&rsquo;s visit method.</p>
+<p>Manually changing and restoring a mutable <code>environment</code> field feels inelegant.
+Another classic approach is to explicitly pass the environment as a parameter to
+each visit method. To &ldquo;change&rdquo; the enviroment, you pass a different one as you
+recurse down the tree. You don&rsquo;t have to restore the old one, since the new one
+lives on the Java stack and is implicitly discarded when the interpreter returns
+from the block&rsquo;s visit method.</p>
 <p>I considered that for jlox, but it&rsquo;s kind of tedious and verbose adding an
 environment parameter to every single visit method.</p>
 </aside>
