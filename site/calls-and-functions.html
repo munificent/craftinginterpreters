@@ -38,7 +38,15 @@
 <h3><a href="#top">Calls and Functions<small>24</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#function-objects"><small>24.1</small> Function Objects</a></li>
+    <li><a href="#compiling-to-function-objects"><small>24.2</small> Compiling to Function Objects</a></li>
+    <li><a href="#call-frames"><small>24.3</small> Call Frames</a></li>
+    <li><a href="#function-declarations"><small>24.4</small> Function Declarations</a></li>
+    <li><a href="#function-calls"><small>24.5</small> Function Calls</a></li>
+    <li><a href="#return-statements"><small>24.6</small> Return Statements</a></li>
+    <li><a href="#native-functions"><small>24.7</small> Native Functions</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -64,7 +72,15 @@
 <h3><a href="#top">Calls and Functions<small>24</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#function-objects"><small>24.1</small> Function Objects</a></li>
+    <li><a href="#compiling-to-function-objects"><small>24.2</small> Compiling to Function Objects</a></li>
+    <li><a href="#call-frames"><small>24.3</small> Call Frames</a></li>
+    <li><a href="#function-declarations"><small>24.4</small> Function Declarations</a></li>
+    <li><a href="#function-calls"><small>24.5</small> Function Calls</a></li>
+    <li><a href="#return-statements"><small>24.6</small> Return Statements</a></li>
+    <li><a href="#native-functions"><small>24.7</small> Native Functions</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -82,9 +98,10 @@
   <div class="number">24</div>
   <h1>Calls and Functions</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -99,7 +116,1811 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<blockquote>
+<p>Any problem in computer science can be solved with another level of
+indirection. Except for the problem of too many layers of indirection.</p>
+<p><cite>David Wheeler</cite></p>
+</blockquote>
+<p>This chapter is a beast. I try to break features into bite-sized pieces, but
+sometimes you gotta swallow the whole <span name="eat">meal</span>. Our next
+task is functions. We could start with only function declarations, but that&rsquo;s
+not very useful when you can&rsquo;t call them. We could do calls, but there&rsquo;s nothing
+to call. And all of the runtime support needed in the VM to support both of
+those isn&rsquo;t very rewarding if it isn&rsquo;t hooked up to anything you can see. So
+we&rsquo;re going to do it all. It&rsquo;s a lot, but we&rsquo;ll feel good when we&rsquo;re done.</p>
+<aside name="eat">
+<p>Eating<span class="em">&mdash;</span>consumption<span class="em">&mdash;</span>is a weird metaphor for a creative act. But most of the
+biological processes that produce &ldquo;output&rdquo; are a little less, ahem, decorous.</p>
+</aside>
+<h2><a href="#function-objects" name="function-objects"><small>24&#8202;.&#8202;1</small> Function Objects</a></h2>
+<p>The most interesting structural change in the VM is around the stack. We already
+<em>have</em> a stack for local variables and temporaries, so we&rsquo;re partway there. But
+we have no notion of a <em>call</em> stack. Before we can make much progress, we&rsquo;ll
+have to fix that. But first, let&rsquo;s write some code. I always feel better once I
+start moving. We can&rsquo;t do much without having some kind of representation for
+functions, so we&rsquo;ll start there. From the VM&rsquo;s perspective, what is a function?</p>
+<p>A function has a body that can be executed, so that means some bytecode. We
+could compile the entire program and all of its function declarations into one
+big monolithic Chunk. Each function would have a pointer to the first
+instruction of its code inside the Chunk.</p>
+<p>This is roughly how compilation to native code works where you end up with one
+solid blob of machine code. But for our bytecode VM, we can do something a
+little higher level. I think a cleaner model is to give each function its own
+Chunk. We&rsquo;ll want some other metadata too, so let&rsquo;s go ahead and stuff it all in
+a struct now:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">struct</span> <span class="n">sObj</span><span class="o">*</span> <span class="n">next</span><span class="p">;</span>
+<span class="p">};</span>                  
+</pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObj</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>    
+  <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>          
+  <span class="kt">int</span> <span class="n">arity</span><span class="p">;</span>        
+  <span class="n">Chunk</span> <span class="n">chunk</span><span class="p">;</span>      
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span><span class="p">;</span>  
+<span class="p">}</span> <span class="n">ObjFunction</span><span class="p">;</span>      
+</pre><pre class="insert-after"><br><span></span><span class="k">struct</span> <span class="n">sObjString</span> <span class="p">{</span> 
+</pre></div>
 
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObj</em></div>
+
+<p>Functions are first class in Lox, so they need to be actual Lox objects. Thus
+ObjFunction has the same <code>Obj obj</code> header all object types share. The <code>arity</code>
+field stores the number of parameters the function expects. Then, in addition to
+the chunk, we store the function&rsquo;s <span name="name">name</span>. That will be
+handy for reporting readable runtime errors.</p>
+<aside name="name">
+<p>For some reason, humans don&rsquo;t seem to find numeric bytecode offsets particularly
+illuminating in crash dumps.</p>
+</aside>
+<p>This is the first time the &ldquo;object&rdquo; module has needed to reference Chunk, so we
+get an include:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;chunk.h&quot; </span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>Like we did with the other object types, we need some accessories to make
+functions easier to work with in C. Sort of a poor man&rsquo;s object orientation.
+First, we&rsquo;ll declare a C function to create a new Lox function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">;</span>                               
+<span class="p">};</span>                                             
+<br></pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>sObjString</em></div>
+<pre class="insert"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">newFunction</span><span class="p">();</span>                    
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
+
+<p>The implementation is over here:</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>allocateObject</em>()</div>
+<pre><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">newFunction</span><span class="p">()</span> <span class="p">{</span>                                      
+  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjFunction</span><span class="p">,</span> <span class="n">OBJ_FUNCTION</span><span class="p">);</span>
+
+  <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                            
+  <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                          
+  <span class="n">initChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">);</span>                                    
+  <span class="k">return</span> <span class="n">function</span><span class="p">;</span>                                                
+<span class="p">}</span>                                                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
+
+<p>It uses the same procedure we&rsquo;ve seen to allocate memory and initialize the
+object&rsquo;s header so that the VM knows what type of object it is. Instead of
+passing in arguments to initialize the function like we do with other object
+types, we set it up in a sort of &ldquo;blank&rdquo; state<span class="em">&mdash;</span>zero arity, no name, and no
+code. That will get filled in later after the function is created.</p>
+<p>Since we have a new type of object, we need a new object type in the enum:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span> 
+</pre><div class="source-file"><em>object.h</em><br>
+in enum <em>ObjType</em></div>
+<pre class="insert"><span></span>  <span class="n">OBJ_FUNCTION</span><span class="p">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">OBJ_STRING</span><span class="p">,</span>  
+<span class="p">}</span> <span class="n">ObjType</span><span class="p">;</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
+
+<p>When we&rsquo;re done with a function object, we must return the bits it borrowed back
+to the operating system:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                          
+</pre><div class="source-file"><em>memory.c</em><br>
+in <em>freeObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span> <span class="p">{</span>                           
+      <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>
+      <span class="n">freeChunk</span><span class="p">(</span><span class="o">&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">);</span>                 
+      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjFunction</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>                   
+      <span class="k">break</span><span class="p">;</span>                                       
+    <span class="p">}</span>                                              
+<br></pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span> <span class="p">{</span>                             
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
+
+<p>This switch case is <span name="free-name">responsible</span> for freeing the
+ObjFunction itself as well as any other memory it owns. Functions own their
+chunk, so we call Chunk&rsquo;s destructor-like function.</p>
+<aside name="free-name">
+<p>We don&rsquo;t need to explicitly free the function&rsquo;s name because it&rsquo;s an ObjString.
+That means we can let the garbage collector manage its lifetime for us. Or, at
+least, we&rsquo;ll be able to once we <a href="garbage-collection.html">implement a garbage collector</a>.</p>
+</aside>
+<p>Over in the function to print objects, we also add a case:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                             
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>printObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                   
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                                             
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
+
+<p>Since we have the function&rsquo;s name, we may as well use it. If you run:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">someFunction</span><span class="p">()</span> <span class="p">{}</span>
+<span class="k">print</span> <span class="n">someFunction</span><span class="p">;</span>
+</pre></div>
+
+
+<p>It prints out <code>&lt;fn someFunction&gt;</code>. I don&rsquo;t know, maybe that will be useful to
+someone.</p>
+<p>Finally, we have a couple of macros for converting values to functions. First,
+make sure your value actually <em>is</em> a function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)         </span>
+<br></pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>Assuming that returns true, you can then safely cast the Value to an ObjFunction
+pointer using:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING) </span>
+<br></pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>With that, our object model knows how to represent functions. I&rsquo;m feeling warmed
+up now. You ready for something a little harder?</p>
+<h2><a href="#compiling-to-function-objects" name="compiling-to-function-objects"><small>24&#8202;.&#8202;2</small> Compiling to Function Objects</a></h2>
+<p>Right now, our compiler assumes it is always compiling to one single chunk. With
+each function&rsquo;s code living in separate chunks, the compiler needs to switch to
+the function&rsquo;s chunk before compiling its body. At the end of the function body,
+the compiler needs to return to the previous chunk it was working with.</p>
+<p>That&rsquo;s fine for code inside function bodies, but what about code that isn&rsquo;t? The
+&ldquo;top level&rdquo; of a Lox program is also imperative code and we need a chunk to
+compile that into. We can simplify the compiler and VM by placing that top level
+code inside an automatically-defined function too. That way, the compiler is
+always within some kind of function body, and the VM always runs code by
+invoking a function. It&rsquo;s as if the entire program is <span
+name="wrap">wrapped</span> inside an implicit <code>main()</code> function.</p>
+<aside name="wrap">
+<p>One semantic corner where that analogy breaks down is global variables. They
+have special scoping rules different from local variables, so in that way, the
+top level of a script isn&rsquo;t like a function body.</p>
+</aside>
+<p>Before we get to user-defined functions, then, let&rsquo;s do the reorganization to
+support that implicit top-level function. It starts with the Compiler struct.
+Instead of pointing directly to a Chunk that the compiler writes to, it will
+instead have a reference to the function object being built:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">Compiler</span> <span class="p">{</span>   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>Compiler</em></div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">;</span>    
+  <span class="n">FunctionType</span> <span class="n">type</span><span class="p">;</span>        
+<br></pre><pre class="insert-after"><span></span>  <span class="n">Local</span> <span class="n">locals</span><span class="p">[</span><span class="n">UINT8_COUNT</span><span class="p">];</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
+
+<p>We also have a little FunctionType enum. This lets the compiler tell when it&rsquo;s
+compiling top level code versus the body of a function. Most of the compiler
+doesn&rsquo;t care about this<span class="em">&mdash;</span>that&rsquo;s why it&rsquo;s a useful abstraction<span class="em">&mdash;</span>but in one or
+two places the distinction is meaningful. We&rsquo;ll get to one later.</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after struct <em>Local</em></div>
+<pre><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>  
+  <span class="n">TYPE_FUNCTION</span><span class="p">,</span>
+  <span class="n">TYPE_SCRIPT</span>   
+<span class="p">}</span> <span class="n">FunctionType</span><span class="p">;</span> 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Local</em></div>
+
+<p>Every place in the compiler that was writing to the Chunk now needs to go
+through that function pointer. Fortunately, many <span
+name="current">chapters</span> ago, we encapsulated access to the chunk in the
+<code>currentChunk()</code> function. We only need to fix that and the rest of the compiler
+is happy:</p>
+<aside name="current">
+<p>It&rsquo;s almost like I had a crystal ball that could see into the future and knew
+we&rsquo;d need to change the code later. But, really, it&rsquo;s because I wrote all the
+code for the book before any of the text.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Compiler</span><span class="o">*</span> <span class="n">current</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                               
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+function <em>currentChunk</em>()<br>
+replace 5 lines</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="n">Chunk</span><span class="o">*</span> <span class="nf">currentChunk</span><span class="p">()</span> <span class="p">{</span>                          
+  <span class="k">return</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">;</span>                     
+<span class="p">}</span>                                                       
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>currentChunk</em>(), replace 5 lines</div>
+
+<p>The current chunk is always the chunk owned by the function we&rsquo;re in the middle
+of compiling. Next, we need to actually create that function. Previously, the VM
+passed a Chunk to the compiler which filled it with code. Instead, the compiler
+will create and return a function that contains the compiled top-level code<span class="em">&mdash;</span>which is all we support right now<span class="em">&mdash;</span>of the user&rsquo;s program.</p>
+<h3><a href="#creating-functions-at-compile-time" name="creating-functions-at-compile-time"><small>24&#8202;.&#8202;2&#8202;.&#8202;1</small> Creating functions at compile time</a></h3>
+<p>We start threading this through in <code>compile()</code>, which is the main entry point
+into the compiler:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Compiler</span> <span class="n">compiler</span><span class="p">;</span>                   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>compile</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">initCompiler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="p">,</span> <span class="n">TYPE_SCRIPT</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 2 lines</div>
+
+<p>There are a bunch of changes in how the compiler is initialized. First, we clear
+out the new Compiler fields:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+function <em>initCompiler</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">initCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="p">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                     
+  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">=</span> <span class="n">type</span><span class="p">;</span>                                         
+</pre><pre class="insert-after"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>initCompiler</em>(), replace 1 line</div>
+
+<p>Then we allocate a new function object to compile into:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>          
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">newFunction</span><span class="p">();</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="p">;</span>                
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p><span name="null"></span></p>
+<aside name="null">
+<p>I know, it looks dumb to null the <code>function</code> field only to immediately assign it
+a value a few lines later. More garbage collection-related paranoia.</p>
+</aside>
+<p>This might seem a little strange. A function object is the <em>runtime</em>
+representation of a function, but here we are creating it at compile time. The
+way to think of it is that a function is similar to string and number literals.
+It forms a bridge between the compile time and runtime world. When we get to
+function declarations, those really <em>are</em> literals<span class="em">&mdash;</span>they are a notation that
+produces values of a built-in type. So the <span name="closure">compiler</span>
+creates function objects during compilation. Then, at runtime, they are simply
+invoked.</p>
+<aside name="closure">
+<p>We can create functions at compile time because they contain only data available
+at compile time. The function&rsquo;s code, name, and arity are all fixed. When we add
+closures in the <a href="closures.html">next chapter</a>, which capture variables at runtime,
+the story gets more complex.</p>
+</aside>
+<p>Here is another strange piece of code:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="p">;</span>                                    
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="p">];</span>
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                      
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>                                
+  <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p>Remember that the compiler&rsquo;s <code>locals</code> array keeps track of which stack slots are
+associated with which local variables or temporaries. From now on, the compiler
+implicitly claims stack slot zero for the VM&rsquo;s own internal use. We give it an
+empty name so that the user can&rsquo;t write an identifier that refers to it. I&rsquo;ll
+explain what this is about when it becomes useful.</p>
+<p>That&rsquo;s the initializion side. We also need a couple of changes on the other end
+when we finish compiling some code:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+function <em>endCompiler</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="k">static</span> <span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">endCompiler</span><span class="p">()</span> <span class="p">{</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">emitReturn</span><span class="p">();</span>                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>endCompiler</em>(), replace 1 line</div>
+
+<p>Previously, when <code>interpret()</code> called into the compiler, it passed in a Chunk to
+be written to. Now that the compiler creates the function object itself, we
+return that function. We grab it from the current compiler:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitReturn</span><span class="p">();</span>                             
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="p">;</span>
+<br></pre><pre class="insert-after"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE                     </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
+
+<p>And then return it to <code>compile()</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#endif            </span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">return</span> <span class="n">function</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
+
+<p>Now is a good time to make another tweak in this function. Earlier, we added
+some diagnostic code to have the VM dump the disassembled bytecode so we can
+debug the compiler. We should fix that now that the generated chunk is wrapped
+in a function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE                                              </span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">parser</span><span class="p">.</span><span class="n">hadError</span><span class="p">)</span> <span class="p">{</span>                                            
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">disassembleChunk</span><span class="p">(</span><span class="n">currentChunk</span><span class="p">(),</span>                                 
+        <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">?</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="nl">chars</span> <span class="p">:</span> <span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                                                  
+<span class="cp">#endif                                                               </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>(), replace 1 line</div>
+
+<p>Bumping up a level to <code>compile()</code>, we adjust its signature:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;                          </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>compiler.h</em><br>
+function <em>compile</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#endif                                   </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.h</em>, function <em>compile</em>(), replace 1 line</div>
+
+<p>Instead of taking a chunk, now it returns a function. Over in the
+implementation:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+function <em>compile</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>compile</em>(), replace 1 line</div>
+
+<p>Finally we get to some actual code. At the very end of the function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EOF</span><span class="p">))</span> <span class="p">{</span>              
+    <span class="n">declaration</span><span class="p">();</span>                         
+  <span class="p">}</span>                                        
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>compile</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">endCompiler</span><span class="p">();</span>   
+  <span class="k">return</span> <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">?</span> <span class="nb">NULL</span> <span class="o">:</span> <span class="n">function</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                          
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 2 lines</div>
+
+<p>We get the function object from the compiler. If there were no compile errors,
+we return it. Otherwise, we signal an error by returning <code>NULL</code>. This way, the
+VM doesn&rsquo;t try to execute a function that may contain invalid bytecode.</p>
+<p>Eventually, we will update <code>interpret()</code> to handle the new declaration of
+<code>compile()</code>, but first we have some other changes to make.</p>
+<h2><a href="#call-frames" name="call-frames"><small>24&#8202;.&#8202;3</small> Call Frames</a></h2>
+<p>It&rsquo;s time for a big conceptual leap. Before we can implement function
+declarations and calls, we need to get the VM ready to handle them. There are
+two main problems we need to worry about:</p>
+<h3><a href="#allocating-local-variables" name="allocating-local-variables"><small>24&#8202;.&#8202;3&#8202;.&#8202;1</small> Allocating local variables</a></h3>
+<p>The compiler allocates stack slots for local variables. How should that work
+when the set of local variables in a program is distributed across multiple
+functions?</p>
+<p>One option would be to keep them totally separate. Each function would get its
+own dedicated set of slots in the VM stack that it would own <span
+name="static">forever</span>, even when the function isn&rsquo;t being called. Each
+local variable in the entire program would have a bit of memory in the VM that
+it keeps to itself.</p>
+<aside name="static">
+<p>It&rsquo;s basically what you&rsquo;d get if you declared every local variable in a C
+program using <code>static</code>.</p>
+</aside>
+<p>Believe it or not, early programming language implementations worked this way.
+The first Fortran compilers statically allocated memory for each variable. The
+obvious problem is that it&rsquo;s really inefficient. Most functions are not in the
+middle of being called at any point in time, so sitting on unused memory for
+them is wasteful.</p>
+<p>The more fundamental problem, though, is recursion. With recursion, you can be
+&ldquo;in&rdquo; multiple calls of the same function at the same time. Each needs its <span
+name="fortran">own</span> memory for its local variables. In jlox, we solved
+this by dynamically allocating memory for an environment each time a function
+was called or a block entered. In clox, we don&rsquo;t want that kind of performance
+cost on every function call.</p>
+<aside name="fortran">
+<p>Fortran avoided this problem by disallowing recursion entirely. Recursion was
+considered an advanced, esoteric feature at the time.</p>
+</aside>
+<p>Instead, our solution somewhere between Fortran&rsquo;s static allocation and jlox&rsquo;s
+dynamic approach. The value stack in the VM works on the observation that local
+variables and temporaries behave in a last-in first-out fashion. Fortunately for
+us, that&rsquo;s still true even when you add function calls into the mix. Here&rsquo;s an
+example:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">first</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">second</span><span class="p">();</span>
+  <span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">fun</span> <span class="n">second</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="k">var</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">first</span><span class="p">();</span>
+</pre></div>
+
+
+<p>Step through the program and look at which variables are in memory at each point
+in time:</p>
+<p><img src="image/calls-and-functions/calls.png" alt="Tracing through the execution of the previous program, showing the stack of variables at each step." /></p>
+<p>As execution flows through the two calls, every local variable obeys the
+principle that any variable declared after it will be discarded before the first
+variable needs to be. This is true even across calls. We know we&rsquo;ll be done with
+<code>c</code> and <code>d</code> before we are <code>a</code>. It seems we should be able to allocate local
+variables on the VM&rsquo;s value stack.</p>
+<p>Ideally, we still determine <em>where</em> on the stack each variable will go at
+compile time. That keeps the bytecode instructions for working with variables
+simple and fast. In the above example, we could <span
+name="imagine">imagine</span> doing so in a straightforward way, but that
+doesn&rsquo;t always work out. Consider:</p>
+<aside name="imagine">
+<p>I say &ldquo;imagine&rdquo; because the compiler can&rsquo;t actually figure this out. Because
+functions are first class in Lox, we can&rsquo;t determine which functions call which
+others at compile time.</p>
+</aside>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">first</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="n">second</span><span class="p">();</span>
+  <span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+  <span class="n">second</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">fun</span> <span class="n">second</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="k">var</span> <span class="n">d</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">first</span><span class="p">();</span>
+</pre></div>
+
+
+<p>In the first call to <code>second()</code>, <code>c</code> and <code>d</code> would go into slots 1 and 2. But in
+the second call, we need to have made room for <code>b</code>, so <code>c</code> and <code>d</code> need to be in
+slots 2 and 3. Thus the compiler can&rsquo;t pin down an exact slot for each local
+variable across function calls. But <em>within</em> a given function, the <em>relative</em>
+locations of each local variable are fixed. Variable <code>d</code> is always in the slot
+right after <code>c</code>. This is the key insight.</p>
+<p>When a function is called, we don&rsquo;t know where the top of the stack will be
+because it can be called from different contexts. But, wherever that top happens
+to be, we do know where all of the function&rsquo;s local variables will be relative
+to that starting point. So, like many problems, we solve our allocation problem
+with a level of indirection.</p>
+<p>At the beginning of each function call, the VM records the location of the first
+slot where that function&rsquo;s own locals begin. The instructions for working with
+local variables access them by a slot index relative to that, instead of
+relative to the bottom of the stack like they do today. At compile time, we
+calculate those relative slots. At runtime, we convert that relative slot to an
+absolute stack index by adding the function call&rsquo;s starting slot.</p>
+<p>It&rsquo;s as if the function gets a &ldquo;window&rdquo; or &ldquo;frame&rdquo; within the larger stack where
+it can store its locals. The position of the <strong>call frame</strong> is determined at
+runtime, but within and relative to that region, we know where to find things.</p>
+<p><img src="image/calls-and-functions/window.png" alt="The stack at the two points when second() is called, with a window hovering over each one showing the pair of stack slots used by the function.." /></p>
+<p>The historical name for this recorded location where the function&rsquo;s locals start
+is a &ldquo;frame pointer&rdquo; because it points to the beginning of the function&rsquo;s call
+frame. Sometimes you hear &ldquo;base pointer&rdquo;, because it points to the base stack
+slot on top of which all of the function&rsquo;s variables live.</p>
+<p>That&rsquo;s the first piece of data we need to track. Every time we call a function,
+the VM determines the first stack slot where that function&rsquo;s variables begin.</p>
+<h3><a href="#return-addresses" name="return-addresses"><small>24&#8202;.&#8202;3&#8202;.&#8202;2</small> Return addresses</a></h3>
+<p>Right now, the VM works its way through the instruction stream by incrementing
+the <code>ip</code> field. The only interesting behavior is around control flow
+instructions which offset the <code>ip</code> by larger amounts. <em>Calling</em> a function is
+pretty straightforward<span class="em">&mdash;</span>simply set <code>ip</code> to point to the first instruction in
+that function&rsquo;s chunk. But what about when the function is done?</p>
+<p>The VM needs to return back to the chunk where the function was called from and
+resume execution at the instruction immediately after the call. Thus, for each
+function call, we need to track where we jump back to when the call completes.
+This is called a <strong>return address</strong> because it&rsquo;s the address of the instruction
+that the VM returns to after the call.</p>
+<p>Again, thanks to <span name="return">recursion</span>, there may be multiple
+return addresses for a single function, so this is a property of each
+<em>invocation</em> and not the function itself.</p>
+<aside name="return">
+<p>The authors of early Fortran compilers had a clever trick for implementing
+return addresses. Since they <em>didn&rsquo;t</em> support recursion, any given function only
+needed a single return address at any point in time. So when a function was
+called at runtime, the program would <em>modify its own code</em> to change a jump
+instruction at the end of the function to jump back to its caller.</p>
+<p>Sometimes the line between genius and madness is hair thin.</p>
+</aside>
+<h3><a href="#the-call-stack" name="the-call-stack"><small>24&#8202;.&#8202;3&#8202;.&#8202;3</small> The call stack</a></h3>
+<p>So for each live function invocation<span class="em">&mdash;</span>each call that hasn&rsquo;t returned yet<span class="em">&mdash;</span>we
+need to track where on the stack that function&rsquo;s locals begin, and where the
+caller should resume. We&rsquo;ll put this, along with some other stuff, in a new
+struct:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define STACK_MAX 256   </span>
+</pre><div class="source-file"><em>vm.h</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>        
+  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">;</span>
+  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">ip</span><span class="p">;</span>          
+  <span class="n">Value</span><span class="o">*</span> <span class="n">slots</span><span class="p">;</span>         
+<span class="p">}</span> <span class="n">CallFrame</span><span class="p">;</span>            
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em></div>
+
+<p>A CallFrame represents a single ongoing function call. The <code>slots</code> field points
+into the VM&rsquo;s value stack at the first slot that this function can use. I gave
+it a plural name because<span class="em">&mdash;</span>thanks to C&rsquo;s weird &ldquo;pointers are sort of arrays&rdquo;
+thing<span class="em">&mdash;</span>we&rsquo;ll treat it like an array.</p>
+<p>The implementation of return addresses is a little different from what I
+described above. Instead of storing the return address in the callee&rsquo;s frame,
+the caller stores its own <code>ip</code>. When we return from a function, the VM will jump
+to the <code>ip</code> of the caller&rsquo;s CallFrame and resume from there.</p>
+<p>I also stuffed a pointer to the function being called in here. We&rsquo;ll use that to
+look up constants and for a few other things.</p>
+<p>Each time a function is called, we create one of these structs. We could <span
+name="heap">dynamically</span> allocate them on the heap, but that&rsquo;s slow.
+Function calls are a core operation, so they need to be as fast as possible.
+Fortunately, we can make the same observation we made for variables: function
+calls have stack semantics. If <code>first()</code> calls <code>second()</code>, the call to
+<code>second()</code> will complete before <code>first()</code> does.</p>
+<aside name="heap">
+<p>Many Lisp implementations dynamically allocate stack frames because it
+simplifies implementing continuations. With continuations, function calls do
+<em>not</em> always have stack semantics.</p>
+</aside>
+<p>So over in the VM, we create an array of these CallFrame structs up front and
+treat it as a stack, like we do with the value array:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>               
+</pre><div class="source-file"><em>vm.h</em><br>
+in struct <em>VM</em><br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">CallFrame</span> <span class="n">frames</span><span class="p">[</span><span class="n">FRAMES_MAX</span><span class="p">];</span>
+  <span class="kt">int</span> <span class="n">frameCount</span><span class="p">;</span>              
+<br></pre><pre class="insert-after"><span></span>  <span class="n">Value</span> <span class="n">stack</span><span class="p">[</span><span class="n">STACK_MAX</span><span class="p">];</span>      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em>, replace 2 lines</div>
+
+<p>This array replaces the <code>chunk</code> and <code>ip</code> fields we used to have directly in the
+VM. Now each CallFrame has its own <code>ip</code> and its own pointer to the ObjFunction
+that it&rsquo;s executing. From there, we can get to the function&rsquo;s chunk.</p>
+<p>The new <code>frameCount</code> field in the VM stores the current height of the stack<span class="em">&mdash;</span>the number of ongoing function calls. To keep clox simple, the array&rsquo;s capacity
+is fixed. This means, as in many language implementations, there is a maximum
+call depth we can handle. For clox, it&rsquo;s:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;value.h&quot;                          </span><span class="cp"></span>
+<br></pre><div class="source-file"><em>vm.h</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="cp">#define FRAMES_MAX 64                       </span>
+<span class="cp">#define STACK_MAX (FRAMES_MAX * UINT8_COUNT)</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
+
+<p>We also redefine the value stack&rsquo;s <span name="plenty">size</span> in terms of
+that to make sure we have plenty of stack slots even in very deep call trees.
+When the VM starts up, the CallFrame stack is empty:</p>
+<aside name="plenty">
+<p>It is still possible to overflow the stack if enough function calls use enough
+temporaries in addition to locals. A robust implementation would guard against
+this, but I&rsquo;m trying to keep things simple.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">;</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>resetStack</em>()</div>
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>     
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                        
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>resetStack</em>()</div>
+
+<p>Now, we&rsquo;ve got some grunt work ahead of us. We&rsquo;ve moved <code>ip</code> out of the VM
+struct and into CallFrame. We need to fix every line of code in the VM that
+touches <code>ip</code> to handle that. Also, the instructions that access local variables
+by stack slot need to be updated to do so relative to the current CallFrame&rsquo;s
+<code>slots</code> field.</p>
+<p>We&rsquo;ll start at the top and plow through it:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="n">InterpretResult</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>                                        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+
+<span class="cp">#define READ_BYTE() (*frame-&gt;ip++)                                    </span>
+<span class="cp">#define READ_SHORT() \                                                </span>
+    <span class="p">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint16_t</span><span class="p">)((</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="p">)</span> <span class="o">|</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+<span class="cp">#define READ_CONSTANT() \                                             </span>
+    <span class="p">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">constants</span><span class="p">.</span><span class="n">values</span><span class="p">[</span><span class="n">READ_BYTE</span><span class="p">()])</span>            
+</pre><pre class="insert-after"><span></span><span class="cp">#define READ_STRING() AS_STRING(READ_CONSTANT())                      </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 4 lines</div>
+
+<p>First, we store the current topmost CallFrame in a <span
+name="local">local</span> variable inside the main bytecode execution function.
+Then we replace the bytecode access macros with versions that access <code>ip</code>
+through that variable.</p>
+<aside name="local">
+<p>We could access the current frame by going through the CallFrame array every
+time, but that&rsquo;s verbose. More importantly, storing the frame in a local
+variable encourages the C compiler to keep that pointer in a register. That
+speeds up access to the frame&rsquo;s <code>ip</code>. There&rsquo;s no <em>guarantee</em> that the compiler
+will do this, but there&rsquo;s a good chance it will.</p>
+</aside>
+<p>Now onto each instruction that needs a little tender loving care:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_GET_LOCAL</span><span class="p">:</span> <span class="p">{</span>         
+        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">push</span><span class="p">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]);</span>  
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                     
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>Previously, <code>OP_GET_LOCAL</code> read the given local slot directly from the VM&rsquo;s
+stack array, which meant it indexed the slot starting from the bottom of the
+stack. Now, it access&rsquo;s the current frame&rsquo;s <code>slots</code> array, which means it
+accesses the given numbered slot relative to the beginning of that frame.</p>
+<p>Setting a local variable works the same way:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_SET_LOCAL</span><span class="p">:</span> <span class="p">{</span>           
+        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>  
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                       
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>The jump instructions used to modify the VM&rsquo;s <code>ip</code> field. Now, they do the same
+for the current frame&rsquo;s <code>ip</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP</span><span class="p">:</span> <span class="p">{</span>                  
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>           
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>And the conditional jump:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_JUMP_IF_FALSE</span><span class="p">:</span> <span class="p">{</span>                     
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="p">(</span><span class="n">isFalsey</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="n">offset</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>And our backwards-jumping loop instruction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_LOOP</span><span class="p">:</span> <span class="p">{</span>                  
+        <span class="kt">uint16_t</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">READ_SHORT</span><span class="p">();</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-=</span> <span class="n">offset</span><span class="p">;</span>           
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>We have some diagnostic code that prints each instruction as it executes to help
+us debug our VM. That needs to work with the new structure too:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                                       
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>    <span class="n">disassembleInstruction</span><span class="p">(</span><span class="o">&amp;</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">,</span>     
+        <span class="p">(</span><span class="kt">int</span><span class="p">)(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">));</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#endif                                                  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 1 line</div>
+
+<p>Instead of passing in the VM&rsquo;s <code>chunk</code> and <code>ip</code> fields, now we read from the
+current CallFrame.</p>
+<p>You know, that wasn&rsquo;t too bad, actually. Most instructions just use the macros
+so didn&rsquo;t need to be touched. Next, we jump up a level to the code that calls
+<code>run()</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">InterpretResult</span> <span class="nf">interpret</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">)</span> <span class="p">{</span>        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>interpret</em>()<br>
+replace 10 lines</div>
+<pre class="insert"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">compile</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>             
+  <span class="k">if</span> <span class="p">(</span><span class="n">function</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="p">;</span>
+
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">));</span>                             
+  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>      
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                          
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">;</span>                    
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">;</span>                             
+</pre><pre class="insert-after"><br><span></span>  <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="p">();</span>                      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 10 lines</div>
+
+<p>We finally get to wire up our earlier compiler changes to the back end changes
+we just made. First, we pass the source code to the compiler. It returns us a
+new ObjFunction containing the compiled top-level code. If we get <code>NULL</code> back,
+it means there was some compile-time error which the compiler has already
+reported. In that case, we bail out since we can&rsquo;t run anything.</p>
+<p>Otherwise, we store the function on the stack and prepare an initial CallFrame
+to execute its code. Now you can see why the compiler sets aside stack slot zero<span class="em">&mdash;</span>that stores the function being called. In the new CallFrame, we point to the
+function, initialize its <code>ip</code> to point to the beginning of the function&rsquo;s
+bytecode, and set up its stack window to start at the very bottom of the VM&rsquo;s
+value stack.</p>
+<p>This gets the interpreter ready to start executing code. After finishing, the VM
+used to free the hardcoded chunk. Now that the ObjFunction owns that code, we
+don&rsquo;t need to do that anymore, so the end of <code>interpret()</code> is simply:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">;</span>
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>interpret</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span>  <span class="k">return</span> <span class="nf">run</span><span class="p">();</span>           
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
+
+<p>Assuming we did all of that correctly, we finally got clox back to a runnable
+state. Fire it up and it does&hellip; exactly what it did before. We haven&rsquo;t added
+any new features yet, so this is kind of a let down. But all of the
+infrastructure is there ready for us now. Let&rsquo;s take advantage of it.</p>
+<h2><a href="#function-declarations" name="function-declarations"><small>24&#8202;.&#8202;4</small> Function Declarations</a></h2>
+<p>Before we can do call expressions, we need something to call, so we&rsquo;ll do
+function declarations first. The <span name="fun">fun</span> gets started with
+a keyword:</p>
+<aside name="fun">
+<p>Yes, I <em>am</em> proud of myself for this dumb joke, thank you for asking.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">declaration</span><span class="p">()</span> <span class="p">{</span>     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>declaration</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_FUN</span><span class="p">))</span> <span class="p">{</span>       
+    <span class="n">funDeclaration</span><span class="p">();</span>           
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_VAR</span><span class="p">))</span> <span class="p">{</span>
+</pre><pre class="insert-after"><span></span>    <span class="n">varDeclaration</span><span class="p">();</span>           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>declaration</em>(), replace 1 line</div>
+
+<p>That passes off control to:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>block</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">funDeclaration</span><span class="p">()</span> <span class="p">{</span>                            
+  <span class="kt">uint8_t</span> <span class="n">global</span> <span class="o">=</span> <span class="n">parseVariable</span><span class="p">(</span><span class="s">&quot;Expect function name.&quot;</span><span class="p">);</span>
+  <span class="n">markInitialized</span><span class="p">();</span>                                      
+  <span class="n">function</span><span class="p">(</span><span class="n">TYPE_FUNCTION</span><span class="p">);</span>                                
+  <span class="n">defineVariable</span><span class="p">(</span><span class="n">global</span><span class="p">);</span>                                 
+<span class="p">}</span>                                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>block</em>()</div>
+
+<p>Functions are first class values and a function declaration simply creates and
+stores one in a newly-declared variable. So we parse the name just like any
+other variable declaration. A function declaration at the top level will bind
+the function to a global variable. Inside a block or other function, a function
+declaration creates a local variable.</p>
+<p>In an earlier chapter, I explained how variables <a href="local-variables.html#another-scope-edge-case">get defined in two
+stages</a>. This ensures you can&rsquo;t access a variable&rsquo;s value inside the
+variable&rsquo;s own initializer. That would be bad because the variable doesn&rsquo;t
+<em>have</em> a value yet.</p>
+<p>Functions don&rsquo;t suffer from this problem. It&rsquo;s safe for a function to refer to
+its own name inside its body. You can&rsquo;t <em>call</em> the function and execute the body
+until after it&rsquo;s fully defined, so you&rsquo;ll never see the variable in an
+uninitialized state. Practically speaking, it&rsquo;s useful to allow this in order to
+support recursive local functions.</p>
+<p>To make that work, we mark the function declaration&rsquo;s variable initialized as
+soon as we compile the name, before we compile the body. That way the name can
+be referenced inside the body without generating an error.</p>
+<p>Next, we compile the function itself<span class="em">&mdash;</span>its parameter list and block body. For
+that, we use a separate helper function. That helper generates code that
+leaves the resulting function object on top of the stack. After that, we call
+<code>defineVariable()</code> to store that function back into the variable we declared for
+it.</p>
+<p>I split out the code to compile the parameters and body because we&rsquo;ll reuse it
+later for parsing method declarations inside classes. Let&rsquo;s build it
+incrementally, starting with this:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>block</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">function</span><span class="p">(</span><span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>                       
+  <span class="n">Compiler</span> <span class="n">compiler</span><span class="p">;</span>                                            
+  <span class="n">initCompiler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>                                
+  <span class="n">beginScope</span><span class="p">();</span>
+
+  <span class="c1">// Compile the parameter list.                                </span>
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span><span class="p">);</span> 
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span><span class="p">);</span>   
+
+  <span class="c1">// The body.                                                  </span>
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="p">,</span> <span class="s">&quot;Expect &#39;{&#39; before function body.&quot;</span><span class="p">);</span>
+  <span class="n">block</span><span class="p">();</span>                                                      
+
+  <span class="c1">// Create the function object.                                </span>
+  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">endCompiler</span><span class="p">();</span>                        
+  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_CONSTANT</span><span class="p">,</span> <span class="n">makeConstant</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">)));</span>      
+<span class="p">}</span>                                                               
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>block</em>()</div>
+
+<p>For now, we won&rsquo;t worry about parameters. We parse an empty pair of parentheses
+followed by the body. The body starts with a left curly brace, which we parse
+here. Then we call our existing <code>block()</code> function which knows how to compile
+the rest of a block including the closing brace.</p>
+<p>The interesting parts are the compiler stuff at the top and bottom. The Compiler
+struct stores data like which slots are owned by which local variables, how many
+blocks of nesting we&rsquo;re currently in, etc. All of that is specific to a single
+function. But now the front end needs to handle compiling multiple functions
+<span name="nested">nested</span> within each other.</p>
+<aside name="nested">
+<p>Remember that the compiler treats top level code as the body of an implicit
+function, so as soon as we add <em>any</em> function declarations, we&rsquo;re in a world of
+nested functions.</p>
+</aside>
+<p>The trick for managing that is to create a separate Compiler for each function
+being compiled. When we start compiling a function declaration, we create a new
+Compiler on the C stack and initialize it. <code>initCompiler()</code> sets that Compiler
+to be the current one. Then, as we compile the body, all of the functions that
+emit bytecode write to the chunk owned by the new Compiler&rsquo;s function.</p>
+<p>After we reach the end of the function&rsquo;s block body, we call <code>endCompiler()</code>.
+That yields the newly compiled function object, which we store as a constant in
+the <em>surrounding</em> function&rsquo;s constant table. But, wait, how do we get back to
+the surrounding function? We lost it when <code>initCompiler()</code> overwrote the current
+compiler pointer.</p>
+<p>We fix that by treating the series of nested Compiler structs as a stack. Unlike
+the Value and CallFrame stacks in the VM, we won&rsquo;t use an array. Instead, we use
+a linked list. Each Compiler points back to the Compiler for the function that
+encloses it, all the way back to the root Compiler for the top level code:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">Compiler</span> <span class="p">{</span>    
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>Compiler</em></div>
+<pre class="insert"><span></span>  <span class="k">struct</span> <span class="n">Compiler</span><span class="o">*</span> <span class="n">enclosing</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">;</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
+
+<p>When initializing a new Compiler, we capture the about-to-no-longer-be-current
+one in that pointer:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">initCompiler</span><span class="p">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="p">,</span> <span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span> <span class="o">=</span> <span class="n">current</span><span class="p">;</span>                                 
+</pre><pre class="insert-after"><span></span>  <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p>Then when a Compiler finishes, it pops itself off the stack by restoring the
+previous compiler as the current one:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">?</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="nl">chars</span> <span class="p">:</span> <span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>
+  <span class="p">}</span>                                                                  
+<span class="cp">#endif                                                               </span>
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>endCompiler</em>()</div>
+<pre class="insert"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">current</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="p">;</span>                                      
+</pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">function</span><span class="p">;</span>                                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
+
+<p>Note that we don&rsquo;t even need to <span name="compiler">dynamically</span>
+allocate the Compiler structs. Each is stored as a local variable in the C stack<span class="em">&mdash;</span>either in <code>compile()</code> or <code>function()</code>. The linked list of Compilers threads
+through the C stack. The reason we can get an unbounded number of them is
+because our compiler uses recursive descent, so <code>function()</code> ends up calling
+itself recursively when you have nested function declarations.</p>
+<aside name="compiler">
+<p>Using the native stack for Compiler structs does mean our compiler has a
+practical limit on how deeply nested function declarations can be. Go too far
+and you could overflow the C stack. If we want the compiler to be more robust
+against pathological or even malicious code<span class="em">&mdash;</span>a real concern for tools like
+JavaScript VMs<span class="em">&mdash;</span>it would be good to have our compiler artificially limit the
+amount of function nesting it permits.</p>
+</aside>
+<p>Functions aren&rsquo;t very useful if you can&rsquo;t pass arguments to them, so let&rsquo;s do
+parameters next:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span><span class="p">);</span>       
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>function</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">check</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">))</span> <span class="p">{</span>                                    
+    <span class="k">do</span> <span class="p">{</span>                                                              
+      <span class="kt">uint8_t</span> <span class="n">paramConstant</span> <span class="o">=</span> <span class="n">parseVariable</span><span class="p">(</span><span class="s">&quot;Expect parameter name.&quot;</span><span class="p">);</span>
+      <span class="n">defineVariable</span><span class="p">(</span><span class="n">paramConstant</span><span class="p">);</span>
+
+      <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">++</span><span class="p">;</span>                                     
+      <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">)</span> <span class="p">{</span>                             
+        <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot have more than 8 parameters.&quot;</span><span class="p">);</span>                 
+      <span class="p">}</span>                                                               
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_COMMA</span><span class="p">));</span>                                     
+  <span class="p">}</span>                                                                   
+</pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span><span class="p">);</span>         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>function</em>()</div>
+
+<p>Semantically, a parameter is simply a local variable declared in the outermost
+lexical scope of the function body. We get to use the existing compiler support
+for declaring named local variables to parse and compile parameters. Unlike
+local variables which have initializers, there&rsquo;s no code here to initialize the
+parameter&rsquo;s value. We&rsquo;ll see how they are initialized later when we do argument
+passing in function calls.</p>
+<p>We also keep track of the function&rsquo;s arity by counting how many parameters we
+parse. The other piece of metadata we store with a function is its name. When
+compiling a function declaration, we call <code>initCompiler()</code> right after we parse
+the function&rsquo;s name. That means we can grab the name right then from the
+previous token:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="p">;</span>                                            
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>initCompiler</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">!=</span> <span class="n">TYPE_SCRIPT</span><span class="p">)</span> <span class="p">{</span>                                     
+    <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">copyString</span><span class="p">(</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">start</span><span class="p">,</span>  
+                                         <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">.</span><span class="n">length</span><span class="p">);</span>
+  <span class="p">}</span>                                                              
+</pre><pre class="insert-after"><br><span></span>  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="p">];</span>        
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
+
+<p>Note that we&rsquo;re careful to create a copy of the name string. Remember, the
+lexeme points directly into the original source code string. That string may get
+freed once the code is finished compiling. The function object we create in the
+compiler outlives the compiler and persists until runtime. So it needs its own
+heap allocated name string that it can keep around.</p>
+<p>Rad. Now we can compile function declarations, like:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">areWeHavingItYet</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">print</span> <span class="s">&quot;Yes we are!&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">print</span> <span class="n">areWeHavingItYet</span><span class="p">;</span>
+</pre></div>
+
+
+<p>We just can&rsquo;t do anything <span name="useful">useful</span> with them.</p>
+<aside name="useful">
+<p>We can print them! I guess that&rsquo;s not very useful, though.</p>
+</aside>
+<h2><a href="#function-calls" name="function-calls"><small>24&#8202;.&#8202;5</small> Function Calls</a></h2>
+<p>By the end of this section we&rsquo;ll start to see some interesting behavior. The
+next step calling functions. We don&rsquo;t usually think of it this way, but a
+function call expression is kind of an infix <code>(</code> operator. You have a high
+precedence expression on the left for the thing being called<span class="em">&mdash;</span>usually just a
+single identifier. Then the <code>(</code> in the middle, followed by the argument
+expressions separated by commas, and a final <code>)</code> to wrap it up at the end.</p>
+<p>That odd grammatical perspective explains how to hook the syntax into our
+parsing table:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ParseRule</span> <span class="n">rules</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>                                         
+</pre><div class="source-file"><em>compiler.c</em><br>
+add after <em>unary</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">grouping</span><span class="p">,</span> <span class="n">call</span><span class="p">,</span>    <span class="n">PREC_CALL</span> <span class="p">},</span>       <span class="c1">// TOKEN_LEFT_PAREN </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RIGHT_PAREN</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>(), replace 1 line</div>
+
+<p>When the parser encounters a left parenthesis following an expression, it
+dispatches to:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>binary</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">call</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>  
+  <span class="kt">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">argumentList</span><span class="p">();</span>
+  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_CALL</span><span class="p">,</span> <span class="n">argCount</span><span class="p">);</span>     
+<span class="p">}</span>                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>binary</em>()</div>
+
+<p>We&rsquo;ve already consumed the <code>(</code> token, so next we compile the arguments using a
+separate <code>argumentList()</code> helper. That function returns the number of arguments
+it compiled. Each argument expression generates code which leaves its value on
+the stack in preparation for the call. After that, we emit a new <code>OP_CALL</code>
+instruction to invoke the function, using the argument count as an operand.</p>
+<p>We compile the arguments using this friend:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>defineVariable</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">argumentList</span><span class="p">()</span> <span class="p">{</span>                             
+  <span class="kt">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                     
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">check</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">))</span> <span class="p">{</span>                          
+    <span class="k">do</span> <span class="p">{</span>                                                    
+      <span class="n">expression</span><span class="p">();</span>                                         
+      <span class="n">argCount</span><span class="o">++</span><span class="p">;</span>                                           
+    <span class="p">}</span> <span class="k">while</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_COMMA</span><span class="p">));</span>                           
+  <span class="p">}</span>
+
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">argCount</span><span class="p">;</span>                                          
+<span class="p">}</span>                                                           
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>defineVariable</em>()</div>
+
+<p>That code should look familiar from jlox. We chew through arguments as long as
+we find commas after each expression. Once we run out, we consume the final
+closing parenthesis and we&rsquo;re done.</p>
+<p>Well, almost. Back in jlox, we added a compile-time check that you don&rsquo;t pass
+more than 255 arguments to a call. At the time, I said that was because clox
+would need a similar limit. Now you can see why<span class="em">&mdash;</span>since we stuff the argument
+count into the bytecode as a single-byte operand, we can only go up to 255. We
+need to verify that in this compiler too:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">expression</span><span class="p">();</span>                                   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>argumentList</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">if</span> <span class="p">(</span><span class="n">argCount</span> <span class="o">==</span> <span class="mi">255</span><span class="p">)</span> <span class="p">{</span>                          
+        <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot have more than 255 arguments.&quot;</span><span class="p">);</span>
+      <span class="p">}</span>                                               
+</pre><pre class="insert-after"><span></span>      <span class="n">argCount</span><span class="o">++</span><span class="p">;</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>argumentList</em>()</div>
+
+<p>That&rsquo;s the front end. Let&rsquo;s skip over to the back end, with a quick stop in the
+middle to declare the new instruction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_LOOP</span><span class="p">,</span>  
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_CALL</span><span class="p">,</span>  
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_RETURN</span><span class="p">,</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>Before we get to the implementation, we should think about what the stack looks
+like at the point of a call and what we need to do from there. When we reach the
+call instruction, we have already executed the expression for the function being
+called followed by its arguments. Say our program looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">sum</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">print</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">sum</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">);</span>
+</pre></div>
+
+
+<p>If we pause the VM right on the <code>OP_CALL</code> instruction for that call to <code>sum()</code>,
+the stack looks like this:</p>
+<p><img src="image/calls-and-functions/argument-stack.png" alt="Stack: 4, fn sum, 5, 6, 7." /></p>
+<p>Picture this from the perspective of <code>sum()</code> itself. When the compiler compiled
+<code>sum()</code>, it automatically allocated slot zero. Then, after that, it allocated
+local slots for the parameters <code>a</code>, <code>b</code>, and <code>c</code>, in order. To perform a call to
+<code>sum()</code>, we need a CallFrame initialized with the function being called and a
+region of stack slots that it can use. Then we need to collect the arguments
+passed to the function and get them into the corresponding slots for the
+parameters.</p>
+<p>When the VM starts executing the body of <code>sum()</code>, we want its stack window to
+look like this:</p>
+<p><img src="image/calls-and-functions/parameter-window.png" alt="The same stack with the sum() function's call frame window surrounding fn sum, 5, 6, and 7." /></p>
+<p>Do you notice how the argument slots the caller sets up and the parameter slots
+the callee needs are both in exactly the right order? How convenient! This is no
+coincidence. When I talked about each CallFrame having its own window into the
+stack, I never said those windows must be <em>disjoint</em>. There&rsquo;s nothing preventing
+us from overlapping them, like this:</p>
+<p><img src="image/calls-and-functions/overlapping-windows.png" alt="The same stack with the top-level call frame covering the entire stack and the sum() function's call frame window surrounding fn sum, 5, 6, and 7." /></p>
+<p><span name="lua">The</span> top of the caller&rsquo;s stack contains the function
+being called followed by the arguments in order. We know the caller doesn&rsquo;t have
+any other slots above those in use because any temporaries needed when
+evaluating argument expressions have been discarded by now. The bottom of the
+callee&rsquo;s stack overlaps so that the parameter slots exactly line up with where
+the argument values already live.</p>
+<aside name="lua">
+<p>Different bytecode VMs and real CPU architectures have different <em>calling
+conventions</em>, which is the specific mechanism they use to pass arguments, store
+the return address, etc. The mechanism I use here is based on Lua&rsquo;s clean, fast
+virtual machine.</p>
+</aside>
+<p>This means that we don&rsquo;t need to do <em>any</em> work to &ldquo;bind an argument to a
+parameter&rdquo;. There&rsquo;s no copying values between slots or across environments. The
+arguments are already exactly where they need to be. It&rsquo;s hard to beat that for
+performance. Time to implement it:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-=</span> <span class="n">offset</span><span class="p">;</span>                       
+        <span class="k">break</span><span class="p">;</span>                                     
+      <span class="p">}</span>                                            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_CALL</span><span class="p">:</span> <span class="p">{</span>                              
+        <span class="kt">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>                
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">callValue</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="n">argCount</span><span class="p">),</span> <span class="n">argCount</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>          
+        <span class="p">}</span>                                          
+        <span class="k">break</span><span class="p">;</span>                                     
+      <span class="p">}</span>                                            
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>We need to know the function being called and the number of arguments passed to
+it. We get the latter from the instruction&rsquo;s operand. That also tells us where
+to find the function on the stack since it appears right before the first
+operand. We hand that data off to a separate <code>callValue()</code> function. If that
+returns <code>false</code>, it means the call caused some sort of runtime error. When that
+happens, we abort the interpreter.</p>
+<p>If <code>callValue()</code> is successful, there will be a new frame on the CallFrame stack
+for the called function. The <code>run()</code> function has its own cached pointer to the
+current frame, so we need to update that:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>     
+        <span class="p">}</span>                                     
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="p">;</span>                                
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>Since the bytecode dispatch loop reads from that <code>frame</code> variable, when the VM
+goes to execute the next instruction, it will read the <code>ip</code> from the newly
+called function&rsquo;s CallFrame and jump to its code. The work for executing that
+call begins here:</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>peek</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">callValue</span><span class="p">(</span><span class="n">Value</span> <span class="n">callee</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>    
+  <span class="k">if</span> <span class="p">(</span><span class="n">IS_OBJ</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                                
+    <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                        
+      <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span> <span name="switch"></span>
+        <span class="k">return</span> <span class="n">call</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">callee</span><span class="p">),</span> <span class="n">argCount</span><span class="p">);</span>
+
+      <span class="k">default</span><span class="o">:</span>                                         
+        <span class="c1">// Non-callable object type.                   </span>
+        <span class="k">break</span><span class="p">;</span>                                         
+    <span class="p">}</span>                                                  
+  <span class="p">}</span>                                                    
+
+  <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Can only call functions and classes.&quot;</span><span class="p">);</span>
+  <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                        
+<span class="p">}</span>                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
+
+<aside name="switch">
+<p>Using a switch statement to check a single type is overkill right now, but will
+make more sense later as we add more cases to handle other callable types.</p>
+</aside>
+<p>There&rsquo;s more going on here than just initializing a new CallFrame. Because Lox
+is dynamically typed, there&rsquo;s nothing to prevent a user from writing bad code
+like:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">notAFunction</span> <span class="o">=</span> <span class="mi">123</span><span class="p">;</span>
+<span class="n">notAFunction</span><span class="p">();</span>
+</pre></div>
+
+
+<p>If that happens, the runtime needs to safely report an error and halt. So the
+first thing we do is check the type of the value that we&rsquo;re trying to call. If
+it&rsquo;s not a function, we error out. Otherwise, the actual call happens here:</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>peek</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">call</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>      
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                          
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">;</span>
+
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-</span> <span class="n">argCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>           
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                         
+<span class="p">}</span>                                                      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
+
+<p>This simply initializes the next CallFrame on the stack. It stores a pointer to
+the function being called and points the frame&rsquo;s <code>ip</code> to the beginning of the
+function&rsquo;s bytecode. Finally, it sets up the <code>slots</code> pointer to give the frame
+its window into the stack. The arithmetic there ensures that the arguments
+already on the stack line up with the function&rsquo;s parameters:</p>
+<p><img src="image/calls-and-functions/arithmetic.png" alt="The arithmetic to calculate frame-&gt;slots from stackTop and argCount." /></p>
+<p>The funny little <code>- 1</code> is to skip over local slot zero, which contains the
+function being called. That slot isn&rsquo;t used right now, but will be when we get
+to methods.</p>
+<p>Time for a quick side trip. Now that we have a handy function for initiating a
+CallFrame, we may as well use it to set up the first frame for executing the top
+level code:</p>
+<div class="codehilite"><pre class="insert-before"><br><span></span>  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">));</span>        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>interpret</em>()<br>
+replace 4 lines</div>
+<pre class="insert"><span></span>  <span class="n">callValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">function</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="nf">run</span><span class="p">();</span>                   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
+
+<p>OK, now back to calls&hellip;</p>
+<h3><a href="#runtime-error-checking" name="runtime-error-checking"><small>24&#8202;.&#8202;5&#8202;.&#8202;1</small> Runtime error checking</a></h3>
+<p>The overlapping stack windows work based on the assumption that a call passes
+exactly as many arguments as the function declare parameters. But, again,
+because Lox ain&rsquo;t statically typed, a foolish user could pass too many or too
+few arguments. In Lox, we&rsquo;ve defined that to be a runtime error, which we report
+like so:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">call</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="p">)</span> <span class="p">{</span>
+</pre><div class="source-file"><em>vm.c</em><br>
+add after <em>call</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">argCount</span> <span class="o">!=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="p">)</span> <span class="p">{</span>                   
+    <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Expected %d arguments but got %d.&quot;</span><span class="p">,</span>  
+        <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="p">,</span> <span class="n">argCount</span><span class="p">);</span>                    
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                      
+  <span class="p">}</span>                                                    
+<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>      
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>call</em>()</div>
+
+<p>Pretty straightforward. This is why we store the arity of each function inside
+the FunctionObj for it.</p>
+<p>There&rsquo;s another error we need to report that&rsquo;s less to do with the user&rsquo;s
+foolishness than our own. Because the CallFrame array has a fixed size, we need
+to ensure a deep call chain doesn&rsquo;t overflow it:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>                                              
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>call</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="n">FRAMES_MAX</span><span class="p">)</span> <span class="p">{</span>             
+    <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Stack overflow.&quot;</span><span class="p">);</span>             
+    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                                
+  <span class="p">}</span>                                              
+<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">++</span><span class="p">];</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
+
+<p>In practice, if a program gets close to this limit, it&rsquo;s most likely to be a bug
+in some runaway recursive code. While we&rsquo;re on the subject of runtime errors,
+let&rsquo;s spend a little time making them more useful. Stopping on a runtime error
+is important to prevent the VM from crashing and burning in some ill-defined
+way. But simply aborting doesn&rsquo;t help the user fix their code which <em>caused</em>
+that error.</p>
+<p>The classic tool to aid debugging runtime failures is a <strong>stack trace</strong><span class="em">&mdash;</span>a
+print out of each function that was still executing when the program died and
+where the execution was at the point that it died. Now that we have a call stack
+and we&rsquo;ve convienently stored each function&rsquo;s name, we can show that entire
+stack when a runtime error disrupts the harmony of the user&rsquo;s existence. It
+looks like this:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">fputs</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">stderr</span><span class="p">);</span>                                           
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>runtimeError</em>()<br>
+replace 3 lines</div>
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>                 
+    <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                            
+    <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="p">;</span>                     
+    <span class="c1">// -1 because the IP is sitting on the next instruction to be</span>
+    <span class="c1">// executed.                                                 </span>
+    <span class="kt">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span>   
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] in &quot;</span><span class="p">,</span>                             
+            <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">lines</span><span class="p">[</span><span class="n">instruction</span><span class="p">]);</span>                 
+    <span class="k">if</span> <span class="p">(</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                                
+      <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;script</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                               
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                     
+      <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;%s()</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>          
+    <span class="p">}</span>                                                            
+  <span class="p">}</span>                                                              
+</pre><pre class="insert-after"><br><span></span>  <span class="n">resetStack</span><span class="p">();</span>                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 3 lines</div>
+
+<p>After printing the error message itself, we walk the call stack from <span
+name="top">top</span> (the most recently called function) to bottom (the top
+level code). For each frame, we find the line number that corresponds to the
+current <code>ip</code> inside that frame&rsquo;s function. Then we print that along with the
+function name.</p>
+<aside name="top">
+<p>There is some disagreement on which order stack frames should be shown in a
+trace. Most put the innermost function as the first line and work their way
+towards the bottom of the stack. Python prints them out in the opposite order.
+So reading from top to bottom tells you how your program got to where it is and
+the last line is where the error actually occurred.</p>
+<p>There&rsquo;s a logic to that style. It ensures you can always see the innermost
+function even if the stack trace is too long to fit on one screen. On the other
+hand, the &ldquo;<a href="https://en.wikipedia.org/wiki/Inverted_pyramid_(journalism)">inverted pyramid</a>&rdquo; from journalism tells us we should put the most
+important information <em>first</em> in a block of text. In a stack trace, that&rsquo;s the
+function where the error actually occurred. Most other language implementations
+do that.</p>
+</aside>
+<p>For example, if you run this broken program:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">a</span><span class="p">()</span> <span class="p">{</span> <span class="n">b</span><span class="p">();</span> <span class="p">}</span>
+<span class="k">fun</span> <span class="n">b</span><span class="p">()</span> <span class="p">{</span> <span class="n">c</span><span class="p">();</span> <span class="p">}</span>
+<span class="k">fun</span> <span class="n">c</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">c</span><span class="p">(</span><span class="s">&quot;too&quot;</span><span class="p">,</span> <span class="s">&quot;many&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">a</span><span class="p">();</span>
+</pre></div>
+
+
+<p>It prints out:</p>
+<div class="codehilite"><pre><span></span>Expected 0 arguments but got 2.
+[line 10] in c()
+[line 6] in b()
+[line 2] in a()
+[line 13] in script
+</pre></div>
+
+
+<p>That doesn&rsquo;t look too bad, does it?</p>
+<h3><a href="#returning-from-functions" name="returning-from-functions"><small>24&#8202;.&#8202;5&#8202;.&#8202;2</small> Returning from functions</a></h3>
+<p>We&rsquo;re getting close. We can call functions and the VM will execute them. But we
+can&rsquo;t <em>return</em> from them yet. We&rsquo;ve had an <code>OP_RETURN</code> instruction for quite
+some time, but it&rsquo;s always had some kind of temporary code hanging out in it
+just to get us out of the bytecode loop. The time has arrived for a real
+implementation:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                             
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">pop</span><span class="p">();</span>
+
+        <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">--</span><span class="p">;</span>                            
+        <span class="k">if</span> <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_OK</span><span class="p">;</span>
+
+        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">;</span>                 
+        <span class="n">push</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>                               
+
+        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>      
+        <span class="k">break</span><span class="p">;</span>                                      
+</pre><pre class="insert-after"><span></span>      <span class="p">}</span>                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
+
+<p>When a function returns a value, that value will be on top of the stack. We&rsquo;re
+about to discard the called function&rsquo;s entire stack window, so we pop that
+return value off and hang on to it first. Then we discard the CallFrame for the
+returning function. If it is the very last CallFrame, it means we&rsquo;ve finished
+executing the top level code and the entire program is done, so we exit the
+interpreter.</p>
+<p>Otherwise, we discard all of the slots the callee was using for its parameters
+and local variables. That includes the same slots the caller used to pass the
+arguments. Now that the call is done, the caller doesn&rsquo;t need them anymore. This
+means the top of the stack ends up right at the beginning of the returning
+function&rsquo;s stack window.</p>
+<p>We push the return value back onto the stack at that new lower location. Then we
+update the <code>run()</code> function&rsquo;s cached pointer to the current frame. Just like
+when we began a call, on the next iteration of the bytecode dispatch loop, the
+VM will read <code>ip</code> from that frame and execution will jump back to the caller,
+right where it left off immediately after the <code>OP_CALL</code> instruction.</p>
+<p><img src="image/calls-and-functions/return.png" alt="Each step of the return process: popping the return value, discarding the call frame, pushing the return value." /></p>
+<p>Note that we assume here that the function <em>did</em> actually return a value, but
+a function can implicitly return by reaching the end of its body:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">noReturn</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">print</span> <span class="s">&quot;Do stuff&quot;</span><span class="p">;</span>
+  <span class="c1">// No return here.</span>
+<span class="p">}</span>
+
+<span class="k">print</span> <span class="n">noReturn</span><span class="p">();</span> <span class="c1">// ???</span>
+</pre></div>
+
+
+<p>We need to handle that correctly too. The language is specified to implicitly
+return <code>nil</code> in that case. To make that happen, we add this:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitReturn</span><span class="p">()</span> <span class="p">{</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>emitReturn</em>()</div>
+<pre class="insert"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_NIL</span><span class="p">);</span>       
+</pre><pre class="insert-after"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_RETURN</span><span class="p">);</span>    
+<span class="p">}</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>emitReturn</em>()</div>
+
+<p>The compiler calls <code>emitReturn()</code> to write the <code>OP_RETURN</code> instruction at the
+end of a function body. Now, before that, it emits an instruction to push <code>nil</code>
+onto the stack.</p>
+<p>One last bit of disassembler support:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">jumpInstruction</span><span class="p">(</span><span class="s">&quot;OP_LOOP&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_CALL</span><span class="p">:</span>                                          
+      <span class="k">return</span> <span class="n">byteInstruction</span><span class="p">(</span><span class="s">&quot;OP_CALL&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>    
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span>                                        
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>And we have working function calls! They can even take parameters! It almost
+looks like we know what we&rsquo;re doing here.</p>
+<h2><a href="#return-statements" name="return-statements"><small>24&#8202;.&#8202;6</small> Return Statements</a></h2>
+<p>If you want a function that returns something other than the implicit <code>nil</code>, you
+need a return statement:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">ifStatement</span><span class="p">();</span>                 
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>statement</em>()</div>
+<pre class="insert"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_RETURN</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">returnStatement</span><span class="p">();</span>             
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_WHILE</span><span class="p">))</span> <span class="p">{</span> 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
+
+<p>That relies on:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>printStatement</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">returnStatement</span><span class="p">()</span> <span class="p">{</span>                                
+  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                                
+    <span class="n">emitReturn</span><span class="p">();</span>                                              
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                     
+    <span class="n">expression</span><span class="p">();</span>                                              
+    <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">,</span> <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span><span class="p">);</span>
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_RETURN</span><span class="p">);</span>                                       
+  <span class="p">}</span>                                                            
+<span class="p">}</span>                                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
+
+<p>The return value expression is optional, so the parser looks for a semicolon
+token to tell if a value was provided. If there is no return value, the
+statement implicitly returns <code>nil</code>. We implement that by calling <code>emitReturn()</code>,
+which implicitly emits an <code>OP_NIL</code> instruction. Otherwise, we compile the return
+value expression and return it with an <code>OP_RETURN</code> instruction.</p>
+<p>This is the same <code>OP_RETURN</code> instruction we&rsquo;ve already implemented<span class="em">&mdash;</span>we don&rsquo;t
+need any new runtime code. This is quite a difference from jlox. There, we had
+to use exceptions to unwind the stack when a return statement was executed. That
+was because you could return from deep inside some nested blocks. Since jlox
+recursively walks the AST, that means there&rsquo;s a bunch of Java method calls we
+need to escape out of.</p>
+<p>Our bytecode compiler flattens that all out. We do recursive descent during
+parsing, but at runtime, the VM&rsquo;s bytecode dispatch loop is completely flat.
+There is no recursion going on at the C level at all. So returning, even from
+within some nested blocks, is as straightforward as returning from the end of
+the function&rsquo;s body.</p>
+<p>We&rsquo;re not totally done, though. Return statements give us a new compile error to
+worry about. Returns are useful for returning from functions but the top level
+of a Lox program is imperative code too. You shouldn&rsquo;t be able to <span
+name="worst">return</span> from there:</p>
+<div class="codehilite"><pre><span></span><span class="k">return</span> <span class="s">&quot;What?!&quot;</span><span class="p">;</span>
+</pre></div>
+
+
+<aside name="worst">
+<p>Allowing returns at the top level isn&rsquo;t the worst idea in the world. It would
+give you a natural way to terminate a script early. You could maybe even use a
+returned number to indicate the process&rsquo;s exit code.</p>
+</aside>
+<p>We&rsquo;ve specified that it&rsquo;s a compile error to have a return statement outside of
+any function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">returnStatement</span><span class="p">()</span> <span class="p">{</span>                 
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>returnStatement</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">type</span> <span class="o">==</span> <span class="n">TYPE_SCRIPT</span><span class="p">)</span> <span class="p">{</span>           
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot return from top-level code.&quot;</span><span class="p">);</span>
+  <span class="p">}</span>                                             
+<br></pre><pre class="insert-after"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_SEMICOLON</span><span class="p">))</span> <span class="p">{</span>                 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>returnStatement</em>()</div>
+
+<p>This is one of the reasons we added that FunctionType enum to the compiler.</p>
+<h2><a href="#native-functions" name="native-functions"><small>24&#8202;.&#8202;7</small> Native Functions</a></h2>
+<p>Our VM is getting more powerful. We&rsquo;ve got functions, calls, parameters,
+returns. You can define lots of different functions that can call each other in
+interesting ways. But, ultimately, they can&rsquo;t really <em>do</em> anything. The only
+user visible thing a Lox program can do, regardless of its complexity, is print.
+To add more capabilities, we need to expose them to the user.</p>
+<p>A programming language implementation reaches out and touches the material world
+through native functions. If you want to be able to write programs that check
+the time, read user input, or access the file system, we need to add native
+functions<span class="em">&mdash;</span>callable from Lox but implemented in C<span class="em">&mdash;</span>that expose those
+capabilities.</p>
+<p>At the language level, Lox is fairly complete<span class="em">&mdash;</span>it&rsquo;s got closures, classes,
+inheritance, and other fun stuff. One reason it feels like a toy language is
+because it has almost no native capabilities. We could turn it into a real
+language by adding a long list of them.</p>
+<p>However, grinding through a pile of OS operations isn&rsquo;t actually very
+educational. Once you&rsquo;ve seen how to bind one piece of C code to Lox, you get
+the idea. But you do need to see <em>one</em>, and even a single native function
+requires us to build out all the machinery for interfacing Lox with C. So we&rsquo;ll
+go through that and do all the hard work. Then, when that&rsquo;s done, we&rsquo;ll add one
+tiny native function just to prove that it works.</p>
+<p>The reason we need new machinery is because, from the implementation&rsquo;s
+perspective, native functions are different from Lox functions. When they are
+called, they don&rsquo;t push a CallFrame, because there&rsquo;s no bytecode code for that
+frame to point to. They have no bytecode chunk. Instead, they somehow reference
+a piece of native C code.</p>
+<p>We handle this in clox by defining native functions as an entirely different
+object type:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">ObjFunction</span><span class="p">;</span>                                       
+</pre><div class="source-file"><em>object.h</em><br>
+add after struct <em>ObjFunction</em></div>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="nf">Value</span> <span class="p">(</span><span class="o">*</span><span class="n">NativeFn</span><span class="p">)(</span><span class="kt">int</span> <span class="n">argCount</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">args</span><span class="p">);</span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>                                     
+  <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>                                           
+  <span class="n">NativeFn</span> <span class="n">function</span><span class="p">;</span>                                 
+<span class="p">}</span> <span class="n">ObjNative</span><span class="p">;</span>                                         
+</pre><pre class="insert-after"><br><span></span><span class="k">struct</span> <span class="n">sObjString</span> <span class="p">{</span>                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjFunction</em></div>
+
+<p>The representation is simpler than ObjFunction<span class="em">&mdash;</span>merely an Obj header and a
+pointer to the C function that implements the native behavior. The native
+function takes the argument count and a pointer to the first argument on the
+stack. It accesses the arguments through that pointer. Once it&rsquo;s done, it
+returns the result value.</p>
+<p>As always, a new object type carries some accoutrements with it. To create an
+ObjNative, we declare a constructor-like function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjFunction</span><span class="o">*</span> <span class="nf">newFunction</span><span class="p">();</span>                    
+</pre><div class="source-file"><em>object.h</em><br>
+add after <em>newFunction</em>()</div>
+<pre class="insert"><span></span><span class="n">ObjNative</span><span class="o">*</span> <span class="nf">newNative</span><span class="p">(</span><span class="n">NativeFn</span> <span class="n">function</span><span class="p">);</span>       
+</pre><pre class="insert-after"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">takeString</span><span class="p">(</span><span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, add after <em>newFunction</em>()</div>
+
+<p>And an implementation:</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>newFunction</em>()</div>
+<pre><span></span><span class="n">ObjNative</span><span class="o">*</span> <span class="nf">newNative</span><span class="p">(</span><span class="n">NativeFn</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>                 
+  <span class="n">ObjNative</span><span class="o">*</span> <span class="n">native</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjNative</span><span class="p">,</span> <span class="n">OBJ_NATIVE</span><span class="p">);</span>
+  <span class="n">native</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="p">;</span>                            
+  <span class="k">return</span> <span class="n">native</span><span class="p">;</span>                                          
+<span class="p">}</span>                                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>newFunction</em>()</div>
+
+<p>The constructor takes a C function pointer to wrap in an ObjNative. It sets up
+the object header and stores the function. For the header, we need a new object
+type:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span> 
+  <span class="n">OBJ_FUNCTION</span><span class="p">,</span>
+</pre><div class="source-file"><em>object.h</em><br>
+in enum <em>ObjType</em></div>
+<pre class="insert"><span></span>  <span class="n">OBJ_NATIVE</span><span class="p">,</span>  
+</pre><pre class="insert-after"><span></span>  <span class="n">OBJ_STRING</span><span class="p">,</span>  
+<span class="p">}</span> <span class="n">ObjType</span><span class="p">;</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
+
+<p>The VM also needs to know how to deallocate a native function object:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjFunction</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                    
+    <span class="p">}</span>                           
+<br></pre><div class="source-file"><em>memory.c</em><br>
+in <em>freeObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span>            
+      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjNative</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>  
+      <span class="k">break</span><span class="p">;</span>                    
+<br></pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span> <span class="p">{</span>          
+</pre></div>
+
+<div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
+
+<p>There isn&rsquo;t much here since ObjNative doesn&rsquo;t own any extra memory. The other
+capability all Lox objects support is being printed:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                                             
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>printObject</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span>                                     
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;native fn&gt;&quot;</span><span class="p">);</span>                             
+      <span class="k">break</span><span class="p">;</span>                                             
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
+
+<p>In order to support dynamic typing, we have a macro to see if a value is a
+native function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)  </span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>Assuming that returns true, this macro extracts the C function pointer from a
+Value representing a native function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))          </span>
+</pre><div class="source-file"><em>object.h</em></div>
+<pre class="insert"><span></span><span class="cp">#define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))-&gt;function)</span>
+</pre><pre class="insert-after"><span></span><span class="cp">#define AS_STRING(value)        ((ObjString*)AS_OBJ(value))            </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.h</em></div>
+
+<p>All of this baggage lets the VM treat native functions like any other object.
+You can store them in variables, pass them around, throw them birthday parties,
+etc. Of course, the operation we actually care about is <em>calling</em> them<span class="em">&mdash;</span>using
+one as the left-hand operand in a call expression.</p>
+<p>Over in <code>callValue()</code> we add another type case:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">return</span> <span class="nf">call</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">callee</span><span class="p">),</span> <span class="n">argCount</span><span class="p">);</span>             
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>callValue</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span> <span class="p">{</span>                                        
+        <span class="n">NativeFn</span> <span class="n">native</span> <span class="o">=</span> <span class="n">AS_NATIVE</span><span class="p">(</span><span class="n">callee</span><span class="p">);</span>                    
+        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">native</span><span class="p">(</span><span class="n">argCount</span><span class="p">,</span> <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-</span> <span class="n">argCount</span><span class="p">);</span>
+        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">-=</span> <span class="n">argCount</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>                            
+        <span class="n">push</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>                                           
+        <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>                                            
+      <span class="p">}</span>                                                         
+</pre><pre class="insert-after"><br><span></span>      <span class="k">default</span><span class="o">:</span>                                                  
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
+
+<p>If the object being called is a native function, we invoke the C function right
+then and there. There&rsquo;s no need to muck with CallFrames or anything. We just
+hand off to C, get the result and stuff it back in the stack. This makes native
+functions as fast as we can get.</p>
+<p>With this, users should be able to call native functions, but there aren&rsquo;t any
+to call. Without something like a foreign function interface, users can&rsquo;t define
+their own native functions. That&rsquo;s our job as VM implementers. We&rsquo;ll start with
+a helper to define a new native function exposed to Lox programs:</p>
+<div class="codehilite"><div class="source-file"><em>vm.c</em><br>
+add after <em>runtimeError</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">defineNative</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">name</span><span class="p">,</span> <span class="n">NativeFn</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">copyString</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">strlen</span><span class="p">(</span><span class="n">name</span><span class="p">))));</span>          
+  <span class="n">push</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">newNative</span><span class="p">(</span><span class="n">function</span><span class="p">)));</span>                          
+  <span class="n">tableSet</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">globals</span><span class="p">,</span> <span class="n">AS_STRING</span><span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">vm</span><span class="p">.</span><span class="n">stack</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>  
+  <span class="n">pop</span><span class="p">();</span>                                                       
+  <span class="n">pop</span><span class="p">();</span>                                                       
+<span class="p">}</span>                                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, add after <em>runtimeError</em>()</div>
+
+<p>It takes a pointer to a C function and the name it will be known as in Lox.
+We wrap the function in an ObjFunction and then store that in a global variable
+with the given name.</p>
+<p>You&rsquo;re probably wondering why we push and pop the name and function on the
+stack. That looks weird, right? This is the kind of stuff you have to worry
+about when <span name="worry">garbage</span> collection gets involved. Both
+<code>copyString()</code> and <code>newNative()</code> dynamically allocate memory. That means once we
+have a GC, they can potentially trigger a collection. If that happens, we need
+to ensure the collector knows we&rsquo;re not done with the name and ObjFunction so
+that it doesn&rsquo;t free them out from under us. Storing them on the value stack
+accomplishes that.</p>
+<aside name="worry">
+<p>Don&rsquo;t worry if you didn&rsquo;t follow all that. It will make a lot more sense once we
+get around to <a href="garbage-collection.html">implementing the GC</a>.</p>
+</aside>
+<p>It feels silly, but after all of that work, we&rsquo;re only going to add one
+little native function:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">VM</span> <span class="n">vm</span><span class="p">;</span> <span name="one"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="n">Value</span> <span class="nf">clockNative</span><span class="p">(</span><span class="kt">int</span> <span class="n">argCount</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">args</span><span class="p">)</span> <span class="p">{</span> 
+  <span class="k">return</span> <span class="n">NUMBER_VAL</span><span class="p">((</span><span class="kt">double</span><span class="p">)</span><span class="n">clock</span><span class="p">()</span> <span class="o">/</span> <span class="n">CLOCKS_PER_SEC</span><span class="p">);</span>
+<span class="p">}</span>                                                     
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">resetStack</span><span class="p">()</span> <span class="p">{</span>                            
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
+<p>This returns the elapsed time since the program started running, in seconds. It&rsquo;s
+handy for benchmarking Lox programs. In Lox, we&rsquo;ll name it <code>clock()</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>            
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>initVM</em>()</div>
+<pre class="insert"><br><span></span>  <span class="n">defineNative</span><span class="p">(</span><span class="s">&quot;clock&quot;</span><span class="p">,</span> <span class="n">clockNative</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
+
+<p>The &ldquo;vm&rdquo; module needs a couple of includes to wire this all up. First, to access
+the C standard library <code>clock()</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;time.h&gt;  </span><span class="cp"></span>
+</pre><pre class="insert-after"><br><span></span><span class="cp">#include</span> <span class="cpf">&quot;common.h&quot;</span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
+<p>And then to access the object stuff:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_vm_h  </span>
+<br></pre><div class="source-file"><em>vm.h</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
+
+<p>That was a lot of material to work through, but we did it! Type this in and try
+it out:</p>
+<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">)</span> <span class="k">return</span> <span class="n">n</span><span class="p">;</span>
+  <span class="k">return</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">fib</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">var</span> <span class="n">start</span> <span class="o">=</span> <span class="n">clock</span><span class="p">();</span>
+<span class="k">print</span> <span class="n">fib</span><span class="p">(</span><span class="mi">35</span><span class="p">);</span>
+<span class="k">print</span> <span class="n">clock</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">;</span>
+</pre></div>
+
+
+<p>We can write a really inefficient recursive Fibonacci function. Even better, we
+can measure just <span name="faster"><em>how</em></span> ineffecient it is. This is, of
+course, not the smartest way to calculate a Fibonacci number. But it is a good
+way to stress test a language implementation&rsquo;s support for function calls. On my
+machine, running this in clox is about five times faster than in jlox. That&rsquo;s
+quite an improvement.</p>
+<aside name="faster">
+<p>It&rsquo;s a little slower than a comparable Ruby program run in Ruby 2.4.3p205, and
+about 3x faster than one run in Python 3.7.3. And we still have a lot of simple
+optimizations we can do in our VM.</p>
+</aside>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>Reading and writing the <code>ip</code> field is one of the most frequent operations
+    inside the bytecode loop. Right now, we access it through a pointer to the
+    current CallFrame. That requires a pointer indirection which may force the
+    CPU to bypass the cache and hit main memory. That can be a real performance
+    sink.</p>
+<p>Ideally, we&rsquo;d keep the <code>ip</code> in a native CPU register. C doesn&rsquo;t let us
+<em>require</em> that without dropping into inline assembly, but we can structure
+the code to encourage the compiler to make that optimization. If we store
+the <code>ip</code> directly in a C local variable and mark it <code>register</code>, there&rsquo;s a
+good chance the C compiler will accede to our polite request.</p>
+<p>This does mean we need to be careful to load and store the local <code>ip</code> back
+into the correct CallFrame when starting and ending function calls.
+Implement this optimization. Write a couple of benchmarks and see how it
+affects the performance. Do you think the extra code complexity is worth it?</p>
+</li>
+<li>
+<p>Right now, there&rsquo;s no way for a native function to signal a runtime error.
+    In a real implementation, this is something we&rsquo;d need to support because
+    native functions live in the statically-typed world of C but are called
+    from dynamically-typed Lox land. If a user, say, tries to pass a string to
+    <code>sin()</code>, that native function needs to report a runtime error.</p>
+<p>Extend the native function system to support that. How does this capability
+affect performance of native calls?</p>
+</li>
+<li>
+<p>Add some more native functions to do things you find useful. Write some
+    programs using those. What did you add? How do they affect the feel of the
+    language and how practical it is?</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="closures.html" class="next">

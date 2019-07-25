@@ -202,14 +202,15 @@ replace 1 line</div>
 <p>We pass in the chunk where the compiler will write the code, and then
 <code>compile()</code> returns whether or not compilation succeeded. Over in the
 implementation&hellip;</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;scanner.h&quot;                            </span><span class="cp"></span>
+<div class="codehilite"><pre class="insert-before"><br><span></span>
 </pre><div class="source-file"><em>compiler.c</em><br>
-replace 2 lines</div>
-<pre class="insert"><br><span></span><span class="kt">bool</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">)</span> <span class="p">{</span>
+function <em>compile</em>()<br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="kt">bool</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">)</span> <span class="p">{</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>                          
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, replace 2 lines</div>
+<div class="source-file-narrow"><em>compiler.c</em>, function <em>compile</em>(), replace 1 line</div>
 
 <p>That call to <code>initScanner()</code> is the only line that survives this chapter. Rip
 out the temporary code we wrote to test the scanner and replace it with these
@@ -528,12 +529,12 @@ other global state. Later, when we start compiling user-defined functions, the
 notion of &ldquo;current chunk&rdquo; gets more complicated. To avoid having to go back and
 change a lot of code, I encapsulate that logic in this function.</p>
 <p>We initialize this new module variable before we write any bytecode:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>     
-<br></pre><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">bool</span> <span class="nf">compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">source</span><span class="p">,</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">initScanner</span><span class="p">(</span><span class="n">source</span><span class="p">);</span>                          
+</pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
-<pre class="insert"><span></span>  <span class="n">compilingChunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">;</span>  
-</pre><pre class="insert-after"><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span> 
-  <span class="n">parser</span><span class="p">.</span><span class="n">panicMode</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<pre class="insert"><span></span>  <span class="n">compilingChunk</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">;</span>                       
+</pre><pre class="insert-after"><br><span></span>  <span class="n">parser</span><span class="p">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>                      
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
@@ -1036,29 +1037,29 @@ talking about it forever, and finally you get to see it:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>unary</em>()</div>
 <pre><span></span><span class="n">ParseRule</span> <span class="n">rules</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>                                              
-  <span class="p">{</span> <span class="n">grouping</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_CALL</span> <span class="p">},</span>       <span class="c1">// TOKEN_LEFT_PAREN      </span>
+  <span class="p">{</span> <span class="n">grouping</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_LEFT_PAREN      </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RIGHT_PAREN     </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1" name="big">// TOKEN_LEFT_BRACE</span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RIGHT_BRACE     </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_COMMA           </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_CALL</span> <span class="p">},</span>       <span class="c1">// TOKEN_DOT             </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_DOT             </span>
   <span class="p">{</span> <span class="n">unary</span><span class="p">,</span>    <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_TERM</span> <span class="p">},</span>       <span class="c1">// TOKEN_MINUS           </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_TERM</span> <span class="p">},</span>       <span class="c1">// TOKEN_PLUS            </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_SEMICOLON       </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_FACTOR</span> <span class="p">},</span>     <span class="c1">// TOKEN_SLASH           </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="n">binary</span><span class="p">,</span>  <span class="n">PREC_FACTOR</span> <span class="p">},</span>     <span class="c1">// TOKEN_STAR            </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_BANG            </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_EQUALITY</span> <span class="p">},</span>   <span class="c1">// TOKEN_BANG_EQUAL      </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_BANG_EQUAL      </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_EQUAL           </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_EQUALITY</span> <span class="p">},</span>   <span class="c1">// TOKEN_EQUAL_EQUAL     </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_GREATER         </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_GREATER_EQUAL   </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_LESS            </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_COMPARISON</span> <span class="p">},</span> <span class="c1">// TOKEN_LESS_EQUAL      </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_EQUAL_EQUAL     </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_GREATER         </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_GREATER_EQUAL   </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_LESS            </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_LESS_EQUAL      </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_IDENTIFIER      </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_STRING          </span>
   <span class="p">{</span> <span class="n">number</span><span class="p">,</span>   <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NUMBER          </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_AND</span> <span class="p">},</span>        <span class="c1">// TOKEN_AND             </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_AND             </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_CLASS           </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_ELSE            </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_FALSE           </span>
@@ -1066,7 +1067,7 @@ add after <em>unary</em>()</div>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_FUN             </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_IF              </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NIL             </span>
-  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_OR</span> <span class="p">},</span>         <span class="c1">// TOKEN_OR              </span>
+  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_OR              </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_PRINT           </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RETURN          </span>
   <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_SUPER           </span>

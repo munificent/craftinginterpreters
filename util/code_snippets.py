@@ -75,6 +75,11 @@ class SourceCode:
 
 
   def find_snippet_tag(self, chapter, name):
+    if not chapter in self.snippet_tags:
+      print('Error: "{}" does not contain snippet "{}".'.format(chapter, name),
+          file=sys.stderr)
+      return None
+
     snippets = self.snippet_tags[chapter]
 
     if name in snippets:
@@ -229,7 +234,12 @@ class SourceLine:
   def __init__(self, text, location, start, end):
     self.text = text
     self.location = location
+
+    # The first snippet where this line appears in the book.
     self.start = start
+
+    # The last snippet where this line is removed, or None if the line reaches
+    # the end of the book.
     self.end = end
 
   def is_present(self, snippet):

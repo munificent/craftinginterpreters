@@ -186,7 +186,7 @@ static void freeObject(Obj* object) {
     }
 
 //< Closures not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions free-function
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       freeChunk(&function->chunk);
@@ -194,7 +194,7 @@ static void freeObject(Obj* object) {
       break;
     }
 
-//< Calls and Functions not-yet
+//< Calls and Functions free-function
 //> Classes and Instances not-yet
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
@@ -204,12 +204,12 @@ static void freeObject(Obj* object) {
     }
 
 //< Classes and Instances not-yet
-//> Calls and Functions not-yet
+//> Calls and Functions free-native
     case OBJ_NATIVE:
       FREE(ObjNative, object);
       break;
 
-//< Calls and Functions not-yet
+//< Calls and Functions free-native
     case OBJ_STRING: {
       ObjString* string = (ObjString*)object;
       FREE_ARRAY(char, string->chars, string->length + 1);
