@@ -436,8 +436,8 @@ associated with which local variables or temporaries. From now on, the compiler
 implicitly claims stack slot zero for the VM&rsquo;s own internal use. We give it an
 empty name so that the user can&rsquo;t write an identifier that refers to it. I&rsquo;ll
 explain what this is about when it becomes useful.</p>
-<p>That&rsquo;s the initializion side. We also need a couple of changes on the other end
-when we finish compiling some code:</p>
+<p>That&rsquo;s the initialization side. We also need a couple of changes on the other
+end when we finish compiling some code:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 function <em>endCompiler</em>()<br>
 replace 1 line</div>
@@ -559,11 +559,11 @@ cost on every function call.</p>
 <p>Fortran avoided this problem by disallowing recursion entirely. Recursion was
 considered an advanced, esoteric feature at the time.</p>
 </aside>
-<p>Instead, our solution somewhere between Fortran&rsquo;s static allocation and jlox&rsquo;s
-dynamic approach. The value stack in the VM works on the observation that local
-variables and temporaries behave in a last-in first-out fashion. Fortunately for
-us, that&rsquo;s still true even when you add function calls into the mix. Here&rsquo;s an
-example:</p>
+<p>Instead, our solution lies somewhere between Fortran&rsquo;s static allocation and
+jlox&rsquo;s dynamic approach. The value stack in the VM works on the observation that
+local variables and temporaries behave in a last-in first-out fashion.
+Fortunately for us, that&rsquo;s still true even when you add function calls into the
+mix. Here&rsquo;s an example:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">first</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
   <span class="n">second</span><span class="p">();</span>
@@ -585,8 +585,8 @@ in time:</p>
 <p>As execution flows through the two calls, every local variable obeys the
 principle that any variable declared after it will be discarded before the first
 variable needs to be. This is true even across calls. We know we&rsquo;ll be done with
-<code>c</code> and <code>d</code> before we are <code>a</code>. It seems we should be able to allocate local
-variables on the VM&rsquo;s value stack.</p>
+<code>c</code> and <code>d</code> before we are done with <code>a</code>. It seems we should be able to allocate
+local variables on the VM&rsquo;s value stack.</p>
 <p>Ideally, we still determine <em>where</em> on the stack each variable will go at
 compile time. That keeps the bytecode instructions for working with variables
 simple and fast. In the above example, we could <span
@@ -793,7 +793,7 @@ replace 1 line</div>
 
 <p>Previously, <code>OP_GET_LOCAL</code> read the given local slot directly from the VM&rsquo;s
 stack array, which meant it indexed the slot starting from the bottom of the
-stack. Now, it access&rsquo;s the current frame&rsquo;s <code>slots</code> array, which means it
+stack. Now, it accesses the current frame&rsquo;s <code>slots</code> array, which means it
 accesses the given numbered slot relative to the beginning of that frame.</p>
 <p>Setting a local variable works the same way:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_SET_LOCAL</span><span class="p">:</span> <span class="p">{</span>           
@@ -1124,7 +1124,7 @@ heap allocated name string that it can keep around.</p>
 </aside>
 <h2><a href="#function-calls" name="function-calls"><small>24&#8202;.&#8202;5</small> Function Calls</a></h2>
 <p>By the end of this section we&rsquo;ll start to see some interesting behavior. The
-next step calling functions. We don&rsquo;t usually think of it this way, but a
+next step is calling functions. We don&rsquo;t usually think of it this way, but a
 function call expression is kind of an infix <code>(</code> operator. You have a high
 precedence expression on the left for the thing being called<span class="em">&mdash;</span>usually just a
 single identifier. Then the <code>(</code> in the middle, followed by the argument
