@@ -78,7 +78,7 @@ This evaluates to `true` if the given Value is an Obj. If so, we can use:
 
 ^code as-obj (2 before, 1 after)
 
-It extracts the Obj pointer from the value. We can also go the other direction:
+It extracts the Obj pointer from the value. We can also go the other way:
 
 ^code obj-val (1 before, 2 after)
 
