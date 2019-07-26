@@ -437,8 +437,8 @@ Thanks to our handy-dandy hash table, the implementation isn't too hard:
 ^code interpret-define-global (1 before, 2 after)
 
 We get the name of the variable from the constant table. Then we <span
-name="pop">take</span> the value from top of the stack and store it in a hash
-table with that name as the key.
+name="pop">take</span> the value from the top of the stack and store it in a
+hash table with that name as the key.
 
 <aside name="pop">
 

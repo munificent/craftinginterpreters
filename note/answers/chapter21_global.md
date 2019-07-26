@@ -76,7 +76,7 @@ if the name is already found. That's because we don't have a GC yet.*
 There are a few ways to solve this. I'll do one that introduces another layer
 of indirection, and a little information sharing between the compiler and VM.
 
-In the VM, we remove the `global` hash table and replace it with:
+In the VM, we remove the `globals` hash table and replace it with:
 
 ```c
   Table globalNames;
