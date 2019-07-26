@@ -241,7 +241,7 @@ implicitly claims stack slot zero for the VM's own internal use. We give it an
 empty name so that the user can't write an identifier that refers to it. I'll
 explain what this is about when it becomes useful.
 
-That's the initializion side. We also need a couple of changes on the other end
+That's the initialization side. We also need a couple of changes on the other end
 when we finish compiling some code:
 
 ^code end-compiler (1 after)
@@ -328,7 +328,7 @@ considered an advanced, esoteric feature at the time.
 
 </aside>
 
-Instead, our solution somewhere between Fortran's static allocation and jlox's
+Instead, our solution lies somewhere between Fortran's static allocation and jlox's
 dynamic approach. The value stack in the VM works on the observation that local
 variables and temporaries behave in a last-in first-out fashion. Fortunately for
 us, that's still true even when you add function calls into the mix. Here's an
@@ -357,7 +357,7 @@ in time:
 As execution flows through the two calls, every local variable obeys the
 principle that any variable declared after it will be discarded before the first
 variable needs to be. This is true even across calls. We know we'll be done with
-`c` and `d` before we are `a`. It seems we should be able to allocate local
+`c` and `d` before we are done with `a`. It seems we should be able to allocate local
 variables on the VM's value stack.
 
 Ideally, we still determine *where* on the stack each variable will go at
@@ -552,7 +552,7 @@ Now onto each instruction that needs a little tender loving care:
 
 Previously, `OP_GET_LOCAL` read the given local slot directly from the VM's
 stack array, which meant it indexed the slot starting from the bottom of the
-stack. Now, it access's the current frame's `slots` array, which means it
+stack. Now, it accesses the current frame's `slots` array, which means it
 accesses the given numbered slot relative to the beginning of that frame.
 
 Setting a local variable works the same way:
@@ -776,7 +776,7 @@ We can print them! I guess that's not very useful, though.
 ## Function Calls
 
 By the end of this section we'll start to see some interesting behavior. The
-next step calling functions. We don't usually think of it this way, but a
+next step is calling functions. We don't usually think of it this way, but a
 function call expression is kind of an infix `(` operator. You have a high
 precedence expression on the left for the thing being called -- usually just a
 single identifier. Then the `(` in the middle, followed by the argument
