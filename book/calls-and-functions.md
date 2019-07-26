@@ -241,8 +241,8 @@ implicitly claims stack slot zero for the VM's own internal use. We give it an
 empty name so that the user can't write an identifier that refers to it. I'll
 explain what this is about when it becomes useful.
 
-That's the initialization side. We also need a couple of changes on the other end
-when we finish compiling some code:
+That's the initialization side. We also need a couple of changes on the other
+end when we finish compiling some code:
 
 ^code end-compiler (1 after)
 
@@ -328,11 +328,11 @@ considered an advanced, esoteric feature at the time.
 
 </aside>
 
-Instead, our solution lies somewhere between Fortran's static allocation and jlox's
-dynamic approach. The value stack in the VM works on the observation that local
-variables and temporaries behave in a last-in first-out fashion. Fortunately for
-us, that's still true even when you add function calls into the mix. Here's an
-example:
+Instead, our solution lies somewhere between Fortran's static allocation and
+jlox's dynamic approach. The value stack in the VM works on the observation that
+local variables and temporaries behave in a last-in first-out fashion.
+Fortunately for us, that's still true even when you add function calls into the
+mix. Here's an example:
 
 ```lox
 fun first() {
@@ -357,8 +357,8 @@ in time:
 As execution flows through the two calls, every local variable obeys the
 principle that any variable declared after it will be discarded before the first
 variable needs to be. This is true even across calls. We know we'll be done with
-`c` and `d` before we are done with `a`. It seems we should be able to allocate local
-variables on the VM's value stack.
+`c` and `d` before we are done with `a`. It seems we should be able to allocate
+local variables on the VM's value stack.
 
 Ideally, we still determine *where* on the stack each variable will go at
 compile time. That keeps the bytecode instructions for working with variables
