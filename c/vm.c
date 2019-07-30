@@ -892,6 +892,14 @@ static InterpretResult run() {
 //< undef-binary-op
 }
 //< run
+//> omit
+void hack(bool b) {
+  // Hack to avoid unused function error. run() is not used in the
+  // scanning chapter.
+  run();
+  if (b) hack(false);
+}
+//< omit
 //> interpret
 /* A Virtual Machine interpret < Scanning on Demand vm-interpret-c
 InterpretResult interpret(Chunk* chunk) {
@@ -901,11 +909,6 @@ InterpretResult interpret(Chunk* chunk) {
 */
 //> Scanning on Demand vm-interpret-c
 InterpretResult interpret(const char* source) {
-/* Scanning on Demand omit < Compiling Expressions interpret-chunk
-  // Hack to avoid unused function error. run() is not used in the
-  // scanning chapter.
-  if (false) run();
-*/
 /* Scanning on Demand vm-interpret-c < Compiling Expressions interpret-chunk
   compile(source);
   return INTERPRET_OK;

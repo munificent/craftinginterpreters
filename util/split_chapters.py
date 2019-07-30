@@ -14,7 +14,7 @@ import code_snippets
 source_code = code_snippets.load()
 
 
-def split_file(chapter_name, path, snippet=None, index=None):
+def split_file(chapter_name, path, snippet=None):
   chapter_number = book.chapter_number(chapter_name)
 
   source_dir = book.get_language(chapter_name)
@@ -27,15 +27,16 @@ def split_file(chapter_name, path, snippet=None, index=None):
 
   package = book.get_short_name(chapter_name)
   if snippet:
-    package = os.path.join("snippets", package, "{:02}-{}".format(index, snippet))
+    snippet_dir = "{:02}-{}".format(snippet.index, snippet.name)
+    package = os.path.join("snippets", package, snippet_dir)
   output_path = os.path.join("gen", package, relative)
 
   # If we're generating the split for an entire chapter, include all its
   # snippets.
   if not snippet:
-    snippet = source_code.last_snippet_for_chapter(chapter_name).name
+    snippet = source_code.last_snippet_for_chapter(chapter_name)
 
-  output = source_code.split_chapter(relative, chapter_name, snippet)
+  output = source_code.split_chapter(relative, chapter_name, snippet.name)
 
   if output:
     # Don't overwrite it if it didn't change, so the makefile doesn't think it
@@ -61,7 +62,7 @@ def ensure_dir(path):
       os.makedirs(path)
 
 
-def split_chapter(chapter, snippet=None, index=None):
+def split_chapter(chapter, snippet=None):
   source_dir = book.get_language(chapter)
 
   def walk(dir):
@@ -71,29 +72,34 @@ def split_chapter(chapter, snippet=None, index=None):
       if os.path.isdir(nfile):
         walk(nfile)
       elif os.path.splitext(path)[1] in [".java", ".h", ".c"]:
-        split_file(chapter, nfile, snippet, index)
+        split_file(chapter, nfile, snippet)
 
   walk(source_dir)
 
 
-if len(sys.argv) == 3:
-  # Generate the code at a single snippet.
-  chapter = sys.argv[1]
-  snippet = int(sys.argv[2])
+if __name__ == "__main__":
+  if len(sys.argv) == 2 and sys.argv[1] == "all":
+    for chapter in book.CODE_CHAPTERS:
+      if "Appendix" in chapter:
+        # Appendices are "code chapters" because they include snippets, but don't
+        # need to be split out and run.
+        continue
 
-  split_chapter(chapter, snippet)
-else:
-  for chapter in book.CODE_CHAPTERS:
-    if "Appendix" in chapter:
-      # Appendices are "code chapters" because they include snippets, but don't
-      # need to be split out and run.
-      continue
-    # TODO: Uncomment this to split out the chapters at each snippet.
-    # TODO: Need to also pass snippet to chapter_to_package() to generate
-    # directory name.
-    # snippets = source_code.find_all(chapter)
-    # index = 1
-    # for snippet in snippets.values():
-    #   split_chapter(chapter, snippet.name, index)
-    #   index += 1
-    split_chapter(chapter)
+      for snippet in source_code.snippet_tags[chapter].values():
+        split_chapter(chapter, snippet)
+
+  elif len(sys.argv) == 3:
+    # Generate the code at a single snippet.
+    chapter = sys.argv[1]
+    snippet_name = sys.argv[2]
+
+    snippet = source_code.snippet_tags[chapter][snippet_name]
+    split_chapter(chapter, snippet)
+
+  else:
+    for chapter in book.CODE_CHAPTERS:
+      if "Appendix" in chapter:
+        # Appendices are "code chapters" because they include snippets, but don't
+        # need to be split out and run.
+        continue
+      split_chapter(chapter)
