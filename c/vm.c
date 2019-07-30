@@ -52,10 +52,17 @@ static void runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-/* Types of Values runtime-error < Calls and Functions runtime-error-stack
+/* Types of Values runtime-error < Calls and Functions runtime-error-temp
   size_t instruction = vm.ip - vm.chunk->code;
-  fprintf(stderr, "[line %d] in script\n",
-          vm.chunk->lines[instruction]);
+  int line = vm.chunk->lines[instruction];
+*/
+/* Calls and Functions runtime-error-temp < Calls and Functions runtime-error-stack
+  CallFrame* frame = &vm.frames[vm.frameCount - 1];
+  size_t instruction = frame->ip - frame->function->chunk.code;
+  int line = frame->function->chunk.lines[instruction];
+*/
+/* Types of Values runtime-error < Calls and Functions runtime-error-stack
+  fprintf(stderr, "[line %d] in script\n", line);
 */
 //> Calls and Functions runtime-error-stack
   for (int i = vm.frameCount - 1; i >= 0; i--) {
