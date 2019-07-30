@@ -9,6 +9,7 @@
 
 import os
 from subprocess import Popen, PIPE
+import sys
 
 import book
 import code_snippets
@@ -110,9 +111,15 @@ chapter_snippets = {
     "init-function-slot",
     "return-function",
     "disassemble-end",
-    # TODO: Big gap here where stuff isn't working.
-    "runtime-error-stack",
+
+    "runtime-error-temp",
+    "compile-function",
+    "init-function-name",
+    "call",
+    "interpret",
     "disassemble-call",
+    "return-statement",
+    "runtime-error-stack",
     "return-from-script",
     "print-native",
     "define-native",

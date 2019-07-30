@@ -250,7 +250,8 @@ chunk, so we call Chunk&rsquo;s destructor-like function.</p>
 That means we can let the garbage collector manage its lifetime for us. Or, at
 least, we&rsquo;ll be able to once we <a href="garbage-collection.html">implement a garbage collector</a>.</p>
 </aside>
-<p>Over in the function to print objects, we also add a case:</p>
+<p>Over in the function to print objects, we also add a case. Since we have the
+function&rsquo;s name, we may as well use it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                             
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
@@ -262,14 +263,6 @@ in <em>printObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
-<p>Since we have the function&rsquo;s name, we may as well use it. If you run:</p>
-<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">someFunction</span><span class="p">()</span> <span class="p">{}</span>
-<span class="k">print</span> <span class="n">someFunction</span><span class="p">;</span>
-</pre></div>
-
-
-<p>It prints out <code>&lt;fn someFunction&gt;</code>. I don&rsquo;t know, maybe that will be useful to
-someone.</p>
 <p>Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually <em>is</em> a function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)         </span>
@@ -746,11 +739,21 @@ in <em>resetStack</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>resetStack</em>()</div>
 
-<p>Now, we&rsquo;ve got some grunt work ahead of us. We&rsquo;ve moved <code>ip</code> out of the VM
-struct and into CallFrame. We need to fix every line of code in the VM that
-touches <code>ip</code> to handle that. Also, the instructions that access local variables
-by stack slot need to be updated to do so relative to the current CallFrame&rsquo;s
-<code>slots</code> field.</p>
+<p>The &ldquo;vm.h&rdquo; header needs access to ObjFunction, so we need an include:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_vm_h  </span>
+<br></pre><div class="source-file"><em>vm.h</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
+
+<p>Now we&rsquo;re ready to move over to the VM&rsquo;s implementation file. We&rsquo;ve got some
+grunt work ahead of us. We&rsquo;ve moved <code>ip</code> out of the VM struct and into
+CallFrame. We need to fix every line of code in the VM that touches <code>ip</code> to
+handle that. Also, the instructions that access local variables by stack slot
+need to be updated to do so relative to the current CallFrame&rsquo;s <code>slots</code> field.</p>
 <p>We&rsquo;ll start at the top and plow through it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="n">InterpretResult</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>                                        
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -902,7 +905,24 @@ replace 4 lines</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 4 lines</div>
 
-<p>Assuming we did all of that correctly, we finally got clox back to a runnable
+<p>The last piece of code referring to the old VM fields is <code>runtimeError()</code>. We&rsquo;ll
+revisit that later in the chapter, but for now, let&rsquo;s change it to:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">fputs</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">stderr</span><span class="p">);</span>                                         
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>runtimeError</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>            
+  <span class="kt">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">code</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">line</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="p">.</span><span class="n">lines</span><span class="p">[</span><span class="n">instruction</span><span class="p">];</span>        
+</pre><pre class="insert-after"><span></span>  <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] in script</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">);</span>              
+<br></pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 2 lines</div>
+
+<p>Instead of reading the chunk and <code>ip</code> directly from the VM, it pulls those from
+the topmost CallFrame on the stack. That should get the function working again
+and behaving as it did before.</p>
+<p>Assuming we did all of that correctly, we got clox back to a runnable
 state. Fire it up and it does&hellip; exactly what it did before. We haven&rsquo;t added
 any new features yet, so this is kind of a let down. But all of the
 infrastructure is there ready for us now. Let&rsquo;s take advantage of it.</p>
@@ -1404,11 +1424,12 @@ in <em>call</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
 
 <p>In practice, if a program gets close to this limit, it&rsquo;s most likely to be a bug
-in some runaway recursive code. While we&rsquo;re on the subject of runtime errors,
-let&rsquo;s spend a little time making them more useful. Stopping on a runtime error
-is important to prevent the VM from crashing and burning in some ill-defined
-way. But simply aborting doesn&rsquo;t help the user fix their code which <em>caused</em>
-that error.</p>
+in some runaway recursive code.</p>
+<h3><a href="#printing-stack-traces" name="printing-stack-traces"><small>24&#8202;.&#8202;5&#8202;.&#8202;2</small> Printing stack traces</a></h3>
+<p>While we&rsquo;re on the subject of runtime errors, let&rsquo;s spend a little time making
+them more useful. Stopping on a runtime error is important to prevent the VM
+from crashing and burning in some ill-defined way. But simply aborting doesn&rsquo;t
+help the user fix their code which <em>caused</em> that error.</p>
 <p>The classic tool to aid debugging runtime failures is a <strong>stack trace</strong><span class="em">&mdash;</span>a
 print out of each function that was still executing when the program died and
 where the execution was at the point that it died. Now that we have a call stack
@@ -1418,7 +1439,7 @@ looks like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">fputs</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">stderr</span><span class="p">);</span>                                           
 <br></pre><div class="source-file"><em>vm.c</em><br>
 in <em>runtimeError</em>()<br>
-replace 3 lines</div>
+replace 4 lines</div>
 <pre class="insert"><span></span>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span><span class="o">--</span><span class="p">)</span> <span class="p">{</span>                 
     <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>                            
     <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="p">;</span>                     
@@ -1436,7 +1457,7 @@ replace 3 lines</div>
 </pre><pre class="insert-after"><br><span></span>  <span class="n">resetStack</span><span class="p">();</span>                                                  
 </pre></div>
 
-<div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 3 lines</div>
+<div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 4 lines</div>
 
 <p>After printing the error message itself, we walk the call stack from <span
 name="top">top</span> (the most recently called function) to bottom (the top
@@ -1477,7 +1498,7 @@ do that.</p>
 
 
 <p>That doesn&rsquo;t look too bad, does it?</p>
-<h3><a href="#returning-from-functions" name="returning-from-functions"><small>24&#8202;.&#8202;5&#8202;.&#8202;2</small> Returning from functions</a></h3>
+<h3><a href="#returning-from-functions" name="returning-from-functions"><small>24&#8202;.&#8202;5&#8202;.&#8202;3</small> Returning from functions</a></h3>
 <p>We&rsquo;re getting close. We can call functions and the VM will execute them. But we
 can&rsquo;t <em>return</em> from them yet. We&rsquo;ve had an <code>OP_RETURN</code> instruction for quite
 some time, but it&rsquo;s always had some kind of temporary code hanging out in it
@@ -1841,8 +1862,8 @@ in <em>initVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<p>The &ldquo;vm&rdquo; module needs a couple of includes to wire this all up. First, to access
-the C standard library <code>clock()</code>:</p>
+<p>To get to the C standard library <code>clock()</code> function, the &ldquo;vm&rdquo; module needs an
+include:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&lt;time.h&gt;  </span><span class="cp"></span>
@@ -1850,16 +1871,6 @@ the C standard library <code>clock()</code>:</p>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em></div>
-
-<p>And then to access the object stuff:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_vm_h  </span>
-<br></pre><div class="source-file"><em>vm.h</em><br>
-replace 1 line</div>
-<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
-</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;table.h&quot; </span><span class="cp"></span>
-</pre></div>
-
-<div class="source-file-narrow"><em>vm.h</em>, replace 1 line</div>
 
 <p>That was a lot of material to work through, but we did it! Type this in and try
 it out:</p>

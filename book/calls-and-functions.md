@@ -100,19 +100,10 @@ least, we'll be able to once we [implement a garbage collector][gc].
 
 </aside>
 
-Over in the function to print objects, we also add a case:
+Over in the function to print objects, we also add a case. Since we have the
+function's name, we may as well use it:
 
 ^code print-function (1 before, 1 after)
-
-Since we have the function's name, we may as well use it. If you run:
-
-```lox
-fun someFunction() {}
-print someFunction;
-```
-
-It prints out `<fn someFunction>`. I don't know, maybe that will be useful to
-someone.
 
 Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually *is* a function:
@@ -521,11 +512,15 @@ this, but I'm trying to keep things simple.
 
 ^code reset-frame-count (1 before, 1 after)
 
-Now, we've got some grunt work ahead of us. We've moved `ip` out of the VM
-struct and into CallFrame. We need to fix every line of code in the VM that
-touches `ip` to handle that. Also, the instructions that access local variables
-by stack slot need to be updated to do so relative to the current CallFrame's
-`slots` field.
+The "vm.h" header needs access to ObjFunction, so we need an include:
+
+^code vm-include-object (2 before, 1 after)
+
+Now we're ready to move over to the VM's implementation file. We've got some
+grunt work ahead of us. We've moved `ip` out of the VM struct and into
+CallFrame. We need to fix every line of code in the VM that touches `ip` to
+handle that. Also, the instructions that access local variables by stack slot
+need to be updated to do so relative to the current CallFrame's `slots` field.
 
 We'll start at the top and plow through it:
 
@@ -605,7 +600,16 @@ don't need to do that anymore, so the end of `interpret()` is simply:
 
 ^code end-interpret (2 before, 1 after)
 
-Assuming we did all of that correctly, we finally got clox back to a runnable
+The last piece of code referring to the old VM fields is `runtimeError()`. We'll
+revisit that later in the chapter, but for now, let's change it to:
+
+^code runtime-error-temp (2 before, 2 after)
+
+Instead of reading the chunk and `ip` directly from the VM, it pulls those from
+the topmost CallFrame on the stack. That should get the function working again
+and behaving as it did before.
+
+Assuming we did all of that correctly, we got clox back to a runnable
 state. Fire it up and it does... exactly what it did before. We haven't added
 any new features yet, so this is kind of a let down. But all of the
 infrastructure is there ready for us now. Let's take advantage of it.
@@ -963,11 +967,14 @@ to ensure a deep call chain doesn't overflow it:
 ^code check-overflow (2 before, 1 after)
 
 In practice, if a program gets close to this limit, it's most likely to be a bug
-in some runaway recursive code. While we're on the subject of runtime errors,
-let's spend a little time making them more useful. Stopping on a runtime error
-is important to prevent the VM from crashing and burning in some ill-defined
-way. But simply aborting doesn't help the user fix their code which *caused*
-that error.
+in some runaway recursive code.
+
+### Printing stack traces
+
+While we're on the subject of runtime errors, let's spend a little time making
+them more useful. Stopping on a runtime error is important to prevent the VM
+from crashing and burning in some ill-defined way. But simply aborting doesn't
+help the user fix their code which *caused* that error.
 
 The classic tool to aid debugging runtime failures is a **stack trace** -- a
 print out of each function that was still executing when the program died and
@@ -1270,14 +1277,10 @@ handy for benchmarking Lox programs. In Lox, we'll name it `clock()`:
 
 ^code define-native-clock (1 before, 1 after)
 
-The "vm" module needs a couple of includes to wire this all up. First, to access
-the C standard library `clock()`:
+To get to the C standard library `clock()` function, the "vm" module needs an
+include:
 
 ^code vm-include-time (1 before, 2 after)
-
-And then to access the object stuff:
-
-^code vm-include-object (2 before, 1 after)
 
 That was a lot of material to work through, but we did it! Type this in and try
 it out:
