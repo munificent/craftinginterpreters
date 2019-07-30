@@ -110,7 +110,7 @@ This isn't really a book on good C programming practice, but I hate to encourage
 bad style, so let's go ahead and handle the errors. It's good for us, like
 eating our vegetables or flossing.
 
-Fortunately, we don't need to do anything particulary clever if a failure
+Fortunately, we don't need to do anything particularly clever if a failure
 occurs. If we can't correctly read the user's script, all we can really do is
 tell the user and exit the interpreter gracefully. First up, we might fail to
 open the file:

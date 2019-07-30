@@ -468,6 +468,11 @@ the heap. Making another copy of that would be redundant (and would mean
 `concatenate()` has to remember to free its copy). Instead, this function claims
 ownership of the string you give it.
 
+As usual, stitching this function functionality together requires a couple of
+includes:
+
+^code vm-include-object-memory (1 before, 1 after)
+
 ## Freeing Objects
 
 Behold this innocuous-seeming expression:
@@ -592,11 +597,6 @@ calls this:
 
 ^code free-objects-h (1 before, 2 after)
 
-Before we get to the definition of that, there are a couple of includes we need
-in the "vm" module:
-
-^code vm-include-object-memory (1 before, 1 after)
-
 Here's how we free the objects:
 
 ^code free-objects
@@ -625,7 +625,7 @@ keep a running count of the number of bytes of allocated memory.
 
 </aside>
 
-As usual, we need a couple of includes to wire everything together:
+As usual, we need an include to wire everything together:
 
 ^code memory-include-object (2 before, 2 after)
 

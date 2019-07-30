@@ -7,6 +7,12 @@
 
 CFLAGS := -std=c99 -Wall -Wextra -Werror -Wno-unused-parameter
 
+# If we're building at a point in the middle of a chapter, don't fail if there
+# are functions that aren't used yet.
+ifeq ($(SNIPPET),true)
+	CFLAGS += -Wno-unused-function
+endif
+
 # Mode configuration.
 ifeq ($(MODE),debug)
 	CFLAGS += -O0 -DDEBUG -g

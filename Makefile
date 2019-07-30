@@ -42,7 +42,7 @@ test_java: jlox java_chapters
 	@ ./util/test.py java
 
 # Run the tests for every chapter's version of clox and jlox.
-test_all: debug jlox c_chapters java_chapters
+test_all: debug jlox c_chapters java_chapters compile_snippets
 	@ ./util/test.py all
 
 # Remove all build outputs and intermediate files.
@@ -161,4 +161,8 @@ diffs: split_chapters java_chapters
 split_chapters:
 	@ ./util/split_chapters.py
 
-.PHONY: book c_chapters clean clox debug default diffs java_chapters jlox serve split_chapters test test_all test_c test_java
+compile_snippets:
+	@ python3 util/compile_snippets.py
+
+.PHONY: book c_chapters clean clox compile_snippets debug default diffs \
+	java_chapters jlox serve split_chapters test test_all test_c test_java
