@@ -922,9 +922,9 @@ sophistication, but that should get your attention.
 
 <aside name="lua">
 
-Roberto Ierusalimschy and a couple of other folks wrote a *fantastic* paper on
-this, one of my all time favorite computer science papers, "[The Implementation
-of Lua 5.0][lua]" (PDF).
+The Lua dev team -- Roberto Ierusalimschy, Waldemar Celes, and Luiz Henrique de
+Figueiredo -- wrote a *fantastic* paper on this, one of my all time favorite
+computer science papers, "[The Implementation of Lua 5.0][lua]" (PDF).
 
 [lua]: https://www.lua.org/doc/jucs05.pdf
 
