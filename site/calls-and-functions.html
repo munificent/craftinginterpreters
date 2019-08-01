@@ -263,6 +263,25 @@ in <em>printObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
+<p>While we&rsquo;re here, there&rsquo;s a funny little edge case to handle. The implicit
+function that the compiler creates to contain the top level code for a script
+doesn&rsquo;t have a name. If we try to print it, we&rsquo;ll crash. You might correctly
+note that there&rsquo;s no way for a user to get a reference to that function in the
+first place. But our diagnostic code that prints the entire stack when
+<code>DEBUG_TRACE_EXECUTION</code> is defined <em>will</em> print it, and we don&rsquo;t want that to
+blow up. So:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                   
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>printObject</em>()</div>
+<pre class="insert"><span></span>      <span class="k">if</span> <span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>            
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>                              
+        <span class="k">break</span><span class="p">;</span>                                           
+      <span class="p">}</span>                                                  
+</pre><pre class="insert-after"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
+
 <p>Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually <em>is</em> a function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)         </span>
