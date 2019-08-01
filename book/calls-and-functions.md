@@ -105,6 +105,16 @@ function's name, we may as well use it:
 
 ^code print-function (1 before, 1 after)
 
+While we're here, there's a funny little edge case to handle. The implicit
+function that the compiler creates to contain the top level code for a script
+doesn't have a name. If we try to print it, we'll crash. You might correctly
+note that there's no way for a user to get a reference to that function in the
+first place. But our diagnostic code that prints the entire stack when
+`DEBUG_TRACE_EXECUTION` is defined *will* print it, and we don't want that to
+blow up. So:
+
+^code print-script (1 before, 1 after)
+
 Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually *is* a function:
 
