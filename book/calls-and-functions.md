@@ -1315,7 +1315,7 @@ print clock() - start;
 ```
 
 We can write a really inefficient recursive Fibonacci function. Even better, we
-can measure just <span name="faster">*how*</span> ineffecient it is. This is, of
+can measure just <span name="faster">*how*</span> inefficient it is. This is, of
 course, not the smartest way to calculate a Fibonacci number. But it is a good
 way to stress test a language implementation's support for function calls. On my
 machine, running this in clox is about five times faster than in jlox. That's
