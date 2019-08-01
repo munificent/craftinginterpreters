@@ -1083,13 +1083,13 @@ static void function(FunctionType type) {
 //> parameters
   if (!check(TOKEN_RIGHT_PAREN)) {
     do {
+      current->function->arity++;
+      if (current->function->arity > 255) {
+        errorAtCurrent("Cannot have more than 255 parameters.");
+      }
+      
       uint8_t paramConstant = parseVariable("Expect parameter name.");
       defineVariable(paramConstant);
-
-      current->function->arity++;
-      if (current->function->arity > 8) {
-        error("Cannot have more than 8 parameters.");
-      }
     } while (match(TOKEN_COMMA));
   }
 //< parameters
