@@ -1007,7 +1007,7 @@ add after <em>block</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">function</span><span class="p">(</span><span class="n">FunctionType</span> <span class="n">type</span><span class="p">)</span> <span class="p">{</span>                       
   <span class="n">Compiler</span> <span class="n">compiler</span><span class="p">;</span>                                            
   <span class="n">initCompiler</span><span class="p">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>                                
-  <span class="n">beginScope</span><span class="p">();</span>
+  <span class="n">beginScope</span><span class="p">();</span> <span name="no-end-scope"></span>
 
   <span class="c1">// Compile the parameter list.                                </span>
   <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">,</span> <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span><span class="p">);</span> 
@@ -1025,6 +1025,11 @@ add after <em>block</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>block</em>()</div>
 
+<aside name="no-end-scope">
+<p>This <code>beginScope()</code> doesn&rsquo;t have a corresponding <code>endScope()</code> call. Because we
+end Compiler completely when we reach the end of the function body, there&rsquo;s no
+need to close the lingering outermost scope.</p>
+</aside>
 <p>For now, we won&rsquo;t worry about parameters. We parse an empty pair of parentheses
 followed by the body. The body starts with a left curly brace, which we parse
 here. Then we call our existing <code>block()</code> function which knows how to compile
