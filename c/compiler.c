@@ -1076,7 +1076,7 @@ static void block() {
 static void function(FunctionType type) {
   Compiler compiler;
   initCompiler(&compiler, type);
-  beginScope();
+  beginScope(); // [no-end-scope]
 
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");

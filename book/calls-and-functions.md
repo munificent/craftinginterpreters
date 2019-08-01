@@ -677,6 +677,14 @@ incrementally, starting with this:
 
 ^code compile-function
 
+<aside name="no-end-scope">
+
+This `beginScope()` doesn't have a corresponding `endScope()` call. Because we
+end Compiler completely when we reach the end of the function body, there's no
+need to close the lingering outermost scope.
+
+</aside>
+
 For now, we won't worry about parameters. We parse an empty pair of parentheses
 followed by the body. The body starts with a left curly brace, which we parse
 here. Then we call our existing `block()` function which knows how to compile
