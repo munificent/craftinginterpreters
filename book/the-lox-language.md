@@ -151,7 +151,7 @@ retain calls if you squint.
 
 For lots more on this, see "[A Unified Theory of Garbage Collection][gc]" (PDF).
 
-[gc]: http://www.cs.virginia.edu/~cs415/reading/bacon-garbage.pdf
+[gc]: https://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon04Unified.pdf
 
 </aside>
 
