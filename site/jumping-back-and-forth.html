@@ -511,13 +511,13 @@ so we&rsquo;ll have to grind it out ourselves.</p>
 <p>My enduring love of Depeche Mode notwithstanding.</p>
 </aside>
 <h2><a href="#logical-operators" name="logical-operators"><small>23&#8202;.&#8202;2</small> Logical Operators</a></h2>
-<p>You probably remember this from jlox, but the logical operators <code>&amp;&amp;</code> and <code>||</code>
+<p>You probably remember this from jlox, but the logical operators <code>and</code> and <code>or</code>
 aren&rsquo;t just another pair of binary operators like <code>+</code> and <code>-</code>. Because they
 short-circuit and may not evaluate their right operand depending on the value of
 the left one, they work more like control flow expressions.</p>
 <p>They&rsquo;re basically a little variation on an if statement with an else clause. The
 easiest way to explain them is to just show you the compiler code and the
-control flow it produces in the resulting bytecode. Starting with <code>&amp;&amp;</code>, we hook
+control flow it produces in the resulting bytecode. Starting with <code>and</code>, we hook
 it into the expression parsing table here:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="n">number</span><span class="p">,</span>   <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NUMBER</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -545,15 +545,15 @@ add after <em>defineVariable</em>()</div>
 
 <p>At the point this is called, the left-hand side expression has already been
 compiled. That means at runtime, its value will be on top of the stack. If that
-value is falsey, then we know the entire <code>&amp;&amp;</code> must be false, so we skip the
+value is falsey, then we know the entire <code>and</code> must be false, so we skip the
 right operand and leave the left-hand side value as the result of the entire
-expression. Otherwise, we discard the left-hand value and the result of the <code>&amp;&amp;</code>
-expression is the result of evaluating the right operand.</p>
+expression. Otherwise, we discard the left-hand value and the result of the
+<code>and</code> expression is the result of evaluating the right operand.</p>
 <p>Those four lines of code right there produce exactly that. The flow looks like
 this:</p>
-<p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an '&&' expression." /></p>
+<p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an 'and' expression." /></p>
 <p>Now you can see why <code>OP_JUMP_IF_FALSE</code> <span name="instr">leaves</span> the
-value on top of the stack. When the left-hand side of the <code>&amp;&amp;</code> is falsey, that
+value on top of the stack. When the left-hand side of the <code>and</code> is falsey, that
 value sticks around to become the result of the entire expression.</p>
 <aside name="instr">
 <p>We&rsquo;ve got plenty of space left in our opcode range, so we could have separate
@@ -563,7 +563,7 @@ VM, it&rsquo;s worth exploring adding more specialized instructions and see how 
 affect performance.</p>
 </aside>
 <h3><a href="#logical-or-operator" name="logical-or-operator"><small>23&#8202;.&#8202;2&#8202;.&#8202;1</small> Logical or operator</a></h3>
-<p>The <code>||</code> operator is a little more complex. First we add it to the parse table:</p>
+<p>The <code>or</code> operator is a little more complex. First we add it to the parse table:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="n">literal</span><span class="p">,</span>  <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_NIL  </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
@@ -590,7 +590,7 @@ add after <em>number</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
 
-<p>In an <code>||</code> expression, if the left-hand side is <em>truthy</em>, then we skip over the
+<p>In an <code>or</code> expression, if the left-hand side is <em>truthy</em>, then we skip over the
 right operand. Thus we need to jump when a value is truthy. We could add a
 separate instruction, but just to show how our compiler is free to map the
 language&rsquo;s semantics to whatever instruction sequence it wants, I implemented it
@@ -601,8 +601,8 @@ This little dance effectively does a jump when the value is truthy. The flow
 looks like this:</p>
 <p><img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of a logical or expression." /></p>
 <p>If I&rsquo;m honest with you, this isn&rsquo;t the best way to do this. There are more
-instructions to dispatch and more overhead. There&rsquo;s no good reason why <code>||</code>
-should be slower than <code>&amp;&amp;</code>. But it is kind of fun to see that it&rsquo;s possible to
+instructions to dispatch and more overhead. There&rsquo;s no good reason why <code>or</code>
+should be slower than <code>and</code>. But it is kind of fun to see that it&rsquo;s possible to
 implement both operators without adding any new instructions. Forgive me my
 indulgences.</p>
 <p>OK, those are the three <em>branching</em> constructs in Lox. By that, I mean, these
@@ -1186,7 +1186,7 @@ exit out of a series of nested loops:</p>
 
 <aside name="break">
 <p>You could do this without <code>break</code> statements<span class="em">&mdash;</span>themselves a limited goto-ish
-construct<span class="em">&mdash;</span>by inserting <code>!found &amp;&amp;</code> at the beginning of the condition clause
+construct<span class="em">&mdash;</span>by inserting <code>!found and</code> at the beginning of the condition clause
 of each loop.</p>
 </aside>
 <p>I guess what I really don&rsquo;t like is that we&rsquo;re making language design and
