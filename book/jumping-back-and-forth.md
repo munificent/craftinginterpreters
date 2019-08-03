@@ -690,7 +690,7 @@ don't think most programmers around today have seen that first hand. It's been a
 long time since that style was common. These days, it's a boogie man we invoke
 in scary stories around the campfire.
 
-The reason we rarely confront that monster in person is because Edsger Dijktra
+The reason we rarely confront that monster in person is because Edsger Dijkstra
 slayed it with his famous letter "Goto Considered Harmful", published in
 *Communications of the ACM*. Debate around structured programming had been
 fierce for some time with adherents on both sides, but I think Dijkstra deserves
