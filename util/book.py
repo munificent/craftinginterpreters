@@ -224,7 +224,6 @@ TOC = [
           'Upvalues', 'Resolving enclosing locals', 'Closure flattening',
           'Capturing variables', 'Closing upvalues'
         ],
-        'done': False,
       },
       {
         'name': 'Garbage Collection',
