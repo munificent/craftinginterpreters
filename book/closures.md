@@ -1,6 +1,94 @@
 ^title Closures
 ^part A Bytecode Virtual Machine
 
+## closure obj
+
+- currently, fn objects created at compile time
+- just obj bound to name
+- no instr to "create" fn at runtime, simply loaded from const table
+- for closure, some runtime obj needs to be created
+
+  ```lox
+  fun makeClosure(value) {
+    fun closure() {
+      print value;
+    }
+    return closure;
+  }
+
+  var doughnut = makeClosure("doughnut");
+  var bagel = makeClosure("bagel");
+  doughnut();
+  bagel();
+  ```
+
+- two fns must be diff since do different things
+- first step is create runtime rep of closure
+- wrap fn which contains static part of fn -- code and const
+- eventually contain runtime state needed to close over vars
+- every fn in clox wrapped in closure, even if doesn't close over anything
+- simplifies vm because doesn't need to handle calling both closure and bare
+  fn
+
+### obj
+
+- *todo: walk though code...*
+
+### compiler code to create closure obj
+
+- *todo: walk though code...*
+
+### vm code to handle closure obj
+
+- *todo: walk though code...*
+
+## upvalues
+
+- existing local instrs limited to fn's own stack window
+- need new instr
+- can't just look up var farther in stack
+- eventually will hang on to var after parent fn returns
+- todo: ex of function that returns closure
+
+- could treat vars that closed over very different
+- not put on stack at all
+- if not single-pass compiler, might be good idea
+- todo: example program that works with local var before closure refers to it
+- already emitted code to treat var as local before discover used by closure
+- so when closure work with var, need to handle it still on stack
+
+- solution from lua
+- solve with indirection, "upvalue"
+- closure obj has array of upvalue objs
+- each refers to unique var that fn accesses that's declared in surrounding fn
+- only have upvalues for vars actually refed
+- have one upvalue for each var, even if refed multiple times
+- upvalue points back into stack where var lives
+- can read and write through that
+
+- when closure obj created, create upvalues and wire up pointers into stack
+- instr for closed over vars has operand to index into upvalue array
+
+- will extend later to see how works when fn containing closed-over var returns
+- enough to get going
+
+### compiling upvalues
+
+- as usual want to do as much as possible at compile time
+- since vars all lexical, can figure out exactly which vars each fn closes over
+  and where defined
+- thus know how many upvalues closure needs and which variables they refer to
+
+- *talk about flattening and indirect upvalues...*
+
+### upvalue obj
+
+### upvalue in closure
+
+## closed upvalues
+
+---
+
 ### outline
 
 - intro
@@ -15,32 +103,6 @@
   - build in stages, intro concepts as needed
 
 - closure obj
-  - currently, fn objects created at compile time
-  - just obj bound to name
-  - no instr to "create" fn at runtime, simply loaded from const table
-  - for closure, some runtime obj needs to be created
-
-    ```lox
-    fun makeClosure(value) {
-      fun closure() {
-        print value;
-      }
-      return closure;
-    }
-
-    var doughnut = makeClosure("doughnut");
-    var bagel = makeClosure("bagel");
-    doughnut();
-    bagel();
-    ```
-
-  - two fns must be diff since do different things
-  - first step is create runtime rep of closure
-  - wrap fn which contains static part of fn -- code and const
-  - eventually contain runtime state needed to close over vars
-  - every fn in clox wrapped in closure, even if doesn't close over anything
-  - simplifies vm because doesn't need to handle calling both closure and bare
-    fn
 
 - open upvalues
 
@@ -71,6 +133,76 @@
   - define new obj type
   - OP_CLOSURE
   - update vm to go through that to get to fn
+
+```lox
+fun main() {
+  var x = 1;
+
+  fun middle() {
+    var y = 0;
+
+    fun closure() {
+      print x;
+    }
+
+    closure();
+    return closure;
+  }
+
+  var captured = middle();
+  captured();
+}
+```
+
+in this example, when closure for c is first created, x, which is closes over
+is already off the stack. this is why closures are flattened:
+
+```lox
+fun a(x) {
+  fun b() {
+    print "create c";
+    fun c() {
+      print x;
+    }
+
+    print "end of b";
+    return c;
+  }
+
+  print "end of a";
+  return b;
+}
+
+a("capture")()();
+// prints:
+// end of a
+// create c
+// end of b
+// capture
+```
+
+here, the function that declares the variable assigns to it after the closure
+has captured it. this is why the upvalue needs to point back to the stack.
+also, it assigns to the variable before the closure is compiled. since we do
+single pass compilation, we have to compile that assignment to a normal local
+assign.
+
+```lox
+fun a(x) {
+  var x = 1;
+  x = 2;
+
+  fun b() {
+    print x;
+  }
+
+  b();
+  x = 3;
+  b();
+}
+```
+
+
 
 ## closure obj
 
@@ -357,7 +489,7 @@ does not know when to create closure.**
 
 ...
 
-^code closed-field (1 before, 1 after)
+^code closed-field (2 before, 1 after)
 
 ...
 
