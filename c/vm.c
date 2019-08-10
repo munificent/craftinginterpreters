@@ -188,6 +188,31 @@ static bool call(ObjClosure* closure, int argCount) {
     return false;
   }
 
+  // Can't do tail calls from top level script
+  if (vm.frameCount > 0) {
+    // Get the current frame
+    CallFrame* frame = &vm.frames[vm.frameCount - 1];
+    // Tall call is when the call is imediatly followed by a return
+    if (*frame->ip == OP_RETURN) {
+      // Overwrite the current function + args with the 
+      // new function and args
+      Value* src = vm.stackTop - argCount - 1;
+      Value* dst = frame->slots;
+      while (src < vm.stackTop) {
+	*dst++ = *src++;
+      }
+      // Fix the stack
+      vm.stackTop = dst;
+
+      // Fix the frame
+      // (Note, I wrote this after the 'functions' chapter, I've just
+      // copied the closures stuff from a few lines down.
+      frame->closure = closure;
+      frame->ip = closure->function->chunk.code;
+      return true;
+   }
+ }
+
 //< check-overflow
   CallFrame* frame = &vm.frames[vm.frameCount++];
 /* Calls and Functions call < Closures not-yet
