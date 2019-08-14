@@ -206,7 +206,6 @@ TOC = [
           'Jump instructions', 'Conditional jumps', 'Control flow statements',
           'Short-circuiting', 'Backpatching'
         ],
-        'done': True,
         'design_note': 'Considering Goto Harmful'
       },
       {
@@ -224,6 +223,7 @@ TOC = [
           'Upvalues', 'Resolving enclosing locals', 'Closure flattening',
           'Capturing variables', 'Closing upvalues'
         ],
+        'design_note': 'Closing Over the Loop Variable'
       },
       {
         'name': 'Garbage Collection',
