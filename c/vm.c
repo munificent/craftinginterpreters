@@ -309,44 +309,30 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
 }
 //< Methods and Initializers not-yet
 //> Closures capture-upvalue
-// Captures the local variable [local] into an [Upvalue]. If that local
-// is already in an upvalue, the existing one is used. (This is
-// important to ensure that multiple closures closing over the same
-// variable actually see the same variable.) Otherwise, it creates a
-// new open upvalue and adds it to the VM's list of upvalues.
 static ObjUpvalue* captureUpvalue(Value* local) {
-  // If there are no open upvalues at all, we must need a new one.
-  if (vm.openUpvalues == NULL) {
-    vm.openUpvalues = newUpvalue(local);
-    return vm.openUpvalues;
-  }
-
+//> look-for-existing-upvalue
   ObjUpvalue* prevUpvalue = NULL;
   ObjUpvalue* upvalue = vm.openUpvalues;
 
-  // Walk towards the bottom of the stack until we find a previously
-  // existing upvalue or reach where it should be.
   while (upvalue != NULL && upvalue->value > local) {
     prevUpvalue = upvalue;
     upvalue = upvalue->next;
   }
 
-  // If we found it, reuse it.
   if (upvalue != NULL && upvalue->value == local) return upvalue;
 
-  // We walked past the local on the stack, so there must not be an
-  // upvalue for it already. Make a new one and link it in in the right
-  // place to keep the list sorted.
+//< look-for-existing-upvalue
   ObjUpvalue* createdUpvalue = newUpvalue(local);
+//> insert-upvalue-in-list
   createdUpvalue->next = upvalue;
 
   if (prevUpvalue == NULL) {
-    // The new one is the first one in the list.
     vm.openUpvalues = createdUpvalue;
   } else {
     prevUpvalue->next = createdUpvalue;
   }
 
+//< insert-upvalue-in-list
   return createdUpvalue;
 }
 //< Closures capture-upvalue
@@ -360,8 +346,6 @@ static void closeUpvalues(Value* last) {
     // it.
     upvalue->closed = *upvalue->value;
     upvalue->value = &upvalue->closed;
-
-    // Pop it off the open upvalue list.
     vm.openUpvalues = upvalue->next;
   }
 }
@@ -785,18 +769,14 @@ static InterpretResult run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
+      
 //< Superclasses not-yet
 //> Closures interpret-closure
-
       case OP_CLOSURE: {
         ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
-
-        // Create the closure and push it on the stack before creating
-        // upvalues so that it doesn't get collected.
         ObjClosure* closure = newClosure(function);
         push(OBJ_VAL(closure));
 //> interpret-capture-upvalues
-        // Capture upvalues.
         for (int i = 0; i < closure->upvalueCount; i++) {
           uint8_t isLocal = READ_BYTE();
           uint8_t index = READ_BYTE();

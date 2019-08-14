@@ -76,12 +76,7 @@ typedef struct {
 //< Local Variables local-struct
 //> Closures upvalue-struct
 typedef struct {
-  // The index of the local variable or upvalue being captured from the
-  // enclosing function.
   uint8_t index;
-
-  // Whether the captured variable is a local or upvalue in the
-  // enclosing function.
   bool isLocal;
 } Upvalue;
 //< Closures upvalue-struct
@@ -449,11 +444,8 @@ static int resolveLocal(Compiler* compiler, Token* name) {
 }
 //< Local Variables resolve-local
 //> Closures add-upvalue
-// Adds an upvalue to [compiler]'s function with the given properties.
-// Does not add one if an upvalue for that variable is already in the
-// list. Returns the index of the upvalue.
 static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
-  // Look for an existing one.
+//> existing-upvalue
   int upvalueCount = compiler->function->upvalueCount;
   for (int i = 0; i < upvalueCount; i++) {
     Upvalue* upvalue = &compiler->upvalues[i];
@@ -462,7 +454,7 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
     }
   }
 
-  // If we got here, it's a new upvalue.
+//< existing-upvalue
 //> too-many-upvalues
   if (upvalueCount == UINT8_COUNT) {
     error("Too many closure variables in function.");
@@ -476,44 +468,24 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
 }
 //< Closures add-upvalue
 //> Closures resolve-upvalue
-// Attempts to look up [name] in the functions enclosing the one being
-// compiled by [compiler]. If found, it adds an upvalue for it to this
-// compiler's list of upvalues (unless it's already in there) and
-// returns its index. If not found, returns -1.
-//
-// If the name is found outside of the immediately enclosing function,
-// this will flatten the closure and add upvalues to all of the
-// intermediate functions so that it gets walked down to this one.
 static int resolveUpvalue(Compiler* compiler, Token* name) {
-  // If we are at the top level, we didn't find it.
   if (compiler->enclosing == NULL) return -1;
 
-  // See if it's a local variable in the immediately enclosing function.
   int local = resolveLocal(compiler->enclosing, name);
   if (local != -1) {
 //> mark-local-upvalue
-    // Mark the local as an upvalue so we know to close it when it goes
-    // out of scope.
     compiler->enclosing->locals[local].isUpvalue = true;
 //< mark-local-upvalue
     return addUpvalue(compiler, (uint8_t)local, true);
   }
 //> resolve-upvalue-recurse
 
-  // See if it's an upvalue in the immediately enclosing function. In
-  // other words, if it's a local variable in a non-immediately
-  // enclosing function. This "flattens" closures automatically: it
-  // adds upvalues to all of the intermediate functions to get from the
-  // function where a local is declared all the way into the possibly
-  // deeply nested function that is closing over it.
   int upvalue = resolveUpvalue(compiler->enclosing, name);
   if (upvalue != -1) {
     return addUpvalue(compiler, (uint8_t)upvalue, false);
   }
 //< resolve-upvalue-recurse
 
-  // If we got here, we walked all the way up the parent chain and
-  // couldn't find it.
   return -1;
 }
 //< Closures resolve-upvalue

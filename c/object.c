@@ -61,8 +61,6 @@ ObjClass* newClass(ObjString* name) {
 //> Closures new-closure
 ObjClosure* newClosure(ObjFunction* function) {
 //> allocate-upvalue-array
-  // Allocate the upvalue array first so it doesn't cause the closure
-  // to get collected.
   ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
@@ -196,8 +194,9 @@ ObjUpvalue* newUpvalue(Value* slot) {
   upvalue->closed = NIL_VAL;
 //< init-closed
   upvalue->value = slot;
+//> init-next
   upvalue->next = NULL;
-
+//< init-next
   return upvalue;
 }
 //< Closures new-upvalue
@@ -217,12 +216,12 @@ void printObject(Value value) {
 //< Methods and Initializers not-yet
 //> Closures print-closure
     case OBJ_CLOSURE:
-//> omit
-//      if (AS_CLOSURE(value)->function->name == NULL) {
-//        printf("<script>");
-//        break;
-//      }
-//< omit
+//> print-script
+      if (AS_CLOSURE(value)->function->name == NULL) {
+        printf("<script>");
+        break;
+      }
+//< print-script
       printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
       break;
 //< Closures print-closure
