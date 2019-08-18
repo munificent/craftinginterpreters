@@ -100,7 +100,7 @@ main reasons we're writing our first interpreter in Java.
   <td><code>null</code></td>
 </tr>
 <tr>
-  <td>Boolean</td>
+  <td>boolean</td>
   <td>Boolean</td>
 </tr>
 <tr>
