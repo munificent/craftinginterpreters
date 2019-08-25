@@ -67,11 +67,9 @@ typedef struct {
 typedef struct {
   Token name;
   int depth;
-//> Closures is-upvalue-field
-  // True if this local variable is captured as an upvalue by a
-  // function.
-  bool isUpvalue;
-//< Closures is-upvalue-field
+//> Closures is-captured-field
+  bool isCaptured;
+//< Closures is-captured-field
 } Local;
 //< Local Variables local-struct
 //> Closures upvalue-struct
@@ -320,9 +318,9 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 
   Local* local = &current->locals[current->localCount++];
   local->depth = 0;
-//> Closures init-zero-local-is-upvalue
-  local->isUpvalue = false;
-//< Closures init-zero-local-is-upvalue
+//> Closures init-zero-local-is-captured
+  local->isCaptured = false;
+//< Closures init-zero-local-is-captured
 /* Calls and Functions init-function-slot < Methods and Initializers not-yet
   local->name.start = "";
   local->name.length = 0;
@@ -393,7 +391,7 @@ static void endScope() {
     emitByte(OP_POP);
 */
 //> Closures end-scope
-    if (current->locals[current->localCount - 1].isUpvalue) {
+    if (current->locals[current->localCount - 1].isCaptured) {
       emitByte(OP_CLOSE_UPVALUE);
     } else {
       emitByte(OP_POP);
@@ -473,9 +471,9 @@ static int resolveUpvalue(Compiler* compiler, Token* name) {
 
   int local = resolveLocal(compiler->enclosing, name);
   if (local != -1) {
-//> mark-local-upvalue
-    compiler->enclosing->locals[local].isUpvalue = true;
-//< mark-local-upvalue
+//> mark-local-captured
+    compiler->enclosing->locals[local].isCaptured = true;
+//< mark-local-captured
     return addUpvalue(compiler, (uint8_t)local, true);
   }
 //> resolve-upvalue-recurse
@@ -506,9 +504,9 @@ static void addLocal(Token name) {
 //> declare-undefined
   local->depth = -1;
 //< declare-undefined
-//> Closures init-is-upvalue
-  local->isUpvalue = false;
-//< Closures init-is-upvalue
+//> Closures init-is-captured
+  local->isCaptured = false;
+//< Closures init-is-captured
 }
 //< Local Variables add-local
 //> Local Variables declare-variable

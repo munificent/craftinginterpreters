@@ -5,8 +5,12 @@
 > wrong.
 > <cite>Umberto Eco, <em>Foucault's Pendulum</em></cite>
 
-- have fns but no closures
-- fn can't access outer local
+Thanks to our diligent labor in [the last chapter][last], our virtual machine
+has working functions, but what it lacks is closures. Aside from global
+variables, which are their own special snowflakes, a function has no way to
+reference a variable declared outside of its own body:
+
+[last]: calls-and-functions.html
 
 ```lox
 var x = "global";
@@ -21,12 +25,14 @@ fun outer() {
 }
 ```
 
-- prints global
-- to fix, need to include entire lex scope when resolve
-- problem harder in clox because locals on stack
-- in last chapter, said locals have stack semantics
-  - never need local once out of scope
-- closures make not true
+Run this now and it prints "global". It's supposed to print "outer". To fix
+this, we need to include the entire lexical scope of all surrounding functions
+when resolving a variable. This problem is harder in clox than it was in jlox
+because our bytecode VM stores locals on a stack.
+
+We used a stack because locals have stack semantics -- locals can be discarded
+in reverse order that they are created. At least, that's what I claimed. But
+with closures, that's no longer true:
 
 ```lox
 fun makeClosure() {
@@ -41,35 +47,65 @@ var closure = makeClosure();
 closure();
 ```
 
-- *todo: explain*
+The outer function `makeClosure()` declares a local variable. Then it creates an
+inner function, `closure()` that references that variable. `makeClosure()` then
+returns a reference to that function. Since the closure escapes and it holds
+onto the local variable, `local` must outlive the function call where it was
+created.
 
-- could solve by heap allocating local vars
-- what jlox does in envs
-- but don't want to
-- [not just because don't want to invalidate last chapter]
-- stack is really fast
-- most locals not used by closures
-- don't want to make all locals slower for minority
+We could solve this problem by heap allocating memory for all local variables.
+That's what jlox does by putting everything in those Environment objects that
+float around in Java's heap. But we don't want to. Using a <span
+name="stack">stack</span> is *really* fast. Most local variables *aren't*
+captured by closures and do have stack semantics. It would suck to make all of
+those slower for the benefit of the rare local that is captured.
 
-- this chapter add support for closures
-- does require heap alloc for some state
-- closures mean lifetimes really not stack like, so need something dynamic
-- but goal is to keep non-closed over locals on stack
-- inspiration for approach comes from design of lua vm
-- really beautiful
-- perfect fit for clox because both single pass
-- [not only way to do this. some vms heap alloc call frames. see "lambda lifting"
-  or "closure conversion"]
-- build in stages, intro concepts as needed
+<aside name="stack">
 
-## closure obj
+There is a reason that C and Java use the stack for their local variables, after
+all.
 
-- currently, fn objects created at compile time
-- just obj bound to name
-- no instr to "create" fn at runtime, simply loaded from const table
-- work like literals of other types: string num
+</aside>
 
-- for closure, some runtime obj needs to be created
+This means a more complex approach than we did in our Java interpreter. Because
+some locals have very different lifetimes, we will have two implementations
+strategies, one optimized for each. For locals that aren't used in closures,
+we'll keep them just as they are on the stack. Then, if a local is used by a
+closure, we'll use another solution that lifts them onto the heap where they can
+live as long as needed.
+
+Closures have been around since the early Lisp days when memory and CPU cycles
+were rarer than unicorns. Hackers over the decades have devised all <span
+name="lambda">manner</span> of ways to compile closures to efficient runtime
+representations. The technique I explain here comes the design of the Lua VM.
+It's a beautiful piece of engineering.
+
+<aside name="lambda">
+
+Search for "closure conversion" or "lambda lifting" to start exploring.
+
+</aside>
+
+It is fast, parsimonious with memory, and a relatively small amount of code
+implement. Even more impressive, it fits naturally into the single-pass
+compilers clox and Lua both use. It is somewhat intricate, though. It might take
+a while before all the pieces click together in your mind. So we'll build them
+one step at a time and I'll try to introduce the concepts in stages.
+
+## Closure Objects
+
+Our VM's current runtime representation for a function is a ObjFunction. These
+objects are created by the compiler at compile time. At runtime, all the VM does
+is load the function from a constant table and bind it to a name. There is no
+operation to "create" a function at runtime. Much like string and number
+literals, they are created purely at compile time.
+
+That made sense because all of the data that composes a function is known at
+compile time: it's just a wrapper around a chunk of bytecode derived from the
+source of the function's body, and some constants.
+
+Once we introduce closures, though, that representation isn't sufficient. Take
+a gander at:
 
 ```lox
 fun makeClosure(value) {
@@ -85,172 +121,248 @@ doughnut();
 bagel();
 ```
 
-- two fns must be diff since do different things
+The `makeClosure()` function defines and returns a function. We call it twice
+and get two closures back. They are each created by the same nested function
+declaration, but they close over different values. When we call them, they print
+different strings. So we obviously need *some* kind of representation for a
+closure that is created at runtime and has access to the local variables
+surrounding the function as they exist at the point in time that the inner
+function declaration is executed.
 
-- first step is create runtime rep of closure
-- wrap fn which contains static part of fn -- code and const
-- eventually contain runtime state needed to close over vars
+We'll work our way up to seeing how a closure captures variables, but a good
+first step is defining that basic runtime representation. Instead of working
+with ObjFunction's everywhere in the VM, we'll consider those the <span
+name="raw">"raw"</span> compile-time state of a function declaration. At
+runtime, when a function declaration is executed, that gets wrapped in a new
+ObjClosure structure. It has a reference to the underlying bare functions --
+because all closures created from a single function declaration do contain the
+same code and constants -- but has its own runtime state in addition to that.
 
-- every fn in clox wrapped in closure, even if doesn't close over anything
-- simplifies vm because doesn't need to handle calling both closure and bare
-  fn
+<aside name="raw">
 
-- start with struct for new obj type
+The Lua implementation refers to the raw function object containing the bytecode
+as a "prototype", which is a great word to describe this, except that word also
+gets overloaded to refer to [prototypal inheritance][] in that offshoot of
+object-oriented languages.
+
+[prototypal inheritance]: https://en.wikipedia.org/wiki/Prototype-based_programming
+
+</aside>
+
+We wrap every function like this, even if the function doesn't actually close
+over and capture any surrounding local variables. This is maybe a little
+wasteful, but it simplifies the VM because we can always assume that the
+function we're calling is an ObjClosure. That new struct starts out like this:
 
 ^code obj-closure
 
-- right now, just wraps bare fn and adds necessary obj head
-- add fields as needed later
+Right now, it simply wraps an ObjFunction and adds the necessary object header
+stuff. Grinding through the usual ceremony for adding a new object type to clox,
+we declare a C function to create a new closure:
 
 ^code new-closure-h (2 before, 1 after)
 
-- ctor
+Then implement it:
 
 ^code new-closure
 
-- impl
-- wrap given fn
+It takes a pointer to the ObjFunction it wraps. It also initializes the type
+field to a new type:
 
 ^code obj-type-closure (1 before, 1 after)
 
-- new type num
+And when we're done with a closure, we release its memory:
 
 ^code free-closure (1 before, 1 after)
 
-- doesn't free fn
-- closure doesn't own fn
-- may be many closures all pointing to same fn
-- in doughnut bagel ex, both closures ref same fn
-- gc will take care of for us
-- [by "for us", mean we'll do it, since we impl gc]
+This only frees the ObjClosure itself and not the ObjFunction. That's because
+the closure doesn't *own* the function. There may be multiple closures that all
+reference the same function, and none of them claims any special privilege over
+it. We can't free the ObjFunction until *all* objects referencing it are gone --
+including even the surrounding function whose constant table contains it.
+Tracking that sounds tricky, and it is! That's why we'll write a garbage
+collector soon to manage it for us.
 
-- usual macros
-- [maybe should have made meta macro to emit these?]
+We also have the usual <span name="macro">macros</span> for checking a value's type:
+
+<aside name="macro">
+
+Perhaps I should have defined a macro to make it easier to generate these
+macros. Maybe that would be a little too meta.
+
+</aside>
 
 ^code is-closure (2 before, 1 after)
 
-...
+And to cast a value:
 
 ^code as-closure (2 before, 1 after)
 
-...
+Closures are first-class objects, so you can print them:
 
 ^code print-closure (1 before, 1 after)
 
-- edge case
-- if have debug stack printing, may print closure that wraps fn for top level
-  code
-- no name
+They display exactly like ObjFunction does. From the user's perspective, the
+difference between ObjFunction and ObjClosure is purely a hidden implementation
+detail.
+
+There's a funny edge case to handle here. If you enable `DEBUG_TRACE_EXECUTION`,
+the VM prints the stack after each op code. The stack will include the special
+function the compiler creates to represent top level code. That function doesn't
+have a name. A user can never get a hold of this hidden function, so that isn't
+usually a problem. But our diagnostic code can, so we need to not crash in that
+case:
 
 ^code print-script (1 before, 1 after)
 
-- prevents crash
+With that out of the way, we have a working but empty representation for
+closures.
 
-### compiler code to create closure obj
+### Compiling to closure objects
 
-- have obj
-- next extend comp to emit instr to create closure for fn decl
+We have closure objects but our VM never creates them. The next step is getting
+the compiler to emit instructions to tell the runtime when to create a new
+ClosureObj to wrap a given FunctionObj. This happens right at the end of a
+function declaration:
 
 ^code emit-closure (1 before, 1 after)
 
-- instead of simple `OP_CONSTANT` to load raw fn from const table and push to
-  stack, have new instr
-- like `OP_CONSTANT` takes constant table index as op
-- identifies where fn is in const table
+Before, the final code for a declaration was a single `OP_CONSTANT` instruction
+to load the compiled function from the surrounding function's constant table and
+push it onto the stack. Now we have a new instruction:
 
 ^code closure-op (1 before, 1 after)
 
-- add dis
+Like `OP_CONSTANT`, it takes a single operand that represents a constant table
+index for the function. But when we get over to the runtime implementation, it
+will do something a little more interesting.
+
+First, let's be diligent VM hackers and slot in disassembler support for it:
 
 ^code disassemble-closure (3 before, 1 after)
 
-- little more dis than usual
-- going to get more complex
-- closure op pretty unusual
+There's more going on here than we usually have in the disassembler. By the end
+of the chapter, you'll discover that `OP_CLOSURE` is quite an unusual
+instruction. It's straightforward right now -- just a single byte operand -- but
+we'll be adding to it. So this code here prepares for that future growth.
 
-- onto runtime
+### Interpreting function declarations
 
-### vm code to handle closure obj
-
-- most work over in vm
-- not just exec new op
-- need to actually handle closure obj
-- every place used fn now use closure
-- callframe, call, etc.
-
-- start with instr
+Most of the work we need to do is in the runtime. We have to handle the new
+instruction, naturally. But we also need to touch every piece of code in the VM
+that works with ObjFunction and change it to use ObjClosure instead -- function
+calls, callframes, etc. We'll start with the instruction, though:
 
 ^code interpret-closure (2 before, 1 after)
 
-- load fn from const table
-- alloc new closure to wrap
-- push
+Like the `OP_CONSTANT` instruction we used to use, first this loads the compiled
+function from the constant table. Then we wrap that in a new ObjClosure and push
+the result onto the stack.
 
-- once have closure, eventually call it
+Once you have a closure, you'll eventually want to call it:
 
 ^code call-value-closure (1 before, 1 after)
 
-- remove code for call obj_fn
-- all fns wrapped in closures now, so rest of vm never see bare fn
+We remove the code for calling objects whose type is `OBJ_FUNCTION`. Since we
+wrap all bare functions in ObjClosures, the runtime will never try to invoke a
+raw ObjFunction anymore. Those objects only live in constant tables and get
+immediately <span name="naked">wrapped</span> in closures before anything else
+sees them.
 
-- sig for call changes
+<aside name="naked">
 
-^code call (1 before, 1 after)
+Don't want any naked functions wandering around the VM! What would the neighbors
+say?
 
-- also fix code for arity check to unwrap closure to get to fn
-- call creates new callframe
-- change to work with closure
+</aside>
+
+We replace it with *very similar* code for calling a closure instead. The only
+difference is the type of object we pass to `call()`. The real changes are
+over in that function. First, we update its signature:
+
+^code call-signature (1 after)
+
+Then, in the body, we need to fix everything that referenced the function to
+handle the fact that we've introduced a layer of indirection. First, the
+arity checking:
+
+^code check-arity (1 before, 1 after)
+
+The only change is that we unwrap the closure to get to the underlying function.
+The next thing `call()` does is create a new CallFrame. We change that to store
+the closure in the CallFrame and get to the bytecode from the closure's
+function:
 
 ^code call-init-closure (1 before, 2 after)
 
-- instead of fn, stores closure
-- ip field doesn't change, but to init need to go through closure
-
-- over in callframe
+This necessitates changing the declaration of CallFrame too:
 
 ^code call-frame-closure (1 before, 1 after)
 
-- replace fn field with closure
-
-- couple of places in vm that use old fn field, need to fix
-- macro for reading from fn's const tabl
+That change triggers a few other cascading changes. Every place in the VM that
+accessed CallFrame's function needs to use a closure instead. First, the macro
+for reading a constant from the current function's constant table:
 
 ^code read-constant (1 before, 1 after)
 
-- when diag enabled to print each instr as executed
+When `DEBUG_TRACE_EXECUTION` is enabled so we can diagnose bugs in the VM, it
+needs to get to the chunk from the closure:
 
 ^code disassemble-instruction (1 before, 1 after)
 
-- and runtime err
+Likewise, when reporting a runtime error, we need to get the function from the
+closure before accessing the debug line information:
 
 ^code runtime-error-function (1 before, 1 after)
 
-- also need to handle special code that sets up first call frame
+Almost there. The last piece is the blob of code that sets up the very first
+CallFrame to begin executing the top level code for a Lox script:
 
-^code interpret (2 before, 2 after)
+^code interpret (4 before, 2 after)
 
-- wraps bare fn compiler returns for compiled top level code
-- little weird that still push fn onto stack then pop after creating closure
-- again, keeps gc happy
+<span name="pop">The</span> compiler still returns a raw ObjFunction when
+compiling a script. That's fine, but it means we need to wrap it in an
+ObjClosure here before the VM can execute it.
 
-- back to working interp
-- no user vis diff, but not all fns wrapped in closures
-- [seem like wasteful perf hit to wrap all fns even those that don't close.
-  only happens when exec fn *decl*. in practice, those rarely happen inside
-  hot loops, so not usually perf crit.]
-- ready to start making closures do something
+<aside name="pop">
 
-## upvalues
+The code looks a little silly here because we still push the original
+ObjFunction onto the stack. Then we pop it after creating the closure, only to
+then push the closure. Why put the ObjFunction on there at all? As usual, when
+you see weird stack stuff going on, it's to keep the forthcoming garbage
+collector aware of some heap-allocated objects.
 
-- existing local instrs limited to fn's own stack window
-- need new instr
-- can't just look up var farther in stack
-- showed earlier, eventually will hang on to var after parent fn returns
+</aside>
 
-- could treat vars that closed over very different
-- not put on stack at all
-- if not single-pass compiler, might be good idea
-- vm design makes harder
+We are back to a working interpreter. The *user* can't tell any difference, but
+the compiler now generates code to produce a closure for each function
+declaration. The VM then handles executing those closures. That's the boring
+part out of the way. Now we're ready to make these closures actually *do*
+something.
+
+## Upvalues
+
+Our existing instructions for reading and writing local variables are limited
+to operating within the function's own stack window. When a function accesses
+a local variable from some surrounding function, that variable's stack slot is
+outside of the inner function's window. We're going to need some new instructions.
+
+The easiest approach might be an instruction that takes a relative stack slot
+offset that can reach before the current function's window. That would work if
+closed-over variables were always on the stack. But as we saw earlier, these
+variables sometimes outlive the function where they are declared. That means
+they won't always be on the stack.
+
+**todo: illustrate relative offset idea**
+
+The next easiest approach then would be to take any local variable that gets
+closed over and have it always live on the heap. When the enclosing function
+creates it, it creates it on the heap somewhere. That way it can live as long as
+needed. This would be a fine approach if clox wasn't limited to single-pass
+compilation.
+
+But that restriction we chose in our implementation makes things a little
+harder. Take a look at this example:
 
 ```lox
 fun outer() {
@@ -263,65 +375,81 @@ fun outer() {
 }
 ```
 
-- already emitted code to treat x as local before discover used by closure
-- so when closure work with var, need to handle it still on stack
+Here, the compiler compiles the declaration of `x` in `outer()` and emits code
+for the later assignment. It does that before reaching the declaration of
+`inner()` and discovering that `x` is in fact closed over. We don't have an easy
+way to go back and fix that already-emitted code to treat `x` specially.
+Instead, we want a solution that allows a closed over variable to live on the
+stack exactly like a normal local variable until the point that is closed over.
 
-- solution from lua
-- solve with indirection, "upvalue"
-- closure obj has array of upvalue objs
-- each refers to unique var that fn accesses that's declared in surrounding fn
+Fortunately, such a solution exists! The approach we'll use is taken from the
+implementation of Lua. We use a level of indirection that Lua calls an
+**upvalue**. Each upvalue represents a reference to a local variable in an
+enclosing function. Every closure maintains an array of upvalues, one for each
+surrounding local variable that the closure uses.
+
+The upvalue points back into the stack to where the variable it captures lives.
+When the closure needs to access a closed-over variable, it goes through the
+corresponding upvalue to reach it. When a function declaration is first executed
+and we create a closure for it, the VM creates the array of upvalues and wires
+them up to "capture" the surrounding local variables that the closure needs.
 
 **todo: illustrate**
 
-- only have upvalues for vars actually refed
-- have one upvalue for each var, even if refed multiple times
-- upvalue points back into stack where var lives
-- can read and write through that
+That's the basic idea. We'll extend it later to handle closed-over variables
+that outlive their declaration, but this gives us enough to get started.
 
-- when closure obj created, create upvalues and wire up pointers into stack
-- instr for closed over vars has operand to index into upvalue array
+### Compiling upvalues
 
-- will extend later to see how works when fn containing closed-over var returns
-- enough to get going
+As usual, we want to do as much work as possible during compilation to keep
+execution simple and fast. Since local variables are all lexically scoped in
+Lox, we have enough knowledge at compile time to resolve exactly which
+surrounding local variables a given function accesses and where those local are
+declared. That in turn means we know how many upvalues a closure needs, which
+variables they capture, and which stack slots contain those variables in the
+declaring function's stack window.
 
-### compiling upvalues
-
-- as usual want to do as much as possible at compile time
-- since vars all lexical, can figure out exactly which vars each fn closes over
-  and where defined
-- thus know how many upvalues closure needs and which variables they refer to
-
-- when resolve ident, walk lexical scope
-- first try local scopes in order
-- if not there, global
-- between insert
+Currently, when the compiler resolves an identifier, it walks the blocks scopes
+for the current function from innermost to outermost. If it doesn't find the
+variable in that function, it assumes the variable must be a global variable. It
+doesn't consider the local scopes of any enclosing functions -- they get skipped
+right over. The first change then is inserting a resolution step where we look
+through the local scopes in the chain of enclosing function:
 
 ^code named-variable-upvalue (1 before, 1 after)
 
-- new fn will look for local variable declared in surrounding fn
-- if found, return "upvalue index"
-- get into that later
-- otherwise, return -1
-- if was found, use insts for reading or writing through upvalue
+This new `resolveUpvalue()` function will look for a local variable declared in
+any of the surrounding functions. If it finds one, it returns a "upvalue index"
+for that variable. (We'll get into what that means later.) Otherwise, it returns
+-1 to indicate the variable wasn't found. If it was found, we use these two
+new instructions for reading or writing to the variable through its upvalue:
 
 ^code upvalue-ops (1 before, 1 after)
 
-- get to what do soon
-- more interesting is how resolve works
+We're doing this sort of top-down, so I'll show you how these work at runtime
+soon. The most interesting part is how the compiler actually resolves the
+identifier:
 
 ^code resolve-upvalue
 
-- call this after failing to resolve local
-- so know var not in current compiler
-- remember have chain of enclosing compilers, one for each surrounding fn
-- use now to walk enclosing fn scopes
-- look in enclosing
-- if is now enclosing, at outermost fn
-- if didn't find yet, must be global
-- [or undefined]
+We call this after failing to resolve a local variable in the current function's
+scope, so we know the variable isn't in the current compiler. Recall that
+Compiler stores a pointer to the Compiler for the enclosing function and these
+pointers form a linked chain that goes all the way to the root Compiler for the
+top-level code. Thus, if the enclosing Compiler is `NULL`, we know the variable
+must be <span name="undefined">global</span>, so we return -1.
 
-- otherwise, look for local variable in *enclosing* compiler
+<aside name="undefined">
 
+It might end up being an entirely undefined variable and not even global. But in
+Lox, we don't detect that error until runtime, so from the compiler's
+perspective, it's "optimistically global".
+
+</aside>
+
+Otherwise, we try to resolve the identifier as a *local* variable in the
+*enclosing* compiler. In other words, we look for it right outside the current
+function. For example:
 
 ```lox
 fun outer() {
@@ -333,71 +461,90 @@ fun outer() {
 }
 ```
 
-- so when compiling ident expr on marked line here, look for local variable
-  in `outer()`
-
-- if found, then we successfully resolved
-- create upvalue for it so inner fn can access
+When compiling the identifier expression on the marked line, `resolveUpvalue()`
+looks for a local variable `x` declared in `outer()`. If found (like it is
+here), then we've successfully resolved the variable. We create an upvalue so
+that the inner function can access the variable through that. The upvalue is
+created here:
 
 ^code add-upvalue
 
-- compiler has array of upvalues to track resolved for each ident in fn
-- at end of fn when emits code to create closure, will emit special code to
-  close over those variables
-- adds new upvalue to array
-- note also store updated count in objfn itself
-- not just in compiler
-- important because runtime need to know how many upvalue fn has too
+The compiler keeps an array of upvalue structures to track the closed-over
+identifiers that it has resolved in the body of each function. Much like the
+compiler's Local array mirrors the slot indexes containing local variables at
+runtime, the upvalue array in the compiler matches the upvalue array each
+closure will contain at runtime. At the end of the function declaration when it
+emits code to create the closure, the compiler uses its upvalue array to
+generate code that captures the right variables to populate the closure's
+runtime upvalue array.
 
-- track what local slot it was in in enclosing fn so know which local to close
-  over
-- get to `isLocal` soon
-- then return index of upvalue in array
-- identifies which upvalue slot is used to access in closure
-- this what goes into `OP_UPVALUE` instr operand
+This function adds a new upvalue to that array. It also keeps track of the
+number of upvalues the function uses. It stores that count directly in the
+ObjFunction itself because we'll also <span name="span">need that number for use
+at runtime.
 
-- fn may use same var in surrounding fn multiple times
-- in that case, don't want separate upvalue for each use
-- so before add new upvalue, check for existing
+<aside name="span">
+
+Like literal values and function arity, the upvalue count is another one of
+those little pieces of data that forms the bridge between the compiler and
+runtime.
+
+</aside>
+
+The `index` field tracks the closed-over local variable's slot index. That way
+the compiler knows *which* variable in the enclosing function needs to be
+captured. We'll circle back to what that `isLocal` field is for before too long.
+Then `addUpvalue()` returns the index of the created upvalue in the function's
+upvalue list. That index becomes the operand to the `OP_GET_UPVALUE` and
+`OP_SET_UPVALUE` instructions.
+
+This function works, but it's a little basic. A closure may reference the same
+variable in a surrounding function multiple times. In that case, we don't want
+to waste time and memory creating a separate upvalue for each identifier
+expression. To fix that, before we add a new upvalue, we first check to see if
+the function already has an upvalue that closes over the given variable:
 
 ^code existing-upvalue (1 before, 1 after)
 
-- add new fields for data
-- first in objfn track num upvalue slots
+If we find an upvalue in the array whose local index matches the one we're
+adding, we just return that *upvalue* index and reuse it. Otherwise, we fall
+through and add the new upvalue.
+
+These two functions access and modify a bunch of new state, so let's define
+that. First, we add the upvalue count to ObjFunction:
 
 ^code upvalue-count (1 before, 1 after)
 
-- zero out when create new fn
+We're conscientious C programmers, so we zero-initialize that when an
+ObjFunction is first allocated:
 
 ^code init-upvalue-count (1 before, 1 after)
 
-- might seem weird to put in fn not closure
-- but number of upvalues -- num external local vars accessed -- is static
-  property of code
-- can determine entirely at compile time
-- fn is "static" part of runtime fn obj, so naturally here
-
-- during compilation, track each one, so compiler get array
+In the compiler, we add a field for its upvalue array:
 
 ^code upvalues-array (1 before, 1 after)
 
-- has fixed size
-- use single byte op to access upvalue, so max
-- compiler needs to make sure don't overflow
+For simplicity, I gave it a fixed size. The `OP_GET_UPVALUE` and
+`OP_SET_UPVALUE` instructions refer to upvalue index using a single byte
+operand, so there's an upper limit on how many a function can have. Given that,
+we can afford a static array that large. We also need to make sure the compiler
+doesn't overflow that:
 
 ^code too-many-upvalues (5 before, 1 after)
 
-- finally struct itself
+Finally, the Upvalue struct type itself:
 
 ^code upvalue-struct
 
-- index is which local slot in surrounding fn upval refers to
-- other field is interesting
+The `index` field stores which local slot the upvalue is capturing. The
+`isLocal` field is more interesting. To learn what that's all about, read
+on...
 
-### upvalue flattening
+### Flattening upvalues
 
-- so far, assume always access local in immediately enclosing, but what about
-
+In the example I showed before, the closure is accessing a variable declared in
+the immediately enclosing function. But Lox supports accessing local variables
+declared in *any* enclosing scope, as in:
 
 ```lox
 fun outer() {
@@ -410,13 +557,15 @@ fun outer() {
 }
 ```
 
-- here, `x` declared in farther fn
-- need to handle too
-- not as simple as looking farther up stack
-- consider
+Here, we're accessing `x` in `inner()`. That variable is defined not in
+`middle()`, but all the way out in `outer()`. We need to handle cases like this
+too. You *might* think that this isn't much harder since the variable will
+simply be somewhere farther down on the stack. But consider this even more
+pernicious example:
 
 ```lox
 fun outer() {
+  var x = "value";
   fun middle() {
     fun inner() {
       print x;
@@ -430,225 +579,338 @@ fun outer() {
   return middle;
 }
 
-outer("capture")()();
+outer()()();
 ```
 
-when run, prints:
+When you run this, it prints:
 
 ```
-prints:
 return from outer
 create inner closure
-capture
+value
 ```
-
-- note that outer has already returned before inner even *captures* `x`, much
-  less uses
 
 **todo: illustrate execution flow and stack**
 
-- have two problems
-- need to find locals declared in not just immediate surround but further
-- need way to close over them even when not already on stack
+I know, it's convoluted. It's worth tracing through the execution carefully to
+see exactly what order things happen in. The important part is that `outer()`
+-- where `x` is declared -- returns and pops all of its variables off the stack
+before the *declaration* of `inner()` executes. So, at the point in time that
+we create the closure for `inner()`, `x` is already off the stack.
 
-- already have solution for second
-- looking right at it
-- upvalues themselves exist to be able to refer to local no longer on stack
-- soln is to flatten upvalues
-- if refer to local variable in non-immediate enclosing,
-  add it as upvalue to all intermediate fns
-- then in inner fn, instead of closing over enclosing fn's local, close
-  over one of its *upvalues*
+We really have two problems:
 
-- means resolve becomes recursive
+1.  We need to resolve local variables that are declared in surrounding
+    functions beyond the immediately enclosing one.
+
+2.  We need to be able to close over variables that are no longer on the stack.
+
+Fortunately, we're in the middle of adding upvalues to the VM, and those are
+explicitly designed for solving the second problem. So, in a clever bit of
+self-reference, we can use upvalues to allow upvalues to capture variables
+declared outside of the immediately surrounding function.
+
+The solution is to allow an upvalue to capture either a local variable in the
+enclosing function or *another upvalue in that function*. If a deeply nested
+function references a local variable declared several hops away, we'll thread
+it through each of the intermediate functions by having each one capture it to
+an upvalue for the next function to grab it.
+
+In the above example, `middle()` captures the local variable `x` in the
+enclosing function `outer()` and stores it in its own upvalue. It does this even
+though `middle()` itself doesn't reference `x`. Then, when the declaration of
+`inner()` executes, its closure grabs the upvalue from `middle()` that captured
+`x`.
+
+**todo: illustrate**
+
+In order to implement this, `resolveUpvalue()` becomes recursive:
 
 ^code resolve-upvalue-recurse (3 before, 2 after)
 
-- [one of most difficult fns written
-  - impl idea from lua, but getting it to click really hard
-  - recursive in tricky way]
+It's only another three lines of code, but I found this function really
+challenging to get right the first time. This in spite of the fact that I wasn't
+inventing anything new, just porting the concept over from Lua. Most recursive
+functions either do all their work before the recursive call (a *pre-order
+traversal*, or "on the way down"), or they do all the work after the recursive
+call (a *post-order traversal*, or "on the way back up").
 
-- tricky, so walk through slowly
-- resolveupvalue first called after we know var is not local to current fn
-- first try to resolve local var in immediately enclosing
-- if found, we create upvalue for it
-  - so always create first upvalue for local in fn right inside fn where
-    local actually declared
-  - in above ex, that's middle()
-- othrwise, keep walking outwards by recursively calling resolve upvalue
-- eventually this recursion will find fn where immediate surrounding contains
-  local
-- create first upvalue there
-- then return to intermediate calls resolve
-- each time, add corresponding upvalue in inner fn that closes over surrounding
-  upvalue
-- gets passed along each level of nesting
+This function does both. The recursive call is right in the middle. We'll walk
+through it slowly. First, we look for a matching local variable in the enclosing
+function. If we find one, we capture that local and return. That's the <span
+name="base">base case.
 
-- for ex:
+<aside name="base">
+
+The other base case, of course, is if there is no enclosing function. In that
+case, the variable can't be resolved lexically and is treated as global.
+
+</aside>
+
+**todo: muddled. rewrite?**
+
+Otherwise, we need to determine if the local variable exists outside of the
+enclosing function. So we recursively try to resolve and add an upvalue to the
+*surrounding* function. If successful, when we get back to the original
+function, we'll have an upvalue index. We add an upvalue in *this* function that
+captures the (possibly new) upvalue in the enclosing function.
+
+It might help to walk through the original example:
 
 ```lox
-fun a(x) {
-  fun b() {
-    fun c() {
-      print x;
+resolveUpvalue(inner, x)
+  not local in enclosing (middle)
+  resolveUpvalue(middle, x)
+    find local in outer
+    add upvalue to middle to capture
+    return upvalue index
+  found upvalue in middle
+  add upvalue to inner to capture middle's upvalue
+  return upvalue index
+```
+
+Note that the new call to `addUpvalue()` passes `false` for the `isLocal`
+parameter. That flag exists to control whether the closure is capturing a local
+variable or an upvalue from the surrounding function.
+
+By the time the compiler reaches the end of a function declaration, every
+variable reference has been resolved as either a local, upvalue, or global. Each
+upvalue may in turn capture a local variable from the surrounding function, or
+an upvalue in the case of transitive closures. All that means we have enough
+data to emit bytecode which creates a closure at runtime that captures all of
+the correct variables:
+
+^code capture-upvalues (1 before, 1 after)
+
+The `OP_CLOSURE` instruction is different from all of the others because it has
+a variable number of operands. For each upvalue the closure captures, there are
+two single-byte operands. Each pair of operands specifies what that upvalue
+captures. If the first byte is 1, it captures a local variable in the enclosing
+function. If it's zero, it captures one of the function's upvalues. The next
+byte is the local slot or upvalue index to capture.
+
+This odd encoding means we need some bespoke support in the disassembler:
+
+^code disassemble-upvalues (2 before, 1 after)
+
+For example, take this script:
+
+```lox
+fun outer() {
+  var a = 1;
+  var b = 2;
+  fun middle() {
+    var c = 3;
+    var d = 4;
+    fun inner() {
+      print a + c + b + d;
     }
   }
 }
 ```
 
-todo: trace exec
+The disassembly for the instruction that creates the closure for `inner()` is:
 
-- `isLocal` field is then how distinguish whether upvalue closes over local
-  var in surrounding fn or upvalue
+```
+0004    9 OP_CLOSURE          2 <fn inner>
+0006   |                     upvalue 0
+0008   |                     local 1
+0010   |                     upvalue 1
+0012   |                     local 2
+```
 
-- by time compiler reaches end of fn decl
-- for each var ref in fn, should now be resolved as either local, upvalue
-  (which may close over local or upvalue in surrounding) or global
-- have enough data to emit code to create closure that captures correct vars
+**todo: better formatting, fix extra space before '2'?**
 
-^code capture-upvalues (1 before, 1 after)
-
-- opclosure very special instr
-- has one byte operand for fn index in const table
-- can look up fn to find how many upvalues it needs to capture at runtime
-- then, for each one, have two byte operands
-- first byte is 1 if closing over local variable in enclosing fn, 0 if upvalue
-- then next byte is slot index
-- will be index of local var on stack in enclosing fn's stack window if closing
-  over local
-- if upvalue, will be in enclosing fn's closure's list of upvalues
-
-- need special code to dis
-
-^code disassemble-upvalues (2 before, 1 after)
-
-**todo: show example output**
-
-- two other new instrs
+We have two other, simpler instructions to add disassembler support for:
 
 ^code disassemble-upvalue-ops (2 before, 1 after)
 
-- compiler now doing its job
-- resolves vars defined in surrounding fns
-- emits closure code to capture upvalues
-- stores upvalue count in created fn
+These ones both have a single byte operand, so there's nothing exciting going
+on. Now our compiler's where we want it. For each function declaration, it
+outputs an `OP_CLOSURE` instruction followed by a series of pairs of operand
+bytes for each upvalue we need to create for the closure object at runtime.
+It's time to hop over to that side of the VM and get things running.
 
-## open upvalues in vm
+## Upvalue Objects
 
-- move to vm
-- ready for real runtime rep of upvalues
+Each `OP_CLOSURE` instruction is now followed by the series of bytes that
+specify the upvalues the ObjClosure should own. Before we can process those
+operands, lets get the runtime representation of those upvalues in place:
 
 ^code obj-upvalue
 
-- upval obj has pointer to val on stack but itself lives on heap
-- easiest way to manage is make obj
-- let gc handle later
+One of the main goals of upvalues is to provide a way to manage closed-over
+variables that no longer live on the stack. That means some amount of dynamic
+heap allocation is going to be involved. The easiest way to do that in our VM
+is by building on top of the object system we already have in place. That way,
+when we implement a garbage collector in [the next chapter][gc], the GC can
+manage memory for upvalues too.
 
-- usual obj machinery
-- ctor
+[gc]: garbage-collection.html
+
+Thus, our runtime upvalue structure is an ObjUpvalue with the typical Obj
+header field. Following that is the field that points to the closed-over
+variable. Note that this is a *pointer* to a Value, not a Value itself. It's a
+reference to a *variable*, not a *value*. This is important because it means
+that when we assign to the variable the upvalue captures, we're assigning to
+the actual variable, not a copy. For example:
+
+```lox
+fun outer() {
+  var x = "before";
+  fun inner() {
+    x = "assigned";
+  }
+  inner();
+  print x;
+}
+```
+
+This program should print "assigned" even though the closure assigns to `x` and
+the surrounding function accesses it.
+
+Because upvalues are objects, we've got all the usual object machinery. A
+constructor-like function:
 
 ^code new-upvalue-h (1 before, 1 after)
 
-- takes pointer to stack slot for local var where val lives
-- impl
+It takes a pointer to slot where the closed-over variable lives. The
+implementation:
 
 ^code new-upvalue
 
-- just inits obj header and stores pointer
-- new obj type
+Just initializes the object and stores the pointer. The new object type:
 
 ^code obj-type-upvalue (1 before, 1 after)
 
-- free it
+A destructor-like function:
 
 ^code free-upvalue (3 before, 1 after)
 
-- just points to val on stack, but doesn't own
-- and print
+Multiple closures can close over the same variable, so ObjUpvalue does not own
+the variable it references. So the only thing to free is the ObjUpvalue itself.
+
+And to print:
 
 ^code print-upvalue (3 before, 1 after)
 
-- never actually reached by any user code, but keeps c compiler happy so switch
-  covers all cases
+Upvalues are "objects" in the VM's sense of "heap-allocated, memory-managed
+thing" but not in the "first-class value a user can see in their program".
+There's no way for a user to directly store an upvalue in a variable or print
+one. So code never actually executes. But it keeps the compiler from yelling at
+us about an unhandled switch case so here we are.
 
-### upvalues in closures
+### Upvalues in closures
 
-- earlier said closure obj has array of upvalues
-- this how actually accesses vars from enclosing scopes
-- finally time for that
+When I first introduced upvalues, I said each closure has an array of them.
+We've finally worked our way back to implementing that:
 
 ^code upvalue-fields (1 before, 1 after)
 
-- has pointer to dynamic array of upval pointers
-- also track count
-- [redundant from fn, but covers weird edge case where might have already freed
-  fn before closure]
+<span name="count">Different</span> closures may have a different number of
+upvalues, so we need a dynamic array. The upvalues themselves are dynamically
+allocated too, so we end up with a double pointer -- a pointer to a dynamically
+allocated array of pointers to upvalues. We also store the number of elements in
+the array.
 
-- when create closure, alloc array of proper size
+<aside name="count">
+
+Storing the upvalue count in the closure is redundant because the ObjFunction
+that the ObjClosure references also keeps that count. As usual when you see some
+weird seemingly useless, this is to appease the GC. The GC may find itself in a
+situation where it needs to know how big an ObjClosure's upvalue array is, even
+after the closure's corresponding ObjFunction has been freed.
+
+</aside>
+
+When we create an ObjClosure, we allocate an upvalue array of the proper size:
 
 ^code allocate-upvalue-array (1 before, 1 after)
 
-- create array before creating closure itself and init all fields to null
-- as usual, weird stuff around mem is to satisfy gc gods
-- ensures gc never sees uninitialized mem
+Before creating the closure object itself, we allocate the array of upvalues
+and initialize them all to NULL. As usual, this weird ceremony around memory is
+a careful dance to please the (forthcoming) garbage collection gods. It ensures
+the memory manager never sees uninitialized memory.
 
-- then initialize fields in closure itself
+Then we store the array in the new closure, as well as copying the count over
+from the ObjFunction:
 
 ^code init-upvalue-fields (1 before, 1 after)
 
-- handle freeing
+When an ObjClosure is freed, we also free the upvalue array:
 
 ^code free-upvalues (1 before, 1 after)
 
-- upvalue does not own var, but closure does own array
-- free array
-- don't have to free upvalues
-- gc will
+ObjClosure does not own the ObjUpvalue objects itself, but it does own the
+array that contains *pointers* to those upvalues. That's because, as we'll see,
+other closures may also reference them.
 
-- upvalue array initialized to real upvalues when closure is created
-- this when interp handle operands compiler emited after opclosure
+We fill the upvalue array over in the interpreter when it creates a closure.
+This is where we walk through all of the operands after `OP_CLOSURE` to see
+what kind of upvalue each slot captures:
 
 ^code interpret-capture-upvalues (1 before, 1 after)
 
-- expect pair of byte operands for each upvalue
+We iterate over each upvalue the closure expects. For each one, we read the pair
+of operand bytes. If that upvalue slot is closing over a local variable in the
+enclosing function, we let `captureUpvalue()` do the work. Otherwise, it's
+capturing an upvalue from the surrounding function.
 
-- if first byte is 1, indicating we are closing over var that
-  is not declared in immediate encl
-- in that case, already in upvalue in current fn
-- so just grab right from fn's upvalue array
+An `OP_CLOSURE` instruction is emitted at the end of a function declaration. At
+the moment that we are executing it, the *current* function is the surrounding
+function that contains that declaration. In other words, it's the closure stored
+in the CallFrame at the top of the callstack. So, to grab an upvalue from the
+enclosing function, we can read it right from the `frame` local variable, which
+caches a reference to that CallFrame.
 
-- otherwise if first byte 0, capturing local in enclosing scope
-- second byte is slot index in enclosing fn's stack frame
-- since exec closure decl right now, not inside its body, current call frame
-  is enclosing fn
-- so offset from `frame->slots` which is pointer to first slot owned by fn
-- then call `captureUpvalue()` to get upvalue for that local
+Closing over a local variable is a little more interesting. Most of the work
+happens in a separate function, but first the argument we pass to it. We need to
+grab a local variable whose index is relative to the surrounding function's
+stack window. That window begins at `frame->slots`, which points to slot zero.
+Adding `index` offsets to point to the local slot we want to capture. Then we go
+to:
 
 ^code capture-upvalue
 
-- seems silly to define fn instead of call newupvalue directly
-- revisit soon
+This seems a little silly. All it does is create a new ObjUpvalue that captures
+the given stack slot and returns it. Did we need a separate function for this?
+Well, no, not *yet*. But we're going to revisit this soon and it will get a lot
+more interesting.
 
-- back to main loop
-- when completes, have new closure with full init upvalue array
+First, let's wrap up what we're working on. Back in the interpreter's code for
+handling `OP_CLOSURE`, we eventually finish iterating through the upvalue
+array and initialize each one. When that completes, we have a new closure with
+an array full of upvalues pointing to variables.
 
-- now that closures have upvalues, can implement instrs that read and write
+With that in hand, we can implement the instructions for using those upvalues:
 
 ^code interpret-get-upvalue (1 before, 2 after)
 
-- operand is index in current closure's upvalue array
-- so simply look up upvalue in array, then deref value pointer to get to actual
-  value on stack
-
-- write is similar
+The operand is the index into the current function's upvalue array. So we simply
+look up the corresponding upvalue and dereference its value pointer to read the
+value in that slot. Writing is similar:
 
 ^code interpret-set-upvalue (1 before, 2 after)
 
-- as usual instructions that execute frequently, these ones, very simple and
-  fast
-- try to do as much work at compile time and closure creation time as possible
+It <span name="assign">takes</span> the value on top of the stack and stores it
+into the slot pointed to by the chosen upvalue. Just as with the instructions
+for local variables, it's important for these instructions to be fast. User
+programs are constantly reading and writing variables, so if that's slow,
+everything is slow. And, as usual, the way we make them fast is by making them
+as simple as possible. These two new instructions are pretty good: no control
+flow, no complex arithmetic, just a couple of pointer indirections and a
+`push()`.
 
-- now have working closures
+<aside name="assign">
+
+The set instruction doesn't *pop* the value from the stack because, remember,
+assignment is an expression in Lox. So the result of the assignment -- the
+assigned value -- needs to remain on the stack for the surrounding expression.
+
+</aside>
+
+This is a milestone. As long as all of the variables remain on the stack, we
+have working closures:
 
 ```lox
 fun outer() {
@@ -660,12 +922,13 @@ fun outer() {
 }
 ```
 
-- prints "outside"
+Run this and it correctly prints "outside".
 
-## closed upvalues
+## Closed Upvalues
 
-- above example works because `x` still on stack when calling `inner()`
-- closures retain variable even when function where declared has returned:
+Of course, a key feature of closures is that they hold onto the variable as
+long as needed, even if the function that declares the variable has returned.
+Here's another example that *should* work:
 
 ```lox
 fun outer() {
@@ -681,21 +944,25 @@ var closure = outer();
 closure();
 ```
 
-- this does not work
-- right now, just accessed trashed stack slot and does who knows what
+But if you run it right now... who knows what it does. At runtime, it will end
+up reading from a stack slot that longer contains the closed-over variable. Like
+I've said a few times, the key problem is that variables in closures don't have
+stack semantics. That means we've got to hoist them off the stack when the
+function where they were declared returns. This final section of the chapter
+will do that.
 
-- key problem is closed over vars do not have stack semantics
-- means variable needs to not be on stack
-- instead, live somewhere on heap
+### Values and variables
 
-- last section of chapter is about getting this to work
+Before we get back to writing code, I want to dig into a really important
+semantic point. Does a closure close over a *value* or a *variable?* This isn't
+purely an <span name="academic">academic</span> question, and I'm not just
+splitting hairs. Consider:
 
-### values and variables
+<aside name="academic">
 
-- before start writing code, need to dig into really important semantic point
-- "does a closure close over a value or a variable?"
-- not an academic question, not just splitting hairs
-- consider
+If Lox didn't allow assignment, it would be an academic question.
+
+</aside>
 
 ```lox
 var globalSet;
@@ -716,288 +983,433 @@ globalSet();
 globalGet();
 ```
 
-- `main()` creates two closures and stores in global vars
-- both closures close over same variable
-- first closure assigns new value to variable
-- second closure reads variable
+The outer `main()` function creates two closures and stores them in <span
+name="global">global</span> variables so that they outlive the execution of
+`main()` itself. Both of those closures capture the same variable. The first
+closure assigns a new value to it and the second closure reads the variable.
 
-- [globals not very significant here. just way of "returning" two fns from
-  `main()`. if had lists, could return list of two fns]
+<aside name="global">
 
-- what does call to `globalGet()` print?
-- if closures capture values, then each closure gets own copy of `a` with value
-  it had at time when closure created
-- call to `globalSet()` changes its copy of `a`, but `globalGet()` unaffected
-- prints "initial"
+The fact that we're using a couple of global variables isn't very significant.
+We merely need some way to return two values from a function and without any
+kind of collection type in Lox, our options are limited.
 
-- if closes over variables, both have reference to same mutable variable
-- two closures connected
-- when either changes var, other sees it
-- prints "updated"
+</aside>
 
-- answer for lox and other langs is the latter
-- closure closes over variable
+What does the call to `globalGet()` print? If closures capture *values* then
+each closure gets its own copy of `a` with the value that `a` had at the point
+in time that the closure's function declaration executed. The call to
+`globalSet()` will modify `set()`'s copy of `a`, but `get()`'s copy will be
+unaffected. Thus, the call to `globalGet()` will print "initial".
 
-- [note only matters because variables can be assigned. if all locals final,
-  then no difference]
+If closures close over variables, then `get()` and `set()` will both capture
+the *same mutable variable*. When `set()` changes `a`, it changes the same `a`
+that `get()` reads from. There is only one `a`. That in turn implies the call
+to `globalGet()` will print "updated".
 
-- important to keep in mind as we deal with closed over vars
-- when var no longer on stack, needs to be somewhere that all closures that
-  reference same closed over var share
-- that way, they all see assignments to var
+Which is it? The answer for Lox and most other languages I know with closures is
+the latter. Closures capture variables. You can think of them as capturing *the
+place the value lives*. This is important to keep in mind as we deal with
+closed-over variables that are no longer on the stack. When one moves to the
+heap, we need to ensure that all closures capturing that variable retain a
+reference to its one new location. That way, when the variable is mutated, all
+closures will see the change.
 
-### capturing upvalues
+### Closing upvalues
 
-- know closed over var needs to be on heap
-- questions are where on heap and when it gets there
+We know that local variables always start out on the stack. This is faster, and
+ensures that emitted code that uses the variable before the compiler discovers
+that a closure captures it still functions. We also know that closed-over
+variables need to move to the heap if the closure outlives the function where
+the captured variable is declared.
 
-- where easy: already have heap object just perfect for this objupvalue itself
-- closed over var will live right inside new field in upvalue
+Following Lua, we'll call upvalues that refer to local variables on the stack
+**open upvalues**. When the variable moves to the heap, we are *closing* the
+upvalue and the result is, naturally, a **closed upvalue**. The two questions
+we need to answer are:
 
-- when little harder
-- might be nice if var always lived in upvalue on heap
-- but remember single pass compiler already emitted code that expects var to
-  be on stack
-- that code correct -- var will still be on stack when that code execs
-- but means we can't have var on heap *before* that code
-- in other words, have to *move* it from stack to upvalue
+1.  Where on the heap does the closed-over variable go?
+2.  When do we close the upvalue?
 
-- logical place to do that is when var goes out of scope
-- once out of scope, no code can be accessing it from stack any more
+The answer to the first question is easy. We already have a convenient object on
+the heap that represents a reference to a variable -- ObjUpvalue itself. The
+closed-over variable will move into a new field right inside the ObjValue
+struct. That way we don't need to do any additional heap allocation to close an
+upvalue.
 
-- compiler already emits pop when var goes out of scope to free stack slot
-- if var gets closed over, instead emit new instruction to capture var and
-  move into upvalue
-- to do that, compiler needs to know which locals are closed over
-- already tracks which surrounding vars a fn accesses for emit pseudo-ops after
-  opclosure
-- compiler upvalue list good for answering "which vars does this closure use?"
-- not structured well to answer "is this var closed over by any fn?"
+The second question is straightforward too. As long as the variable is on the
+stack, there may be code that refers to it there and that code needs to keep
+working. So the logical time to hoist the variable to the heap is as late as
+possible. If we move it right when the local variable goes out of scope, we can
+be sure that no code after that point will try to access it from the stack.
+<span name="after">After</span> the variable is out of scope, the compiler will
+have reported an error if any code tried to use it.
 
-- [general obs here is that even when technically storing data, may not be in
-  form can efficiently query. for ex: much faster to tell if given key present
-  in map than if given value is. important to choose ds that aligns with
-  queries need to perform. if need multiple queries, may need multiple ds even
-  if technically all store "same" info]
+<aside name="after">
 
-- so add more tracking to existing local struct for that
-- add new field
+By "after" here, I mean in the lexical or textual sense -- code below the `}`
+for the block containing the declaration of the closed-over variable. In the
+chronological sense we can end up executing code that accesses that variable.
+That's exactly what we're trying to get working with closures right now.
 
-^code is-upvalue-field (1 before, 1 after)
+</aside>
 
-- true if local used as upvalue by some later fn
-- initially false
+The compiler already emits an `OP_POP` instruction when a <span
+name="param">local</span> variable goes out of scope. If a variable is captured
+by a closure, we will instead emit a different instruction to hoist that
+variable out of the stack and into its corresponding upvalue. To do that, the
+compiler needs to know which locals are closed over.
 
-^code init-is-upvalue (1 before, 1 after)
+<aside name="param">
 
-- also false for hidden local slot zero
+Except for parameters and locals declared immediately inside the body of a
+function. We'll handle those too.
 
-^code init-zero-local-is-upvalue (1 before, 1 after)
+**todo: collision**
 
-- whenever resolve reference to local in enclosing fn, set it
+</aside>
 
-^code mark-local-upvalue (1 before, 1 after)
+The compiler already maintains an array of Upvalue structs for each local
+variable in the function to track exactly that state. That array is good for
+answering "Which variables does this closure use?" But it's poorly suited for
+answering, "Does *any* function capture this local variable?" In particular,
+once the Compiler for some closure has finished, the Compiler for the enclosing
+function whose variable has been captured no longer has access to any of the
+upvalue state.
 
-- now at end of block scope when discarding locals, can use that to emit
-  special instr
-- no operand because always closing local right at top of stack
+In other words, the compiler maintains pointers from upvalues to the locals they
+capture, but not in the other direction. So we first need to add some extra
+tracking inside the existing Local struct so that we can tell if a given local
+is captured by a closure:
+
+^code is-captured-field (1 before, 1 after)
+
+This field is `true` if the local is captured by any later nested function
+declaration. Initially, all locals are not captured:
+
+^code init-is-captured (1 before, 1 after)
+
+<span name="zero">Also</span>, the special "slot zero local" that the compiler
+implicitly declares:
+
+<aside name="zero">
+
+Interestingly, later in the book, it *will* become possible for a user to
+capture this variable.
+
+</aside>
+
+^code init-zero-local-is-captured (1 before, 1 after)
+
+When we are resolving an identifier, if we end up creating a new upvalue for
+some enclosing local variable, we mark the local as being captured:
+
+^code mark-local-captured (1 before, 1 after)
+
+Now, at the end of a block scope when the compiler is emitting code to free the
+stack slots for the locals, we can tell which ones need to get hoisted onto the
+heap. We'll use a new instruction for that:
 
 ^code end-scope (3 before, 2 after)
 
-- new instr
+The instruction requires no operand. We know that the variable will always be
+right on top of the stack at the point that this instruction executes. We
+declare the instruction:
 
 ^code close-upvalue-op (1 before, 1 after)
 
-- dis
+And add trivial disassembler support for it:
 
 ^code disassemble-close-upvalue (1 before, 1 after)
 
-### tracking open upvalues
+Excellent. Now the generated bytecode tells the runtime exactly when each
+captured local variable must move to the heap. Better, it only does so for the
+locals that *are* used by a closure and need this special treatment. This aligns
+with our general performance goal that we only want users to pay for
+functionality that they use. Variables that aren't used by closures live and die
+entirely on the stack just as they did before.
 
-- ready for runtime side
-- before add new support, have issue to resolve
-- right now, every time create closure, each closure gets new upvalue for every
-  var on stack it references
-- breaks sharing described before
-- instead, if already created an upvalue for some local slot, need to ensure
-  that any later closures reuse same upvalue instead of creating dup
-- do that now
+### Tracking open upvalues
 
-- problem is hard to find them since locked up in closures
-- closures could be anywhere
+Let's move over to the runtime side. Before we can interpret `OP_CLOSE_UPVALUE`
+instructions, we have an issue to resolve. Earlier, when we talked about whether
+closures capture variables or values, I said it was important that if multiple
+closures close over the same variable that they end up with a reference to the
+exact same storage location in memory. That way if one closure writes to the
+variable, the other closure sees the change.
 
-- to fix, vm keep own list of all upvalues that point to local slots
-- can search that to find upvalue
+Right now, every time the VM creates a closure, it allocates new upvalues for
+every variable the closure captures. That breaks that sharing. If two closures
+capture the same variable, they each have their own upvalue. When we move the
+variable off the heap, if we move into both of those upvalues, it will get
+"split" and each closure will end up with its own copy.
 
-- having to search list for every var closure refs can be slow
-- however, number of closed over vars currently on stack tends to be small
-- fun declarations not executed that frequently
+**todo: illustrate**
 
-- even better, can store list in order sorted by stack slot index
-- common case is not already upvalue for some local
-- rare that multiple closures close over same var
-- also closures tend to close over nearby locals in immediate fn
-- means tend to be near top of stack
-- so as traverse upvalue list from top to bottom, if go past slot where local
-  closing over lives, know it won't be found
-- can early out
-- in practice quite fast
+To fix that, whenever the VM needs an upvalue that captures a particular local
+variable slot, it will first see if it's already created one for that slot. If
+so, it will reuse that. The challenge is that all of the previously created
+upvalues are squirreled away inside the upvalue arrays of the various closures.
+Those closures could be anywhere in the VM's memory.
 
-- because list is sorted, need to insert easily
-- linked list instead of dynamic array
-- since we own upvalue struct, easiest way is intrusive list
-- put next pointer right in upvalue
+The first step is to give the VM its own list of all open upvalues that point to
+variables still on the stack. Seaching a list each time the VM needs an upvalue
+sounds like it might be slow, but in practice, it's not bad. The number of
+variables on the stack that actually get closed over tends to be small. And
+function declarations that create closures are rarely on performance critical
+execution paths in the user's program.
+
+Even better, we can store the list of open upvalues sorted by the stack slot
+index they point to. The common case is that a given stack slot has *not*
+already been captured -- sharing variables between closures is uncommon -- and
+closures tend to capture locals near the top of the stack. If we store the
+open upvalue array in stack slot order, as soon as we step past the slot where
+the local we're capturing lives, we know it won't be found. If that local is
+close to the top of the stack, we will be able to exit the loop pretty early.
+
+**todo: illustrate**
+
+We want to maintain the list in sorted order, which means we need to be able to
+insert elements in the middle efficiently. That suggests using a linked list
+instead of a dynamic array. Since we defined the ObjUpvalue struct ourselves,
+the easiest way to make a linked list of them is using an intrusive list and
+putting the next pointer right inside the ObjUpvalue struct itself:
 
 ^code next-field (1 before, 1 after)
 
-- when create upvalue, not part of list, so null link
+When we allocates a new upvalue, it is not attached to any list yet, so the link
+is `NULL`:
 
 ^code init-next (1 before, 1 after)
 
-- add field to vm for root of list
+The VM owns the list, so the head pointer goes right inside the main VM struct:
 
 ^code open-upvalues-field (1 before, 3 after)
 
-- call upvalues that point to local slots still on stack "open"
-- closed upvalues are upvalues for vars that have moved to heap
-- list initially empty
+The list starts out empty:
 
 ^code init-open-upvalues (1 before, 1 after)
 
-- now when vm captures local slot into upvalue, first look for existing one
+Whenever the VM closes over a local variable slot on the stack, before it
+creates a new upvalue, it looks for an existing one in the list:
 
 ^code look-for-existing-upvalue (1 before, 1 after)
 
-- start at head, upvalue nearest top of stack
-- work down from there
-- three exit conditions:
+We start at the <span name="head">head</span> of the list, which is the upvalue
+closest to the top of the stack. We walk through the list, using a little
+pointer comparison to iterate past every upvalue whose local slot is above the
+one we're looking for. While we do that, we keep track of the preceding upvalue
+on the list. We'll need that to be able to update that node's `next` pointer if
+we end up inserting a node.
 
-    - first upvalue for exact stack slot looking for
-      - in that case, `upvalue->local` will equal `local`
-      - reuse that exact upvalue, so return it and done
-    - ran out of upvalues to search
-      - means definitely no upvalue for stack slot, so exit loop and create new
-        one
-    - last more interesting
-      - since list is sorted, if found upvalue whose stack slot is below one
-        looking for, know won't find upvalue for our slot
-      - can early exit
-      - also need to create new upvalue
+<aside name="head">
 
-- if found upvalue for slot, done
-- otherwise, need to create new upvalue like before
-- but also need to insert into list in appropriate place for later search
+It's a singly-linked list. It's not like we have any other choice than to start
+at the head and go forward from there.
+
+</aside>
+
+There are three ways we can exit the loop:
+
+1.  If the local slot for the upvalue we ended on is exactly the same as the
+    slot we're looking for. In that case, we found an existing upvalue for the
+    slot, and we reuse it.
+
+2.  If we ran out of upvalues to search. If `upvalue` is `null`, it means every
+    open upvalue in the list points to locals above the slot we're looking for.
+    Or it means the upvalue list is empty. Either way, we didn't find it.
+
+3.  We found an upvalue whose local slot is *below* the one we're looking for.
+    Since we know the list is sorted, that means we've gone past the slot we are
+    closing over and thus there isn't already an upvalue for it.
+
+In the first case, we're done and we've returned. Otherwise, we need to create
+a new upvalue for our local slot and insert it into the list at the right
+location:
 
 ^code insert-upvalue-in-list (1 before, 1 after)
 
+We already create in the first incarnation of this function, so we only need to
+add code to insert it in the list. We exited the list traversal by either going
+past the end of the list, or by stopping on the first upvalue whose stack slot
+is below the one we're looking for. In either case, that means we need to insert
+the new upvalue *before* the current upvalue (which may be `NULL` if we hit the
+end of the list).
+
 **todo: illustrate**
 
-- exited loop either because ran out of upvalues, or stopped on upvalue that is
-  below this one's local
-- so new upvalue goes before it on list
-- set next pointer to that upvalue (which may be null)
-- then update prev pointer to point to new upvalue
-- if in middle of list, that's `prevUpvalue`
-- otherwise, inserting new head node, so update vm's head pointer
+Like you learned in data structures 101, to insert a node into a linked list,
+you set the `next` pointer of the previous node to point to your new one. We
+have been conveniently keeping track of that node as we walked the list. We also
+need to handle the <span name="double">special</span> case where we are
+inserting a new upvalue at the head of the list, in which case the "next"
+pointer is the VM's head pointer.
 
-- [shorter impl that uses pointer to pointer so don't have to special case
-  inserting at head of list
-  confuses everyone]
+<aside name="double">
 
-- now vm correctly ensures only ever one upvalue for given variable
-- ready to actually close them
+There is a shorter implementation that handles updating either the head pointer
+or the previous upvalue's `next` pointer uniformly by using a pointer to a
+pointer, but that kind of code confuses almost everyone who hasn't reached some
+Zen master level of pointer expertise. I went with the basic if statement
+approach.
 
-### closing upvalues
+</aside>
 
-- over in vm
+With this updated function, the VM now ensures that there is only ever a single
+ObjUpvalue for any given local slot. If two closures capture the same variable,
+they will get the same upvalue. We're ready to move those upvalues off the
+stack now.
+
+### Closing upvalues
+
+The compiler helpfully tells the interpreter exactly when it needs to hoist a
+local variable into the heap by emitting a `OP_CLOSE_UPVALUE` instruction:
 
 ^code interpret-close-upvalue (2 before, 1 after)
 
-- when vm exec, local variable being moved to upvalue on top of stack
-- call helper to move value into upvalue
-- then pop to remove from stack
+At the point in time that we execute that, the variable we are hoisting is right
+on top of the stack. We call a helper function, passing a pointer to that stack
+slot. That function is responsible for closing the upvalue and moving the local
+from the stack to the heap. After that, the VM is free to discard the stack
+slot, which it does by calling `pop()`.
+
+The fun stuff happens here:
 
 ^code close-upvalues
 
-- helper takes pointer to local stack slot
-- closes every upvalue in that slot or higher
-- right now, fn just closes single variable on top of slot
-- but later use to close entire range of upvalues
-- walks open upvalue list from top of stack down
-- for every upvalue whose stack slot within range, closes it
+This function takes a pointer to a stack slot. It closes every open upvalue it
+can find that points to that slot or any slot above it on the stack. Right now,
+we only pass a pointer to the top slot on the stack, so the "or above it" part
+doesn't come into play, but it will soon.
 
-- take current value of variable from local slot, copy to new field in upvalue
-- next part is clever
+We walk the VM's list of open upvalues, again from top to bottom. If an
+upvalue's local slot is within the range of slots we're closing, we close the
+upvalue. Otherwise, once we find a single upvalue outside of the range, we know
+the rest will be too so we stop iterating.
 
-- closed over var can live in two places, stack or heap
-- how do get_upvalue and set_upvalue instrs handle?
-- could add some conditional logic there to check upvalue state and then
-  access appropriately
-- but already accessing val through pointer
-- pointer don't care where it points
-- have indirection we need
-- so when close upvalue and move value into objupvalue itself
-  update pointer to point to that field right inside upvalue
+The "closing" part is <span name="clever">clever</span>. First, we copy the
+variable's value into the `closed` field in the ObjUpvalue. Remember, we said that's
+where closed-over variables will live in the heap. The `OP_GET_UPVALUE` and
+`OP_SET_UPVALUE` instructions need to be able to correctly access a variable's
+value both when it is still on the stack and when it's been moved to the heap.
+We could add some conditional logic in the code that interprets those
+instructions to check some flag for whether the upvalue is open or closed.
+
+<aside name="clever">
+
+I'm not praising myself here. This is all the Lua dev team's innovation.
+
+</aside>
+
+But there is already a level of indirection in play -- those instructions
+dereference the `value` pointer to get to the variable's value. In other words,
+the `value` field represents the *location* of a variable. When the variable
+moves from the stack to the `closed` field, we simply update that location by
+pointing `value` to the address of the ObjUpvalue's own `closed` field.
 
 **todo: illustrate**
 
-- no change needed to upvalue instrs
-- do need to add new field to upvalue struct
+We don't need to change how `OP_GET_UPVALUE` and `OP_SET_UPVALUE` are
+interpreted at all. That keeps them simple, which in turn keeps them fast. We do
+need to add the new field to ObjUpvalue, though:
 
-^code closed-field (2 before, 1 after)
+^code closed-field (1 before, 1 after)
 
-- go ahead and zero out too so open upvalues don't have garbage data
+And we should make sure to zero it out when we create an ObjUpvalue just so
+there's no garbage data floating around in the heap:
 
 ^code init-closed (1 before, 1 after)
 
-- reason close takes range is because also need to handle local variables in
-  root scope of fn body
-- [including params]
-- compiler does not end that scope
-- doesn't emit code to discard those slots because runtime implicitly pops them
-  when discards callframe
-- also means doesn't emit closeup instrs
-- do need to close those, though
-- so when exec return, automatically close upvalues for every local var fn
-  still has
+Whenever the compiler reaches the end of a block, it discards all local
+variables in that block and emits `OP_CLOSE_UPVALUE` for each local variable
+that got captured. It <span name="close">does</span> *not* do that for the
+initial block scope that surrounds a function and contains the function's
+parameters and any locals declared immediately inside the body of the function.
+Those need to get closed too.
+
+<aside name="close">
+
+There's nothing *preventing* us from closing the outermost function scope in
+the compiler and emitting `OP_POP` and `OP_CLOSE_UPVALUE` instructions. Doing
+so was just unnecessary until now because the runtime discards all of the
+stack slots used by the function when it pops the callframe.
+
+</aside>
+
+This is the reason `closeUpvalues()` accepts a pointer to a stack slot. When a
+function returns, we call that and pass in the first stack slot owned by the
+function:
 
 ^code return-close-upvalues (1 before, 2 after)
 
-- that's it
-- quite a lot more complex than jlox
-- having all envs heap alloc makes many things simpler
-- lot more regular
-- but simplicity comes at price
-- always heap alloc memory for local variables even when majority do have
-  stack semantics quite slow
-- approach in clox more sophisticated
-- basically two different implementations, each tuned for semantics that some
-  locals have
-- in return for complexity, much better perf
-- [and mem usage, clox only heap allocs vars actually needed
-  jlox keeps entire environment with every single var, even those closure
-  never accesses]
+In `closeUpvalues()`, it loops through all of the open upvalues and closes any
+it finds that are at or above that slot. In other words, it closes every open
+upvalue owned by the function that's about to return. And with that, we now
+have a fully functioning closure implementation, where closed-over variables
+live as long as needed by the functions that capture them.
 
-- we have all of the features we need now to full implement lexical scoping
-- also have a lot more interesting memory usage going on
-- many heap alloc objects with lots of pointers between them
-- closures can build big graphs of objects
-- soon will be time for us to start managing that memory
+This was a lot of work! In jlox, closures almost fell out automatically from our
+environment representation. In clox, we had to add quite a large amount of code
+to clox -- new bytecode instructions, more data structures in the compiler, and
+new runtime objects. The VM very much treats variables in closures as different
+from other variables.
+
+There is a reason for that. In terms of implementation complexity, jlox gave us
+closures "for free". But in terms of *performance*, jlox's closures are anything
+but free. By allocating *all* environments on the heap, jlox pays a significant
+performance price for *all* local variables, even the majority which are never
+captured by local variables.
+
+With clox, we have a more complex system, but that allows us to tailor the
+implementation to fit the two use patterns we observe for local variables. For
+most variables which do have stack semantics, we allocate them entirely on the
+stack with is simple and fast. Then, for the few local variables where that
+doesn't work, we have a second slower path we can opt in to as needed.
+
+What I find interesting is that users don't perceive the complexity. From their
+perspective, local variables in Lox are simple and uniform. It's as if the
+*language itself* is as simple as jlox's implementation. But under the hood,
+clox is watching what they do and optimizing for their specific uses. As you
+work on increasingly sophisticated language implementations, you'll find
+yourself doing this more and more. A large fraction of "optimization" is about
+adding special case code that detects certain usage patterns and provides a
+custom-build faster path for code that fits that pattern.
+
+We have lexical scoping fully working in clox now, which is a major milestone.
+And, now that we have functions and variables with complex lifetimes, we also
+have a *lot* of objects floating around in clox's heap, with a web of pointers
+stringing them together. The [next step][] is figuring out how to manage that
+memory so that we can free some of those objects when they're no longer needed.
+
+[next step]: garbage-collection.html
 
 <div class="challenges">
 
 ## Challenges
 
-1.  allocating an objclosure and then going through that to reach fn for const
-    table and chunk has overhead
-    - not needed for fns that don't close over variables
-    - change to not wrap fn in closure unless has upvalues
-    - how does affect perf?
+1.  Wrapping every ObjFunction in an ObjClosure introduces a level of
+    indirection that has a performance cost. That cost isn't necessary for
+    functions that do not close over any variables, but it does let the runtime
+    treat all calls uniformly.
 
-2.  read design note. what do you think lox should do?
-    - change clox to create new var each time
+    Change clox to only wrap functions in ObjClosures if the function contains
+    upvalues. How does the code complexity and performance compare to always
+    wrapping functions? Take care to benchmark programs that do and do not use
+    closures. How should you weight the importance of each benchmark? If one
+    gets slower and one faster, how do you decide what trade-off to make to
+    choose an implementation strategy?
 
-**todo: more**
+2.  Instead of treating the top-level scope of a function body specially in
+    the runtime implementation of `OP_RETURN`, have the compiler close that
+    scope like it closes any other block scope. How does that affect
+    performance?
+
+3.  Try going in the other direction. Can you come up with a faster way to
+    close a block scope?
+
+4.  Read the design note below. I'll wait. Now, how do you think Lox *should*
+    behave? Change the implementation to create a new variable for each loop
+    iteration.
 
 </div>
 
@@ -1005,9 +1417,10 @@ globalGet();
 
 ## Design Note: Closing Over the Loop Variable
 
-- closures close over var
-- if two closures capture same var like get/set ex earlier, both share ref to it
-- if closures capture different vars, obviously no sharing
+Closures capture variables. If two different variables capture the same
+variable, then they share a reference to the same underlying storage location.
+This fact is visible when new values are assigned to the variable. Obviously, if
+two closures capture *different* variables, there is no sharing:
 
 ```lox
 var globalOne;
@@ -1036,9 +1449,8 @@ globalOne();
 globalTwo();
 ```
 
-- prints one then two
-- usually clear when two vars are same or different
-- but not always
+This prints "one" then "two". In cases like this, it's pretty clear when two
+variables are different. But it's not always so obvious. Consider:
 
 ```lox
 var globalOne;
@@ -1062,16 +1474,18 @@ globalOne();
 globalTwo();
 ```
 
-- code really convoluted here because no collections in lox
-- does two iter of loop
-- creates closure for each iter and stores in two globals
-- each closure captures loop variable
+The code is convoluted because Lox has no collection types. Our clox
+implementation doesn't even have objects yet. The important part is that the
+`main()` function does two iterations of a for loop. Each time through the loop,
+it creates a closure that captures the loop variable. It stores the first in
+`globalOne` and the second in `globalTwo`.
 
-- q: do they capture *same* var, or does each iter get own separate var?
-- is there one `a` or two?
+There are definitely two different closures. Do they close over two different
+variables? Is there only one `a` for the entire duration of the loop, or does
+each iteration get its own distinct `a` variable?
 
-- seems contrived, but consider in language where code is simpler
-- here js:
+The script here is strange and contrived, but this does show up in real code
+in languages that aren't as minimal as clox. Here's a JavaScript example:
 
 ```js
 var closures = [];
@@ -1083,13 +1497,22 @@ closures[0]();
 closures[1]();
 ```
 
-- does print 1, 2, 3, or 4, 4, 4?
-- answer is 4, 4, 4
-- all close over same i
-- i gets incremented to 4 on last iteration which is what causes loop to exit
-- what you expected?
-- if know js, know `var` hoisted to function or top level, so above code same
-  as
+Does this print "1" then "2", or does it print <span name="three">"3"</span>
+twice? It turns out it prints "3" twice. In this JavaScript program, there is
+only a single `i` variable whose lifetime includes all iterations of the loop.
+
+<aside name="three">
+
+You're wondering how *three* enters the picture? After the second iteration,
+`i++` is executed, which increments `i` to three. That's what causes `i <= 2` to
+evaluate to false and end the loop. If `i` never reached three, the loop would
+run forever.
+
+</aside>
+
+If you're familiar with JavaScript, you probably know that variables declared
+using `var` are implicitly *hoisted* to the surrounding function or top level
+scope. It's as if you really wrote:
 
 ```js
 var closures = [];
@@ -1102,8 +1525,8 @@ closures[0]();
 closures[1]();
 ```
 
-- hopefully little more obvious that all close over same var
-- if use newer `let`:
+At that point, it's clearer that there is only a single `i`. Now consider if
+you change the program to use the newer `let` keyword:
 
 ```js
 var closures = [];
@@ -1115,13 +1538,12 @@ closures[0]();
 closures[1]();
 ```
 
-- still same?
-- no, now prints 1, 2
-- strange when think about it
-- increment clause is `i++`
-- looks very much like assigning new value to *same* var
+Does it behave the same? Nope. In this case, it prints "1" then "2". Each
+closure gets its own `i`. That's sort of strange when you think about it. The
+increment clause is `i++`. That looks very much like it is assigning to and
+mutating an existing variable, not creating a new one.
 
-- try other langs
+Let's try some other languages. Here's Python:
 
 ```python
 closures = []
@@ -1130,17 +1552,14 @@ for i in range(1, 3):
 
 closures[0]()
 closures[1]()
-# 9
 ```
 
-- python doesn't really have local scopes
-- instead, implicit decl [link]
-- so i basically hoisted
-- 2 2
+Python doesn't really have block scope. Variables are implicitly declared and
+are automatically scoped to the surrounding function. Kind of like hoisting in
+JS, now that I think about it. So this prints "3" twice.
 
-- how about ruby
-- two ways of looping
-- low level
+What about Ruby? Ruby has two typical ways to iterate numerically. Here's the
+classic imperative style:
 
 ```ruby
 closures = []
@@ -1152,10 +1571,8 @@ closures[0].call
 closures[1].call
 ```
 
-- what do?
-- 2 2
-- guess implicitly declares at function/script level too?
-- idiomatic way is using higher order method on range:
+This, like Python, prints "3" twice. But the more idiomatic Ruby style is using
+a higher-order `each()` method on range objects:
 
 ```ruby
 closures = []
@@ -1167,32 +1584,39 @@ closures[0].call
 closures[1].call
 ```
 
-- different now
-- now i is param to closure (block) passed to `each()`
-- each call to block binds new params in new callframe, so clearly separate vars
-- prints 1 2
+If you're not familiar with Ruby, the `do |i| ... end` part is basically a
+closure that gets created and passed to the `each()` method. The `|i|` is the
+parameter signature for the closure. The `each()` method invokes that closure
+twice, passing in 1 for `i` the first time and 2 the second time.
 
-- if language has higher level looping structure like `foreach` in c#, `for-of`
-  in js, or `for-in` in dart
-- very natural to treat each iteration as separate var
-- clear evidence that's what users expect
-- dig around stackoverflow find lots of questions where users confused when
-  langs don't do that
-- in particular, c# originally treated all iter of foreach as same var
-- was common enough source of bugs that took rare step of breaking change to
-  fix
+In this case, the "loop variable" is really a closure parameter. And, since each
+iteration of the loop is a separate invocation of the closure, those are
+definitely separate variables for each call. So this prints "1" then "2".
 
-- c-style loop harder
-- increment clause does look like mutation, which implies one single var for
-  all iters
-- but not really *useful* to do that
-- better answer probably do what js does with `let` and treat as new var each
-  time
+If a language has a higher-level iterator-based looping structure like `foreach`
+in C#, Java's "enhanced for", `for-of` in JavaScript, `for-in` in Dart, etc.
+then I think it's natural to the reader to have each iteration create a new
+variable. The code *looks* like a new variable because the loop header looks
+like a variable declaration. And there's no increment expression that looks like
+it's mutating that variable to advance to the next step.
 
-- already impl in jlox and clox
-- does create same var for entire loop
-- create one scope for entire loop instead of pushing and popping one for body
-- makes easier to impl increment clause
-- but means same var each time
+If you dig around StackOverflow and other places, you can find clear evidence
+that this is what users expect because they are very surprised when they *don't*
+get it. In particular, C# originally did *not* create a new loop variable for
+each iteration of a `foreach` loop. This was such a frequent source of user
+confusion that they took the very rare step of shipping a breaking change to the
+language. In C# 5, each iteration creates a fresh variable.
+
+Old C-style for loops are harder. The increment clause really does look like
+mutation. That implies there is a single variable that's getting updated each
+step. But it's almost never *useful* for each iteration to share a loop
+variable. The only time you can even detect this is when closures capture it.
+And it's rarely helpful to have a closure that references a variable whose value
+is whatever value caused you to exit the loop.
+
+The pragmatically useful answer is probably to do what JavaScript does with
+`let` in for loops. Make it look like mutation but actually create a new
+variable each time because that's what users want. It is kind of weird when you
+think about it, though.
 
 </div>

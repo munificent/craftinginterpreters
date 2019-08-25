@@ -133,17 +133,9 @@ typedef struct sUpvalue {
   Obj obj;
   Value* value;
 //> closed-field
-
-  // If the upvalue is closed (i.e. the local variable it was pointing
-  // to has been popped off the stack) then the closed-over value is
-  // hoisted out of the stack into here. [value] is then be changed to
-  // point to this.
   Value closed;
-
 //< closed-field
 //> next-field
-  // Open upvalues are stored in a linked list. This points to the next
-  // one in that list.
   struct sUpvalue* next;
 //< next-field
 } ObjUpvalue;

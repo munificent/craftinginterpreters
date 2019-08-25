@@ -155,21 +155,23 @@ static Value peek(int distance) {
   return vm.stackTop[-1 - distance];
 }
 //< Types of Values peek
-/* Calls and Functions call < Closures call
+/* Calls and Functions call < Closures call-signature
 static bool call(ObjFunction* function, int argCount) {
 */
-/* Calls and Functions check-arity < Closures not-yet
+//> Calls and Functions call
+//> Closures call-signature
+static bool call(ObjClosure* closure, int argCount) {
+//< Closures call-signature
+/* Calls and Functions check-arity < Closures check-arity
   if (argCount != function->arity) {
     runtimeError("Expected %d arguments but got %d.",
         function->arity, argCount);
 */
-//> Calls and Functions call
-//> Closures call
-static bool call(ObjClosure* closure, int argCount) {
+//> Closures check-arity
   if (argCount != closure->function->arity) {
     runtimeError("Expected %d arguments but got %d.",
         closure->function->arity, argCount);
-//< Closures call
+//< Closures check-arity
 //> check-arity
     return false;
   }
@@ -341,9 +343,6 @@ static void closeUpvalues(Value* last) {
   while (vm.openUpvalues != NULL &&
          vm.openUpvalues->value >= last) {
     ObjUpvalue* upvalue = vm.openUpvalues;
-
-    // Move the value into the upvalue itself and point the upvalue to
-    // it.
     upvalue->closed = *upvalue->value;
     upvalue->value = &upvalue->closed;
     vm.openUpvalues = upvalue->next;
@@ -769,7 +768,7 @@ static InterpretResult run() {
         frame = &vm.frames[vm.frameCount - 1];
         break;
       }
-      
+
 //< Superclasses not-yet
 //> Closures interpret-closure
       case OP_CLOSURE: {
@@ -781,18 +780,15 @@ static InterpretResult run() {
           uint8_t isLocal = READ_BYTE();
           uint8_t index = READ_BYTE();
           if (isLocal) {
-            // Make an new upvalue to close over the parent's local
-            // variable.
             closure->upvalues[i] = captureUpvalue(frame->slots + index);
           } else {
-            // Use the same upvalue as the current call frame.
             closure->upvalues[i] = frame->closure->upvalues[index];
           }
         }
 //< interpret-capture-upvalues
         break;
       }
-      
+
 //< Closures interpret-closure
 //> Closures interpret-close-upvalue
       case OP_CLOSE_UPVALUE:
@@ -816,7 +812,6 @@ static InterpretResult run() {
         Value result = pop();
 //> Closures return-close-upvalues
 
-        // Close any upvalues still in scope.
         closeUpvalues(frame->slots);
 //< Closures return-close-upvalues
 
