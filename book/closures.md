@@ -713,13 +713,11 @@ The disassembly for the instruction that creates the closure for `inner()` is:
 
 ```
 0004    9 OP_CLOSURE          2 <fn inner>
-0006   |                     upvalue 0
-0008   |                     local 1
-0010   |                     upvalue 1
-0012   |                     local 2
+0006      |                     upvalue 0
+0008      |                     local 1
+0010      |                     upvalue 1
+0012      |                     local 2
 ```
-
-**todo: better formatting, fix extra space before '2'?**
 
 We have two other, simpler instructions to add disassembler support for:
 
@@ -1399,17 +1397,25 @@ memory so that we can free some of those objects when they're no longer needed.
     gets slower and one faster, how do you decide what trade-off to make to
     choose an implementation strategy?
 
-2.  Instead of treating the top-level scope of a function body specially in
-    the runtime implementation of `OP_RETURN`, have the compiler close that
-    scope like it closes any other block scope. How does that affect
-    performance?
-
-3.  Try going in the other direction. Can you come up with a faster way to
-    close a block scope?
-
-4.  Read the design note below. I'll wait. Now, how do you think Lox *should*
+2.  Read the design note below. I'll wait. Now, how do you think Lox *should*
     behave? Change the implementation to create a new variable for each loop
     iteration.
+
+3.  A [famous koan][koan] teaches us that "objects are a poor man's closure"
+    (and vice versa). Our VM doesn't support objects, but now that we have
+    closures we can approximate them. Using closures, write a Lox program that
+    expresses two-dimensional vector "objects". It should:
+
+    *   Define a "constructor" function to create a new vector with the given
+        *x* and *y* coordinates.
+
+    *   Provide "methods" to access the `x` and `y` coordinates of the value
+        returned from that constructor.
+
+    *   Define an addition "method" that adds two vectors and produces a third.
+
+
+[koan]: http://wiki.c2.com/?ClosuresAndObjectsAreEquivalent
 
 </div>
 
@@ -1457,7 +1463,7 @@ var globalOne;
 var globalTwo;
 
 fun main() {
-  for (var a = 1; a  2; a = a + 1) {
+  for (var a = 1; a <= 2; a = a + 1) {
     fun closure() {
       print a;
     }
