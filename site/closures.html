@@ -1004,7 +1004,7 @@ in <em>disassembleInstruction</em>()</div>
       <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="p">;</span> <span class="n">j</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>         
         <span class="kt">int</span> <span class="n">isLocal</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span><span class="o">++</span><span class="p">];</span>                     
         <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">[</span><span class="n">offset</span><span class="o">++</span><span class="p">];</span>                       
-        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%04d   |                     %s %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>           
+        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%04d      |                     %s %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>        
                <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">isLocal</span> <span class="o">?</span> <span class="s">&quot;local&quot;</span> <span class="o">:</span> <span class="s">&quot;upvalue&quot;</span><span class="p">,</span> <span class="n">index</span><span class="p">);</span>
       <span class="p">}</span>                                                          
 <br></pre><pre class="insert-after"><span></span>      <span class="k">return</span> <span class="n">offset</span><span class="p">;</span>                                             
@@ -1029,14 +1029,13 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>The disassembly for the instruction that creates the closure for <code>inner()</code> is:</p>
 <div class="codehilite"><pre><span></span><span class="mi">0004</span>    <span class="mi">9</span> <span class="n">OP_CLOSURE</span>          <span class="mi">2</span> <span class="o">&lt;</span><span class="n">fn</span> <span class="k">inner</span><span class="o">&gt;</span>
-<span class="mi">0006</span>   <span class="o">|</span>                     <span class="n">upvalue</span> <span class="mi">0</span>
-<span class="mi">0008</span>   <span class="o">|</span>                     <span class="k">local</span> <span class="mi">1</span>
-<span class="mi">0010</span>   <span class="o">|</span>                     <span class="n">upvalue</span> <span class="mi">1</span>
-<span class="mi">0012</span>   <span class="o">|</span>                     <span class="k">local</span> <span class="mi">2</span>
+<span class="mi">0006</span>      <span class="o">|</span>                     <span class="n">upvalue</span> <span class="mi">0</span>
+<span class="mi">0008</span>      <span class="o">|</span>                     <span class="k">local</span> <span class="mi">1</span>
+<span class="mi">0010</span>      <span class="o">|</span>                     <span class="n">upvalue</span> <span class="mi">1</span>
+<span class="mi">0012</span>      <span class="o">|</span>                     <span class="k">local</span> <span class="mi">2</span>
 </pre></div>
 
 
-<p><strong>todo: better formatting, fix extra space before &lsquo;2&rsquo;?</strong></p>
 <p>We have two other, simpler instructions to add disassembler support for:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OP_SET_GLOBAL</span><span class="p">:</span>                                          
       <span class="k">return</span> <span class="n">constantInstruction</span><span class="p">(</span><span class="s">&quot;OP_SET_GLOBAL&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
@@ -1889,19 +1888,28 @@ gets slower and one faster, how do you decide what trade-off to make to
 choose an implementation strategy?</p>
 </li>
 <li>
-<p>Instead of treating the top-level scope of a function body specially in
-    the runtime implementation of <code>OP_RETURN</code>, have the compiler close that
-    scope like it closes any other block scope. How does that affect
-    performance?</p>
-</li>
-<li>
-<p>Try going in the other direction. Can you come up with a faster way to
-    close a block scope?</p>
-</li>
-<li>
 <p>Read the design note below. I&rsquo;ll wait. Now, how do you think Lox <em>should</em>
     behave? Change the implementation to create a new variable for each loop
     iteration.</p>
+</li>
+<li>
+<p>A <a href="http://wiki.c2.com/?ClosuresAndObjectsAreEquivalent">famous koan</a> teaches us that &ldquo;objects are a poor man&rsquo;s closure&rdquo;
+    (and vice versa). Our VM doesn&rsquo;t support objects, but now that we have
+    closures we can approximate them. Using closures, write a Lox program that
+    expresses two-dimensional vector &ldquo;objects&rdquo;. It should:</p>
+<ul>
+<li>
+<p>Define a &ldquo;constructor&rdquo; function to create a new vector with the given
+    <em>x</em> and <em>y</em> coordinates.</p>
+</li>
+<li>
+<p>Provide &ldquo;methods&rdquo; to access the <code>x</code> and <code>y</code> coordinates of the value
+    returned from that constructor.</p>
+</li>
+<li>
+<p>Define an addition &ldquo;method&rdquo; that adds two vectors and produces a third.</p>
+</li>
+</ul>
 </li>
 </ol>
 </div>
@@ -1946,7 +1954,7 @@ variables are different. But it&rsquo;s not always so obvious. Consider:</p>
 <span class="k">var</span> <span class="n">globalTwo</span><span class="p">;</span>
 
 <span class="k">fun</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">a</span>  <span class="mi">2</span><span class="p">;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">a</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">fun</span> <span class="n">closure</span><span class="p">()</span> <span class="p">{</span>
       <span class="k">print</span> <span class="n">a</span><span class="p">;</span>
     <span class="p">}</span>
