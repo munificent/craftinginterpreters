@@ -545,7 +545,7 @@ Now that VM has some interesting state, we get to initialize it:
 
 That uses this helper function:
 
-^code reset-stack (1 before)
+^code reset-stack
 
 Since the stack array is declared directly inline in the VM struct, we don't
 need to allocate it. We don't even need to clear the unused cells in the

@@ -337,30 +337,30 @@ compiler.</p>
 <p>If the scanner hands us an error token, we need to actually tell the user. That
 happens using this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after struct <em>Parser</em></div>
+add after variable <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAtCurrent</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">errorAt</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">current</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>             
 <span class="p">}</span>                                                
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
 <p>We pull the location out of the current token in order to tell the user where
 the error occurred and forward it to <code>errorAt()</code>. More often, we&rsquo;ll report an
 error at the location of the token we just consumed, so we give the shorter name
 to this other function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after struct <em>Parser</em></div>
+add after variable <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">error</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">errorAt</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">,</span> <span class="n">message</span><span class="p">);</span>   
 <span class="p">}</span>                                       
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
 <p>The actual work happens here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
-add after struct <em>Parser</em></div>
+add after variable <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>       
   <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] Error&quot;</span><span class="p">,</span> <span class="n">token</span><span class="o">-&gt;</span><span class="n">line</span><span class="p">);</span>
 
@@ -377,7 +377,7 @@ add after struct <em>Parser</em></div>
 <span class="p">}</span>                                                              
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
 <p>First, we print where the error occurred. We try to show the lexeme if it&rsquo;s
 human-readable. Then we print the error message itself. After that, we set this
@@ -513,7 +513,7 @@ associated with that line.</p>
 its way to <code>emitByte()</code>. To do that, we rely on this intermediary function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>                                          
 <br></pre><div class="source-file"><em>compiler.c</em><br>
-add after struct <em>Parser</em></div>
+add after variable <em>Parser</em></div>
 <pre class="insert"><br><span></span><span class="n">Chunk</span><span class="o">*</span> <span class="n">compilingChunk</span><span class="p">;</span>
 
 <span class="k">static</span> <span class="n">Chunk</span><span class="o">*</span> <span class="nf">currentChunk</span><span class="p">()</span> <span class="p">{</span>                          
@@ -522,7 +522,7 @@ add after struct <em>Parser</em></div>
 <br></pre><pre class="insert-after"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">errorAt</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">token</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">message</span><span class="p">)</span> <span class="p">{</span>
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
 <p>Right now, the chunk pointer is stored in a module level variable like we store
 other global state. Later, when we start compiling user-defined functions, the
