@@ -211,7 +211,7 @@ after that.
 
 Since we have some state, we should initialize it:
 
-^code init-scanner (1 before)
+^code init-scanner
 
 We start at the very first character on the very first line, like a runner
 crouched and ready to run.

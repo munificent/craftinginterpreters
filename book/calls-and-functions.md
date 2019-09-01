@@ -1288,7 +1288,7 @@ get around to [implementing the GC][gc].
 It feels silly, but after all of that work, we're only going to add one
 little native function:
 
-^code clock-native (1 before, 2 after)
+^code clock-native
 
 This returns the elapsed time since the program started running, in seconds. It's
 handy for benchmarking Lox programs. In Lox, we'll name it `clock()`:
