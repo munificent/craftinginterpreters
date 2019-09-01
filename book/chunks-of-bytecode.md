@@ -327,12 +327,12 @@ arrays provide:
 * Constant-time indexed element lookup.
 * Constant-time appending to the end of the array.
 
-Those features are exactly why we used it all the time in jlox under the guise
-of Java's ArrayList class. Now that we're in C, we get to roll our own. If
-you're rusty on dynamic arrays, the idea is pretty simple. In addition to the
-array itself, we keep two numbers -- the number of elements in the array we have
-allocated ("capacity") and how many of those allocated entries are actually in
-use ("count").
+Those features are exactly why we used dynamic arrays all the time in jlox under
+the guise of Java's ArrayList class. Now that we're in C, we get to roll our
+own. If you're rusty on dynamic arrays, the idea is pretty simple. In addition
+to the array itself, we keep two numbers: the number of elements in the array we
+have allocated ("capacity") and how many of those allocated entries are actually
+in use ("count").
 
 ^code count-and-capacity (1 before, 2 after)
 
