@@ -1064,10 +1064,10 @@ implementation:
 
 When a function returns a value, that value will be on top of the stack. We're
 about to discard the called function's entire stack window, so we pop that
-return value off and hang on to it first. Then we discard the CallFrame for the
-returning function. If it is the very last CallFrame, it means we've finished
-executing the top level code and the entire program is done, so we exit the
-interpreter.
+return value off and hang on to it. Then we discard the CallFrame for the
+returning function. If that was the very last CallFrame, it means we've finished
+executing the top level code. The entire program is done, so we pop the main
+script function from the stack and then exit the interpreter.
 
 Otherwise, we discard all of the slots the callee was using for its parameters
 and local variables. That includes the same slots the caller used to pass the

@@ -1528,31 +1528,34 @@ can&rsquo;t <em>return</em> from them yet. We&rsquo;ve had an <code>OP_RETURN</c
 some time, but it&rsquo;s always had some kind of temporary code hanging out in it
 just to get us out of the bytecode loop. The time has arrived for a real
 implementation:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                             
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="p">:</span> <span class="p">{</span>                       
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert"><span></span>        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">pop</span><span class="p">();</span>
 
-        <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">--</span><span class="p">;</span>                            
-        <span class="k">if</span> <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="n">INTERPRET_OK</span><span class="p">;</span>
+        <span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span><span class="o">--</span><span class="p">;</span>                      
+        <span class="k">if</span> <span class="p">(</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>             
+          <span class="n">pop</span><span class="p">();</span>                              
+          <span class="k">return</span> <span class="n">INTERPRET_OK</span><span class="p">;</span>                
+        <span class="p">}</span>                                     
 
-        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">;</span>                 
-        <span class="n">push</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>                               
+        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span><span class="p">;</span>           
+        <span class="n">push</span><span class="p">(</span><span class="n">result</span><span class="p">);</span>                         
 
-        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>      
-        <span class="k">break</span><span class="p">;</span>                                      
-</pre><pre class="insert-after"><span></span>      <span class="p">}</span>                                             
+        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
+        <span class="k">break</span><span class="p">;</span>                                
+</pre><pre class="insert-after"><span></span>      <span class="p">}</span>                                       
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>When a function returns a value, that value will be on top of the stack. We&rsquo;re
 about to discard the called function&rsquo;s entire stack window, so we pop that
-return value off and hang on to it first. Then we discard the CallFrame for the
-returning function. If it is the very last CallFrame, it means we&rsquo;ve finished
-executing the top level code and the entire program is done, so we exit the
-interpreter.</p>
+return value off and hang on to it. Then we discard the CallFrame for the
+returning function. If that was the very last CallFrame, it means we&rsquo;ve finished
+executing the top level code. The entire program is done, so we pop the main
+script function from the stack and then exit the interpreter.</p>
 <p>Otherwise, we discard all of the slots the callee was using for its parameters
 and local variables. That includes the same slots the caller used to pass the
 arguments. Now that the call is done, the caller doesn&rsquo;t need them anymore. This

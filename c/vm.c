@@ -843,7 +843,10 @@ static InterpretResult run() {
 //< Closures not-yet
 
         vm.frameCount--;
-        if (vm.frameCount == 0) return INTERPRET_OK;
+        if (vm.frameCount == 0) {
+          pop();
+          return INTERPRET_OK;
+        }
 
         vm.stackTop = frame->slots;
         push(result);
