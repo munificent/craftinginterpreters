@@ -85,7 +85,7 @@ static Entry* findEntry(Entry* entries, int capacityMask,
 //< find-entry
 //> table-get
 bool tableGet(Table* table, ObjString* key, Value* value) {
-  if (table->entries == NULL) return false;
+  if (table->count == 0) return false;
 
 /* Hash Tables table-get < Optimization not-yet
   Entry* entry = findEntry(table->entries, table->capacity, key);
@@ -235,8 +235,7 @@ void tableAddAll(Table* from, Table* to) {
 //> table-find-string
 ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash) {
-  // If the table is empty, we definitely won't find it.
-  if (table->entries == NULL) return NULL;
+  if (table->count == 0) return NULL;
 
 /* Hash Tables table-find-string < Optimization not-yet
   uint32_t index = hash % table->capacity;
@@ -258,7 +257,6 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
       return entry->key;
     }
 
-    // Try the next slot.
 /* Hash Tables table-find-string < Optimization not-yet
     index = (index + 1) % table->capacity;
 */
