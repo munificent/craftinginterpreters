@@ -390,12 +390,12 @@ latter.
 There are two new functions here for working with variables and identifiers. The
 first one is:
 
-^code parse-variable
+^code parse-variable (2 before)
 
 It requires the next token to be an identifier token, which it consumes and
 sends to:
 
-^code identifier-constant
+^code identifier-constant (2 before)
 
 This function takes the given token and adds its lexeme to the chunk's constant
 table as a string. It then returns the index of that constant in the constant
