@@ -1002,54 +1002,14 @@ code like we want. The end result looks like this:
 <img src="image/functions/closure.png" alt="The environment chain with the closure." />
 
 Now, as you can see, the interpreter can still find `i` when it needs to because
-it's in the middle of the environment chain.
+it's in the middle of the environment chain. Try running that `makeCounter()`
+example now. It works!
 
-Try running that `makeCounter()` example now. It works! We have made Lox
-dramatically more powerful. Functions let us abstract over, reuse, and compose
-code. But, in addition, with closures, we can abstract and compose <span
-name="poor">*data*</span>.
-
-This may be surprising, but you can use a closure to represent arbitrary data
-structures (though the resulting code does look kind of funny). Since a closure
-contains an environment -- a Java Map in our implementation -- it *is* a data
-structure.
-
-<aside name="poor">
-
-One of my favorite nuggets of programming language lore is [this delightful
-koan][koan] from Anton van Straaten that perfectly sums up the eternal debate
-between object-oriented and functional programmers about whose model is most
-fundamental.
-
-[koan]: http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html
-
-</aside>
-
-Of course, we will add more natural support for first-class data structures when
-we add classes. But even now, it's possible to define a function that works
-like an object. Cogitate on this:
-
-```lox
-fun makePoint(x, y) {
-  fun closure(method) {
-    if (method == "x") return x;
-    if (method == "y") return y;
-    print "unknown method " + method;
-  }
-
-  return closure;
-}
-
-var point = makePoint(2, 3);
-print point("x"); // "2".
-print point("y"); // "3".
-```
-
-We have crossed a real threshold today. Lox is much more powerful than the
-rudimentary arithmetic calculator it used to be. Alas, in our rush to cram
-closures in, we have let a tiny bit of dynamic scoping leak into the
-interpreter. In the next chapter, we will explore more deeply into lexical scope
-and close that hole.
+Functions let us abstract over, reuse, and compose code. Lox is much more
+powerful than the rudimentary arithmetic calculator it used to be. Alas, in our
+rush to cram closures in, we have let a tiny bit of dynamic scoping leak into
+the interpreter. In the next chapter, we will explore more deeply into lexical
+scope and close that hole.
 
 <div class="challenges">
 
