@@ -127,7 +127,7 @@ Next, we need blobs of code to implement the evaluation logic for each kind of
 expression we can parse. We could stuff those into the syntax tree classes
 directly in something like an `interpret()` method. In effect, we could tell
 each syntax tree node, "Interpret thyself." This is the Gang of Four's
-[Interpreter design pattern][]". It's a neat pattern, but like I mentioned
+[Interpreter design pattern][]. It's a neat pattern, but like I mentioned
 earlier, it gets messy if we jam all sorts of logic into the tree classes.
 
 [interpreter design pattern]: https://en.wikipedia.org/wiki/Interpreter_pattern

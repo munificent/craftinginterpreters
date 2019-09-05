@@ -50,11 +50,12 @@ BEGIN_CHAPTER_PATTERN = re.compile(r'//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 
 # Hacky regexes that matches a function, method or constructor declaration.
-FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
+FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
+MODULE_PATTERN = re.compile(r'^(\w+) (\w+);')
+STRUCT_PATTERN = re.compile(r'struct (s\w+)? {')
 TYPE_PATTERN = re.compile(r'(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)')
 TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union)( \w+)? {')
-STRUCT_PATTERN = re.compile(r'struct (s\w+)? {')
 TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
 
 # Reserved words that can appear like a return type in a function declaration
@@ -514,6 +515,11 @@ def load_file(source_code, source_dir, path):
         # We don't know the name of the typedef.
         current_location = Location(current_location, match.group(1), '???')
 
+      match = MODULE_PATTERN.match(line)
+      if match:
+        current_location = Location(current_location, 'variable',
+                                    match.group(1))
+
       match = BLOCK_PATTERN.match(line)
       if match:
         push(match.group(1), match.group(2), match.group(3), match.group(4))
@@ -602,6 +608,10 @@ def load_file(source_code, source_dir, path):
       # If we reached a function declaration, not a definition, then it's done
       # after one line.
       if is_function_declaration:
+        current_location = current_location.parent
+
+      # Module variables are only a single line.
+      if current_location.kind == 'variable':
         current_location = current_location.parent
 
       # Hack. There is a one-line class in Parser.java.

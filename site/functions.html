@@ -579,7 +579,7 @@ seconds.</p>
 <p>In Lox, functions and variables occupy the same namespace. In Common Lisp, the
 two live in their own worlds. A function and variable with the same name don&rsquo;t
 collide. If you call the name, it looks up the function. If you refer to it, it
-looks up the variable. This does requires jumping through some hoops when you do
+looks up the variable. This does require jumping through some hoops when you do
 want to refer to a function as a first-class value.</p>
 <p>Richard P. Gabriel and Kent Pitman coined the terms &ldquo;Lisp-1&rdquo; to refer to
 languages like Scheme that put functions and variables in the same namespace and
@@ -690,8 +690,8 @@ in <em>function</em>()</div>
     <span class="n">List</span><span class="o">&lt;</span><span class="n">Token</span><span class="o">&gt;</span> <span class="n">parameters</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>                       
     <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                                        
       <span class="k">do</span> <span class="o">{</span>                                                            
-        <span class="k">if</span> <span class="o">(</span><span class="n">parameters</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="mi">8</span><span class="o">)</span> <span class="o">{</span>                                 
-          <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Cannot have more than 8 parameters.&quot;</span><span class="o">);</span>       
+        <span class="k">if</span> <span class="o">(</span><span class="n">parameters</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="mi">255</span><span class="o">)</span> <span class="o">{</span>                               
+          <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Cannot have more than 255 parameters.&quot;</span><span class="o">);</span>     
         <span class="o">}</span>
 
         <span class="n">parameters</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect parameter name.&quot;</span><span class="o">));</span>
@@ -1243,45 +1243,13 @@ scope. The runtime environment chain matches the textual nesting of the source
 code like we want. The end result looks like this:</p>
 <p><img src="image/functions/closure.png" alt="The environment chain with the closure." /></p>
 <p>Now, as you can see, the interpreter can still find <code>i</code> when it needs to because
-it&rsquo;s in the middle of the environment chain.</p>
-<p>Try running that <code>makeCounter()</code> example now. It works! We have made Lox
-dramatically more powerful. Functions let us abstract over, reuse, and compose
-code. But, in addition, with closures, we can abstract and compose <span
-name="poor"><em>data</em></span>.</p>
-<p>This may be surprising, but you can use a closure to represent arbitrary data
-structures (though the resulting code does look kind of funny). Since a closure
-contains an environment<span class="em">&mdash;</span>a Java Map in our implementation<span class="em">&mdash;</span>it <em>is</em> a data
-structure.</p>
-<aside name="poor">
-<p>One of my favorite nuggets of programming language lore is <a href="http://people.csail.mit.edu/gregs/ll1-discuss-archive-html/msg03277.html">this delightful
-koan</a> from Anton van Straaten that perfectly sums up the eternal debate
-between object-oriented and functional programmers about whose model is most
-fundamental.</p>
-</aside>
-<p>Of course, we will add more natural support for first-class data structures when
-we add classes. But even now, it&rsquo;s possible to define a function that works
-like an object. Cogitate on this:</p>
-<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">makePoint</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">fun</span> <span class="n">closure</span><span class="p">(</span><span class="n">method</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">method</span> <span class="o">==</span> <span class="s">&quot;x&quot;</span><span class="p">)</span> <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">method</span> <span class="o">==</span> <span class="s">&quot;y&quot;</span><span class="p">)</span> <span class="k">return</span> <span class="n">y</span><span class="p">;</span>
-    <span class="k">print</span> <span class="s">&quot;unknown method &quot;</span> <span class="o">+</span> <span class="n">method</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="k">return</span> <span class="n">closure</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="k">var</span> <span class="n">point</span> <span class="o">=</span> <span class="n">makePoint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
-<span class="k">print</span> <span class="n">point</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">);</span> <span class="c1">// &quot;2&quot;.</span>
-<span class="k">print</span> <span class="n">point</span><span class="p">(</span><span class="s">&quot;y&quot;</span><span class="p">);</span> <span class="c1">// &quot;3&quot;.</span>
-</pre></div>
-
-
-<p>We have crossed a real threshold today. Lox is much more powerful than the
-rudimentary arithmetic calculator it used to be. Alas, in our rush to cram
-closures in, we have let a tiny bit of dynamic scoping leak into the
-interpreter. In the next chapter, we will explore more deeply into lexical scope
-and close that hole.</p>
+it&rsquo;s in the middle of the environment chain. Try running that <code>makeCounter()</code>
+example now. It works!</p>
+<p>Functions let us abstract over, reuse, and compose code. Lox is much more
+powerful than the rudimentary arithmetic calculator it used to be. Alas, in our
+rush to cram closures in, we have let a tiny bit of dynamic scoping leak into
+the interpreter. In the next chapter, we will explore more deeply into lexical
+scope and close that hole.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 

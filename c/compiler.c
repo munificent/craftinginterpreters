@@ -1050,20 +1050,20 @@ static void block() {
 static void function(FunctionType type) {
   Compiler compiler;
   initCompiler(&compiler, type);
-  beginScope();
+  beginScope(); // [no-end-scope]
 
   // Compile the parameter list.
   consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
 //> parameters
   if (!check(TOKEN_RIGHT_PAREN)) {
     do {
+      current->function->arity++;
+      if (current->function->arity > 255) {
+        errorAtCurrent("Cannot have more than 255 parameters.");
+      }
+      
       uint8_t paramConstant = parseVariable("Expect parameter name.");
       defineVariable(paramConstant);
-
-      current->function->arity++;
-      if (current->function->arity > 8) {
-        error("Cannot have more than 8 parameters.");
-      }
     } while (match(TOKEN_COMMA));
   }
 //< parameters

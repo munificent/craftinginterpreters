@@ -907,7 +907,7 @@ bad:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>findEntry</em>()</div>
 <pre><span></span><span class="kt">bool</span> <span class="nf">tableGet</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="p">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>      
-  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
 
   <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="n">findEntry</span><span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="p">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">,</span> <span class="n">key</span><span class="p">);</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>                          
@@ -919,12 +919,14 @@ add after <em>findEntry</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>findEntry</em>()</div>
 
-<p>Obviously, if the table doesn&rsquo;t even have a bucket array, we definitely won&rsquo;t
-find the entry, so we check for that first. Otherwise, we let <code>findEntry()</code>
-work its magic. That returns a pointer to a bucket. If the bucket is empty<span class="em">&mdash;</span>which we detect by seeing if the key is <code>NULL</code><span class="em">&mdash;</span>then it didn&rsquo;t find an entry
-with our key. If it does return a non-empty entry, then that&rsquo;s our match. We
-take its value and copy it to the output parameter so the caller can get it.
-Piece of cake.</p>
+<p>If the table is completely, we definitely won&rsquo;t find the entry, so we check for
+that first. This isn&rsquo;t just an optimization<span class="em">&mdash;</span>it also ensures that we don&rsquo;t try
+to access the bucket array when the array is <code>NULL</code>. Otherwise, we let
+<code>findEntry()</code> work its magic. That returns a pointer to a bucket. If the bucket
+is empty, which we detect by seeing if the key is <code>NULL</code>, then we didn&rsquo;t find an
+entry with our key. If <code>findEntry()</code> does return a non-empty entry, then that&rsquo;s
+our match. We take the entry&rsquo;s value and copy it to the output parameter so the
+caller can get it. Piece of cake.</p>
 <h3><a href="#deleting-entries" name="deleting-entries"><small>20&#8202;.&#8202;4&#8202;.&#8202;5</small> Deleting entries</a></h3>
 <p>There is one more fundamental operation a full-featured hash table needs to
 support: removing an entry. This seems pretty obvious, if you can add things,
@@ -1299,8 +1301,7 @@ add after <em>tableAddAll</em>()</div>
 add after <em>tableAddAll</em>()</div>
 <pre><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
                            <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">)</span> <span class="p">{</span>                            
-  <span class="c1">// If the table is empty, we definitely won&#39;t find it.               </span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
 
   <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">hash</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                             
 
@@ -1317,7 +1318,6 @@ add after <em>tableAddAll</em>()</div>
       <span class="k">return</span> <span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">;</span>                                               
     <span class="p">}</span>                                                                  
 
-    <span class="c1">// Try the next slot.                                              </span>
     <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="p">;</span>                             
   <span class="p">}</span>                                                                    
 <span class="p">}</span>                                                                      
@@ -1326,8 +1326,8 @@ add after <em>tableAddAll</em>()</div>
 <div class="source-file-narrow"><em>table.c</em>, add after <em>tableAddAll</em>()</div>
 
 <p>It looks like we copy-pasted <code>findEntry()</code>. There is a lot of redundancy, but
-there&rsquo;s a couple of key differences. First, we pass in the raw character array
-of the key we&rsquo;re looking for instead of an ObjString. At the point that we call
+also a couple of key differences. First, we pass in the raw character array of
+the key we&rsquo;re looking for instead of an ObjString. At the point that we call
 this, we haven&rsquo;t created an ObjString yet.</p>
 <p>Second, when checking to see if we found the key, we look at the actual strings.
 First, we see if they have the same hash. That&rsquo;s quick to check and if the

@@ -279,14 +279,14 @@ choice not to evaluate it becomes user-visible.
 Since we don't have the conditional operator, you might think we're done with
 branching, but no. Even without the ternary operator, there are two other
 operators that are technically control flow constructs -- the logical operators
-and (`&&`) and or (`||`).
+`and` and `or`.
 
 These aren't like other binary operators because they **short-circuit**. If,
 after evaluating the left operand, we know what the result of the logical
 expression must be, we don't evaluate the right operand. For example:
 
 ```lox
-false && sideEffect();
+false and sideEffect();
 ```
 
 For an and expression to evaluate to something truthy, both operands must be
@@ -296,10 +296,9 @@ it gets skipped.
 
 This is why we didn't implement the logical operators with the other binary
 operators. Now we're ready. The two new operators are low in the precedence
-table. As in C, they each have their <span name="logical">own</span> precedence
-with `||` lower than `&&`. We slot them right between `assignment` and
-`equality`:
-
+table. Similar to `||` and `&&` in C, they each have their <span
+name="logical">own</span> precedence with `or` lower than `and`. We slot them
+right between `assignment` and `equality`:
 
 <aside name="logical">
 

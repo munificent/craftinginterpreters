@@ -14,12 +14,6 @@
 #define DEBUG_PRINT_CODE
 //< Compiling Expressions define-debug-print-code
 #define DEBUG_TRACE_EXECUTION
-//> omit
-// In the book, we show them defined, but for working on them locally,
-// we don't want them to be.
-#undef DEBUG_PRINT_CODE
-#undef DEBUG_TRACE_EXECUTION
-//< omit
 //< A Virtual Machine define-debug-trace
 //> Garbage Collection not-yet
 
@@ -32,3 +26,9 @@
 //< Local Variables uint8-count
 
 #endif
+//> omit
+// In the book, we show them defined, but for working on them locally,
+// we don't want them to be.
+#undef DEBUG_PRINT_CODE
+//#undef DEBUG_TRACE_EXECUTION
+//< omit
