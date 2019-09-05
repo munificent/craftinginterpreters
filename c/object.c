@@ -227,12 +227,12 @@ void printObject(Value value) {
 //< Closures print-closure
 //> Calls and Functions print-function
     case OBJ_FUNCTION:
-//> omit
+//> print-script
       if (AS_FUNCTION(value)->name == NULL) {
         printf("<script>");
         break;
       }
-//< omit
+//< print-script
       printf("<fn %s>", AS_FUNCTION(value)->name->chars);
       break;
 //< Calls and Functions print-function

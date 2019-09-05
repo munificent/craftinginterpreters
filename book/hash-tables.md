@@ -709,13 +709,14 @@ bad:
 
 ^code table-get
 
-Obviously, if the table doesn't even have a bucket array, we definitely won't
-find the entry, so we check for that first. Otherwise, we let `findEntry()`
-work its magic. That returns a pointer to a bucket. If the bucket is empty --
-which we detect by seeing if the key is `NULL` -- then it didn't find an entry
-with our key. If it does return a non-empty entry, then that's our match. We
-take its value and copy it to the output parameter so the caller can get it.
-Piece of cake.
+If the table is completely, we definitely won't find the entry, so we check for
+that first. This isn't just an optimization -- it also ensures that we don't try
+to access the bucket array when the array is `NULL`. Otherwise, we let
+`findEntry()` work its magic. That returns a pointer to a bucket. If the bucket
+is empty, which we detect by seeing if the key is `NULL`, then we didn't find an
+entry with our key. If `findEntry()` does return a non-empty entry, then that's
+our match. We take the entry's value and copy it to the output parameter so the
+caller can get it. Piece of cake.
 
 ### Deleting entries
 
@@ -1017,8 +1018,8 @@ The implementation looks like this:
 ^code table-find-string
 
 It looks like we copy-pasted `findEntry()`. There is a lot of redundancy, but
-there's a couple of key differences. First, we pass in the raw character array
-of the key we're looking for instead of an ObjString. At the point that we call
+also a couple of key differences. First, we pass in the raw character array of
+the key we're looking for instead of an ObjString. At the point that we call
 this, we haven't created an ObjString yet.
 
 Second, when checking to see if we found the key, we look at the actual strings.

@@ -608,9 +608,10 @@ latter.</p>
 </aside>
 <p>There are two new functions here for working with variables and identifiers. The
 first one is:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">);</span>     
+<br></pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>parsePrecedence</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">parseVariable</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">errorMessage</span><span class="p">)</span> <span class="p">{</span>
+<pre class="insert"><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">parseVariable</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">errorMessage</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="p">,</span> <span class="n">errorMessage</span><span class="p">);</span>              
   <span class="k">return</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">);</span>          
 <span class="p">}</span>                                                       
@@ -620,9 +621,10 @@ add after <em>parsePrecedence</em>()</div>
 
 <p>It requires the next token to be an identifier token, which it consumes and
 sends to:</p>
-<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">);</span>                   
+<br></pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>parsePrecedence</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">identifierConstant</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>                      
+<pre class="insert"><span></span><span class="k">static</span> <span class="kt">uint8_t</span> <span class="nf">identifierConstant</span><span class="p">(</span><span class="n">Token</span><span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>                      
   <span class="k">return</span> <span class="n">makeConstant</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">copyString</span><span class="p">(</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">start</span><span class="p">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">length</span><span class="p">)));</span>
 <span class="p">}</span>                                                                     
 </pre></div>
@@ -686,8 +688,8 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>We get the name of the variable from the constant table. Then we <span
-name="pop">take</span> the value from top of the stack and store it in a hash
-table with that name as the key.</p>
+name="pop">take</span> the value from the top of the stack and store it in a
+hash table with that name as the key.</p>
 <aside name="pop">
 <p>Note that we don&rsquo;t <em>pop</em> the value until <em>after</em> we add it to the hash table.
 That ensures the VM can still find the value if a garbage collection is
@@ -985,7 +987,7 @@ parsed roughly like:</p>
 <p>Obviously, <code>a * b</code> isn&rsquo;t a <span name="do">valid</span> assignment target, so
 this should be a syntax error. But here&rsquo;s what our parser does:</p>
 <aside name="do">
-<p>Wouldn&rsquo;t it be wild if <code>a * b</code> <em>was</em> as valid assignment target, though? You
+<p>Wouldn&rsquo;t it be wild if <code>a * b</code> <em>was</em> a valid assignment target, though? You
 could imagine some algebra-like language that tried to divide the assigned value
 up in some reasonable way and distribute it to <code>a</code> and <code>b</code>. &hellip;That&rsquo;s probably
 a terrible idea.</p>

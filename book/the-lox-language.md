@@ -151,7 +151,7 @@ retain calls if you squint.
 
 For lots more on this, see "[A Unified Theory of Garbage Collection][gc]" (PDF).
 
-[gc]: http://www.cs.virginia.edu/~cs415/reading/bacon-garbage.pdf
+[gc]: https://researcher.watson.ibm.com/researcher/files/us-bacon/Bacon04Unified.pdf
 
 </aside>
 
@@ -663,8 +663,10 @@ doesn't happen to close over any variables.
 <aside name="closure">
 
 Peter J. Landin coined the term. Yes, he coined damn near half the terms in
-programming languages. Most of them came out of one incredible paper, "The Next
-700 Programming Languages".
+programming languages. Most of them came out of one incredible paper, "[The Next
+700 Programming Languages][svh]".
+
+[svh]: https://homepages.inf.ed.ac.uk/wadler/papers/papers-we-love/landin-next-700.pdf
 
 In order to implement these kind of functions, you need to create a data
 structure that bundles together the function's code, and the surrounding

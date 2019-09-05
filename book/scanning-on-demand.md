@@ -110,7 +110,7 @@ This isn't really a book on good C programming practice, but I hate to encourage
 bad style, so let's go ahead and handle the errors. It's good for us, like
 eating our vegetables or flossing.
 
-Fortunately, we don't need to do anything particulary clever if a failure
+Fortunately, we don't need to do anything particularly clever if a failure
 occurs. If we can't correctly read the user's script, all we can really do is
 tell the user and exit the interpreter gracefully. First up, we might fail to
 open the file:
@@ -211,7 +211,7 @@ after that.
 
 Since we have some state, we should initialize it:
 
-^code init-scanner (1 before)
+^code init-scanner
 
 We start at the very first character on the very first line, like a runner
 crouched and ready to run.

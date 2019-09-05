@@ -27,13 +27,11 @@
 
 VM vm; // [one]
 //> Calls and Functions clock-native
-
 static Value clockNative(int argCount, Value* args) {
   return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 //< Calls and Functions clock-native
 //> reset-stack
-
 static void resetStack() {
   vm.stackTop = vm.stack;
 //> Calls and Functions reset-frame-count
@@ -52,10 +50,17 @@ static void runtimeError(const char* format, ...) {
   va_end(args);
   fputs("\n", stderr);
 
-/* Types of Values runtime-error < Calls and Functions runtime-error-stack
+/* Types of Values runtime-error < Calls and Functions runtime-error-temp
   size_t instruction = vm.ip - vm.chunk->code;
-  fprintf(stderr, "[line %d] in script\n",
-          vm.chunk->lines[instruction]);
+  int line = vm.chunk->lines[instruction];
+*/
+/* Calls and Functions runtime-error-temp < Calls and Functions runtime-error-stack
+  CallFrame* frame = &vm.frames[vm.frameCount - 1];
+  size_t instruction = frame->ip - frame->function->chunk.code;
+  int line = frame->function->chunk.lines[instruction];
+*/
+/* Types of Values runtime-error < Calls and Functions runtime-error-stack
+  fprintf(stderr, "[line %d] in script\n", line);
 */
 //> Calls and Functions runtime-error-stack
   for (int i = vm.frameCount - 1; i >= 0; i--) {
@@ -239,7 +244,7 @@ static bool callValue(Value callee, int argCount) {
 
 //< Closures call-value-closure
 /* Calls and Functions call-value < Closures call-value-closure
-      case OBJ_FUNCTION:
+      case OBJ_FUNCTION: // [switch]
         return call(AS_FUNCTION(callee), argCount);
 
 */
@@ -253,7 +258,7 @@ static bool callValue(Value callee, int argCount) {
       }
 //< call-native
 
-      default: // [switch]
+      default:
         // Non-callable object type.
         break;
     }
@@ -816,7 +821,10 @@ static InterpretResult run() {
 //< Closures return-close-upvalues
 
         vm.frameCount--;
-        if (vm.frameCount == 0) return INTERPRET_OK;
+        if (vm.frameCount == 0) {
+          pop();
+          return INTERPRET_OK;
+        }
 
         vm.stackTop = frame->slots;
         push(result);
@@ -870,6 +878,14 @@ static InterpretResult run() {
 //< undef-binary-op
 }
 //< run
+//> omit
+void hack(bool b) {
+  // Hack to avoid unused function error. run() is not used in the
+  // scanning chapter.
+  run();
+  if (b) hack(false);
+}
+//< omit
 //> interpret
 /* A Virtual Machine interpret < Scanning on Demand vm-interpret-c
 InterpretResult interpret(Chunk* chunk) {
@@ -879,11 +895,6 @@ InterpretResult interpret(Chunk* chunk) {
 */
 //> Scanning on Demand vm-interpret-c
 InterpretResult interpret(const char* source) {
-/* Scanning on Demand omit < Compiling Expressions interpret-chunk
-  // Hack to avoid unused function error. run() is not used in the
-  // scanning chapter.
-  if (false) run();
-*/
 /* Scanning on Demand vm-interpret-c < Compiling Expressions interpret-chunk
   compile(source);
   return INTERPRET_OK;

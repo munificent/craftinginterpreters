@@ -200,7 +200,7 @@ add after struct <em>Value</em></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>It extracts the Obj pointer from the value. We can also go the other direction:</p>
+<p>It extracts the Obj pointer from the value. We can also go the other way:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(value) ((Value){ VAL_NUMBER, { .number = value } }) </span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })</span>
@@ -764,6 +764,17 @@ string.</p>
 the heap. Making another copy of that would be redundant (and would mean
 <code>concatenate()</code> has to remember to free its copy). Instead, this function claims
 ownership of the string you give it.</p>
+<p>As usual, stitching this function functionality together requires a couple of
+includes:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot; </span><span class="cp"></span>
+</pre><div class="source-file"><em>vm.c</em></div>
+<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;</span><span class="cp"></span>
+</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;    </span><span class="cp"></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em></div>
+
 <h2><a href="#freeing-objects" name="freeing-objects"><small>19&#8202;.&#8202;5</small> Freeing Objects</a></h2>
 <p>Behold this innocuous-seeming expression:</p>
 <div class="codehilite"><pre><span></span><span class="s">&quot;st&quot;</span> <span class="o">+</span> <span class="s">&quot;ri&quot;</span> <span class="o">+</span> <span class="s">&quot;ng&quot;</span>
@@ -910,17 +921,6 @@ add after <em>reallocate</em>()</div>
 
 <div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
 
-<p>Before we get to the definition of that, there are a couple of includes we need
-in the &ldquo;vm&rdquo; module:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&quot;debug.h&quot; </span><span class="cp"></span>
-</pre><div class="source-file"><em>vm.c</em></div>
-<pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&quot;memory.h&quot;</span><span class="cp"></span>
-</pre><pre class="insert-after"><span></span><span class="cp">#include</span> <span class="cpf">&quot;vm.h&quot;    </span><span class="cp"></span>
-</pre></div>
-
-<div class="source-file-narrow"><em>vm.c</em></div>
-
 <p>Here&rsquo;s how we free the objects:</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>reallocate</em>()</div>
@@ -975,7 +975,7 @@ and then free the ObjString. Those both use one last memory management macro:</p
 used. If all allocation and freeing goes through <code>reallocate()</code>, it&rsquo;s easy to
 keep a running count of the number of bytes of allocated memory.</p>
 </aside>
-<p>As usual, we need a couple of includes to wire everything together:</p>
+<p>As usual, we need an include to wire everything together:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define clox_memory_h                                 </span>
 <br></pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><span></span><span class="cp">#include</span> <span class="cpf">&quot;object.h&quot;                                   </span><span class="cp"></span>

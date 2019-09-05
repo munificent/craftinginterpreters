@@ -315,14 +315,14 @@ My enduring love of Depeche Mode notwithstanding.
 
 ## Logical Operators
 
-You probably remember this from jlox, but the logical operators `&&` and `||`
+You probably remember this from jlox, but the logical operators `and` and `or`
 aren't just another pair of binary operators like `+` and `-`. Because they
 short-circuit and may not evaluate their right operand depending on the value of
 the left one, they work more like control flow expressions.
 
 They're basically a little variation on an if statement with an else clause. The
 easiest way to explain them is to just show you the compiler code and the
-control flow it produces in the resulting bytecode. Starting with `&&`, we hook
+control flow it produces in the resulting bytecode. Starting with `and`, we hook
 it into the expression parsing table here:
 
 ^code table-and (1 before, 1 after)
@@ -333,18 +333,18 @@ That hands off to:
 
 At the point this is called, the left-hand side expression has already been
 compiled. That means at runtime, its value will be on top of the stack. If that
-value is falsey, then we know the entire `&&` must be false, so we skip the
+value is falsey, then we know the entire `and` must be false, so we skip the
 right operand and leave the left-hand side value as the result of the entire
-expression. Otherwise, we discard the left-hand value and the result of the `&&`
-expression is the result of evaluating the right operand.
+expression. Otherwise, we discard the left-hand value and the result of the
+`and` expression is the result of evaluating the right operand.
 
 Those four lines of code right there produce exactly that. The flow looks like
 this:
 
-<img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an '&&' expression." />
+<img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an 'and' expression." />
 
 Now you can see why `OP_JUMP_IF_FALSE` <span name="instr">leaves</span> the
-value on top of the stack. When the left-hand side of the `&&` is falsey, that
+value on top of the stack. When the left-hand side of the `and` is falsey, that
 value sticks around to become the result of the entire expression.
 
 <aside name="instr">
@@ -359,7 +359,7 @@ affect performance.
 
 ### Logical or operator
 
-The `||` operator is a little more complex. First we add it to the parse table:
+The `or` operator is a little more complex. First we add it to the parse table:
 
 ^code table-or (1 before, 1 after)
 
@@ -367,7 +367,7 @@ Which calls:
 
 ^code or
 
-In an `||` expression, if the left-hand side is *truthy*, then we skip over the
+In an `or` expression, if the left-hand side is *truthy*, then we skip over the
 right operand. Thus we need to jump when a value is truthy. We could add a
 separate instruction, but just to show how our compiler is free to map the
 language's semantics to whatever instruction sequence it wants, I implemented it
@@ -381,8 +381,8 @@ looks like this:
 <img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of a logical or expression." />
 
 If I'm honest with you, this isn't the best way to do this. There are more
-instructions to dispatch and more overhead. There's no good reason why `||`
-should be slower than `&&`. But it is kind of fun to see that it's possible to
+instructions to dispatch and more overhead. There's no good reason why `or`
+should be slower than `and`. But it is kind of fun to see that it's possible to
 implement both operators without adding any new instructions. Forgive me my
 indulgences.
 
@@ -690,7 +690,7 @@ don't think most programmers around today have seen that first hand. It's been a
 long time since that style was common. These days, it's a boogie man we invoke
 in scary stories around the campfire.
 
-The reason we rarely confront that monster in person is because Edsger Dijktra
+The reason we rarely confront that monster in person is because Edsger Dijkstra
 slayed it with his famous letter "Goto Considered Harmful", published in
 *Communications of the ACM*. Debate around structured programming had been
 fierce for some time with adherents on both sides, but I think Dijkstra deserves
@@ -732,7 +732,7 @@ I'm with him. His general argument is something like this:
     textual structure, the better.
 
 This is a good start. Drawing our attention to the separation between the code
-we write and the code as its runs inside the machine is an interesting insight.
+we write and the code as it runs inside the machine is an interesting insight.
 Then he tries to define a "correspondence" between program text and execution.
 For someone who spent literally his entire career advocating greater rigor in
 programming, his definition is pretty hand-wavey. He says:
@@ -867,7 +867,7 @@ done:
 <aside name="break">
 
 You could do this without `break` statements -- themselves a limited goto-ish
-construct -- by inserting `!found &&` at the beginning of the condition clause
+construct -- by inserting `!found and` at the beginning of the condition clause
 of each loop.
 
 </aside>

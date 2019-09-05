@@ -18,13 +18,7 @@ import markdown
 
 import book
 import code_snippets
-
-GRAY = '\033[1;30m'
-GREEN = '\033[32m'
-RED = '\033[31m'
-DEFAULT = '\033[0m'
-PINK = '\033[91m'
-YELLOW = '\033[33m'
+import term
 
 CODE_OPTIONS_PATTERN = re.compile(r'([-a-z0-9]+) \(([^)]+)\)')
 BEFORE_PATTERN = re.compile(r'(\d+) before')
@@ -440,24 +434,23 @@ def format_file(path, skip_up_to_date, dependencies_mod):
     num_chapters += 1
     if word_count < 50:
       empty_chapters += 1
-      print("    {}{}{}{}".format(GRAY, num, title, DEFAULT))
-    elif word_count < 2000:
+      print("    " + term.gray("{}{}".format(num, title)))
+    elif part != "Backmatter" and word_count < 2000:
       empty_chapters += 1
-      print("  {}-{} {}{} ({} words)".format(
-        YELLOW, DEFAULT, num, title, word_count))
+      print("  {} {}{} ({} words)".format(
+          term.yellow("-"), num, title, word_count))
     else:
       total_words += word_count
-      print("  {}✓{} {}{} ({} words)".format(
-        GREEN, DEFAULT, num, title, word_count))
+      print("  {} {}{} ({} words)".format(
+          term.green("✓"), num, title, word_count))
   elif title in ["Crafting Interpreters", "Table of Contents"]:
-    print("{}•{} {}{}".format(
-      GREEN, DEFAULT, num, title))
+    print("{} {}{}".format(term.green("•"), num, title))
   else:
     if word_count < 50:
-      print("  {}{}{}{}".format(GRAY, num, title, DEFAULT))
+      print("    " + term.gray("{}{}".format(num, title)))
     else:
-      print("{}✓{} {}{} ({} words)".format(
-        GREEN, DEFAULT, num, title, word_count))
+      print("{} {}{} ({} words)".format(
+          term.green("✓"), num, title, word_count))
 
 
 def latest_mod(glob_pattern):
@@ -518,7 +511,7 @@ def build_sass(skip_up_to_date):
         continue
 
     subprocess.call(['sass', source, dest])
-    print("{}•{} {}".format(GREEN, DEFAULT, source))
+    print("{} {}".format(term.green("•"), source))
 
 
 def run_server():

@@ -13,7 +13,6 @@ typedef struct {
 
 Scanner scanner;
 //> init-scanner
-
 void initScanner(const char* source) {
   scanner.start = source;
   scanner.current = source;
