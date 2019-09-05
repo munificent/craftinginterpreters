@@ -411,7 +411,7 @@ seconds.
 In Lox, functions and variables occupy the same namespace. In Common Lisp, the
 two live in their own worlds. A function and variable with the same name don't
 collide. If you call the name, it looks up the function. If you refer to it, it
-looks up the variable. This does requires jumping through some hoops when you do
+looks up the variable. This does require jumping through some hoops when you do
 want to refer to a function as a first-class value.
 
 Richard P. Gabriel and Kent Pitman coined the terms "Lisp-1" to refer to

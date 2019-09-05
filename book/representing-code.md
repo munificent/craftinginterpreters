@@ -306,7 +306,7 @@ pack an infinite number of strings into a finite grammar.
 ### Enhancing our notation
 
 Stuffing an infinite set of strings in a handful of rules is pretty fantastic,
-but let's take it farther. Our notation works, but it's a little tedious. So,
+but let's take it further. Our notation works, but it's a little tedious. So,
 like any good language designer, we'll sprinkle some syntactic sugar on top. In
 addition to terminals and nonterminals, we'll allow a few other kinds of
 expressions in the body of a rule:
