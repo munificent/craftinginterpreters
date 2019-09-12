@@ -1083,8 +1083,6 @@ static void function(FunctionType type) {
 //< Closures emit-closure
 //> Closures capture-upvalues
 
-  // Emit arguments for each upvalue to know whether to capture a local
-  // or an upvalue.
   for (int i = 0; i < function->upvalueCount; i++) {
     emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(compiler.upvalues[i].index);
