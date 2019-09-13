@@ -250,15 +250,27 @@ chunk, so we call Chunk&rsquo;s destructor-like function.</p>
 That means we can let the garbage collector manage its lifetime for us. Or, at
 least, we&rsquo;ll be able to once we <a href="garbage-collection.html">implement a garbage collector</a>.</p>
 </aside>
-<p>Over in the function to print objects, we also add a case. Since we have the
+<p>It&rsquo;s useful to be able to print function objects for debugging purposes, and to
+represent them in a way that is meaningful to the user. Since we have the
 function&rsquo;s name, we may as well use it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                             
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>copyString</em>()</div>
+<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">printFunction</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+<span class="p">}</span>                                          
+</pre><pre class="insert-after"><br><span></span><span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>            
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
+
+<p>Over in the function to print objects, we also add a case for function objects:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>            
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                   
-      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
-      <span class="k">break</span><span class="p">;</span>                                             
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                                     
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                  
+      <span class="n">printFunction</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+      <span class="k">break</span><span class="p">;</span>                            
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                    
 </pre></div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
@@ -270,17 +282,17 @@ note that there&rsquo;s no way for a user to get a reference to that function in
 first place. But our diagnostic code that prints the entire stack when
 <code>DEBUG_TRACE_EXECUTION</code> is defined <em>will</em> print it, and we don&rsquo;t want that to
 blow up. So:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                   
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">printFunction</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
 </pre><div class="source-file"><em>object.c</em><br>
-in <em>printObject</em>()</div>
-<pre class="insert"><span></span>      <span class="k">if</span> <span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>            
-        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>                              
-        <span class="k">break</span><span class="p">;</span>                                           
-      <span class="p">}</span>                                                  
-</pre><pre class="insert-after"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+in <em>printFunction</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>            
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>                    
+    <span class="k">return</span><span class="p">;</span>                                
+  <span class="p">}</span>                                        
+</pre><pre class="insert-after"><span></span>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
 </pre></div>
 
-<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
+<div class="source-file-narrow"><em>object.c</em>, in <em>printFunction</em>()</div>
 
 <p>Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually <em>is</em> a function:</p>
@@ -1778,14 +1790,14 @@ in <em>freeObject</em>()</div>
 
 <p>There isn&rsquo;t much here since ObjNative doesn&rsquo;t own any extra memory. The other
 capability all Lox objects support is being printed:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
-      <span class="k">break</span><span class="p">;</span>                                             
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">printFunction</span><span class="p">(</span><span class="n">AS_FUNCTION</span><span class="p">(</span><span class="n">value</span><span class="p">));</span>
+      <span class="k">break</span><span class="p">;</span>                            
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span>                                     
-      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;native fn&gt;&quot;</span><span class="p">);</span>                             
-      <span class="k">break</span><span class="p">;</span>                                             
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                                     
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_NATIVE</span><span class="p">:</span>                    
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;native fn&gt;&quot;</span><span class="p">);</span>            
+      <span class="k">break</span><span class="p">;</span>                            
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_STRING</span><span class="p">:</span>                    
 </pre></div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>

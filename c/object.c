@@ -198,6 +198,18 @@ ObjUpvalue* newUpvalue(Value* slot) {
 }
 //< Closures not-yet
 //> print-object
+//> Calls and Functions print-function-def
+void printFunction(ObjFunction* function) {
+//> print-script
+  if (function->name == NULL) {
+    printf("<script>");
+    return;
+  }
+//< print-script
+  printf("<fn %s>", function->name->chars);
+}
+//< Calls and Functions print-function-def
+
 void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
 //> Classes and Instances not-yet
@@ -207,29 +219,17 @@ void printObject(Value value) {
 //< Classes and Instances not-yet
 //> Methods and Initializers not-yet
     case OBJ_BOUND_METHOD:
-      printf("<fn %s>",
-             AS_BOUND_METHOD(value)->method->function->name->chars);
+      printFunction(AS_BOUND_METHOD(value)->method->function);
       break;
 //< Methods and Initializers not-yet
 //> Closures not-yet
     case OBJ_CLOSURE:
-// TODO: Omit this.
-//      if (AS_CLOSURE(value)->function->name == NULL) {
-//        printf("<script>");
-//        break;
-//      }
-      printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
+      printFunction(AS_CLOSURE(value)->function);
       break;
 //< Closures not-yet
 //> Calls and Functions print-function
     case OBJ_FUNCTION:
-//> print-script
-      if (AS_FUNCTION(value)->name == NULL) {
-        printf("<script>");
-        break;
-      }
-//< print-script
-      printf("<fn %s>", AS_FUNCTION(value)->name->chars);
+      printFunction(AS_FUNCTION(value));
       break;
 //< Calls and Functions print-function
 //> Classes and Instances not-yet
