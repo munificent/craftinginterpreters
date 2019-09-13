@@ -100,8 +100,13 @@ least, we'll be able to once we [implement a garbage collector][gc].
 
 </aside>
 
-Over in the function to print objects, we also add a case. Since we have the
+It's useful to be able to print function objects for debugging purposes, and to
+represent them in a way that is meaningful to the user. Since we have the
 function's name, we may as well use it:
+
+^code print-function-def (0 before, 2 after)
+
+Over in the function to print objects, we also add a case for function objects:
 
 ^code print-function (1 before, 1 after)
 
