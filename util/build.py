@@ -385,9 +385,11 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   contents = contents.replace('<div class="design-note">', '<div class="design-note" markdown="1">')
   body = markdown.markdown(contents, extensions=['extra', 'codehilite', 'smarty'])
 
-  # Turn aside markers in code into spans.
+  # Turn aside markers in code into spans. In the empty span case, insert a
+  # zero-width space because Chrome seems to lose the span's position if it has
+  # no content.
   # <span class="c1">// [repl]</span>
-  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"></span>', body)
+  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1">&#8203;</span>', body)
   body = ASIDE_WITH_COMMENT_PATTERN.sub(r'<span class="c1" name="\2">// \1</span>', body)
 
   up = 'Table of Contents'
