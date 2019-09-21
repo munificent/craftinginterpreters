@@ -30,5 +30,5 @@
 // In the book, we show them defined, but for working on them locally,
 // we don't want them to be.
 #undef DEBUG_PRINT_CODE
-//#undef DEBUG_TRACE_EXECUTION
+#undef DEBUG_TRACE_EXECUTION
 //< omit
