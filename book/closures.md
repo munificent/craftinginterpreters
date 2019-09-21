@@ -47,11 +47,19 @@ var closure = makeClosure();
 closure();
 ```
 
-The outer function `makeClosure()` declares a local variable. Then it creates an
-inner function, `closure()` that references that variable. `makeClosure()` then
-returns a reference to that function. Since the closure escapes while holding
-onto the local variable, `local` must outlive the function call where it was
-created.
+The outer function `makeClosure()` declares a local variable. Then it creates
+an inner function, `closure()` that references that variable. `makeClosure()`
+then returns a reference to that function. Since the closure <span
+name="flying">escapes</span> while holding onto the local variable, `local`
+must outlive the function call where it was created.
+
+<aside name="flying">
+
+<img src="image/closures/flying.png" class="above" alt="A local variable flying away from the stack."/>
+
+Oh no, it's escaping!
+
+</aside>
 
 We could solve this problem by heap allocating memory for all local variables.
 That's what jlox does by putting everything in those Environment objects that
@@ -152,6 +160,8 @@ gets overloaded to refer to [prototypal inheritance][].
 [prototypal inheritance]: https://en.wikipedia.org/wiki/Prototype-based_programming
 
 </aside>
+
+<img src="image/closures/obj-closure.png" alt="An ObjClosure with a reference to an ObjFunction."/>
 
 We'll wrap every function in an ObjClosure, even if the function doesn't
 actually close over and capture any surrounding local variables. This is a
@@ -357,8 +367,6 @@ closed-over variables were always on the stack. But as we saw earlier, these
 variables sometimes outlive the function where they are declared. That means
 they won't always be on the stack.
 
-**todo: illustrate relative offset idea**
-
 The next easiest approach then would be to take any local variable that gets
 closed over and have it always live on the heap. When the local variable
 declaration in the surrounding function is executed, the VM allocates memory for
@@ -378,8 +386,6 @@ fun outer() {
   inner();
 }
 ```
-
-**todo: turn into illustration and show generated code at each step?**
 
 Here, the compiler compiles the declaration of `x` at `(1)` and emits code for
 the assignment at `(2)`. It does that before reaching the declaration of
@@ -401,11 +407,24 @@ corresponding upvalue to reach it. When a function declaration is first executed
 and we create a closure for it, the VM creates the array of upvalues and wires
 them up to "capture" the surrounding local variables that the closure needs.
 
-**todo: illustrate**
+For example, if we throw this program at clox:
 
-As we'll see later, when the captured variable floats off the stack onto the
-heap, upvalues give us a point of indirection where we can keep track of it.
-But, for now, we'll focus on captured variables that are still on the stack.
+```lox
+{
+  var a = 3;
+  fun f() {
+    print a;
+  }
+}
+```
+
+The compiler and runtime will conspire together to build up a set of objects in
+memory like this:
+
+<img src="image/closures/open-upvalue.png" alt="The object graph of the stack, ObjClosure, ObjFunction, and upvalue array."/>
+
+That might look overwhelming, but fear not. We'll work our way up to it. First,
+we'll focus on compiling captured variables that are still on the stack.
 
 ### Compiling upvalues
 
@@ -587,7 +606,9 @@ fun outer() {
   return middle;
 }
 
-outer()()();
+var mid = outer()
+var in = mid()
+in();
 ```
 
 When you run this, it should print:
@@ -598,13 +619,14 @@ create inner closure
 value
 ```
 
-**todo: illustrate execution flow and stack**
+Here, I traced out the execution flow for you:
 
-I know, it's convoluted. It's worth tracing through the execution carefully to
-see exactly what order things happen in. The important part is that `outer()`
--- where `x` is declared -- returns and pops all of its variables off the stack
-before the *declaration* of `inner()` executes. So, at the point in time that
-we create the closure for `inner()`, `x` is already off the stack.
+<img src="image/closures/execution-flow.png" alt="Tracing through the previous example program."/>
+
+I know, it's convoluted. The important part is that `outer()` -- where `x` is
+declared -- returns and pops all of its variables off the stack before the
+*declaration* of `inner()` executes. So, at the point in time that we create the
+closure for `inner()`, `x` is already off the stack.
 
 We really have two problems:
 
@@ -632,7 +654,7 @@ though `middle()` itself doesn't reference `x`. Then, when the declaration of
 immediately surrounding function, which is guaranteed to still be around at the
 point that the inner function declaration executes.
 
-**todo: illustrate**
+<img src="image/closures/linked-upvalues.png" alt="An upvalue in inner() points to an unvalue in middle(), which points to a local variable in outer()."/>
 
 In order to implement this, `resolveUpvalue()` becomes recursive:
 
@@ -656,8 +678,6 @@ The other base case, of course, is if there is no enclosing function. In that
 case, the variable can't be resolved lexically and is treated as global.
 
 </aside>
-
-**todo: muddled. rewrite?**
 
 Otherwise, we look for a local variable beyond the immediately enclosing
 function. We do that by recursively calling `resolveUpvalue()` on the
@@ -684,21 +704,9 @@ will be for the *outermost* function where that variable is actually declared.
 
 </aside>
 
-It might help to walk through the original example:
+It might help to walk through the original example when resolving `x`:
 
-```lox
-resolveUpvalue(inner, x)
-  not local in enclosing (middle)
-  resolveUpvalue(middle, x)
-    find local in outer
-    add upvalue to middle to capture
-    return upvalue index
-  found upvalue in middle
-  add upvalue to inner to capture middle's upvalue
-  return upvalue index
-```
-
-**todo: turn into illustration**
+<img src="image/closures/recursion.png" alt="Tracing through a recursive call to resolveUpvalue()."/>
 
 Note that the new call to `addUpvalue()` passes `false` for the `isLocal`
 parameter. That flag controls whether the closure captures a local variable or
@@ -971,7 +979,7 @@ var closure = outer();
 closure();
 ```
 
-But if you run it right now... who knows what it does. At runtime, it will end
+But if you run it right now... who knows what it does? At runtime, it will end
 up reading from a stack slot that longer contains the closed-over variable. Like
 I've mention a few times, the crux of the issue is that variables in closures
 don't have stack semantics. That means we've got to hoist them off the stack
@@ -987,7 +995,7 @@ Consider:
 
 <aside name="academic">
 
-If Lox didn't allow assignment, it would be an academic question.
+If Lox didn't allow assignment, it *would* be an academic question.
 
 </aside>
 
@@ -1210,7 +1218,26 @@ slot order, as soon as we step past the slot where the local we're capturing
 lives, we know it won't be found. When that local is near the top of the stack,
 we can exit the loop pretty early.
 
-**todo: illustrate**
+**todo: explain code**
+
+```lox
+{
+  var a = 1;
+  fun f() {
+    print a;
+  }
+  var b = 2;
+  fun g() {
+    print b;
+  }
+  var c = 3;
+  fun h() {
+    print a;
+  }
+}
+```
+
+<img src="image/closures/linked-list.png" alt="Three upvalues in a linked list."/>
 
 Maintaining a sorted list requires inserting elements in the middle efficiently.
 That suggests using a linked list instead of a dynamic array. Since we defined
@@ -1350,7 +1377,7 @@ I'm not praising myself here. This is all the Lua dev team's innovation.
 
 </aside>
 
-**todo: illustrate**
+<img src="image/closures/closing.png" alt="Moving a value from the stack to the upvalue's 'closed' field and then pointing the 'value' field to it."/>
 
 We don't need to change how `OP_GET_UPVALUE` and `OP_SET_UPVALUE` are
 interpreted at all. That keeps them simple, which in turn keeps them fast. We do
