@@ -131,7 +131,7 @@ struct sObjString {
 //> Closures obj-upvalue
 typedef struct sUpvalue {
   Obj obj;
-  Value* value;
+  Value* location;
 //> closed-field
   Value closed;
 //< closed-field
