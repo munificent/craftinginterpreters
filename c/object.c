@@ -193,7 +193,7 @@ ObjUpvalue* newUpvalue(Value* slot) {
 //> init-closed
   upvalue->closed = NIL_VAL;
 //< init-closed
-  upvalue->value = slot;
+  upvalue->location = slot;
 //> init-next
   upvalue->next = NULL;
 //< init-next

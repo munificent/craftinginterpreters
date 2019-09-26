@@ -321,12 +321,12 @@ static ObjUpvalue* captureUpvalue(Value* local) {
   ObjUpvalue* prevUpvalue = NULL;
   ObjUpvalue* upvalue = vm.openUpvalues;
 
-  while (upvalue != NULL && upvalue->value > local) {
+  while (upvalue != NULL && upvalue->location > local) {
     prevUpvalue = upvalue;
     upvalue = upvalue->next;
   }
 
-  if (upvalue != NULL && upvalue->value == local) return upvalue;
+  if (upvalue != NULL && upvalue->location == local) return upvalue;
 
 //< look-for-existing-upvalue
   ObjUpvalue* createdUpvalue = newUpvalue(local);
@@ -346,10 +346,10 @@ static ObjUpvalue* captureUpvalue(Value* local) {
 //> Closures close-upvalues
 static void closeUpvalues(Value* last) {
   while (vm.openUpvalues != NULL &&
-         vm.openUpvalues->value >= last) {
+         vm.openUpvalues->location >= last) {
     ObjUpvalue* upvalue = vm.openUpvalues;
-    upvalue->closed = *upvalue->value;
-    upvalue->value = &upvalue->closed;
+    upvalue->closed = *upvalue->location;
+    upvalue->location = &upvalue->closed;
     vm.openUpvalues = upvalue->next;
   }
 }
@@ -562,7 +562,7 @@ static InterpretResult run() {
 
       case OP_GET_UPVALUE: {
         uint8_t slot = READ_BYTE();
-        push(*frame->closure->upvalues[slot]->value);
+        push(*frame->closure->upvalues[slot]->location);
         break;
       }
 //< Closures interpret-get-upvalue
@@ -570,7 +570,7 @@ static InterpretResult run() {
 
       case OP_SET_UPVALUE: {
         uint8_t slot = READ_BYTE();
-        *frame->closure->upvalues[slot]->value = peek(0);
+        *frame->closure->upvalues[slot]->location = peek(0);
         break;
       }
 //< Closures interpret-set-upvalue
