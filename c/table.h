@@ -44,11 +44,13 @@ void tableAddAll(Table* from, Table* to);
 ObjString* tableFindString(Table* table, const char* chars, int length,
                            uint32_t hash);
 //< table-find-string-h
-//> Garbage Collection not-yet
+//> Garbage Collection table-remove-white-h
 
 void tableRemoveWhite(Table* table);
+//< Garbage Collection table-remove-white-h
+//> Garbage Collection gray-table-h
 void grayTable(Table* table);
-//< Garbage Collection not-yet
+//< Garbage Collection gray-table-h
 
 //< init-table-h
 #endif

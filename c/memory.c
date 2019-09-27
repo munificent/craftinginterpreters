@@ -2,25 +2,27 @@
 #include <stdlib.h>
 
 #include "common.h"
-//> Garbage Collection not-yet
+//> Garbage Collection memory-include-compiler
 #include "compiler.h"
-//< Garbage Collection not-yet
+//< Garbage Collection memory-include-compiler
 #include "memory.h"
 //> Strings memory-include-vm
 #include "vm.h"
 //< Strings memory-include-vm
-//> Garbage Collection not-yet
+//> Garbage Collection debug-trace-includes
 
 #ifdef DEBUG_TRACE_GC
 #include <stdio.h>
 #include "debug.h"
 #endif
+//< Garbage Collection debug-trace-includes
+//> Garbage Collection heap-grow-factor
 
 #define GC_HEAP_GROW_FACTOR 2
-//< Garbage Collection not-yet
+//< Garbage Collection heap-grow-factor
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize) {
-//> Garbage Collection not-yet
+//> Garbage Collection reallocate-track
   vm.bytesAllocated += newSize - oldSize;
 
   if (newSize > oldSize) {
@@ -33,7 +35,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
     }
   }
 
-//< Garbage Collection not-yet
+//< Garbage Collection reallocate-track
   if (newSize == 0) {
     free(previous);
     return NULL;
@@ -41,8 +43,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
   
   return realloc(previous, newSize);
 }
-//> Garbage Collection not-yet
-
+//> Garbage Collection gray-object
 void grayObject(Obj* object) {
   if (object == NULL) return;
 
@@ -68,18 +69,21 @@ void grayObject(Obj* object) {
 
   vm.grayStack[vm.grayCount++] = object;
 }
-
+//< Garbage Collection gray-object
+//> Garbage Collection gray-value
 void grayValue(Value value) {
   if (!IS_OBJ(value)) return;
   grayObject(AS_OBJ(value));
 }
-
+//< Garbage Collection gray-value
+//> Garbage Collection gray-array
 static void grayArray(ValueArray* array) {
   for (int i = 0; i < array->count; i++) {
     grayValue(array->values[i]);
   }
 }
-
+//< Garbage Collection gray-array
+//> Garbage Collection blacken-object
 static void blackenObject(Obj* object) {
 #ifdef DEBUG_TRACE_GC
   printf("%p blacken ", object);
@@ -143,17 +147,17 @@ static void blackenObject(Obj* object) {
       break;
   }
 }
-//< Garbage Collection not-yet
+//< Garbage Collection blacken-object
 //> Strings free-object
 static void freeObject(Obj* object) {
-//> Garbage Collection not-yet
+//> Garbage Collection debug-trace-free
 #ifdef DEBUG_TRACE_GC
   printf("%p free ", object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
 
-//< Garbage Collection not-yet
+//< Garbage Collection debug-trace-free
   switch (object->type) {
 //> Methods and Initializers not-yet
     case OBJ_BOUND_METHOD:
@@ -227,8 +231,7 @@ static void freeObject(Obj* object) {
   }
 }
 //< Strings free-object
-//> Garbage Collection not-yet
-
+//> Garbage Collection collect-garbage
 void collectGarbage() {
 #ifdef DEBUG_TRACE_GC
   printf("-- gc begin\n");
@@ -294,7 +297,7 @@ void collectGarbage() {
          vm.nextGC);
 #endif
 }
-//< Garbage Collection not-yet
+//< Garbage Collection collect-garbage
 //> Strings free-objects
 void freeObjects() {
   Obj* object = vm.objects;
@@ -303,9 +306,9 @@ void freeObjects() {
     freeObject(object);
     object = next;
   }
-//> Garbage Collection not-yet
+//> Garbage Collection free-gray-stack
 
   free(vm.grayStack);
-//< Garbage Collection not-yet
+//< Garbage Collection free-gray-stack
 }
 //< Strings free-objects
