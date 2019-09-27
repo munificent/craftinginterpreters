@@ -58,31 +58,32 @@ ObjClass* newClass(ObjString* name) {
   return klass;
 }
 //< Classes and Instances not-yet
-//> Closures not-yet
-
+//> Closures new-closure
 ObjClosure* newClosure(ObjFunction* function) {
-  // Allocate the upvalue array first so it doesn't cause the closure
-  // to get collected.
+//> allocate-upvalue-array
   ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
   for (int i = 0; i < function->upvalueCount; i++) {
     upvalues[i] = NULL;
   }
 
+//< allocate-upvalue-array
   ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
   closure->function = function;
+//> init-upvalue-fields
   closure->upvalues = upvalues;
   closure->upvalueCount = function->upvalueCount;
+//< init-upvalue-fields
   return closure;
 }
-//< Closures not-yet
+//< Closures new-closure
 //> Calls and Functions new-function
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
 
   function->arity = 0;
-//> Closures not-yet
+//> Closures init-upvalue-count
   function->upvalueCount = 0;
-//< Closures not-yet
+//< Closures init-upvalue-count
   function->name = NULL;
   initChunk(&function->chunk);
   return function;
@@ -186,17 +187,19 @@ ObjString* copyString(const char* chars, int length) {
   return allocateString(heapChars, length, hash);
 //< Hash Tables copy-string-allocate
 }
-//> Closures not-yet
-
+//> Closures new-upvalue
 ObjUpvalue* newUpvalue(Value* slot) {
   ObjUpvalue* upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
+//> init-closed
   upvalue->closed = NIL_VAL;
-  upvalue->value = slot;
+//< init-closed
+  upvalue->location = slot;
+//> init-next
   upvalue->next = NULL;
-
+//< init-next
   return upvalue;
 }
-//< Closures not-yet
+//< Closures new-upvalue
 //> print-object
 void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
@@ -211,16 +214,17 @@ void printObject(Value value) {
              AS_BOUND_METHOD(value)->method->function->name->chars);
       break;
 //< Methods and Initializers not-yet
-//> Closures not-yet
+//> Closures print-closure
     case OBJ_CLOSURE:
-// TODO: Omit this.
-//      if (AS_CLOSURE(value)->function->name == NULL) {
-//        printf("<script>");
-//        break;
-//      }
+//> print-script
+      if (AS_CLOSURE(value)->function->name == NULL) {
+        printf("<script>");
+        break;
+      }
+//< print-script
       printf("<fn %s>", AS_CLOSURE(value)->function->name->chars);
       break;
-//< Closures not-yet
+//< Closures print-closure
 //> Calls and Functions print-function
     case OBJ_FUNCTION:
 //> print-script
@@ -245,11 +249,11 @@ void printObject(Value value) {
     case OBJ_STRING:
       printf("%s", AS_CSTRING(value));
       break;
-//> Closures not-yet
+//> Closures print-upvalue
     case OBJ_UPVALUE:
       printf("upvalue");
       break;
-//< Closures not-yet
+//< Closures print-upvalue
   }
 }
 //< print-object

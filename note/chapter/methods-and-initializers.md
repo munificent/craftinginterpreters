@@ -10,3 +10,8 @@ for each call. Here's the benchmark/invocation.vox results:
 
 with OP_INVOKE   0.693169
 no OP_INVOKE     3.13613
+
+--
+
+Because "this" is treated like local variable by compiler, closures over "this"
+work automatically.

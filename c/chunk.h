@@ -35,10 +35,10 @@ typedef enum {
 //> Global Variables set-global-op
   OP_SET_GLOBAL,
 //< Global Variables set-global-op
-//> Closures not-yet
+//> Closures upvalue-ops
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
-//< Closures not-yet
+//< Closures upvalue-ops
 //> Classes and Instances not-yet
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
@@ -84,10 +84,12 @@ typedef enum {
 //> Superclasses not-yet
   OP_SUPER,
 //< Superclasses not-yet
-//> Closures not-yet
+//> Closures closure-op
   OP_CLOSURE,
+//< Closures closure-op
+//> Closures close-upvalue-op
   OP_CLOSE_UPVALUE,
-//< Closures not-yet
+//< Closures close-upvalue-op
   OP_RETURN,
 //> Classes and Instances not-yet
   OP_CLASS,
