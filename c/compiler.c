@@ -67,26 +67,17 @@ typedef struct {
 typedef struct {
   Token name;
   int depth;
-//> Closures not-yet
-
-  // True if this local variable is captured as an upvalue by a
-  // function.
-  bool isUpvalue;
-//< Closures not-yet
+//> Closures is-captured-field
+  bool isCaptured;
+//< Closures is-captured-field
 } Local;
 //< Local Variables local-struct
-//> Closures not-yet
-
+//> Closures upvalue-struct
 typedef struct {
-  // The index of the local variable or upvalue being captured from the
-  // enclosing function.
   uint8_t index;
-
-  // Whether the captured variable is a local or upvalue in the
-  // enclosing function.
   bool isLocal;
 } Upvalue;
-//< Closures not-yet
+//< Closures upvalue-struct
 //> Calls and Functions function-type-enum
 typedef enum {
   TYPE_FUNCTION,
@@ -110,9 +101,9 @@ typedef struct Compiler {
 //< Calls and Functions function-fields
   Local locals[UINT8_COUNT];
   int localCount;
-//> Closures not-yet
+//> Closures upvalues-array
   Upvalue upvalues[UINT8_COUNT];
-//< Closures not-yet
+//< Closures upvalues-array
   int scopeDepth;
 } Compiler;
 //< Local Variables compiler-struct
@@ -327,9 +318,9 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 
   Local* local = &current->locals[current->localCount++];
   local->depth = 0;
-//> Closures not-yet
-  local->isUpvalue = false;
-//< Closures not-yet
+//> Closures init-zero-local-is-captured
+  local->isCaptured = false;
+//< Closures init-zero-local-is-captured
 /* Calls and Functions init-function-slot < Methods and Initializers not-yet
   local->name.start = "";
   local->name.length = 0;
@@ -396,16 +387,16 @@ static void endScope() {
   while (current->localCount > 0 &&
          current->locals[current->localCount - 1].depth >
             current->scopeDepth) {
-/* Local Variables pop-locals < Closures not-yet
+/* Local Variables pop-locals < Closures end-scope
     emitByte(OP_POP);
 */
-//> Closures not-yet
-    if (current->locals[current->localCount - 1].isUpvalue) {
+//> Closures end-scope
+    if (current->locals[current->localCount - 1].isCaptured) {
       emitByte(OP_CLOSE_UPVALUE);
     } else {
       emitByte(OP_POP);
     }
-//< Closures not-yet
+//< Closures end-scope
     current->localCount--;
   }
 //< pop-locals
@@ -450,13 +441,9 @@ static int resolveLocal(Compiler* compiler, Token* name) {
   return -1;
 }
 //< Local Variables resolve-local
-//> Closures not-yet
-
-// Adds an upvalue to [compiler]'s function with the given properties.
-// Does not add one if an upvalue for that variable is already in the
-// list. Returns the index of the upvalue.
+//> Closures add-upvalue
 static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
-  // Look for an existing one.
+//> existing-upvalue
   int upvalueCount = compiler->function->upvalueCount;
   for (int i = 0; i < upvalueCount; i++) {
     Upvalue* upvalue = &compiler->upvalues[i];
@@ -465,54 +452,41 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
     }
   }
 
-  // If we got here, it's a new upvalue.
+//< existing-upvalue
+//> too-many-upvalues
   if (upvalueCount == UINT8_COUNT) {
     error("Too many closure variables in function.");
     return 0;
   }
 
+//< too-many-upvalues
   compiler->upvalues[upvalueCount].isLocal = isLocal;
   compiler->upvalues[upvalueCount].index = index;
   return compiler->function->upvalueCount++;
 }
-
-// Attempts to look up [name] in the functions enclosing the one being
-// compiled by [compiler]. If found, it adds an upvalue for it to this
-// compiler's list of upvalues (unless it's already in there) and
-// returns its index. If not found, returns -1.
-//
-// If the name is found outside of the immediately enclosing function,
-// this will flatten the closure and add upvalues to all of the
-// intermediate functions so that it gets walked down to this one.
+//< Closures add-upvalue
+//> Closures resolve-upvalue
 static int resolveUpvalue(Compiler* compiler, Token* name) {
-  // If we are at the top level, we didn't find it.
   if (compiler->enclosing == NULL) return -1;
 
-  // See if it's a local variable in the immediately enclosing function.
   int local = resolveLocal(compiler->enclosing, name);
   if (local != -1) {
-    // Mark the local as an upvalue so we know to close it when it goes
-    // out of scope.
-    compiler->enclosing->locals[local].isUpvalue = true;
+//> mark-local-captured
+    compiler->enclosing->locals[local].isCaptured = true;
+//< mark-local-captured
     return addUpvalue(compiler, (uint8_t)local, true);
   }
+//> resolve-upvalue-recurse
 
-  // See if it's an upvalue in the immediately enclosing function. In
-  // other words, if it's a local variable in a non-immediately
-  // enclosing function. This "flattens" closures automatically: it
-  // adds upvalues to all of the intermediate functions to get from the
-  // function where a local is declared all the way into the possibly
-  // deeply nested function that is closing over it.
   int upvalue = resolveUpvalue(compiler->enclosing, name);
   if (upvalue != -1) {
     return addUpvalue(compiler, (uint8_t)upvalue, false);
   }
+//< resolve-upvalue-recurse
 
-  // If we got here, we walked all the way up the parent chain and
-  // couldn't find it.
   return -1;
 }
-//< Closures not-yet
+//< Closures resolve-upvalue
 //> Local Variables add-local
 static void addLocal(Token name) {
 //> too-many-locals
@@ -530,9 +504,9 @@ static void addLocal(Token name) {
 //> declare-undefined
   local->depth = -1;
 //< declare-undefined
-//> Closures not-yet
-  local->isUpvalue = false;
-//< Closures not-yet
+//> Closures init-is-captured
+  local->isCaptured = false;
+//< Closures init-is-captured
 }
 //< Local Variables add-local
 //> Local Variables declare-variable
@@ -760,11 +734,11 @@ static void namedVariable(Token name, bool canAssign) {
   if (arg != -1) {
     getOp = OP_GET_LOCAL;
     setOp = OP_SET_LOCAL;
-//> Closures not-yet
+//> Closures named-variable-upvalue
   } else if ((arg = resolveUpvalue(current, &name)) != -1) {
     getOp = OP_GET_UPVALUE;
     setOp = OP_SET_UPVALUE;
-//< Closures not-yet
+//< Closures named-variable-upvalue
   } else {
     arg = identifierConstant(&name);
     getOp = OP_GET_GLOBAL;
@@ -1101,21 +1075,19 @@ static void function(FunctionType type) {
 
   // Create the function object.
   ObjFunction* function = endCompiler();
-/* Calls and Functions compile-function < Closures not-yet
+/* Calls and Functions compile-function < Closures emit-closure
   emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
 */
-//> Closures not-yet
-
-  // Capture the upvalues in the new closure object.
+//> Closures emit-closure
   emitBytes(OP_CLOSURE, makeConstant(OBJ_VAL(function)));
+//< Closures emit-closure
+//> Closures capture-upvalues
 
-  // Emit arguments for each upvalue to know whether to capture a local
-  // or an upvalue.
   for (int i = 0; i < function->upvalueCount; i++) {
     emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
     emitByte(compiler.upvalues[i].index);
   }
-//< Closures not-yet
+//< Closures capture-upvalues
 }
 //< Calls and Functions compile-function
 //> Methods and Initializers not-yet

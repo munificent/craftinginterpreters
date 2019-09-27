@@ -177,15 +177,17 @@ static void freeObject(Obj* object) {
 //< Methods and Initializers not-yet
 
 //< Classes and Instances not-yet
-//> Closures not-yet
+//> Closures free-closure
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
+//> free-upvalues
       FREE_ARRAY(Value, closure->upvalues, closure->upvalueCount);
+//< free-upvalues
       FREE(ObjClosure, object);
       break;
     }
 
-//< Closures not-yet
+//< Closures free-closure
 //> Calls and Functions free-function
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
@@ -216,12 +218,12 @@ static void freeObject(Obj* object) {
       FREE(ObjString, object);
       break;
     }
-//> Closures not-yet
+//> Closures free-upvalue
 
     case OBJ_UPVALUE:
       FREE(ObjUpvalue, object);
       break;
-//< Closures not-yet
+//< Closures free-upvalue
   }
 }
 //< Strings free-object

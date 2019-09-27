@@ -22,9 +22,9 @@
 //> Classes and Instances not-yet
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 //< Classes and Instances not-yet
-//> Closures not-yet
+//> Closures is-closure
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
-//< Closures not-yet
+//< Closures is-closure
 //> Calls and Functions is-function
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 //< Calls and Functions is-function
@@ -44,9 +44,9 @@
 //> Classes and Instances not-yet
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 //< Classes and Instances not-yet
-//> Closures not-yet
+//> Closures as-closure
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
-//< Closures not-yet
+//< Closures as-closure
 //> Calls and Functions as-function
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 //< Calls and Functions as-function
@@ -68,9 +68,9 @@ typedef enum {
 //> Classes and Instances not-yet
   OBJ_CLASS,
 //< Classes and Instances not-yet
-//> Closures not-yet
+//> Closures obj-type-closure
   OBJ_CLOSURE,
-//< Closures not-yet
+//< Closures obj-type-closure
 //> Calls and Functions obj-type-function
   OBJ_FUNCTION,
 //< Calls and Functions obj-type-function
@@ -81,9 +81,9 @@ typedef enum {
   OBJ_NATIVE,
 //< Calls and Functions obj-type-native
   OBJ_STRING,
-//> Closures not-yet
+//> Closures obj-type-upvalue
   OBJ_UPVALUE
-//< Closures not-yet
+//< Closures obj-type-upvalue
 } ObjType;
 //< obj-type
 
@@ -101,9 +101,9 @@ struct sObj {
 typedef struct {
   Obj obj;
   int arity;
-//> Closures not-yet
+//> Closures upvalue-count
   int upvalueCount;
-//< Closures not-yet
+//< Closures upvalue-count
   Chunk chunk;
   ObjString* name;
 } ObjFunction;
@@ -128,32 +128,28 @@ struct sObjString {
 //< Hash Tables obj-string-hash
 };
 //< obj-string
-//> Closures not-yet
-
+//> Closures obj-upvalue
 typedef struct sUpvalue {
   Obj obj;
-
-  // Pointer to the variable this upvalue is referencing.
-  Value* value;
-
-  // If the upvalue is closed (i.e. the local variable it was pointing
-  // to has been popped off the stack) then the closed-over value is
-  // hoisted out of the stack into here. [value] is then be changed to
-  // point to this.
+  Value* location;
+//> closed-field
   Value closed;
-
-  // Open upvalues are stored in a linked list. This points to the next
-  // one in that list.
+//< closed-field
+//> next-field
   struct sUpvalue* next;
+//< next-field
 } ObjUpvalue;
-
+//< Closures obj-upvalue
+//> Closures obj-closure
 typedef struct {
   Obj obj;
   ObjFunction* function;
+//> upvalue-fields
   ObjUpvalue** upvalues;
   int upvalueCount;
+//< upvalue-fields
 } ObjClosure;
-//< Closures not-yet
+//< Closures obj-closure
 //> Classes and Instances not-yet
 
 typedef struct sObjClass {
@@ -183,9 +179,9 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 //> Classes and Instances not-yet
 ObjClass* newClass(ObjString* name);
 //< Classes and Instances not-yet
-//> Closures not-yet
+//> Closures new-closure-h
 ObjClosure* newClosure(ObjFunction* function);
-//< Closures not-yet
+//< Closures new-closure-h
 //> Calls and Functions new-function-h
 ObjFunction* newFunction();
 //< Calls and Functions new-function-h
@@ -200,14 +196,14 @@ ObjString* takeString(char* chars, int length);
 //< take-string-h
 //> copy-string-h
 ObjString* copyString(const char* chars, int length);
-
-//< copy-string-h
-//> Closures not-yet
+//> Closures new-upvalue-h
 ObjUpvalue* newUpvalue(Value* slot);
-//< Closures not-yet
+//< Closures new-upvalue-h
 //> print-object-h
 void printObject(Value value);
 //< print-object-h
+
+//< copy-string-h
 //> is-obj-type
 static inline bool isObjType(Value value, ObjType type) {
   return IS_OBJ(value) && AS_OBJ(value)->type == type;
