@@ -9,9 +9,9 @@
 
 #include "common.h"
 #include "compiler.h"
-//> Garbage Collection not-yet
+//> Garbage Collection compiler-include-memory
 #include "memory.h"
-//< Garbage Collection not-yet
+//< Garbage Collection compiler-include-memory
 #include "scanner.h"
 //> Compiling Expressions include-debug
 
@@ -1516,8 +1516,7 @@ ObjFunction* compile(const char* source) {
   return parser.hadError ? NULL : function;
 //< Calls and Functions call-end-compiler
 }
-//> Garbage Collection not-yet
-
+//> Garbage Collection gray-roots
 void grayCompilerRoots() {
   Compiler* compiler = current;
   while (compiler != NULL) {
@@ -1525,4 +1524,4 @@ void grayCompilerRoots() {
     compiler = compiler->enclosing;
   }
 }
-//< Garbage Collection not-yet
+//< Garbage Collection gray-roots

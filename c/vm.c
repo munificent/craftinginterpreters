@@ -104,14 +104,14 @@ void initVM() {
 //> Strings init-objects-root
   vm.objects = NULL;
 //< Strings init-objects-root
-//> Garbage Collection not-yet
+//> Garbage Collection init-vm-fields
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
 
   vm.grayCount = 0;
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
-//< Garbage Collection not-yet
+//< Garbage Collection init-vm-fields
 //> Global Variables init-globals
 
   initTable(&vm.globals);
@@ -371,14 +371,14 @@ static bool isFalsey(Value value) {
 //< Types of Values is-falsey
 //> Strings concatenate
 static void concatenate() {
-/* Strings concatenate < Garbage Collection not-yet
+/* Strings concatenate < Garbage Collection concatenate-peek
   ObjString* b = AS_STRING(pop());
   ObjString* a = AS_STRING(pop());
 */
-//> Garbage Collection not-yet
+//> Garbage Collection concatenate-peek
   ObjString* b = AS_STRING(peek(0));
   ObjString* a = AS_STRING(peek(1));
-//< Garbage Collection not-yet
+//< Garbage Collection concatenate-peek
 
   int length = a->length + b->length;
   char* chars = ALLOCATE(char, length + 1);
@@ -387,10 +387,10 @@ static void concatenate() {
   chars[length] = '\0';
 
   ObjString* result = takeString(chars, length);
-//> Garbage Collection not-yet
+//> Garbage Collection concatenate-pop
   pop();
   pop();
-//< Garbage Collection not-yet
+//< Garbage Collection concatenate-pop
   push(OBJ_VAL(result));
 }
 //< Strings concatenate

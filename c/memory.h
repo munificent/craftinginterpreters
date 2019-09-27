@@ -31,12 +31,15 @@
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize);
 //< grow-array
-//> Garbage Collection not-yet
-
+//> Garbage Collection gray-object-h
 void grayObject(Obj* object);
+//< Garbage Collection gray-object-h
+//> Garbage Collection gray-value-h
 void grayValue(Value value);
+//< Garbage Collection gray-value-h
+//> Garbage Collection collect-garbage-h
 void collectGarbage();
-//< Garbage Collection not-yet
+//< Garbage Collection collect-garbage-h
 //> Strings free-objects-h
 void freeObjects();
 //< Strings free-objects-h

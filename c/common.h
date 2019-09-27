@@ -15,11 +15,11 @@
 //< Compiling Expressions define-debug-print-code
 #define DEBUG_TRACE_EXECUTION
 //< A Virtual Machine define-debug-trace
-//> Garbage Collection not-yet
+//> Garbage Collection define-stress-gc
 
 #define DEBUG_STRESS_GC
-//#define DEBUG_TRACE_GC
-//< Garbage Collection not-yet
+#define DEBUG_TRACE_GC
+//< Garbage Collection define-stress-gc
 //> Local Variables uint8-count
 
 #define UINT8_COUNT (UINT8_MAX + 1)
@@ -31,4 +31,6 @@
 // we don't want them to be.
 #undef DEBUG_PRINT_CODE
 #undef DEBUG_TRACE_EXECUTION
+// #undef DEBUG_STRESS_GC
+#undef DEBUG_TRACE_GC
 //< omit

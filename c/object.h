@@ -89,9 +89,9 @@ typedef enum {
 
 struct sObj {
   ObjType type;
-//> Garbage Collection not-yet
+//> Garbage Collection is-dark-field
   bool isDark;
-//< Garbage Collection not-yet
+//< Garbage Collection is-dark-field
 //> next-field
   struct sObj* next;
 //< next-field

@@ -266,10 +266,9 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   }
 }
 //< table-find-string
-//> Garbage Collection not-yet
-
+//> Garbage Collection table-remove-white
 void tableRemoveWhite(Table* table) {
-/* Garbage Collection not-yet < Optimization not-yet
+/* Garbage Collection table-remove-white < Optimization not-yet
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization not-yet
@@ -281,9 +280,10 @@ void tableRemoveWhite(Table* table) {
     }
   }
 }
-
+//< Garbage Collection table-remove-white
+//> Garbage Collection gray-table
 void grayTable(Table* table) {
-/* Garbage Collection not-yet < Optimization not-yet
+/* Garbage Collection gray-table < Optimization not-yet
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization not-yet
@@ -294,4 +294,4 @@ void grayTable(Table* table) {
     grayValue(entry->value);
   }
 }
-//< Garbage Collection not-yet
+//< Garbage Collection gray-table
