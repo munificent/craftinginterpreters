@@ -335,39 +335,20 @@ macros. Maybe that would be a little too meta.</p>
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Closures are first-class objects, so you can print them:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                                      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                     
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="p">:</span>                                             
-      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_CLOSURE</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
-      <span class="k">break</span><span class="p">;</span>                                                      
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                                            
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="p">:</span>                            
+      <span class="n">printFunction</span><span class="p">(</span><span class="n">AS_CLOSURE</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">function</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                                     
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span>                           
 </pre></div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
 <p>They display exactly as ObjFunction does. From the user&rsquo;s perspective, the
 difference between ObjFunction and ObjClosure is purely a hidden implementation
-detail.</p>
-<p>There&rsquo;s a funny edge case to handle here. If you enable <code>DEBUG_TRACE_EXECUTION</code>,
-the VM prints the stack after each opcode. The stack includes the special
-function the compiler creates to hold the top level code. That function doesn&rsquo;t
-have a name. A user can never get a hold of this hidden function, so that isn&rsquo;t
-usually a problem. But our diagnostic code can, so we need to not crash in that
-case:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="p">:</span>                                             
-</pre><div class="source-file"><em>object.c</em><br>
-in <em>printObject</em>()</div>
-<pre class="insert"><span></span>      <span class="k">if</span> <span class="p">(</span><span class="n">AS_CLOSURE</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>            
-        <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>                                       
-        <span class="k">break</span><span class="p">;</span>                                                    
-      <span class="p">}</span>                                                           
-</pre><pre class="insert-after"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">AS_CLOSURE</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
-</pre></div>
-
-<div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
-
-<p>With that out of the way, we have a working but empty representation for
+detail. With that out of the way, we have a working but empty representation for
 closures.</p>
 <h3><a href="#compiling-to-closure-objects" name="compiling-to-closure-objects"><small>25&#8202;.&#8202;1&#8202;.&#8202;1</small> Compiling to closure objects</a></h3>
 <p>We have closure objects but our VM never creates them. The next step is getting

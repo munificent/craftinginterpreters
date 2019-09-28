@@ -218,18 +218,7 @@ Closures are first-class objects, so you can print them:
 
 They display exactly as ObjFunction does. From the user's perspective, the
 difference between ObjFunction and ObjClosure is purely a hidden implementation
-detail.
-
-There's a funny edge case to handle here. If you enable `DEBUG_TRACE_EXECUTION`,
-the VM prints the stack after each opcode. The stack includes the special
-function the compiler creates to hold the top level code. That function doesn't
-have a name. A user can never get a hold of this hidden function, so that isn't
-usually a problem. But our diagnostic code can, so we need to not crash in that
-case:
-
-^code print-script (1 before, 1 after)
-
-With that out of the way, we have a working but empty representation for
+detail. With that out of the way, we have a working but empty representation for
 closures.
 
 ### Compiling to closure objects
