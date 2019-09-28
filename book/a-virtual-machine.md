@@ -323,8 +323,8 @@ argument. That side effect means we can see the exact order of operations.
 Don't worry about the VM for a minute. Think about just the semantics of Lox
 itself. The operands to an arithmetic operator obviously need to be evaluated
 before we can perform the operation itself. (It's pretty hard to add `a + b` if
-you don't know what `a` and `b` are.) I haven't specified this yet, but
-I'll go ahead and <span name="undefined">declare</span> that in Lox, the
+you don't know what `a` and `b` are.) I mentioned this when we were evaluating
+expressions in jlox, so to make sure we stay compatible, we ensure the
 left-hand side of a binary operator is evaluated before the right.
 
 <aside name="undefined">
