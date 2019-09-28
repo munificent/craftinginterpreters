@@ -95,7 +95,7 @@ Search for "closure conversion" or "lambda lifting" to start exploring.
 
 </aside>
 
-The technique I explain here comes the design of the Lua VM. It is fast,
+The technique I explain here comes from the design of the Lua VM. It is fast,
 parsimonious with memory, and relatively little code to implement. Even more
 impressive, it fits naturally into the single-pass compilers clox and Lua both
 use. It is somewhat intricate, though. It might take a while before all the
