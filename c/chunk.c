@@ -5,9 +5,6 @@
 //> chunk-c-include-memory
 #include "memory.h"
 //< chunk-c-include-memory
-//> chunk-c-include-value
-#include "value.h"
-//< chunk-c-include-value
 //> Garbage Collection not-yet
 #include "vm.h"
 //< Garbage Collection not-yet
