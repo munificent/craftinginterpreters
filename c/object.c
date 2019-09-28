@@ -200,9 +200,8 @@ ObjUpvalue* newUpvalue(Value* slot) {
   return upvalue;
 }
 //< Closures new-upvalue
-//> print-object
-//> Calls and Functions print-function-def
-void printFunction(ObjFunction* function) {
+//> Calls and Functions print-function-helper
+static void printFunction(ObjFunction* function) {
 //> print-script
   if (function->name == NULL) {
     printf("<script>");
@@ -211,8 +210,8 @@ void printFunction(ObjFunction* function) {
 //< print-script
   printf("<fn %s>", function->name->chars);
 }
-//< Calls and Functions print-function-def
-
+//< Calls and Functions print-function-helper
+//> print-object
 void printObject(Value value) {
   switch (OBJ_TYPE(value)) {
 //> Classes and Instances not-yet

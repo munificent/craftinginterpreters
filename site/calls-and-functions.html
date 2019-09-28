@@ -250,20 +250,8 @@ chunk, so we call Chunk&rsquo;s destructor-like function.</p>
 That means we can let the garbage collector manage its lifetime for us. Or, at
 least, we&rsquo;ll be able to once we <a href="garbage-collection.html">implement a garbage collector</a>.</p>
 </aside>
-<p>It&rsquo;s useful to be able to print function objects for debugging purposes, and to
-represent them in a way that is meaningful to the user. Since we have the
-function&rsquo;s name, we may as well use it:</p>
-<div class="codehilite"><div class="source-file"><em>object.c</em><br>
-add after <em>copyString</em>()</div>
-<pre class="insert"><span></span><span class="kt">void</span> <span class="nf">printFunction</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
-<span class="p">}</span>                                          
-</pre><pre class="insert-after"><br><span></span><span class="kt">void</span> <span class="nf">printObject</span><span class="p">(</span><span class="n">Value</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>            
-</pre></div>
-
-<div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
-
-<p>Over in the function to print objects, we also add a case for function objects:</p>
+<p>Lox let&rsquo;s you print any object, and functions are first-class objects, so we
+need to handle them too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>            
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
@@ -275,6 +263,17 @@ in <em>printObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
+<p>This calls out to:</p>
+<div class="codehilite"><div class="source-file"><em>object.c</em><br>
+add after <em>copyString</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">printFunction</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>       
+<span class="p">}</span>                                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
+
+<p>Since we have the function&rsquo;s name, we may as well use it.</p>
 <p>While we&rsquo;re here, there&rsquo;s a funny little edge case to handle. The implicit
 function that the compiler creates to contain the top level code for a script
 doesn&rsquo;t have a name. If we try to print it, we&rsquo;ll crash. You might correctly
@@ -282,14 +281,14 @@ note that there&rsquo;s no way for a user to get a reference to that function in
 first place. But our diagnostic code that prints the entire stack when
 <code>DEBUG_TRACE_EXECUTION</code> is defined <em>will</em> print it, and we don&rsquo;t want that to
 blow up. So:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">printFunction</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">printFunction</span><span class="p">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="p">)</span> <span class="p">{</span>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printFunction</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>            
-    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>                    
-    <span class="k">return</span><span class="p">;</span>                                
-  <span class="p">}</span>                                        
-</pre><pre class="insert-after"><span></span>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                   
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;script&gt;&quot;</span><span class="p">);</span>                           
+    <span class="k">return</span><span class="p">;</span>                                       
+  <span class="p">}</span>                                               
+</pre><pre class="insert-after"><span></span>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;&lt;fn %s&gt;&quot;</span><span class="p">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="p">);</span>       
 </pre></div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printFunction</em>()</div>
