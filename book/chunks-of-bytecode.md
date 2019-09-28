@@ -610,7 +610,7 @@ doing control flow and jumping around in the bytecode.
 
 Next, it reads a single byte from the bytecode at the given offset. That's our
 opcode. We <span name="switch">switch</span> on that. For each kind of
-instruction, we dispatch to a little utlity function for displaying it. On the
+instruction, we dispatch to a little utility function for displaying it. On the
 off chance that the given byte doesn't look like an instruction at all -- a bug
 in our compiler -- we print that too. For the one instruction we do have,
 `OP_RETURN`, the display function is:
