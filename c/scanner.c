@@ -186,7 +186,7 @@ static Token number() {
 
   // Look for a fractional part.
   if (peek() == '.' && isDigit(peekNext())) {
-    // Consume the "."
+    // Consume the ".".
     advance();
 
     while (isDigit(peek())) advance();
@@ -204,7 +204,7 @@ static Token string() {
 
   if (isAtEnd()) return errorToken("Unterminated string.");
 
-  // The closing ".
+  // The closing quote.
   advance();
   return makeToken(TOKEN_STRING);
 }
