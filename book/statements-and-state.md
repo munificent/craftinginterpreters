@@ -149,6 +149,13 @@ the correct starting rule, `program`, we can turn `parse()` into the real deal:
 
 ^code parse
 
+<aside name="parse-error-handling">
+
+We've also removed the temporary handling for `ParseError` exceptions, because it
+will be handled differently when we add support for additional statement types.
+
+</aside>
+
 It parses a series of statements, as many as it can find until it hits the end
 of the input. This is a pretty direct translation of the `program` rule into
 recursive descent style. We must also chant a minor prayer to the Java Verbosity
