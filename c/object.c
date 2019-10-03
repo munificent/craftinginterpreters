@@ -27,13 +27,13 @@ static Obj* allocateObject(size_t size, ObjType type) {
   object->next = vm.objects;
   vm.objects = object;
 //< add-to-list
-//> Garbage Collection debug-trace-allocate
+//> Garbage Collection debug-log-allocate
 
-#ifdef DEBUG_TRACE_GC
+#ifdef DEBUG_LOG_GC
   printf("%p allocate %ld for %d\n", object, size, type);
 #endif
 
-//< Garbage Collection debug-trace-allocate
+//< Garbage Collection debug-log-allocate
   return object;
 }
 //< allocate-object

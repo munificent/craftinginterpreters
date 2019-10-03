@@ -9,13 +9,13 @@
 //> Strings memory-include-vm
 #include "vm.h"
 //< Strings memory-include-vm
-//> Garbage Collection debug-trace-includes
+//> Garbage Collection debug-log-includes
 
-#ifdef DEBUG_TRACE_GC
+#ifdef DEBUG_LOG_GC
 #include <stdio.h>
 #include "debug.h"
 #endif
-//< Garbage Collection debug-trace-includes
+//< Garbage Collection debug-log-includes
 //> Garbage Collection heap-grow-factor
 
 #define GC_HEAP_GROW_FACTOR 2
@@ -26,10 +26,12 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
   vm.bytesAllocated += newSize - oldSize;
 
   if (newSize > oldSize) {
+//> stress-gc
 #ifdef DEBUG_STRESS_GC
     collectGarbage();
 #endif
 
+//< stress-gc
     if (vm.bytesAllocated > vm.nextGC) {
       collectGarbage();
     }
@@ -46,28 +48,29 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 //> Garbage Collection gray-object
 void grayObject(Obj* object) {
   if (object == NULL) return;
-
-  // Don't get caught in cycle.
+//> check-is-dark
   if (object->isDark) return;
-
-#ifdef DEBUG_TRACE_GC
+  
+//< check-is-dark
+//> log-gray-object
+#ifdef DEBUG_LOG_GC
   printf("%p gray ", object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
 
+//< log-gray-object
   object->isDark = true;
+//> add-to-gray-stack
 
   if (vm.grayCapacity < vm.grayCount + 1) {
     vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
-
-    // Not using reallocate() here because we don't want to trigger the
-    // GC inside a GC!
     vm.grayStack = realloc(vm.grayStack,
                            sizeof(Obj*) * vm.grayCapacity);
   }
 
   vm.grayStack[vm.grayCount++] = object;
+//< add-to-gray-stack
 }
 //< Garbage Collection gray-object
 //> Garbage Collection gray-value
@@ -85,12 +88,14 @@ static void grayArray(ValueArray* array) {
 //< Garbage Collection gray-array
 //> Garbage Collection blacken-object
 static void blackenObject(Obj* object) {
-#ifdef DEBUG_TRACE_GC
+//> log-blacken-object
+#ifdef DEBUG_LOG_GC
   printf("%p blacken ", object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
 
+//< log-blacken-object
   switch (object->type) {
 //> Methods and Initializers not-yet
     case OBJ_BOUND_METHOD: {
@@ -112,6 +117,7 @@ static void blackenObject(Obj* object) {
     }
 
 //< Classes and Instances not-yet
+//> blacken-closure
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
       grayObject((Obj*)closure->function);
@@ -121,6 +127,8 @@ static void blackenObject(Obj* object) {
       break;
     }
 
+//< blacken-closure
+//> blacken-function
     case OBJ_FUNCTION: {
       ObjFunction* function = (ObjFunction*)object;
       grayObject((Obj*)function->name);
@@ -128,6 +136,7 @@ static void blackenObject(Obj* object) {
       break;
     }
 
+//< blacken-function
 //> Classes and Instances not-yet
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
@@ -137,27 +146,28 @@ static void blackenObject(Obj* object) {
     }
 
 //< Classes and Instances not-yet
+//> blacken-upvalue
     case OBJ_UPVALUE:
       grayValue(((ObjUpvalue*)object)->closed);
       break;
 
+//< blacken-upvalue
     case OBJ_NATIVE:
     case OBJ_STRING:
-      // No references.
       break;
   }
 }
 //< Garbage Collection blacken-object
 //> Strings free-object
 static void freeObject(Obj* object) {
-//> Garbage Collection debug-trace-free
-#ifdef DEBUG_TRACE_GC
+//> Garbage Collection log-free-object
+#ifdef DEBUG_LOG_GC
   printf("%p free ", object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
 
-//< Garbage Collection debug-trace-free
+//< Garbage Collection log-free-object
   switch (object->type) {
 //> Methods and Initializers not-yet
     case OBJ_BOUND_METHOD:
@@ -231,47 +241,53 @@ static void freeObject(Obj* object) {
   }
 }
 //< Strings free-object
-//> Garbage Collection collect-garbage
-void collectGarbage() {
-#ifdef DEBUG_TRACE_GC
-  printf("-- gc begin\n");
-  size_t before = vm.bytesAllocated;
-#endif
-
-  // Mark the stack roots.
+//> Garbage Collection mark-roots
+static void markRoots() {
   for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
     grayValue(*slot);
   }
+//> mark-closures
 
   for (int i = 0; i < vm.frameCount; i++) {
     grayObject((Obj*)vm.frames[i].closure);
   }
+//< mark-closures
+//> mark-open-upvalues
 
-  // Mark the open upvalues.
   for (ObjUpvalue* upvalue = vm.openUpvalues;
        upvalue != NULL;
        upvalue = upvalue->next) {
     grayObject((Obj*)upvalue);
   }
+//< mark-open-upvalues
+//> mark-globals
 
-  // Mark the global roots.
   grayTable(&vm.globals);
+//< mark-globals
+//> mark-compiler-roots
   grayCompilerRoots();
+//< mark-compiler-roots
 //> Methods and Initializers not-yet
   grayObject((Obj*)vm.initString);
 //< Methods and Initializers not-yet
-
-  // Traverse the references.
+}
+//< Garbage Collection mark-roots
+//> Garbage Collection trace-references
+static void traceReferences() {
   while (vm.grayCount > 0) {
     // Pop an item from the gray stack.
     Obj* object = vm.grayStack[--vm.grayCount];
     blackenObject(object);
   }
-
+}
+//< Garbage Collection trace-references
+//> Garbage Collection sweep
+static void sweep() {
+//> sweep-strings
   // Delete unused interned strings.
   tableRemoveWhite(&vm.strings);
 
-  // Collect the white objects.
+//< sweep-strings
   Obj** object = &vm.objects;
   while (*object != NULL) {
     if (!((*object)->isDark)) {
@@ -287,15 +303,38 @@ void collectGarbage() {
       object = &(*object)->next;
     }
   }
+}
+//< Garbage Collection sweep
+//> Garbage Collection collect-garbage
+void collectGarbage() {
+//> log-before-collect
+#ifdef DEBUG_LOG_GC
+  printf("-- gc begin\n");
+  size_t before = vm.bytesAllocated;
+#endif
 
-  // Adjust the heap size based on live memory.
+//< log-before-collect
+//> call-mark-roots
+  markRoots();
+//< call-mark-roots
+//> call-trace-references
+  traceReferences();
+//< call-trace-references
+//> call-sweep
+  sweep();
+//< call-sweep
+//> update-next-gc
+
   vm.nextGC = vm.bytesAllocated * GC_HEAP_GROW_FACTOR;
+//< update-next-gc
+//> log-after-collect
 
-#ifdef DEBUG_TRACE_GC
+#ifdef DEBUG_LOG_GC
   printf("-- gc collected %ld bytes (from %ld to %ld) next at %ld\n",
          before - vm.bytesAllocated, before, vm.bytesAllocated,
          vm.nextGC);
 #endif
+//< log-after-collect
 }
 //< Garbage Collection collect-garbage
 //> Strings free-objects

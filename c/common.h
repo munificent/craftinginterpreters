@@ -18,8 +18,10 @@
 //> Garbage Collection define-stress-gc
 
 #define DEBUG_STRESS_GC
-#define DEBUG_TRACE_GC
 //< Garbage Collection define-stress-gc
+//> Garbage Collection define-log-gc
+#define DEBUG_LOG_GC
+//< Garbage Collection define-log-gc
 //> Local Variables uint8-count
 
 #define UINT8_COUNT (UINT8_MAX + 1)
@@ -32,5 +34,5 @@
 #undef DEBUG_PRINT_CODE
 #undef DEBUG_TRACE_EXECUTION
 // #undef DEBUG_STRESS_GC
-#undef DEBUG_TRACE_GC
+#undef DEBUG_LOG_GC
 //< omit
