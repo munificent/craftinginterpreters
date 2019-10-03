@@ -419,14 +419,6 @@ The generated code for the new node is in [Appendix II][appendix-var-stmt].
 declaring, along with the initializer expression. (If there isn't an
 initializer, that's `null`.)
 
-<aside name="comma">
-
-The existing line for the Print statement is marked as being replaced because we
-need to add a comma at the end of it. Likewise in the next code snippet. Details
-matter!
-
-</aside>
-
 Then we add an expression node for accessing a variable:
 
 ^code var-expr (1 before, 1 after)
