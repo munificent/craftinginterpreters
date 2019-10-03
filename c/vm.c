@@ -104,14 +104,16 @@ void initVM() {
 //> Strings init-objects-root
   vm.objects = NULL;
 //< Strings init-objects-root
-//> Garbage Collection init-vm-fields
+//> Garbage Collection init-gc-fields
   vm.bytesAllocated = 0;
   vm.nextGC = 1024 * 1024;
+//< Garbage Collection init-gc-fields
+//> Garbage Collection init-gray-stack
 
   vm.grayCount = 0;
   vm.grayCapacity = 0;
   vm.grayStack = NULL;
-//< Garbage Collection init-vm-fields
+//< Garbage Collection init-gray-stack
 //> Global Variables init-globals
 
   initTable(&vm.globals);
