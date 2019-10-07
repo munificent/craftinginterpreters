@@ -329,12 +329,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   @Override
   public Object visitCallExpr(Expr.Call expr) {
     Object callee = evaluate(expr.callee);
-
-    List<Object> arguments = new ArrayList<>();
-    for (Expr argument : expr.arguments) { // [in-order]
-      arguments.add(evaluate(argument));
-    }
-
 //> check-is-callable
     if (!(callee instanceof LoxCallable)) {
       throw new RuntimeError(expr.paren,
@@ -344,13 +338,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< check-is-callable
     LoxCallable function = (LoxCallable)callee;
 //> check-arity
-    if (arguments.size() != function.arity()) {
+    if (expr.arguments.size() != function.arity()) {
       throw new RuntimeError(expr.paren, "Expected " +
           function.arity() + " arguments but got " +
           arguments.size() + ".");
     }
-
 //< check-arity
+
+    List<Object> arguments = new ArrayList<>();
+    for (Expr argument : expr.arguments) { // [in-order]
+      arguments.add(evaluate(argument));
+    }
+
     return function.call(this, arguments);
   }
 //< Functions visit-call

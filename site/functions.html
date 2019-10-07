@@ -328,14 +328,14 @@ expression node:</p>
 add after <em>visitBinaryExpr</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>                                             
   <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitCallExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Call</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>         
-    <span class="n">Object</span> <span class="n">callee</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">callee</span><span class="o">);</span>
+    <span class="n">Object</span> <span class="n">callee</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">callee</span><span class="o">);</span>              
+    <span class="n">LoxCallable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">LoxCallable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>
 
     <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>         
     <span class="k">for</span> <span class="o">(</span><span class="n">Expr</span> <span class="n">argument</span> <span class="o">:</span> <span class="n">expr</span><span class="o">.</span><span class="na">arguments</span><span class="o">)</span> <span class="o">{</span> <span name="in-order">&#8203;</span>
       <span class="n">arguments</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">evaluate</span><span class="o">(</span><span class="n">argument</span><span class="o">));</span>                
     <span class="o">}</span>                                                   
 
-    <span class="n">LoxCallable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">LoxCallable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>         
     <span class="k">return</span> <span class="n">function</span><span class="o">.</span><span class="na">call</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">arguments</span><span class="o">);</span>              
   <span class="o">}</span>                                                     
 </pre></div>
@@ -394,8 +394,9 @@ you can call? What if you try to do this:</p>
 Java string, so when we cast that to LoxCallable, the JVM will throw a
 ClassCastException. We don&rsquo;t want our interpreter to vomit out some nasty Java
 stack trace and die. Instead, we need to check the type ourselves first:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="o">}</span>                                             
-<br></pre><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kd">public</span> <span class="n">Object</span> <span class="nf">visitCallExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="na">Call</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>   
+    <span class="n">Object</span> <span class="n">callee</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">callee</span><span class="o">);</span>        
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitCallExpr</em>()</div>
 <pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(!(</span><span class="n">callee</span> <span class="k">instanceof</span> <span class="n">LoxCallable</span><span class="o">))</span> <span class="o">{</span>       
       <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">paren</span><span class="o">,</span>          
@@ -436,17 +437,17 @@ is too short or too long.</p>
 <p>I think the latter is a better approach. Passing the wrong number of arguments
 is almost always a bug, and it&rsquo;s a mistake I do make in practice. Given that,
 the sooner the implementation draws my attention to it, the better. So for Lox,
-we&rsquo;ll take Python&rsquo;s approach. Before invoking the callable, we check to see if
-the argument list&rsquo;s length matches the callable&rsquo;s arity:</p>
+we&rsquo;ll take Python&rsquo;s approach. Before evaluating the arguments, we check to see
+if the number of arguments provided matches the callable&rsquo;s arity:</p>
 <div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="n">LoxCallable</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">LoxCallable</span><span class="o">)</span><span class="n">callee</span><span class="o">;</span>       
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitCallExpr</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">arguments</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">!=</span> <span class="n">function</span><span class="o">.</span><span class="na">arity</span><span class="o">())</span> <span class="o">{</span>       
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">arguments</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">!=</span> <span class="n">function</span><span class="o">.</span><span class="na">arity</span><span class="o">())</span> <span class="o">{</span>  
       <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="na">paren</span><span class="o">,</span> <span class="s">&quot;Expected &quot;</span> <span class="o">+</span>
           <span class="n">function</span><span class="o">.</span><span class="na">arity</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot; arguments but got &quot;</span> <span class="o">+</span>  
           <span class="n">arguments</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span><span class="o">);</span>                    
     <span class="o">}</span>                                                 
-<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="n">function</span><span class="o">.</span><span class="na">call</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="n">arguments</span><span class="o">);</span>            
+</pre><pre class="insert-after"><br><span></span>    <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>       
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitCallExpr</em>()</div>

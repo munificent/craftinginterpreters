@@ -287,10 +287,10 @@ is too short or too long.
 I think the latter is a better approach. Passing the wrong number of arguments
 is almost always a bug, and it's a mistake I do make in practice. Given that,
 the sooner the implementation draws my attention to it, the better. So for Lox,
-we'll take Python's approach. Before invoking the callable, we check to see if
-the argument list's length matches the callable's arity:
+we'll take Python's approach. Before evaluating the arguments, we check to see
+if the number of arguments provided matches the callable's arity:
 
-^code check-arity (2 before, 1 after)
+^code check-arity (2 before, 2 after)
 
 That requires a new method on the LoxCallable interface to ask it its arity:
 
