@@ -323,17 +323,17 @@ argument. That side effect means we can see the exact order of operations.
 Don't worry about the VM for a minute. Think about just the semantics of Lox
 itself. The operands to an arithmetic operator obviously need to be evaluated
 before we can perform the operation itself. (It's pretty hard to add `a + b` if
-you don't know what `a` and `b` are.) I mentioned this when we were evaluating
-expressions in jlox, so to make sure we stay compatible, we ensure the
-left-hand side of a binary operator is evaluated before the right.
+you don't know what `a` and `b` are.) Also, we implemented expressions in jlox,
+we <span name="undefined">decided</span> that the left operand must be evaluated
+before the right.
 
 <aside name="undefined">
 
-We could leave this unspecified and say each implementation can decide which
-order to evaluate operands. That leaves the door open for optimizing compilers
-to reorder arithmetic expressions for efficiency, even in cases where the
-operands have visible side effects. C and Scheme leave it unspecified. Java
-specifies left-to-right evaluation like we do for Lox.
+We could have left evaluation order unspecified and let each implementation
+decide. That leaves the door open for optimizing compilers to reorder arithmetic
+expressions for efficiency, even in cases where the operands have visible side
+effects. C and Scheme leave evaluation order unspecified. Java specifies
+left-to-right evaluation like we do for Lox.
 
 I think nailing down stuff like this is generally better for users. When
 expressions are not evaluated in the order users intuit -- possibly in different
