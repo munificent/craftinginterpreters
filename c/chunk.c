@@ -63,9 +63,7 @@ void writeChunk(Chunk* chunk, uint8_t byte, int line) {
 //> add-constant
 int addConstant(Chunk* chunk, Value value) {
 //> Garbage Collection add-constant-push
-  // Make sure the value doesn't get collected when resizing the array.
   push(value);
-
 //< Garbage Collection add-constant-push
   writeValueArray(&chunk->constants, value);
 //> Garbage Collection add-constant-pop
