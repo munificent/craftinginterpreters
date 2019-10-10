@@ -287,7 +287,7 @@ simple regular grammar. A regular grammar can *repeat*, but it can't *count*.
 We could keep picking the first production for `breakfast` over and over again
 yielding all manner of breakfasts like "bacon with sausage with scrambled eggs
 with bacon ...". We won't though. This time we'll pick `bread`. There are three
-rules for that, each of which contains only a nonterminal. We'll pick "English
+rules for that, each of which contains only a terminal. We'll pick "English
 muffin".
 
 With that, every nonterminal in the string has been expanded until it finally
