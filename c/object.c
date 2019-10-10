@@ -19,9 +19,9 @@
 static Obj* allocateObject(size_t size, ObjType type) {
   Obj* object = (Obj*)reallocate(NULL, 0, size);
   object->type = type;
-//> Garbage Collection init-is-dark
-  object->isDark = false;
-//< Garbage Collection init-is-dark
+//> Garbage Collection init-is-marked
+  object->isMarked = false;
+//< Garbage Collection init-is-marked
 //> add-to-list
   
   object->next = vm.objects;

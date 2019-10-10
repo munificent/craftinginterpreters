@@ -48,9 +48,9 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
 
 void tableRemoveWhite(Table* table);
 //< Garbage Collection table-remove-white-h
-//> Garbage Collection gray-table-h
-void grayTable(Table* table);
-//< Garbage Collection gray-table-h
+//> Garbage Collection mark-table-h
+void markTable(Table* table);
+//< Garbage Collection mark-table-h
 
 //< init-table-h
 #endif

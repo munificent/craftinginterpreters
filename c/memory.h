@@ -31,12 +31,12 @@
 
 void* reallocate(void* previous, size_t oldSize, size_t newSize);
 //< grow-array
-//> Garbage Collection gray-object-h
-void grayObject(Obj* object);
-//< Garbage Collection gray-object-h
-//> Garbage Collection gray-value-h
-void grayValue(Value value);
-//< Garbage Collection gray-value-h
+//> Garbage Collection mark-object-h
+void markObject(Obj* object);
+//< Garbage Collection mark-object-h
+//> Garbage Collection mark-value-h
+void markValue(Value value);
+//< Garbage Collection mark-value-h
 //> Garbage Collection collect-garbage-h
 void collectGarbage();
 //< Garbage Collection collect-garbage-h

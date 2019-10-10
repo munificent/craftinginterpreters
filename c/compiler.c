@@ -1516,12 +1516,12 @@ ObjFunction* compile(const char* source) {
   return parser.hadError ? NULL : function;
 //< Calls and Functions call-end-compiler
 }
-//> Garbage Collection gray-roots
-void grayCompilerRoots() {
+//> Garbage Collection mark-compiler-roots
+void markCompilerRoots() {
   Compiler* compiler = current;
   while (compiler != NULL) {
-    grayObject((Obj*)compiler->function);
+    markObject((Obj*)compiler->function);
     compiler = compiler->enclosing;
   }
 }
-//< Garbage Collection gray-roots
+//< Garbage Collection mark-compiler-roots
