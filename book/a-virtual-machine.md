@@ -590,7 +590,7 @@ contents of the stack before we interpret each instruction:
 We loop, printing each value in the array, starting at the first (bottom of the
 stack) and ending when we reach the top. This lets us observe the effect of each
 instruction on the stack. The output is pretty verbose, but it's useful when
-we're tracking down a bug deep in the bowels of the interpreter.
+we're surgically extracting a nasty bug from the bowels of the interpreter.
 
 Stack in hand, let's revisit our two instructions. First up:
 
