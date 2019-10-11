@@ -76,11 +76,11 @@ all.
 </aside>
 
 This means a more complex approach than we used in our Java interpreter. Because
-some locals have very different lifetimes, we will have two implementations
-strategies, one optimized for each. For locals that aren't used in closures,
-we'll keep them just as they are on the stack. When a local is captured by a
-closure, we'll adopt another solution that lifts them onto the heap where they
-can live as long as needed.
+some locals have very different lifetimes, we will have two implementation
+strategies. For locals that aren't used in closures, we'll keep them just as
+they are on the stack. When a local is captured by a closure, we'll adopt
+another solution that lifts them onto the heap where they can live as long as
+needed.
 
 Closures have been around since the early Lisp days when bytes of memory and CPU
 cycles were more precious than emeralds. Over the intervening decades, hackers
