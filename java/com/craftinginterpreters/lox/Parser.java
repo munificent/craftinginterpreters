@@ -43,7 +43,7 @@ class Parser {
 //< parse-declaration
     }
 
-    return statements;
+    return statements; // [parse-error-handling]
   }
 //< Statements and State parse
 //> expression

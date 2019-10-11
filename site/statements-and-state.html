@@ -248,21 +248,22 @@ the correct starting rule, <code>program</code>, we can turn <code>parse()</code
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 method <em>parse</em>()<br>
 replace 7 lines</div>
-<pre><span></span>  <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>                        
-    <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                      
-      <span class="n">statements</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">statement</span><span class="o">());</span>            
+<pre><span></span>  <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>                          
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>  
+    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                        
+      <span class="n">statements</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">statement</span><span class="o">());</span>              
     <span class="o">}</span>
 
-    <span class="k">return</span> <span class="n">statements</span><span class="o">;</span>                        
-  <span class="o">}</span>                                           
+    <span class="k">return</span> <span class="n">statements</span><span class="o">;</span> <span name="parse-error-handling">&#8203;</span>
+  <span class="o">}</span>                                             
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, method <em>parse</em>(), replace 7 lines</div>
 
 <aside name="parse-error-handling">
-<p>We&rsquo;ve also removed the temporary handling for <code>ParseError</code> exceptions, because it
-will be handled differently when we add support for additional statement types.</p>
+<p>What about the code we had in here for catching <code>ParseError</code> exceptions? We&rsquo;ll
+put better parse error handling in place soon when we add support for additional
+statement types.</p>
 </aside>
 <p>It parses a series of statements, as many as it can find until it hits the end
 of the input. This is a pretty direct translation of the <code>program</code> rule into
@@ -611,17 +612,17 @@ script so that you get updated &ldquo;Expr.java&rdquo; and &ldquo;Stmt.java&rdqu
 <p>Before we parse variable statements, we need to shift around some code to make
 room for the new <code>declaration</code> rule in the grammar. The top level of a program
 is now a list of declarations, so the entrypoint method to the parser becomes:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>                        
-    <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="nf">parse</span><span class="o">()</span> <span class="o">{</span>                          
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>  
+    <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                        
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>parse</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>      <span class="n">statements</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">declaration</span><span class="o">());</span>          
+<pre class="insert"><span></span>      <span class="n">statements</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">declaration</span><span class="o">());</span>            
 </pre><pre class="insert-after"><span></span>    <span class="o">}</span>
 
-    <span class="k">return</span> <span class="n">statements</span><span class="o">;</span>                        
-  <span class="o">}</span>                                           
+    <span class="k">return</span> <span class="n">statements</span><span class="o">;</span> <span name="parse-error-handling">&#8203;</span>
+  <span class="o">}</span>                                             
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>parse</em>(), replace 1 line</div>

@@ -151,8 +151,9 @@ the correct starting rule, `program`, we can turn `parse()` into the real deal:
 
 <aside name="parse-error-handling">
 
-We've also removed the temporary handling for `ParseError` exceptions, because it
-will be handled differently when we add support for additional statement types.
+What about the code we had in here for catching `ParseError` exceptions? We'll
+put better parse error handling in place soon when we add support for additional
+statement types.
 
 </aside>
 
