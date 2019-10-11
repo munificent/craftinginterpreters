@@ -804,7 +804,6 @@ pointless now but will become more useful in later chapters. I promise.</p>
 add after <em>string</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">namedVariable</span><span class="p">(</span><span class="n">Token</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>   
   <span class="kt">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">name</span><span class="p">);</span>
-
   <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_GET_GLOBAL</span><span class="p">,</span> <span class="n">arg</span><span class="p">);</span>          
 <span class="p">}</span>                                         
 </pre></div>
@@ -906,20 +905,20 @@ be used as an assignment target, we look for a subsequent <code>=</code> token. 
 one, we compile it as an assignment or setter instead of a variable access or
 getter.</p>
 <p>We don&rsquo;t have setters to worry about yet, so all we need to handle is variables:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">name</span><span class="p">);</span> 
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">name</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
-replace 2 lines</div>
-<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EQUAL</span><span class="p">))</span> <span class="p">{</span>                
-    <span class="n">expression</span><span class="p">();</span>                          
-    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_SET_GLOBAL</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">arg</span><span class="p">);</span>
-  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                 
-    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_GET_GLOBAL</span><span class="p">,</span> <span class="p">(</span><span class="kt">uint8_t</span><span class="p">)</span><span class="n">arg</span><span class="p">);</span>
-  <span class="p">}</span>                                        
-</pre><pre class="insert-after"><span></span><span class="p">}</span>                                          
+replace 1 line</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EQUAL</span><span class="p">))</span> <span class="p">{</span>               
+    <span class="n">expression</span><span class="p">();</span>                         
+    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_SET_GLOBAL</span><span class="p">,</span> <span class="n">arg</span><span class="p">);</span>        
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                
+    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_GET_GLOBAL</span><span class="p">,</span> <span class="n">arg</span><span class="p">);</span>        
+  <span class="p">}</span>                                       
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                         
 </pre></div>
 
-<div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 2 lines</div>
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
 
 <p>In the parse function for identifier expressions, we look for a following
 equals sign. If we find one, instead of emitting code for a variable access,
