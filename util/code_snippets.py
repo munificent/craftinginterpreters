@@ -51,7 +51,7 @@ END_CHAPTER_PATTERN = re.compile(r'//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
 
 # Hacky regexes that matches a function, method or constructor declaration.
 CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
-FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(')
+FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(([^)]*)')
 MODULE_PATTERN = re.compile(r'^(\w+) (\w+);')
 STRUCT_PATTERN = re.compile(r'struct (s\w+)? {')
 TYPE_PATTERN = re.compile(r'(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)')
@@ -271,18 +271,25 @@ class Location:
   The context in which a line of code appears. The chain of types and functions
   it's in.
   """
-  def __init__(self, parent, kind, name):
+  def __init__(self, parent, kind, name, signature=None):
     self.parent = parent
     self.kind = kind
     self.name = name
+    self.signature = signature
 
   def __str__(self):
     result = self.kind + ' ' + self.name
+    if self.signature:
+      result += "(" + self.signature + ")"
     if self.parent:
       result = str(self.parent) + ' > ' + result
     return result
 
   def __eq__(self, other):
+    # Note: Signature is deliberately not considered part of equality. There's
+    # a case in calls-and-functions where the signature of a function changes
+    # and it confuses the build script if we treat the signatures as
+    # significant.
     return other != None and self.kind == other.kind and self.name == other.name
 
   @property
@@ -304,6 +311,14 @@ class Location:
       return 'nest inside class <em>{}</em>'.format(self.parent.name)
 
     if self.is_function and preceding == self:
+      # Hack. There's one place where we add a new overload and that shouldn't
+      # be treated as in the same function. But we can't always look at the
+      # signature because there's another place where a change signature would
+      # confuse the build script. So just check for the one-off case here.
+      if self.name == 'resolve' and self.signature == 'Expr expr':
+        return 'add after <em>{}</em>({})'.format(
+            preceding.name, preceding.signature)
+
       # We're still inside a function.
       return 'in <em>{}</em>()'.format(self.name)
 
@@ -489,7 +504,8 @@ def load_file(source_code, source_dir, path):
           current_location = Location(
               current_location,
               'method' if file.path.endswith('.java') else 'function',
-              match.group(2))
+              match.group(2),
+              match.group(3))
           # TODO: What about declarations with aside comments:
           #   void foo(); // [wat]
           is_function_declaration = line.endswith(';')
