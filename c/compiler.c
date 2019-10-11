@@ -746,7 +746,6 @@ static void namedVariable(Token name, bool canAssign) {
   }
 //< Local Variables named-local
 /* Global Variables read-named-variable < Global Variables named-variable
-
   emitBytes(OP_GET_GLOBAL, arg);
 */
 //> named-variable
@@ -759,14 +758,14 @@ static void namedVariable(Token name, bool canAssign) {
 //< named-variable-can-assign
     expression();
 /* Global Variables named-variable < Local Variables emit-set
-    emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+    emitBytes(OP_SET_GLOBAL, arg);
 */
 //> Local Variables emit-set
     emitBytes(setOp, (uint8_t)arg);
 //< Local Variables emit-set
   } else {
 /* Global Variables named-variable < Local Variables emit-get
-    emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+    emitBytes(OP_GET_GLOBAL, arg);
 */
 //> Local Variables emit-get
     emitBytes(getOp, (uint8_t)arg);
