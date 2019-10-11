@@ -415,9 +415,8 @@ The generated code for the new node is in [Appendix II][appendix-var-stmt].
 
 </aside>
 
-<span name="comma">It</span> stores the name token so we know what it's
-declaring, along with the initializer expression. (If there isn't an
-initializer, that's `null`.)
+It stores the name token so we know what it's declaring, along with the
+initializer expression. (If there isn't an initializer, that's `null`.)
 
 Then we add an expression node for accessing a variable:
 
