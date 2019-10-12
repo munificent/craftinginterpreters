@@ -755,7 +755,10 @@ We have two other, simpler instructions to add disassembler support for:
 
 ^code disassemble-upvalue-ops (2 before, 1 after)
 
-These both have a single byte operand, so there's nothing exciting going on.
+These both have a single byte operand, so there's nothing exciting going on. We
+do need to add an include so the debug module can get to `AS_FUNCTION()`:
+
+^code debug-include-object (1 before, 1 after)
 
 With that, our compiler is where we want it. For each function declaration, it
 outputs an `OP_CLOSURE` instruction followed by a series of operand byte pairs

@@ -5,9 +5,9 @@
 //< Methods and Initializers not-yet
 
 #include "debug.h"
-//> Closures not-yet
+//> Closures debug-include-object
 #include "object.h"
-//< Closures not-yet
+//< Closures debug-include-object
 //> debug-include-value
 #include "value.h"
 //< debug-include-value
