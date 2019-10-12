@@ -443,8 +443,9 @@ static int resolveLocal(Compiler* compiler, Token* name) {
 //< Local Variables resolve-local
 //> Closures add-upvalue
 static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
-//> existing-upvalue
   int upvalueCount = compiler->function->upvalueCount;
+//> existing-upvalue
+
   for (int i = 0; i < upvalueCount; i++) {
     Upvalue* upvalue = &compiler->upvalues[i];
     if (upvalue->index == index && upvalue->isLocal == isLocal) {
