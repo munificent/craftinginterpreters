@@ -979,7 +979,7 @@ closure();
 
 But if you run it right now... who knows what it does? At runtime, it will end
 up reading from a stack slot that no longer contains the closed-over variable.
-Like I've mention a few times, the crux of the issue is that variables in
+Like I've mentioned a few times, the crux of the issue is that variables in
 closures don't have stack semantics. That means we've got to hoist them off the
 stack when the function where they were declared returns. This final section of
 the chapter does that.
