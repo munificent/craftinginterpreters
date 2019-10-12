@@ -1165,8 +1165,8 @@ variable, the other closure sees the change.
 
 Right now, if two closures capture the same <span name="indirect">local</span>
 variable, the VM creates a separate Upvalue for each one. That breaks that
-sharing. When we move the variable off the heap, if we move into in only one of
-upvalues, the other will see an orphaned value.
+sharing. When we move the variable off the heap, if we move it into only one of
+the upvalues, the other upvalue will have an orphaned value.
 
 <aside name="indirect">
 
