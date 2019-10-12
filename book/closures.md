@@ -1294,8 +1294,8 @@ location:
 
 ^code insert-upvalue-in-list (1 before, 1 after)
 
-We already create the upvalue in the first incarnation of this function, so we
-only need to add code to insert it in the list. We exited the list traversal by
+The current incarnation of this function already creates the upvalue, so we only
+need to add code to insert it in the list. We exited the list traversal by
 either going past the end of the list, or by stopping on the first upvalue whose
 stack slot is below the one we're looking for. In either case, that means we
 need to insert the new upvalue *before* `upvalue` (which may be `NULL` if we hit
