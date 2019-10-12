@@ -1062,7 +1062,7 @@ two questions we need to answer are:
 
 The answer to the first question is easy. We already have a convenient object on
 the heap that represents a reference to a variable -- ObjUpvalue itself. The
-closed-over variable will move into a new field right inside the ObjValue
+closed-over variable will move into a new field right inside the ObjUpvalue
 struct. That way we don't need to do any additional heap allocation to close an
 upvalue.
 
