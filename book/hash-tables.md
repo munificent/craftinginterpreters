@@ -709,9 +709,9 @@ bad:
 
 ^code table-get
 
-If the table is completely, we definitely won't find the entry, so we check for
-that first. This isn't just an optimization -- it also ensures that we don't try
-to access the bucket array when the array is `NULL`. Otherwise, we let
+If the table is completely empty, we definitely won't find the entry, so we
+check for that first. This isn't just an optimization -- it also ensures that we
+don't try to access the bucket array when the array is `NULL`. Otherwise, we let
 `findEntry()` work its magic. That returns a pointer to a bucket. If the bucket
 is empty, which we detect by seeing if the key is `NULL`, then we didn't find an
 entry with our key. If `findEntry()` does return a non-empty entry, then that's
