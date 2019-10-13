@@ -293,15 +293,14 @@ in enum <em>ObjType</em></div>
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And when we&rsquo;re done with a closure, we release its memory:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                       
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>      
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="p">:</span> <span class="p">{</span>                         
-      <span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span> <span class="o">=</span> <span class="p">(</span><span class="n">ObjClosure</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>
-      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjClosure</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>                 
-      <span class="k">break</span><span class="p">;</span>                                    
-    <span class="p">}</span>                                           
-<br></pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span> <span class="p">{</span>                        
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="p">:</span> <span class="p">{</span>        
+      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjClosure</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>
+      <span class="k">break</span><span class="p">;</span>                   
+    <span class="p">}</span>                          
+<br></pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="p">:</span> <span class="p">{</span>       
 </pre></div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
@@ -1240,10 +1239,11 @@ in <em>newClosure</em>()</div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClosure</em>()</div>
 
 <p>When an ObjClosure is freed, we also free the upvalue array:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span> <span class="o">=</span> <span class="p">(</span><span class="n">ObjClosure</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>                       
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="p">:</span> <span class="p">{</span>                                                
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
-<pre class="insert"><span></span>      <span class="n">FREE_ARRAY</span><span class="p">(</span><span class="n">ObjUpvalue</span><span class="p">,</span> <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="p">,</span> <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="p">);</span>
+<pre class="insert"><span></span>      <span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span> <span class="o">=</span> <span class="p">(</span><span class="n">ObjClosure</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">;</span>                       
+      <span class="n">FREE_ARRAY</span><span class="p">(</span><span class="n">ObjUpvalue</span><span class="p">,</span> <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="p">,</span> <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="p">);</span>
 </pre><pre class="insert-after"><span></span>      <span class="n">FREE</span><span class="p">(</span><span class="n">ObjClosure</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>                                        
 </pre></div>
 
