@@ -71,7 +71,8 @@ from expressions. We start with the two simplest kinds:
     <aside name="print">
 
     I will note with only a modicum of defensiveness that BASIC and Python
-    have dedicated print statements and they are real languages.
+    have dedicated print statements and they are real languages. Granted,
+    Python did remove their print statement in 3.0...
 
     </aside>
 
