@@ -1003,8 +1003,11 @@ pair of operands specifies what that upvalue captures. If the first byte is one,
 it captures a local variable in the enclosing function. If zero, it captures one
 of the function&rsquo;s upvalues. The next byte is the local slot or upvalue index to
 capture.</p>
-<p>This odd encoding means we need some bespoke support in the disassembler:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                                              
+<p>This odd encoding means we need some bespoke support in the disassembly code
+for <code>OP_CLOSURE</code>:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%-16s %4d &quot;</span><span class="p">,</span> <span class="s">&quot;OP_CLOSURE&quot;</span><span class="p">,</span> <span class="n">constant</span><span class="p">);</span>              
+      <span class="n">printValue</span><span class="p">(</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="p">.</span><span class="n">values</span><span class="p">[</span><span class="n">constant</span><span class="p">]);</span>             
+      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                                              
 <br></pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert"><span></span>      <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">AS_FUNCTION</span><span class="p">(</span>                       
