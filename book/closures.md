@@ -720,9 +720,10 @@ it captures a local variable in the enclosing function. If zero, it captures one
 of the function's upvalues. The next byte is the local slot or upvalue index to
 capture.
 
-This odd encoding means we need some bespoke support in the disassembler:
+This odd encoding means we need some bespoke support in the disassembly code
+for `OP_CLOSURE`:
 
-^code disassemble-upvalues (2 before, 1 after)
+^code disassemble-upvalues (4 before, 1 after)
 
 For example, take this script:
 
