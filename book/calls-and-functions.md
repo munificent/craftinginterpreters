@@ -671,6 +671,15 @@ To make that work, we mark the function declaration's variable initialized as
 soon as we compile the name, before we compile the body. That way the name can
 be referenced inside the body without generating an error.
 
+We do need one check, though:
+
+^code check-depth (1 before, 1 after)
+
+Before, we only called `markInitialized()` when we already knew we were in a
+local scope. Now a top level function declaration will also call this function.
+When that happens, there is no local variable to mark initialized -- the
+function is bound to a global variable.
+
 Next, we compile the function itself -- its parameter list and block body. For
 that, we use a separate helper function. That helper generates code that
 leaves the resulting function object on top of the stack. After that, we call
