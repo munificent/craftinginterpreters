@@ -179,8 +179,8 @@ static void freeObject(Obj* object) {
 //< Classes and Instances not-yet
 //> Closures free-closure
     case OBJ_CLOSURE: {
-      ObjClosure* closure = (ObjClosure*)object;
 //> free-upvalues
+      ObjClosure* closure = (ObjClosure*)object;
       FREE_ARRAY(ObjUpvalue, closure->upvalues, closure->upvalueCount);
 //< free-upvalues
       FREE(ObjClosure, object);
