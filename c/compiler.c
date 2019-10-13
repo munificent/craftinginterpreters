@@ -1215,10 +1215,10 @@ static void forStatement() {
   consume(TOKEN_SEMICOLON, "Expect ';'.");
 */
 //> for-initializer
-  if (match(TOKEN_VAR)) {
-    varDeclaration();
-  } else if (match(TOKEN_SEMICOLON)) {
+  if (match(TOKEN_SEMICOLON)) {
     // No initializer.
+  } else if (match(TOKEN_VAR)) {
+    varDeclaration();
   } else {
     expressionStatement();
   }
