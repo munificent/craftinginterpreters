@@ -1005,6 +1005,20 @@ support recursive local functions.</p>
 <p>To make that work, we mark the function declaration&rsquo;s variable initialized as
 soon as we compile the name, before we compile the body. That way the name can
 be referenced inside the body without generating an error.</p>
+<p>We do need one check, though:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">markInitialized</span><span class="p">()</span> <span class="p">{</span>                   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>markInitialized</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">scopeDepth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>           
+</pre><pre class="insert-after"><span></span>  <span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="p">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">].</span><span class="n">depth</span> <span class="o">=</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>markInitialized</em>()</div>
+
+<p>Before, we only called <code>markInitialized()</code> when we already knew we were in a
+local scope. Now a top level function declaration will also call this function.
+When that happens, there is no local variable to mark initialized<span class="em">&mdash;</span>the
+function is bound to a global variable.</p>
 <p>Next, we compile the function itself<span class="em">&mdash;</span>its parameter list and block body. For
 that, we use a separate helper function. That helper generates code that
 leaves the resulting function object on top of the stack. After that, we call

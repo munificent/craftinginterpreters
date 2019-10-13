@@ -546,7 +546,9 @@ static uint8_t parseVariable(const char* errorMessage) {
 //< Global Variables parse-variable
 //> Local Variables mark-initialized
 static void markInitialized() {
+//> Calls and Functions check-depth
   if (current->scopeDepth == 0) return;
+//< Calls and Functions check-depth
   current->locals[current->localCount - 1].depth =
       current->scopeDepth;
 }
