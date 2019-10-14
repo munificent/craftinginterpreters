@@ -98,5 +98,6 @@ bool valuesEqual(Value a, Value b) {
 //> Optimization not-yet
 #endif
 //< Optimization not-yet
+  return false;
 }
 //< Types of Values values-equal
