@@ -44,7 +44,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
     free(previous);
     return NULL;
   }
-  
+
   return realloc(previous, newSize);
 }
 //> Garbage Collection mark-object
@@ -52,7 +52,7 @@ void markObject(Obj* object) {
   if (object == NULL) return;
 //> check-is-marked
   if (object->isMarked) return;
-  
+
 //< check-is-marked
 //> log-mark-object
 #ifdef DEBUG_LOG_GC
@@ -285,7 +285,6 @@ static void traceReferences() {
 //> Garbage Collection sweep
 static void sweep() {
 //> sweep-strings
-  // Delete unused interned strings.
   tableRemoveWhite(&vm.strings);
 
 //< sweep-strings
@@ -300,14 +299,14 @@ static void sweep() {
       object = object->next;
     } else {
       Obj* unreached = object;
-      
+
       object = object->next;
       if (previous != NULL) {
         previous->next = object;
       } else {
         vm.objects = object;
       }
-      
+
       freeObject(unreached);
     }
   }
