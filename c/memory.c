@@ -56,7 +56,7 @@ void markObject(Obj* object) {
 //< check-is-marked
 //> log-mark-object
 #ifdef DEBUG_LOG_GC
-  printf("%p mark ", object);
+  printf("%p mark ", (void*)object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
@@ -92,7 +92,7 @@ static void markArray(ValueArray* array) {
 static void blackenObject(Obj* object) {
 //> log-blacken-object
 #ifdef DEBUG_LOG_GC
-  printf("%p blacken ", object);
+  printf("%p blacken ", (void*)object);
   printValue(OBJ_VAL(object));
   printf("\n");
 #endif
@@ -164,9 +164,7 @@ static void blackenObject(Obj* object) {
 static void freeObject(Obj* object) {
 //> Garbage Collection log-free-object
 #ifdef DEBUG_LOG_GC
-  printf("%p free ", object);
-  printValue(OBJ_VAL(object));
-  printf("\n");
+  printf("%p free type %d\n", (void*)object, object->type);
 #endif
 
 //< Garbage Collection log-free-object
@@ -197,7 +195,7 @@ static void freeObject(Obj* object) {
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
 //> free-upvalues
-      FREE_ARRAY(Value, closure->upvalues, closure->upvalueCount);
+      FREE_ARRAY(Value*, closure->upvalues, closure->upvalueCount);
 //< free-upvalues
       FREE(ObjClosure, object);
       break;
