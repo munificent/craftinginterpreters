@@ -576,7 +576,7 @@ bytecode for the whole thing.
 
 The problem is not as dire as it might seem, though. Look at how the parser sees that example:
 
-<img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = "mimosa"' statement, showing that 'menu.brunch(sunday)' is an expression." />
+<img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = &quot;mimosa&quot;' statement, showing that 'menu.brunch(sunday)' is an expression." />
 
 Even though the `.beverage` part must be compiled as a setter, everything to the
 left of it is an expression, with the normal expression semantics. The
