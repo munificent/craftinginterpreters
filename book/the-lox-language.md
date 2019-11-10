@@ -91,9 +91,9 @@ indebted to Lua's clean, efficient implementation.
 
 Now that JavaScript has taken over the world and is used to build ginormous
 applications, it's hard to think of it as a "little scripting language". But
-Brendan Eich hacked it into Netscape Navigator in *ten days* to make buttons animate on
-web pages. JavaScript has grown up since then, but it was once a cute little
-language.
+Brendan Eich hacked it into Netscape Navigator in *ten days* to make buttons
+animate on web pages. JavaScript has grown up since then, but it was once a
+cute little language.
 
 Because Eich slapped JS together with roughly the same raw materials and time as
 an episode of MacGyver, it has some weird semantic corners where the duct tape
