@@ -96,7 +96,7 @@ def get_part_chapters(title):
   return chapters
 
 
-def format_code(language, length, lines):
+def format_code(language, lines):
   markup = '```{}\n'.format(language)
 
   # Hack. Markdown seems to discard leading and trailing newlines, so we'll
@@ -112,7 +112,7 @@ def format_code(language, length, lines):
     trailing_newlines += 1
 
   for line in lines:
-    markup += line.ljust(length, ' ') + '\n'
+    markup += line + '\n'
 
   markup += '```'
 
@@ -197,25 +197,10 @@ def insert_snippet(snippets, arg, contents, errors):
 
   # TODO: Show indentation in snippets somehow.
 
-  # Figure out the length of the longest line. We pad all of the snippets to
-  # this length so that the background on the pre sections is as wide as the
-  # entire chunk of code.
-  length = 0
-  if before_lines > 0:
-    length = longest_line(length, snippet.context_before[-before_lines:])
-  if snippet.removed and not snippet.added:
-    length = longest_line(length, snippet.removed)
-  if snippet.added_comma:
-    length = longest_line(length, snippet.added_comma)
-  if snippet.added:
-    length = longest_line(length, snippet.added)
-  if after_lines > 0:
-    length = longest_line(length, snippet.context_after[:after_lines])
-
   contents += '<div class="codehilite">'
 
   if before_lines > 0:
-    before = format_code(snippet.file.language(), length,
+    before = format_code(snippet.file.language(),
         snippet.context_before[-before_lines:])
     if snippet.added:
       before = before.replace('<pre>', '<pre class="insert-before">')
@@ -225,7 +210,7 @@ def insert_snippet(snippets, arg, contents, errors):
     def replace_last(string, old, new):
       return new.join(string.rsplit(old, 1))
 
-    comma = format_code(snippet.file.language(), length, [snippet.added_comma])
+    comma = format_code(snippet.file.language(), [snippet.added_comma])
     comma = comma.replace('<pre>', '<pre class="insert-before">')
     comma = replace_last(comma, ',', '<span class="insert-comma">,</span>')
     contents += comma
@@ -235,18 +220,18 @@ def insert_snippet(snippets, arg, contents, errors):
         '<br>\n'.join(location))
 
   if snippet.removed and not snippet.added:
-    removed = format_code(snippet.file.language(), length, snippet.removed)
+    removed = format_code(snippet.file.language(), snippet.removed)
     removed = removed.replace('<pre>', '<pre class="delete">')
     contents += removed
 
   if snippet.added:
-    added = format_code(snippet.file.language(), length, snippet.added)
+    added = format_code(snippet.file.language(), snippet.added)
     if before_lines > 0 or after_lines > 0:
       added = added.replace('<pre>', '<pre class="insert">')
     contents += added
 
   if after_lines > 0:
-    after = format_code(snippet.file.language(), length,
+    after = format_code(snippet.file.language(),
         snippet.context_after[:after_lines])
     if snippet.added:
       after = after.replace('<pre>', '<pre class="insert-after">')
