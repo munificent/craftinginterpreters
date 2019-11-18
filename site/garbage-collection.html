@@ -39,12 +39,11 @@
 
 <ul>
     <li><a href="#mark-sweep-garbage-collection"><small>26.1</small> Mark-Sweep Garbage Collection</a></li>
-    <li><a href="#collecting-garbage"><small>26.2</small> Collecting Garbage</a></li>
-    <li><a href="#marking-the-roots"><small>26.3</small> Marking the Roots</a></li>
-    <li><a href="#tracing-object-references"><small>26.4</small> Tracing Object References</a></li>
-    <li><a href="#sweeping-unused-objects"><small>26.5</small> Sweeping Unused Objects</a></li>
-    <li><a href="#when-to-collect"><small>26.6</small> When to Collect</a></li>
-    <li><a href="#garbage-collection-bugs"><small>26.7</small> Garbage Collection Bugs</a></li>
+    <li><a href="#marking-the-roots"><small>26.2</small> Marking the Roots</a></li>
+    <li><a href="#tracing-object-references"><small>26.3</small> Tracing Object References</a></li>
+    <li><a href="#sweeping-unused-objects"><small>26.4</small> Sweeping Unused Objects</a></li>
+    <li><a href="#when-to-collect"><small>26.5</small> When to Collect</a></li>
+    <li><a href="#garbage-collection-bugs"><small>26.6</small> Garbage Collection Bugs</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
     <li class="end-part"><a href="#design-note"><small>note</small>Generational Collectors
@@ -75,12 +74,11 @@
 
 <ul>
     <li><a href="#mark-sweep-garbage-collection"><small>26.1</small> Mark-Sweep Garbage Collection</a></li>
-    <li><a href="#collecting-garbage"><small>26.2</small> Collecting Garbage</a></li>
-    <li><a href="#marking-the-roots"><small>26.3</small> Marking the Roots</a></li>
-    <li><a href="#tracing-object-references"><small>26.4</small> Tracing Object References</a></li>
-    <li><a href="#sweeping-unused-objects"><small>26.5</small> Sweeping Unused Objects</a></li>
-    <li><a href="#when-to-collect"><small>26.6</small> When to Collect</a></li>
-    <li><a href="#garbage-collection-bugs"><small>26.7</small> Garbage Collection Bugs</a></li>
+    <li><a href="#marking-the-roots"><small>26.2</small> Marking the Roots</a></li>
+    <li><a href="#tracing-object-references"><small>26.3</small> Tracing Object References</a></li>
+    <li><a href="#sweeping-unused-objects"><small>26.4</small> Sweeping Unused Objects</a></li>
+    <li><a href="#when-to-collect"><small>26.5</small> When to Collect</a></li>
+    <li><a href="#garbage-collection-bugs"><small>26.6</small> Garbage Collection Bugs</a></li>
     <li class="divider"></li>
     <li class="end-part"><a href="#challenges">Challenges</a></li>
     <li class="end-part"><a href="#design-note"><small>note</small>Generational Collectors
@@ -126,8 +124,6 @@ I wanna, I wanna,<br>
 I wanna be trash.<br></p>
 <p><cite>The Whip, <em>Trash</em></cite></p>
 </blockquote>
-<p><strong>todo: figure out what illustrations to add</strong></p>
-<p><strong>todo: subheaders?</strong></p>
 <p>We say Lox is a &ldquo;high-level&rdquo; language because it frees programmers from having
 to worry about details irrelevant to the problem they&rsquo;re trying to solve. The
 user becomes an executive giving the machine abstract goals and letting the
@@ -155,6 +151,7 @@ name="recycle">collector</span></strong>.</p>
 away</em> the memory, it reclaims it to be reused for new data. But managed
 languages are older than Earth Day, so the inventors went with the simile they
 knew.</p>
+<p><img src="image/garbage-collection/recycle.png" class="above" alt="A recycle bin full of bits." /></p>
 </aside>
 <h3><a href="#reachability" name="reachability"><small>26&#8202;.&#8202;0&#8202;.&#8202;1</small> Reachability</a></h3>
 <p>This raises a surprisingly difficult question: how does a VM tell what memory is
@@ -233,14 +230,14 @@ without those, our VM still has indirect references. Consider:</p>
 the collector is done and the program resumes, it will call the closure, which
 will in turn print <code>"data"</code>. So the collector needs to <em>not</em> free that string.
 But here&rsquo;s what the stack looks like when we paused the program:</p>
-<p><strong>todo: illustrate</strong></p>
+<p><img src="image/garbage-collection/stack.png" alt="The stack, containing only the script and closure." /></p>
 <p>The <code>"data"</code> string is nowhere on it. It has already been hoisted off the stack
 and moved into the closed upvalue that the closure uses. The closure itself is
 on the stack. But to get to the string, we need to trace through the closure
 and its upvalue array to reach it. Since it <em>is</em> possible for the user&rsquo;s
 program to do that, all of these indirectly accessible objects are also
 considered reachable.</p>
-<p><strong>todo: show path through closure to string</strong></p>
+<p><img src="image/garbage-collection/reachable.png" class="wide" alt="All of the referenced objects from the closure and the path to the 'data' string from the stack." /></p>
 <p>This gives us an inductive definition of reachability:</p>
 <ul>
 <li>
@@ -307,7 +304,7 @@ of CS seem to be timeless.</p>
     reclamation. We go through them all and free each one.</p>
 </li>
 </ul>
-<p><strong>todo: illustrate phases</strong></p>
+<p><img src="image/garbage-collection/mark-sweep.png" class="wide" alt="Starting from a graph of objects, first the reachable ones are marked, the remaining are swept and then only the reachable remain." /></p>
 <aside name="trace">
 <p>A <strong>tracing garbage collector</strong> is any algorithm that traces through the graph
 of object references. This is in contrast with reference counting which has a
@@ -316,7 +313,7 @@ different strategy for tracking the reachable objects.</p>
 <p>That&rsquo;s what we&rsquo;re gonna implement. Whenever we decide it&rsquo;s time to reap some
 bytes, we&rsquo;ll trace everything and mark all the reachable objects, free what&rsquo;s
 didn&rsquo;t get marked, and then resume the user&rsquo;s program.</p>
-<h2><a href="#collecting-garbage" name="collecting-garbage"><small>26&#8202;.&#8202;2</small> Collecting Garbage</a></h2>
+<h3><a href="#collecting-garbage" name="collecting-garbage"><small>26&#8202;.&#8202;1&#8202;.&#8202;1</small> Collecting garbage</a></h3>
 <p>This entire chapter is about implementing one <span name="one">function</span>:</p>
 <aside name="one">
 <p>Of course, it&rsquo;s going to end up getting a bunch of helper functions too.</p>
@@ -386,7 +383,7 @@ collects any.</p>
 periodically during program execution, a function call boundaries, or when a
 backwards jump occurs.</p>
 </aside>
-<h3><a href="#debug-logging" name="debug-logging"><small>26&#8202;.&#8202;2&#8202;.&#8202;1</small> Debug logging</a></h3>
+<h3><a href="#debug-logging" name="debug-logging"><small>26&#8202;.&#8202;1&#8202;.&#8202;2</small> Debug logging</a></h3>
 <p>While we&rsquo;re on the subject of diagnostics, let&rsquo;s put some more in. A real
 challenge I&rsquo;ve found with garbage collectors is that they are opaque. We&rsquo;ve been
 running lots of Lox programs just fine without any GC <em>at all</em> so far. Once we
@@ -444,34 +441,32 @@ in <em>collectGarbage</em>()</div>
 
 <p>We don&rsquo;t have any code for the collector yet, but we do have code for allocating
 and freeing, so we can instrument those now:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="n">object</span><span class="p">;</span>                                   
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">objects</span> <span class="o">=</span> <span class="n">object</span><span class="p">;</span>                                          
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateObject</em>()</div>
-<pre class="insert"><br><span></span><span class="cp">#ifdef DEBUG_LOG_GC                                      </span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p allocate %ld for %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">object</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
-<span class="cp">#endif                                                   </span>
-<br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">object</span><span class="p">;</span>                                         
+<pre class="insert"><br><span></span><span class="cp">#ifdef DEBUG_LOG_GC                                             </span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p allocate %ld for %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">type</span><span class="p">);</span>
+<span class="cp">#endif                                                          </span>
+<br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">object</span><span class="p">;</span>                                                
 </pre></div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
 <p>And at the end of an object&rsquo;s lifespan:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">freeObject</span><span class="p">(</span><span class="n">Obj</span><span class="o">*</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">freeObject</span><span class="p">(</span><span class="n">Obj</span><span class="o">*</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>                      
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
-<pre class="insert"><span></span><span class="cp">#ifdef DEBUG_LOG_GC                  </span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p free &quot;</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>        
-  <span class="n">printValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">object</span><span class="p">));</span>       
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                      
-<span class="cp">#endif                               </span>
-<br></pre><pre class="insert-after"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>            
+<pre class="insert"><span></span><span class="cp">#ifdef DEBUG_LOG_GC                                        </span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p free type %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">,</span> <span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">);</span>
+<span class="cp">#endif                                                     </span>
+<br></pre><pre class="insert-after"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                                  
 </pre></div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>With these two flags, we should be able to see that we&rsquo;re making progress as we
 work through the rest of the chapter.</p>
-<h2><a href="#marking-the-roots" name="marking-the-roots"><small>26&#8202;.&#8202;3</small> Marking the Roots</a></h2>
+<h2><a href="#marking-the-roots" name="marking-the-roots"><small>26&#8202;.&#8202;2</small> Marking the Roots</a></h2>
 <p>Objects are scattered across the heap like stars in the inky night sky. A
 reference from one object to another forms a connection and these constellations
 are the graph that the mark phase traverses. Marking begins at the roots:</p>
@@ -570,16 +565,16 @@ in <em>allocateObject</em>()</div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
 <p>While we&rsquo;re in here, let&rsquo;s log when an object gets marked:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">markObject</span><span class="p">(</span><span class="n">Obj</span><span class="o">*</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">object</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span> 
+<div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">markObject</span><span class="p">(</span><span class="n">Obj</span><span class="o">*</span> <span class="n">object</span><span class="p">)</span> <span class="p">{</span>      
+  <span class="k">if</span> <span class="p">(</span><span class="n">object</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>       
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markObject</em>()</div>
-<pre class="insert"><span></span><span class="cp">#ifdef DEBUG_LOG_GC           </span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p mark &quot;</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span> 
-  <span class="n">printValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">object</span><span class="p">));</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>               
-<span class="cp">#endif                        </span>
-<br></pre><pre class="insert-after"><span></span>  <span class="n">object</span><span class="o">-&gt;</span><span class="n">isMarked</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>    
+<pre class="insert"><span></span><span class="cp">#ifdef DEBUG_LOG_GC                 </span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p mark &quot;</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">);</span>
+  <span class="n">printValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">object</span><span class="p">));</span>      
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                     
+<span class="cp">#endif                              </span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">object</span><span class="o">-&gt;</span><span class="n">isMarked</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>          
 </pre></div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markObject</em>()</div>
@@ -623,6 +618,7 @@ add after <em>tableFindString</em>()</div>
 
 <p>Pretty straightforward. We walk the entry array and mark every key string and
 value, uh, value.</p>
+<h3><a href="#less-obvious-roots" name="less-obvious-roots"><small>26&#8202;.&#8202;2&#8202;.&#8202;1</small> Less obvious roots</a></h3>
 <p>Those cover the roots that we typically think of<span class="em">&mdash;</span>the values that are
 obviously reachable because they&rsquo;re stored in variables that are directly
 accessible to the user&rsquo;s program. But the VM has a few of its own hidey holes
@@ -724,7 +720,7 @@ whole list.</p>
 <p>Those are the roots. After running this, every object that the VM<span class="em">&mdash;</span>runtime and
 compiler<span class="em">&mdash;</span>can get to <em>without</em> going through some other object has its mark
 bit set.</p>
-<h2><a href="#tracing-object-references" name="tracing-object-references"><small>26&#8202;.&#8202;4</small> Tracing Object References</a></h2>
+<h2><a href="#tracing-object-references" name="tracing-object-references"><small>26&#8202;.&#8202;3</small> Tracing Object References</a></h2>
 <p>The next step in the marking process is tracing through the graph of references
 between objects to find the indirectly reachable values. We don&rsquo;t have instances
 with fields yet, so there aren&rsquo;t many objects that contain references, but we do
@@ -752,7 +748,7 @@ which memory to preload into the caches.</p>
 difficult to determine which order objects will be used in the future, so it&rsquo;s
 hard for the GC to know which order will help performance.</p>
 </aside>
-<h3><a href="#tri-color-abstraction" name="tri-color-abstraction"><small>26&#8202;.&#8202;4&#8202;.&#8202;1</small> Tri-color abstraction</a></h3>
+<h3><a href="#the-tri-color-abstraction" name="the-tri-color-abstraction"><small>26&#8202;.&#8202;3&#8202;.&#8202;1</small> The tri-color abstraction</a></h3>
 <p>As the collector wanders through the graph of objects, we need to make sure it
 doesn&rsquo;t lose track of where it is or get stuck going in circles. This is
 paricularly a concern for advanced implementations like incremental GCs that
@@ -770,20 +766,23 @@ publication.</p>
 </aside>
 <ul>
 <li>
-<p><strong>White</strong> &ndash; At the beginning of a garbage collection, every object is
-    white. This color means we have not reached or processed the object at all.</p>
+<p><strong>White</strong> <img src="image/garbage-collection/white.png" class="dot" />
+    &ndash; At the beginning of a garbage collection, every object is white.
+    This color means we have not reached or processed the object at all.</p>
 </li>
 <li>
-<p><strong>Gray</strong> &ndash; During marking, when we first reach an object, we darken it
-    gray. This color means we know it is reachable and should not be collected.
-    But we have not yet traced <em>through</em> it to see what <em>other</em> objects it
-    references. In graph algorithm terms, this is the <em>worklist</em><span class="em">&mdash;</span>the set of
-    objects we know about but haven&rsquo;t processed yet.</p>
+<p><strong>Gray</strong> <img src="image/garbage-collection/gray.png" class="dot" /> &ndash;
+    During marking, when we first reach an object, we darken it gray. This color
+    means we know it is reachable and should not be collected. But we have not
+    yet traced <em>through</em> it to see what <em>other</em> objects it references. In graph
+    algorithm terms, this is the <em>worklist</em><span class="em">&mdash;</span>the set of objects we know about
+    but haven&rsquo;t processed yet.</p>
 </li>
 <li>
-<p><strong>Black</strong> &ndash; When we take a gray object and traverse and mark all of
-    the objects it references, we then turn it black. This color means the mark
-    phase is done with the object.</p>
+<p><strong>Black</strong> <img src="image/garbage-collection/black.png" class="dot" />
+    &ndash; When we take a gray object and traverse and mark all of the objects
+    it references, we then turn it black. This color means the mark phase is
+    done with the object.</p>
 </li>
 </ul>
 <p>In terms of that abstraction, the marking process now looks like this:</p>
@@ -807,7 +806,6 @@ publication.</p>
 </ol>
 </li>
 </ol>
-<p><strong>todo: make this a flowchart?</strong></p>
 <p>I find it helps to visualize this. You have a web of objects with references
 between them. Initially, they are all little white dots. Off to the side are
 some incoming edges from the VM that point to the roots. Those turn gray. Then
@@ -815,11 +813,12 @@ each gray object&rsquo;s siblings turn gray while the object itself turns black.
 full effect is a gray wavefront that passes through the graph, leaving a field
 of reachable black objects behind it. Unreachable objects are not touched by the
 wavefront and stay white.</p>
+<p><img src="image/garbage-collection/tricolor-trace.png" class="wide" alt="A gray wavefront working through a graph of nodes." /></p>
 <p>At the end, you&rsquo;re left with a sea of reached black objects sprinkled with
 islands of white objects that can be swept up and freed. Once the unreachable
 objects are freed, the remaining objects<span class="em">&mdash;</span>all black<span class="em">&mdash;</span>are reset to white for
 the next garbage collection cycle.</p>
-<p><strong>todo: illustrate</strong></p>
+<h3><a href="#a-worklist-for-gray-objects" name="a-worklist-for-gray-objects"><small>26&#8202;.&#8202;3&#8202;.&#8202;2</small> A worklist for gray objects</a></h3>
 <p>In our implementation we have already marked the roots. They&rsquo;re all gray. The
 next step is to start picking them and traversing their references. But we don&rsquo;t
 have any easy way to find them. We set a field on the object, but that&rsquo;s it. We
@@ -886,6 +885,7 @@ in <em>freeObjects</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObjects</em>()</div>
 
+<h3><a href="#processing-gray-objects" name="processing-gray-objects"><small>26&#8202;.&#8202;3&#8202;.&#8202;3</small> Processing gray objects</a></h3>
 <p>OK, now when we&rsquo;re done marking the roots we have both set a bunch of fields
 and filled our work list with objects to chew through. It&rsquo;s time for the next
 phase:</p>
@@ -1019,7 +1019,7 @@ ends to tie off. First, some logging:</p>
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert"><span></span><span class="cp">#ifdef DEBUG_LOG_GC                     </span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p blacken &quot;</span><span class="p">,</span> <span class="n">object</span><span class="p">);</span>        
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%p blacken &quot;</span><span class="p">,</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span><span class="n">object</span><span class="p">);</span> 
   <span class="n">printValue</span><span class="p">(</span><span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">object</span><span class="p">));</span>          
   <span class="n">printf</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>                         
 <span class="cp">#endif                                  </span>
@@ -1048,7 +1048,7 @@ in <em>markObject</em>()</div>
 the gray stack. This ensures that an already-gray object is not redundantly
 added and that a black object is not inadvertently turned back to gray. In other
 words, it keeps the wavefront moving forward through the white objects.</p>
-<h2><a href="#sweeping-unused-objects" name="sweeping-unused-objects"><small>26&#8202;.&#8202;5</small> Sweeping Unused Objects</a></h2>
+<h2><a href="#sweeping-unused-objects" name="sweeping-unused-objects"><small>26&#8202;.&#8202;4</small> Sweeping Unused Objects</a></h2>
 <p>When the loop in <code>traceReferences()</code> exits, we have processed every single
 object we could get our hands on. The gray stack is empty and every object is
 either black or white. The black objects are reachable and we want to hang on
@@ -1101,6 +1101,7 @@ singly-linked list is kind of cumbersome. We have to continously remember the
 previous node so we can unlink its next pointer, and we have to handle the edge
 case where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple:
 delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p>
+<p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." /></p>
 <p>There&rsquo;s one little addition:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">isMarked</span><span class="p">)</span> <span class="p">{</span>    
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1115,7 +1116,7 @@ in <em>sweep</em>()</div>
 ones with their mark bits set. That&rsquo;s correct, but when the <em>next</em> collection
 cycle starts, we need every object to be white. So whenever we reach a black
 object, we go ahead and clear the bit now in anticipation of the next run.</p>
-<h3><a href="#weak-references-and-the-string-pool" name="weak-references-and-the-string-pool"><small>26&#8202;.&#8202;5&#8202;.&#8202;1</small> Weak references and the string pool</a></h3>
+<h3><a href="#weak-references-and-the-string-pool" name="weak-references-and-the-string-pool"><small>26&#8202;.&#8202;4&#8202;.&#8202;1</small> Weak references and the string pool</a></h3>
 <p>We are almost done. There is one remaining corner of the VM that has some
 unusual requirements around memory. Recall that when we added strings to clox we
 made the VM intern them all. That means the VM has a hash table containing a
@@ -1192,7 +1193,7 @@ each entry<span class="em">&mdash;</span>it&rsquo;s basically a hash <em>set</em
 object&rsquo;s mark bit is not set, then it is a white object that is moments from
 being swept away. We delete it from the hash table first and thus ensure we
 won&rsquo;t see any dangling pointers.</p>
-<h2><a href="#when-to-collect" name="when-to-collect"><small>26&#8202;.&#8202;6</small> When to Collect</a></h2>
+<h2><a href="#when-to-collect" name="when-to-collect"><small>26&#8202;.&#8202;5</small> When to Collect</a></h2>
 <p>We have a fully functioning mark-sweep garbage collector now. When the stress
 testing flag is enabled, it gets called all the time, and with the logging
 enabled too we can watch it do its thing and see that it is indeed collecting.
@@ -1209,7 +1210,7 @@ programs all fighting for their chunk of memory. The operating system will let
 your program request as much as it wants and then page in and out from the disc
 when physical memory gets full. You never really &ldquo;run out&rdquo; of memory, you just
 get slower and slower.</p>
-<h3><a href="#latency-and-throughput" name="latency-and-throughput"><small>26&#8202;.&#8202;6&#8202;.&#8202;1</small> Latency and throughput</a></h3>
+<h3><a href="#latency-and-throughput" name="latency-and-throughput"><small>26&#8202;.&#8202;5&#8202;.&#8202;1</small> Latency and throughput</a></h3>
 <p>It no longer makes sense to wait until you &ldquo;have to&rdquo;, to run the GC, so we need
 a more subtle timing strategy. To reason about this more precisely, it&rsquo;s time
 to introduce two fundamental numbers used when measuring a memory manager&rsquo;s
@@ -1257,6 +1258,14 @@ run, the latency is only 1/5th of a second, five times less than in the
 first.</p>
 </li>
 </ul>
+<p><span name="latency"></span></p>
+<p><img src="image/garbage-collection/latency-throughput.png" alt="A bar representing execution time with slices for running user code and running the GC. The largest GC slice is latency. The size of all of the user code slices is throughput." /></p>
+<aside name="latency">
+<p>The bar represents the execution of a user program, divided into time spent
+running user code and time spent in the GC. The size of the largest single slice
+of time running the GC is the latency. The size of all of the user code slices
+added up is the throughput.</p>
+</aside>
 <p>If you like analogies, imagine your program is a bakery selling fresh-baked
 bread to customers. Throughput is the total number of warm, crusty baguettes you
 can serve to customers in a single day. Latency is the how long the unluckiest
@@ -1276,6 +1285,7 @@ interruption.</p>
 <p>However, coordination is required. You don&rsquo;t want a dishwasher grabbing a bowl
 out of a baker&rsquo;s hands! This coordination adds overhead and a lot of complexity.
 Concurrent collectors are fast, but challenging to implement correctly.</p>
+<p><img src="image/garbage-collection/baguette.png" class="above" alt="Un baguette." /></p>
 </aside>
 <p>Selling fewer loaves of bread a day is bad, and making any particular customer
 sit and wait while you clean all the dishes is too. The goal is to maximize
@@ -1317,7 +1327,7 @@ to run the collector really <em>in</em>-frequently.</p>
 <p>In fact, we want something in the middle, and the frequency of when the
 collector runs is one of the main knobs we have to tune the trade-off between
 latency and throughput.</p>
-<h3><a href="#self-adjusting-heap" name="self-adjusting-heap"><small>26&#8202;.&#8202;6&#8202;.&#8202;2</small> Self-adjusting heap</a></h3>
+<h3><a href="#self-adjusting-heap" name="self-adjusting-heap"><small>26&#8202;.&#8202;5&#8202;.&#8202;2</small> Self-adjusting heap</a></h3>
 <p>We want our GC to run frequently enough to reduce latency but infrequently
 enough to maintain decent throughput. But how do we find the balance between
 these when we have no idea how much memory the user&rsquo;s program needs and how
@@ -1363,7 +1373,6 @@ in <em>initVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
-<hr />
 <p>The starting threshold here is pretty <span name="lab">arbitrary</span>. It&rsquo;s
 similar to the initial capacity we picked for our various dynamic arrays. The
 goal is to not trigger the first few GCs <em>too</em> quickly but also to not wait too
@@ -1452,7 +1461,7 @@ in <em>collectGarbage</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>This way we can see how much the garbage collector accomplished while it ran.</p>
-<h2><a href="#garbage-collection-bugs" name="garbage-collection-bugs"><small>26&#8202;.&#8202;7</small> Garbage Collection Bugs</a></h2>
+<h2><a href="#garbage-collection-bugs" name="garbage-collection-bugs"><small>26&#8202;.&#8202;6</small> Garbage Collection Bugs</a></h2>
 <p>In theory, we are all done now. We have a GC. It kicks in periodically, collects
 what it can, and leaves the rest. If this were a typical textbook, we would wipe
 the dust from our hands and bask in the soft glow of the flawless marble edifice
@@ -1649,9 +1658,6 @@ more often.</p>
 metrics on the lifetime of objects in real-world running programs. They tracked
 every object when it was allocated and eventually when it was no longer needed
 and then graphed out how long objects tended to live.</p>
-<ul>
-<li><strong>todo: draw bathtub curve</strong></li>
-</ul>
 <p>They discovered something they called the <strong>generational hypothesis</strong>, or the
 much less tactful term <strong>infant mortality</strong>. Their observation was that most
 objects are very short-lived but once they survive beyond a certain age, they
