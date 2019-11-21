@@ -282,10 +282,6 @@ static void traceReferences() {
 //< Garbage Collection trace-references
 //> Garbage Collection sweep
 static void sweep() {
-//> sweep-strings
-  tableRemoveWhite(&vm.strings);
-
-//< sweep-strings
   Obj* previous = NULL;
   Obj* object = vm.objects;
   while (object != NULL) {
@@ -327,6 +323,9 @@ void collectGarbage() {
 //> call-trace-references
   traceReferences();
 //< call-trace-references
+//> sweep-strings
+  tableRemoveWhite(&vm.strings);
+//< sweep-strings
 //> call-sweep
   sweep();
 //< call-sweep
