@@ -1029,7 +1029,7 @@ static ParseRule* getRule(TokenType type) {
 }
 //< Compiling Expressions get-rule
 //> Compiling Expressions expression
-void expression() {
+static void expression() {
 /* Compiling Expressions expression < Compiling Expressions expression-body
   // What goes here?
 */
