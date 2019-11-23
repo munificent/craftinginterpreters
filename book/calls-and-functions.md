@@ -972,7 +972,11 @@ The funny little `- 1` is to skip over local slot zero, which contains the
 function being called. That slot isn't used right now, but will be when we get
 to methods.
 
-Time for a quick side trip. Now that we have a handy function for initiating a
+Before we move on, let's add the new instruction to our disassembler:
+
+^code disassemble-call (1 before, 1 after)
+
+And one more quick side trip. Now that we have a handy function for initiating a
 CallFrame, we may as well use it to set up the first frame for executing the top
 level code:
 
@@ -1117,14 +1121,8 @@ return `nil` in that case. To make that happen, we add this:
 
 The compiler calls `emitReturn()` to write the `OP_RETURN` instruction at the
 end of a function body. Now, before that, it emits an instruction to push `nil`
-onto the stack.
-
-One last bit of disassembler support:
-
-^code disassemble-call (1 before, 1 after)
-
-And we have working function calls! They can even take parameters! It almost
-looks like we know what we're doing here.
+onto the stack. And with that, we have working function calls! They can even
+take parameters! It almost looks like we know what we're doing here.
 
 ## Return Statements
 
