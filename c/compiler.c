@@ -1017,7 +1017,6 @@ static void parsePrecedence(Precedence precedence) {
 
   if (canAssign && match(TOKEN_EQUAL)) {
     error("Invalid assignment target.");
-    expression();
   }
 //< Global Variables invalid-assign
 //< infix
