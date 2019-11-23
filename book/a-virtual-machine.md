@@ -323,9 +323,9 @@ argument. That side effect means we can see the exact order of operations.
 Don't worry about the VM for a minute. Think about just the semantics of Lox
 itself. The operands to an arithmetic operator obviously need to be evaluated
 before we can perform the operation itself. (It's pretty hard to add `a + b` if
-you don't know what `a` and `b` are.) Also, we implemented expressions in jlox,
-we <span name="undefined">decided</span> that the left operand must be evaluated
-before the right.
+you don't know what `a` and `b` are.) Also, when we implemented expressions in
+jlox, we <span name="undefined">decided</span> that the left operand must be
+evaluated before the right.
 
 <aside name="undefined">
 
