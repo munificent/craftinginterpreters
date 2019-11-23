@@ -22,7 +22,7 @@ worry about it. I'll do that when I pull it in.
 ## Ports and implementations
 
 Another way to get involved is by sharing your own implementation of Lox. Ports
-to other langauges are particularly useful since not every reader likes Java and
+to other languages are particularly useful since not every reader likes Java and
 C. Feel free to add your Lox port or implementation to the wiki:
 
 * [Lox implementations][]
