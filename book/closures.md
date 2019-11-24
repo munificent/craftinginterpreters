@@ -1188,7 +1188,7 @@ created upvalues are squirreled away inside the upvalue arrays of the various
 closures. Those closures could be anywhere in the VM's memory.
 
 The first step is to give the VM its own list of all open upvalues that point to
-variables still on the stack. Seaching a list each time the VM needs an upvalue
+variables still on the stack. Searching a list each time the VM needs an upvalue
 sounds like it might be slow, but in practice, it's not bad. The number of
 variables on the stack that actually get closed over tends to be small. And
 function declarations that <span name="create">create</span> closures are rarely
