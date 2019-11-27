@@ -678,11 +678,11 @@ clox, but you&rsquo;ll want to scale to larger programs in your own VMs.</p>
 consumes a <code>TOKEN_NUMBER</code> token and then calls <code>number()</code>, we can now compile
 number literals to bytecode.</p>
 <h3><a href="#parentheses-for-grouping" name="parentheses-for-grouping"><small>17&#8202;.&#8202;4&#8202;.&#8202;2</small> Parentheses for grouping</a></h3>
-<p>Our array of parsing function pointers would be great if every expression was
-only a single token long. Alas, most are longer. However, many expressions
-<em>start</em> with a particular token. We call these <em>prefix</em> expressions. For
-example, when we&rsquo;re parsing an expression and the current token is <code>(</code>, we know
-we must be looking at a parenthesized grouping expression.</p>
+<p>Our as-yet-imaginary array of parsing function pointers would be great if every
+expression was only a single token long. Alas, most are longer. However, many
+expressions <em>start</em> with a particular token. We call these <em>prefix</em> expressions.
+For example, when we&rsquo;re parsing an expression and the current token is <code>(</code>, we
+know we must be looking at a parenthesized grouping expression.</p>
 <p>It turns out our function pointer array handles those too. The parsing function
 for an expression type can consume any additional tokens that it wants to, just
 like in a regular recursive descent parser. Here&rsquo;s how parentheses work:</p>
@@ -696,10 +696,9 @@ add after <em>endCompiler</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
-<p>Again, it assumes the initial <code>(</code> has already been consumed. It <span
-name="recursive">recursively</span> calls back into <code>expression()</code> to compile
-the expression between the parentheses, then it parses the closing <code>)</code> at the
-end.</p>
+<p>Again, we assume the initial <code>(</code> has already been consumed. We <span
+name="recursive">recursively</span> call back into <code>expression()</code> to compile the
+expression between the parentheses, then parse the closing <code>)</code> at the end.</p>
 <aside name="recursive">
 <p>A Pratt parser isn&rsquo;t a recursive <em>descent</em> parser, but it&rsquo;s still recursive.
 That&rsquo;s to be expected since the grammar itself is recursive.</p>
@@ -767,25 +766,28 @@ the error on line 2, even though the <code>-</code> is on line 1. A more robust 
 would be to store the token&rsquo;s line before compiling the operand and then pass
 that into <code>emitByte()</code>, but I wanted to keep things simple for the book.</p>
 </aside>
-<p>There is one problem with this code, though. By calling <code>expression()</code>, we allow
-any expression for the operand, regardless of precedence. Once we add binary
-operators and other syntax, that will do the wrong thing. Consider:</p>
+<p>There is one problem with this code, though. The <code>expression()</code> function it
+calls will parse any expression for the operand, regardless of precedence. Once
+we add binary operators and other syntax, that will do the wrong thing.
+Consider:</p>
 <div class="codehilite"><pre><span></span><span class="o">-</span><span class="n">a</span><span class="p">.</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
 </pre></div>
 
 
 <p>Here, the operand to <code>-</code> should be just the <code>a.b</code> expression, not the entire
 <code>a.b + c</code>. But if <code>unary()</code> calls <code>expression()</code>, the latter will happily chew
-through all of the remaining code including the <code>+</code>.</p>
-<p>The operand to <code>-</code> is an expression, but it needs to only allow expressions at a
-certain precedence level or higher. In jlox&rsquo;s recursive descent parser, each
-method for parsing a specific expression also parsed any expressions of higher
-precedence too. By calling the parsing method for the expression type of the
-lowest allowed precedence, we&rsquo;d roll in the others as well.</p>
-<p>The parsing functions here are different. Each only parses exactly one type of
-expression. They don&rsquo;t cascade to include higher precedence expression types
-too. We need a different solution. For now, let&rsquo;s assume that we have a
-function that parses any expression of a given precedence level or higher:</p>
+through all of the remaining code including the <code>+</code>. It will erronously treat
+the <code>-</code> as lower precendence than the <code>+</code>.</p>
+<p>When parsing the operand to unary <code>-</code>, we need to compile only expressions at a
+certain precedence level or higher. In jlox&rsquo;s recursive descent parser we could
+accomplish that by calling into the parsing method for the lowest precendence
+expression we wanted to allow (in this case, <code>call()</code>). Each method for parsing
+a specific expression also parsed any expressions of higher precedence too, so
+that would include the rest of the precedence table.</p>
+<p>The parsing functions like <code>number()</code> and <code>unary()</code> here are different. Each
+only parses exactly one type of expression. They don&rsquo;t cascade to include higher
+precedence expression types too. We need a different solution, and it looks like
+this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>unary</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">parsePrecedence</span><span class="p">(</span><span class="n">Precedence</span> <span class="n">precedence</span><span class="p">)</span> <span class="p">{</span>
@@ -795,9 +797,12 @@ add after <em>unary</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>()</div>
 
-<p>We will circle back and see <em>how</em> that function does what it does. Right now,
-it&rsquo;s magic. In order to take the &ldquo;precedence&rdquo; as a parameter, we define it
-numerically:</p>
+<p>This function, once we implement it, starts at the current token and parses any
+expression at the given precence level or higher. We have some other setup to
+get through before we can write the body of this function, but you can probably
+guess that it will use that table of parsing function pointers I&rsquo;ve been talking
+about. For now, don&rsquo;t worry too much about how it works. In order to take the
+&ldquo;precedence&rdquo; as a parameter, we define it numerically:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Parser</span><span class="p">;</span>                       
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>Parser</em></div>
@@ -814,15 +819,26 @@ add after struct <em>Parser</em></div>
   <span class="n">PREC_CALL</span><span class="p">,</span>        <span class="c1">// . ()     </span>
   <span class="n">PREC_PRIMARY</span>                  
 <span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>                   
-</pre><pre class="insert-after"><br><br><span></span>
+</pre><pre class="insert-after"><br><span></span><span class="n">Parser</span> <span class="n">parser</span><span class="p">;</span>                  
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
 <p>These are all of Lox&rsquo;s precedence levels in order from lowest to highest. Since
 C implicitly gives successively larger numbers for enums, this means that
-<code>PREC_CALL</code> is numerically larger than <code>PREC_UNARY</code>. With this function in hand,
-it&rsquo;s a snap to fill in the missing body for <code>expression()</code>:</p>
+<code>PREC_CALL</code> is numerically larger than <code>PREC_UNARY</code>. For example, say the
+compiler is sitting on a chunk of code like:</p>
+<div class="codehilite"><pre><span></span><span class="o">-</span><span class="n">a</span><span class="p">.</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span>
+</pre></div>
+
+
+<p>If we call <code>parsePrecedence(PREC_ASSIGNMENT)</code>, then it will parse the entire
+expression because <code>+</code> has higher precedence than assignment. If instead we
+call <code>parsePrecedence(PREC_UNARY)</code>, it will compile the <code>-a.b</code> and stop there.
+It doesn&rsquo;t keep going through the <code>+</code> because the addition is lower precedence
+than unary operators.</p>
+<p>With this function in hand, it&rsquo;s a snap to fill in the missing body for
+<code>expression()</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">expression</span><span class="p">()</span> <span class="p">{</span>         
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>expression</em>()<br>
@@ -833,10 +849,9 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>expression</em>(), replace 1 line</div>
 
-<p>It simply parses the lowest precedence level, which subsumes all of the higher
-precedence expressions too.</p>
-<p>Now, to compile the operand for a unary expression, we call this new function
-and limit it to the appropriate level:</p>
+<p>We simply parse the lowest precedence level, which subsumes all of the higher
+precedence expressions too. Now, to compile the operand for a unary expression,
+we call this new function and limit it to the appropriate level:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="c1">// Compile the operand.          </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>unary</em>()<br>
@@ -850,52 +865,50 @@ replace 1 line</div>
 <p>We use the unary operator&rsquo;s own <code>PREC_UNARY</code> precedence to permit <span
 name="useful">nested</span> unary expressions like <code>!!doubleNegative</code>. Since
 unary operators have pretty high precedence, that correctly excludes things like
-binary operators. When we call <code>unary()</code> to parse:</p>
+binary operators. Speaking of which&hellip;</p>
 <aside name="useful">
 <p>Not that nesting unary expressions is particularly useful in Lox. But other
 languages let you do it, so we do too.</p>
 </aside>
-<div class="codehilite"><pre><span></span><span class="o">-</span><span class="n">a</span><span class="p">.</span><span class="n">b</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
-</pre></div>
-
-
-<p>It consumes the <code>a.b</code> and then stops there. Then <code>unary()</code> returns and relies on
-some other code to handle parsing the surrounding <code>+</code> expression that contains
-the negation on its left. Which brings us to&hellip;</p>
 <h2><a href="#parsing-infix-expressions" name="parsing-infix-expressions"><small>17&#8202;.&#8202;5</small> Parsing Infix Expressions</a></h2>
-<p>We&rsquo;re down to the binary operators. These are different from the previous
-expressions because they are <em>infix</em>. With the other expressions, we know what
-we are parsing from its very first token. With infix expressions, we don&rsquo;t even
-know we&rsquo;re in the middle of a binary operator until <em>after</em> we&rsquo;ve parsed its
-left operand and then stumbled onto the operator token in the middle.</p>
+<p>Binary operators are different from the previous expressions because they are
+<em>infix</em>. With the other expressions, we know what we are parsing from the very
+first token. With infix expressions, we don&rsquo;t know we&rsquo;re in the middle of a
+binary operator until <em>after</em> we&rsquo;ve parsed its left operand and then stumbled
+onto the operator token in the middle.</p>
 <p>Here&rsquo;s an example:</p>
-<div class="codehilite"><pre><span></span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">3</span>
+<div class="codehilite"><pre><span></span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span>
 </pre></div>
 
 
-<p>Let&rsquo;s walk through trying to compile it with what we have so far:</p>
+<p>Let&rsquo;s walk through trying to compile it with what we know so far:</p>
 <ol>
 <li>
-<p>We call <code>expression()</code>. It sees the first token is <code>-</code>. The associated parse
-    function is <code>unary()</code>, so it calls that.</p>
+<p>We call <code>expression()</code>. That in turn calls
+    <code>parsePrecedence(PREC_ASSIGNMENT)</code>.</p>
 </li>
 <li>
-<p><code>unary()</code> calls <code>parsePrecedence()</code> to parse the operand. That compiles the
-    <code>1</code> literal. It does not compile the <code>+</code>, because that&rsquo;s too low precedence
-    for the call to <code>parsePrecedence()</code>.</p>
+<p>That function (once we implement it) sees the leading number token and
+    recognizes it is parsing a number literal. It hands off control to
+    <code>number()</code>.</p>
 </li>
 <li>
-<p><code>unary()</code> returns back to <code>expression()</code>.</p>
+<p><code>number()</code> creates a constant, emits an <code>OP_CONSTANT</code>, and returns back to
+    <code>parsePrecedence()</code>.</p>
 </li>
 </ol>
-<p>Now what? It turns out we are right where we need to be. Now that we&rsquo;ve compiled
-the prefix expression, the next token is <code>+</code>. That&rsquo;s the token we need to detect
-that we&rsquo;re in the middle of an infix expression and to realize that the prefix
+<p>Now what? The call to <code>parsePrecedence()</code> should consume the entire addition
+exprssion, so it needs to keep going somehow. Fortunately, the parser is right
+where we need it to be. Now that we&rsquo;ve compiled the leading number expression,
+the next token is <code>+</code>. That&rsquo;s the exact token that <code>parsePrecedence()</code> needs to
+detect that we&rsquo;re in the middle of an infix expression and to realize that the
 expression we already compiled is actually an operand to that.</p>
-<p>So we turn that array of function pointers into a <em>table</em>. One column associates
-<em>prefix</em> parser functions with token types. The new column associates <em>infix</em>
-parser functions with token types. In the rows for <code>TOKEN_PLUS</code>, <code>TOKEN_MINUS</code>,
-<code>TOKEN_STAR</code>, and <code>TOKEN_SLASH</code>, we point to this function:</p>
+<p>So this hypothetical array of function pointers doesn&rsquo;t just list functions to
+parse expressions that start with a given token. Instead, it&rsquo;s a <em>table</em> of
+function pointers. One column associates prefix parser functions with token
+types. The second column associates infix parser functions with token types.</p>
+<p>The function we will use as the infix parser for <code>TOKEN_PLUS</code>, <code>TOKEN_MINUS</code>,
+<code>TOKEN_STAR</code>, and <code>TOKEN_SLASH</code> is this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">binary</span><span class="p">()</span> <span class="p">{</span>                                     
@@ -1003,7 +1016,7 @@ given token because all prefix operators in Lox have the same precedence.</p>
 </aside>
 <p>We wrap these three properties in a little struct which represents a single row
 in the parser table:</p>
-<div class="codehilite"><pre class="insert-before"><br><span></span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>           
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>        
@@ -1023,10 +1036,10 @@ type that takes no arguments and returns nothing:</p>
 typedef. I understand the intent behind the syntax<span class="em">&mdash;</span>the whole &ldquo;declaration
 reflects use&rdquo; thing<span class="em">&mdash;</span>but I think it was a failed syntactic experiment.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before"><br><span></span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Precedence</span><span class="p">;</span>             
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em></div>
-<pre class="insert"><span></span><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">*</span><span class="n">ParseFn</span><span class="p">)();</span>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">*</span><span class="n">ParseFn</span><span class="p">)();</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="p">{</span>          
 </pre></div>
 
