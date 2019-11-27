@@ -47,7 +47,9 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 //< precedence
+//> parse-fn-type
 
+//< parse-fn-type
 /* Compiling Expressions parse-fn-type < Global Variables parse-fn-type
 typedef void (*ParseFn)();
 */
