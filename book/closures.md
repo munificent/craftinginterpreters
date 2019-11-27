@@ -225,7 +225,7 @@ closures.
 
 We have closure objects but our VM never creates them. The next step is getting
 the compiler to emit instructions to tell the runtime when to create a new
-ClosureObj to wrap a given FunctionObj. This happens right at the end of a
+ObjClosure to wrap a given ObjFunction. This happens right at the end of a
 function declaration:
 
 ^code emit-closure (1 before, 1 after)
