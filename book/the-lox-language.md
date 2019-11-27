@@ -736,17 +736,25 @@ accidentally took over the world.
 [classes]: https://en.wikipedia.org/wiki/Class-based_programming
 [prototypes]: https://en.wikipedia.org/wiki/Prototype-based_programming
 
-The line between the two gets <span name="blurry">blurry</span> once you look at
-the details of languages on both sides, but the basic idea is that in
-prototypes, you don't need to have some "class"-like construct that represents a
-"kind of thing". Methods can exist right on an individual object and objects can
-inherit from ("delegate to" in prototypal lingo) each other.
+In a class-based language, there are two core concepts: instances and classes.
+Instances store the state for each object and have a reference to the instance's
+class. Classes contain the methods and inheritance chain. To call a method on an
+instance, there is always a level of indirection. You look up the instance's
+class and then you find the method *there*:
+
+<img src="image/the-lox-language/class-lookup.png" alt="How fields and methods are looked up on classes and instances" />
+
+Prototype-based languages <span name="blurry">merge</span> these two concepts.
+There are only objects -- no classes -- and each individual object may contain
+state and methods. Objects can directly inherit from each other (or "delegate
+to" in prototypal lingo):
 
 <aside name="blurry">
 
-I say it's blurry because JavaScript's "constructor function" notion [pushes you
-pretty hard][js new] towards defining class-like objects. Meanwhile, class-based
-Ruby is perfectly happy to let you attach methods to individual instances.
+In practice the line between class-based and prototype-based languages blurs.
+JavaScript's "constructor function" notion [pushes you pretty hard][js new]
+towards defining class-like objects. Meanwhile, class-based Ruby is perfectly
+happy to let you attach methods to individual instances.
 
 [js new]: http://gameprogrammingpatterns.com/prototype.html#what-about-javascript
 
@@ -754,14 +762,8 @@ Ruby is perfectly happy to let you attach methods to individual instances.
 
 <img src="image/the-lox-language/prototype-lookup.png" alt="How fields and methods are looked up in a prototypal system" />
 
-With classes, state is on the instance, but for methods, there is always a level
-of indirection. When you call a method, you look up the object's class and then
-you find the method *there*.
-
-<img src="image/the-lox-language/class-lookup.png" alt="How fields and methods are looked up on classes and instances" />
-
 This means prototypal languages are more fundamental in some way than classes.
-They are really neat to implement because they're so simple. Also, they can
+They are really neat to implement because they're *so* simple. Also, they can
 express lots of unusual patterns that classes steer you away from.
 
 But I've looked at a *lot* of code written in prototypal languages -- including
