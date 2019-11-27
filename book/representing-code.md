@@ -36,9 +36,13 @@ you manually evaluate an arithmetic expression like this:
 1 + 2 * 3 - 4
 ```
 
-Because you understand the rules of precedence -- the old "Please Excuse My Dear
-Aunt Sally" stuff -- you know that the `*` is evaluated before the `+` or `-`.
-One way to visualize that precedence is using a tree. Leaf nodes are numbers, and interior nodes are operators with branches for each of their operands.
+Because you understand the order or operations -- the old "[Please Excuse My
+Dear Aunt Sally][sally]" stuff -- you know that the `*` is evaluated before the
+`+` or `-`. One way to visualize that precedence is using a tree. Leaf nodes are
+numbers, and interior nodes are operators with branches for each of their
+operands.
+
+[sally]: https://en.wikipedia.org/wiki/Order_of_operations#Mnemonics
 
 In order to evaluate an arithmetic node, you need to know the numeric values of
 its subtrees, so you have to evaluate those first. That means working your way
