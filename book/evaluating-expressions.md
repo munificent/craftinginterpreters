@@ -656,7 +656,7 @@ interpreter doesn't do very much, but it's alive!
     is shorter than named function calls and might have a reasonable
     interpretation for some types like strings. Even comparisons among mixed
     types, like `3 < "pancake"` could be handy to enable things like
-    heterogenous ordered collections. Or it could lead to bugs and confused
+    heterogeneous ordered collections. Or it could lead to bugs and confused
     users.
 
     Would you extend Lox to support comparing other types? If so, which pairs of
