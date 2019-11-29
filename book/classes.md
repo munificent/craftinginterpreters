@@ -860,7 +860,7 @@ we create an environment for the method body as usual:
 
 <img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." />
 
-The parent of the body environment is the enviroment we created earlier to bind
+The parent of the body environment is the environment we created earlier to bind
 `this` to the current object. Thus any use of `this` inside the body
 successfully resolves to that instance.
 
