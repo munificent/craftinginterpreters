@@ -782,12 +782,12 @@ manage memory for upvalues too.
 
 [gc]: garbage-collection.html
 
-Thus, our runtime upvalue structure is an ObjUpvalue with the typical Obj
-header field. Following that is the field that points to the closed-over
+Thus, our runtime upvalue structure is an ObjUpvalue with the typical Obj header
+field. Following that is a `location` field that points to the closed-over
 variable. Note that this is a *pointer* to a Value, not a Value itself. It's a
 reference to a *variable*, not a *value*. This is important because it means
-that when we assign to the variable the upvalue captures, we're assigning to
-the actual variable, not a copy. For example:
+that when we assign to the variable the upvalue captures, we're assigning to the
+actual variable, not a copy. For example:
 
 ```lox
 fun outer() {
