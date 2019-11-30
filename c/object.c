@@ -19,21 +19,21 @@
 static Obj* allocateObject(size_t size, ObjType type) {
   Obj* object = (Obj*)reallocate(NULL, 0, size);
   object->type = type;
-//> Garbage Collection not-yet
-  object->isDark = false;
-//< Garbage Collection not-yet
+//> Garbage Collection init-is-marked
+  object->isMarked = false;
+//< Garbage Collection init-is-marked
 //> add-to-list
   
   object->next = vm.objects;
   vm.objects = object;
 //< add-to-list
-//> Garbage Collection not-yet
+//> Garbage Collection debug-log-allocate
 
-#ifdef DEBUG_TRACE_GC
-  printf("%p allocate %ld for %d\n", object, size, type);
+#ifdef DEBUG_LOG_GC
+  printf("%p allocate %ld for %d\n", (void*)object, size, type);
 #endif
 
-//< Garbage Collection not-yet
+//< Garbage Collection debug-log-allocate
   return object;
 }
 //< allocate-object
@@ -121,14 +121,14 @@ static ObjString* allocateString(char* chars, int length,
   string->hash = hash;
 //< Hash Tables allocate-store-hash
 
-//> Garbage Collection not-yet
+//> Garbage Collection push-string
   push(OBJ_VAL(string));
-//< Garbage Collection not-yet
+//< Garbage Collection push-string
 //> Hash Tables allocate-store-string
   tableSet(&vm.strings, string, NIL_VAL);
-//> Garbage Collection not-yet
+//> Garbage Collection pop-string
   pop();
-//< Garbage Collection not-yet
+//< Garbage Collection pop-string
 
 //< Hash Tables allocate-store-string
   return string;

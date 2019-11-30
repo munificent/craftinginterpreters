@@ -231,7 +231,7 @@ TOC = [
           'Roots', 'Stress testing', 'Mark-sweep collection', 'Tracing',
           'Tri-color marking', 'Weak references', 'Heap growth'
         ],
-        'done': False,
+        'design_note': 'Generational Collectors'
       },
       {
         'name': 'Classes and Instances',
