@@ -757,7 +757,7 @@ happens, the dangling reference must be fixed too, sort of like a magic
 self-clearing pointer. This particular set of semantics comes up frequently
 enough that it has a name: a [**weak reference.**][weak]
 
-[weak]: ttps://en.wikipedia.org/wiki/Weak_reference
+[weak]: https://en.wikipedia.org/wiki/Weak_reference
 
 We have already implicitly implemented half of the string table's unique
 behavior by virtue of the fact that we *don't* traverse it during marking. That
