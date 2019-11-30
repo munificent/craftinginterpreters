@@ -266,32 +266,32 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   }
 }
 //< table-find-string
-//> Garbage Collection not-yet
-
+//> Garbage Collection table-remove-white
 void tableRemoveWhite(Table* table) {
-/* Garbage Collection not-yet < Optimization not-yet
+/* Garbage Collection table-remove-white < Optimization not-yet
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization not-yet
   for (int i = 0; i <= table->capacityMask; i++) {
 //< Optimization not-yet
     Entry* entry = &table->entries[i];
-    if (entry->key != NULL && !entry->key->obj.isDark) {
+    if (entry->key != NULL && !entry->key->obj.isMarked) {
       tableDelete(table, entry->key);
     }
   }
 }
-
-void grayTable(Table* table) {
-/* Garbage Collection not-yet < Optimization not-yet
+//< Garbage Collection table-remove-white
+//> Garbage Collection mark-table
+void markTable(Table* table) {
+/* Garbage Collection mark-table < Optimization not-yet
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization not-yet
   for (int i = 0; i <= table->capacityMask; i++) {
 //< Optimization not-yet
     Entry* entry = &table->entries[i];
-    grayObject((Obj*)entry->key);
-    grayValue(entry->value);
+    markObject((Obj*)entry->key);
+    markValue(entry->value);
   }
 }
-//< Garbage Collection not-yet
+//< Garbage Collection mark-table

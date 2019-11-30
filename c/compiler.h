@@ -18,8 +18,8 @@ bool compile(const char* source, Chunk* chunk);
 //> Calls and Functions compile-h
 ObjFunction* compile(const char* source);
 //< Calls and Functions compile-h
-//> Garbage Collection not-yet
-void grayCompilerRoots();
-//< Garbage Collection not-yet
+//> Garbage Collection mark-compiler-roots-h
+void markCompilerRoots();
+//< Garbage Collection mark-compiler-roots-h
 
 #endif
