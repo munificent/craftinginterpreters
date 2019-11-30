@@ -365,7 +365,7 @@ The keyword is followed by the variable name. That's compiled by
 `parseVariable()`, which we'll get to in a second. Then we look for an `=`
 followed by an initializer expression. If the user doesn't initialize the
 variable, the compiler implicitly initializes it to <span
-name="nil">`nil`</span> by emiting an `OP_NIL` instruction. Either way, we
+name="nil">`nil`</span> by emitting an `OP_NIL` instruction. Either way, we
 expect the statement to be terminated with a semicolon.
 
 <aside name="nil" class="bottom">
