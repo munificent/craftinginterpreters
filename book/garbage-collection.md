@@ -490,7 +490,7 @@ so it's hard for the GC to know which order will help performance.
 
 As the collector wanders through the graph of objects, we need to make sure it
 doesn't lose track of where it is or get stuck going in circles. This is
-paricularly a concern for advanced implementations like incremental GCs that
+particularly a concern for advanced implementations like incremental GCs that
 interleave marking with running pieces of the user's program. The collector
 needs to be able to pause and then pick up where it left off later.
 
