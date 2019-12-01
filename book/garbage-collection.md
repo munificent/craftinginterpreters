@@ -820,8 +820,8 @@ Evvery managed language has pays a performance price compared to explicit,
 user-authored deallocation. The time spent actually freeing memory is the same,
 but the GC spends cycles figuring out *which* memory to free. That is time *not*
 spent running the user's code and doing useful work. In our implementation,
-that's the entirety the mark phase falls under this. The goal of a sophisticated
-garbage collector is to minimize that overhead.
+that's the entirety of the mark phase. The goal of a sophisticated garbage
+collector is to minimize that overhead.
 
 There are two key metrics we can use to understand that cost better:
 
