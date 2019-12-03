@@ -615,7 +615,7 @@ fun identity(a) {
   return a;
 }
 
-print identity(addPair)(1, 2); // Prints "3".
+print identity(addPair(1, 2)); // Prints "3".
 ```
 
 Since function declarations are statements, you can declare local functions
