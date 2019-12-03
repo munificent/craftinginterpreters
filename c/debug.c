@@ -117,12 +117,12 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_SET_UPVALUE:
       return byteInstruction("OP_SET_UPVALUE", chunk, offset);
 //< Closures disassemble-upvalue-ops
-//> Classes and Instances not-yet
+//> Classes and Instances disassemble-property-ops
     case OP_GET_PROPERTY:
       return constantInstruction("OP_GET_PROPERTY", chunk, offset);
     case OP_SET_PROPERTY:
       return constantInstruction("OP_SET_PROPERTY", chunk, offset);
-//< Classes and Instances not-yet
+//< Classes and Instances disassemble-property-ops
 //> Superclasses not-yet
     case OP_GET_SUPER:
       return constantInstruction("OP_GET_SUPER", chunk, offset);
@@ -207,10 +207,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 //< Closures disassemble-close-upvalue
     case OP_RETURN:
       return simpleInstruction("OP_RETURN", offset);
-//> Classes and Instances not-yet
+//> Classes and Instances disassemble-class
     case OP_CLASS:
       return constantInstruction("OP_CLASS", chunk, offset);
-//< Classes and Instances not-yet
+//< Classes and Instances disassemble-class
 //> Superclasses not-yet
     case OP_INHERIT:
       return simpleInstruction("OP_INHERIT", offset);

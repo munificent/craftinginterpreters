@@ -106,9 +106,9 @@ static void blackenObject(Obj* object) {
       markObject((Obj*)bound->method);
       break;
     }
+    
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
-
+//> Classes and Instances blacken-class
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
       markObject((Obj*)klass->name);
@@ -118,7 +118,7 @@ static void blackenObject(Obj* object) {
       break;
     }
 
-//< Classes and Instances not-yet
+//< Classes and Instances blacken-class
 //> blacken-closure
     case OBJ_CLOSURE: {
       ObjClosure* closure = (ObjClosure*)object;
@@ -139,7 +139,7 @@ static void blackenObject(Obj* object) {
     }
 
 //< blacken-function
-//> Classes and Instances not-yet
+//> Classes and Instances blacken-instance
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       markObject((Obj*)instance->klass);
@@ -147,7 +147,7 @@ static void blackenObject(Obj* object) {
       break;
     }
 
-//< Classes and Instances not-yet
+//< Classes and Instances blacken-instance
 //> blacken-upvalue
     case OBJ_UPVALUE:
       markValue(((ObjUpvalue*)object)->closed);
@@ -175,10 +175,11 @@ static void freeObject(Obj* object) {
       break;
 
 //< Methods and Initializers not-yet
-/* Classes and Instances not-yet < Methods and Initializers not-yet
+/* Classes and Instances free-class < Methods and Initializers not-yet
     case OBJ_CLASS:
+    // TODO: Simplify to minimize diff with next chapter.
 */
-//> Classes and Instances not-yet
+//> Classes and Instances free-class
 //> Methods and Initializers not-yet
     case OBJ_CLASS: {
       ObjClass* klass = (ObjClass*)object;
@@ -190,7 +191,7 @@ static void freeObject(Obj* object) {
     }
 //< Methods and Initializers not-yet
 
-//< Classes and Instances not-yet
+//< Classes and Instances free-class
 //> Closures free-closure
     case OBJ_CLOSURE: {
 //> free-upvalues
@@ -211,7 +212,7 @@ static void freeObject(Obj* object) {
     }
 
 //< Calls and Functions free-function
-//> Classes and Instances not-yet
+//> Classes and Instances free-instance
     case OBJ_INSTANCE: {
       ObjInstance* instance = (ObjInstance*)object;
       freeTable(&instance->fields);
@@ -219,7 +220,7 @@ static void freeObject(Obj* object) {
       break;
     }
 
-//< Classes and Instances not-yet
+//< Classes and Instances free-instance
 //> Calls and Functions free-native
     case OBJ_NATIVE:
       FREE(ObjNative, object);

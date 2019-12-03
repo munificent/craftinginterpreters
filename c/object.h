@@ -6,9 +6,9 @@
 //> Calls and Functions object-include-chunk
 #include "chunk.h"
 //< Calls and Functions object-include-chunk
-//> Classes and Instances not-yet
+//> Classes and Instances object-include-table
 #include "table.h"
-//< Classes and Instances not-yet
+//< Classes and Instances object-include-table
 #include "value.h"
 //> obj-type-macro
 
@@ -19,18 +19,18 @@
 //> Methods and Initializers not-yet
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
+//> Classes and Instances is-class
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
-//< Classes and Instances not-yet
+//< Classes and Instances is-class
 //> Closures is-closure
 #define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)
 //< Closures is-closure
 //> Calls and Functions is-function
 #define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)
 //< Calls and Functions is-function
-//> Classes and Instances not-yet
+//> Classes and Instances is-instance
 #define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)
-//< Classes and Instances not-yet
+//< Classes and Instances is-instance
 //> Calls and Functions is-native
 #define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)
 //< Calls and Functions is-native
@@ -41,18 +41,18 @@
 //> Methods and Initializers not-yet
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
+//> Classes and Instances as-class
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
-//< Classes and Instances not-yet
+//< Classes and Instances as-class
 //> Closures as-closure
 #define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))
 //< Closures as-closure
 //> Calls and Functions as-function
 #define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))
 //< Calls and Functions as-function
-//> Classes and Instances not-yet
+//> Classes and Instances as-instance
 #define AS_INSTANCE(value)      ((ObjInstance*)AS_OBJ(value))
-//< Classes and Instances not-yet
+//< Classes and Instances as-instance
 //> Calls and Functions as-native
 #define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))->function)
 //< Calls and Functions as-native
@@ -65,18 +65,18 @@ typedef enum {
 //> Methods and Initializers not-yet
   OBJ_BOUND_METHOD,
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
+//> Classes and Instances obj-type-class
   OBJ_CLASS,
-//< Classes and Instances not-yet
+//< Classes and Instances obj-type-class
 //> Closures obj-type-closure
   OBJ_CLOSURE,
 //< Closures obj-type-closure
 //> Calls and Functions obj-type-function
   OBJ_FUNCTION,
 //< Calls and Functions obj-type-function
-//> Classes and Instances not-yet
+//> Classes and Instances obj-type-instance
   OBJ_INSTANCE,
-//< Classes and Instances not-yet
+//< Classes and Instances obj-type-instance
 //> Calls and Functions obj-type-native
   OBJ_NATIVE,
 //< Calls and Functions obj-type-native
@@ -150,7 +150,7 @@ typedef struct {
 //< upvalue-fields
 } ObjClosure;
 //< Closures obj-closure
-//> Classes and Instances not-yet
+//> Classes and Instances obj-class
 
 typedef struct sObjClass {
   Obj obj;
@@ -159,13 +159,15 @@ typedef struct sObjClass {
   Table methods;
 //< Methods and Initializers not-yet
 } ObjClass;
+//< Classes and Instances obj-class
+//> Classes and Instances obj-instance
 
 typedef struct {
   Obj obj;
   ObjClass* klass;
   Table fields;
 } ObjInstance;
-//< Classes and Instances not-yet
+//< Classes and Instances obj-instance
 
 //> Methods and Initializers not-yet
 typedef struct {
@@ -176,18 +178,18 @@ typedef struct {
 
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
+//> Classes and Instances new-class-h
 ObjClass* newClass(ObjString* name);
-//< Classes and Instances not-yet
+//< Classes and Instances new-class-h
 //> Closures new-closure-h
 ObjClosure* newClosure(ObjFunction* function);
 //< Closures new-closure-h
 //> Calls and Functions new-function-h
 ObjFunction* newFunction();
 //< Calls and Functions new-function-h
-//> Classes and Instances not-yet
+//> Classes and Instances new-instance-h
 ObjInstance* newInstance(ObjClass* klass);
-//< Classes and Instances not-yet
+//< Classes and Instances new-instance-h
 //> Calls and Functions new-native-h
 ObjNative* newNative(NativeFn function);
 //< Calls and Functions new-native-h

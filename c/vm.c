@@ -220,11 +220,9 @@ static bool callValue(Value callee, int argCount) {
       }
 
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
+//> Classes and Instances call-class
       case OBJ_CLASS: {
         ObjClass* klass = AS_CLASS(callee);
-
-        // Create the instance.
         vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
 //> Methods and Initializers not-yet
         // Call the initializer, if there is one.
@@ -239,7 +237,7 @@ static bool callValue(Value callee, int argCount) {
 //< Methods and Initializers not-yet
         return true;
       }
-//< Classes and Instances not-yet
+//< Classes and Instances call-class
 //> Closures call-value-closure
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
@@ -576,24 +574,29 @@ static InterpretResult run() {
         break;
       }
 //< Closures interpret-set-upvalue
-//> Classes and Instances not-yet
+//> Classes and Instances interpret-get-property
 
       case OP_GET_PROPERTY: {
+//> get-not-instance
         if (!IS_INSTANCE(peek(0))) {
           runtimeError("Only instances have properties.");
           return INTERPRET_RUNTIME_ERROR;
         }
 
+//< get-not-instance
         ObjInstance* instance = AS_INSTANCE(peek(0));
         ObjString* name = READ_STRING();
+        
         Value value;
         if (tableGet(&instance->fields, name, &value)) {
           pop(); // Instance.
           push(value);
           break;
         }
+//> get-undefined
 
-/* Classes and Instances not-yet < Methods and Initializers not-yet
+//< get-undefined
+/* Classes and Instances get-undefined < Methods and Initializers not-yet
         runtimeError("Undefined property '%s'.", name->chars);
         return INTERPRET_RUNTIME_ERROR;
 */
@@ -604,21 +607,26 @@ static InterpretResult run() {
         break;
 //< Methods and Initializers not-yet
       }
+//< Classes and Instances interpret-get-property
+//> Classes and Instances interpret-set-property
 
       case OP_SET_PROPERTY: {
+//> set-not-instance
         if (!IS_INSTANCE(peek(1))) {
           runtimeError("Only instances have fields.");
           return INTERPRET_RUNTIME_ERROR;
         }
 
+//< set-not-instance
         ObjInstance* instance = AS_INSTANCE(peek(1));
         tableSet(&instance->fields, READ_STRING(), peek(0));
+        
         Value value = pop();
         pop();
         push(value);
         break;
       }
-//< Classes and Instances not-yet
+//< Classes and Instances interpret-set-property
 //> Superclasses not-yet
 
       case OP_GET_SUPER: {
@@ -835,12 +843,12 @@ static InterpretResult run() {
         break;
 //< Calls and Functions interpret-return
       }
-//> Classes and Instances not-yet
+//> Classes and Instances interpret-class
 
       case OP_CLASS:
         push(OBJ_VAL(newClass(READ_STRING())));
         break;
-//< Classes and Instances not-yet
+//< Classes and Instances interpret-class
 //> Superclasses not-yet
 
       case OP_INHERIT: {
