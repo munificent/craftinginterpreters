@@ -297,7 +297,9 @@ static bool invoke(ObjString* name, int argCount) {
   // First look for a field which may shadow a method.
   Value value;
   if (tableGet(&instance->fields, name, &value)) {
-    vm.stackTop[-argCount] = value;
+    // Load the field onto the stack in place of the receiver.
+    vm.stackTop[-argCount - 1] = value;
+    // Try to invoke it like a function.
     return callValue(value, argCount);
   }
 
