@@ -39,10 +39,10 @@ typedef enum {
   OP_GET_UPVALUE,
   OP_SET_UPVALUE,
 //< Closures upvalue-ops
-//> Classes and Instances not-yet
+//> Classes and Instances property-ops
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
-//< Classes and Instances not-yet
+//< Classes and Instances property-ops
 //> Superclasses not-yet
   OP_GET_SUPER,
 //< Superclasses not-yet
@@ -91,9 +91,9 @@ typedef enum {
   OP_CLOSE_UPVALUE,
 //< Closures close-upvalue-op
   OP_RETURN,
-//> Classes and Instances not-yet
+//> Classes and Instances class-op
   OP_CLASS,
-//< Classes and Instances not-yet
+//< Classes and Instances class-op
 //> Superclasses not-yet
   OP_INHERIT,
 //< Superclasses not-yet
