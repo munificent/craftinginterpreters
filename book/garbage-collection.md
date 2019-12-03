@@ -816,7 +816,7 @@ a more subtle timing strategy. To reason about this more precisely, it's time
 to introduce two fundamental numbers used when measuring a memory manager's
 performance: **throughput** and **latency**.
 
-Every managed language has pays a performance price compared to explicit,
+Every managed language pays a performance price compared to explicit,
 user-authored deallocation. The time spent actually freeing memory is the same,
 but the GC spends cycles figuring out *which* memory to free. That is time *not*
 spent running the user's code and doing useful work. In our implementation,
