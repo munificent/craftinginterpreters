@@ -350,7 +350,7 @@ Its implementation is:
 
 Some Lox values -- numbers, Booleans, and `nil` -- are stored directly inline in
 Value and require no heap allocation. The garbage collector doesn't need to
-worry them at all, so the first thing we do is ensure that the value is an
+worry about them at all, so the first thing we do is ensure that the value is an
 actual heap object. If so, the real work happens in this function:
 
 ^code mark-object-h (1 before, 1 after)
