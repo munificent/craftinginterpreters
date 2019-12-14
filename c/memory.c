@@ -175,21 +175,15 @@ static void freeObject(Obj* object) {
       break;
 
 //< Methods and Initializers not-yet
-/* Classes and Instances free-class < Methods and Initializers not-yet
-    case OBJ_CLASS:
-    // TODO: Simplify to minimize diff with next chapter.
-*/
 //> Classes and Instances free-class
-//> Methods and Initializers not-yet
     case OBJ_CLASS: {
+//> Methods and Initializers not-yet
       ObjClass* klass = (ObjClass*)object;
       freeTable(&klass->methods);
 //< Methods and Initializers not-yet
       FREE(ObjClass, object);
       break;
-//> Methods and Initializers not-yet
-    }
-//< Methods and Initializers not-yet
+    } // [braces]
 
 //< Classes and Instances free-class
 //> Closures free-closure
