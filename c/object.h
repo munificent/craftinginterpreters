@@ -165,7 +165,7 @@ typedef struct sObjClass {
 typedef struct {
   Obj obj;
   ObjClass* klass;
-  Table fields;
+  Table fields; // [fields]
 } ObjInstance;
 //< Classes and Instances obj-instance
 
