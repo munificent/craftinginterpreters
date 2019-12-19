@@ -12,7 +12,7 @@
 
 - Choosing reserved words. Abbreviations to avoid name collisions.
 
-- When to write a language spec and what it's for. Usefull to help think
+- When to write a language spec and what it's for. Useful to help think
   precisely about semantics. Doesn't help improve usability of language. Need to
   actually play with an implementation for that. Very time consuming. Users
   don't need it. They need more user-friendly docs. Important when you have
