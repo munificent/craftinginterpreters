@@ -7,8 +7,6 @@
 >
 > <cite>Donna Tartt, <em>The Goldfinch</em></cite>
 
-**todo: figure out more illustrations**
-
 The last area left to implement in clox is object-oriented programming. <span
 name="oop">OOP</span> is a bundle of intertwined features: classes, instances,
 fields, methods, initializers, and inheritance. Using relatively high-level
@@ -75,16 +73,17 @@ The implementation lives over here:
 
 ^code new-class
 
-Pretty much all boilerplate. It takes in the <span name="klass">class's</span>
-name as a string and stores it. Every time the user declares a new class, the
-VM will create a new one of these ObjClass structs to represent it.
+Pretty much all boilerplate. It takes in the class's name as a string and stores
+it. Every time the user declares a new class, the VM will create a new one of
+these ObjClass structs to represent it.
 
 <aside name="klass">
 
-I named the local variable "klass" not just to give the VM a zany preschool
-"kidz korner" feel. While "class" is not a reserved word in C, it is in C++. You
-can compile clox as both C and C++, so we need to not step on any of the C++
-keywords either.
+<img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/>
+
+I named the variable "klass" not just to give the VM a zany preschool "kidz
+korner" feel. While "class" is not a reserved word in C, it is in C++, and you
+can compile clox as either C or C++.
 
 </aside>
 
@@ -111,7 +110,7 @@ The last operation the VM can perform on a class is printing it:
 
 ^code print-class (1 before, 1 after)
 
-Look, keeping the name is handy!
+Look, keeping the name *is* handy!
 
 ## Class Declarations
 
@@ -250,6 +249,8 @@ I want to slow down a bit here because Lox's notion of "type" and the VM's
 confusing. Inside the C code that makes clox, there are a number of different
 types of Obj -- ObjString, ObjClosure, etc. In the Lox *language*, users can
 define their own classes and then there are instances of many different classes.
+
+<img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/>
 
 But, from the VM's perspective every class the user defines is simply another
 value of type ObjClass. Likewise, each instance in the user's program, no matter
@@ -499,13 +500,19 @@ value to be stored in the instance's field. Like before, we read the
 instruction's operand and find the field name string. Using that, we store the
 value on top of the stack into the instance's field table.
 
-After that is a little stack juggling. We pop the stored value off, then pop the
-instance, and finally push the value back on. In other words, we remove the
-*second* element from the stack while leaving the top alone. A setter is itself
-an expression whose result is the assigned value, so we need to leave it on the
-stack:
+After that is a little <span name="stack">stack</span> juggling. We pop the
+stored value off, then pop the instance, and finally push the value back on. In
+other words, we remove the *second* element from the stack while leaving the top
+alone. A setter is itself an expression whose result is the assigned value, so
+we need to leave it on the stack:
 
-**todo: illustrate**
+<aside name="stack">
+
+The stack operations go like this:
+
+<img src="image/classes-and-instances/stack.png" alt="Popping two values and then pushing the first value back on the stack."/>
+
+</aside>
 
 ```lox
 class Toast {}
