@@ -112,7 +112,6 @@ enough, it takes on a life of its own, doesn’t it? And isn’t the whole point
 of things<span class="em">&mdash;</span>beautiful things<span class="em">&mdash;</span>that they connect you to some larger beauty?</p>
 <p><cite>Donna Tartt, <em>The Goldfinch</em></cite></p>
 </blockquote>
-<p><strong>todo: figure out more illustrations</strong></p>
 <p>The last area left to implement in clox is object-oriented programming. <span
 name="oop">OOP</span> is a bundle of intertwined features: classes, instances,
 fields, methods, initializers, and inheritance. Using relatively high-level
@@ -199,21 +198,22 @@ add after struct <em>ObjClass</em></div>
 add after <em>allocateObject</em>()</div>
 <pre><span></span><span class="n">ObjClass</span><span class="o">*</span> <span class="nf">newClass</span><span class="p">(</span><span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>                 
   <span class="n">ObjClass</span><span class="o">*</span> <span class="n">klass</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="p">(</span><span class="n">ObjClass</span><span class="p">,</span> <span class="n">OBJ_CLASS</span><span class="p">);</span>
-  <span class="n">klass</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span>                                 
+  <span class="n">klass</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span> <span name="klass">&#8203;</span>
   <span class="k">return</span> <span class="n">klass</span><span class="p">;</span>                                       
 <span class="p">}</span>                                                     
 </pre></div>
 
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
 
-<p>Pretty much all boilerplate. It takes in the <span name="klass">class&rsquo;s</span>
-name as a string and stores it. Every time the user declares a new class, the
-VM will create a new one of these ObjClass structs to represent it.</p>
+<p>Pretty much all boilerplate. It takes in the class&rsquo;s name as a string and stores
+it. Every time the user declares a new class, the VM will create a new one of
+these ObjClass structs to represent it.</p>
 <aside name="klass">
-<p>I named the local variable &ldquo;klass&rdquo; not just to give the VM a zany preschool
-&ldquo;kidz korner&rdquo; feel. While &ldquo;class&rdquo; is not a reserved word in C, it is in C++. You
-can compile clox as both C and C++, so we need to not step on any of the C++
-keywords either.</p>
+<p><img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/>
+
+I named the variable "klass" not just to give the VM a zany preschool "kidz
+korner" feel. While "class" is not a reserved word in C, it is in C++, and you
+can compile clox as either C or C++.</p>
 </aside>
 <p>When the VM no longer needs a class, it frees it like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>    
@@ -261,7 +261,7 @@ in <em>printObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
-<p>Look, keeping the name is handy!</p>
+<p>Look, keeping the name <em>is</em> handy!</p>
 <h2><a href="#class-declarations" name="class-declarations"><small>27&#8202;.&#8202;2</small> Class Declarations</a></h2>
 <p>Runtime representation in hand, we are ready to add support for classes to the
 language. As usual, we start in the parser:</p>
@@ -449,6 +449,7 @@ in enum <em>ObjType</em></div>
 confusing. Inside the C code that makes clox, there are a number of different
 types of Obj<span class="em">&mdash;</span>ObjString, ObjClosure, etc. In the Lox <em>language</em>, users can
 define their own classes and then there are instances of many different classes.</p>
+<p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/></p>
 <p>But, from the VM&rsquo;s perspective every class the user defines is simply another
 value of type ObjClass. Likewise, each instance in the user&rsquo;s program, no matter
 what class it is an instance of, is an ObjInstance. That one VM object type
@@ -818,12 +819,15 @@ first have the instance whose field is being set and then above that is the
 value to be stored in the instance&rsquo;s field. Like before, we read the
 instruction&rsquo;s operand and find the field name string. Using that, we store the
 value on top of the stack into the instance&rsquo;s field table.</p>
-<p>After that is a little stack juggling. We pop the stored value off, then pop the
-instance, and finally push the value back on. In other words, we remove the
-<em>second</em> element from the stack while leaving the top alone. A setter is itself
-an expression whose result is the assigned value, so we need to leave it on the
-stack:</p>
-<p><strong>todo: illustrate</strong></p>
+<p>After that is a little <span name="stack">stack</span> juggling. We pop the
+stored value off, then pop the instance, and finally push the value back on. In
+other words, we remove the <em>second</em> element from the stack while leaving the top
+alone. A setter is itself an expression whose result is the assigned value, so
+we need to leave it on the stack:</p>
+<aside name="stack">
+<p>The stack operations go like this:</p>
+<p><img src="image/classes-and-instances/stack.png" alt="Popping two values and then pushing the first value back on the stack."/></p>
+</aside>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Toast</span> <span class="p">{}</span>
 <span class="k">var</span> <span class="n">toast</span> <span class="o">=</span> <span class="vg">Toast</span><span class="p">();</span>
 <span class="k">print</span> <span class="n">toast</span><span class="p">.</span><span class="n">jam</span> <span class="o">=</span> <span class="s">&quot;grape&quot;</span><span class="p">;</span> <span class="c1">// Prints &quot;grape&quot;.</span>
