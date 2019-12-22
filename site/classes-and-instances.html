@@ -123,11 +123,13 @@ through the implementation. After strenuous chapters like <a href="closures.html
 from here on out.</p>
 <aside name="oop">
 <p>People who have strong opinions about object-oriented programming<span class="em">&mdash;</span>read
-&ldquo;everyone&rdquo;<span class="em">&mdash;</span>tend to assume OOP means some very specific list of those
-features, but really there&rsquo;s a whole space to explore and different languages
-have their own ingredients and recipes.</p>
-<p>Self has no classes. CLOS has methods but doesn&rsquo;t attach them to specific
-classes. C++ initially had no runtime polymorphism<span class="em">&mdash;</span>no virtual methods.</p>
+&ldquo;everyone&rdquo;<span class="em">&mdash;</span>tend to assume OOP means some very specific list of language
+features, but really there&rsquo;s a whole space to explore and each language has its
+own ingredients and recipes.</p>
+<p>Self has objects but no classes. CLOS has methods but doesn&rsquo;t attach them to
+specific classes. C++ initially had no runtime polymorphism<span class="em">&mdash;</span>no virtual
+methods. Python has multiple inheritance, but Java does not. Ruby attaches
+methods to classes, but you can also define methods on a single object.</p>
 </aside>
 <p>In this chapter, we cover the first three features: classes, instances, and
 fields. This is the stateful side of object orientation. Then in the next two
@@ -164,8 +166,8 @@ in enum <em>ObjType</em></div>
 
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
-<p>And that type gets a corresponding pair of macros. First for testing an object&rsquo;s
-type:</p>
+<p>And that type gets a corresponding pair of macros. First, for testing an
+object&rsquo;s type:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_TYPE(value)         (AS_OBJ(value)-&gt;type)        </span>
 <br></pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define IS_CLASS(value)         isObjType(value, OBJ_CLASS)  </span>
@@ -174,7 +176,7 @@ type:</p>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<p>And then for casting a Value to an ObjClass point:</p>
+<p>And then for casting a Value to an ObjClass pointer:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)</span>
 <br></pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))  </span>
@@ -213,7 +215,7 @@ these ObjClass structs to represent it.</p>
 
 I named the variable "klass" not just to give the VM a zany preschool "kidz
 korner" feel. While "class" is not a reserved word in C, it is in C++, and you
-can compile clox as either C or C++.</p>
+can compile clox as either.</p>
 </aside>
 <p>When the VM no longer needs a class, it frees it like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>    
@@ -247,7 +249,7 @@ in <em>blackenObject</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
-<p>When the GC reaches a class object, we mark the name to keep that string alive
+<p>When the GC reaches a class object, we mark its name to keep that string alive
 too.</p>
 <p>The last operation the VM can perform on a class is printing it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>                     
@@ -261,7 +263,7 @@ in <em>printObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
-<p>Look, keeping the name <em>is</em> handy!</p>
+<p>A class simply prints its own name.</p>
 <h2><a href="#class-declarations" name="class-declarations"><small>27&#8202;.&#8202;2</small> Class Declarations</a></h2>
 <p>Runtime representation in hand, we are ready to add support for classes to the
 language. As usual, we start in the parser:</p>
@@ -298,12 +300,12 @@ add after <em>function</em>()</div>
 
 <p>Immediately after the <code>class</code> keyword is the class&rsquo;s name. We take that
 identifier and add it to the surrounding function&rsquo;s constant table as a string.
-Classes are first-class objects in Lox and if you print one, we show the class&rsquo;s
-name, so the compiler needs to stuff it somewhere that the runtime can find. The
-constant table is the way to do that.</p>
+As you just saw, printing a class shows its name, so the compiler needs to stuff
+the name string somewhere that the runtime can find. The constant table is the
+way to do that.</p>
 <p>The class&rsquo;s <span name="variable">name</span> is also used to bind the class
-object to a variable with that same name. So we declare that name as a variable
-right after parsing it.</p>
+object to a variable of the same name. So we declare a variable with that
+identifier right after consuming its token.</p>
 <aside name="variable">
 <p>We could have made class declarations be <em>expressions</em> instead of statements.
 Then users would have to explicitly bind the class to a variable themselves
@@ -319,10 +321,11 @@ classes to be named anyway, it makes sense to treat them as declarations.</p>
 That instruction takes the constant table index of the class&rsquo;s name as an
 operand.</p>
 <p>After that, but before compiling the body of the class, we define the variable
-for the class&rsquo;s name. Declaring the variable adds it to the scope but recall
-from the previous chapter that we can&rsquo;t <em>use</em> the variable until it&rsquo;s <em>defined</em>.
-For classes, we define the variable before the body so that methods can refer to
-their containing class. That&rsquo;s useful for things like factory methods.</p>
+for the class&rsquo;s name. <em>Declaring</em> the variable adds it to the scope but recall
+from <a href="local-variables.html#another-scope-edge-case">a previous chapter</a> that we can&rsquo;t <em>use</em> the variable until it&rsquo;s
+<em>defined</em>. For classes, we define the variable before the body. That way, users
+can refer to the containing class inside the bodies of methods. That&rsquo;s useful
+for things like factory methods.</p>
 <p>Finally, we compile the body. We don&rsquo;t have methods yet, so right now it&rsquo;s
 simply an empty pair of braces. Lox doesn&rsquo;t require fields to be declared in the
 class, so we&rsquo;re done with the body<span class="em">&mdash;</span>and the parser<span class="em">&mdash;</span>for now.</p>
@@ -362,12 +365,20 @@ in <em>run</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>We load the string for the class&rsquo;s name from the constant table and pass that
-to <code>newClass()</code>. That creates a new class object with the given name. We push
-that onto the stack and we&rsquo;re good. If the class is bound to a global variable,
-then the compiler&rsquo;s call to <code>defineVariable()</code> will emit code to store that
-object from the stack into the global variable table. Otherwise, it&rsquo;s right
-where it needs to be on the stack for a new local variable.</p>
+<p>We load the string for the class&rsquo;s name from the constant table and pass that to
+<code>newClass()</code>. That creates a new class object with the given name. We push that
+onto the stack and we&rsquo;re good. If the class is bound to a global variable, then
+the compiler&rsquo;s call to <code>defineVariable()</code> will emit code to store that object
+from the stack into the global variable table. Otherwise, it&rsquo;s right where it
+needs to be on the stack for a new <span name="local">local</span> variable.</p>
+<aside name="local">
+<p>&ldquo;Local&rdquo; classes<span class="em">&mdash;</span>classes declared inside the body of a function or block, are
+an unusual concept. Many languages don&rsquo;t allow them at all. But since Lox is a
+dynamically-typed scripting language, it treats the top level of a program and
+the bodies of functions and blocks uniformly. Classes are just another kind of
+declaration and since you can declare variables and functions inside blocks, you
+can declare classes in there too.</p>
+</aside>
 <p>There you have it, our VM supports classes now. You can run this:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Brioche</span> <span class="p">{}</span>
 <span class="k">print</span> <span class="vg">Brioche</span><span class="p">;</span>
@@ -418,7 +429,7 @@ its fields using a hash table.</p>
 <p>Being able to freely add fields to an object at runtime is a big practical
 difference between most dynamic and static languages. Statically-typed languages
 usually require fields to be explicitly declared. This way, the compiler knows
-exactly what fields each instance has. It can use that to determine the exact
+exactly what fields each instance has. It can use that to determine the precise
 amount of memory needed for each instance and the offsets in that memory where
 each field can be found.</p>
 <p>In Lox and other dynamic languages, accessing a field is usually a hash table
@@ -447,14 +458,16 @@ in enum <em>ObjType</em></div>
 <p>I want to slow down a bit here because Lox&rsquo;s notion of &ldquo;type&rdquo; and the VM&rsquo;s
 <em>implementation</em> notion of type brush against each other in ways that can be
 confusing. Inside the C code that makes clox, there are a number of different
-types of Obj<span class="em">&mdash;</span>ObjString, ObjClosure, etc. In the Lox <em>language</em>, users can
-define their own classes and then there are instances of many different classes.</p>
+types of Obj<span class="em">&mdash;</span>ObjString, ObjClosure, etc. Each has its own internal
+representation and semantics.</p>
+<p>In the Lox <em>language</em>, users can define their own classes<span class="em">&mdash;</span>say Cake and Pie<span class="em">&mdash;</span>and then create instances of those classes. From the user&rsquo;s perspective, an
+instance of Cake is a different &ldquo;type&rdquo; of object than an instance of Pie. But,
+from the VM&rsquo;s perspective every class the user defines is simply another value
+of type ObjClass. Likewise, each instance in the user&rsquo;s program, no matter what
+class it is an instance of, is an ObjInstance. That one VM object type covers
+instances of all classes. The two worlds map to each other something like this:</p>
 <p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/></p>
-<p>But, from the VM&rsquo;s perspective every class the user defines is simply another
-value of type ObjClass. Likewise, each instance in the user&rsquo;s program, no matter
-what class it is an instance of, is an ObjInstance. That one VM object type
-covers instances of all classes. Got it? OK.</p>
-<p>We also get our usual macros:</p>
+<p>Got it? OK, back to the implementation. We also get our usual macros:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define IS_INSTANCE(value)      isObjType(value, OBJ_INSTANCE)</span>
@@ -615,8 +628,8 @@ followed by a field name. Since there is a preceding operand, we hook this into
 the parse table as an infix expression:</p>
 <aside name="sort">
 <p>I say &ldquo;sort of&rdquo; because the right-hand side after the <code>.</code> is not an expression,
-but a single identifier whose semantics are handled by the getter or setter
-expression itself. It&rsquo;s really closer to a postfix expression.</p>
+but a single identifier whose semantics are handled by the get or set expression
+itself. It&rsquo;s really closer to a postfix expression.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_COMMA</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -647,9 +660,15 @@ add after <em>call</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>call</em>()</div>
 
-<p>The parser expects to find a field name immediately after the dot. We load that
-token&rsquo;s lexeme into the constant table as a string so that the name is available
-at runtime.</p>
+<p>The parser expects to find a <span name="prop">property</span> name immediately
+after the dot. We load that token&rsquo;s lexeme into the constant table as a string
+so that the name is available at runtime.</p>
+<aside name="prop">
+<p>The compiler uses &ldquo;property&rdquo; instead of &ldquo;field&rdquo; here because remember Lox also
+lets you use dot syntax to access a method without calling it. &ldquo;Property&rdquo; is the
+general term we use to refer to any named entity you can access on an instance.
+Fields are the subset of properties that are backed by the instance&rsquo;s state.</p>
+</aside>
 <p>We have two new expression forms<span class="em">&mdash;</span>getters and setters<span class="em">&mdash;</span>that this one
 function handles. If we see an equals sign after the field name, it must be a
 set expression that is assigning to a field. But we don&rsquo;t <em>always</em> allow an
@@ -670,20 +689,20 @@ had written:</p>
 than the <code>.</code> part. The parser may call <code>dot()</code> in a context that is too high
 precedence to permit a setter to appear. To avoid incorrectly allowing that, we
 only parse and compile the equals part when <code>canAssign</code> is true. If an equals
-token appears when <code>canAssign</code> is false, <code>dot()</code> leaves it alone and returns.
-The compiler eventually unwinds up to <code>parsePrecedence()</code> which stops at the
-unexpected <code>=</code> still sitting as the next token and reports an error.</p>
+token appears when <code>canAssign</code> is false, <code>dot()</code> leaves it alone and returns. In
+that case, the compiler will eventually unwind up to <code>parsePrecedence()</code> which
+stops at the unexpected <code>=</code> still sitting as the next token and reports an
+error.</p>
 <p>If we found an <code>=</code> in a context where it <em>is</em> allowed, then we compile the
-right-hand expression being stored in the field. After that, we emit a <span
-name="prop">new</span> <code>OP_SET_PROPERTY</code> instruction. That takes a single
-operand for the index of the property name in the constant table. If we didn&rsquo;t
-compile a set expression, we assume it&rsquo;s a getter and emit an <code>OP_GET_PROPERTY</code>
-instruction, which also takes an operand for the property name.</p>
-<aside name="prop">
-<p>These instructions refer to &ldquo;property&rdquo; instead of &ldquo;field&rdquo; because remember Lox
-also lets you access a method without calling it. &ldquo;Property&rdquo; is the general term
-we use to refer to any named entity you can access on an instance. Fields are
-the subset of properties that are backed by the instance&rsquo;s state.</p>
+right-hand expression being stored in the field. After that, we emit a new <span
+name="set"><code>OP_SET_PROPERTY</code></span> instruction. That takes a single operand for
+the index of the property name in the constant table. If we didn&rsquo;t compile a set
+expression, we assume it&rsquo;s a getter and emit an <code>OP_GET_PROPERTY</code> instruction,
+which also takes an operand for the property name.</p>
+<aside name="set">
+<p>You can&rsquo;t <em>set</em> a non-field property, so I suppose that instruction could have
+been <code>OP_SET_FIELD</code>, but I thought it looked nicer to be consistent with the get
+instruction.</p>
 </aside>
 <p>Now is a good time to define these two new instructions:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_SET_UPVALUE</span><span class="p">,</span> 
@@ -710,8 +729,8 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <h3><a href="#interpreting-getter-and-setter-expressions" name="interpreting-getter-and-setter-expressions"><small>27&#8202;.&#8202;4&#8202;.&#8202;1</small> Interpreting getter and setter expressions</a></h3>
-<p>Now we&rsquo;ll slide over to the runtime. We&rsquo;ll start with get expressions since
-those are a little simpler:</p>
+<p>Sliding over to the runtime, we&rsquo;ll start with get expressions since those are a
+little simpler:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="o">*</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">location</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
         <span class="k">break</span><span class="p">;</span>                                              
       <span class="p">}</span>                                                     
@@ -735,7 +754,7 @@ in <em>run</em>()</div>
 
 <p>When the interpreter reaches this instruction, the expression to the left of the
 <code>.</code> has already been executed and the resulting instance is on top of the stack.
-We read the field name from the constant table and look it up in the instance&rsquo;s
+We read the field name from the constant pool and look it up in the instance&rsquo;s
 field table. If the hash table contains an entry with that name, we pop the
 instance and push the entry&rsquo;s value as the result.</p>
 <p>Of course, the field might not exist. In Lox, we&rsquo;ve defined that to be a runtime
@@ -823,7 +842,7 @@ value on top of the stack into the instance&rsquo;s field table.</p>
 stored value off, then pop the instance, and finally push the value back on. In
 other words, we remove the <em>second</em> element from the stack while leaving the top
 alone. A setter is itself an expression whose result is the assigned value, so
-we need to leave it on the stack:</p>
+we need to leave that value on the stack. Here&rsquo;s what I mean:</p>
 <aside name="stack">
 <p>The stack operations go like this:</p>
 <p><img src="image/classes-and-instances/stack.png" alt="Popping two values and then pushing the first value back on the stack."/></p>
@@ -853,12 +872,12 @@ in <em>run</em>()</div>
 <p>Exactly like with get expressions, we check the value&rsquo;s type and report a
 runtime error if it&rsquo;s invalid. And, with that, the stateful side of Lox&rsquo;s
 support for object-oriented programming is in place. Give it a try:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Box</span> <span class="p">{}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Pair</span> <span class="p">{}</span>
 
-<span class="k">var</span> <span class="n">box</span> <span class="o">=</span> <span class="vg">Box</span><span class="p">();</span>
-<span class="n">box</span><span class="p">.</span><span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-<span class="n">box</span><span class="p">.</span><span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-<span class="k">print</span> <span class="n">box</span><span class="p">.</span><span class="n">a</span> <span class="o">+</span> <span class="n">box</span><span class="p">.</span><span class="n">b</span><span class="p">;</span> <span class="c1">// 3.</span>
+<span class="k">var</span> <span class="n">pair</span> <span class="o">=</span> <span class="vg">Pair</span><span class="p">();</span>
+<span class="n">pair</span><span class="p">.</span><span class="n">first</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="n">pair</span><span class="p">.</span><span class="n">second</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="k">print</span> <span class="n">pair</span><span class="p">.</span><span class="n">first</span> <span class="o">+</span> <span class="n">pair</span><span class="p">.</span><span class="n">second</span><span class="p">;</span> <span class="c1">// 3.</span>
 </pre></div>
 
 
@@ -879,7 +898,7 @@ think Lox should do? Implement your solution.</p>
 </li>
 <li>
 <p>Fields are accessed at runtime by their <em>string</em> name. But that name must
-    always appear directly in the source code as an identifier token. A user
+    always appear directly in the source code as an <em>identifier token</em>. A user
     program cannot imperatively build a string value and then use that as the
     name of a field. Do you think they should be able to? Devise a language
     feature that enables that and implement it.</p>
@@ -892,8 +911,8 @@ think Lox should do? Implement your solution.</p>
 </li>
 <li>
 <p>Because fields are accessed by name at runtime, working with instance state
-    is slow. It&rsquo;s technically a constant-time operation<span class="em">&mdash;</span>thanks hash tables<span class="em">&mdash;</span>    but the constant factors are relatively large. This is a major component of
-    why dynamic languages are slower than statically-typed ones.</p>
+    is slow. It&rsquo;s technically a constant-time operation<span class="em">&mdash;</span>thanks, hash tables<span class="em">&mdash;</span>but the constant factors are relatively large. This is a major component
+    of why dynamic languages are slower than statically-typed ones.</p>
 <p>How do sophisticated implementations of dynamically-typed languages cope
 with and optimize this?</p>
 </li>
