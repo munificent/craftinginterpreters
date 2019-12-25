@@ -574,7 +574,9 @@ Sort of a dynamic procedural language. But this is a big step in expressiveness.
 Our Lox implementation now lets users freely aggregate data into bigger units.
 In the next chapter, we will breathe life into those inert blobs.
 
-### Challenges
+<div class="challenges">
+
+## Challenges
 
 1.  Trying to access a non-existent field on an object immediately aborts the
     entire VM. The user has no way to recover from this runtime error, nor is
@@ -602,3 +604,5 @@ In the next chapter, we will breathe life into those inert blobs.
 
     How do sophisticated implementations of dynamically-typed languages cope
     with and optimize this?
+
+</div>
