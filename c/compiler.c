@@ -83,10 +83,12 @@ typedef struct {
 //> Calls and Functions function-type-enum
 typedef enum {
   TYPE_FUNCTION,
-//> Methods and Initializers not-yet
+//> Methods and Initializers initializer-type-enum
   TYPE_INITIALIZER,
+//< Methods and Initializers initializer-type-enum
+//> Methods and Initializers method-type-enum
   TYPE_METHOD,
-//< Methods and Initializers not-yet
+//< Methods and Initializers method-type-enum
   TYPE_SCRIPT
 } FunctionType;
 //< Calls and Functions function-type-enum
@@ -109,17 +111,16 @@ typedef struct Compiler {
   int scopeDepth;
 } Compiler;
 //< Local Variables compiler-struct
-//> Methods and Initializers not-yet
+//> Methods and Initializers class-compiler-struct
 
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
-
   Token name;
 //> Superclasses not-yet
   bool hasSuperclass;
 //< Superclasses not-yet
 } ClassCompiler;
-//< Methods and Initializers not-yet
+//< Methods and Initializers class-compiler-struct
 
 Parser parser;
 
@@ -127,10 +128,10 @@ Parser parser;
 //> Local Variables current-compiler
 Compiler* current = NULL;
 //< Local Variables current-compiler
-//> Methods and Initializers not-yet
+//> Methods and Initializers current-class
 
 ClassCompiler* currentClass = NULL;
-//< Methods and Initializers not-yet
+//< Methods and Initializers current-class
 //> Compiling Expressions compiling-chunk
 
 /* Compiling Expressions compiling-chunk < Calls and Functions current-chunk
@@ -247,18 +248,17 @@ static int emitJump(uint8_t instruction) {
 //< Jumping Back and Forth emit-jump
 //> Compiling Expressions emit-return
 static void emitReturn() {
-/* Calls and Functions return-nil < Methods and Initializers not-yet
+/* Calls and Functions return-nil < Methods and Initializers return-this
   emitByte(OP_NIL);
 */
-//> Methods and Initializers not-yet
-  // An initializer automatically returns "this".
+//> Methods and Initializers return-this
   if (current->type == TYPE_INITIALIZER) {
     emitBytes(OP_GET_LOCAL, 0);
   } else {
     emitByte(OP_NIL);
   }
 
-//< Methods and Initializers not-yet
+//< Methods and Initializers return-this
   emitByte(OP_RETURN);
 }
 //< Compiling Expressions emit-return
@@ -323,11 +323,11 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 //> Closures init-zero-local-is-captured
   local->isCaptured = false;
 //< Closures init-zero-local-is-captured
-/* Calls and Functions init-function-slot < Methods and Initializers not-yet
+/* Calls and Functions init-function-slot < Methods and Initializers slot-zero
   local->name.start = "";
   local->name.length = 0;
 */
-//> Methods and Initializers not-yet
+//> Methods and Initializers slot-zero
   if (type != TYPE_FUNCTION) {
     // In a method, it holds the receiver, "this".
     local->name.start = "this";
@@ -338,7 +338,7 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
     local->name.start = "";
     local->name.length = 0;
   }
-//< Methods and Initializers not-yet
+//< Methods and Initializers slot-zero
 //< Calls and Functions init-function-slot
 }
 //< Local Variables init-compiler
@@ -646,12 +646,12 @@ static void dot(bool canAssign) {
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
     emitBytes(OP_SET_PROPERTY, name);
-//> Methods and Initializers not-yet
+//> Methods and Initializers parse-call
   } else if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
     emitBytes(OP_INVOKE, argCount);
     emitByte(name);
-//< Methods and Initializers not-yet
+//< Methods and Initializers parse-call
   } else {
     emitBytes(OP_GET_PROPERTY, name);
   }
@@ -828,15 +828,17 @@ static void super_(bool canAssign) {
   }
 }
 //< Superclasses not-yet
-//> Methods and Initializers not-yet
+//> Methods and Initializers this
 static void this_(bool canAssign) {
+//> this-outside-class
   if (currentClass == NULL) {
     error("Cannot use 'this' outside of a class.");
-  } else {
-    variable(false);
+    return;
   }
+//< this-outside-class
+  variable(false);
 }
-//< Methods and Initializers not-yet
+//< Methods and Initializers this
 //> Compiling Expressions unary
 /* Compiling Expressions unary < Global Variables unary
 static void unary() {
@@ -965,12 +967,12 @@ ParseRule rules[] = {
 //> Superclasses not-yet
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
 //< Superclasses not-yet
-/* Compiling Expressions rules < Methods and Initializers not-yet
+/* Compiling Expressions rules < Methods and Initializers table-this
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
-//> Methods and Initializers not-yet
+//> Methods and Initializers table-this
   { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
-//< Methods and Initializers not-yet
+//< Methods and Initializers table-this
 /* Compiling Expressions rules < Types of Values table-true
   { NULL,     NULL,    PREC_NONE },       // TOKEN_TRUE
 */
@@ -1093,47 +1095,52 @@ static void function(FunctionType type) {
 //< Closures capture-upvalues
 }
 //< Calls and Functions compile-function
-//> Methods and Initializers not-yet
+//> Methods and Initializers method
 static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
   uint8_t constant = identifierConstant(&parser.previous);
 
-  // If the method is named "init", it's an initializer.
+/* Methods and Initializers method < Methods and Initializers method-type
+  FunctionType type = TYPE_FUNCTION;
+*/
+//> method-type
   FunctionType type = TYPE_METHOD;
+//< method-type
+//> initializer-name
   if (parser.previous.length == 4 &&
       memcmp(parser.previous.start, "init", 4) == 0) {
     type = TYPE_INITIALIZER;
   }
-
+  
+//< initializer-name
   function(type);
-
   emitBytes(OP_METHOD, constant);
 }
-//< Methods and Initializers not-yet
+//< Methods and Initializers method
 //> Classes and Instances class-declaration
 static void classDeclaration() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
-//> Methods and Initializers not-yet
+//> Methods and Initializers class-name
   Token className = parser.previous;
-//< Methods and Initializers not-yet
+//< Methods and Initializers class-name
   uint8_t nameConstant = identifierConstant(&parser.previous);
   declareVariable();
 
   emitBytes(OP_CLASS, nameConstant);
   defineVariable(nameConstant);
 
-//> Methods and Initializers not-yet
+//> Methods and Initializers create-class-compiler
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
-//< Methods and Initializers not-yet
+//< Methods and Initializers create-class-compiler
 //> Superclasses not-yet
   classCompiler.hasSuperclass = false;
 //< Superclasses not-yet
-//> Methods and Initializers not-yet
+//> Methods and Initializers push-enclosing
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
 
-//< Methods and Initializers not-yet
+//< Methods and Initializers push-enclosing
 //> Superclasses not-yet
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
@@ -1157,12 +1164,12 @@ static void classDeclaration() {
   
 //< Superclasses not-yet
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
-//> Methods and Initializers not-yet
+//> Methods and Initializers class-body
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
     namedVariable(className, false);
     method();
   }
-//< Methods and Initializers not-yet
+//< Methods and Initializers class-body
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
 //> Superclasses not-yet
 
@@ -1170,10 +1177,10 @@ static void classDeclaration() {
     endScope();
   }
 //< Superclasses not-yet
-//> Methods and Initializers not-yet
+//> Methods and Initializers pop-enclosing
 
   currentClass = currentClass->enclosing;
-//< Methods and Initializers not-yet
+//< Methods and Initializers pop-enclosing
 }
 //< Classes and Instances class-declaration
 //> Calls and Functions fun-declaration
@@ -1323,12 +1330,12 @@ static void returnStatement() {
   if (match(TOKEN_SEMICOLON)) {
     emitReturn();
   } else {
-//> Methods and Initializers not-yet
+//> Methods and Initializers return-from-init
     if (current->type == TYPE_INITIALIZER) {
       error("Cannot return a value from an initializer.");
     }
 
-//< Methods and Initializers not-yet
+//< Methods and Initializers return-from-init
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
     emitByte(OP_RETURN);

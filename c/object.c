@@ -37,8 +37,7 @@ static Obj* allocateObject(size_t size, ObjType type) {
   return object;
 }
 //< allocate-object
-//> Methods and Initializers not-yet
-
+//> Methods and Initializers new-bound-method
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod,
                                        OBJ_BOUND_METHOD);
@@ -47,14 +46,14 @@ ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
   bound->method = method;
   return bound;
 }
-//< Methods and Initializers not-yet
+//< Methods and Initializers new-bound-method
 //> Classes and Instances new-class
 ObjClass* newClass(ObjString* name) {
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name; // [klass]
-//> Methods and Initializers not-yet
+//> Methods and Initializers init-methods
   initTable(&klass->methods);
-//< Methods and Initializers not-yet
+//< Methods and Initializers init-methods
   return klass;
 }
 //< Classes and Instances new-class
@@ -218,11 +217,11 @@ void printObject(Value value) {
       printf("%s", AS_CLASS(value)->name->chars);
       break;
 //< Classes and Instances print-class
-//> Methods and Initializers not-yet
+//> Methods and Initializers print-bound-method
     case OBJ_BOUND_METHOD:
       printFunction(AS_BOUND_METHOD(value)->method->function);
       break;
-//< Methods and Initializers not-yet
+//< Methods and Initializers print-bound-method
 //> Closures print-closure
     case OBJ_CLOSURE:
       printFunction(AS_CLOSURE(value)->function);

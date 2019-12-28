@@ -246,7 +246,6 @@ TOC = [
           'Invocation expressions', 'This', 'Method declarations',
           'Initializers', 'Bound methods'
         ],
-        'done': False,
       },
       {
         'name': 'Superclasses',
