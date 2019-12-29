@@ -703,7 +703,7 @@ every object in the heap, checking their mark bits. If an object is unmarked
 function we already wrote.
 
 Most of the other code in here deals with the fact that removing a node from a
-singly-linked list is cumbersome. We have to continously remember the previous
+singly-linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
 where we are freeing the first node. But, otherwise, it's pretty simple --
 delete every node in a linked list that doesn't have a bit set in it.
