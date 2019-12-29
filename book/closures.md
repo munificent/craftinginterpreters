@@ -1250,7 +1250,7 @@ stack. For example, this script:
   }
   var c = 3;
   fun h() {
-    print a;
+    print c;
   }
 }
 ```
