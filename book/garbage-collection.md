@@ -979,7 +979,7 @@ frequently in order to avoid sacrificing throughput by re-traversing the growing
 pile of live objects. As the amount of live memory goes down, we collect more
 frequently so that we don't lose too much latency by waiting too long.
 
-The implementation requies two new bookkeeping fields in the VM:
+The implementation requires two new bookkeeping fields in the VM:
 
 ^code vm-fields (1 before, 2 after)
 
@@ -1166,7 +1166,7 @@ result:
 
 ^code concatenate-pop (1 before, 1 after)
 
-Those were all pretty easy, especially because I *showed* you were the fix was.
+Those were all pretty easy, especially because I *showed* you where the fix was.
 In practice, *finding* them is the hard part. All you see is an object that
 *should* be there but isn't. It's not like other bugs where you're looking for
 the code that *causes* some problem. You're looking for the *absence* of code
