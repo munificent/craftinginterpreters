@@ -890,15 +890,16 @@ tokens after the first <code>menu</code>. By then, the compiler has already emit
 bytecode for the whole thing.</p>
 <p>The problem is not as dire as it might seem, though. Look at how the parser sees that example:</p>
 <p><img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = &quot;mimosa&quot;' statement, showing that 'menu.brunch(sunday)' is an expression." /></p>
-<p>Even though the <code>.beverage</code> part must be compiled as a setter, everything to the
-left of it is an expression, with the normal expression semantics. The
-<code>menu.brunch(sunday)</code> part can be compiled and executed as usual.</p>
+<p>Even though the <code>.beverage</code> part must not be compiled as a get expression,
+everything to the left of the <code>.</code> is an expression, with the normal expression
+semantics. The <code>menu.brunch(sunday)</code> part can be compiled and executed as usual.</p>
 <p>Fortunately for us, the only semantic differences on the left side of an
 assignment appear at the very right-most end of the tokens, immediately
 preceding the <code>=</code>. Even though the receiver of a setter may be an arbitrarily
-long expression, the setter itself is only a <code>.</code> followed by an identifier,
-which is right before the <code>=</code>. We don&rsquo;t need much lookahead to realize
-<code>.beverage</code> should be compiled as a setter and not a getter.</p>
+long expression, the part whose benavior differs from a get expression is only
+the trailing identifier, which is right before the <code>=</code>. We don&rsquo;t need much
+lookahead to realize <code>beverage</code> should be compiled as a set expression and not a
+getter.</p>
 <p>Variables are even easier since they are just a single bare identifier before an
 <code>=</code>. The idea then is that right <em>before</em> compiling an expression that can also
 be used as an assignment target, we look for a subsequent <code>=</code> token. If we see
