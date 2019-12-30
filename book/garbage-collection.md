@@ -392,8 +392,8 @@ We implement that in the "table" module:
 
 ^code mark-table
 
-Pretty straightforward. We walk the entry array and mark every key string and
-value, uh, value.
+Pretty straightforward. We walk the entry array. For each one, we its value. We
+also mark the key strings for each entry since the GC manages those strings too.
 
 ### Less obvious roots
 
