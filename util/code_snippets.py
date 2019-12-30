@@ -510,6 +510,10 @@ def load_file(source_code, source_dir, path):
           #   void foo(); // [wat]
           is_function_declaration = line.endswith(';')
 
+          # Hack: Handle multi-line declarations.
+          if line.endswith(',') and lines[line_num].endswith(';'):
+            is_function_declaration = True
+
       match = CONSTRUCTOR_PATTERN.match(line)
       if match:
         current_location = Location(current_location,
