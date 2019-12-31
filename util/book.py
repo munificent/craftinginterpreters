@@ -239,7 +239,6 @@ TOC = [
           'Property expressions', 'Class declarations', 'Instances', 'Fields',
           'Undefined fields'
         ],
-        'done': False,
       },
       {
         'name': 'Methods and Initializers',
