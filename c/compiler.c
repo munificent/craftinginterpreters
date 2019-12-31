@@ -638,7 +638,7 @@ static void call(bool canAssign) {
   emitBytes(OP_CALL, argCount);
 }
 //< Calls and Functions compile-call
-//> Classes and Instances not-yet
+//> Classes and Instances compile-dot
 static void dot(bool canAssign) {
   consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
   uint8_t name = identifierConstant(&parser.previous);
@@ -656,7 +656,7 @@ static void dot(bool canAssign) {
     emitBytes(OP_GET_PROPERTY, name);
   }
 }
-//< Classes and Instances not-yet
+//< Classes and Instances compile-dot
 //> Types of Values parse-literal
 /* Types of Values parse-literal < Global Variables parse-literal
 static void literal() {
@@ -877,12 +877,12 @@ ParseRule rules[] = {
   { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE [big]
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
   { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
-/* Compiling Expressions rules < Classes and Instances not-yet
+/* Compiling Expressions rules < Classes and Instances table-dot
   { NULL,     NULL,    PREC_NONE },       // TOKEN_DOT
 */
-//> Classes and Instances not-yet
+//> Classes and Instances table-dot
   { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
-//< Classes and Instances not-yet
+//< Classes and Instances table-dot
   { unary,    binary,  PREC_TERM },       // TOKEN_MINUS
   { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
@@ -1110,7 +1110,7 @@ static void method() {
   emitBytes(OP_METHOD, constant);
 }
 //< Methods and Initializers not-yet
-//> Classes and Instances not-yet
+//> Classes and Instances class-declaration
 static void classDeclaration() {
   consume(TOKEN_IDENTIFIER, "Expect class name.");
 //> Methods and Initializers not-yet
@@ -1154,8 +1154,8 @@ static void classDeclaration() {
     namedVariable(className, false);
     emitByte(OP_INHERIT);
   }
+  
 //< Superclasses not-yet
-
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
 //> Methods and Initializers not-yet
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
@@ -1175,7 +1175,7 @@ static void classDeclaration() {
   currentClass = currentClass->enclosing;
 //< Methods and Initializers not-yet
 }
-//< Classes and Instances not-yet
+//< Classes and Instances class-declaration
 //> Calls and Functions fun-declaration
 static void funDeclaration() {
   uint8_t global = parseVariable("Expect function name.");
@@ -1387,14 +1387,14 @@ static void synchronize() {
 //< Global Variables synchronize
 //> Global Variables declaration
 static void declaration() {
-//> Classes and Instances not-yet
+//> Classes and Instances match-class
   if (match(TOKEN_CLASS)) {
     classDeclaration();
-/* Calls and Functions match-fun < Classes and Instances not-yet
+/* Calls and Functions match-fun < Classes and Instances match-class
   if (match(TOKEN_FUN)) {
 */
   } else if (match(TOKEN_FUN)) {
-//< Classes and Instances not-yet
+//< Classes and Instances match-class
 //> Calls and Functions match-fun
     funDeclaration();
 /* Global Variables match-var < Calls and Functions match-fun
