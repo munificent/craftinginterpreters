@@ -350,7 +350,7 @@ Its implementation is:
 
 Some Lox values -- numbers, Booleans, and `nil` -- are stored directly inline in
 Value and require no heap allocation. The garbage collector doesn't need to
-worry them at all, so the first thing we do is ensure that the value is an
+worry about them at all, so the first thing we do is ensure that the value is an
 actual heap object. If so, the real work happens in this function:
 
 ^code mark-object-h (1 before, 1 after)
@@ -392,8 +392,8 @@ We implement that in the "table" module:
 
 ^code mark-table
 
-Pretty straightforward. We walk the entry array and mark every key string and
-value, uh, value.
+Pretty straightforward. We walk the entry array. For each one, we its value. We
+also mark the key strings for each entry since the GC manages those strings too.
 
 ### Less obvious roots
 
@@ -547,10 +547,18 @@ by the wavefront and stay white.
 
 <img src="image/garbage-collection/tricolor-trace.png" class="wide" alt="A gray wavefront working through a graph of nodes." />
 
-At the end, you're left with a sea of reached black objects sprinkled with
-islands of white objects that can be swept up and freed. Once the unreachable
-objects are freed, the remaining objects -- all black -- are reset to white for
-the next garbage collection cycle.
+At the <span name="invariant">end</span>, you're left with a sea of reached
+black objects sprinkled with islands of white objects that can be swept up and
+freed. Once the unreachable objects are freed, the remaining objects -- all
+black -- are reset to white for the next garbage collection cycle.
+
+<aside name="invariant">
+
+Note that at every step of this process no black node ever points to a white
+node. This property is called the **tri-color invariant**. The traversal process
+maintains this invariant to ensure that no reachable object is ever collected.
+
+</aside>
 
 ### A worklist for gray objects
 
@@ -703,7 +711,7 @@ every object in the heap, checking their mark bits. If an object is unmarked
 function we already wrote.
 
 Most of the other code in here deals with the fact that removing a node from a
-singly-linked list is cumbersome. We have to continously remember the previous
+singly-linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
 where we are freeing the first node. But, otherwise, it's pretty simple --
 delete every node in a linked list that doesn't have a bit set in it.
@@ -816,7 +824,7 @@ a more subtle timing strategy. To reason about this more precisely, it's time
 to introduce two fundamental numbers used when measuring a memory manager's
 performance: **throughput** and **latency**.
 
-Evvery managed language has pays a performance price compared to explicit,
+Every managed language pays a performance price compared to explicit,
 user-authored deallocation. The time spent actually freeing memory is the same,
 but the GC spends cycles figuring out *which* memory to free. That is time *not*
 spent running the user's code and doing useful work. In our implementation,
@@ -979,7 +987,7 @@ frequently in order to avoid sacrificing throughput by re-traversing the growing
 pile of live objects. As the amount of live memory goes down, we collect more
 frequently so that we don't lose too much latency by waiting too long.
 
-The implementation requies two new bookkeeping fields in the VM:
+The implementation requires two new bookkeeping fields in the VM:
 
 ^code vm-fields (1 before, 2 after)
 
@@ -1166,7 +1174,7 @@ result:
 
 ^code concatenate-pop (1 before, 1 after)
 
-Those were all pretty easy, especially because I *showed* you were the fix was.
+Those were all pretty easy, especially because I *showed* you where the fix was.
 In practice, *finding* them is the hard part. All you see is an object that
 *should* be there but isn't. It's not like other bugs where you're looking for
 the code that *causes* some problem. You're looking for the *absence* of code

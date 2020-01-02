@@ -577,7 +577,7 @@ Let's walk through trying to compile it with what we know so far:
     `parsePrecedence()`.
 
 Now what? The call to `parsePrecedence()` should consume the entire addition
-exprssion, so it needs to keep going somehow. Fortunately, the parser is right
+expression, so it needs to keep going somehow. Fortunately, the parser is right
 where we need it to be. Now that we've compiled the leading number expression,
 the next token is `+`. That's the exact token that `parsePrecedence()` needs to
 detect that we're in the middle of an infix expression and to realize that the

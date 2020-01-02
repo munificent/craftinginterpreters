@@ -21,13 +21,13 @@ typedef struct sObjString ObjString;
 #define QNAN ((uint64_t)0x7ffc000000000000)
 
 // Tag values for the different singleton values.
-#define TAG_NIL   1 // 01
-#define TAG_FALSE 2 // 10
-#define TAG_TRUE  3 // 11
+#define TAG_NIL   1 // 01.
+#define TAG_FALSE 2 // 10.
+#define TAG_TRUE  3 // 11.
 
 typedef uint64_t Value;
 
-#define IS_BOOL(v)    (((v) & (QNAN | TAG_FALSE)) == (QNAN | TAG_FALSE))
+#define IS_BOOL(v)    (((v) & FALSE_VAL) == FALSE_VAL)
 #define IS_NIL(v)     ((v) == NIL_VAL)
 // If the NaN bits are set, it's not a number.
 #define IS_NUMBER(v)  (((v) & QNAN) != QNAN)

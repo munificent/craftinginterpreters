@@ -292,7 +292,7 @@ previously-declared variables along with the one new name. Declaring a variable
 would do the implicit "split" where you have an environment before the variable
 is declared and one after:
 
-<img src="image/resolving-and-binding/split.png" alt="Seperate environments before and after the variable is declared." />
+<img src="image/resolving-and-binding/split.png" alt="Separate environments before and after the variable is declared." />
 
 A closure retains a reference to the Environment instance in play when the
 function was declared. Since any later declarations in that block would produce
