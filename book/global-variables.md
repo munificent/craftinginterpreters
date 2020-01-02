@@ -578,16 +578,17 @@ The problem is not as dire as it might seem, though. Look at how the parser sees
 
 <img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = &quot;mimosa&quot;' statement, showing that 'menu.brunch(sunday)' is an expression." />
 
-Even though the `.beverage` part must be compiled as a setter, everything to the
-left of it is an expression, with the normal expression semantics. The
-`menu.brunch(sunday)` part can be compiled and executed as usual.
+Even though the `.beverage` part must not be compiled as a get expression,
+everything to the left of the `.` is an expression, with the normal expression
+semantics. The `menu.brunch(sunday)` part can be compiled and executed as usual.
 
 Fortunately for us, the only semantic differences on the left side of an
 assignment appear at the very right-most end of the tokens, immediately
 preceding the `=`. Even though the receiver of a setter may be an arbitrarily
-long expression, the setter itself is only a `.` followed by an identifier,
-which is right before the `=`. We don't need much lookahead to realize
-`.beverage` should be compiled as a setter and not a getter.
+long expression, the part whose benavior differs from a get expression is only
+the trailing identifier, which is right before the `=`. We don't need much
+lookahead to realize `beverage` should be compiled as a set expression and not a
+getter.
 
 Variables are even easier since they are just a single bare identifier before an
 `=`. The idea then is that right *before* compiling an expression that can also

@@ -518,7 +518,7 @@ add after <em>reallocate</em>()</div>
 
 <p>Some Lox values<span class="em">&mdash;</span>numbers, Booleans, and <code>nil</code><span class="em">&mdash;</span>are stored directly inline in
 Value and require no heap allocation. The garbage collector doesn&rsquo;t need to
-worry them at all, so the first thing we do is ensure that the value is an
+worry about them at all, so the first thing we do is ensure that the value is an
 actual heap object. If so, the real work happens in this function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span><span class="o">*</span> <span class="nf">reallocate</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">previous</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">oldSize</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">newSize</span><span class="p">);</span>
 </pre><div class="source-file"><em>memory.h</em><br>
@@ -598,12 +598,12 @@ function for marking all of the objects in a table:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
                            <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
 </pre><div class="source-file"><em>table.h</em><br>
-in function <em>tableFindString</em></div>
+add after <em>tableFindString</em>()</div>
 <pre class="insert"><span></span><span class="kt">void</span> <span class="nf">markTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                          
 </pre><pre class="insert-after"><br><span></span><span class="cp">#endif                                                                 </span>
 </pre></div>
 
-<div class="source-file-narrow"><em>table.h</em>, in function <em>tableFindString</em></div>
+<div class="source-file-narrow"><em>table.h</em>, add after <em>tableFindString</em>()</div>
 
 <p>We implement that in the &ldquo;table&rdquo; module:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
@@ -619,8 +619,8 @@ add after <em>tableFindString</em>()</div>
 
 <div class="source-file-narrow"><em>table.c</em>, add after <em>tableFindString</em>()</div>
 
-<p>Pretty straightforward. We walk the entry array and mark every key string and
-value, uh, value.</p>
+<p>Pretty straightforward. We walk the entry array. For each one, we its value. We
+also mark the key strings for each entry since the GC manages those strings too.</p>
 <h3><a href="#less-obvious-roots" name="less-obvious-roots"><small>26&#8202;.&#8202;2&#8202;.&#8202;1</small> Less obvious roots</a></h3>
 <p>Those cover the roots that we typically think of<span class="em">&mdash;</span>the values that are
 obviously reachable because they&rsquo;re stored in variables the user&rsquo;s program can
@@ -815,10 +815,15 @@ The full effect is a gray wavefront that passes through the graph, leaving a
 field of reachable black objects behind it. Unreachable objects are not touched
 by the wavefront and stay white.</p>
 <p><img src="image/garbage-collection/tricolor-trace.png" class="wide" alt="A gray wavefront working through a graph of nodes." /></p>
-<p>At the end, you&rsquo;re left with a sea of reached black objects sprinkled with
-islands of white objects that can be swept up and freed. Once the unreachable
-objects are freed, the remaining objects<span class="em">&mdash;</span>all black<span class="em">&mdash;</span>are reset to white for
-the next garbage collection cycle.</p>
+<p>At the <span name="invariant">end</span>, you&rsquo;re left with a sea of reached
+black objects sprinkled with islands of white objects that can be swept up and
+freed. Once the unreachable objects are freed, the remaining objects<span class="em">&mdash;</span>all
+black<span class="em">&mdash;</span>are reset to white for the next garbage collection cycle.</p>
+<aside name="invariant">
+<p>Note that at every step of this process no black node ever points to a white
+node. This property is called the <strong>tri-color invariant</strong>. The traversal process
+maintains this invariant to ensure that no reachable object is ever collected.</p>
+</aside>
 <h3><a href="#a-worklist-for-gray-objects" name="a-worklist-for-gray-objects"><small>26&#8202;.&#8202;3&#8202;.&#8202;2</small> A worklist for gray objects</a></h3>
 <p>In our implementation we have already marked the roots. They&rsquo;re all gray. The
 next step is to start picking them and traversing their references. But we don&rsquo;t
@@ -1097,7 +1102,7 @@ every object in the heap, checking their mark bits. If an object is unmarked
 (white), we unlink it from the list and free it using the <code>freeObject()</code>
 function we already wrote.</p>
 <p>Most of the other code in here deals with the fact that removing a node from a
-singly-linked list is cumbersome. We have to continously remember the previous
+singly-linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
 where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple<span class="em">&mdash;</span>delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p>
 <p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." /></p>
@@ -1166,12 +1171,12 @@ in the &ldquo;table&rdquo; module:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
                            <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">);</span>                             
 </pre><div class="source-file"><em>table.h</em><br>
-in <em>tableFindString</em>()</div>
+add after <em>tableFindString</em>()</div>
 <pre class="insert"><br><span></span><span class="kt">void</span> <span class="nf">tableRemoveWhite</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                   
 </pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">markTable</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">);</span>                                          
 <br></pre></div>
 
-<div class="source-file-narrow"><em>table.h</em>, in <em>tableFindString</em>()</div>
+<div class="source-file-narrow"><em>table.h</em>, add after <em>tableFindString</em>()</div>
 
 <p>The implementation is here:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
@@ -1216,7 +1221,7 @@ get slower and slower.</p>
 a more subtle timing strategy. To reason about this more precisely, it&rsquo;s time
 to introduce two fundamental numbers used when measuring a memory manager&rsquo;s
 performance: <strong>throughput</strong> and <strong>latency</strong>.</p>
-<p>Evvery managed language has pays a performance price compared to explicit,
+<p>Every managed language pays a performance price compared to explicit,
 user-authored deallocation. The time spent actually freeing memory is the same,
 but the GC spends cycles figuring out <em>which</em> memory to free. That is time <em>not</em>
 spent running the user&rsquo;s code and doing useful work. In our implementation,
@@ -1348,7 +1353,7 @@ we adjust the threshold to some value larger than that.</p>
 frequently in order to avoid sacrificing throughput by re-traversing the growing
 pile of live objects. As the amount of live memory goes down, we collect more
 frequently so that we don&rsquo;t lose too much latency by waiting too long.</p>
-<p>The implementation requies two new bookkeeping fields in the VM:</p>
+<p>The implementation requires two new bookkeeping fields in the VM:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">ObjUpvalue</span><span class="o">*</span> <span class="n">openUpvalues</span><span class="p">;</span>
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
@@ -1610,7 +1615,7 @@ in <em>concatenate</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>concatenate</em>()</div>
 
-<p>Those were all pretty easy, especially because I <em>showed</em> you were the fix was.
+<p>Those were all pretty easy, especially because I <em>showed</em> you where the fix was.
 In practice, <em>finding</em> them is the hard part. All you see is an object that
 <em>should</em> be there but isn&rsquo;t. It&rsquo;s not like other bugs where you&rsquo;re looking for
 the code that <em>causes</em> some problem. You&rsquo;re looking for the <em>absence</em> of code
@@ -1690,7 +1695,7 @@ simple policy for moving objects from one to the other.</p>
 <a href="classes-and-instances.html" class="next">
   Next Chapter: &ldquo;Classes and Instances&rdquo; &rarr;
 </a>
-Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2018</a>
+Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2020</a>
 </footer>
 </article>
 
