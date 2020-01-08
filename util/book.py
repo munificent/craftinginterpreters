@@ -274,6 +274,10 @@ TOC = [
       {
         'name': 'Appendix II',
         'topics': [],
+      },
+      {
+        'name': 'Glossary',
+        'topics': [],
       }
     ],
   },
