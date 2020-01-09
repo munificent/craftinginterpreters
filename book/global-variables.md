@@ -15,7 +15,7 @@ fewer intellectual pretensions. There are no large ideas to learn. Instead, it's
 a handful of straightforward engineering tasks. Once we've completed them, our
 virtual machine will support variables.
 
-Actually, it will only support *global* variables. Locals are coming in the
+Actually, it will only support _global_ variables. Locals are coming in the
 [next chapter][]. In jlox, we managed to cram them both into a single chapter,
 because we used the same implementation technique for all variables. We built a
 chain of environments, one for each scope, all the way up to the top. That was a
@@ -23,7 +23,7 @@ simple, clean way to learn how to manage state.
 
 [next chapter]: local-variables.html
 
-But it's also *slow*. Allocating a new hash table each time you enter a block or
+But it's also _slow_. Allocating a new hash table each time you enter a block or
 call a function is not the road to a fast VM. Given how much code is concerned
 with using variables, if variables go slow, everything goes slow. For clox,
 we'll improve that by using a much more efficient strategy for <span
@@ -45,7 +45,7 @@ on the number of cases and how densely packed the case values are.
 
 A quick refresher on Lox semantics: Global variables in Lox are "late bound" or
 resolved dynamically. This means you can compile a chunk of code that refers to
-a global variable before it's defined. As long as the code doesn't *execute*
+a global variable before it's defined. As long as the code doesn't _execute_
 before the definition happens, everything is fine. In practice, that means you
 can refer to later variables inside the body of functions:
 
@@ -62,7 +62,7 @@ Code like this might seem odd, but it's handy for defining mutually recursive
 functions. It also plays nicer with the REPL. You can write a little function in
 one line, then define the variable it uses in the next.
 
-Local variables work differently. Since a local variable's declaration *always*
+Local variables work differently. Since a local variable's declaration _always_
 occurs before it is used, the VM can resolve them at compile time, even in a
 simple single-pass compiler. That will let us use a smarter representation for
 locals. But that's for the next chapter. Right now, let's just worry about
@@ -83,7 +83,7 @@ if (monday) var croissant = "yes"; // Error.
 
 Allowing it would raise confusing questions around the scope of the variable.
 So, like other languages, we prohibit it syntactically by having a separate
-grammar rule for the subset of statements that *are* allowed inside a control
+grammar rule for the subset of statements that _are_ allowed inside a control
 flow body:
 
 ```lox
@@ -261,7 +261,7 @@ Exciting!
 
 ### Expression statements
 
-Wait until you see the next statement. If we *don't* see a `print` keyword, then
+Wait until you see the next statement. If we _don't_ see a `print` keyword, then
 we must be looking at an expression statement:
 
 ^code parse-expressions-statement (1 before, 1 after)
@@ -335,7 +335,7 @@ keywords.
 
 ## Variable Declarations
 
-Merely being able to *print* doesn't win your language any prizes at the
+Merely being able to _print_ doesn't win your language any prizes at the
 programming language <span name="fair">fair</span>, so let's move on to
 something a little more ambitious and get variables going. There are three
 operations we need to support:
@@ -343,13 +343,13 @@ operations we need to support:
 <aside name="fair">
 
 I can't help but imagine a "language fair" like some country 4H thing. Rows of
-straw-lined stalls full of baby languages *moo*-ing and *baa*-ing at each other.
+straw-lined stalls full of baby languages _moo_-ing and _baa_-ing at each other.
 
 </aside>
 
-*   Declaring a new variable using a `var` statement.
-*   Accessing the value of a variable using an identifier expression.
-*   Storing a new value in an existing variable using an assignment expression.
+- Declaring a new variable using a `var` statement.
+- Accessing the value of a variable using an identifier expression.
+- Storing a new value in an existing variable using an assignment expression.
 
 We can't do either of the last two until we have some variables, so we start
 with declarations:
@@ -401,7 +401,7 @@ This function takes the given token and adds its lexeme to the chunk's constant
 table as a string. It then returns the index of that constant in the constant
 table.
 
-Global variables are looked up *by name* at runtime. That means the VM -- the
+Global variables are looked up _by name_ at runtime. That means the VM -- the
 bytecode interpreter loop -- needs access to the name. A whole string is too big
 to stuff into the bytecode stream as an operand. Instead, we store the string in
 the constant table and the instruction then refers to the name by its index in
@@ -442,7 +442,7 @@ hash table with that name as the key.
 
 <aside name="pop">
 
-Note that we don't *pop* the value until *after* we add it to the hash table.
+Note that we don't _pop_ the value until _after_ we add it to the hash table.
 That ensures the VM can still find the value if a garbage collection is
 triggered right in the middle of adding it to the hash table. That's a distinct
 possibility since the hash table requires dynamic allocation when it resizes.
@@ -460,7 +460,7 @@ There's another little helper macro:
 
 It reads a one-byte operand from the bytecode chunk. It treats that as an index
 into the chunk's constant table and returns the string at that index. It doesn't
-check that the value *is* a string -- it just indiscriminately casts it. That's
+check that the value _is_ a string -- it just indiscriminately casts it. That's
 safe because the compiler never emits an instruction that refers to a non-string
 constant.
 
@@ -495,8 +495,8 @@ As usual, we want to be able to disassemble the new instruction too:
 
 ^code disassemble-define-global (1 before, 1 after)
 
-And with that, we can define global variables. Not that users can *tell* that
-they've done so, because they can't actually *use* them. So let's fix that next.
+And with that, we can define global variables. Not that users can _tell_ that
+they've done so, because they can't actually _use_ them. So let's fix that next.
 
 ## Reading Variables
 
@@ -551,7 +551,7 @@ There's only one operation left...
 ## Assignment
 
 Throughout this book, I've tried to keep you on a fairly safe and easy path. I
-don't avoid hard *problems*, but I try to not make the *solutions* more complex
+don't avoid hard _problems_, but I try to not make the _solutions_ more complex
 than they need to be. Alas, other design choices in our <span
 name="jlox">bytecode</span> compiler make assignment annoying to implement.
 
@@ -585,13 +585,13 @@ semantics. The `menu.brunch(sunday)` part can be compiled and executed as usual.
 Fortunately for us, the only semantic differences on the left side of an
 assignment appear at the very right-most end of the tokens, immediately
 preceding the `=`. Even though the receiver of a setter may be an arbitrarily
-long expression, the part whose benavior differs from a get expression is only
+long expression, the part whose behavior differs from a get expression is only
 the trailing identifier, which is right before the `=`. We don't need much
 lookahead to realize `beverage` should be compiled as a set expression and not a
 getter.
 
 Variables are even easier since they are just a single bare identifier before an
-`=`. The idea then is that right *before* compiling an expression that can also
+`=`. The idea then is that right _before_ compiling an expression that can also
 be used as an assignment target, we look for a subsequent `=` token. If we see
 one, we compile it as an assignment or setter instead of a variable access or
 getter.
@@ -652,7 +652,7 @@ this should be a syntax error. But here's what our parser does:
 
 <aside name="do">
 
-Wouldn't it be wild if `a * b` *was* a valid assignment target, though? You
+Wouldn't it be wild if `a * b` _was_ a valid assignment target, though? You
 could imagine some algebra-like language that tried to divide the assigned value
 up in some reasonable way and distribute it to `a` and `b`. ...That's probably
 a terrible idea.
@@ -718,12 +718,12 @@ is going to consume it. It's an error and we should report it:
 ^code invalid-assign (5 before, 1 after)
 
 With that, the previous bad program correctly gets an error at compile time. OK,
-*now* are we done? Still not quite. See, we're passing an argument to one of the
+_now_ are we done? Still not quite. See, we're passing an argument to one of the
 parse functions. But those functions are stored in a table of function pointers,
 so all of the parse functions need to have the same type. Even though most parse
 functions don't support being used as an assignment target -- setters are the
 <span name="index">only</span> other one -- our friendly C compiler requires
-them *all* to accept the parameter.
+them _all_ to accept the parameter.
 
 <aside name="index">
 
@@ -804,7 +804,7 @@ It's starting to look like real code for an actual language!
     Lox should handle this gracefully by not reporting an "unknown variable"
     compile error when the function is first defined.
 
-    But when a user runs a Lox *script*, the compiler has access to the full
+    But when a user runs a Lox _script_, the compiler has access to the full
     text of the entire program before any code is run. Consider this program:
 
         :::lox
@@ -815,7 +815,7 @@ It's starting to look like real code for an actual language!
         var ooops = "too many o's!";
 
     Here, we can tell statically that `oops` will not be defined because there
-    is *no* declaration of that global anywhere in the program. Note that
+    is _no_ declaration of that global anywhere in the program. Note that
     `useVar()` is never called either, so even though the variable isn't
     defined, no runtime error will occur because it's never used either.
 
