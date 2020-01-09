@@ -227,9 +227,11 @@ static bool callValue(Value callee, int argCount) {
         Value initializer;
         if (tableGet(&klass->methods, vm.initString, &initializer)) {
           return call(AS_CLOSURE(initializer), argCount);
+//> no-init-arity-error
         } else if (argCount != 0) {
           runtimeError("Expected 0 arguments but got %d.", argCount);
           return false;
+//< no-init-arity-error
         }
 
 //< Methods and Initializers call-init
@@ -762,8 +764,8 @@ static InterpretResult run() {
 //< Calls and Functions interpret-call
 //> Methods and Initializers interpret-invoke
       case OP_INVOKE: {
-        int argCount = READ_BYTE();
         ObjString* method = READ_STRING();
+        int argCount = READ_BYTE();
         if (!invoke(method, argCount)) {
           return INTERPRET_RUNTIME_ERROR;
         }

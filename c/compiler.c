@@ -649,8 +649,8 @@ static void dot(bool canAssign) {
 //> Methods and Initializers parse-call
   } else if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
-    emitBytes(OP_INVOKE, argCount);
-    emitByte(name);
+    emitBytes(OP_INVOKE, name);
+    emitByte(argCount);
 //< Methods and Initializers parse-call
   } else {
     emitBytes(OP_GET_PROPERTY, name);
@@ -1132,15 +1132,13 @@ static void classDeclaration() {
 //> Methods and Initializers create-class-compiler
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
-//< Methods and Initializers create-class-compiler
 //> Superclasses not-yet
   classCompiler.hasSuperclass = false;
 //< Superclasses not-yet
-//> Methods and Initializers push-enclosing
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
 
-//< Methods and Initializers push-enclosing
+//< Methods and Initializers create-class-compiler
 //> Superclasses not-yet
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
@@ -1166,7 +1164,9 @@ static void classDeclaration() {
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
 //> Methods and Initializers class-body
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+//> load-class
     namedVariable(className, false);
+//< load-class
     method();
   }
 //< Methods and Initializers class-body
