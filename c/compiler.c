@@ -1099,8 +1099,10 @@ static void function(FunctionType type) {
 static void method() {
   consume(TOKEN_IDENTIFIER, "Expect method name.");
   uint8_t constant = identifierConstant(&parser.previous);
+//> method-body
 
-/* Methods and Initializers method < Methods and Initializers method-type
+//< method-body
+/* Methods and Initializers method-body < Methods and Initializers method-type
   FunctionType type = TYPE_FUNCTION;
 */
 //> method-type
@@ -1113,7 +1115,9 @@ static void method() {
   }
   
 //< initializer-name
+//> method-body
   function(type);
+//< method-body
   emitBytes(OP_METHOD, constant);
 }
 //< Methods and Initializers method
@@ -1161,16 +1165,19 @@ static void classDeclaration() {
   }
   
 //< Superclasses not-yet
+//> Methods and Initializers load-class
+  namedVariable(className, false);
+//< Methods and Initializers load-class
   consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
 //> Methods and Initializers class-body
   while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
-//> load-class
-    namedVariable(className, false);
-//< load-class
     method();
   }
 //< Methods and Initializers class-body
   consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
+//> Methods and Initializers pop-class
+  emitByte(OP_POP);
+//< Methods and Initializers pop-class
 //> Superclasses not-yet
 
   if (classCompiler.hasSuperclass) {

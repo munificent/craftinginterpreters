@@ -283,20 +283,20 @@ static bool invokeFromClass(ObjClass* klass, ObjString* name,
 //> Methods and Initializers invoke
 static bool invoke(ObjString* name, int argCount) {
   Value receiver = peek(argCount);
+//> invoke-check-type
 
   if (!IS_INSTANCE(receiver)) {
     runtimeError("Only instances have methods.");
     return false;
   }
 
+//< invoke-check-type
   ObjInstance* instance = AS_INSTANCE(receiver);
 //> invoke-field
 
   Value value;
   if (tableGet(&instance->fields, name, &value)) {
-    // Load the field onto the stack in place of the receiver.
     vm.stackTop[-argCount - 1] = value;
-    // Try to invoke it like a function.
     return callValue(value, argCount);
   }
 
@@ -313,7 +313,7 @@ static bool bindMethod(ObjClass* klass, ObjString* name) {
   }
 
   ObjBoundMethod* bound = newBoundMethod(peek(0), AS_CLOSURE(method));
-  pop(); // Instance.
+  pop();
   push(OBJ_VAL(bound));
   return true;
 }
@@ -362,7 +362,6 @@ static void defineMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = AS_CLASS(peek(1));
   tableSet(&klass->methods, name, method);
-  pop();
   pop();
 }
 //< Methods and Initializers define-method
