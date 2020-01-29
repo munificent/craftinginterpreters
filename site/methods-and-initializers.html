@@ -120,23 +120,23 @@
 <p>When you are on the dancefloor, there is nothing to do but dance.</p>
 <p><cite>Umberto Eco, <em>The Mysterious Flame of Queen Loana</em></cite></p>
 </blockquote>
-<p>It is time for our virtual machine to bring its nascent support for objects to
-life by adding behavior. That means methods and method calls. And, since they
-are a special kind of method, we will add initializers too.</p>
-<p>All of this is familiar territory from our previous jlox interpreter. What&rsquo;s
-new in this second take is an important optimization we will implement to make
-method calls over four times faster than the baseline performance and almost
-six times faster than jlox. But before we get to that, we need to get the basic
-support in place.</p>
+<p>It is time for our virtual machine to bring its nascent objects to life with
+behavior. That means methods and method calls. And, since they are a special
+kind of method, we will add initializers too.</p>
+<p>All of this is familiar territory from our previous jlox interpreter. What&rsquo;s new
+in this second take is an important optimization we will implement to make
+method calls over four times faster than the baseline performance and almost six
+times faster than jlox. But before we get to that fun stuff, we gotta get the
+basic stuff working.</p>
 <h2><a href="#method-declarations" name="method-declarations"><small>28&#8202;.&#8202;1</small> Method Declarations</a></h2>
 <p>We can&rsquo;t optimize method calls before we have method calls, and we can&rsquo;t call
 methods without having any methods to call, so we&rsquo;ll start with declarations.</p>
 <h3><a href="#representing-methods" name="representing-methods"><small>28&#8202;.&#8202;1&#8202;.&#8202;1</small> Representing methods</a></h3>
-<p>We&rsquo;ll get to compiling them, but first let&rsquo;s get the object model working. The
-runtime representation in clox is similar to jlox. Each class stores a hash
-table of methods. Keys are method names and values are functions<span class="em">&mdash;</span>ObjClosures
-specifically<span class="em">&mdash;</span>that represent the bodies of each method.</p>
-<p>We already have a hash table implementation, so this part is easy:</p>
+<p>We usually start in the compiler, but let&rsquo;s knock the object model out first
+thing time. The runtime representation for methods in clox is similar to jlox.
+Each class stores a hash table of methods. Keys are method names and values are
+functions<span class="em">&mdash;</span>ObjClosures specifically<span class="em">&mdash;</span>that represent the bodies of each
+method:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjClass</span> <span class="p">{</span>
   <span class="n">Obj</span> <span class="n">obj</span><span class="p">;</span>                
   <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span><span class="p">;</span>        
@@ -148,7 +148,7 @@ in struct <em>ObjClass</em></div>
 
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjClass</em></div>
 
-<p>Whenever the runtime creates a new class, it initializes the empty method table:</p>
+<p>When the runtime creates a new class, it begins with an empty method table:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">klass</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">;</span> <span name="klass">&#8203;</span>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClass</em>()</div>
@@ -158,8 +158,8 @@ in <em>newClass</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClass</em>()</div>
 
-<p>The ObjClass struct owns the memory for this table, so when the class is freed
-by the memory manager, the table should be too:</p>
+<p>The ObjClass struct owns the memory for this table, so when memory manager
+deallocates a class, its table should be freed too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="nl">OBJ_CLASS</span><span class="p">:</span> <span class="p">{</span>                     
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
@@ -183,16 +183,16 @@ in <em>blackenObject</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
 <p>We use the existing <code>markTable()</code> function which traces through both the key
-strings<span class="em">&mdash;</span>since strings are managed too<span class="em">&mdash;</span>and the value for each entry.
-The representation is pretty obvious. The interesting part is how we <em>create</em>
-it.</p>
+strings<span class="em">&mdash;</span>since strings are managed too<span class="em">&mdash;</span>and the value for each entry. The
+way to store a class&rsquo;s methods is pretty obvious. The interesting part is how
+that table gets populated.</p>
 <p>In jlox, the interpreter had access to the entire AST node for the class
 declaration and all of the methods it contains. At runtime, the interpreter
 simply walked that list of declarations.</p>
 <p>Now every piece of information the compiler wants to shunt over to the runtime
 has to squeeze through the interface of a flat series of bytecode instructions.
 How do we take a class declaration, which can contain an arbitrarily large set
-of methods, and represent it as bytecode? Let&rsquo;s see&hellip;</p>
+of methods, and represent it as bytecode? That&rsquo;s the compiler&rsquo;s job&hellip;</p>
 <h3><a href="#compiling-method-declarations" name="compiling-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;2</small> Compiling method declarations</a></h3>
 <p>The last chapter left us with a compiler that parses classes but only allows an
 empty body. Now we expand that to compile a series of method declarations
@@ -209,7 +209,7 @@ in <em>classDeclaration</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>Lox doesn&rsquo;t have field declarations, so anything before the closing brace that
-ends the class body must be a method declaration. We stop compiling methods when
+ends a class body must be a method declaration. We stop compiling methods when
 we hit that final <code>}</code> or if we reach the end of the file. The latter check
 ensures our compiler doesn&rsquo;t get stuck in an infinite loop if the user
 accidentally forgets the closing brace.</p>
@@ -219,31 +219,29 @@ and somehow the runtime needs to look up and bind all of them. Packing all of
 that information into a single <code>OP_CLASS</code> instruction would be a challenge.</p>
 <p>Instead, the bytecode representation of a class declaration splits creating a
 class and its methods into a <span name="series"><em>series</em></span> of
-instructions.</p>
+instructions. First, the compiler emits an <code>OP_CLASS</code> instruction. That creates
+a new empty ObjClass object. After that, the existing class declaration code
+emits instructions to store that in the appropriate named variable.</p>
 <aside name="series">
-<p>We used a similar approach when we implemented closures. The <code>OP_CLOSURE</code>
-instruction needs to know the type and index for each captured upvalue. We
-encoded that using a series of pseudo-instructions following the main
-<code>OP_CLOSURE</code> instruction. The VM processed all of those in a loop when it
-found the first first <code>OP_CLOSURE</code> instruction.</p>
+<p>We used a similar technique for closures. The <code>OP_CLOSURE</code> instruction needs to
+know the type and index for each captured upvalue. We encoded that using a
+series of pseudo-instructions following the main <code>OP_CLOSURE</code> instruction<span class="em">&mdash;</span>basically a variable number of operands. The VM processed all of those extra
+bytes in a loop when interpreting the <code>OP_CLOSURE</code> instruction.</p>
 <p>Here our approach is a little different because from the VM&rsquo;s perspective,
 each instruction to define a method is a separate standalone operation.</p>
 </aside>
-<p>First, the compiler emits an <code>OP_CLASS</code> instruction. That creates a new empty
-ObjClass object. After that, the existing class declaration code emits
-instructions to store that in the appropriate named variable.</p>
 <p>Then, for each method declaration, we emit a new <code>OP_METHOD</code> instruction that
 adds a single method to that class. When all of the <code>OP_METHOD</code> instructions
 have executed, we&rsquo;re left with a fully formed class. In other words, while the
-user sees a class declaration as a single atomic operation, the VM will
-implement it as a series of mutations.</p>
-<p>To bind a method, the VM needs three things:</p>
+user sees a class declaration as a single atomic operation, the VM implements it
+as a series of mutations.</p>
+<p>To define a new method, the VM needs three things:</p>
 <ol>
 <li>The name of the method.</li>
 <li>The closure for the method body.</li>
 <li>The class to bind the method to.</li>
 </ol>
-<p>We&rsquo;ll build up our implementation to see how those all get plumbed through to
+<p>We&rsquo;ll incrementally write the compiler code to see how those all get through to
 the runtime, starting with this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>function</em>()</div>
@@ -257,8 +255,8 @@ add after <em>function</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>function</em>()</div>
 
 <p>Like <code>OP_GET_PROPERTY</code> and other instructions that need names at runtime, the
-compiler adds the identifier token&rsquo;s lexeme to the constant table, gettin back
-the index. Then we emit an <code>OP_METHOD</code> instruction with that index as the
+compiler adds the method name token&rsquo;s lexeme to the constant table, getting back
+a table index. Then we emit an <code>OP_METHOD</code> instruction with that index as the
 operand. That&rsquo;s the name. Next is the method body:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">uint8_t</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -270,16 +268,15 @@ in <em>method</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>method</em>()</div>
 
-<p>We use the same <code>function()</code> helper that we use when compiling function
-declarations. That utility function compiles subsequent the parameter list and
-function body. Then it emits the right code to end up with the resulting
-ObjClosure on top of the stack. At runtime, the VM will find the closure there.</p>
+<p>We use the same <code>function()</code> helper that we use to compile function
+declarations. That utility function compiles the subsequent parameter list and
+function body. Then it emits the code to create an ObjClosure and leave it on
+top of the stack. At runtime, the VM will find the closure there.</p>
 <p>Last is the class to bind the method to. Where can the VM find that?
 Unfortunately, by the time we reach the <code>OP_METHOD</code> instruction, we don&rsquo;t know
-where it is. It <span name="global">could</span> be on top of the stack, if the
-user declared the class inside a function or block. But if it&rsquo;s at the
-top-level, the ObjClass is no longer on the stack. It&rsquo;s been stored in the
-global variable table and then popped.</p>
+where it is. It <span name="global">could</span> be on the stack, if the user
+declared the class a local scope. But a top-level class declaration ends up with
+the ObjClass in the global variable table.</p>
 <aside name="global">
 <p>It Lox only supported declaring classes at the top level, the VM could assume
 that any class could be found by looking it up directly from the global
@@ -298,8 +295,8 @@ in <em>classDeclaration</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>And we know that no other declaration with that name could possibly shadow it.
-So we&rsquo;ll do the easy fix. Right before we start binding methods, we&rsquo;ll emit
-whatever code is necessary to load the class back on top of the stack:</p>
+So we do the easy fix. Before we start binding methods, we emit whatever code is
+necessary to load the class back on top of the stack:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">defineVariable</span><span class="p">(</span><span class="n">nameConstant</span><span class="p">);</span>                              
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
@@ -310,19 +307,18 @@ in <em>classDeclaration</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>Right before compiling the class body, we <span name="load">call</span>
-<code>namedVariable()</code>. That helper function generates whatever code is needed to
-load a variable with the given token&rsquo;s lexeme onto the stack. Then we compile
-the methods.</p>
+<code>namedVariable()</code>. That helper function generates code to load a variable with
+the given name onto the stack. Then we compile the methods.</p>
 <aside name="load">
 <p>The preceding call to <code>defineVariable()</code> pops the class, so it seems silly to
-call <code>namedVariable()</code> to load it right back onto the stack. Why collapse those
-two and leave it on the stack?</p>
+call <code>namedVariable()</code> to load it right back onto the stack. Why no collapse
+those two and leave it on the stack?</p>
 <p>We could, but in the <a href="superclasses.html">next chapter</a> we will insert code between these two
 calls to support inheritance. At that point, it will be simpler if the class
 isn&rsquo;t sitting around on the stack.</p>
 </aside>
 <p>This means that when we execute each <code>OP_METHOD</code> instruction, the top of the
-stack will contain the class followed by the closure for the method. Once we&rsquo;ve
+stack contains the class followed by the closure for the method. Once we&rsquo;ve
 reached the end of the methods, we no longer need the class and pop it off the
 stack:</p>
 <p><strong>todo: illustrate</strong></p>
@@ -336,9 +332,10 @@ in <em>classDeclaration</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
-<p>The compiler is doing its job, so let&rsquo;s move over to the runtime.</p>
+<p>All that remains to get declarations working in VM support for the new
+instruction.</p>
 <h3><a href="#executing-method-declarations" name="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small> Executing method declarations</a></h3>
-<p>First we have a new instruction to define:</p>
+<p>First we define the opcode:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_CLASS</span><span class="p">,</span>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
@@ -360,7 +357,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
-<p>The interpreter delegates to a new helper function:</p>
+<p>And over in the interpreter, we add a new case too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="p">;</span>                      
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
@@ -372,7 +369,7 @@ in <em>run</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
-<p>It reads the method name from the constant table and then passes it to:</p>
+<p>There, we read the method name from the constant table and then pass it to:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>closeUpvalues</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">defineMethod</span><span class="p">(</span><span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>
@@ -385,29 +382,29 @@ add after <em>closeUpvalues</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>closeUpvalues</em>()</div>
 
-<p>The closure is on top of the stack with the class being modified right under it.
-We read from those two stack slots and then store the closure in the class&rsquo;s
-method table. Then we pop the closure since we&rsquo;re done with it.</p>
-<p>We don&rsquo;t pop the class because there may be other method declarations after
-this one. The compiler inserted a final <code>OP_POP</code> at the end of the class body
-to clean up that stack slot.</p>
+<p>The method closure is on top of the stack and the class it will be bound to is
+right under it. We read those two stack slots and store the closure in the
+class&rsquo;s method table. Then we pop the closure since we&rsquo;re done with it. We don&rsquo;t
+pop the class because there may be other method declarations after this one. The
+compiler inserted a final <code>OP_POP</code> at the end of the class body to clean up that
+stack slot.</p>
 <p>Note that we don&rsquo;t do any <span name="verify">runtime</span> type checking on
 the closure or class object. That <code>AS_CLASS()</code> call is safe because the compiler
-itself generated the code that ensures the object in that stack slot is actually
-a class. The VM trusts its own compiler.</p>
+itself generated the code that causes the class to be in that stack slot. The VM
+trusts its own compiler.</p>
 <aside name="verify">
-<p>The VM can trust that the bytecode it executes is valid because the <em>only</em> way
-to get code to it is by going through clox&rsquo;s own compiler. Many bytecode VMs
-like the JVM and CPython support executing bytecode that has been compiled
-separately.</p>
-<p>That leads to a different security story. Maliciously crafted bytecode could
-crash the VM or worse. To avoid that, the JVM does a bytecode verification pass
-before it executes any loaded code. CPython says it&rsquo;s up to the user to ensure
-any bytecode they run is safe.</p>
+<p>The VM trusts that the instructions it executes are valid because the <em>only</em> way
+to get code to the bytecode interpreter is by going through clox&rsquo;s own compiler.
+Many bytecode VMs like the JVM and CPython support executing bytecode that has
+been compiled separately. That leads to a different security story. Maliciously
+crafted bytecode could crash the VM or worse.</p>
+<p>To prevent that, the JVM does a bytecode verification pass before it executes
+any loaded code. CPython says it&rsquo;s up to the user to ensure any bytecode they
+run is safe.</p>
 </aside>
-<p>Once the series of <code>OP_METHOD</code> instructions is run, the VM will have a nicely
-populated class ready to start doing things. Next is pulling those methods back
-out.</p>
+<p>After the series of <code>OP_METHOD</code> instructions is done and the <code>OP_POP</code> has popped
+the class, we will have a nicely populated class ready to start doing things.
+Next is pulling those methods back out.</p>
 <h2><a href="#method-references" name="method-references"><small>28&#8202;.&#8202;2</small> Method References</a></h2>
 <p>Most of the time, methods are accessed and immediately called, leading to this
 familiar syntax:</p>
@@ -415,21 +412,22 @@ familiar syntax:</p>
 </pre></div>
 
 
-<p>But remember in Lox (and some other languages), those two steps are distinct
-and can be separated:</p>
+<p>But remember in Lox and some other languages those two steps are distinct and
+can be separated:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">closure</span> <span class="o">=</span> <span class="n">instance</span><span class="p">.</span><span class="n">method</span><span class="p">;</span>
 <span class="n">closure</span><span class="p">(</span><span class="n">argument</span><span class="p">);</span>
 </pre></div>
 
 
-<p>Since users <em>can</em> separate the operations, we need to implement separately. The
-first is using our existing dotted property syntax to access a method defined
-on the instance&rsquo;s class. That should return some kind of object that the user
-can then call like a function.</p>
+<p>Since users <em>can</em> separate the operations, we have to implement them separately.
+The first step is using our existing dotted property syntax to access a method
+defined on the instance&rsquo;s class. That should return some kind of object that the
+user can then call like a function.</p>
 <p>The obvious approach would be to look up the method in the class&rsquo;s method table
 and return the ObjClosure associated with that name. But we also need to
 remember that when you access a method, <code>this</code> gets bound to the instance the
-method was accessed from. Here&rsquo;s the example from when we added methods to jlox:</p>
+method was accessed from. Here&rsquo;s the example from <a href="classes.html#methods-on-classes">when we added methods to
+jlox</a>:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Person</span> <span class="p">{</span>
   <span class="n">sayName</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">print</span> <span class="nb">this</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
@@ -444,22 +442,21 @@ method was accessed from. Here&rsquo;s the example from when we added methods to
 </pre></div>
 
 
-<p>This needs to print &ldquo;Jane&rdquo;, so whatever object that gets called on the last
-line, it somehow needs to remember the instance from the previous line. In jlox,
-we implemented that &ldquo;memory&rdquo; using that interpreter&rsquo;s existing heap-allocated
-Environment class, which was used for all variable storage.</p>
-<p>Our bytecode VM has a more complex architecture for storing state. Local
-variables and temporaries are the stack, globals in a hash table, and variables
-in closures use upvalues. That necessitates a somewhat more complex solution,
-and a new runtime type.</p>
-<p><strong>todo: link to previous chapters</strong></p>
+<p>This should print &ldquo;Jane&rdquo;, so the object returned by <code>.sayName</code> somehow needs to
+remember the instance when it later gets called. In jlox, we implemented that
+&ldquo;memory&rdquo; using the interpreter&rsquo;s existing heap-allocated Environment class,
+which handled all variable storage.</p>
+<p>Our bytecode VM has a more complex architecture for storing state. <a href="local-variables.html#representing-local-variables">Local
+variables and temporaries</a> are on the stack, <a href="global-variables.html#variable-declarations">globals</a> are in a hash
+table, and variables in closures use <a href="closures.html#upvalues">upvalues</a>. That necessitates a somewhat
+more complex solution for tracking a method&rsquo;s receiver in clox, and a new
+runtime type.</p>
 <h3><a href="#bound-methods" name="bound-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;1</small> Bound methods</a></h3>
 <p>When the user executes a method access, we&rsquo;ll find the closure for that method
-and wrap it in a new <span name="bound">&ldquo;bound method&rdquo;</span> object that stores
-the closure and the receiver that the method was accessed from. This bound
-object can be called like a function. When it is, the VM will do some
-shenanigans to correctly wire up <code>this</code> to point to the receiver when the method
-body executes.</p>
+and wrap it in a new <span name="bound">&ldquo;bound method&rdquo;</span> object that tracks
+the receiver that the method was accessed from. This bound object can be called
+later like a function. When invoked, the VM will do some shenanigans to wire up
+<code>this</code> to point to the receiver inside the method&rsquo;s body.</p>
 <p><strong>todo: illustrate bound fn pointing to method closure</strong></p>
 <aside name="bound">
 <p>I took the name &ldquo;bound method&rdquo; from CPython. Python behaves similar to Lox here
@@ -479,13 +476,11 @@ add after struct <em>ObjInstance</em></div>
 
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjInstance</em></div>
 
-<p>It wraps the receiver and the method closure together. The type of the receiver
-is Value. We could use a pointer to an ObjInstance because those are the only
-kind of objects that can ever be the receivers of method calls. But by the time
-we get to bound methods, VM doesn&rsquo;t actually care what kind of receiver it has,
-so we&rsquo;ll go with the more general type so we don&rsquo;t have to keep converting the
-pointer back to a Value.</p>
-<p>Next we have the usual boilerplate for adding a new object type. A new case
+<p>It wraps the receiver and the method closure together. The receiver&rsquo;s type is
+Value even though methods can only be called on instances. Since VM doesn&rsquo;t care
+what kind of receiver it has anyway, this means we don&rsquo;t have to keep converting
+the pointer back to a Value when it gets passed to more general functions.</p>
+<p>The new struct implies the usual boilerplate you&rsquo;re used to by now. A new case
 in the object type enum:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="p">{</span>     
 </pre><div class="source-file"><em>object.h</em><br>
@@ -505,7 +500,7 @@ in enum <em>ObjType</em></div>
 
 <div class="source-file-narrow"><em>object.h</em></div>
 
-<p>One to cast it to an ObjBoundMethod pointer:</p>
+<p>And another to cast the value to an ObjBoundMethod pointer:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_STRING(value)        isObjType(value, OBJ_STRING)    </span>
 <br></pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))</span>
@@ -538,8 +533,8 @@ add after <em>allocateObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
 
-<p>It simply stores the given closure and receiver. When the bound method is no
-longer needed, we free it:</p>
+<p>The constructor-like function simply stores the given closure and receiver. When
+the bound method is no longer needed, we free it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>          
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
@@ -552,8 +547,8 @@ in <em>freeObject</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>The bound method has a couple of references, but it doesn&rsquo;t <em>own</em> them, so it
-frees nothing but itself. However, those references do need to be traced by the
-garbage collector:</p>
+frees nothing but itself. However, those references do get traced by the garbage
+collector:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">object</span><span class="o">-&gt;</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span>                             
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
@@ -569,12 +564,12 @@ in <em>blackenObject</em>()</div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
 <p>This <span name="trace">ensures</span> that a handle to a method keeps the
-receiver around in memory so that <code>this</code> can still access it when you invoke the
-handle later. We also trace the method closure.</p>
+receiver around in memory so that <code>this</code> can still find the object when you
+invoke the handle later. We also trace the method closure.</p>
 <aside name="trace">
 <p>Tracing the method closure isn&rsquo;t really necessary. The receiver is an
 ObjInstance which has a pointer to its ObjClass, which has a table for all of
-the methods. But it feels dubious to me in some vague to have ObjBoundMethod
+the methods. But it feels dubious to me in some vague way to have ObjBoundMethod
 rely on that.</p>
 </aside>
 <p>The last operation all objects support is printing:</p>
@@ -589,22 +584,23 @@ in <em>printObject</em>()</div>
 
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
-<p>A bound method prints exactly the same was a function. From the user&rsquo;s
-perspective, a bound method <em>is</em> a function. It&rsquo;s another object they can call.
-We don&rsquo;t expose that the VM implements using a special object type.</p>
-<p>Speaking last things, ObjBoundMethod is the very last runtime type we&rsquo;ll add to
-clox. You&rsquo;ve written your last <code>IS_</code> and <code>AS_</code> macros. We&rsquo;re only a few chapters
-from the end of the book and we&rsquo;re getting close to a complete VM.</p>
+<p>A bound method prints exactly the same way as a function. From the user&rsquo;s
+perspective, a bound method <em>is</em> a function. It&rsquo;s an object they can call. We
+don&rsquo;t expose that the VM implements bound methods using a different object type.</p>
+<p>Put on your party hat because we just reached a little milestone. ObjBoundMethod
+is the very last runtime type we&rsquo;ll add to clox. You&rsquo;ve written your last <code>IS_</code>
+and <code>AS_</code> macros. We&rsquo;re only a few chapters from the end of the book and we&rsquo;re
+getting close to a complete VM.</p>
 <h3><a href="#accessing-methods" name="accessing-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;2</small> Accessing methods</a></h3>
-<p>Let&rsquo;s bolt our new object type doing something. Methods are accessed using the
-same &ldquo;dot&rdquo; property syntax we implemented in the last chapter. So the compiler
-is already parsing the right expressions and emitting <code>OP_GET_PROPERTY</code>
-instructions for them. The only changes we need to make are in the runtime.</p>
+<p>Let&rsquo;s get our new object type doing something. Methods are accessed using the
+same &ldquo;dot&rdquo; property syntax we implemented in the last chapter. The compiler
+already parses the right expressions and emits <code>OP_GET_PROPERTY</code> instructions
+for them. The only changes we need to make are in the runtime.</p>
 <p>When that instruction executes, the receiver is on top of the stack. The
 instruction&rsquo;s job is to find a field or method with the given name and replace
 the top of the stack with the accessed property.</p>
-<p>The interpreter handles fields, so we simply extend the <code>OP_GET_PROPERTY</code> case
-another section:</p>
+<p>The interpreter already handles fields, so we simply extend the
+<code>OP_GET_PROPERTY</code> case with another section:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>          <span class="n">pop</span><span class="p">();</span> <span class="c1">// Instance.                    </span>
           <span class="n">push</span><span class="p">(</span><span class="n">value</span><span class="p">);</span>                           
           <span class="k">break</span><span class="p">;</span>                                 
@@ -622,7 +618,7 @@ replace 2 lines</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>We insert this after the code to look up a field on the receiver instance.
-Fields take priority over and shadow methods, so we check for them first. If
+Fields take priority over and shadow methods, so we check for a field first. If
 the instance does not have a field with the given property name, then it may
 instead refer to a method.</p>
 <p>We take the instance&rsquo;s class and pass it to a new <code>bindMethod()</code> helper. That
@@ -630,7 +626,7 @@ function returns <code>true</code> if it found a method and placed the result on
 Otherwise it returns <code>false</code> to indicate a method with that name couldn&rsquo;t be
 found. Since the name also wasn&rsquo;t a field, that means we have a runtime error,
 which aborts the interpreter.</p>
-<p>The fun stuff happens here:</p>
+<p>Here is the good stuff:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>callValue</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">bindMethod</span><span class="p">(</span><span class="n">ObjClass</span><span class="o">*</span> <span class="n">klass</span><span class="p">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span><span class="p">)</span> <span class="p">{</span>            
@@ -650,20 +646,20 @@ add after <em>callValue</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>callValue</em>()</div>
 
 <p>First we look for a method with the given name in the class&rsquo;s method table. If
-we didn&rsquo;t find one, we report a runtime error and bail out. Otherwise, we take
-the method and wrap it in a new ObjBoundMethod. We grab the receiver that the
-method was accessed on from the top of the stack where the compiler has ensured
-we can find it. Finally, we pop the instance and replace the top of the stack
-with the bound method.</p>
+we don&rsquo;t find one, we report a runtime error and bail out. Otherwise, we take
+the method and wrap it in a new ObjBoundMethod. We grab the receiver from its
+home on top of the stack. Finally, we pop the instance and replace the top of
+the stack with the bound method.</p>
 <p><strong>todo: illustrate</strong></p>
 <h3><a href="#calling-methods" name="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small> Calling methods</a></h3>
-<p>That gets a bound method onto the stack, but the user can&rsquo;t <span
-name="do"><em>do</em></span> anything useful with it. The operation we&rsquo;re missing is
-being able to call a bound method like a function. That operation is implemented
-in <code>callValue()</code>, so we add a case there for the new object type:</p>
+<p>The user can declare methods on classes, access them on instances, and get bound
+methods onto the stack. They just can&rsquo;t <span name="do"><em>do</em></span> anything
+useful with those bound instances. The operation we&rsquo;re missing is calling them.
+Calls are implemented in <code>callValue()</code>, so we add a case there for the new
+object type:</p>
 <aside name="do">
-<p>It <em>is</em> a first class value, so they can store it in variables, pass it to
-functions, and otherwise do &ldquo;value&rdquo;-y stuff with it.</p>
+<p>A bound method <em>is</em> a first class value, so they can store it in variables, pass
+it to functions, and otherwise do &ldquo;value&rdquo;-y stuff with it.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">switch</span> <span class="p">(</span><span class="n">OBJ_TYPE</span><span class="p">(</span><span class="n">callee</span><span class="p">))</span> <span class="p">{</span>                         
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -678,8 +674,9 @@ in <em>callValue</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
 <p>We pull the raw closure back out of the ObjBoundMethod and use the existing
-<code>call()</code> helper to being invoking that closure by pushing a CallFrame for it
-onto the call stack. With that, we can now run Lox programs like:</p>
+<code>call()</code> helper to begin an invocation of that closure by pushing a CallFrame
+for it onto the call stack. With what we have so far, we can now run Lox
+programs like:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Scone</span> <span class="p">{</span>
   <span class="n">topping</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">print</span> <span class="s">&quot;clotted cream&quot;</span><span class="p">;</span>
@@ -696,13 +693,12 @@ something is missing. We went to all that trouble to wrap the method closure in
 an object that binds the receiver, but when we invoke the method here, we don&rsquo;t
 use that receiver at all.</p>
 <h2><a href="#this" name="this"><small>28&#8202;.&#8202;3</small> This</a></h2>
-<p>Before we bind the receiver in method calls, the compiler needs to actually
-make them useful. Right now, method bodies have no way to access the receiver.
-The way Lox exposes that is through <code>this</code> expressions. Until we add those,
-there&rsquo;s no point in binding the receiver in a method call because the method
-can&rsquo;t get to the receiver anyway.</p>
+<p>The reason bound methods need to keep hold of the receiver is so that it can be
+accessed inside the body of the method. Lox exposes a method&rsquo;s receiver through
+<code>this</code> expressions. Until we add those, there&rsquo;s no point in binding the receiver
+in a method call because the method can&rsquo;t get to the instance anyway.</p>
 <p>The lexer already treats <code>this</code> as a special token type, so the first step is
-wiring that up in the parse table:</p>
+wiring that token up in the parse table:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_SUPER</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
@@ -712,68 +708,67 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
+<aside name="this">
+<p>The underscore at the end of the name of the parser function is because <code>this</code>
+is a reserved word in C++ and we support compiling clox as C++.</p>
+</aside>
 <p>When the parser encounters a <code>this</code> in prefix position, it dispatches to:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>variable</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">this_</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">variable</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>                 
-<span class="p">}</span>                                  
+<span class="p">}</span> <span name="this">&#8203;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>variable</em>()</div>
 
-<p>We&rsquo;ll use the same approach for <code>this</code> in clox as we did in jlox. We&rsquo;ll treat
-it as a lexically-scoped local variable whose value gets magically initialized.
-Treating it like a local variable means we get a lot of behavior for tree. In
-particular, closures that close over <code>this</code> will do the right thing and capture
-the receiver in an upvalue.</p>
-<p>When this function gets called, the <code>this</code> token has just been consumed and is
-stored as the previous token. We call the existing <code>variable()</code> function which
-we use to compile identifier expressions for variable accesses. It takes a
-single Boolean parameter for whether the compiler should look for a following
-<code>=</code> operator and parse a setter. You can&rsquo;t assign to <code>this</code>, so we pass <code>false</code>
-to disallow that.</p>
+<p>We&rsquo;ll apply the same implementation technique for <code>this</code> in clox that we used in
+jlox. We treat <code>this</code> as a lexically-scoped local variable whose value gets
+magically initialized. Compiling it like a local variable means we get a lot of
+behavior for tree. In particular, closures inside a method that reference <code>this</code>
+will do the right thing and capture the receiver in an upvalue.</p>
+<p>When the parser function is called, the <code>this</code> token has just been consumed and
+is stored as the previous token. We call our existing <code>variable()</code> function
+which compiles identifier expressions as variable accesses. It takes a single
+Boolean parameter for whether the compiler should look for a following <code>=</code>
+operator and parse a setter. You can&rsquo;t assign to <code>this</code>, so we pass <code>false</code> to
+disallow that.</p>
 <p>The <code>variable()</code> function doesn&rsquo;t care that <code>this</code> has its own token type and
 isn&rsquo;t an identifier. It is happy to treat the lexeme &ldquo;this&rdquo; as if it were a
-variable name and then look it up using the existing scope resolution machinery.</p>
-<p>Of course, that lookup will fail because we never declared any variable whose
-name is &ldquo;this&rdquo;. To do that, we need to think about where the receiver should
-live in memory.</p>
+variable name and then look it up using the existing scope resolution machinery.
+Right now, that lookup will fail because we never declared a variable whose name
+is &ldquo;this&rdquo;. It&rsquo;s time to think about where the receiver should live in memory.</p>
 <p>At least until they get captured by closures, clox stores every local variable
-on the stack. When the compiler begins compiling a function, it sets aside stack
-slot zero by declaring a local variable named &ldquo;&rdquo;. At runtime, this slot holds
-the function being called.</p>
-<p>Storing the function there isn&rsquo;t super useful<span class="em">&mdash;</span>we could have simply shifted
-the called function&rsquo;s stack window one slot forward to exclude the function.
-But you can guess where this is leading. For <em>method</em> calls, we can instead use
-that slot to store the receiver. We don&rsquo;t need to keep the closure for the
-method on the value stack since it will be in the CallFrame stack too.</p>
-<p>Slot zero stores the instance that <code>this</code> is bound to. In order to compile
-<code>this</code> expressions, the compiler simply needs to give the right name to that
-local variable slot:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">isCaptured</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>                                          
+on the VM&rsquo;s stack. The compiler keeps track of which slots in the function&rsquo;s
+stack window are owned by which local variables. If you recall, the compiler
+sets aside stack slot zero by declaring a local variable whose name is an empty
+string.</p>
+<p>For function calls, that slot ends up holding the function being called. Since
+the slot has no name, the function body never accesses it. You can guess where
+this is going. For <em>method</em> calls, we can repurpose that slot to store the
+receiver. Slot zero will store the instance that <code>this</code> is bound to. In order to
+compile <code>this</code> expressions, the compiler simply needs to give the right name to
+that local variable:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">isCaptured</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>   
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">!=</span> <span class="n">TYPE_FUNCTION</span><span class="p">)</span> <span class="p">{</span>                                        
-    <span class="c1">// In a method, it holds the receiver, &quot;this&quot;.                    </span>
-    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;this&quot;</span><span class="p">;</span>                                       
-    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>                                           
-  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                                            
-    <span class="c1">// In a function, it holds the function, but cannot be referenced,</span>
-    <span class="c1">// so has no name.                                                </span>
-    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>                                           
-    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                                           
-  <span class="p">}</span>                                                                   
-</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                                     
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">type</span> <span class="o">!=</span> <span class="n">TYPE_FUNCTION</span><span class="p">)</span> <span class="p">{</span> 
+    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;this&quot;</span><span class="p">;</span>
+    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>    
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                     
+    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="p">;</span>    
+    <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>    
+  <span class="p">}</span>                            
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                              
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>(), replace 2 lines</div>
 
 <p>We only want to do this for methods. Function declarations don&rsquo;t have a <code>this</code>.
-And, in fact, they need to <em>not</em> declare a variable named &ldquo;this&rdquo;, so that if
-you write a <code>this</code>expression inside a function declaration which is itself
-inside a method, the <code>this</code> expression resolves to the outer method:</p>
+And, in fact, they <em>must not</em> declare a variable named &ldquo;this&rdquo;, so that if you
+write a <code>this</code> expression inside a function declaration which is itself inside a
+method, the <code>this</code> correctly resolves to the outer method&rsquo;s receiver:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Nested</span> <span class="p">{</span>
   <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
     <span class="k">fun</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span>
@@ -788,9 +783,9 @@ inside a method, the <code>this</code> expression resolves to the outer method:<
 </pre></div>
 
 
-<p>This program should print &ldquo;Nested instance&rdquo;. This implies the compiler must
-know whether it&rsquo;s compiling a function declaration or method declaration, so
-we add a new case to our FunctionType enum to distinguish those:</p>
+<p>This program should print &ldquo;Nested instance&rdquo;. To do this right, the compiler
+needs to know whether it&rsquo;s compiling a function or method declaration, so we add
+a new case to our FunctionType enum to distinguish methods:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">TYPE_FUNCTION</span><span class="p">,</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in enum <em>FunctionType</em></div>
@@ -811,12 +806,11 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>method</em>(), replace 1 line</div>
 
-<p>Now the compiler thinks that &ldquo;this&rdquo; is a local variable stored in slot zero. We
-can correctly compile references to that variable and the compiler will emit
-the right <code>OP_GET_LOCAL</code> instructions to access it. Closures can even capture
-<code>this</code> and store the receiver in upvalues. Pretty cool.</p>
-<p>Except that the receiver isn&rsquo;t actually <em>in</em> slot zero. The compiler depends on
-the runtime to set that up when a bound method is invoked. It looks like this:</p>
+<p>When compiling a method, clox treats &ldquo;this&rdquo; as a local variable stored in slot
+zero. We can correctly compile references to that variable and the compiler will
+emit the right <code>OP_GET_LOCAL</code> instructions to access it. Closures can even
+capture <code>this</code> and store the receiver in upvalues. Pretty cool.</p>
+<p>Except that at runtime, the receiver isn&rsquo;t actually <em>in</em> slot zero. The interpreter isn&rsquo;t holding up its end of the bargain yet. We fix that like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OBJ_BOUND_METHOD</span><span class="p">:</span> <span class="p">{</span>                          
         <span class="n">ObjBoundMethod</span><span class="o">*</span> <span class="n">bound</span> <span class="o">=</span> <span class="n">AS_BOUND_METHOD</span><span class="p">(</span><span class="n">callee</span><span class="p">);</span>
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -829,19 +823,17 @@ in <em>callValue</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
 <p><strong>todo: illustrate stack layout for function versus method call</strong></p>
-<p>When a method is called, the top of the stack contains all of the parameters
-and then just under those is the closure of the called method. That&rsquo;s where
-slot zero in the new CallFrame will be. Since <code>stackTop</code> points just <em>past</em> the
-last used stack slot, we count back one to get to the parameters and then skip
-past those too.</p>
-<p>With that, methods now feel like real methods since they can access and modify
-the state of the instance their bound to. We have some real object-orientation
-going on.</p>
+<p>When a method is called, the top of the stack contains all of the arguments and
+then just under those is the closure of the called method. That&rsquo;s where slot
+zero in the new CallFrame will be. The <code>-argCount</code> skips past the arguments and
+the <code>- 1</code> adjusts for the fact that <code>stackTop</code> points just <em>past</em> the last used
+stack slot. So this line of code stuffs the receiver into the slot that will
+end up being slot zero in the called method&rsquo;s stack window.</p>
 <h3><a href="#misusing-this" name="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small> Misusing this</a></h3>
-<p>Our VM correctly supports users correctly using <code>this</code>, but we also need to make
-sure it properly handles users <em>mis</em>-using <code>this</code>. Lox says it is a compile
-error for a <code>this</code> expression to appear outside of the body of a method. These
-two wrong uses should be caught by the compiler:</p>
+<p>Our now VM correctly supports users <em>correctly</em> using <code>this</code>, but we also need
+to make sure it properly handles users <em>mis</em>-using <code>this</code>. Lox says it is a
+compile error for a <code>this</code> expression to appear outside of the body of a method.
+These two wrong uses should be caught by the compiler:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="nb">this</span><span class="p">;</span> <span class="c1">// At top level.</span>
 
 <span class="k">fun</span> <span class="n">notMethod</span><span class="p">()</span> <span class="p">{</span>
@@ -851,14 +843,18 @@ two wrong uses should be caught by the compiler:</p>
 
 
 <p>So how does the compiler know if it&rsquo;s inside a method? The obvious answer is to
-look at the FunctionType of the current Compiler. We did literally just add an
-enum case there to treat methods specially. That wouldn&rsquo;t correctly handle
-code like the earlier example where you are inside a function which is itself
-nested inside a method. To fix that, we could walk the chain of Compilers to
-see if any of them have type <code>TYPE_METHOD</code>.</p>
-<p>That would fine. However, before too long we&rsquo;re going to need to access
-information about the enclosing class, so now is a good time to put some extra
-machinery into the compiler to track the current enclosing class, if any:</p>
+look at the FunctionType of the current Compiler. We did just add an enum case
+there to treat methods specially. However, that wouldn&rsquo;t correctly handle code
+like the earlier example where you are inside a function which is itself nested
+inside a method.</p>
+<p>We could try to resolve &ldquo;this&rdquo; and then report an error if it wasn&rsquo;t found in
+any of the surrounding lexical scopes. That would work, but would require us to
+shuffle around a bunch of code since right now the code for resolving a variable
+implicitly considers it a global access if no declaration was found.</p>
+<p>In the next chapter, we&rsquo;re going to need to access information about the nearest
+enclosing class. If we had that, we could use it here to determine if we are
+inside a method. So we may as well make our future self&rsquo;s life a little easier
+and put that machinery in place now:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">Compiler</span><span class="o">*</span> <span class="n">current</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>          
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
@@ -868,9 +864,8 @@ add after variable <em>Parser</em></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
-<p>We can then use that to implicitly tell if you&rsquo;re inside a method. It&rsquo;s overkill
-right now, but it will be worth it when we add inheritance. The new type looks
-like this:</p>
+<p>This module variable will point to a struct that represents the current
+innermost class being compiled. The new type looks like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">Compiler</span><span class="p">;</span>                       
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>Compiler</em></div>
@@ -918,9 +913,8 @@ in <em>classDeclaration</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>When an outermost class body ends, <code>enclosing</code> will be <code>NULL</code>, so this resets
-<code>currentClass</code> to <code>NULL</code>. This we can check for that to see if we are inside a
-class<span class="em">&mdash;</span>and thus inside a method<span class="em">&mdash;</span>when attempting to compile a <code>this</code>
-expression:</p>
+<code>currentClass</code> to <code>NULL</code>. Thus to see if we are inside a class<span class="em">&mdash;</span>and thus
+inside a method<span class="em">&mdash;</span>we simply check that module variable:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">this_</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>                
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>this_</em>()</div>
@@ -933,43 +927,46 @@ in <em>this_</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>this_</em>()</div>
 
-<p>And now <code>this</code> outside of a class is correctly forbidden.</p>
+<p>With that, <code>this</code> outside of a class is correctly forbidden. Now our methods
+really feel like <em>methods</em> in the object-oriented sense. Access to the receiver
+lets them operate on the instance you accessed the method from. We&rsquo;re getting
+there!</p>
 <h2><a href="#instance-initializers" name="instance-initializers"><small>28&#8202;.&#8202;4</small> Instance Initializers</a></h2>
-<p>The reason object-oriented languages bundle state and behavior together<span class="em">&mdash;</span>one
-of the real tenets of the paradigm<span class="em">&mdash;</span>is so to ensure that objects are always in
-a valid, meaningful state. If the only way to touch an object&rsquo;s state is <span
+<p>The reason object-oriented languages tie state and behavior together<span class="em">&mdash;</span>one of
+the core tenets of the paradigm<span class="em">&mdash;</span>is to ensure that objects are always in a
+valid, meaningful state. When the only way to touch an object&rsquo;s state is <span
 name="through">through</span> its methods, the methods can make sure nothing
 goes awry. But that presumes the object is <em>already</em> in a proper state. What
 about when it&rsquo;s first created?</p>
 <aside name="through">
 <p>Of course, Lox does let outside code directly access and modify an instance&rsquo;s
 fields without going through its methods. This is unlike Ruby and Smalltalk
-which tightly encapsulate state inside objects. Our toy scripting language,
-alas, isn&rsquo;t quite so principled.</p>
+which completely encapsulate state inside objects. Our toy scripting language,
+alas, isn&rsquo;t so principled.</p>
 </aside>
-<p>Object-oriented languages also need a mechanism so that brand new objects are
-properly set up and they do that through constructors which both produce a new
-instance and initialize its state. In Lox, allocating the raw instance is
-handled by the runtime and the user&rsquo;s class may provide an initializer method
-that is called to set up any fields on the bare instance.</p>
-<p>Initializers work mostly like normal methods, with a few tweaks:</p>
+<p>Object-oriented languages ensure that brand new objects are properly set up
+through constructors, which both produce a new instance and initialize its
+state. In Lox, the runtime allocates new raw instances, and a class may provide
+an initializer to set up any fields. Initializers work mostly like normal
+methods, with a few tweaks:</p>
 <ul>
 <li>
 <p>The runtime automatically invokes the initializer method whenever an
     instance of a class is created.</p>
 </li>
 <li>
-<p>After the initializer finished, the new <span name="return">instance</span>
-    is returned to the code that constructed the object. The initializer method
-    doesn&rsquo;t need to explicitly return <code>this</code>.</p>
+<p>The caller that constructs an instance always gets the instance &lt;<span
+    name="return">back</span> after the initializer finishes, regardless of what
+    the initializer function itself returns. The initializer method doesn&rsquo;t need
+    to explicitly return <code>this</code>.</p>
 </li>
 <li>
-<p>In fact, an initializer is prohibited from returning any value at all since
-    the runtime handles that for you.</p>
+<p>In fact, an initializer is <em>prohibited</em> from returning any value at all
+    since the value would never be seen anyway.</p>
 </li>
 </ul>
 <aside name="return">
-<p>It&rsquo;s almost like the initializer is implicitly wrapped in a bundle of code like:</p>
+<p>It&rsquo;s like the initializer is implicitly wrapped in a bundle of code like:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">create</span><span class="p">(</span><span class="n">klass</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">var</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">newInstance</span><span class="p">(</span><span class="n">klass</span><span class="p">);</span>
   <span class="n">obj</span><span class="p">.</span><span class="n">init</span><span class="p">();</span>
@@ -980,8 +977,8 @@ that is called to set up any fields on the bare instance.</p>
 
 <p>Note how the value returned by <code>init()</code> is discarded.</p>
 </aside>
-<p>Since we already support methods, to support initializers, we just need to
-implement those three special rules. We&rsquo;ll go in order.</p>
+<p>Now that we support methods, to add initializers, we merely need to implement
+those three special rules. We&rsquo;ll go in order.</p>
 <h3><a href="#invoking-initializers" name="invoking-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;1</small> Invoking initializers</a></h3>
 <p>First, automatically calling <code>init()</code> on new instances:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">vm</span><span class="p">.</span><span class="n">stackTop</span><span class="p">[</span><span class="o">-</span><span class="n">argCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">OBJ_VAL</span><span class="p">(</span><span class="n">newInstance</span><span class="p">(</span><span class="n">klass</span><span class="p">));</span>    
@@ -997,17 +994,16 @@ in <em>callValue</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
 <p>After the runtime allocates the new instance, we look for an <code>init()</code> method on
-the class. If it defines one, we initiate a call to it. The existing <code>call()</code>
-function pushes a new CallFrame for the initializer&rsquo;s closure. Any arguments
-passed to the class when we called it to construct the instance are still
-sitting on the stack above the instance. The new CallFrame for the <code>init()</code>
-method shares that same stack window so those arguments implictly get forwarded
-to <code>init()</code>.</p>
+the class. If we find one, we initiate a call to it. This pushes a new CallFrame
+for the initializer&rsquo;s closure. Any arguments passed to the class when we called
+it to construct the instance are still sitting on the stack above the instance.
+The new CallFrame for the <code>init()</code> method shares that same stack window so those
+arguments implictly get forwarded to the initializer.</p>
 <p><strong>todo: illustrate</strong></p>
-<p>Lox doesn&rsquo;t require classes to define an initializer. If omitted, the runtime
+<p>Lox doesn&rsquo;t require a class to define an initializer. If omitted, the runtime
 simply returns the new uninitialized instance. However, if there is no <code>init()</code>
 method, then it doesn&rsquo;t make any sense to pass arguments to the class when
-creating the instance. That&rsquo;s an error:</p>
+creating the instance. We make that an error:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">if</span> <span class="p">(</span><span class="n">tableGet</span><span class="p">(</span><span class="o">&amp;</span><span class="n">klass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="p">,</span> <span class="n">vm</span><span class="p">.</span><span class="n">initString</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">initializer</span><span class="p">))</span> <span class="p">{</span>
           <span class="k">return</span> <span class="n">call</span><span class="p">(</span><span class="n">AS_CLOSURE</span><span class="p">(</span><span class="n">initializer</span><span class="p">),</span> <span class="n">argCount</span><span class="p">);</span>            
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -1020,20 +1016,19 @@ in <em>callValue</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
-<p>When there&rsquo;s no <code>init()</code> method you can&rsquo;t pass arguments when constructing an
-instance. It&rsquo;s as if you get a default <code>init()</code> method defined like:</p>
+<p>It&rsquo;s as if a class without an initializer gets a default one like:</p>
 <div class="codehilite"><pre><span></span><span class="n">init</span><span class="p">()</span> <span class="p">{}</span>
 </pre></div>
 
 
-<p>We also need to ensure that the expected number of arguments are passed when a
-class <em>does</em> provide an initializer. Forunately, the <code>call()</code> to that does that
-for us already.</p>
+<p>When the class <em>does</em> provide an initializer, we also need to ensure that the
+expected number of arguments passed match the initializer&rsquo;s arity. Fortunately,
+the <code>call()</code> to that does that for us already.</p>
 <p>To call the initializer, the runtime looks up the <code>init()</code> method by name. We
 want that to be fast since it happens every time an instance is constructed.
 That means it would be good to take advantage of the string interning we&rsquo;ve
 already implemented. To do that, the VM creates an ObjString for &ldquo;init&rdquo; and
-keeps it around so it can reuse it. It lives right in the VM struct:</p>
+reuses it. The string lives right in the VM struct:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Table</span> <span class="n">strings</span><span class="p">;</span>           
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
@@ -1043,7 +1038,7 @@ in struct <em>VM</em></div>
 
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
-<p>The runtime creates the string when the VM boots up:</p>
+<p>We create the string when the VM boots up:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>               
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
@@ -1075,20 +1070,21 @@ in <em>freeVM</em>()</div>
 
 <p>That&rsquo;s the first bullet point.</p>
 <h3><a href="#initializer-return-values" name="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small> Initializer return values</a></h3>
-<p>The next step is ensuring that the initializer returns the new instance and not
-<code>nil</code> or something else. Right now, if a class defines an initializer then when
-an instance is constructed, the VM pushes a call to that initializer onto the
-CallFrame stack.</p>
-<p>Then it just keeps on trucking. The user&rsquo;s invocation on the class to create the
-instance will complete whenever that initializer method returns and will leave
-on the stack whatever value the initializer returns. That means that unless the
-user takes care to put <code>return this;</code> at the end of the initializer, no instance
-will come out. Not very helpful.</p>
-<p>To fix this, whenever the front end compiles an initializer method, it will
-emit different bytecode at the end of the body to return <code>this</code> from the method
-instead of the usual implicit <code>nil</code> most functions return. In order to do <em>that</em>,
-the compiler needs to actually know when it is compiling an initializer.</p>
-<p>We detect that by checking to see if the name of the method we&rsquo;re compiling is
+<p>The next step is ensuring that constructing an instance and then running its
+initializer ends up yielding the new instance and not <code>nil</code> or something else.
+Right now, if a class defines an initializer then when an instance is
+constructed, the VM pushes a call to that initializer onto the CallFrame stack.
+Then it just keeps on trucking.</p>
+<p>The user&rsquo;s invocation on the class to create the instance will complete whenever
+that initializer method returns and will leave on the stack whatever value the
+initializer returns. That means that unless the user takes care to put <code>return
+this;</code> at the end of the initializer, no instance will come out. Not very
+helpful.</p>
+<p>To fix this, whenever the front end compiles an initializer method, it will emit
+different bytecode at the end of the body to return <code>this</code> from the method
+instead of the usual implicit <code>nil</code> most functions return. In order to do
+<em>that</em>, the compiler needs to actually know when it is compiling an initializer.
+We detect that by checking to see if the name of the method we&rsquo;re compiling is
 &ldquo;init&rdquo;:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">FunctionType</span> <span class="n">type</span> <span class="o">=</span> <span class="n">TYPE_METHOD</span><span class="p">;</span>                    
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1102,13 +1098,7 @@ in <em>method</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>method</em>()</div>
 
-<p>Because this <span name="mouthful">function</span> in the compiler is for
-compiling methods and not functions, we don&rsquo;t need to worry about accidentally
-applying this logic when compiling a <em>function</em> named &ldquo;init&rdquo;. We use a new
-function type to represent the fact that we&rsquo;re compiling an initializer:</p>
-<aside name="mouthful">
-<p>Wow, that sentence is a mouthful.</p>
-</aside>
+<p>We define a new function type to distinguish initializers from other methods:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">TYPE_FUNCTION</span><span class="p">,</span>   
 </pre><div class="source-file"><em>compiler.c</em><br>
 in enum <em>FunctionType</em></div>
@@ -1118,8 +1108,8 @@ in enum <em>FunctionType</em></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in enum <em>FunctionType</em></div>
 
-<p>Then whenever the compiler emits the implicit return at the end of a body, we
-use that to insert the initializer-specific behavior:</p>
+<p>Whenever the compiler emits the implicit return at the end of a body, we check
+the type to decide whether to insert the initializer-specific behavior:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">emitReturn</span><span class="p">()</span> <span class="p">{</span>                
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>emitReturn</em>()<br>
@@ -1137,8 +1127,9 @@ replace 1 line</div>
 <p>In an initializer, instead of pushing <code>nil</code> onto the stack before returning,
 we load slot zero, which contains the instance. This <code>emitReturn()</code> function is
 also called when compiling a return statement without a value, so this also
-correctly handles cases where the user does an early return inside an
+correctly handles cases where the user does an early return inside the
 initializer.</p>
+<h3><a href="#incorrect-returns-in-initializers" name="incorrect-returns-in-initializers"><small>28&#8202;.&#8202;4&#8202;.&#8202;3</small> Incorrect returns in initializers</a></h3>
 <p>The last step, the last bullet point in our list of special features of
 initializers, is making it an error to try to return anything <em>else</em> from an
 initializer. Now that the compiler tracks the method type, this is
@@ -1179,31 +1170,38 @@ full-featured class system working in clox:</p>
 </pre></div>
 
 
-<p>Pretty sophisticated for a few thousand lines of simple C code!</p>
+<p>Pretty fancy for a C program that would fit on an old <span
+name="floppy">floppy</span> disc.</p>
+<aside name="floppy">
+<p>I acknowledge that &ldquo;floppy disc&rdquo; may no longer be a useful size reference for
+current generations of programmers. Maybe I should have said &ldquo;a few tweets&rdquo; or
+something.</p>
+</aside>
 <h2><a href="#optimized-invocations" name="optimized-invocations"><small>28&#8202;.&#8202;5</small> Optimized Invocations</a></h2>
 <p>Our VM correctly implements the language&rsquo;s semantics for method calls. We could
-stop here. But a big part of the reason we are implementing a bytecode virtual
-machine is to get better performance than our old Java interpreter had. Right
-now, method calls even in clox are pretty slow.</p>
+stop here. But the main reason we are building an entire second implementation
+of Lox from scratch to execute faster than our old Java interpreter. Right now,
+method calls even in clox are pretty slow.</p>
 <p>Lox&rsquo;s semantics define a method invocation as two operations<span class="em">&mdash;</span>accessing the
 method and then calling the result. Our VM must support those as separate
 operations because the user <em>can</em> separate them. You can access a method without
 calling and then invoke the bound method later. Nothing we&rsquo;ve implemented so far
 is unnecessary.</p>
-<p>But <em>always</em> treating those as separate operations has a significant cost. Every
-single time a Lox program calls a method, the runtime heap allocates a new
-ObjBoundMethod, initializes its fields, then pulls them right back out.
-Eventually, the GC has to spend some time freeing all of those ephemeral bound
-methods.</p>
+<p>But <em>always</em> executing those as separate operations has a significant cost.
+Every single time a Lox program accesses and invokes a method, the runtime heap
+allocates a new ObjBoundMethod, initializes its fields, then pulls them right
+back out. Eventually, the GC has to spend some time freeing all of those
+ephemeral bound methods.</p>
 <p>Most of the time, a Lox program accesses a method and and then immediately calls
 it. The bound method is created by one bytecode instruction and then consumed by
 the very next one. In fact, it&rsquo;s so immediate that the compiler can even
 textually <em>see</em> that it&rsquo;s happening<span class="em">&mdash;</span>a dotted property access followed by an
 opening parenthesis is most likely a method call.</p>
-<p>Since we can recognize this pair of operations in the compiler, we have the
+<p>Since we can recognize this pair of operations at compile time, we have the
 opportunity to emit a <span name="super">new special</span> instruction that
-performs an optimized method call.</p>
-<aside name="super">
+performs an optimized method call. We start in the function that compiles dotted
+property expressions:</p>
+<aside class="bottom" name="super">
 <p>Recognizing that a few specific bytecode instructions often occur one after the
 other and creating a new single instruction<span class="em">&mdash;</span>called a <strong>superinstruction</strong><span class="em">&mdash;</span>that fuses those into one operation is a classic optimization technique in
 bytecode VMs.</p>
@@ -1216,8 +1214,6 @@ its own use and there are only so many of those to go around. Add too many and
 you&rsquo;ll need a larger encoding for opcodes which then increases code size and can
 make decoding <em>all</em> instructions slower.</p>
 </aside>
-<p>We start in the compiler in the function that parses dotted property
-expressions:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">canAssign</span> <span class="o">&amp;&amp;</span> <span class="n">match</span><span class="p">(</span><span class="n">TOKEN_EQUAL</span><span class="p">))</span> <span class="p">{</span>
     <span class="n">expression</span><span class="p">();</span>                       
     <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_SET_PROPERTY</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>   
@@ -1282,8 +1278,8 @@ add after <em>constantInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>constantInstruction</em>()</div>
 
 <p>We read the two operands and then print out both the method name and the
-argument count.</p>
-<p>This instruction gets its own case in the interpreter&rsquo;s bytecode dispatch loop:</p>
+argument count. Over in the interpreter&rsquo;s bytecode dispatch loop is where the
+real action begins:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
         <span class="k">break</span><span class="p">;</span>                                
       <span class="p">}</span>                                       
@@ -1324,9 +1320,11 @@ add after <em>callValue</em>()</div>
 
 <p><strong>todo: illustrate stack layout</strong></p>
 <p>First we grab the receiver off the stack. The arguments passed to the method are
-above it on the stack, so we peek that many slots down. As with
-<code>OP_GET_PROPERTY</code> instructions, we also need to handle the case where a user
-incorrectly tries to call a method on a value that isn&rsquo;t an instance:</p>
+above it on the stack, so we peek that many slots down. Then it&rsquo;s a simple
+matter of casting the object to an instance and invoking its methods.</p>
+<p>That does assume the object <em>is</em> an instance. As with <code>OP_GET_PROPERTY</code>
+instructions, we also need to handle the case where a user incorrectly tries to
+call a method on a value of the wrong type:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Value</span> <span class="n">receiver</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="n">argCount</span><span class="p">);</span>               
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>invoke</em>()</div>
@@ -1368,10 +1366,14 @@ the class&rsquo;s method table. If we don&rsquo;t find one, we report that runti
 exit.</p>
 <p>Otherwise, we take the method&rsquo;s closure and push a call to it onto the CallFrame
 stack. We don&rsquo;t need to heap allocate and initialize an ObjBoundMethod. In fact,
-we don&rsquo;t even need to juggle anything on the stack. The receiver and method
-arguments are already right where they need to be. This is, in fact, why we used
-stack slot zero to store the reciver<span class="em">&mdash;</span>it&rsquo;s how the caller already organizes
-the stack for a method call.</p>
+we don&rsquo;t even need to <span name="juggle">juggle</span> anything on the stack.
+The receiver and method arguments are already right where they need to be.</p>
+<aside name="juggle">
+<p>This is, in fact, why we use stack slot zero to store the reciver<span class="em">&mdash;</span>it&rsquo;s how
+the caller already organizes the stack for a method call.</p>
+<p>A well-designed calling convention is an important part of a bytecode VM&rsquo;s
+performance story.</p>
+</aside>
 <p>If you fire up the VM and run a little program that calls methods now, you
 should see the exact same behavior as before. But, if we did our job right, the
 <em>performance</em> should be much improved. I wrote a little micro-benchmark that
@@ -1380,6 +1382,7 @@ does nothing but a bunch of method calls in a row. On my laptop, without the new
 it&rsquo;s down to 0.69 seconds. That&rsquo;s 4.5 <em>times</em> faster, which is a huge
 improvement when it comes to programming language optimization, and particularly
 impressive given that our bytecode VM is already much faster than jlox.</p>
+<p><strong>todo: draw bar chart</strong></p>
 <h3><a href="#invoking-fields" name="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small> Invoking fields</a></h3>
 <p>The fundamental creed of optimization is: &ldquo;Thou shalt not break correctness.&rdquo;
 <span name="monte">Users</span> like it when a language implementation gives
@@ -1403,7 +1406,8 @@ implementation of faster method invocations fails to uphold that tenet:</p>
 <p>The last line looks like a method call. The compiler thinks that it is and
 dutifully emits an <code>OP_INVOKE</code> instruction for it. However, it&rsquo;s not. What is
 actually happening is a <em>field</em> access that returns a function which then gets
-called. Our VM will do who knows what when it tries to run it.</p>
+called. Right now, instead of executing that correctly, our VM reports a runtime
+error that it can&rsquo;t find a method named &ldquo;field&rdquo;.</p>
 <aside name="monte">
 <p>There are cases where users may be satisfied with a program sometimes returns
 the wrong answer in return for running significantly faster or with a better
@@ -1414,7 +1418,7 @@ algorithms. We language implementers can&rsquo;t unilaterally decide to sacrific
 their program&rsquo;s correctness.</p>
 </aside>
 <p>Earlier when we implemented <code>OP_GET_PROPERTY</code>, we handled both field and method
-accesses. To fix this, we need to do the same thing for <code>OP_INVOKE</code>:</p>
+accesses. To squash this new bug, we need to do the same thing for <code>OP_INVOKE</code>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">ObjInstance</span><span class="o">*</span> <span class="n">instance</span> <span class="o">=</span> <span class="n">AS_INSTANCE</span><span class="p">(</span><span class="n">receiver</span><span class="p">);</span>          
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>invoke</em>()</div>
@@ -1431,14 +1435,14 @@ in <em>invoke</em>()</div>
 <p>Pretty simple fix. Before looking up a method on the instance&rsquo;s class, we look
 for a field with the same name. If we find a field, then we store it on the
 stack in place of the receiver, <em>under</em> the argument list. This is how
-<code>OP_GET_PROPERTY</code> behaves since the latter instruction executes <em>before</em> any
+<code>OP_GET_PROPERTY</code> behaves since the latter instruction executes before a
 subsequent parenthesized list of arguments has been evaluated.</p>
 <p>Then we try to call that field&rsquo;s value like the callable that it hopefully is.
 The <code>callValue()</code> helper will check the value&rsquo;s type and call it as appropriate
 or report a runtime error if the field&rsquo;s value wasn&rsquo;t a callable type.</p>
 <p>That&rsquo;s all it takes to make our optimization fully safe. We do sacrifice a
 little performance, unfortunately. But that&rsquo;s the price you have to pay
-sometimes. There is always a frustration with optimizations you <em>could</em> do if
+sometimes. You occasionally get frustrated by optimizations you <em>could</em> do if
 only the language wouldn&rsquo;t allow some annoying corner case. But, as language
 <span name="designer">implementers</span>, we have to play the game we&rsquo;re given.</p>
 <aside name="designer">
@@ -1448,8 +1452,7 @@ ways that enable optimizations. Users want expressive languages, but they also
 want fast implementations. Sometimes it is good language design to sacrifice a
 little power if you can give them perf in return.</p>
 </aside>
-<p>The code we wrote here is an example of a very common pattern in implementing
-language optimizations:</p>
+<p>The code we wrote here follows a common pattern in optimization:</p>
 <ol>
 <li>
 <p>Recognize a common operation or sequence of operations that is performance
@@ -1478,29 +1481,29 @@ of object-oriented programming, and with respectable performance.</p>
 
 <ol>
 <li>
-<p>Looking up the class&rsquo;s <code>init()</code> method every time an instance is created is
-    a constant time operation, but still fairly slow. Implement something
+<p>Finding a class&rsquo;s <code>init()</code> method every time an instance is created is a
+    constant time hash table lookup, but still fairly slow. Implement something
     faster. Write a benchmark and measure the performance difference.</p>
 </li>
 <li>
-<p>In dynamically-typed languages like Lox, a single callsite that invokes a
-    method could resolve to a variety of methods on a large number of classes
-    throughout a program&rsquo;s run. Even so, in practice, most of the time a single
-    a callsite ends up calling the exact same method on the exact same class
-    when a program is run. Most calls are actually <em>not</em> polymorphic even if the
-    language says they can be.</p>
-<p>How do advanced language implementations take advance of that for
-performance?</p>
+<p>In a dynamically-typed languages like Lox, a single method callsite could
+    invoke a variety of methods on a large number of classes throughout a
+    program&rsquo;s run. Even so, in practice, most of the time a callsite ends up
+    calling the exact same method on the exact same class when a program is run.
+    Most calls are actually not polymorphic even if the language says they can
+    be.</p>
+<p>How do advanced language implementations optimize based on that observation?</p>
 </li>
 <li>
 <p>When interpreting an <code>OP_INVOKE</code> instruction, the VM has to do two hash
-    table lookups. First it must look for a field that could shadow a method and
-    only if that fails can it look for a method. The former check is rarely
-    useful<span class="em">&mdash;</span>most fields do not contain functions.</p>
-<p>But it is <em>necessary</em> because the language says fields and methods are
-accessed the same way and fields shadow methods. That is a language <em>choice</em>
-that affects the performance of our implementation. Was it the right choice?
-If Lox were your language, what would you do?</p>
+    table lookups. First, it looks for a field that could shadow a method and
+    only if that fails does it look for a method. The former check is rarely
+    useful<span class="em">&mdash;</span>most fields do not contain functions. But it is <em>necessary</em>
+    because the language says fields and methods are accessed the same way and
+    fields shadow methods.</p>
+<p>That is a language <em>choice</em> that affects the performance of our
+implementation. Was it the right choice? If Lox were your language, what
+would you do?</p>
 </li>
 </ol>
 </div>
@@ -1512,42 +1515,42 @@ If Lox were your language, what would you do?</p>
 made a computer do something it hadn&rsquo;t done before. It felt like a superpower.
 The first time I cobbled together just enough of a parser and interpreter to let
 me write a tiny program in <em>my own language</em> that made a computer do a thing was
-like some sort of higher-order meta-superpower. It&rsquo;s a wonderful feeling.</p>
-<p>When I realized I could design a language any way I wanted that looked and
-behaved however I chose, it was like the shackles of every programming language
-I&rsquo;d ever used fell away. Like I&rsquo;d been going to a private school that required
-uniforms my whole life and then one day transferred to a public school where I
-could wear whatever I wanted.</p>
-<p>Wait, I don&rsquo;t need to use curly braces for blocks? I could do objects but no
-classes. Multiple inheritance and multimethods? A dynamic language that
-overloads statically by arity?</p>
+like some sort of higher-order meta-superpower. It was and remains a wonderful
+feeling.</p>
+<p>I realized I could design a language that looked and behaved however I chose. It
+was like I&rsquo;d been going to a private school that required uniforms my whole life
+and then one day transferred to a public school where I could wear whatever I
+wanted. Wait, I don&rsquo;t need to use curly braces for blocks? I can use something
+other than an equals sign for assignment? I can do objects without classes?
+Multiple inheritance and multimethods? A dynamic language that overloads
+statically by arity?</p>
 <p>Naturally, I took that freedom and ran with it. I made the weirdest, most
 arbitrary language design decisions. Apostrophes for generics. No commas between
 arguments. Overload resolution that can fail at runtime. I did things
 differently just for difference&rsquo;s sake.</p>
-<p>This is a very fun experience, that I highly recommend. We need more weird,
+<p>This is a very fun experience that I highly recommend. We need more weird,
 avante garde programming languages. I want to see more art languages. I still
 make oddball toy languages for fun sometimes.</p>
 <p><em>However</em>, if your goal is success where &ldquo;success&rdquo; is defined as a large number
 of users, then your priorities must be different. In that case, your primary
 goal is to have your language loaded into the brains of as many people as
 possible. That&rsquo;s <em>really hard</em>. It takes a lot of human effort to move a
-language&rsquo;s syntax and semantics from a computer into trillions neurons.</p>
+language&rsquo;s syntax and semantics from a computer into trillions of neurons.</p>
 <p>Programmers are naturally conservative with their time and cautious about what
-languages work to upload into their wetware. They don&rsquo;t want to waste their time
-on a language that ends up not being useful to them. As a language designer,
-your goal is thus to give them as much language power as you can with as little
-required learning as possible.</p>
+languages are worth uploading into their wetware. They don&rsquo;t want to waste their
+time on a language that ends up not being useful to them. As a language
+designer, your goal is thus to give them as much language power as you can with
+as little required learning as possible.</p>
 <p>One natural approach is <em>simplicity</em>. The fewer concepts and features your
 language has, the less total volume of stuff there is to learn. This is one of
 the reasons minimal <span name="dynamic">scripting</span> languages often find
-success even though they aren&rsquo;t as power as the big industrial languages<span class="em">&mdash;</span>they
-are easier to get started with.</p>
+success even though they aren&rsquo;t as powerful as the big industrial languages<span class="em">&mdash;</span>they are easier to get started with, and once they are in someone&rsquo;s brain, the
+user wants to keep using them.</p>
 <aside name="dynamic">
 <p>In particular, this is a big advantage of dynamically-typed languages. A static
-language requires you to learn <em>two</em> languages<span class="em">&mdash;</span>the static and runtime
-semantics<span class="em">&mdash;</span>before you can get to the point where you are making the computer
-do stuff. Dynamic languages only require you to learn the latter.</p>
+language requires you to learn <em>two</em> languages<span class="em">&mdash;</span>the runtime semantics and the
+static type system<span class="em">&mdash;</span>before you can get to the point where you are making the
+computer do stuff. Dynamic languages only require you to learn the former.</p>
 <p>Eventually, programs gets big enough that the value of static analysis makes it
 worth the effort to learn that second static language, but the value proposition
 isn&rsquo;t as obvious at the outset.</p>
@@ -1558,8 +1561,8 @@ their weight, but often minimal languages simply do less.</p>
 <p>There is another path that avoids much of that problem. The trick is to realize
 that a user doesn&rsquo;t have to load your entire language into their head, <em>just the
 part they don&rsquo;t already have in there.</em> As I mentioned in an <a href="parsing-expressions.html#design-note">earlier design
-note</a>, learning is about transferring the <em>diff</em> between what they already
-know and what they need to know.</p>
+note</a>, learning is about transferring the <em>delta</em> between what they
+already know and what they need to know.</p>
 <p>Many potential users of your language already know some other programming
 language. Any features your language shares with that language are essentially
 &ldquo;free&rdquo; when it comes to learning. It&rsquo;s already in their head, they just have to
@@ -1581,7 +1584,7 @@ Klabnik calls it, a &ldquo;<a href="https://words.steveklabnik.com/the-language-
 total amount of new stuff they are willing to accept to learn a new language.
 Exceed that and they won&rsquo;t show up.</p>
 <p>Anytime you add something new to your language that other languages don&rsquo;t have,
-or anytime you do something other languages can do but in a different way, you
+or anytime your language does something other languages do but differently, you
 spend some of that budget. That&rsquo;s OK<span class="em">&mdash;</span>you <em>need</em> to spend it to make your
 language compelling. But your goal is to spend it <em>wisely</em>. For each feature or
 difference, ask yourself how much compelling power it adds to your language and
@@ -1589,13 +1592,13 @@ then evaluate critically whether it pays its way. Is the change so valuable that
 it is worth blowing some of your novelty budget?</p>
 <p>In practice, I find this means that you end up being pretty conservative with
 syntax and more adventurous with semantics. As fun as it is to put on a new
-change of clothes, swapping out curly braces for blocks with some other
-punctuation characters is very unlikely to add much real power and
-expressiveness to the language. But it does spend some novelty. So it&rsquo;s hard for
-syntax differences to carry their weight.</p>
+change of clothes, swapping out curly braces with some other block delimiter is
+very unlikely to add much real power to the language, but it does spend some
+novelty. It&rsquo;s hard for syntax differences to carry their weight.</p>
 <p>On the other hand, new semantics can significantly increase the power of the
-language. Multimethods, mixins, traits, dependent types, metaprogramming, etc.
-can radically level up what a user can do with the language.</p>
+language. Multimethods, mixins, traits, reflection, dependent types,
+metaprogramming, etc. can radically level up what a user can do with the
+language.</p>
 <p>Alas, being conservative like this is not as fun as just changing everything.
 But it&rsquo;s up to you to decide whether you want to chase mainstream success or not
 in the first place. We don&rsquo;t all need to be radio-friendly pop bands. If you
