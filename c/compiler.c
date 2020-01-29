@@ -329,12 +329,9 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
 */
 //> Methods and Initializers slot-zero
   if (type != TYPE_FUNCTION) {
-    // In a method, it holds the receiver, "this".
     local->name.start = "this";
     local->name.length = 4;
   } else {
-    // In a function, it holds the function, but cannot be referenced,
-    // so has no name.
     local->name.start = "";
     local->name.length = 0;
   }
@@ -837,7 +834,7 @@ static void this_(bool canAssign) {
   }
 //< this-outside-class
   variable(false);
-}
+} // [this]
 //< Methods and Initializers this
 //> Compiling Expressions unary
 /* Compiling Expressions unary < Global Variables unary
