@@ -392,7 +392,7 @@ We implement that in the "table" module:
 
 ^code mark-table
 
-Pretty straightforward. We walk the entire array. For each one, we mark its value.
+Pretty straightforward. We walk the entry array. For each one, we mark its value.
 We also mark the key strings for each entry since the GC manages those strings too.
 
 ### Less obvious roots
