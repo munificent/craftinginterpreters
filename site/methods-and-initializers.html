@@ -321,7 +321,6 @@ isn&rsquo;t sitting around on the stack.</p>
 stack contains the class followed by the closure for the method. Once we&rsquo;ve
 reached the end of the methods, we no longer need the class and pop it off the
 stack:</p>
-<p><strong>todo: illustrate</strong></p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_RIGHT_BRACE</span><span class="p">,</span> <span class="s">&quot;Expect &#39;}&#39; after class body.&quot;</span><span class="p">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
@@ -332,8 +331,19 @@ in <em>classDeclaration</em>()</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
-<p>All that remains to get declarations working in VM support for the new
-instruction.</p>
+<p>Putting all of that together, here is a class declaration to throw at the
+compiler:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Brunch</span> {
+  <span class="n">eggs</span>() {}
+  <span class="n">bacon</span>() {}
+}
+</pre></div>
+
+
+<p>It generates the following bytecode instructions and at runtime this is what we
+want the stack to look like:</p>
+<p><img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." /></p>
+<p>All that remains is for us to implement the runtime half of that illustration.</p>
 <h3><a href="#executing-method-declarations" name="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small> Executing method declarations</a></h3>
 <p>First we define the opcode:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_CLASS</span><span class="p">,</span>
@@ -408,13 +418,13 @@ Next is pulling those methods back out.</p>
 <h2><a href="#method-references" name="method-references"><small>28&#8202;.&#8202;2</small> Method References</a></h2>
 <p>Most of the time, methods are accessed and immediately called, leading to this
 familiar syntax:</p>
-<div class="codehilite"><pre><span></span><span class="n">instance</span><span class="p">.</span><span class="n">method</span><span class="p">(</span><span class="n">argument</span><span class="p">);</span>
+<div class="codehilite"><pre><span></span><span class="n">instance</span><span class="p">.</span><span class="k">method</span><span class="p">(</span><span class="n">argument</span><span class="p">);</span>
 </pre></div>
 
 
 <p>But remember in Lox and some other languages those two steps are distinct and
 can be separated:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">closure</span> <span class="o">=</span> <span class="n">instance</span><span class="p">.</span><span class="n">method</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="n">var</span> <span class="n">closure</span> <span class="o">=</span> <span class="n">instance</span><span class="p">.</span><span class="k">method</span><span class="p">;</span>
 <span class="n">closure</span><span class="p">(</span><span class="n">argument</span><span class="p">);</span>
 </pre></div>
 
@@ -428,17 +438,17 @@ and return the ObjClosure associated with that name. But we also need to
 remember that when you access a method, <code>this</code> gets bound to the instance the
 method was accessed from. Here&rsquo;s the example from <a href="classes.html#methods-on-classes">when we added methods to
 jlox</a>:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Person</span> <span class="p">{</span>
-  <span class="n">sayName</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="nb">this</span><span class="p">.</span><span class="n">name</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Person</span> {
+  <span class="n">sayName</span>() {
+    <span class="nb">print</span> <span class="n">this</span>.<span class="nb">name</span>;
+  }
+}
 
-<span class="k">var</span> <span class="n">jane</span> <span class="o">=</span> <span class="vg">Person</span><span class="p">();</span>
-<span class="n">jane</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;Jane&quot;</span><span class="p">;</span>
+<span class="n">var</span> <span class="n">jane</span> = <span class="n">Person</span>();
+<span class="n">jane</span>.<span class="nb">name</span> = <span class="s">&quot;Jane&quot;</span>;
 
-<span class="k">var</span> <span class="n">method</span> <span class="o">=</span> <span class="n">jane</span><span class="p">.</span><span class="n">sayName</span><span class="p">;</span>
-<span class="n">method</span><span class="p">();</span> <span class="c1">// ?</span>
+<span class="n">var</span> <span class="k">method</span> = <span class="n">jane</span>.<span class="n">sayName</span>;
+<span class="k">method</span>(); // ?
 </pre></div>
 
 
@@ -457,7 +467,6 @@ and wrap it in a new <span name="bound">&ldquo;bound method&rdquo;</span> object
 the receiver that the method was accessed from. This bound object can be called
 later like a function. When invoked, the VM will do some shenanigans to wire up
 <code>this</code> to point to the receiver inside the method&rsquo;s body.</p>
-<p><strong>todo: illustrate bound fn pointing to method closure</strong></p>
 <aside name="bound">
 <p>I took the name &ldquo;bound method&rdquo; from CPython. Python behaves similar to Lox here
 and I used its implementation for inspiration.</p>
@@ -650,7 +659,22 @@ we don&rsquo;t find one, we report a runtime error and bail out. Otherwise, we t
 the method and wrap it in a new ObjBoundMethod. We grab the receiver from its
 home on top of the stack. Finally, we pop the instance and replace the top of
 the stack with the bound method.</p>
-<p><strong>todo: illustrate</strong></p>
+<p><span name="bind"></span></p>
+<aside name="bind">
+<p>Given this script:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Brunch</span> {
+  <span class="n">eggs</span>() {}
+}
+
+<span class="n">var</span> <span class="n">brunch</span> = <span class="n">Brunch</span>();
+<span class="n">var</span> <span class="n">eggs</span> = <span class="n">brunch</span>.<span class="n">eggs</span>;
+</pre></div>
+
+
+<p>The illustration shows what happens when the VM executes the <code>bindMethod()</code> call
+for the <code>brunch.eggs</code> expression.</p>
+</aside>
+<p><img src="image/methods-and-initializers/bind-method.png" alt="The stack changes caused by bindMethod()." /></p>
 <h3><a href="#calling-methods" name="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small> Calling methods</a></h3>
 <p>The user can declare methods on classes, access them on instances, and get bound
 methods onto the stack. They just can&rsquo;t <span name="do"><em>do</em></span> anything
@@ -677,14 +701,14 @@ in <em>callValue</em>()</div>
 <code>call()</code> helper to begin an invocation of that closure by pushing a CallFrame
 for it onto the call stack. With what we have so far, we can now run Lox
 programs like:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Scone</span> <span class="p">{</span>
-  <span class="n">topping</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;clotted cream&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Scone</span> {
+  <span class="n">topping</span>(<span class="nb">first</span>, <span class="n">second</span>) {
+    <span class="nb">print</span> <span class="s">&quot;scone with &quot;</span> + <span class="nb">first</span> + <span class="s">&quot; and &quot;</span> + <span class="n">second</span>;
+  }
+}
 
-<span class="k">var</span> <span class="n">scone</span> <span class="o">=</span> <span class="vg">Scone</span><span class="p">();</span>
-<span class="n">scone</span><span class="p">.</span><span class="n">topping</span><span class="p">();</span>
+<span class="n">var</span> <span class="n">scone</span> = <span class="n">Scone</span>();
+<span class="n">scone</span>.<span class="n">topping</span>(<span class="s">&quot;berries&quot;</span>, <span class="s">&quot;cream&quot;</span>);
 </pre></div>
 
 
@@ -769,17 +793,17 @@ replace 2 lines</div>
 And, in fact, they <em>must not</em> declare a variable named &ldquo;this&rdquo;, so that if you
 write a <code>this</code> expression inside a function declaration which is itself inside a
 method, the <code>this</code> correctly resolves to the outer method&rsquo;s receiver:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Nested</span> <span class="p">{</span>
-  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">fun</span> <span class="n">function</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">print</span> <span class="nb">this</span><span class="p">;</span>
-    <span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Nested</span> {
+  <span class="k">method</span>() {
+    <span class="n">fun</span> <span class="n">function</span>() {
+      <span class="nb">print</span> <span class="n">this</span>;
+    }
 
-    <span class="n">function</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+    <span class="n">function</span>();
+  }
+}
 
-<span class="vg">Nested</span><span class="p">().</span><span class="n">method</span><span class="p">();</span>
+<span class="n">Nested</span>().<span class="k">method</span>();
 </pre></div>
 
 
@@ -810,7 +834,8 @@ replace 1 line</div>
 zero. We can correctly compile references to that variable and the compiler will
 emit the right <code>OP_GET_LOCAL</code> instructions to access it. Closures can even
 capture <code>this</code> and store the receiver in upvalues. Pretty cool.</p>
-<p>Except that at runtime, the receiver isn&rsquo;t actually <em>in</em> slot zero. The interpreter isn&rsquo;t holding up its end of the bargain yet. We fix that like this:</p>
+<p>Except that at runtime, the receiver isn&rsquo;t actually <em>in</em> slot zero. The
+interpreter isn&rsquo;t holding up its end of the bargain yet. We fix that like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OBJ_BOUND_METHOD</span><span class="p">:</span> <span class="p">{</span>                          
         <span class="n">ObjBoundMethod</span><span class="o">*</span> <span class="n">bound</span> <span class="o">=</span> <span class="n">AS_BOUND_METHOD</span><span class="p">(</span><span class="n">callee</span><span class="p">);</span>
 </pre><div class="source-file"><em>vm.c</em><br>
@@ -822,23 +847,25 @@ in <em>callValue</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
-<p><strong>todo: illustrate stack layout for function versus method call</strong></p>
 <p>When a method is called, the top of the stack contains all of the arguments and
 then just under those is the closure of the called method. That&rsquo;s where slot
 zero in the new CallFrame will be. The <code>-argCount</code> skips past the arguments and
 the <code>- 1</code> adjusts for the fact that <code>stackTop</code> points just <em>past</em> the last used
-stack slot. So this line of code stuffs the receiver into the slot that will
-end up being slot zero in the called method&rsquo;s stack window.</p>
+stack slot. For example, given a method call like <code>scone.topping("berries",
+"cream")</code>, we find the slot to store the receiver like so:</p>
+<p><img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." /></p>
+<p>So that line of C code stuffs the receiver into the slot that will end up being
+slot zero in the called method&rsquo;s stack window.</p>
 <h3><a href="#misusing-this" name="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small> Misusing this</a></h3>
 <p>Our now VM correctly supports users <em>correctly</em> using <code>this</code>, but we also need
 to make sure it properly handles users <em>mis</em>-using <code>this</code>. Lox says it is a
 compile error for a <code>this</code> expression to appear outside of the body of a method.
 These two wrong uses should be caught by the compiler:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="nb">this</span><span class="p">;</span> <span class="c1">// At top level.</span>
+<div class="codehilite"><pre><span></span><span class="n">print</span> <span class="n">this</span><span class="p">;</span> <span class="o">//</span> <span class="k">At</span> <span class="n">top</span> <span class="k">level</span><span class="p">.</span>
 
-<span class="k">fun</span> <span class="n">notMethod</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">print</span> <span class="nb">this</span><span class="p">;</span> <span class="c1">// In a function.</span>
-<span class="p">}</span>
+<span class="n">fun</span> <span class="n">notMethod</span><span class="p">()</span> <span class="err">{</span>
+  <span class="n">print</span> <span class="n">this</span><span class="p">;</span> <span class="o">//</span> <span class="k">In</span> <span class="n">a</span> <span class="k">function</span><span class="p">.</span>
+<span class="err">}</span>
 </pre></div>
 
 
@@ -967,11 +994,11 @@ methods, with a few tweaks:</p>
 </ul>
 <aside name="return">
 <p>It&rsquo;s like the initializer is implicitly wrapped in a bundle of code like:</p>
-<div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">create</span><span class="p">(</span><span class="n">klass</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">var</span> <span class="n">obj</span> <span class="o">=</span> <span class="n">newInstance</span><span class="p">(</span><span class="n">klass</span><span class="p">);</span>
-  <span class="n">obj</span><span class="p">.</span><span class="n">init</span><span class="p">();</span>
-  <span class="k">return</span> <span class="n">obj</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="nv">fun</span> <span class="nv">create</span><span class="ss">(</span><span class="nv">klass</span><span class="ss">)</span> {
+  <span class="nv">var</span> <span class="nv">obj</span> <span class="o">=</span> <span class="nv">newInstance</span><span class="ss">(</span><span class="nv">klass</span><span class="ss">)</span><span class="c1">;</span>
+  <span class="nv">obj</span>.<span class="nv">init</span><span class="ss">()</span><span class="c1">;</span>
+  <span class="k">return</span> <span class="nv">obj</span><span class="c1">;</span>
+}
 </pre></div>
 
 
@@ -999,7 +1026,17 @@ for the initializer&rsquo;s closure. Any arguments passed to the class when we c
 it to construct the instance are still sitting on the stack above the instance.
 The new CallFrame for the <code>init()</code> method shares that same stack window so those
 arguments implictly get forwarded to the initializer.</p>
-<p><strong>todo: illustrate</strong></p>
+<p>Say we run this program:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Brunch</span> {
+  <span class="n">init</span>(<span class="n">food</span>, <span class="n">drink</span>) {}
+}
+
+<span class="n">Brunch</span>(<span class="s">&quot;eggs&quot;</span>, <span class="s">&quot;coffee&quot;</span>);
+</pre></div>
+
+
+<p>When the VM executes the call to <code>Brunch()</code>, it goes like this: </p>
+<p><img src="image/methods-and-initializers/init-call-frame.png" alt="The aligned stack windows for the Brunch() call and the corresponding init() method it forwards to." /></p>
 <p>Lox doesn&rsquo;t require a class to define an initializer. If omitted, the runtime
 simply returns the new uninitialized instance. However, if there is no <code>init()</code>
 method, then it doesn&rsquo;t make any sense to pass arguments to the class when
@@ -1017,7 +1054,7 @@ in <em>callValue</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
 <p>It&rsquo;s as if a class without an initializer gets a default one like:</p>
-<div class="codehilite"><pre><span></span><span class="n">init</span><span class="p">()</span> <span class="p">{}</span>
+<div class="codehilite"><pre><span></span><span class="n">init</span><span class="p">()</span> <span class="err">{}</span>
 </pre></div>
 
 
@@ -1152,21 +1189,21 @@ go ahead and compile the value afterwards so that the compiler doesn&rsquo;t get
 confused by the trailing expression and report a bunch of cascaded errors.</p>
 <p>Aside from inheritance, which we&rsquo;ll get to soon, we now have a pretty
 full-featured class system working in clox:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">CoffeeMaker</span> <span class="p">{</span>
-  <span class="n">init</span><span class="p">(</span><span class="n">coffee</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nb">this</span><span class="p">.</span><span class="n">coffee</span> <span class="o">=</span> <span class="n">coffee</span><span class="p">;</span>
-  <span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">CoffeeMaker</span> {
+  <span class="n">init</span>(<span class="n">coffee</span>) {
+    <span class="n">this</span>.<span class="n">coffee</span> = <span class="n">coffee</span>;
+  }
 
-  <span class="n">brew</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;Enjoy your cup of &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="p">.</span><span class="n">coffee</span><span class="p">;</span>
+  <span class="n">brew</span>() {
+    <span class="nb">print</span> <span class="s">&quot;Enjoy your cup of &quot;</span> + <span class="n">this</span>.<span class="n">coffee</span>;
 
-    <span class="c1">// No reusing the grounds!</span>
-    <span class="nb">this</span><span class="p">.</span><span class="n">coffee</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+    // <span class="n">No</span> <span class="n">reusing</span> <span class="n">the</span> <span class="n">grounds</span>!
+    <span class="n">this</span>.<span class="n">coffee</span> = <span class="n">nil</span>;
+  }
+}
 
-<span class="k">var</span> <span class="n">maker</span> <span class="o">=</span> <span class="vg">CoffeeMaker</span><span class="p">(</span><span class="s">&quot;coffee and chicory&quot;</span><span class="p">);</span>
-<span class="n">maker</span><span class="p">.</span><span class="n">brew</span><span class="p">();</span>
+<span class="n">var</span> <span class="n">maker</span> = <span class="n">CoffeeMaker</span>(<span class="s">&quot;coffee and chicory&quot;</span>);
+<span class="n">maker</span>.<span class="n">brew</span>();
 </pre></div>
 
 
@@ -1318,7 +1355,6 @@ add after <em>callValue</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>callValue</em>()</div>
 
-<p><strong>todo: illustrate stack layout</strong></p>
 <p>First we grab the receiver off the stack. The arguments passed to the method are
 above it on the stack, so we peek that many slots down. Then it&rsquo;s a simple
 matter of casting the object to an instance and invoking its methods.</p>
@@ -1377,29 +1413,38 @@ performance story.</p>
 <p>If you fire up the VM and run a little program that calls methods now, you
 should see the exact same behavior as before. But, if we did our job right, the
 <em>performance</em> should be much improved. I wrote a little micro-benchmark that
-does nothing but a bunch of method calls in a row. On my laptop, without the new
-<code>OP_INVOKE</code> instruction, it runs in 3.13 seconds. With this new optimization,
-it&rsquo;s down to 0.69 seconds. That&rsquo;s 4.5 <em>times</em> faster, which is a huge
-improvement when it comes to programming language optimization, and particularly
-impressive given that our bytecode VM is already much faster than jlox.</p>
-<p><strong>todo: draw bar chart</strong></p>
+does a batch of 10,000 method calls. Then it tests how many of these batches it
+can execute in 10 seconds. On my computer, without the new <code>OP_INVOKE</code>
+instruction, it got through 1,089 batches. With this new optimization, it
+finished 8,324 batches in the same time. That&rsquo;s <em>7.6 times faster</em>, which is a
+huge improvement when it comes to programming language optimization, and
+particularly impressive given that our bytecode VM is already much faster than
+jlox.</p>
+<p><span name="pat"></span></p>
+<aside name="pat">
+<p>We shouldn&rsquo;t pat ourselves on the back <em>too</em> firmly. This performance
+improvement is relative to our own unoptimized method call implementation which
+was quite slow. Doing a heap allocation for every single method call isn&rsquo;t going
+to win any races.</p>
+</aside>
+<p><img src="image/methods-and-initializers/benchmark.png" alt="Bar chart comparing the two benchmark results." /></p>
 <h3><a href="#invoking-fields" name="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small> Invoking fields</a></h3>
 <p>The fundamental creed of optimization is: &ldquo;Thou shalt not break correctness.&rdquo;
 <span name="monte">Users</span> like it when a language implementation gives
 them an answer faster, but only if it&rsquo;s the <em>right</em> answer. Alas, our
 implementation of faster method invocations fails to uphold that tenet:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Oops</span> <span class="p">{</span>
-  <span class="n">init</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">fun</span> <span class="n">f</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">print</span> <span class="s">&quot;not a method&quot;</span><span class="p">;</span>
-    <span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="n">Oops</span> {
+  <span class="n">init</span>() {
+    <span class="n">fun</span> <span class="n">f</span>() {
+      <span class="nb">print</span> <span class="s">&quot;not a method&quot;</span>;
+    }
 
-    <span class="nb">this</span><span class="p">.</span><span class="n">field</span> <span class="o">=</span> <span class="n">f</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+    <span class="n">this</span>.<span class="n">field</span> = <span class="n">f</span>;
+  }
+}
 
-<span class="k">var</span> <span class="n">oops</span> <span class="o">=</span> <span class="vg">Oops</span><span class="p">();</span>
-<span class="n">oops</span><span class="p">.</span><span class="n">field</span><span class="p">();</span>
+<span class="n">var</span> <span class="n">oops</span> = <span class="n">Oops</span>();
+<span class="n">oops</span>.<span class="n">field</span>();
 </pre></div>
 
 
@@ -1579,10 +1624,18 @@ is one of the fundamental balancing acts of language design:</p>
 <li>Reducing differences from other languages lowers learning cost.</li>
 <li>Increases them raises the compelling advantage of the language.</li>
 </ul>
-<p>I think of this balancing act in terms of a &ldquo;novelty budget&rdquo;, or as Steve
-Klabnik calls it, a &ldquo;<a href="https://words.steveklabnik.com/the-language-strangeness-budget">strangeness budget</a>&rdquo;. Users have a low threshold for the
-total amount of new stuff they are willing to accept to learn a new language.
-Exceed that and they won&rsquo;t show up.</p>
+<p>I think of this balancing act in terms of a <span name="idiosyncracy"><strong>novelty
+budget</strong></span>, or as Steve Klabnik calls it, a &ldquo;<a href="https://words.steveklabnik.com/the-language-strangeness-budget">strangeness budget</a>&rdquo;. Users
+have a low threshold for the total amount of new stuff they are willing to
+accept to learn a new language. Exceed that and they won&rsquo;t show up.</p>
+<aside name="idiosyncracy">
+<p>A related concept in psychology is <a href="https://en.wikipedia.org/wiki/Idiosyncrasy_credit**"><strong>idiosyncracy credit</strong></a>, the
+idea that other people in society grant you a finite amount of deviations from
+social norms. You earn credit by fitting in and doing in-group things, which you
+can then spend on oddball activities that might otherwise raise eyebrows. In
+other words, demonstrating that you are &ldquo;one of the good ones&rdquo; gives you license
+to raise your freak flag, but only so far.</p>
+</aside>
 <p>Anytime you add something new to your language that other languages don&rsquo;t have,
 or anytime your language does something other languages do but differently, you
 spend some of that budget. That&rsquo;s OK<span class="em">&mdash;</span>you <em>need</em> to spend it to make your

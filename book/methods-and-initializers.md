@@ -175,12 +175,24 @@ stack contains the class followed by the closure for the method. Once we've
 reached the end of the methods, we no longer need the class and pop it off the
 stack:
 
-**todo: illustrate**
-
 ^code pop-class (1 before, 2 after)
 
-All that remains to get declarations working in VM support for the new
-instruction.
+Putting all of that together, here is a class declaration to throw at the
+compiler:
+
+```lox
+class Brunch {
+  eggs() {}
+  bacon() {}
+}
+```
+
+It generates the following bytecode instructions and at runtime this is what we
+want the stack to look like:
+
+<img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." />
+
+All that remains is for us to implement the runtime half of that illustration.
 
 ### Executing method declarations
 
@@ -297,8 +309,6 @@ the receiver that the method was accessed from. This bound object can be called
 later like a function. When invoked, the VM will do some shenanigans to wire up
 `this` to point to the receiver inside the method's body.
 
-**todo: illustrate bound fn pointing to method closure**
-
 <aside name="bound">
 
 I took the name "bound method" from CPython. Python behaves similar to Lox here
@@ -410,7 +420,27 @@ the method and wrap it in a new ObjBoundMethod. We grab the receiver from its
 home on top of the stack. Finally, we pop the instance and replace the top of
 the stack with the bound method.
 
-**todo: illustrate**
+<span name="bind"></span>
+
+<aside name="bind">
+
+Given this script:
+
+```lox
+class Brunch {
+  eggs() {}
+}
+
+var brunch = Brunch();
+var eggs = brunch.eggs;
+```
+
+The illustration shows what happens when the VM executes the `bindMethod()` call
+for the `brunch.eggs` expression.
+
+</aside>
+
+<img src="image/methods-and-initializers/bind-method.png" alt="The stack changes caused by bindMethod()." />
 
 ### Calling methods
 
@@ -436,13 +466,13 @@ programs like:
 
 ```lox
 class Scone {
-  topping() {
-    print "clotted cream";
+  topping(first, second) {
+    print "scone with " + first + " and " + second;
   }
 }
 
 var scone = Scone();
-scone.topping();
+scone.topping("berries", "cream");
 ```
 
 That's three big steps. We can declare, access, and invoke methods. But
@@ -541,18 +571,22 @@ zero. We can correctly compile references to that variable and the compiler will
 emit the right `OP_GET_LOCAL` instructions to access it. Closures can even
 capture `this` and store the receiver in upvalues. Pretty cool.
 
-Except that at runtime, the receiver isn't actually *in* slot zero. The interpreter isn't holding up its end of the bargain yet. We fix that like this:
+Except that at runtime, the receiver isn't actually *in* slot zero. The
+interpreter isn't holding up its end of the bargain yet. We fix that like this:
 
 ^code store-receiver (2 before, 2 after)
-
-**todo: illustrate stack layout for function versus method call**
 
 When a method is called, the top of the stack contains all of the arguments and
 then just under those is the closure of the called method. That's where slot
 zero in the new CallFrame will be. The `-argCount` skips past the arguments and
 the `- 1` adjusts for the fact that `stackTop` points just *past* the last used
-stack slot. So this line of code stuffs the receiver into the slot that will
-end up being slot zero in the called method's stack window.
+stack slot. For example, given a method call like `scone.topping("berries",
+"cream")`, we find the slot to store the receiver like so:
+
+<img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." />
+
+So that line of C code stuffs the receiver into the slot that will end up being
+slot zero in the called method's stack window.
 
 ### Misusing this
 
@@ -690,7 +724,19 @@ it to construct the instance are still sitting on the stack above the instance.
 The new CallFrame for the `init()` method shares that same stack window so those
 arguments implictly get forwarded to the initializer.
 
-**todo: illustrate**
+Say we run this program:
+
+```lox
+class Brunch {
+  init(food, drink) {}
+}
+
+Brunch("eggs", "coffee");
+```
+
+When the VM executes the call to `Brunch()`, it goes like this: 
+
+<img src="image/methods-and-initializers/init-call-frame.png" alt="The aligned stack windows for the Brunch() call and the corresponding init() method it forwards to." />
 
 Lox doesn't require a class to define an initializer. If omitted, the runtime
 simply returns the new uninitialized instance. However, if there is no `init()`
@@ -907,8 +953,6 @@ The interesting work happens here:
 
 ^code invoke
 
-**todo: illustrate stack layout**
-
 First we grab the receiver off the stack. The arguments passed to the method are
 above it on the stack, so we peek that many slots down. Then it's a simple
 matter of casting the object to an instance and invoking its methods.
@@ -955,13 +999,26 @@ performance story.
 If you fire up the VM and run a little program that calls methods now, you
 should see the exact same behavior as before. But, if we did our job right, the
 *performance* should be much improved. I wrote a little micro-benchmark that
-does nothing but a bunch of method calls in a row. On my laptop, without the new
-`OP_INVOKE` instruction, it runs in 3.13 seconds. With this new optimization,
-it's down to 0.69 seconds. That's 4.5 *times* faster, which is a huge
-improvement when it comes to programming language optimization, and particularly
-impressive given that our bytecode VM is already much faster than jlox.
+does a batch of 10,000 method calls. Then it tests how many of these batches it
+can execute in 10 seconds. On my computer, without the new `OP_INVOKE`
+instruction, it got through 1,089 batches. With this new optimization, it
+finished 8,324 batches in the same time. That's *7.6 times faster*, which is a
+huge improvement when it comes to programming language optimization, and
+particularly impressive given that our bytecode VM is already much faster than
+jlox.
 
-**todo: draw bar chart**
+<span name="pat"></span>
+
+<aside name="pat">
+
+We shouldn't pat ourselves on the back *too* firmly. This performance
+improvement is relative to our own unoptimized method call implementation which
+was quite slow. Doing a heap allocation for every single method call isn't going
+to win any races.
+
+</aside>
+
+<img src="image/methods-and-initializers/benchmark.png" alt="Bar chart comparing the two benchmark results." />
 
 ### Invoking fields
 
@@ -1179,12 +1236,25 @@ is one of the fundamental balancing acts of language design:
 *   Reducing differences from other languages lowers learning cost.
 *   Increases them raises the compelling advantage of the language.
 
-I think of this balancing act in terms of a "novelty budget", or as Steve
-Klabnik calls it, a "[strangeness budget][]". Users have a low threshold for the
-total amount of new stuff they are willing to accept to learn a new language.
-Exceed that and they won't show up.
+I think of this balancing act in terms of a <span name="idiosyncracy">**novelty
+budget**</span>, or as Steve Klabnik calls it, a "[strangeness budget][]". Users
+have a low threshold for the total amount of new stuff they are willing to
+accept to learn a new language. Exceed that and they won't show up.
 
 [strangeness budget]: https://words.steveklabnik.com/the-language-strangeness-budget
+
+<aside name="idiosyncracy">
+
+A related concept in psychology is [**idiosyncracy credit**][idiosyncracy], the
+idea that other people in society grant you a finite amount of deviations from
+social norms. You earn credit by fitting in and doing in-group things, which you
+can then spend on oddball activities that might otherwise raise eyebrows. In
+other words, demonstrating that you are "one of the good ones" gives you license
+to raise your freak flag, but only so far.
+
+[idiosyncracy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit**
+
+</aside>
 
 Anytime you add something new to your language that other languages don't have,
 or anytime your language does something other languages do but differently, you
