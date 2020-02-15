@@ -638,7 +638,7 @@ I couldn't resist the pun. I regret nothing.
         switchCase  → "case" expression ":" statement* ;
         defaultCase → "default" ":" statement* ;
 
-    To execute a switch statement, first evaluate the parenthetical switch value
+    To execute a switch statement, first evaluate the parenthesized switch value
     expression. Then walk the cases. For each case, evaluate its value
     expression. If the case value is equal to the switch value, execute the
     statements under the case and then exit the switch statement. Otherwise, try
