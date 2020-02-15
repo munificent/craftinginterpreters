@@ -23,6 +23,7 @@ abstract class Stmt {
       this.statements = statements;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitBlockStmt(this);
     }
@@ -40,6 +41,7 @@ abstract class Stmt {
       this.methods = methods;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitClassStmt(this);
     }
@@ -55,6 +57,7 @@ abstract class Stmt {
       this.expression = expression;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitExpressionStmt(this);
     }
@@ -70,6 +73,7 @@ abstract class Stmt {
       this.body = body;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitFunctionStmt(this);
     }
@@ -87,6 +91,7 @@ abstract class Stmt {
       this.elseBranch = elseBranch;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitIfStmt(this);
     }
@@ -102,6 +107,7 @@ abstract class Stmt {
       this.expression = expression;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitPrintStmt(this);
     }
@@ -116,6 +122,7 @@ abstract class Stmt {
       this.value = value;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitReturnStmt(this);
     }
@@ -131,6 +138,7 @@ abstract class Stmt {
       this.initializer = initializer;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitVarStmt(this);
     }
@@ -146,6 +154,7 @@ abstract class Stmt {
       this.body = body;
     }
 
+    @Override
     <R> R accept(Visitor<R> visitor) {
       return visitor.visitWhileStmt(this);
     }
