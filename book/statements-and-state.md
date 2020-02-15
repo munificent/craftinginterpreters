@@ -1398,8 +1398,8 @@ But is that a good idea? Implicit declaration has some problems.
     its old value. This is particularly heinous in JavaScript where a typo will
     create a *global* variable, which may in turn interfere with other code.
 
-*   JS, Ruby, and CoffeeScript use the presence of an existing variable with
-    some name -- even in an outer scope -- to determine whether or not an
+*   JS, Ruby, and CoffeeScript use the presence of an existing variable with the
+    same name -- even in an outer scope -- to determine whether or not an
     assignment creates a new variable or assigns to an existing one. That means
     adding a new variable in a surrounding scope can change the meaning of
     existing code. What was once a local variable may silently turn into an
