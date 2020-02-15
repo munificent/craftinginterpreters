@@ -7,35 +7,33 @@
 
 It is time for our virtual machine to bring its nascent objects to life with
 behavior. That means methods and method calls. And, since they are a special
-kind of method, we will add initializers too.
+kind of method, we will include initializers too.
 
 All of this is familiar territory from our previous jlox interpreter. What's new
-in this second take is an important optimization we will implement to make
-method calls over four times faster than the baseline performance and almost six
-times faster than jlox. But before we get to that fun stuff, we gotta get the
-basic stuff working.
+in this second trip is an important optimization we will implement to make
+method calls over seven times faster than our baseline performance. But before
+we get to that fun, we gotta get the basic stuff working.
 
 ## Method Declarations
 
 We can't optimize method calls before we have method calls, and we can't call
-methods without having any methods to call, so we'll start with declarations.
+methods without having methods to call, so we'll start with declarations.
 
 ### Representing methods
 
 We usually start in the compiler, but let's knock the object model out first
-thing time. The runtime representation for methods in clox is similar to jlox.
-Each class stores a hash table of methods. Keys are method names and values are
-functions -- ObjClosures specifically -- that represent the bodies of each
-method:
+this time. The runtime representation for methods in clox is similar to jlox.
+Each class stores a hash table of methods. Keys are method names and each value
+is an ObjClosure for the body of the method:
 
 ^code class-methods (3 before, 1 after)
 
-When the runtime creates a new class, it begins with an empty method table:
+A brand new class begins with an empty method table:
 
 ^code init-methods (1 before, 1 after)
 
-The ObjClass struct owns the memory for this table, so when memory manager
-deallocates a class, its table should be freed too:
+The ObjClass struct owns the memory for this table, so when the memory manager
+deallocates a class, the table should be freed too:
 
 ^code free-methods (1 before, 1 after)
 
@@ -45,44 +43,43 @@ then all of its methods certainly need to stick around too:
 
 ^code mark-methods (1 before, 1 after)
 
-We use the existing `markTable()` function which traces through both the key
-strings -- since strings are managed too -- and the value for each entry. The
-way to store a class's methods is pretty obvious. The interesting part is how
-that table gets populated.
+We use the existing `markTable()` function which traces through the key strings
+and value in each table entry.
 
-In jlox, the interpreter had access to the entire AST node for the class
-declaration and all of the methods it contains. At runtime, the interpreter
-simply walked that list of declarations.
+Storing a class's methods is pretty familiar coming from jlox. The different
+part is how that table gets populated. Our previous interpreter had access to
+the entire AST node for the class declaration and all of the methods it
+contains. At runtime, the interpreter simply walked that list of declarations.
 
 Now every piece of information the compiler wants to shunt over to the runtime
 has to squeeze through the interface of a flat series of bytecode instructions.
 How do we take a class declaration, which can contain an arbitrarily large set
-of methods, and represent it as bytecode? That's the compiler's job...
+of methods, and represent it as bytecode? It's time to move to the compiler...
 
 ### Compiling method declarations
 
 The last chapter left us with a compiler that parses classes but only allows an
-empty body. Now we expand that to compile a series of method declarations
-between the braces:
+empty body. We expand that to compile a series of method declarations between
+the braces:
 
 ^code class-body (1 before, 1 after)
 
 Lox doesn't have field declarations, so anything before the closing brace that
-ends a class body must be a method declaration. We stop compiling methods when
-we hit that final `}` or if we reach the end of the file. The latter check
-ensures our compiler doesn't get stuck in an infinite loop if the user
-accidentally forgets the closing brace.
+ends a class body must be a method. We stop compiling methods when we hit that
+final curly or if we reach the end of the file. The latter check ensures our
+compiler doesn't get stuck in an infinite loop if the user accidentally forgets
+the closing brace.
 
 Before we dig into the implementation of `method()`, let's think about how it
 might work. The problem is that a class may declare any number of methods
 and somehow the runtime needs to look up and bind all of them. Packing all of
 that information into a single `OP_CLASS` instruction would be a challenge.
 
-Instead, the bytecode representation of a class declaration splits creating a
-class and its methods into a <span name="series">*series*</span> of
-instructions. First, the compiler emits an `OP_CLASS` instruction. That creates
-a new empty ObjClass object. After that, the existing class declaration code
-emits instructions to store that in the appropriate named variable.
+Instead, our bytecode representation of a class declaration will split creating
+a class and its methods into a <span name="series">*series*</span> of
+instructions. The compiler already emits an `OP_CLASS` instruction that creates
+a new empty ObjClass object. Then it emits instructions to store the class in a
+variable with its name.
 
 <aside name="series">
 
@@ -93,15 +90,17 @@ basically a variable number of operands. The VM processed all of those extra
 bytes in a loop when interpreting the `OP_CLOSURE` instruction.
 
 Here our approach is a little different because from the VM's perspective,
-each instruction to define a method is a separate standalone operation.
+each instruction to define a method is a separate standalone operation. Either
+approach would work. I chose this one for methods because it doesn't require us
+to know the number of methods when emitting the first `OP_CLASS` instruction.
 
 </aside>
 
-Then, for each method declaration, we emit a new `OP_METHOD` instruction that
+Now, for each method declaration, we emit a new `OP_METHOD` instruction that
 adds a single method to that class. When all of the `OP_METHOD` instructions
-have executed, we're left with a fully formed class. In other words, while the
-user sees a class declaration as a single atomic operation, the VM implements it
-as a series of mutations.
+have executed, we're left with a fully formed class. While the user sees a class
+declaration as a single atomic operation, the VM implements it as a series of
+mutations.
 
 To define a new method, the VM needs three things:
 
@@ -129,12 +128,12 @@ top of the stack. At runtime, the VM will find the closure there.
 Last is the class to bind the method to. Where can the VM find that?
 Unfortunately, by the time we reach the `OP_METHOD` instruction, we don't know
 where it is. It <span name="global">could</span> be on the stack, if the user
-declared the class a local scope. But a top-level class declaration ends up with
-the ObjClass in the global variable table.
+declared the class in a local scope. But a top-level class declaration ends up
+with the ObjClass in the global variable table.
 
 <aside name="global">
 
-It Lox only supported declaring classes at the top level, the VM could assume
+If Lox only supported declaring classes at the top level, the VM could assume
 that any class could be found by looking it up directly from the global
 variable table. Alas, because we support local classes, we need to handle that
 case too.
@@ -142,7 +141,7 @@ case too.
 </aside>
 
 Fear not. The compiler does know the *name* of the class. We can capture it
-right when we parse the name token:
+right after we consume its token:
 
 ^code class-name (1 before, 1 after)
 
@@ -159,19 +158,18 @@ the given name onto the stack. Then we compile the methods.
 <aside name="load">
 
 The preceding call to `defineVariable()` pops the class, so it seems silly to
-call `namedVariable()` to load it right back onto the stack. Why no collapse
-those two and leave it on the stack?
-
-We could, but in the [next chapter][super] we will insert code between these two
-calls to support inheritance. At that point, it will be simpler if the class
-isn't sitting around on the stack.
+call `namedVariable()` to load it right back onto the stack. Why not simply
+leave it on the stack in the first place? We could, but in the [next
+chapter][super] we will insert code between these two calls to support
+inheritance. At that point, it will be simpler if the class isn't sitting around
+on the stack.
 
 [super]: superclasses.html
 
 </aside>
 
 This means that when we execute each `OP_METHOD` instruction, the top of the
-stack contains the class followed by the closure for the method. Once we've
+stack is the closure for the method with the class right under it. Once we've
 reached the end of the methods, we no longer need the class and pop it off the
 stack:
 
@@ -188,7 +186,7 @@ class Brunch {
 ```
 
 It generates the following bytecode instructions and at runtime this is what we
-want the stack to look like:
+want the stack to do:
 
 <img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." />
 
@@ -208,21 +206,18 @@ And over in the interpreter, we add a new case too:
 
 ^code interpret-method (1 before, 1 after)
 
-There, we read the method name from the constant table and then pass it to:
+There, we read the method name from the constant table and then pass it here:
 
 ^code define-method
 
-The method closure is on top of the stack and the class it will be bound to is
-right under it. We read those two stack slots and store the closure in the
-class's method table. Then we pop the closure since we're done with it. We don't
-pop the class because there may be other method declarations after this one. The
-compiler inserted a final `OP_POP` at the end of the class body to clean up that
-stack slot.
+The method closure is on top of the stack, above the class it will be bound to.
+We read those two stack slots and store the closure in the class's method table.
+Then we pop the closure since we're done with it.
 
-Note that we don't do any <span name="verify">runtime</span> type checking on
-the closure or class object. That `AS_CLASS()` call is safe because the compiler
-itself generated the code that causes the class to be in that stack slot. The VM
-trusts its own compiler.
+Note that we don't do any runtime type checking on the closure or class object.
+That `AS_CLASS()` call is safe because the compiler itself generated the code
+that causes the class to be in that stack slot. The VM <span
+name="verify">trusts</span> its own compiler.
 
 <aside name="verify">
 
@@ -264,11 +259,10 @@ The first step is using our existing dotted property syntax to access a method
 defined on the instance's class. That should return some kind of object that the
 user can then call like a function.
 
-The obvious approach would be to look up the method in the class's method table
-and return the ObjClosure associated with that name. But we also need to
-remember that when you access a method, `this` gets bound to the instance the
-method was accessed from. Here's the example from [when we added methods to
-jlox][jlox]:
+The obvious approach is to look up the method in the class's method table and
+return the ObjClosure associated with that name. But we also need to remember
+that when you access a method, `this` gets bound to the instance the method was
+accessed from. Here's the example from [when we added methods to jlox][jlox]:
 
 [jlox]: classes.html#methods-on-classes
 
@@ -305,7 +299,7 @@ runtime type.
 
 When the user executes a method access, we'll find the closure for that method
 and wrap it in a new <span name="bound">"bound method"</span> object that tracks
-the receiver that the method was accessed from. This bound object can be called
+the instance that the method was accessed from. This bound object can be called
 later like a function. When invoked, the VM will do some shenanigans to wire up
 `this` to point to the receiver inside the method's body.
 
@@ -321,9 +315,10 @@ Here's the new object type:
 ^code obj-bound-method (2 before, 1 after)
 
 It wraps the receiver and the method closure together. The receiver's type is
-Value even though methods can only be called on instances. Since VM doesn't care
-what kind of receiver it has anyway, this means we don't have to keep converting
-the pointer back to a Value when it gets passed to more general functions.
+Value even though methods can only be called on ObjInstances. Since the VM
+doesn't care what kind of receiver it has anyway, using Value means we don't
+have to keep converting the pointer back to a Value when it gets passed to more
+general functions.
 
 The new struct implies the usual boilerplate you're used to by now. A new case
 in the object type enum:
@@ -334,15 +329,15 @@ A macro to check a value's type:
 
 ^code is-bound-method (2 before, 1 after)
 
-And another to cast the value to an ObjBoundMethod pointer:
+Another to cast the value to an ObjBoundMethod pointer:
 
 ^code as-bound-method (2 before, 1 after)
 
-We declare a function to create a new ObjBoundMethod:
+A function to create a new ObjBoundMethod:
 
 ^code new-bound-method-h (2 before, 1 after)
 
-And implement it here:
+And an implementation here:
 
 ^code new-bound-method
 
@@ -378,10 +373,16 @@ A bound method prints exactly the same way as a function. From the user's
 perspective, a bound method *is* a function. It's an object they can call. We
 don't expose that the VM implements bound methods using a different object type.
 
-Put on your party hat because we just reached a little milestone. ObjBoundMethod
-is the very last runtime type we'll add to clox. You've written your last `IS_`
-and `AS_` macros. We're only a few chapters from the end of the book and we're
-getting close to a complete VM.
+<aside name="party">
+
+<img src="image/methods-and-initializers/party-hat.png" alt="A party hat." />
+
+</aside>
+
+Put on your <span name="party">party</span> hat because we just reached a little
+milestone. ObjBoundMethod is the very last runtime type to add to clox. You've
+written your last `IS_` and `AS_` macros. We're only a few chapters from the end
+of the book and we're getting close to a complete VM.
 
 ### Accessing methods
 
@@ -390,9 +391,9 @@ same "dot" property syntax we implemented in the last chapter. The compiler
 already parses the right expressions and emits `OP_GET_PROPERTY` instructions
 for them. The only changes we need to make are in the runtime.
 
-When that instruction executes, the receiver is on top of the stack. The
-instruction's job is to find a field or method with the given name and replace
-the top of the stack with the accessed property.
+When a property access instruction executes, the instance is on top of the
+stack. The instruction's job is to find a field or method with the given name
+and replace the top of the stack with the accessed property.
 
 The interpreter already handles fields, so we simply extend the
 `OP_GET_PROPERTY` case with another section:
@@ -400,12 +401,12 @@ The interpreter already handles fields, so we simply extend the
 ^code get-method (5 before, 1 after)
 
 We insert this after the code to look up a field on the receiver instance.
-Fields take priority over and shadow methods, so we check for a field first. If
-the instance does not have a field with the given property name, then it may
-instead refer to a method.
+Fields take priority over and shadow methods, so we look for a field first. If
+the instance does not have a field with the given property name, then the name
+may refer to a method.
 
-We take the instance's class and pass it to a new `bindMethod()` helper. That
-function returns `true` if it found a method and placed the result on the stack.
+We take the instance's class and pass it to a new `bindMethod()` helper. If the
+function finds a method, it places the method on the stack and returns `true`.
 Otherwise it returns `false` to indicate a method with that name couldn't be
 found. Since the name also wasn't a field, that means we have a runtime error,
 which aborts the interpreter.
@@ -436,7 +437,7 @@ var eggs = brunch.eggs;
 ```
 
 The illustration shows what happens when the VM executes the `bindMethod()` call
-for the `brunch.eggs` expression.
+for this `brunch.eggs` expression.
 
 </aside>
 
@@ -446,8 +447,8 @@ for the `brunch.eggs` expression.
 
 The user can declare methods on classes, access them on instances, and get bound
 methods onto the stack. They just can't <span name="do">*do*</span> anything
-useful with those bound instances. The operation we're missing is calling them.
-Calls are implemented in `callValue()`, so we add a case there for the new
+useful with those bound method objects. The operation we're missing is calling
+them. Calls are implemented in `callValue()`, so we add a case there for the new
 object type:
 
 <aside name="do">
@@ -461,8 +462,8 @@ it to functions, and otherwise do "value"-y stuff with it.
 
 We pull the raw closure back out of the ObjBoundMethod and use the existing
 `call()` helper to begin an invocation of that closure by pushing a CallFrame
-for it onto the call stack. With what we have so far, we can now run Lox
-programs like:
+for it onto the call stack. That's all it takes to be able to run this Lox
+program:
 
 ```lox
 class Scone {
@@ -484,11 +485,8 @@ use that receiver at all.
 
 The reason bound methods need to keep hold of the receiver is so that it can be
 accessed inside the body of the method. Lox exposes a method's receiver through
-`this` expressions. Until we add those, there's no point in binding the receiver
-in a method call because the method can't get to the instance anyway.
-
-The lexer already treats `this` as a special token type, so the first step is
-wiring that token up in the parse table:
+`this` expressions. The lexer already treats `this` as a special token type, so
+the first step is wiring that token up in the parse table:
 
 ^code table-this (1 before, 1 after)
 
@@ -506,7 +504,7 @@ When the parser encounters a `this` in prefix position, it dispatches to:
 We'll apply the same implementation technique for `this` in clox that we used in
 jlox. We treat `this` as a lexically-scoped local variable whose value gets
 magically initialized. Compiling it like a local variable means we get a lot of
-behavior for tree. In particular, closures inside a method that reference `this`
+behavior for free. In particular, closures inside a method that reference `this`
 will do the right thing and capture the receiver in an upvalue.
 
 When the parser function is called, the `this` token has just been consumed and
@@ -556,9 +554,10 @@ class Nested {
 Nested().method();
 ```
 
-This program should print "Nested instance". To do this right, the compiler
-needs to know whether it's compiling a function or method declaration, so we add
-a new case to our FunctionType enum to distinguish methods:
+This program should print "Nested instance". To decide what name to give to
+local slot zero, the compiler needs to know whether it's compiling a function or
+method declaration, so we add a new case to our FunctionType enum to distinguish
+methods:
 
 ^code method-type-enum (1 before, 1 after)
 
@@ -566,31 +565,29 @@ When we compile a method, we use that type:
 
 ^code method-type (2 before, 1 after)
 
-When compiling a method, clox treats "this" as a local variable stored in slot
-zero. We can correctly compile references to that variable and the compiler will
-emit the right `OP_GET_LOCAL` instructions to access it. Closures can even
-capture `this` and store the receiver in upvalues. Pretty cool.
+Now we can correctly compile references to the special "this" variable and the
+compiler will emit the right `OP_GET_LOCAL` instructions to access it. Closures
+can even capture `this` and store the receiver in upvalues. Pretty cool.
 
 Except that at runtime, the receiver isn't actually *in* slot zero. The
-interpreter isn't holding up its end of the bargain yet. We fix that like this:
+interpreter isn't holding up its end of the bargain yet. Here is the fix:
 
 ^code store-receiver (2 before, 2 after)
 
 When a method is called, the top of the stack contains all of the arguments and
 then just under those is the closure of the called method. That's where slot
-zero in the new CallFrame will be. The `-argCount` skips past the arguments and
-the `- 1` adjusts for the fact that `stackTop` points just *past* the last used
-stack slot. For example, given a method call like `scone.topping("berries",
-"cream")`, we find the slot to store the receiver like so:
+zero in the new CallFrame will be. This line of code inserts the receiver into
+that slot. For example, given a method call like `scone.topping("berries",
+"cream")`, we calculate the slot to store the receiver like so:
 
 <img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." />
 
-So that line of C code stuffs the receiver into the slot that will end up being
-slot zero in the called method's stack window.
+The `-argCount` skips past the arguments and the `- 1` adjusts for the fact that
+`stackTop` points just *past* the last used stack slot.
 
 ### Misusing this
 
-Our now VM correctly supports users *correctly* using `this`, but we also need
+Now our VM correctly supports users *correctly* using `this`, but we also need
 to make sure it properly handles users *mis*-using `this`. Lox says it is a
 compile error for a `this` expression to appear outside of the body of a method.
 These two wrong uses should be caught by the compiler:
@@ -612,23 +609,23 @@ inside a method.
 We could try to resolve "this" and then report an error if it wasn't found in
 any of the surrounding lexical scopes. That would work, but would require us to
 shuffle around a bunch of code since right now the code for resolving a variable
-implicitly considers it a global access if no declaration was found.
+implicitly considers it a global access if no declaration is found.
 
-In the next chapter, we're going to need to access information about the nearest
-enclosing class. If we had that, we could use it here to determine if we are
-inside a method. So we may as well make our future self's life a little easier
-and put that machinery in place now:
+In the next chapter, we will need information about the nearest enclosing class.
+If we had that, we could use it here to determine if we are inside a method. So
+we may as well make our future self's life a little easier and put that
+machinery in place now:
 
 ^code current-class (1 before, 2 after)
 
-This module variable will point to a struct that represents the current
-innermost class being compiled. The new type looks like this:
+This module variable points to a struct representing the current innermost class
+being compiled. The new type looks like this:
 
 ^code class-compiler-struct (1 before, 2 after)
 
 Right now we store only the class's name. We also keep a pointer to the
 ClassCompiler for the enclosing class, if any. Nesting a class declaration
-inside a method in some other class is a strange thing to do, but Lox supports
+inside a method in some other class is an uncommon thing to do, but Lox supports
 it. Just like the Compiler struct, this means ClassCompiler forms a linked list
 from the current innermost class being compiled out through all of the enclosing
 classes.
@@ -640,9 +637,9 @@ a new ClassCompiler onto that implict linked stack:
 ^code create-class-compiler (2 before, 1 after)
 
 The memory for the ClassCompiler struct lives right on the C stack, a handy
-capability we get by writing our compiler as a recursive descent parser. At the
-end of the class body, we pop that compiler off the stack and restore the
-enclosing one:
+capability we get by writing our compiler using recursive descent. At the end of
+the class body, we pop that compiler off the stack and restore the enclosing
+one:
 
 ^code pop-enclosing (1 before, 1 after)
 
@@ -653,9 +650,8 @@ inside a method -- we simply check that module variable:
 ^code this-outside-class (1 before, 1 after)
 
 With that, `this` outside of a class is correctly forbidden. Now our methods
-really feel like *methods* in the object-oriented sense. Access to the receiver
-lets them operate on the instance you accessed the method from. We're getting
-there!
+really feel like *methods* in the object-oriented sense. Accessing the receiver
+lets them affect the instance you called the method on. We're getting there!
 
 ## Instance Initializers
 
@@ -677,19 +673,19 @@ alas, isn't so principled.
 
 Object-oriented languages ensure that brand new objects are properly set up
 through constructors, which both produce a new instance and initialize its
-state. In Lox, the runtime allocates new raw instances, and a class may provide
+state. In Lox, the runtime allocates new raw instances, and a class may declare
 an initializer to set up any fields. Initializers work mostly like normal
 methods, with a few tweaks:
 
-*   The runtime automatically invokes the initializer method whenever an
+1.  The runtime automatically invokes the initializer method whenever an
     instance of a class is created.
 
-*   The caller that constructs an instance always gets the instance <<span
+2.  The caller that constructs an instance always gets the instance <span
     name="return">back</span> after the initializer finishes, regardless of what
     the initializer function itself returns. The initializer method doesn't need
     to explicitly return `this`.
 
-*   In fact, an initializer is *prohibited* from returning any value at all
+3.  In fact, an initializer is *prohibited* from returning any value at all
     since the value would never be seen anyway.
 
 <aside name="return">
@@ -719,12 +715,7 @@ First, automatically calling `init()` on new instances:
 
 After the runtime allocates the new instance, we look for an `init()` method on
 the class. If we find one, we initiate a call to it. This pushes a new CallFrame
-for the initializer's closure. Any arguments passed to the class when we called
-it to construct the instance are still sitting on the stack above the instance.
-The new CallFrame for the `init()` method shares that same stack window so those
-arguments implictly get forwarded to the initializer.
-
-Say we run this program:
+for the initializer's closure. Say we run this program:
 
 ```lox
 class Brunch {
@@ -734,9 +725,13 @@ class Brunch {
 Brunch("eggs", "coffee");
 ```
 
-When the VM executes the call to `Brunch()`, it goes like this: 
+When the VM executes the call to `Brunch()`, it goes like this:
 
 <img src="image/methods-and-initializers/init-call-frame.png" alt="The aligned stack windows for the Brunch() call and the corresponding init() method it forwards to." />
+
+Any arguments passed to the class when we called it are still sitting on the
+stack above the instance. The new CallFrame for the `init()` method shares that
+stack window so those arguments implictly get forwarded to the initializer.
 
 Lox doesn't require a class to define an initializer. If omitted, the runtime
 simply returns the new uninitialized instance. However, if there is no `init()`
@@ -753,7 +748,7 @@ init() {}
 
 When the class *does* provide an initializer, we also need to ensure that the
 expected number of arguments passed match the initializer's arity. Fortunately,
-the `call()` to that does that for us already.
+the `call()` helper does that for us already.
 
 To call the initializer, the runtime looks up the `init()` method by name. We
 want that to be fast since it happens every time an instance is constructed.
@@ -763,7 +758,7 @@ reuses it. The string lives right in the VM struct:
 
 ^code vm-init-string (1 before, 1 after)
 
-We create the string when the VM boots up:
+We create and intern the string when the VM boots up:
 
 ^code init-init-string (1 before, 2 after)
 
@@ -775,21 +770,21 @@ And we don't free it until the entire VM is shutting down:
 
 ^code clear-init-string (1 before, 1 after)
 
-That's the first bullet point.
+That's calling initializers.
 
 ### Initializer return values
 
-The next step is ensuring that constructing an instance and then running its
-initializer ends up yielding the new instance and not `nil` or something else.
-Right now, if a class defines an initializer then when an instance is
-constructed, the VM pushes a call to that initializer onto the CallFrame stack.
-Then it just keeps on trucking.
+The next step is ensuring that constructing an instance of a class with an
+initializer always returns the new instance and not `nil` or whatever the body
+of the initializer returns. Right now, if a class defines an initializer, then
+when an instance is constructed, the VM pushes a call to that initializer onto
+the CallFrame stack. Then it just keeps on trucking.
 
 The user's invocation on the class to create the instance will complete whenever
 that initializer method returns and will leave on the stack whatever value the
-initializer returns. That means that unless the user takes care to put `return
-this;` at the end of the initializer, no instance will come out. Not very
-helpful.
+initializer puts there. That means that unless the user takes care to put
+`return this;` at the end of the initializer, no instance will come out. Not
+very helpful.
 
 To fix this, whenever the front end compiles an initializer method, it will emit
 different bytecode at the end of the body to return `this` from the method
@@ -817,10 +812,9 @@ initializer.
 
 ### Incorrect returns in initializers
 
-The last step, the last bullet point in our list of special features of
-initializers, is making it an error to try to return anything *else* from an
-initializer. Now that the compiler tracks the method type, this is
-straightforward:
+The last step, the last item in our list of special features of initializers, is
+making it an error to try to return anything *else* from an initializer. Now
+that the compiler tracks the method type, this is straightforward:
 
 ^code return-from-init (3 before, 1 after)
 
@@ -828,8 +822,8 @@ We report an error if a return statement in an initializer has a value. We still
 go ahead and compile the value afterwards so that the compiler doesn't get
 confused by the trailing expression and report a bunch of cascaded errors.
 
-Aside from inheritance, which we'll get to soon, we now have a pretty
-full-featured class system working in clox:
+Aside from inheritance, which we'll get to [soon][super], we now have a
+fairly full-featured class system working in clox:
 
 ```lox
 class CoffeeMaker {
@@ -862,22 +856,22 @@ something.
 
 ## Optimized Invocations
 
-Our VM correctly implements the language's semantics for method calls. We could
-stop here. But the main reason we are building an entire second implementation
-of Lox from scratch to execute faster than our old Java interpreter. Right now,
-method calls even in clox are pretty slow.
+Our VM correctly implements the language's semantics for method calls and
+initializers. We could stop here. But the main reason we are building an entire
+second implementation of Lox from scratch is to execute faster than our old Java
+interpreter. Right now, method calls even in clox are slow.
 
 Lox's semantics define a method invocation as two operations -- accessing the
 method and then calling the result. Our VM must support those as separate
 operations because the user *can* separate them. You can access a method without
-calling and then invoke the bound method later. Nothing we've implemented so far
-is unnecessary.
+calling it and then invoke the bound method later. Nothing we've implemented so
+far is unnecessary.
 
 But *always* executing those as separate operations has a significant cost.
-Every single time a Lox program accesses and invokes a method, the runtime heap
-allocates a new ObjBoundMethod, initializes its fields, then pulls them right
-back out. Eventually, the GC has to spend some time freeing all of those
-ephemeral bound methods.
+Every single time a Lox program accesses and invokes a method, the runtime
+heap-allocates a new ObjBoundMethod, initializes its fields, then pulls them
+right back out. Later, the GC has to spend time freeing all of those ephemeral
+bound methods.
 
 Most of the time, a Lox program accesses a method and and then immediately calls
 it. The bound method is created by one bytecode instruction and then consumed by
@@ -904,20 +898,20 @@ one eliminates some of that.
 The challenge is determining *which* instruction sequences are common enough to
 benefit from this optimization. Every new superinstruction claims an opcode for
 its own use and there are only so many of those to go around. Add too many and
-you'll need a larger encoding for opcodes which then increases code size and can
-make decoding *all* instructions slower.
+you'll need a larger encoding for opcodes which then increases code size and
+makes decoding *all* instructions slower.
 
 </aside>
 
 ^code parse-call (3 before, 1 after)
 
-After the compiler has parsed the identifier after the `.` we look for a left
-parenthesis. If we match one, we switch to a new code path. There, we compile
-the argument list exactly like we do when compiling a call expression. Then we
-emit a single new `OP_INVOKE` instruction. It takes two operands:
+After the compiler has parsed the property name, we look for a left parenthesis.
+If we match one, we switch to a new code path. There, we compile the argument
+list exactly like we do when compiling a call expression. Then we emit a single
+new `OP_INVOKE` instruction. It takes two operands:
 
-1.  The first is the index of the property name in the constant table.
-2.  The second is the number of arguments being passed to the method.
+1.  The index of the property name in the constant table.
+2.  The number of arguments passed to the method.
 
 In other words, this single instruction combines the operands of the
 `OP_GET_PROPERTY` and `OP_CALL` instructions it replaces, in that order. It
@@ -930,7 +924,7 @@ And add it to the disassembler:
 ^code disassemble-invoke (2 before, 1 after)
 
 This is a new, special, instruction format, so it needs a little custom
-attention in the disassembler:
+disassembly logic:
 
 ^code invoke-instruction
 
@@ -941,13 +935,14 @@ real action begins:
 ^code interpret-invoke (4 before, 1 after)
 
 Most of the work happens in `invoke()`, which we'll get to. Here, we look up the
-method name from the operand and read the argument count operand. Then we hand
-off to `invoke()` to do the heavy lifting. That function returns `true` if the
-invocation succeeded. If it returns `false`, a runtime error occurred. We check
-for that here and abort the interpreter if it happens.
+method name from the first operand and then read the argument count operand.
+Then we hand off to `invoke()` to do the heavy lifting. That function returns
+`true` if the invocation succeeds. As usual, a `false` return means a runtime
+error occurred. We check for that here and abort the interpreter if disaster
+struck.
 
-If the invocation succeeded, then there is a new CallFrame on the stack, so we
-need to refresh our cached copy of the current frame.
+Finally, assuming the invocation succeeded, then there is a new CallFrame on the
+stack, so we refresh our cached copy of the current frame in `frame`.
 
 The interesting work happens here:
 
@@ -955,7 +950,7 @@ The interesting work happens here:
 
 First we grab the receiver off the stack. The arguments passed to the method are
 above it on the stack, so we peek that many slots down. Then it's a simple
-matter of casting the object to an instance and invoking its methods.
+matter to cast the object to an instance and invoke the method on it.
 
 That does assume the object *is* an instance. As with `OP_GET_PROPERTY`
 instructions, we also need to handle the case where a user incorrectly tries to
@@ -988,11 +983,9 @@ The receiver and method arguments are already right where they need to be.
 
 <aside name="juggle">
 
-This is, in fact, why we use stack slot zero to store the reciver -- it's how
-the caller already organizes the stack for a method call.
-
-A well-designed calling convention is an important part of a bytecode VM's
-performance story.
+This is a key reason *why* we use stack slot zero to store the reciver -- it's
+how the caller already organizes the stack for a method call. An efficient
+calling convention is an important part of a bytecode VM's performance story.
 
 </aside>
 
@@ -1003,9 +996,7 @@ does a batch of 10,000 method calls. Then it tests how many of these batches it
 can execute in 10 seconds. On my computer, without the new `OP_INVOKE`
 instruction, it got through 1,089 batches. With this new optimization, it
 finished 8,324 batches in the same time. That's *7.6 times faster*, which is a
-huge improvement when it comes to programming language optimization, and
-particularly impressive given that our bytecode VM is already much faster than
-jlox.
+huge improvement when it comes to programming language optimization.
 
 <span name="pat"></span>
 
@@ -1046,11 +1037,11 @@ The last line looks like a method call. The compiler thinks that it is and
 dutifully emits an `OP_INVOKE` instruction for it. However, it's not. What is
 actually happening is a *field* access that returns a function which then gets
 called. Right now, instead of executing that correctly, our VM reports a runtime
-error that it can't find a method named "field".
+error when it can't find a method named "field".
 
 <aside name="monte">
 
-There are cases where users may be satisfied with a program sometimes returns
+There are cases where users may be satisfied when a program sometimes returns
 the wrong answer in return for running significantly faster or with a better
 bound on the performance. These are the field of [**Monte Carlo
 algorithms**][monte]. For some use cases, this is a good trade-off.
@@ -1063,7 +1054,7 @@ their program's correctness.
 
 </aside>
 
-Earlier when we implemented `OP_GET_PROPERTY`, we handled both field and method
+Earlier, when we implemented `OP_GET_PROPERTY`, we handled both field and method
 accesses. To squash this new bug, we need to do the same thing for `OP_INVOKE`:
 
 ^code invoke-field (1 before, 1 after)
@@ -1076,7 +1067,8 @@ subsequent parenthesized list of arguments has been evaluated.
 
 Then we try to call that field's value like the callable that it hopefully is.
 The `callValue()` helper will check the value's type and call it as appropriate
-or report a runtime error if the field's value wasn't a callable type.
+or report a runtime error if the field's value isn't a callable type like a
+closure.
 
 That's all it takes to make our optimization fully safe. We do sacrifice a
 little performance, unfortunately. But that's the price you have to pay
@@ -1094,19 +1086,19 @@ little power if you can give them perf in return.
 
 </aside>
 
-The code we wrote here follows a common pattern in optimization:
+The code we wrote here follows a typical pattern in optimization:
 
 1.  Recognize a common operation or sequence of operations that is performance
     critical. In this case, it is a property access followed by a call.
 
-2.  Add an optimized implementation of that pattern to the VM. That's our
-    `OP_INVOKE` instruction.
+2.  Add an optimized implementation of that pattern. That's our `OP_INVOKE`
+    instruction.
 
 3.  Before the optimization kicks in, guard it with some conditional logic that
     validates that the pattern actually applies. If it does, stay on the fast
-    path. Otherwise, fall back to the slower but more robust unoptimized
-    behavior. Here, that means checking that we are actually calling a method
-    and not accessing a field.
+    path. Otherwise, fall back to a slower but more robust unoptimized behavior.
+    Here, that means checking that we are actually calling a method and not
+    accessing a field.
 
 As your language work moves from getting the implementation working *at all* to
 getting it to work *faster*, you will find yourself spending more and more
@@ -1114,22 +1106,21 @@ time looking for patterns like this and adding guarded optimizations for them.
 Full-time VM engineers spend much of their careers in this loop.
 
 But we can stop here for now. With this, clox now supports most of the features
-of object-oriented programming, and with respectable performance.
+of object-oriented programming language, and with respectable performance.
 
 <div class="challenges">
 
 ## Challenges
 
-1.  Finding a class's `init()` method every time an instance is created is a
-    constant time hash table lookup, but still fairly slow. Implement something
-    faster. Write a benchmark and measure the performance difference.
+1.  The hash table lookup to find a class's `init()` method is constant time,
+    but still fairly slow. Implement something faster. Write a benchmark and
+    measure the performance difference.
 
-1.  In a dynamically-typed languages like Lox, a single method callsite could
-    invoke a variety of methods on a large number of classes throughout a
-    program's run. Even so, in practice, most of the time a callsite ends up
-    calling the exact same method on the exact same class when a program is run.
-    Most calls are actually not polymorphic even if the language says they can
-    be.
+1.  In a dynamically-typed language like Lox, a single callsite may invoke a
+    variety of methods on a number of classes throughout a program's execution.
+    Even so, in practice, most of the time a callsite ends up calling the exact
+    same method on the exact same class for the duration of the run. Most calls
+    are actually not polymorphic even if the language says they can be.
 
     How do advanced language implementations optimize based on that observation?
 
@@ -1137,8 +1128,8 @@ of object-oriented programming, and with respectable performance.
     table lookups. First, it looks for a field that could shadow a method and
     only if that fails does it look for a method. The former check is rarely
     useful -- most fields do not contain functions. But it is *necessary*
-    because the language says fields and methods are accessed the same way and
-    fields shadow methods.
+    because the language says fields and methods are accessed using the same
+    syntax and fields shadow methods.
 
     That is a language *choice* that affects the performance of our
     implementation. Was it the right choice? If Lox were your language, what
@@ -1160,10 +1151,10 @@ feeling.
 I realized I could design a language that looked and behaved however I chose. It
 was like I'd been going to a private school that required uniforms my whole life
 and then one day transferred to a public school where I could wear whatever I
-wanted. Wait, I don't need to use curly braces for blocks? I can use something
-other than an equals sign for assignment? I can do objects without classes?
-Multiple inheritance and multimethods? A dynamic language that overloads
-statically by arity?
+wanted. I don't need to use curly braces for blocks? I can use something other
+than an equals sign for assignment? I can do objects without classes? Multiple
+inheritance *and* multimethods? A dynamic language that overloads statically, by
+arity?
 
 Naturally, I took that freedom and ran with it. I made the weirdest, most
 arbitrary language design decisions. Apostrophes for generics. No commas between
@@ -1200,9 +1191,9 @@ language requires you to learn *two* languages -- the runtime semantics and the
 static type system -- before you can get to the point where you are making the
 computer do stuff. Dynamic languages only require you to learn the former.
 
-Eventually, programs gets big enough that the value of static analysis makes it
-worth the effort to learn that second static language, but the value proposition
-isn't as obvious at the outset.
+Eventually, programs get big enough that the value of static analysis pays for
+the effort to learn that second static language, but the value proposition isn't
+as obvious at the outset.
 
 </aside>
 
@@ -1225,16 +1216,15 @@ recognize that your language does the same thing.
 
 In other words, *familiarity* is another key tool to lower the adoption cost of
 your language. Of course, if you fully maximize that attribute, the end result
-is a language that is completely identical to some existing language. That's
-not a recipe for success because at that point there's no incentive for users
-to switch to your language at all.
+is a language that is completely identical to some existing one. That's not a
+recipe for success because at that point there's no incentive for users to
+switch to your language at all.
 
 So you do need to provide some compelling differences. Some things your language
 can do that other languages can't or at least can't do as well. I believe this
-is one of the fundamental balancing acts of language design:
-
-*   Reducing differences from other languages lowers learning cost.
-*   Increases them raises the compelling advantage of the language.
+is one of the fundamental balancing acts of language design: similarity to other
+languages lowers learning cost, while divergence raises the compelling
+advantages.
 
 I think of this balancing act in terms of a <span name="idiosyncracy">**novelty
 budget**</span>, or as Steve Klabnik calls it, a "[strangeness budget][]". Users
@@ -1257,8 +1247,8 @@ to raise your freak flag, but only so far.
 </aside>
 
 Anytime you add something new to your language that other languages don't have,
-or anytime your language does something other languages do but differently, you
-spend some of that budget. That's OK -- you *need* to spend it to make your
+or anytime your language does something other languages do in a different way,
+you spend some of that budget. That's OK -- you *need* to spend it to make your
 language compelling. But your goal is to spend it *wisely*. For each feature or
 difference, ask yourself how much compelling power it adds to your language and
 then evaluate critically whether it pays its way. Is the change so valuable that
@@ -1271,7 +1261,7 @@ very unlikely to add much real power to the language, but it does spend some
 novelty. It's hard for syntax differences to carry their weight.
 
 On the other hand, new semantics can significantly increase the power of the
-language. Multimethods, mixins, traits, reflection, dependent types,
+language. Multimethods, mixins, traits, reflection, dependent types, runtime
 metaprogramming, etc. can radically level up what a user can do with the
 language.
 
