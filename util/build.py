@@ -24,8 +24,8 @@ CODE_OPTIONS_PATTERN = re.compile(r'([-a-z0-9]+) \(([^)]+)\)')
 BEFORE_PATTERN = re.compile(r'(\d+) before')
 AFTER_PATTERN = re.compile(r'(\d+) after')
 
-ASIDE_COMMENT_PATTERN = re.compile(r'<span class="c1">// \[([-a-z0-9]+)\] *</span>')
-ASIDE_WITH_COMMENT_PATTERN = re.compile(r'<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>')
+ASIDE_COMMENT_PATTERN = re.compile(r' ?<span class="c1">// \[([-a-z0-9]+)\] *</span>')
+ASIDE_WITH_COMMENT_PATTERN = re.compile(r' ?<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>')
 # The "(?!-)" is a hack. scanning.md has an inline code sample containing a
 # "--" operator. We don't want that to get matched, so fail the match if the
 # character after the "-- " is "-", which is the next character in the code
@@ -389,7 +389,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   # zero-width space because Chrome seems to lose the span's position if it has
   # no content.
   # <span class="c1">// [repl]</span>
-  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1">&#8203;</span>', body)
+  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"> </span>', body)
   body = ASIDE_WITH_COMMENT_PATTERN.sub(r'<span class="c1" name="\2">// \1</span>', body)
 
   up = 'Table of Contents'
