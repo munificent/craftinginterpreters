@@ -78,9 +78,9 @@ typedef enum {
 //> Calls and Functions op-call
   OP_CALL,
 //< Calls and Functions op-call
-//> Methods and Initializers not-yet
+//> Methods and Initializers invoke-op
   OP_INVOKE,
-//< Methods and Initializers not-yet
+//< Methods and Initializers invoke-op
 //> Superclasses not-yet
   OP_SUPER,
 //< Superclasses not-yet
@@ -97,9 +97,9 @@ typedef enum {
 //> Superclasses not-yet
   OP_INHERIT,
 //< Superclasses not-yet
-//> Methods and Initializers not-yet
+//> Methods and Initializers method-op
   OP_METHOD
-//< Methods and Initializers not-yet
+//< Methods and Initializers method-op
 } OpCode;
 //< op-enum
 //> chunk-struct
