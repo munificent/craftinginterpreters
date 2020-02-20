@@ -16,9 +16,9 @@
 //< obj-type-macro
 //> is-string
 
-//> Methods and Initializers not-yet
+//> Methods and Initializers is-bound-method
 #define IS_BOUND_METHOD(value)  isObjType(value, OBJ_BOUND_METHOD)
-//< Methods and Initializers not-yet
+//< Methods and Initializers is-bound-method
 //> Classes and Instances is-class
 #define IS_CLASS(value)         isObjType(value, OBJ_CLASS)
 //< Classes and Instances is-class
@@ -38,9 +38,9 @@
 //< is-string
 //> as-string
 
-//> Methods and Initializers not-yet
+//> Methods and Initializers as-bound-method
 #define AS_BOUND_METHOD(value)  ((ObjBoundMethod*)AS_OBJ(value))
-//< Methods and Initializers not-yet
+//< Methods and Initializers as-bound-method
 //> Classes and Instances as-class
 #define AS_CLASS(value)         ((ObjClass*)AS_OBJ(value))
 //< Classes and Instances as-class
@@ -62,9 +62,9 @@
 //> obj-type
 
 typedef enum {
-//> Methods and Initializers not-yet
+//> Methods and Initializers obj-type-bound-method
   OBJ_BOUND_METHOD,
-//< Methods and Initializers not-yet
+//< Methods and Initializers obj-type-bound-method
 //> Classes and Instances obj-type-class
   OBJ_CLASS,
 //< Classes and Instances obj-type-class
@@ -155,9 +155,9 @@ typedef struct {
 typedef struct sObjClass {
   Obj obj;
   ObjString* name;
-//> Methods and Initializers not-yet
+//> Methods and Initializers class-methods
   Table methods;
-//< Methods and Initializers not-yet
+//< Methods and Initializers class-methods
 } ObjClass;
 //< Classes and Instances obj-class
 //> Classes and Instances obj-instance
@@ -169,15 +169,17 @@ typedef struct {
 } ObjInstance;
 //< Classes and Instances obj-instance
 
-//> Methods and Initializers not-yet
+//> Methods and Initializers obj-bound-method
 typedef struct {
   Obj obj;
   Value receiver;
   ObjClosure* method;
 } ObjBoundMethod;
 
+//< Methods and Initializers obj-bound-method
+//> Methods and Initializers new-bound-method-h
 ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method);
-//< Methods and Initializers not-yet
+//< Methods and Initializers new-bound-method-h
 //> Classes and Instances new-class-h
 ObjClass* newClass(ObjString* name);
 //< Classes and Instances new-class-h

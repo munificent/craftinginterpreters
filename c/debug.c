@@ -1,8 +1,5 @@
 //> Chunks of Bytecode debug-c
 #include <stdio.h>
-//> Methods and Initializers not-yet
-#include <string.h>
-//< Methods and Initializers not-yet
 
 #include "debug.h"
 //> Closures debug-include-object
@@ -31,17 +28,17 @@ static int constantInstruction(const char* name, Chunk* chunk,
 //< return-after-operand
 }
 //< constant-instruction
-//> Methods and Initializers not-yet
+//> Methods and Initializers invoke-instruction
 static int invokeInstruction(const char* name, Chunk* chunk,
                                 int offset) {
-  uint8_t argCount = chunk->code[offset + 1];
-  uint8_t constant = chunk->code[offset + 2];
+  uint8_t constant = chunk->code[offset + 1];
+  uint8_t argCount = chunk->code[offset + 2];
   printf("%-16s (%d args) %4d '", name, argCount, constant);
   printValue(chunk->constants.values[constant]);
   printf("'\n");
   return offset + 2;
 }
-//< Methods and Initializers not-yet
+//< Methods and Initializers invoke-instruction
 //> simple-instruction
 static int simpleInstruction(const char* name, int offset) {
   printf("%s\n", name);
@@ -171,10 +168,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_CALL:
       return byteInstruction("OP_CALL", chunk, offset);
 //< Calls and Functions disassemble-call
-//> Methods and Initializers not-yet
+//> Methods and Initializers disassemble-invoke
     case OP_INVOKE:
       return invokeInstruction("OP_INVOKE", chunk, offset);
-//< Methods and Initializers not-yet
+//< Methods and Initializers disassemble-invoke
 //> Superclasses not-yet
     case OP_SUPER:
       return invokeInstruction("OP_SUPER_", chunk, offset);
@@ -215,10 +212,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_INHERIT:
       return simpleInstruction("OP_INHERIT", offset);
 //< Superclasses not-yet
-//> Methods and Initializers not-yet
+//> Methods and Initializers disassemble-method
     case OP_METHOD:
       return constantInstruction("OP_METHOD", chunk, offset);
-//< Methods and Initializers not-yet
+//< Methods and Initializers disassemble-method
     default:
       printf("Unknown opcode %d\n", instruction);
       return offset + 1;

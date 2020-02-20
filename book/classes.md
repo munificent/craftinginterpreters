@@ -188,7 +188,7 @@ closing brace at the end, but it ensures the parser doesn't get stuck in an
 infinite loop if the user has a syntax error and forgets to correctly end the
 class body.
 
-We wrap the name and list of methods up in a Stmt.Class node and we're done.
+We wrap the name and list of methods into a Stmt.Class node and we're done.
 Usually, this would feed into the interpreter, but now we need to plumb it
 through the resolver first:
 
@@ -1062,7 +1062,7 @@ creates a new LoxInstance object.
 We'll do the remaining part -- user-defined initialization -- now. Languages
 have a variety of notations for the chunk of code that sets up a new object for
 a class. C++, Java, and C# use a method whose name matches the class name. Ruby
-and Python call it `init()`. That's nice and short, so we'll do that.
+and Python call it `init()`. The latter is nice and short, so we'll do that.
 
 In LoxClass's implementation of LoxCallable, we add a few more lines:
 

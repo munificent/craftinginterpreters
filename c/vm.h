@@ -60,9 +60,9 @@ typedef struct {
 //> Hash Tables vm-strings
   Table strings;
 //< Hash Tables vm-strings
-//> Methods and Initializers not-yet
+//> Methods and Initializers vm-init-string
   ObjString* initString;
-//< Methods and Initializers not-yet
+//< Methods and Initializers vm-init-string
 //> Closures open-upvalues-field
   ObjUpvalue* openUpvalues;
 //< Closures open-upvalues-field
