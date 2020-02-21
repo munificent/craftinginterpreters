@@ -983,7 +983,7 @@ The receiver and method arguments are already right where they need to be.
 
 <aside name="juggle">
 
-This is a key reason *why* we use stack slot zero to store the reciver -- it's
+This is a key reason *why* we use stack slot zero to store the receiver -- it's
 how the caller already organizes the stack for a method call. An efficient
 calling convention is an important part of a bytecode VM's performance story.
 
