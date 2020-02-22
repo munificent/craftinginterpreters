@@ -116,9 +116,9 @@ typedef struct Compiler {
 typedef struct ClassCompiler {
   struct ClassCompiler* enclosing;
   Token name;
-//> Superclasses not-yet
+//> Superclasses has-superclass
   bool hasSuperclass;
-//< Superclasses not-yet
+//< Superclasses has-superclass
 } ClassCompiler;
 //< Methods and Initializers class-compiler-struct
 
@@ -786,45 +786,46 @@ static void variable(bool canAssign) {
   namedVariable(parser.previous, canAssign);
 }
 //< Global Variables variable
-//> Superclasses not-yet
+//> Superclasses synthetic-token
 static Token syntheticToken(const char* text) {
   Token token;
   token.start = text;
   token.length = (int)strlen(text);
   return token;
 }
-
-static void pushSuperclass() {
-  if (currentClass == NULL) return;
-  namedVariable(syntheticToken("super"), false);
-}
-
+//< Superclasses synthetic-token
+//> Superclasses super
 static void super_(bool canAssign) {
+//> super-errors
   if (currentClass == NULL) {
     error("Cannot use 'super' outside of a class.");
   } else if (!currentClass->hasSuperclass) {
     error("Cannot use 'super' in a class with no superclass.");
   }
 
+//< super-errors
   consume(TOKEN_DOT, "Expect '.' after 'super'.");
   consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
   uint8_t name = identifierConstant(&parser.previous);
 
-  // Push the receiver.
   namedVariable(syntheticToken("this"), false);
-
+/* Superclasses super < Superclasses super-invoke
+  namedVariable(syntheticToken("super"), false);
+  emitBytes(OP_GET_SUPER, name);
+*/
+//> super-invoke
   if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();
-
-    pushSuperclass();
-    emitBytes(OP_SUPER, argCount);
-    emitByte(name);
+    namedVariable(syntheticToken("super"), false);
+    emitBytes(OP_SUPER_INVOKE, name);
+    emitByte(argCount);
   } else {
-    pushSuperclass();
+    namedVariable(syntheticToken("super"), false);
     emitBytes(OP_GET_SUPER, name);
   }
+//< super-invoke
 }
-//< Superclasses not-yet
+//< Superclasses super
 //> Methods and Initializers this
 static void this_(bool canAssign) {
 //> this-outside-class
@@ -958,12 +959,12 @@ ParseRule rules[] = {
 //< Jumping Back and Forth table-or
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
   { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
-/* Compiling Expressions rules < Superclasses not-yet
+/* Compiling Expressions rules < Superclasses table-super
   { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
 */
-//> Superclasses not-yet
+//> Superclasses table-super
   { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
-//< Superclasses not-yet
+//< Superclasses table-super
 /* Compiling Expressions rules < Methods and Initializers table-this
   { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
 */
@@ -1133,35 +1134,38 @@ static void classDeclaration() {
 //> Methods and Initializers create-class-compiler
   ClassCompiler classCompiler;
   classCompiler.name = parser.previous;
-//> Superclasses not-yet
+//> Superclasses init-has-superclass
   classCompiler.hasSuperclass = false;
-//< Superclasses not-yet
+//< Superclasses init-has-superclass
   classCompiler.enclosing = currentClass;
   currentClass = &classCompiler;
 
 //< Methods and Initializers create-class-compiler
-//> Superclasses not-yet
+//> Superclasses compile-superclass
   if (match(TOKEN_LESS)) {
     consume(TOKEN_IDENTIFIER, "Expect superclass name.");
+    variable(false);
+//> inherit-self
 
     if (identifiersEqual(&className, &parser.previous)) {
       error("A class cannot inherit from itself.");
     }
 
-    classCompiler.hasSuperclass = true;
-
+//< inherit-self
+//> superclass-variable
     beginScope();
-
-    // Store the superclass in a local variable named "super".
-    variable(false);
     addLocal(syntheticToken("super"));
     defineVariable(0);
+//< superclass-variable
 
     namedVariable(className, false);
     emitByte(OP_INHERIT);
+//> set-has-superclass
+    classCompiler.hasSuperclass = true;
+//< set-has-superclass
   }
   
-//< Superclasses not-yet
+//< Superclasses compile-superclass
 //> Methods and Initializers load-class
   namedVariable(className, false);
 //< Methods and Initializers load-class
@@ -1175,12 +1179,12 @@ static void classDeclaration() {
 //> Methods and Initializers pop-class
   emitByte(OP_POP);
 //< Methods and Initializers pop-class
-//> Superclasses not-yet
+//> Superclasses end-superclass-scope
 
   if (classCompiler.hasSuperclass) {
     endScope();
   }
-//< Superclasses not-yet
+//< Superclasses end-superclass-scope
 //> Methods and Initializers pop-enclosing
 
   currentClass = currentClass->enclosing;
