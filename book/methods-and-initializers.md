@@ -1242,7 +1242,7 @@ can then spend on oddball activities that might otherwise raise eyebrows. In
 other words, demonstrating that you are "one of the good ones" gives you license
 to raise your freak flag, but only so far.
 
-[idiosyncracy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit**
+[idiosyncracy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit
 
 </aside>
 
