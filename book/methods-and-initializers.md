@@ -844,11 +844,11 @@ maker.brew();
 ```
 
 Pretty fancy for a C program that would fit on an old <span
-name="floppy">floppy</span> disc.
+name="floppy">floppy</span> disk.
 
 <aside name="floppy">
 
-I acknowledge that "floppy disc" may no longer be a useful size reference for
+I acknowledge that "floppy disk" may no longer be a useful size reference for
 current generations of programmers. Maybe I should have said "a few tweets" or
 something.
 
