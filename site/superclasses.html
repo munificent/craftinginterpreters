@@ -38,7 +38,11 @@
 <h3><a href="#top">Superclasses<small>29</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#inheriting-methods"><small>29.1</small> Inheriting Methods</a></li>
+    <li><a href="#storing-superclasses"><small>29.2</small> Storing Superclasses</a></li>
+    <li><a href="#super-calls"><small>29.3</small> Super Calls</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -64,7 +68,11 @@
 <h3><a href="#top">Superclasses<small>29</small></a></h3>
 
 <ul>
-    <em>No sections yet&hellip;</em>
+    <li><a href="#inheriting-methods"><small>29.1</small> Inheriting Methods</a></li>
+    <li><a href="#storing-superclasses"><small>29.2</small> Storing Superclasses</a></li>
+    <li><a href="#super-calls"><small>29.3</small> Super Calls</a></li>
+    <li class="divider"></li>
+    <li class="end-part"><a href="#challenges">Challenges</a></li>
 </ul>
 
 
@@ -82,9 +90,10 @@
   <div class="number">29</div>
   <h1>Superclasses</h1>
 
-<div class="sign-up">
-      <h1>I haven't written this chapter yet!</h1>
-    <p>If you want to know when it goes online, join the mailing list:</p>
+<div class="sign-up closable">
+    <h1>This book is a work in progress!</h1>
+    <span class="dismiss">&times;</span>
+    <p>If you see a mistake, find something unclear, or have a suggestion, please <a href="https://github.com/munificent/craftinginterpreters/issues" target="_blank">let me know</a>. To learn when new chapters are up, join the mailing list:</p>
 
   <!-- Begin MailChimp Signup Form -->
   <div id="mc_embed_signup">
@@ -99,7 +108,779 @@
   <p class="small">(I post about once a month. Don&#8217;t worry, I won&#8217;t spam you.)</p>
 </div>
 
+<blockquote>
+<p>You can choose your friends but you sho&rsquo; can&rsquo;t choose your family, an&rsquo; they&rsquo;re
+still kin to you no matter whether you acknowledge &lsquo;em or not, and it makes
+you look right silly when you don&rsquo;t.</p>
+<p><cite>Harper Lee, <em>To Kill a Mockingbird</em></cite></p>
+</blockquote>
+<p>This is the very last chapter where we add new functionality to our
+rapidly-maturing bytecode VM. We&rsquo;ve packed almost the entire Lox language in
+there already. All that remains is:</p>
+<ul>
+<li>Inheriting methods from superclasses.</li>
+<li>Calling superclass methods.</li>
+</ul>
+<p>We have another chapter after this one, but it introduces no new behavior. It
+just makes existing stuff faster. Make it to the end of this one, and you&rsquo;ll
+have a complete VM.</p>
+<p>The approach we take here for inheritance and super calls should be about half
+familiar from our earlier Java interpreter. The way we resolve super calls is
+pretty much the same, though viewed through clox&rsquo;s more complex mechanism for
+storing state on the stack. We have an entirely different, much faster, way of
+handling inherited method calls.</p>
+<h2><a href="#inheriting-methods" name="inheriting-methods"><small>29&#8202;.&#8202;1</small> Inheriting Methods</a></h2>
+<p>We&rsquo;ll kick things of with method inheritance since it&rsquo;s the simpler piece. To
+refresh your memory, in Lox users specify a superclass by placing a less-than
+sign after the class name followed by the name of the superclass:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="p">{</span>
+  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;Dunk in the fryer.&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 
+<span class="k">class</span> <span class="vg">JellyDoughnut</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="p">{</span>
+  <span class="n">filling</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;Raspberry jelly&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Here, the JellyDoughnut class inherits from Doughnut and thus instances of
+JellyDoughnut inherit the <code>cook()</code> method. I don&rsquo;t know why I&rsquo;m belaboring this.
+You know how inheritance works. Let&rsquo;s start compiling the new syntax:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">currentClass</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">classCompiler</span><span class="p">;</span>                         
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>classDeclaration</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_LESS</span><span class="p">))</span> <span class="p">{</span>                               
+    <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="p">,</span> <span class="s">&quot;Expect superclass name.&quot;</span><span class="p">);</span>
+    <span class="n">variable</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+
+    <span class="n">namedVariable</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>                     
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_INHERIT</span><span class="p">);</span>                                
+  <span class="p">}</span>                                                      
+<br></pre><pre class="insert-after"><span></span>  <span class="n">namedVariable</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>                       
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
+
+<p>After we compile the class name, if the next token is a <code>&lt;</code> then we know we have
+a superclass clause. We consume the superclass&rsquo;s identifier token, then call
+<code>variable()</code>. That function takes the previously consumed token and treats it as
+a variable reference. It emits code to read a previously-declared variable with
+that name. In other words, it looks up the superclass by name and pushes the
+result onto the stack. In most cases, the superclass will be in a global
+variable, so this will emit an <code>OP_GET_GLOBAL</code> instruction.</p>
+<p>After that, we call <code>namedVariable()</code> to load the newly-declared subclass onto
+to the stack, followed by an <code>OP_INHERIT</code> instruction. The approach we&rsquo;re taking
+here is similar to how we handled method declarations. The compiler emits an
+<code>OP_CLASS</code> instruction to create a new bare class. After that, it emits a series
+of instructions to incrementally build up all of the capabilities of the class.
+In the last chapter, that was <code>OP_METHOD</code> instructions. Now, we insert a new
+<code>OP_INHERIT</code> instruction after the <code>OP_CLASS</code> and before the methods. That
+instruction tells the interpreter to take the new class and wire it up to
+inherit from the superclass we loaded onto the stack.</p>
+<p>Before we get to that runtime support, we have an edge case to detect:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">variable</span><span class="p">(</span><span class="nb">false</span><span class="p">);</span>                                     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>classDeclaration</em>()</div>
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="p">(</span><span class="n">identifiersEqual</span><span class="p">(</span><span class="o">&amp;</span><span class="n">className</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">error</span><span class="p">(</span><span class="s">&quot;A class cannot inherit from itself.&quot;</span><span class="p">);</span>      
+    <span class="p">}</span>                                                    
+<br></pre><pre class="insert-after"><br><span></span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
+
+<p><span name="cycle">A</span> class cannot be its own superclass. Unless you have
+access to a wingnut nuclear physicist and a very heavily modified DeLorean, you
+cannot inherit from yourself.</p>
+<aside name="cycle">
+<p>Interestingly, with the way we implement method inheritance, I don&rsquo;t think
+allowing cycles would actually cause any problems in clox. It wouldn&rsquo;t do
+anything <em>useful</em>, but I don&rsquo;t think it would cause any crashes or infinite
+loops.</p>
+</aside>
+<h3><a href="#executing-inheritance" name="executing-inheritance"><small>29&#8202;.&#8202;1&#8202;.&#8202;1</small> Executing inheritance</a></h3>
+<p>Let&rsquo;s get out new instruction working:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_CLASS</span><span class="p">,</span>  
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_INHERIT</span><span class="p">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_METHOD</span>  
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>It has no operands. The two values it works with are the superclass and subclass
+and it gets both of those from the stack. That means disassembling is easy:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">constantInstruction</span><span class="p">(</span><span class="s">&quot;OP_CLASS&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_INHERIT</span><span class="p">:</span>                                        
+      <span class="k">return</span> <span class="n">simpleInstruction</span><span class="p">(</span><span class="s">&quot;OP_INHERIT&quot;</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>       
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_METHOD</span><span class="p">:</span>                                         
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>The interpreter is where the real action happens:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="p">;</span>                                                          
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_INHERIT</span><span class="p">:</span> <span class="p">{</span>                                                
+        <span class="n">Value</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>                                     
+        <span class="n">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>                         
+        <span class="n">tableAddAll</span><span class="p">(</span><span class="o">&amp;</span><span class="n">AS_CLASS</span><span class="p">(</span><span class="n">superclass</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">methods</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="p">);</span>
+        <span class="n">pop</span><span class="p">();</span> <span class="c1">// Subclass.                                             </span>
+        <span class="k">break</span><span class="p">;</span>                                                          
+      <span class="p">}</span>                                                                 
+</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="nl">OP_METHOD</span><span class="p">:</span>                                                   
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p><strong>todo: show stack layout</strong></p>
+<p>The top of the stack has the superclass with the new subclass on top of it. We
+grab both of those and then do the inherit-y bit. This is where clox takes a
+different path than jlox. In our first interpreter, each subclass stored a
+reference to its superclass. When a method was accessed, if we didn&rsquo;t find it in
+the subclass&rsquo;s method table, we recursed through the inheritance chain looking
+at each ancestor&rsquo;s method table until we found it.</p>
+<p>This was a lot of work that happened at each method <em>invocation</em> time. It was
+slow and, worse, the farther an inherited method was up the ancestor chain, the
+slower it was to call. Not a great performance story.</p>
+<p>The approach here is much faster. We simply <em>copy</em> all of the inherited class&rsquo;s
+methods right down into the subclass&rsquo;s own method table. We do this right when
+the subclass is declared. When calling a method, there is no extra runtime work
+needed for inheritance at all. By the time the class is declared, the work is
+done. This means inherited method calls are exactly as fast as normal method
+calls<span class="em">&mdash;</span>a <span name="two">single</span> hash table lookup.</p>
+<aside name="two">
+<p>Well, two, I guess. Because first we have to make sure a field on the instance
+isn&rsquo;t shadowing the method.</p>
+</aside>
+<p>I&rsquo;ve sometimes heard this technique called &ldquo;copy-down inheritance&rdquo;. It&rsquo;s simple
+and fast, but, like most optimizations, you only get to use it under certain
+constraints. It works in Lox because classes in Lox are <em>closed</em>. Once a class
+declaration is finished executing, the set of methods for that class can never
+change.</p>
+<p>In languages like Ruby, Python, and JavaScript, it&rsquo;s possible to <span
+name="monkey">crack</span> open an existing class and jam some new methods into
+it or even remove them. That would break our optimization because if those
+modifications happened to a superclass <em>after</em> the subclass declaration
+executed, the subclass would not pick up those changes. That break&rsquo;s a user&rsquo;s
+implicit expectation that inheritance always reflects the current set of methods
+in the superclass.</p>
+<aside name="monkey">
+<p>As you can imagine, changing the set of methods a class defines imperatively at
+runtime, can make it pretty hard to reason a program. It is a very powerful
+tool, but also a dangerous tool. Those who feel it&rsquo;s maybe a little <em>too</em>
+dangerous call it the unbecoming name &ldquo;monkey patching&rdquo;, or the even less
+decorous &ldquo;duck punching&rdquo;.</p>
+</aside>
+<p>Fortunately for us (but not for users who like the feature, I guess), Lox
+doesn&rsquo;t let you patch monkeys or punch ducks, so we can safely apply this
+optimization.</p>
+<p>What about method overrides? Won&rsquo;t copying the superclass&rsquo;s methods into the
+subclass&rsquo;s method table clash with the subclass&rsquo;s own methods? Fortunately, no.
+We emit the <code>OP_INHERIT</code> after the <code>OP_CLASS</code> instruction that creates the
+subclass but before any method declarations and <code>OP_METHOD</code> instructions have
+been compiled. At the point that we copy the superclass&rsquo;s methods down, the
+subclass&rsquo;s method table is empty. Any overrides the subclass declares after that
+will simply overwrite the superclass&rsquo;s entries in the table.</p>
+<p>Our implementation is simple and fast, which is just the way I like my VM code
+to go. But it&rsquo;s not <em>correct</em>. There&rsquo;s nothing preventing the user from trying
+to inherit from an object that isn&rsquo;t a class at all:</p>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="vg">NotClass</span> <span class="o">=</span> <span class="s">&quot;So not a class&quot;</span><span class="p">;</span>
+<span class="k">class</span> <span class="vg">OhNo</span> <span class="o">&lt;</span> <span class="vg">NotClass</span> <span class="p">{}</span>
+</pre></div>
+
+
+<p>Obviously, no self-respecting programmer would write that, but we have to guard
+against potential Lox users who have no self respect. A simple runtime check
+fixes that:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">Value</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">peek</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>                                     
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">IS_CLASS</span><span class="p">(</span><span class="n">superclass</span><span class="p">))</span> <span class="p">{</span>                                    
+          <span class="n">runtimeError</span><span class="p">(</span><span class="s">&quot;Superclass must be a class.&quot;</span><span class="p">);</span>                  
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>                               
+        <span class="p">}</span>                                                               
+<br></pre><pre class="insert-after"><span></span>        <span class="n">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="p">(</span><span class="n">peek</span><span class="p">(</span><span class="mi">0</span><span class="p">));</span>                         
+        <span class="n">tableAddAll</span><span class="p">(</span><span class="o">&amp;</span><span class="n">AS_CLASS</span><span class="p">(</span><span class="n">superclass</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">methods</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="p">);</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>If the value we loaded from the identifier in the superclass clause isn&rsquo;t an
+ObjClass, we report a runtime error to let the user know what we think of them.</p>
+<h2><a href="#storing-superclasses" name="storing-superclasses"><small>29&#8202;.&#8202;2</small> Storing Superclasses</a></h2>
+<p>Did you notice that when we added method inheritance we didn&rsquo;t actually add any
+reference from a subclass to its superclass? Once we copy the inherited methods
+over, the superclass is forgotten entirely. We don&rsquo;t need to keep a handle on
+it, so we don&rsquo;t.</p>
+<p>But to support super calls, we need to be able to find methods coming from the
+superclass that <span name="may">may</span> have been overridden by the
+subclass. We&rsquo;ll have to keep track of each class&rsquo;s superclass somehow. A fun
+refresher, here&rsquo;s the gnarly Lox program we examined to work through how super
+calls are resolved in jlox:</p>
+<aside name="may">
+<p>&ldquo;May&rdquo; might not a strong enough word. Presumably the method <em>has</em> been
+overridden. Otherwise, why are you bothering to use super instead of just
+calling it directly?</p>
+</aside>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">A</span> <span class="p">{</span>
+  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;A method&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="vg">B</span> <span class="o">&lt;</span> <span class="vg">A</span> <span class="p">{</span>
+  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;B method&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">test</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">.</span><span class="n">method</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="vg">C</span> <span class="o">&lt;</span> <span class="vg">B</span> <span class="p">{}</span>
+
+<span class="vg">C</span><span class="p">().</span><span class="n">test</span><span class="p">();</span>
+</pre></div>
+
+
+<p>We create a C and call the <code>test()</code> method it inherited from B. Inside the body
+of that method <code>this</code> is an instance of C. We make a super call to <code>method()</code>.
+If super calls were resolved relative to the superclass of the <em>receiver</em> then
+we would look in B since that&rsquo;s C&rsquo;s superclass. But super calls should be
+resolved relative to the superclass of the class <em>where the super call occurs</em>.
+In this case, we are in B&rsquo;s <code>test()</code> method, so the superclass is A. A correct
+Lox implementation should thus print &ldquo;A method&rdquo;.</p>
+<p>This means that super calls are not resolved dynamically. The superclass used to
+look up the method is a static<span class="em">&mdash;</span>practically lexical<span class="em">&mdash;</span>property of where the
+call occurs. When we added inheritance to jlox, we took advantage of that by
+storing the superclass in the same Environment structure we used for all lexical
+scopes.</p>
+<p>It&rsquo;s almost as if the interpreter saw the above program like:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">A</span> <span class="p">{</span>
+  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;A method&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">var</span> <span class="vg">Bs_super</span> <span class="o">=</span> <span class="vg">A</span><span class="p">;</span>
+<span class="k">class</span> <span class="vg">B</span> <span class="o">&lt;</span> <span class="vg">A</span> <span class="p">{</span>
+  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;B method&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">test</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">runtimeSuperCall</span><span class="p">(</span><span class="vg">Bs_super</span><span class="p">,</span> <span class="s">&quot;method&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">var</span> <span class="vg">Cs_super</span> <span class="o">=</span> <span class="vg">B</span><span class="p">;</span>
+<span class="k">class</span> <span class="vg">C</span> <span class="o">&lt;</span> <span class="vg">B</span> <span class="p">{}</span>
+
+<span class="vg">C</span><span class="p">().</span><span class="n">test</span><span class="p">();</span>
+</pre></div>
+
+
+<p>Each subclass has a hidden variable that stores a reference to its superclass.
+Whenever we need to perform a super call, we look up the class in that variable
+and tell the runtime to start looking for methods there.</p>
+<p>We&rsquo;ll take the same path with clox. The difference is that instead of jlox&rsquo;s
+heap-allocated Environment class, we have the bytecode VM&rsquo;s value stack and
+upvalue system. The machinery is a little different, but the overall effect is
+the same.</p>
+<h3><a href="#a-superclass-local-variable" name="a-superclass-local-variable"><small>29&#8202;.&#8202;2&#8202;.&#8202;1</small> A superclass local variable</a></h3>
+<p>Over in the compiler, after we compile the superclass clause, we have emitted
+bytecode that will leave the superclass object on top of the stack. Instead of
+leaving it as a temporary, we tell the compiler to declare that slot as a local
+variable:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="p">}</span>                                 
+<br></pre><div class="source-file"><em>compiler.c</em><br>
+in <em>classDeclaration</em>()</div>
+<pre class="insert"><span></span>    <span class="n">beginScope</span><span class="p">();</span>                     
+    <span class="n">addLocal</span><span class="p">(</span><span class="n">syntheticToken</span><span class="p">(</span><span class="s">&quot;super&quot;</span><span class="p">));</span>
+    <span class="n">defineVariable</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>                
+</pre><pre class="insert-after"><br><span></span>    <span class="n">namedVariable</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="nb">false</span><span class="p">);</span>  
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
+
+<p>First, we create a new lexical scope. First, it ensures we are in a <em>local</em>
+scope. At the top level, variables go into the global table, not the stack.
+Also, it makes sure that if we declare two classes in the same scope, each has
+as different local slot to store its superclass. We always name this hidden
+local variable &ldquo;super&rdquo;, so if we didn&rsquo;t make a scope for each subclass, the
+variables would collide.</p>
+<p>We use &ldquo;super&rdquo; as the name for the variable for the same reason we use &ldquo;this&rdquo; as
+the name of the hidden local variable that <code>this</code> expressions resolve to: it&rsquo;s a
+reserved word, which guarantees the compiler&rsquo;s hidden variable won&rsquo;t collide
+with a user-defined one.</p>
+<p>The difference is that with <code>this</code> expressions, we did actually have a token
+sitting around whose lexeme was &ldquo;this&rdquo;. We aren&rsquo;t so lucky here. Instead, we add
+a little helper function to create a synthetic token for the given <span
+name="constant">constant</span> string:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>variable</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">syntheticToken</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">text</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">Token</span> <span class="n">token</span><span class="p">;</span>                                 
+  <span class="n">token</span><span class="p">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">text</span><span class="p">;</span>                          
+  <span class="n">token</span><span class="p">.</span><span class="n">length</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">strlen</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>            
+  <span class="k">return</span> <span class="n">token</span><span class="p">;</span>                                
+<span class="p">}</span>                                              
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>variable</em>()</div>
+
+<aside name="constant">
+<p>I say &ldquo;constant string&rdquo; because tokens don&rsquo;t do any memory management of their
+lexeme. If we tried to use a heap-allocated string for this, we&rsquo;d end up leaking
+memory because it never gets freed. But the memory for C string literals lives
+in the executable&rsquo;s constant data section and never needs to be freed, so we&rsquo;re
+fine.</p>
+</aside>
+<p>Since we&rsquo;ve opened a new local scope for the superclass variable, we need to
+close that scope:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_POP</span><span class="p">);</span>                      
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>classDeclaration</em>()</div>
+<pre class="insert"><br><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">classCompiler</span><span class="p">.</span><span class="n">hasSuperclass</span><span class="p">)</span> <span class="p">{</span>     
+    <span class="n">endScope</span><span class="p">();</span>                          
+  <span class="p">}</span>                                      
+</pre><pre class="insert-after"><br><span></span>  <span class="n">currentClass</span> <span class="o">=</span> <span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="p">;</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
+
+<p>We pop it after compiling the class body and its methods. That way, the variable
+is accessible in all of the methods of the subclass. It&rsquo;s a somewhat pointless
+optimization, but we only create the scope if there <em>is</em> a superclass clause.
+Thus we need to only close the scope if there is one.</p>
+<p>To track that, we could declare a little local variable in <code>classDeclaration()</code>.
+But soon other functions in the compiler will need to know whether the
+surrounding class is a subclass or not. So we may as well give our future selves
+a hand and store this as a field in the ClassCompiler instead:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">ClassCompiler</span> <span class="p">{</span>    
+  <span class="k">struct</span> <span class="n">ClassCompiler</span><span class="o">*</span> <span class="n">enclosing</span><span class="p">;</span>
+  <span class="n">Token</span> <span class="n">name</span><span class="p">;</span>                     
+</pre><div class="source-file"><em>compiler.c</em><br>
+in struct <em>ClassCompiler</em></div>
+<pre class="insert"><span></span>  <span class="kt">bool</span> <span class="n">hasSuperclass</span><span class="p">;</span>             
+</pre><pre class="insert-after"><span></span><span class="p">}</span> <span class="n">ClassCompiler</span><span class="p">;</span>                  
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>ClassCompiler</em></div>
+
+<p>When we first initialize a ClassCompiler, we assume it is not a subclass:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">classCompiler</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">;</span>  
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>classDeclaration</em>()</div>
+<pre class="insert"><span></span>  <span class="n">classCompiler</span><span class="p">.</span><span class="n">hasSuperclass</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>   
+</pre><pre class="insert-after"><span></span>  <span class="n">classCompiler</span><span class="p">.</span><span class="n">enclosing</span> <span class="o">=</span> <span class="n">currentClass</span><span class="p">;</span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
+
+<p>Then, we if see a superclass clause, we know we are compiling a subclass:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">emitByte</span><span class="p">(</span><span class="n">OP_INHERIT</span><span class="p">);</span>              
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>classDeclaration</em>()</div>
+<pre class="insert"><span></span>    <span class="n">classCompiler</span><span class="p">.</span><span class="n">hasSuperclass</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="p">}</span>                                    
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
+
+<p>That&rsquo;s enough for the first step. With this, each class that uses inheritance
+gets a local variable named &ldquo;super&rdquo; that reliably stores a reference to the
+class&rsquo;s superclass. That variable is available on the stack to all of the
+methods. Because it uses our existing machinery for capturing local variables in
+closures, the VM can even hoist the superclass reference into an upvalue if a
+method needs to capture it.</p>
+<h2><a href="#super-calls" name="super-calls"><small>29&#8202;.&#8202;3</small> Super Calls</a></h2>
+<p>With that superclass reference hanging around in memory where we can get to it,
+we are ready to implement super calls. As <span name="last">usual</span>, we go
+front to back, starting with the new syntax. A super call begins, naturally
+enough, with the <code>super</code> keyword:</p>
+<aside name="last">
+<p>This is it, friend. The very last entry you&rsquo;ll add to the parsing table.</p>
+</aside>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">{</span> <span class="nb">NULL</span><span class="p">,</span>     <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_RETURN</span>
+</pre><div class="source-file"><em>compiler.c</em><br>
+replace 1 line</div>
+<pre class="insert"><span></span>  <span class="p">{</span> <span class="n">super_</span><span class="p">,</span>   <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_SUPER </span>
+</pre><pre class="insert-after"><span></span>  <span class="p">{</span> <span class="n">this_</span><span class="p">,</span>    <span class="nb">NULL</span><span class="p">,</span>    <span class="n">PREC_NONE</span> <span class="p">},</span>       <span class="c1">// TOKEN_THIS  </span>
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
+<p>When the expression parser lands on that keyword, it hands off control to this
+parsing function:</p>
+<div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
+add after <em>syntheticToken</em>()</div>
+<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">super_</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>                          
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_DOT</span><span class="p">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="p">);</span>            
+  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="p">,</span> <span class="s">&quot;Expect superclass method name.&quot;</span><span class="p">);</span>
+  <span class="kt">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="p">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="p">.</span><span class="n">previous</span><span class="p">);</span>
+
+  <span class="n">namedVariable</span><span class="p">(</span><span class="n">syntheticToken</span><span class="p">(</span><span class="s">&quot;this&quot;</span><span class="p">),</span> <span class="nb">false</span><span class="p">);</span>               
+  <span class="n">namedVariable</span><span class="p">(</span><span class="n">syntheticToken</span><span class="p">(</span><span class="s">&quot;super&quot;</span><span class="p">),</span> <span class="nb">false</span><span class="p">);</span>              
+  <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_GET_SUPER</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>                              
+<span class="p">}</span>                                                             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, add after <em>syntheticToken</em>()</div>
+
+<p>This is pretty different from how we compiled <code>this</code> expressions. Unlike <code>this</code>,
+a <code>super</code> <span name="token">token</span> is not a standalone expression.
+Instead, the dot and method name following it are inseparable parts of the
+expression. However, the parenthesized argument list is <em>not</em> core to the
+expression. As with methods, Lox supports getting a reference to a superclass
+method as a closure without immediately invoking it:</p>
+<aside name="token">
+<p>If a bare <code>super</code> token <em>was</em> an expression, what kind of object would it
+evaluate to?</p>
+</aside>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">closure</span> <span class="o">=</span> <span class="k">super</span><span class="p">.</span><span class="n">method</span><span class="p">();</span>
+<span class="n">closure</span><span class="p">();</span>
+</pre></div>
+
+
+<p>In other words, Lox doesn&rsquo;t really have super <em>call</em> expressions, it has super
+<em>access</em> expressions. You can then just choose to immediately invoke the result
+of that if you want. So when the compiler hits a <code>super</code> token, we consume the
+subsequent <code>.</code> token and then look for a method name. Methods are looked up
+dynamically, so we use <code>identifierConstant()</code> to take the lexeme of the method
+name token and store it in the constant table just like we do for property
+access expressions.</p>
+<p>Then the compiler has a few interesting lines of code. In order to access a
+<em>superclass method</em> on <em>the current instance</em>, we need access to both the
+receiver <em>and</em> the superclass of the surrounding method&rsquo;s class. The first
+<code>namedVariable()</code> call generates code to look up the current receiver which is
+stored in the hidden variable named &ldquo;this&rdquo; and push it onto the stack. The
+second <code>namedVariable()</code> call emits code to look up the superclass from its
+&ldquo;super&rdquo; hidden variable and push that onto the stack next.</p>
+<p>Finally, we emit a new <code>OP_GET_SUPER</code> instruction with the constant table index
+of the method being accessed as the instruction&rsquo;s operand. This way, the runtime
+has access to the three pieces of information it needs:</p>
+<ul>
+<li><strong>The instance,</strong> stored one slot down from the top of the stack.</li>
+<li><strong>The superclass where it starts looking for the method,</strong> on top of
+    the stack.</li>
+<li><strong>The name of the method to resolve,</strong> from the instruction&rsquo;s operand.</li>
+</ul>
+<p><strong>todo: show stack</strong></p>
+<p>We&rsquo;re almost ready to implement this instruction in the runtime. But before we
+do, the compiler has some errors it is responsible for reporting:</p>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">super_</span><span class="p">(</span><span class="kt">bool</span> <span class="n">canAssign</span><span class="p">)</span> <span class="p">{</span>                           
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>super_</em>()</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>                                  
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot use &#39;super&#39; outside of a class.&quot;</span><span class="p">);</span>           
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">hasSuperclass</span><span class="p">)</span> <span class="p">{</span>                   
+    <span class="n">error</span><span class="p">(</span><span class="s">&quot;Cannot use &#39;super&#39; in a class with no superclass.&quot;</span><span class="p">);</span>
+  <span class="p">}</span>                                                            
+<br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="p">(</span><span class="n">TOKEN_DOT</span><span class="p">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="p">);</span>             
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>super_</em>()</div>
+
+<p>A super call is only meaningful inside the body of a method (or in a function
+nested inside a method), and only inside the method of a class that has a
+superclass. We can detect both of these cases using <code>currentClass</code>. If that&rsquo;s
+<code>NULL</code> or points to a class with no superclass, we report those errors.</p>
+<h3><a href="#executing-super-accesses" name="executing-super-accesses"><small>29&#8202;.&#8202;3&#8202;.&#8202;1</small> Executing super accesses</a></h3>
+<p>Assuming the user didn&rsquo;t make one of those errors, their code passes from the
+compiler over to the runtime. We&rsquo;ve got ourselves a new instruction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_SET_PROPERTY</span><span class="p">,</span>
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_GET_SUPER</span><span class="p">,</span>   
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_EQUAL</span><span class="p">,</span>       
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>It takes a single operand that indexes into the constant table, so we
+disassemble it like other similar opcodes:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">constantInstruction</span><span class="p">(</span><span class="s">&quot;OP_SET_PROPERTY&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_GET_SUPER</span><span class="p">:</span>                                             
+      <span class="k">return</span> <span class="n">constantInstruction</span><span class="p">(</span><span class="s">&quot;OP_GET_SUPER&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>   
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="p">:</span>                                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>You might expect more work, but interpreting the new instruction is very similar
+to executing a normal property access:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="p">}</span>                                        
+</pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_SUPER</span><span class="p">:</span> <span class="p">{</span>                     
+        <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="p">();</span>       
+        <span class="n">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">bindMethod</span><span class="p">(</span><span class="n">superclass</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span> <span class="p">{</span>   
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>      
+        <span class="p">}</span>                                      
+        <span class="k">break</span><span class="p">;</span>                                 
+      <span class="p">}</span>                                        
+</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="p">:</span> <span class="p">{</span>                         
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>As with properties, we read the method name from the constant table. Then we
+pass that to <code>bindMethod()</code> which looks up the method in the class&rsquo;s method
+table and creates an ObjBoundMethod to bundle the resulting closure to the
+current instance.</p>
+<p>One obvious difference with the code here is that we don&rsquo;t try to look for a
+field on the instance first. Fields are not <span name="proto">inherited</span>
+so super expressions always access methods.</p>
+<p>The more useful difference is <em>which</em> class we pass to <code>bindMethod()</code>. With a
+normal property access, we use the ObjInstances&rsquo;s own class, which gives us the
+polymorphic dynamic dispatch we want there. For a super call, we don&rsquo;t use the
+instance&rsquo;s class. Instead, we use the statically resolved superclass of the
+containing class, which the compiler has conveniently ensured is sitting on top
+of the stack waiting for us.</p>
+<p>We pop the superclass from the stack and pass it to <code>bindMethod()</code>, which does
+the method lookup on that class. That correctly skips over any overriding
+methods in any of the subclasses between that superclass and the instance&rsquo;s own
+class.</p>
+<p>Aside from those difference, the rest of the behavior is the same. Popping the
+superclass leaves the instance sitting on top of the stack. If <code>bindMethod()</code>
+succeeds, it pops the instance and replaces it with the bound method it created.
+Otherwise, it reports a runtime error and returns <code>false</code>. In that case, we
+abort the interpreter.</p>
+<h3><a href="#faster-super-calls" name="faster-super-calls"><small>29&#8202;.&#8202;3&#8202;.&#8202;2</small> Faster super calls</a></h3>
+<p>We have superclass method accesses working now. And since the returned object is
+an ObjBoundMethod that you can then invoke, we&rsquo;ve got super <em>calls</em> working too.
+Just like last chapter, we&rsquo;ve reached a point where our VM has the complete
+correct semantics.</p>
+<p>But, also like last chapter, it&rsquo;s pretty slow. Again, we&rsquo;re heap allocating an
+ObjBoundMethod for each super call even though most of the time the very next
+instruction is an <code>OP_CALL</code> that immediately unpacks that bound method, invokes
+it, and then discards it. In fact, this is even more likely to be true for
+super calls than for regular method calls. At least with method calls there is
+a chance that the user is actually invoking a function stored in a field. With
+super calls, you&rsquo;re <em>always</em> looking up a method. The only question is whether
+you invoke it immediately or not.</p>
+<p>The compiler can certainly answer that question for itself if it sees a left
+parenthesis after the superclass method name, so we&rsquo;ll go ahead and perform the
+same optimization we did for method calls. Take out the two lines of code that
+load the superclass and emit <code>OP_GET_SUPER</code> and replace them with this:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">namedVariable</span><span class="p">(</span><span class="n">syntheticToken</span><span class="p">(</span><span class="s">&quot;this&quot;</span><span class="p">),</span> <span class="nb">false</span><span class="p">);</span>   
+</pre><div class="source-file"><em>compiler.c</em><br>
+in <em>super_</em>()<br>
+replace 2 lines</div>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">match</span><span class="p">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="p">))</span> <span class="p">{</span>                  
+    <span class="kt">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">argumentList</span><span class="p">();</span>            
+    <span class="n">namedVariable</span><span class="p">(</span><span class="n">syntheticToken</span><span class="p">(</span><span class="s">&quot;super&quot;</span><span class="p">),</span> <span class="nb">false</span><span class="p">);</span>
+    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_SUPER_INVOKE</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>             
+    <span class="n">emitByte</span><span class="p">(</span><span class="n">argCount</span><span class="p">);</span>                           
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>                                        
+    <span class="n">namedVariable</span><span class="p">(</span><span class="n">syntheticToken</span><span class="p">(</span><span class="s">&quot;super&quot;</span><span class="p">),</span> <span class="nb">false</span><span class="p">);</span>
+    <span class="n">emitBytes</span><span class="p">(</span><span class="n">OP_GET_SUPER</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>                
+  <span class="p">}</span>                                               
+</pre><pre class="insert-after"><span></span><span class="p">}</span>                                                 
+</pre></div>
+
+<div class="source-file-narrow"><em>compiler.c</em>, in <em>super_</em>(), replace 2 lines</div>
+
+<p>Now before we emit anything, we look for a parenthesized argument list. If we
+find one, we compile that. Then we load the superclass. After that, we emit a
+new <code>OP_SUPER_INVOKE</code> instruction. This <span
+name="superinstruction">superinstruction</span> combines the behavior of
+<code>OP_GET_SUPER</code> and <code>OP_CALL</code>, so it takes two operands: the constant table index
+of the method name to lookup and the number of arguments to pass to it.</p>
+<aside name="superinstruction">
+<p>This is a particularly <em>super</em> superinstruction, if you get what I&rsquo;m saying.
+I&hellip; I&rsquo;m sorry for this terrible joke.</p>
+</aside>
+<p>Otherwise, if we don&rsquo;t find a <code>(</code>, then we continue to compile the expression as
+a super access like we did before and emit an <code>OP_GET_SUPER</code>.</p>
+<p>Taking a quick tour through the compilation pipeline, first up on the left is
+a new instruction:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">OP_INVOKE</span><span class="p">,</span>      
+</pre><div class="source-file"><em>chunk.h</em><br>
+in enum <em>OpCode</em></div>
+<pre class="insert"><span></span>  <span class="n">OP_SUPER_INVOKE</span><span class="p">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">OP_CLOSURE</span><span class="p">,</span>     
+</pre></div>
+
+<div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
+
+<p>And to your right, its disassembler support:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">invokeInstruction</span><span class="p">(</span><span class="s">&quot;OP_INVOKE&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>      
+</pre><div class="source-file"><em>debug.c</em><br>
+in <em>disassembleInstruction</em>()</div>
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_SUPER_INVOKE</span><span class="p">:</span>                                        
+      <span class="k">return</span> <span class="n">invokeInstruction</span><span class="p">(</span><span class="s">&quot;OP_SUPER_INVOKE&quot;</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">offset</span><span class="p">);</span>
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_CLOSURE</span><span class="p">:</span> <span class="p">{</span>                                           
+</pre></div>
+
+<div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
+
+<p>A super invocation instruction has the same set of operands as <code>OP_INVOKE</code>, so
+we reuse the same helper to disassemble it. Finally, our tour disembarks at the
+interpreter:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="p">}</span>                                                      
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>run</em>()</div>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_SUPER_INVOKE</span><span class="p">:</span> <span class="p">{</span>                                
+        <span class="n">ObjString</span><span class="o">*</span> <span class="n">method</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="p">();</span>                   
+        <span class="kt">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">();</span>                          
+        <span class="n">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="p">(</span><span class="n">pop</span><span class="p">());</span>              
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">invokeFromClass</span><span class="p">(</span><span class="n">superclass</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">argCount</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="p">;</span>                    
+        <span class="p">}</span>                                                    
+        <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">frames</span><span class="p">[</span><span class="n">vm</span><span class="p">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>               
+        <span class="k">break</span><span class="p">;</span>                                               
+      <span class="p">}</span>                                                      
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_CLOSURE</span><span class="p">:</span> <span class="p">{</span>                                     
+</pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
+<p>This handful of code is basically our implementation of <code>OP_INVOKE</code> mixed
+together with a dash of <code>OP_GET_SUPER</code>. First, we pull out the method name and
+argument count operands.</p>
+<p>Then we pop the superclass off the top of the stack so that we can look up the
+method in its method table. This is a little different from how an
+<code>OP_GET_SUPER</code> followed by <code>OP_CALL</code> looks. In that latter case, the superclass
+gets popped and replaced by the ObjBoundMethod for the resolved function
+<em>before</em> any of the arguments to the call get compiled. Here, the superclass
+ends up on the stack on top of the arguments. But it doesn&rsquo;t make a big
+difference because we pop it off before the arguments get used.</p>
+<p><strong>todo: show stack through call.</strong></p>
+<p>We pass all of that to our existing <code>invokeFromClass()</code> function. That function
+looks up the given method on the given class and attempts to create a call to it
+with the given arity. If a method could not be found, it returns <code>false</code> and we
+bail out of the interpreter. Otherwise, <code>invokeFromClass()</code> pushes a new
+CallFrame onto the call stack for the method&rsquo;s closure. That invalidates the
+interpreter&rsquo;s cached CallFrame pointer, so we refresh that.</p>
+<p>Take a look back at what we&rsquo;ve created. By my count, we wrote around 2,500 lines
+of fairly clean, straightforward C. That contains a complete implementation of
+the Lox language with a whole precedence table full of expression types, and a
+suite of flow statements. We implemented variables, functions, closures,
+classes, fields, methods, and inheritance.</p>
+<p>Even more impressive, our implementation is portable to any platform with a C
+compiler<span class="em">&mdash;</span>read, just about every one<span class="em">&mdash;</span>and is fast enough for real-world
+production use. We have a single-pass bytecode compiler, a tight virtual machine
+interpreter for our internal instruction set, and compact object
+representations, a stack for storing variables without heap allocation, and a
+precise garbage collector.</p>
+<p>If you go out and start poking around in the implementations of Lua, Python, or
+Ruby, you will be surprised by how much of it now looks familiar to you. You
+have seriously leveled up your knowledge of how programming languages work,
+which in turn gives you a deeper understanding of programming itself. It&rsquo;s like
+you used to be a taxi driver and now you can pop the hood and repair the engine
+on your car too.</p>
+<p>You can stop here if you like. The two implementations of Lox you have are
+complete and full-featured. You built the car and can drive it wherever you like
+now. But if you want to have some more fun tuning and tweaking it for even
+greater performance out on the racetrack, there is one more chapter. We don&rsquo;t
+add any new capabilities, but we roll in a couple of classic optimizations to
+squeeze even more perf out of it. If that sounds fun, <a href="optimization.html">keep reading</a>&hellip;</p>
+<div class="challenges">
+<h2><a href="#challenges" name="challenges">Challenges</a></h2>
+
+<ol>
+<li>
+<p>A tenet of object-oriented programming is that a class should ensure new
+    objects are in a valid state. In Lox, that means defining an initializer
+    that populates the instance&rsquo;s fields. Inheritance complicates this because
+    the instance must be in a valid state according to all of the classes in
+    the object&rsquo;s inheritance chain.</p>
+<p>The easy part is remembering to call <code>super.init()</code> in each subclass&rsquo;s
+<code>init()</code> method. The harder part is fields. There is nothing preventing two
+classes in the inheritance chain from accidentally claiming the same field
+name. When this happens, they will step on each other&rsquo;s state and possibly
+leave you with an instance in a broken state.</p>
+<p>If Lox was your language, how would you address this, if at all? If you
+would change the language, implement your change.</p>
+</li>
+<li>
+<p>Our copy-down inheritance optimization only works in Lox because it&rsquo;s not
+    possible to modify a class&rsquo;s methods after its declaration. This means we
+    don&rsquo;t have to worry about the copied methods in the subclass getting out of
+    sync with later changes to the superclass.</p>
+<p>Other languages like Ruby <em>do</em> allow classes to be modified after the fact.
+How do implementations of languages like that balance supporting class
+modification with wanting efficient inherited method resolution?</p>
+</li>
+<li>
+<p>In the <a href="inheritance.html">jlox chapter on inheritance</a>, we had a challenge to
+    implement the BETA language&rsquo;s approach to method overriding. Solve the
+    challenge again, but this time in clox. Here&rsquo;s the description of the
+    previous challenge:</p>
+<p>In Lox, as in most other object-oriented languages, when looking up a
+method, we start at the bottom of the class hierarchy and work our way up<span class="em">&mdash;</span>    a subclass&rsquo;s method is preferred over a superclass&rsquo;s. In order to get to the
+superclass method from within an overriding method, you use <code>super</code>.</p>
+<p>The language <a href="http://cs.au.dk/~beta/">BETA</a> takes the <a href="http://journal.stuffwithstuff.com/2012/12/19/the-impoliteness-of-overriding-methods/">opposite approach</a>. When you call a
+method, it starts at the <em>top</em> of the class hierarchy and works <em>down</em>. A
+superclass method wins over a subclass method. In order to get to the
+subclass method, the superclass method can call <code>inner</code>, which is sort of
+like the inverse of <code>super</code>. It chains to the next method down the
+hierarchy.</p>
+<p>The superclass method controls when and where the subclass is allowed to
+refine its behavior. If the superclass method doesn&rsquo;t call <code>inner</code> at all,
+then the subclass has no way of overriding or modifying the superclass&rsquo;s
+behavior.</p>
+<p>Take out Lox&rsquo;s current overriding and <code>super</code> behavior and replace it with
+BETA&rsquo;s semantics. In short:</p>
+<ul>
+<li>
+<p>When calling a method on a class, prefer the method <em>highest</em> on the
+  class&rsquo;s inheritance chain.</p>
+</li>
+<li>
+<p>Inside the body of a method, a call to <code>inner</code> looks for a method with the
+  same name in the nearest subclass along the inheritance chain between the
+  class containing the <code>inner</code> and the class of <code>this</code>. If there is no
+  matching method, the <code>inner</code> call does nothing.</p>
+</li>
+</ul>
+<p>For example:</p>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="p">{</span>
+  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="p">;</span>
+    <span class="n">inner</span><span class="p">();</span>
+    <span class="k">print</span> <span class="s">&quot;Place in a nice box.&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="p">{</span>
+  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">print</span> <span class="s">&quot;Pipe full of custard and coat with chocolate.&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="vg">BostonCream</span><span class="p">().</span><span class="n">cook</span><span class="p">();</span>
+</pre></div>
+
+
+<p>This should print:</p>
+<div class="codehilite"><pre><span></span>Fry until golden brown.
+Pipe full of custard and coat with chocolate.
+Place in a nice box.
+</pre></div>
+
+
+<p>Since clox is about not just implementing Lox, but doing so with good
+performance, this time around try to solve the challenge with an eye towards
+efficiency.</p>
+</li>
+</ol>
+</div>
 
 <footer>
 <a href="optimization.html" class="next">
