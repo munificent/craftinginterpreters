@@ -1156,8 +1156,8 @@ static void classDeclaration() {
     beginScope();
     addLocal(syntheticToken("super"));
     defineVariable(0);
+    
 //< superclass-variable
-
     namedVariable(className, false);
     emitByte(OP_INHERIT);
 //> set-has-superclass
