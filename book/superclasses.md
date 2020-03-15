@@ -7,22 +7,19 @@
 >
 > <cite>Harper Lee, <em>To Kill a Mockingbird</em></cite>
 
-This is the very last chapter where we add new functionality to our
-nearly-mature bytecode VM. We've packed almost the entire Lox language in there
-already. All that remains are:
-
-*   Inheriting methods from superclasses.
-*   Calling superclass methods.
-
-We have [another chapter][optimization] after this one, but it introduces no new
-behavior. It only makes existing stuff <span name="faster">faster</span>. Make
-it to the end of this one, and you'll have a complete VM.
+This is the very last chapter where we add new functionality to our VM. We've
+packed almost the entire Lox language in there already. All that remains is
+inheriting methods and calling superclass methods. We have [another
+chapter][optimization] after this one, but it introduces no new behavior. It
+<span name="faster">only</span> makes existing stuff faster. Make it to the end
+of this one, and you'll have a complete Lox implementation.
 
 <aside name="faster">
 
-That's not to say making stuff faster isn't important! After all, the whole
-purpose of our entire second virtual machine is better performance over jlox.
-You could argue that *all* of the past fifteen chapters are "optimization".
+That "only" should not imply that making stuff faster isn't important! After
+all, the whole purpose of our entire second virtual machine is better
+performance over jlox. You could argue that *all* of the past fifteen chapters
+are "optimization".
 
 </aside>
 
@@ -36,8 +33,7 @@ much faster, way of handling inherited method calls this time around.
 ## Inheriting Methods
 
 We'll kick things of with method inheritance since it's the simpler piece. To
-refresh your memory, in Lox users specify a superclass with a less-than sign
-after the class name followed by the name of the superclass:
+refresh your memory, Lox inheritance syntax looks like this:
 
 ```lox
 class Doughnut {
@@ -46,32 +42,44 @@ class Doughnut {
   }
 }
 
-class JellyDoughnut < Doughnut {
-  filling() {
-    print "Raspberry jelly";
+class Cruller < Doughnut {
+  finish() {
+    print "Glaze with icing";
   }
 }
 ```
 
-Here, the JellyDoughnut class inherits from Doughnut and thus instances of
-JellyDoughnut inherit the `cook()` method. I don't know why I'm belaboring this.
-You know how inheritance works. Let's start compiling the new syntax:
+Here, the Cruller class inherits from Doughnut and thus instances of Cruller
+inherit the `cook()` method. I don't know why I'm belaboring this. You know how
+inheritance works. Let's start compiling the new syntax:
 
 ^code compile-superclass (2 before, 1 after)
 
-After we compile the class name, if the next token is a `<` then we must have a
+After we compile the class name, if the next token is a `<` then we found a
 superclass clause. We consume the superclass's identifier token, then call
 `variable()`. That function takes the previously consumed token, treats it as a
 variable reference, and emits code to load the variable's value. In other words,
 it looks up the superclass by name and pushes it onto the stack.
 
-After that, we call `namedVariable()` to load the new subclass onto to the
-stack, followed by an `OP_INHERIT` instruction. That instruction wires up the
-superclass to the new subclass. This is similar to how we implement method
-declarations where we use a series of `OP_METHOD` instructions to incrementally
-build up the full class declaration.
+After that, we call `namedVariable()` to load the subclass doing the inheriting
+onto to the stack, followed by an `OP_INHERIT` instruction. That instruction
+wires up the superclass to the new subclass. In the last chapter, we defined an
+`OP_METHOD` instruction to mutate an existing class object by adding a method to
+its method table. This is similar -- the `OP_INHERIT` instruction takes an
+existing class and applies the effect of inheritance to it.
 
-Before we implement that new instruction, we have an edge case to detect:
+In the previous example, when the compiler works through this bit of syntax:
+
+```lox
+class Cruller < Doughnut {
+```
+
+The result is this bytecode:
+
+<img src="image/superclasses/inherit-stack.png" alt="The series of bytecode instructions for a Cruller class inheriting from Doughnut." />
+
+Before we implement the new `OP_INHERIT` instruction, we have an edge case to
+detect:
 
 ^code inherit-self (1 before, 1 after)
 
@@ -102,32 +110,36 @@ The interpreter is where the action happens:
 
 ^code interpret-inherit (1 before, 2 after)
 
-**todo: show stack layout**
-
-The top of the stack contains the superclass and subclass, in that order. We
-grab both of those and then do the inherit-y bit. This is where clox takes a
+The top of the stack contains the superclass with the subclass on top. We grab
+both of those and then do the inherit-y bit. This is where clox takes a
 different path than jlox. In our first interpreter, each subclass stored a
 reference to its superclass. When a method was accessed, if we didn't find it in
 the subclass's method table, we recursed through the inheritance chain looking
 at each ancestor's method table until we found it.
 
-That's a lot of work to perform at each method *invocation* time. It's slow and,
+For example, calling `cook()` on an instance Cruller sends the VM on this
+journey:
+
+<img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
+
+That's a lot of work to perform during method *invocation* time. It's slow and,
 worse, the farther an inherited method is up the ancestor chain, the slower it
 gets. Not a great performance story.
 
-The approach here is much faster. We copy all of the inherited class's methods
-right down into the subclass's own method table. We do this right when the
-subclass is declared. When calling a method, any method declared on a superclass
-will be found immediately right in the subclass's own method table. There is no
-extra runtime work needed for inheritance at all. By the time the class is
-declared, the work is done. This means inherited method calls are exactly as
-fast as normal method calls -- a <span name="two">single</span> hash table
-lookup.
+The new approach is much faster. When the subclass is declared, we copy all of
+the inherited class's methods down into the subclass's own method table. Later,
+when *calling* a method, any method inheritred from a superclass will be found
+right in the subclass's own method table. There is no extra runtime work needed
+for inheritance at all. By the time the class is declared, the work is done.
+This means inherited method calls are exactly as fast as normal method calls --
+a <span name="two">single</span> hash table lookup.
+
+<img src="image/superclasses/clox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller which has the method in its own method table." />
 
 <aside name="two">
 
-Well, two, I guess. Because first we have to make sure a field on the instance
-isn't shadowing the method.
+Well, two hash table lookups, I guess. Because first we have to make sure a
+field on the instance doesn't shadow the method.
 
 </aside>
 
@@ -149,9 +161,12 @@ superclass.
 
 As you can imagine, changing the set of methods a class defines imperatively at
 runtime can make it hard to reason about a program. It is a very powerful tool,
-but also a dangerous tool. Those who this tool maybe a little *too* dangerous
-gave it the unbecoming name "monkey patching", or the even less decorous "duck
-punching".
+but also a dangerous tool.
+
+Those who find this tool maybe a little *too* dangerous gave it the unbecoming
+name "monkey patching", or the even less decorous "duck punching".
+
+<img src="image/superclasses/monkey.png" alt="A monkey with an eyepatch, naturally." />
 
 </aside>
 
@@ -164,14 +179,14 @@ subclass's method table clash with the subclass's own methods? Fortunately, no.
 We emit the `OP_INHERIT` after the `OP_CLASS` instruction that creates the
 subclass but before any method declarations and `OP_METHOD` instructions have
 been compiled. At the point that we copy the superclass's methods down, the
-subclass's method table is empty. Any overrides the subclass declares after that
-will simply overwrite the superclass's entries in the table.
+subclass's method table is empty. Any methods the subclass overrides will
+overwrite those inherited entries in the table.
 
 ### Invalid superclasses
 
-Our implementation is simple and fast, which is just the way I like my VM code
-to go. But it's not *correct*. There's nothing preventing the user from trying
-to inherit from an object that isn't a class at all:
+Our implementation is simple and fast, which is just the way I like my VM code.
+But it's not robust. Nothing prevents a user from inheriting from an object that
+isn't a class at all:
 
 ```lox
 var NotClass = "So not a class";
@@ -192,13 +207,13 @@ and their code.
 
 Did you notice that when we added method inheritance we didn't actually add any
 reference from a subclass to its superclass? After we copy the inherited methods
-over, we forget superclass entirely. We don't actually need to keep a handle on
-it, so we don't.
+over, we forget the superclass entirely. We don't need to keep a handle on the
+superclass, so we don't.
 
 That won't be sufficient to support super calls. Since a subclass <span
-name="may">may</span> override the superclass method, we'll need to be able to
-get out hands on superclass method tables. Before we get to mechanis, I want
-to refresh your memory on how super calls are statically resolved.
+name="may">may</span> override the superclass method, we need to be able to get
+out hands on superclass method tables. Before we get to mechanism, I want to
+refresh your memory on how super calls are statically resolved.
 
 <aside name="may">
 
@@ -237,16 +252,17 @@ C().test();
 
 Inside the body of the `test()` method, `this` is an instance of C. If super
 calls were resolved relative to the superclass of the *receiver* then we would
-look in B since that's C's superclass. But super calls are resolved relative to
-the superclass of the class *where the super call occurs*. In this case, we are
-in B's `test()` method, so the superclass is A and the program should print "A
-method".
+look in C's superclass, B. But super calls are resolved relative to the
+superclass of the *surrounding class where the super call occurs*. In this case,
+we are in B's `test()` method, so the superclass is A and the program should
+print "A method".
 
-This means that super calls are not resolved dynamically. The superclass used to
-look up the method is a static -- practically lexical -- property of where the
-call occurs. When we added inheritance to jlox, we took advantage of that by
-storing the superclass in the same Environment structure we used for all lexical
-scopes. Almost as if the interpreter saw the above program like:
+This means that super calls are not resolved dynamically based on the runtime
+instance. The superclass used to look up the method is a static -- practically
+lexical -- property of where the call occurs. When we added inheritance to jlox,
+we took advantage of that static aspect by storing the superclass in the same
+Environment structure we used for all lexical scopes. Almost as if the
+interpreter saw the above program like:
 
 ```lox
 class A {
@@ -272,9 +288,9 @@ class C < B {}
 C().test();
 ```
 
-Each subclass had a hidden variable that stored a reference to its superclass.
-Whenever we needed to perform a super call, we looked up the class in that
-variable and told the runtime to start looking for methods there.
+Each subclass gets a hidden variable storing a reference to its superclass.
+Whenever we need to perform a super call, we find the superclass in that
+variable and tell the runtime to start looking for methods there.
 
 We'll take the same path with clox. The difference is that instead of jlox's
 heap-allocated Environment class, we have the bytecode VM's value stack and
@@ -290,9 +306,9 @@ create a new scope and make it a local variable:
 ^code superclass-variable (2 before, 2 after)
 
 Creating a new lexical scope ensures that if we declare two classes in the same
-scope, each has as different local slot to store its superclass. We always name
-this hidden local variable "super", so if we didn't make a scope for each
-subclass, the variables would collide.
+scope, each has as different local slot to store its superclass. Since we always
+name this variable "super", if we didn't make a scope for each subclass, the
+variables would collide.
 
 We name the variable "super" for the same reason we use "this" as the name of
 the hidden local variable that `this` expressions resolve to: "super" is a
@@ -341,17 +357,17 @@ Then, if we see a superclass clause, we know we are compiling a subclass:
 
 ^code set-has-superclass (1 before, 1 after)
 
-That's the first step. Now each class that uses inheritance gets a local
-variable named "super" that reliably stores a reference to the class's
-superclass. That variable is available on the stack to all of the methods.
-Because it uses our existing machinery for capturing local variables in
-closures, the VM can even hoist the superclass reference into an upvalue if a
-function inside a method captures it.
+This machinery gives us a mechanism at runtime to access the superclass object
+of the surrounding subclass from within any of the subclass's methods -- simply
+emit code to load the variable named "super". That variable is a local outside
+of the method body, but our existing upvalue support enables the VM to capture
+that local inside the body of the method or even in functions nested inside that
+method.
 
 ## Super Calls
 
-We have the data we need to implement super calls. As usual, we go front to
-back, starting with the new syntax. A super call <span
+With that runtime support in place, we are ready to implement super calls. As
+usual, we go front to back, starting with the new syntax. A super call <span
 name="last">begins</span>, naturally enough, with the `super` keyword:
 
 <aside name="last">
@@ -362,22 +378,22 @@ This is it, friend. The very last entry you'll add to the parsing table.
 
 ^code table-super (1 before, 1 after)
 
-When the expression parser lands on that keyword, it hands off control to this
-parsing function:
+When the expression parser lands on a `super` token, control jumps to a mew
+parsing function which starts off like so:
 
 ^code super
 
 This is pretty different from how we compiled `this` expressions. Unlike `this`,
 a `super` <span name="token">token</span> is not a standalone expression.
 Instead, the dot and method name following it are inseparable parts of the
-expression. However, the parenthesized argument list is separate. As with normal
+syntax. However, the parenthesized argument list is separate. As with normal
 method access, Lox supports getting a reference to a superclass method as a
 closure without invoking it:
 
 <aside name="token">
 
-If a bare `super` token *was* an expression, what kind of object would it
-evaluate to?
+Hypothetical question: If a bare `super` token *was* an expression, what kind of
+object would it evaluate to?
 
 </aside>
 
@@ -397,33 +413,66 @@ class B < A {
 ```
 
 In other words, Lox doesn't really have super *call* expressions, it has super
-*access* expressions. You can choose to immediately invoke the result of that if
-you want. So when the compiler hits a `super` token, we consume the subsequent
-`.` token and then look for a method name. Methods are looked up dynamically, so
-we use `identifierConstant()` to take the lexeme of the method name token and
-store it in the constant table just like we do for property access expressions.
+*access* expressions, which you can choose to immediately invoke if you want. So
+when the compiler hits a `super` token, we consume the subsequent `.` token and
+then look for a method name. Methods are looked up dynamically, so we use
+`identifierConstant()` to take the lexeme of the method name token and store it
+in the constant table just like we do for property access expressions.
 
-Then the compiler has a few interesting lines of code. In order to access a
-*superclass method* on *the current instance*, we need access to both the
-receiver *and* the superclass of the surrounding method's class. The first
-`namedVariable()` call generates code to look up the current receiver stored in
-the hidden variable "this" and push it onto the stack. The second
+Here is what the compiler does after consuming those tokens:
+
+^code super-get (1 before, 1 after)
+
+In order to access a *superclass method* on *the current instance*, the runtime
+needs both the receiver *and* the superclass of the surrounding method's class.
+The first `namedVariable()` call generates code to look up the current receiver
+stored in the hidden variable "this" and push it onto the stack. The second
 `namedVariable()` call emits code to look up the superclass from its "super"
-variable and pushes that on top.
+variable and push that on top.
 
-Finally, we emit a new `OP_GET_SUPER` instruction with the constant table index
-of the method being accessed as the instruction's operand. This way, the runtime
-has access to the three pieces of information it needs:
+Finally, we emit a new `OP_GET_SUPER` instruction with an operand for the
+constant table index of the method named. That's a lot to hold in your head. To
+make it tangible, consider this example program:
 
-*   **The instance,** stored one slot down from the top of the stack.
-*   **The superclass where the method is resolved,** on top of
-    the stack.
-*   **The name of the method to access,** from the instruction's operand.
+```lox
+class Doughnut {
+  cook() {
+    print "Dunk in the fryer.";
+    this.finish();
+  }
 
-**todo: show stack**
+  finish(ingredient) {
+    print "Finish with " + ingredient;
+  }
+}
 
-We're almost ready to implement this instruction in the runtime. But before we
-do, the compiler has some errors it is responsible for reporting:
+class Cruller < Doughnut {
+  finish() {
+    super.finish("icing");
+  }
+}
+```
+
+The bytecode emitted for the `super.finish("icing")` expression looks and works
+like this:
+
+<img src="image/superclasses/super-instructions.png" alt="The series of bytecode instructions for calling super.finish()." />
+
+The first three instructions give the runtime access to the three pieces of
+information it needs to perform the super access:
+
+1.  The first instruction loads **the instance** onto the stack.
+2.  The second instruction loads **the superclass where the method is
+    resolved**.
+3.  Then the new `OP_GET_SUPER` instuction encodes **the name of the method to
+    access** as an operand.
+
+The remaining instructions are the normal bytecode for executing an argument
+list and calling a function.
+
+We're almost ready to implement the new `OP_GET_SUPER` instruction in the
+interpreter. But before we do, the compiler has some errors it is responsible
+for reporting:
 
 ^code super-errors (1 before, 1 after)
 
@@ -434,8 +483,8 @@ that's `NULL` or points to a class with no superclass, we report those errors.
 
 ### Executing super accesses
 
-Assuming the user didn't put a super expression in the wrong place, their code
-passes from the compiler over to the runtime. We've got ourselves a new
+Assuming the user didn't put a super expression where it's not allowed, their
+code passes from the compiler over to the runtime. We've got ourselves a new
 instruction:
 
 ^code get-super-op (1 before, 1 after)
@@ -444,38 +493,45 @@ We disassemble it like other opcodes that take a constant table index operand:
 
 ^code disassemble-get-super (1 before, 1 after)
 
-You might expect more work, but interpreting the new instruction is similar to
-executing a normal property access:
+You might anticipate something harder, but interpreting the new instruction is
+similar to executing a normal property access:
 
 ^code interpret-get-super (1 before, 2 after)
 
-As with properties, we read the method name from the constant table. Then we
-pass that to `bindMethod()` which looks up the method in the given class's
-method table and creates an ObjBoundMethod to bundle the resulting closure to
-the current instance.
+As with properties, we read the method name from the
+constant table. Then we pass that to `bindMethod()` which looks up the method in
+the given class's method table and creates an ObjBoundMethod to bundle the
+resulting closure to the current instance.
 
-One obvious difference with the code here is that we don't try to look for a
-field on the instance first. Fields are not <span name="proto">inherited</span>
-so super expressions always resolve to methods.
+The key <span name="field">difference</span> is *which* class we pass to
+`bindMethod()`. With a normal property access, we use the ObjInstances's own
+class, which gives us the dynamic dispatch we want. For a super call, we don't
+use the instance's class. Instead, we use the statically resolved superclass of
+the containing class, which the compiler has conveniently ensured is sitting on
+top of the stack waiting for us.
 
-The more useful difference is *which* class we pass to `bindMethod()`. With a
-normal property access, we use the ObjInstances's own class, which gives us the
-polymorphic dynamic dispatch we want. For a super call, we don't use the
-instance's class. Instead, we use the statically resolved superclass of the
-containing class, which the compiler has conveniently ensured is sitting on top
-of the stack waiting for us.
-
-We pop the superclass from the stack and pass it to `bindMethod()`, which does
-the method lookup using the superclass's method table. That correctly skips over
+We pop that superclass and pass it to `bindMethod()`, which correctly skips over
 any overriding methods in any of the subclasses between that superclass and the
 instance's own class. It also correctly includes any methods inherited by the
 superclass from any of *its* superclasses.
 
-Aside from those differences, the rest of the behavior is the same. Popping the
-superclass leaves the instance sitting on top of the stack. If `bindMethod()`
-succeeds, it pops the instance and pushes the new bound method. Otherwise, it
-reports a runtime error and returns `false`. In that case, we abort the
-interpreter.
+The rest of the behavior is the same. Popping the superclass leaves the instance
+at the top of the stack. When `bindMethod()` succeeds, it pops the instance and
+pushes the new bound method. Otherwise, it reports a runtime error and returns
+`false`. In that case, we abort the interpreter.
+
+<aside name="field">
+
+Another difference compared to `OP_GET_PROPERTY` is that we don't try to look
+for a shadowing field first. Fields are not inherited so super expressions
+always resolve to methods.
+
+If Lox were a prototype-based language that used *delegation* instead of
+*inheritance*, then instead of one *class* inheriting from another *class*,
+instances would inherit from ("delegate to") other instances. In that case,
+fields *can* be inherited and we would need to check for them here.
+
+</aside>
 
 ### Faster super calls
 
@@ -526,24 +582,32 @@ And just past that, its disassembler support:
 ^code disassemble-super-invoke (1 before, 1 after)
 
 A super invocation instruction has the same set of operands as `OP_INVOKE`, so
-we reuse the same helper to disassemble it. Finally, pipeline dumps us into the
-interpreter:
+we reuse the same helper to disassemble it. Finally, the pipeline dumps us into
+the interpreter:
 
 ^code interpret-super-invoke (2 before, 1 after)
 
 This handful of code is basically our implementation of `OP_INVOKE` mixed
-together with a dash of `OP_GET_SUPER`. First, we pull out the method name and
-argument count operands. Then we pop the superclass off the top of the stack so
-that we can look up the method in its method table.
+together with a dash of `OP_GET_SUPER`. There are some differences in how the
+stack is organized, though. With an unoptimized super call, the superclass is
+popped and replaced by the ObjBoundMethod for the resolved function *before* the
+arguments to the call are executed. This ensures that by the time the `OP_CALL`
+is executed, the bound method is *under* the argument list, where the runtime
+expects it to be for a closure call.
 
-There is a minor difference from an `OP_GET_SUPER` followed by `OP_CALL`. In
-that case, the superclass gets popped and replaced by the ObjBoundMethod for the
-resolved function *before* the arguments to the call are executed. Here, the
-superclass ends up on the stack on top of the arguments. But it doesn't make a
-big difference because we pop it off before the arguments get passed to the
-call.
+With our optimized instructions, things are shuffled a bit:
 
-**todo: show stack through call.**
+<img src="image/superclasses/super-invoke.png" class="wide" alt="The series of bytecode instructions for calling super.finish() using OP_SUPER_INVOKE." />
+
+Now resolving the superclass method is part of the *invocation*, so the
+arguments need to already be on the stack at the point that we look up the
+method. This means the superclass object is on top of the arguments.
+
+Aside from that, the behavior is roughly the same as an `OP_GET_SUPER` followed
+by an `OP_CALL`. First, we pull out the method name and argument count operands.
+Then we pop the superclass off the top of the stack so that we can look up the
+method in its method table. This conveniently leaves the stack set up just right
+for a method call.
 
 We pass the superclass, method name, and argument count to our existing
 `invokeFromClass()` function. That function looks up the given method on the
@@ -551,15 +615,16 @@ given class and attempts to create a call to it with the given arity. If a
 method could not be found, it returns `false` and we bail out of the
 interpreter. Otherwise, `invokeFromClass()` pushes a new CallFrame onto the call
 stack for the method's closure. That invalidates the interpreter's cached
-CallFrame pointer, so we refresh that.
+CallFrame pointer, so we refresh `frame`.
 
 ## A Complete Virtual Machine
 
 Take a look back at what we've created. By my count, we wrote around 2,500 lines
 of fairly clean, straightforward C. That little program contains a complete
-implementation of the Lox language with a whole precedence table full of
-expression types and a suite of control flow statements. We implemented
-variables, functions, closures, classes, fields, methods, and inheritance.
+implementation of the -- quite high-level! -- Lox language with a whole
+precedence table full of expression types and a suite of control flow
+statements. We implemented variables, functions, closures, classes, fields,
+methods, and inheritance.
 
 Even more impressive, our implementation is portable to any platform with a C
 compiler, and is fast enough for real-world production use. We have a
@@ -571,15 +636,15 @@ If you go out and start poking around in the implementations of Lua, Python, or
 Ruby, you will be surprised by how much of it now looks familiar to you. You
 have seriously leveled up your knowledge of how programming languages work,
 which in turn gives you a deeper understanding of programming itself. It's like
-you used to be a taxi driver and now you can pop the hood and repair the engine
-on your car too.
+you used to be a race car driver and now you can pop the hood and repair the
+engine too.
 
 You can stop here if you like. The two implementations of Lox you have are
-complete and full-featured. You built the car and can drive it wherever you like
-now. But if you want to have some more fun tuning and tweaking it for even
-greater performance out on the racetrack, there is one more chapter. We don't
-add any new capabilities, but we roll in a couple of classic optimizations to
-squeeze even more perf out of it. If that sounds fun, [keep reading][opt]...
+complete and full-featured. You built the car and can drive it wherever you want
+now. But if you are looking to have more fun tuning and tweaking for even
+greater performance out on the track, there is one more chapter. We don't add
+any new capabilities, but we roll in a couple of classic optimizations to
+squeeze even more perf out. If that sounds fun, [keep reading][opt]...
 
 [opt]: optimization.html
 
@@ -589,9 +654,9 @@ squeeze even more perf out of it. If that sounds fun, [keep reading][opt]...
 
 1.  A tenet of object-oriented programming is that a class should ensure new
     objects are in a valid state. In Lox, that means defining an initializer
-    that populates the instance's fields. Inheritance complicates this because
-    the instance must be in a valid state according to all of the classes in
-    the object's inheritance chain.
+    that populates the instance's fields. Inheritance complicates invariants
+    because the instance must be in a valid state according to all of the
+    classes in the object's inheritance chain.
 
     The easy part is remembering to call `super.init()` in each subclass's
     `init()` method. The harder part is fields. There is nothing preventing two
@@ -602,8 +667,8 @@ squeeze even more perf out of it. If that sounds fun, [keep reading][opt]...
     If Lox was your language, how would you address this, if at all? If you
     would change the language, implement your change.
 
-2.  Our copy-down inheritance optimization only works in Lox because it's not
-    possible to modify a class's methods after its declaration. This means we
+2.  Our copy-down inheritance optimization is only valid because Lox does not
+    permit you to modify a class's methods after its declaration. This means we
     don't have to worry about the copied methods in the subclass getting out of
     sync with later changes to the superclass.
 
