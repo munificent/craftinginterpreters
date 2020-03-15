@@ -807,12 +807,14 @@ static void super_(bool canAssign) {
   consume(TOKEN_DOT, "Expect '.' after 'super'.");
   consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
   uint8_t name = identifierConstant(&parser.previous);
-
+//> super-get
+  
   namedVariable(syntheticToken("this"), false);
-/* Superclasses super < Superclasses super-invoke
+/* Superclasses super-get < Superclasses super-invoke
   namedVariable(syntheticToken("super"), false);
   emitBytes(OP_GET_SUPER, name);
 */
+//< super-get
 //> super-invoke
   if (match(TOKEN_LEFT_PAREN)) {
     uint8_t argCount = argumentList();

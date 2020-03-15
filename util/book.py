@@ -253,7 +253,6 @@ TOC = [
         'topics': [
           'Method inheritance', 'Super invocations'
         ],
-        'done': False,
       },
       {
         'name': 'Optimization',
