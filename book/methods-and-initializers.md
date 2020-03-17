@@ -1162,7 +1162,7 @@ arguments. Overload resolution that can fail at runtime. I did things
 differently just for difference's sake.
 
 This is a very fun experience that I highly recommend. We need more weird,
-avante garde programming languages. I want to see more art languages. I still
+avant-garde programming languages. I want to see more art languages. I still
 make oddball toy languages for fun sometimes.
 
 *However*, if your goal is success where "success" is defined as a large number
