@@ -259,7 +259,6 @@ TOC = [
         'topics': [
           'Benchmarking', 'Hash code masking', 'NaN tagging'
         ],
-        'done': False,
       }
     ]
   },

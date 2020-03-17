@@ -11,7 +11,7 @@ typedef struct sObjString ObjString;
 //< forward-declare-obj-string
 
 //< Strings forward-declare-obj
-//> Optimization not-yet
+//> Optimization nan-tagging
 #ifdef NAN_TAGGING
 
 // A mask that selects the sign bit.
@@ -71,7 +71,7 @@ static inline Value numToValue(double num) {
 
 #else
 
-//< Optimization not-yet
+//< Optimization nan-tagging
 //> Types of Values value-type
 typedef enum {
   VAL_BOOL,
@@ -124,10 +124,10 @@ typedef struct {
 #define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })
 //< Strings obj-val
 //< Types of Values value-macros
-//> Optimization not-yet
+//> Optimization end-if-nan-tagging
 
 #endif
-//< Optimization not-yet
+//< Optimization end-if-nan-tagging
 //> value-array
 
 typedef struct {

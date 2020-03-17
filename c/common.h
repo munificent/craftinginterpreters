@@ -7,9 +7,9 @@
 #include <stdint.h>
 //> A Virtual Machine define-debug-trace
 
-//> Optimization not-yet
+//> Optimization define-nan-tagging
 #define NAN_TAGGING
-//< Optimization not-yet
+//< Optimization define-nan-tagging
 //> Compiling Expressions define-debug-print-code
 #define DEBUG_PRINT_CODE
 //< Compiling Expressions define-debug-print-code

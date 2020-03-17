@@ -36,7 +36,7 @@ void freeValueArray(ValueArray* array) {
 //< free-value-array
 //> print-value
 void printValue(Value value) {
-//> Optimization not-yet
+//> Optimization print-value
 #ifdef NAN_TAGGING
   if (IS_BOOL(value)) {
     printf(AS_BOOL(value) ? "true" : "false");
@@ -48,7 +48,7 @@ void printValue(Value value) {
     printObject(value);
   }
 #else
-//< Optimization not-yet
+//< Optimization print-value
 /* Chunks of Bytecode print-value < Types of Values print-number-value
   printf("%g", value);
 */
@@ -65,18 +65,18 @@ void printValue(Value value) {
 //< Strings call-print-object
   }
 //< Types of Values print-value
-//> Optimization not-yet
+//> Optimization end-print-value
 #endif
-//< Optimization not-yet
+//< Optimization end-print-value
 }
 //< print-value
 //> Types of Values values-equal
 bool valuesEqual(Value a, Value b) {
-//> Optimization not-yet
+//> Optimization values-equal
 #ifdef NAN_TAGGING
   return a == b;
 #else
-//< Optimization not-yet
+//< Optimization values-equal
   if (a.type != b.type) return false;
 
   switch (a.type) {
@@ -95,8 +95,8 @@ bool valuesEqual(Value a, Value b) {
     case VAL_OBJ:    return AS_OBJ(a) == AS_OBJ(b);
 //< Hash Tables equal
   }
-//> Optimization not-yet
+//> Optimization end-values-equal
 #endif
-//< Optimization not-yet
+//< Optimization end-values-equal
 }
 //< Types of Values values-equal
