@@ -899,7 +899,7 @@ When you declare a class, you can specify a class that it inherits from using
 ```lox
 class Brunch < Breakfast {
   drink() {
-    print "How about a Blood Mary?";
+    print "How about a Bloody Mary?";
   }
 }
 ```
