@@ -233,7 +233,7 @@ name="paren">expression</span>, since the latter has lower precedence.
 <aside name="paren">
 
 Of course, it could be a *parenthesized* addition expression, but that's because
-the parentheses themeselves are treated as having the highest precedence.
+the parentheses themselves are treated as having the highest precedence.
 
 </aside>
 

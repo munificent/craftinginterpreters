@@ -36,7 +36,7 @@ you manually evaluate an arithmetic expression like this:
 1 + 2 * 3 - 4
 ```
 
-Because you understand the order or operations -- the old "[Please Excuse My
+Because you understand the order of operations -- the old "[Please Excuse My
 Dear Aunt Sally][sally]" stuff -- you know that the `*` is evaluated before the
 `+` or `-`. One way to visualize that precedence is using a tree. Leaf nodes are
 numbers, and interior nodes are operators with branches for each of their

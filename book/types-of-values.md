@@ -147,7 +147,7 @@ So our values are 16 bytes, which seems a little large. We'll improve it
 [later][optimization]. In the meantime, they're still small enough to store on
 the C stack and pass around by value. Lox's semantics allow that because the
 only types we support so far are **immutable**. If we pass a copy of a Value
-containing the number three to some function, we don't need worry about the
+containing the number three to some function, we don't need to worry about the
 caller seeing modifications to the value. You can't "modify" three. It's three
 forever.
 
@@ -320,6 +320,11 @@ occurred. Since we left the tokens behind in the compiler, we look up the line
 in the debug information compiled into the chunk. If our compiler did its job
 right, that corresponds to the line of source code that the bytecode was
 compiled from.
+
+We look into the chunk's debug line array using the current bytecode instruction
+index *minus one*. That's because the interpreter advances past each instruction
+before executing it. So, at the point that we call `runtimeError()`, the failed
+instruction is the previous one.
 
 <aside name="stack">
 

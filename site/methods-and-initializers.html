@@ -1089,7 +1089,23 @@ in <em>markRoots</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
-<p>And we don&rsquo;t free it until the entire VM is shutting down:</p>
+<p>Look carefully. See any bug waiting to happen? No? It&rsquo;s a subtle one. The
+garbage collector now reads <code>vm.initString</code>. That variable gets initialized by
+the result of calling <code>copyString()</code>. But that function itself allocates memory,
+which can trigger a GC. If the collector ran at just the wrong time, it would
+read <code>vm.initString</code> before it had been initialized. So, first we zero the
+field out:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>               
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>initVM</em>()</div>
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">initString</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                 
+</pre><pre class="insert-after"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">initString</span> <span class="o">=</span> <span class="n">copyString</span><span class="p">(</span><span class="s">&quot;init&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+<br></pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
+
+<p>We forget the string pointer when the VM shuts down since the next line will
+free it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">freeTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
@@ -1099,7 +1115,7 @@ in <em>freeVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
-<p>That&rsquo;s calling initializers.</p>
+<p>OK, that lets us call initializers.</p>
 <h3><a href="#initializer-return-values" name="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small> Initializer return values</a></h3>
 <p>The next step is ensuring that constructing an instance of a class with an
 initializer always returns the new instance and not <code>nil</code> or whatever the body
@@ -1201,9 +1217,9 @@ fairly full-featured class system working in clox:</p>
 
 
 <p>Pretty fancy for a C program that would fit on an old <span
-name="floppy">floppy</span> disc.</p>
+name="floppy">floppy</span> disk.</p>
 <aside name="floppy">
-<p>I acknowledge that &ldquo;floppy disc&rdquo; may no longer be a useful size reference for
+<p>I acknowledge that &ldquo;floppy disk&rdquo; may no longer be a useful size reference for
 current generations of programmers. Maybe I should have said &ldquo;a few tweets&rdquo; or
 something.</p>
 </aside>
@@ -1399,7 +1415,7 @@ stack. We don&rsquo;t need to heap allocate and initialize an ObjBoundMethod. In
 we don&rsquo;t even need to <span name="juggle">juggle</span> anything on the stack.
 The receiver and method arguments are already right where they need to be.</p>
 <aside name="juggle">
-<p>This is a key reason <em>why</em> we use stack slot zero to store the reciver<span class="em">&mdash;</span>it&rsquo;s
+<p>This is a key reason <em>why</em> we use stack slot zero to store the receiver<span class="em">&mdash;</span>it&rsquo;s
 how the caller already organizes the stack for a method call. An efficient
 calling convention is an important part of a bytecode VM&rsquo;s performance story.</p>
 </aside>
@@ -1565,7 +1581,7 @@ arbitrary language design decisions. Apostrophes for generics. No commas between
 arguments. Overload resolution that can fail at runtime. I did things
 differently just for difference&rsquo;s sake.</p>
 <p>This is a very fun experience that I highly recommend. We need more weird,
-avante garde programming languages. I want to see more art languages. I still
+avant-garde programming languages. I want to see more art languages. I still
 make oddball toy languages for fun sometimes.</p>
 <p><em>However</em>, if your goal is success where &ldquo;success&rdquo; is defined as a large number
 of users, then your priorities must be different. In that case, your primary
@@ -1618,7 +1634,7 @@ budget</strong></span>, or as Steve Klabnik calls it, a &ldquo;<a href="https://
 have a low threshold for the total amount of new stuff they are willing to
 accept to learn a new language. Exceed that and they won&rsquo;t show up.</p>
 <aside name="idiosyncracy">
-<p>A related concept in psychology is <a href="https://en.wikipedia.org/wiki/Idiosyncrasy_credit**"><strong>idiosyncracy credit</strong></a>, the
+<p>A related concept in psychology is <a href="https://en.wikipedia.org/wiki/Idiosyncrasy_credit"><strong>idiosyncracy credit</strong></a>, the
 idea that other people in society grant you a finite amount of deviations from
 social norms. You earn credit by fitting in and doing in-group things, which you
 can then spend on oddball activities that might otherwise raise eyebrows. In

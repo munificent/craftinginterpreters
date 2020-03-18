@@ -51,12 +51,12 @@ static void runtimeError(const char* format, ...) {
   fputs("\n", stderr);
 
 /* Types of Values runtime-error < Calls and Functions runtime-error-temp
-  size_t instruction = vm.ip - vm.chunk->code;
+  size_t instruction = vm.ip - vm.chunk->code - 1;
   int line = vm.chunk->lines[instruction];
 */
 /* Calls and Functions runtime-error-temp < Calls and Functions runtime-error-stack
   CallFrame* frame = &vm.frames[vm.frameCount - 1];
-  size_t instruction = frame->ip - frame->function->chunk.code;
+  size_t instruction = frame->ip - frame->function->chunk.code - 1;
   int line = frame->function->chunk.lines[instruction];
 */
 /* Types of Values runtime-error < Calls and Functions runtime-error-stack
@@ -123,6 +123,9 @@ void initVM() {
 //< Hash Tables init-strings
 //> Methods and Initializers init-init-string
 
+//> null-init-string
+  vm.initString = NULL;
+//< null-init-string
   vm.initString = copyString("init", 4);
 //< Methods and Initializers init-init-string
 //> Calls and Functions define-native-clock
