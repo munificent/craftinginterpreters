@@ -248,7 +248,7 @@ memory usage for values will be<span class="em">&mdash;</span>the C compiler wil
 <a href="optimization.html">later</a>. In the meantime, they&rsquo;re still small enough to store on
 the C stack and pass around by value. Lox&rsquo;s semantics allow that because the
 only types we support so far are <strong>immutable</strong>. If we pass a copy of a Value
-containing the number three to some function, we don&rsquo;t need worry about the
+containing the number three to some function, we don&rsquo;t need to worry about the
 caller seeing modifications to the value. You can&rsquo;t &ldquo;modify&rdquo; three. It&rsquo;s three
 forever.</p>
 <h2><a href="#lox-values-and-c-values" name="lox-values-and-c-values"><small>18&#8202;.&#8202;2</small> Lox Values and C Values</a></h2>
@@ -425,7 +425,7 @@ add after <em>resetStack</em>()</div>
   <span class="n">va_end</span><span class="p">(</span><span class="n">args</span><span class="p">);</span>                                    
   <span class="n">fputs</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">stderr</span><span class="p">);</span>
 
-  <span class="kt">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">-</span> <span class="n">vm</span><span class="p">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="p">;</span>     
+  <span class="kt">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">ip</span> <span class="o">-</span> <span class="n">vm</span><span class="p">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> 
   <span class="kt">int</span> <span class="n">line</span> <span class="o">=</span> <span class="n">vm</span><span class="p">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">lines</span><span class="p">[</span><span class="n">instruction</span><span class="p">];</span>         
   <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span> <span class="s">&quot;[line %d] in script</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">);</span>  
 
@@ -458,6 +458,10 @@ occurred. Since we left the tokens behind in the compiler, we look up the line
 in the debug information compiled into the chunk. If our compiler did its job
 right, that corresponds to the line of source code that the bytecode was
 compiled from.</p>
+<p>We look into the chunk&rsquo;s debug line array using the current bytecode instruction
+index <em>minus one</em>. That&rsquo;s because the interpreter advances past each instruction
+before executing it. So, at the point that we call <code>runtimeError()</code>, the failed
+instruction is the previous one.</p>
 <aside name="stack">
 <p>Just showing the immediate line where the error occurred doesn&rsquo;t provide much
 context. Better would be a full stack trace. But we don&rsquo;t even have functions to

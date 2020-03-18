@@ -766,11 +766,21 @@ We want it to stick around, so the GC considers it a root:
 
 ^code mark-init-string (1 before, 1 after)
 
-And we don't free it until the entire VM is shutting down:
+Look carefully. See any bug waiting to happen? No? It's a subtle one. The
+garbage collector now reads `vm.initString`. That variable gets initialized by
+the result of calling `copyString()`. But that function itself allocates memory,
+which can trigger a GC. If the collector ran at just the wrong time, it would
+read `vm.initString` before it had been initialized. So, first we zero the
+field out:
+
+^code null-init-string (2 before, 2 after)
+
+We forget the string pointer when the VM shuts down since the next line will
+free it:
 
 ^code clear-init-string (1 before, 1 after)
 
-That's calling initializers.
+OK, that lets us call initializers.
 
 ### Initializer return values
 
@@ -844,11 +854,11 @@ maker.brew();
 ```
 
 Pretty fancy for a C program that would fit on an old <span
-name="floppy">floppy</span> disc.
+name="floppy">floppy</span> disk.
 
 <aside name="floppy">
 
-I acknowledge that "floppy disc" may no longer be a useful size reference for
+I acknowledge that "floppy disk" may no longer be a useful size reference for
 current generations of programmers. Maybe I should have said "a few tweets" or
 something.
 
@@ -983,7 +993,7 @@ The receiver and method arguments are already right where they need to be.
 
 <aside name="juggle">
 
-This is a key reason *why* we use stack slot zero to store the reciver -- it's
+This is a key reason *why* we use stack slot zero to store the receiver -- it's
 how the caller already organizes the stack for a method call. An efficient
 calling convention is an important part of a bytecode VM's performance story.
 
@@ -1162,7 +1172,7 @@ arguments. Overload resolution that can fail at runtime. I did things
 differently just for difference's sake.
 
 This is a very fun experience that I highly recommend. We need more weird,
-avante garde programming languages. I want to see more art languages. I still
+avant-garde programming languages. I want to see more art languages. I still
 make oddball toy languages for fun sometimes.
 
 *However*, if your goal is success where "success" is defined as a large number
@@ -1242,7 +1252,7 @@ can then spend on oddball activities that might otherwise raise eyebrows. In
 other words, demonstrating that you are "one of the good ones" gives you license
 to raise your freak flag, but only so far.
 
-[idiosyncracy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit**
+[idiosyncracy]: https://en.wikipedia.org/wiki/Idiosyncrasy_credit
 
 </aside>
 
