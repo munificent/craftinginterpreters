@@ -128,7 +128,7 @@ gets. Not a great performance story.
 
 The new approach is much faster. When the subclass is declared, we copy all of
 the inherited class's methods down into the subclass's own method table. Later,
-when *calling* a method, any method inheritred from a superclass will be found
+when *calling* a method, any method inherited from a superclass will be found
 right in the subclass's own method table. There is no extra runtime work needed
 for inheritance at all. By the time the class is declared, the work is done.
 This means inherited method calls are exactly as fast as normal method calls --
@@ -223,7 +223,7 @@ calling it directly?
 
 </aside>
 
-Back in the halycon days of jlox, I showed you [this tricky example][example] to
+Back in the halcyon days of jlox, I showed you [this tricky example][example] to
 explain the way super calls are dispatched:
 
 [example]: http://localhost:8000/inheritance.html#semantics
@@ -306,7 +306,7 @@ create a new scope and make it a local variable:
 ^code superclass-variable (2 before, 2 after)
 
 Creating a new lexical scope ensures that if we declare two classes in the same
-scope, each has as different local slot to store its superclass. Since we always
+scope, each has a different local slot to store its superclass. Since we always
 name this variable "super", if we didn't make a scope for each subclass, the
 variables would collide.
 
@@ -378,7 +378,7 @@ This is it, friend. The very last entry you'll add to the parsing table.
 
 ^code table-super (1 before, 1 after)
 
-When the expression parser lands on a `super` token, control jumps to a mew
+When the expression parser lands on a `super` token, control jumps to a new
 parsing function which starts off like so:
 
 ^code super
