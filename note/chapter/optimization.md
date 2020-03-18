@@ -10,3 +10,7 @@ code's a little ugly and I'm not sure if it's worth showing. Discarded for now.
 See explanation of how `IS_BOOL()` works here:
 
 https://github.com/munificent/craftinginterpreters/issues/565
+
+--
+
+https://nikic.github.io/2012/02/02/Pointer-magic-for-efficient-dynamic-value-representations.html
