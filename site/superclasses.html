@@ -258,7 +258,7 @@ worse, the farther an inherited method is up the ancestor chain, the slower it
 gets. Not a great performance story.</p>
 <p>The new approach is much faster. When the subclass is declared, we copy all of
 the inherited class&rsquo;s methods down into the subclass&rsquo;s own method table. Later,
-when <em>calling</em> a method, any method inheritred from a superclass will be found
+when <em>calling</em> a method, any method inherited from a superclass will be found
 right in the subclass&rsquo;s own method table. There is no extra runtime work needed
 for inheritance at all. By the time the class is declared, the work is done.
 This means inherited method calls are exactly as fast as normal method calls<span class="em">&mdash;</span>a <span name="two">single</span> hash table lookup.</p>
@@ -332,14 +332,14 @@ over, we forget the superclass entirely. We don&rsquo;t need to keep a handle on
 superclass, so we don&rsquo;t.</p>
 <p>That won&rsquo;t be sufficient to support super calls. Since a subclass <span
 name="may">may</span> override the superclass method, we need to be able to get
-out hands on superclass method tables. Before we get to mechanism, I want to
+our hands on superclass method tables. Before we get to mechanism, I want to
 refresh your memory on how super calls are statically resolved.</p>
 <aside name="may">
 <p>&ldquo;May&rdquo; might not a strong enough word. Presumably the method <em>has</em> been
 overridden. Otherwise, why are you bothering to use <code>super</code> instead of just
 calling it directly?</p>
 </aside>
-<p>Back in the halycon days of jlox, I showed you <a href="http://localhost:8000/inheritance.html#semantics">this tricky example</a> to
+<p>Back in the halcyon days of jlox, I showed you <a href="http://localhost:8000/inheritance.html#semantics">this tricky example</a> to
 explain the way super calls are dispatched:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">A</span> <span class="p">{</span>
   <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
@@ -423,7 +423,7 @@ in <em>classDeclaration</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>Creating a new lexical scope ensures that if we declare two classes in the same
-scope, each has as different local slot to store its superclass. Since we always
+scope, each has a different local slot to store its superclass. Since we always
 name this variable &ldquo;super&rdquo;, if we didn&rsquo;t make a scope for each subclass, the
 variables would collide.</p>
 <p>We name the variable &ldquo;super&rdquo; for the same reason we use &ldquo;this&rdquo; as the name of
@@ -527,7 +527,7 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
-<p>When the expression parser lands on a <code>super</code> token, control jumps to a mew
+<p>When the expression parser lands on a <code>super</code> token, control jumps to a new
 parsing function which starts off like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>syntheticToken</em>()</div>
