@@ -321,6 +321,11 @@ in the debug information compiled into the chunk. If our compiler did its job
 right, that corresponds to the line of source code that the bytecode was
 compiled from.
 
+We look into the chunk's debug line array using the current bytecode instruction
+index *minus one*. That's because the interpreter advances past each instruction
+before executing it. So, at the point that we call `runtimeError()`, the failed
+instruction is the previous one.
+
 <aside name="stack">
 
 Just showing the immediate line where the error occurred doesn't provide much
