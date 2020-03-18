@@ -1089,7 +1089,23 @@ in <em>markRoots</em>()</div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
-<p>And we don&rsquo;t free it until the entire VM is shutting down:</p>
+<p>Look carefully. See any bug waiting to happen? No? It&rsquo;s a subtle one. The
+garbage collector now reads <code>vm.initString</code>. That variable gets initialized by
+the result of calling <code>copyString()</code>. But that function itself allocates memory,
+which can trigger a GC. If the collector ran at just the wrong time, it would
+read <code>vm.initString</code> before it had been initialized. So, first we zero the
+field out:</p>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>               
+<br></pre><div class="source-file"><em>vm.c</em><br>
+in <em>initVM</em>()</div>
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">initString</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>                 
+</pre><pre class="insert-after"><span></span>  <span class="n">vm</span><span class="p">.</span><span class="n">initString</span> <span class="o">=</span> <span class="n">copyString</span><span class="p">(</span><span class="s">&quot;init&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+<br></pre></div>
+
+<div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
+
+<p>We forget the string pointer when the VM shuts down since the next line will
+free it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">freeTable</span><span class="p">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="p">.</span><span class="n">strings</span><span class="p">);</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
@@ -1099,7 +1115,7 @@ in <em>freeVM</em>()</div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
 
-<p>That&rsquo;s calling initializers.</p>
+<p>OK, that lets us call initializers.</p>
 <h3><a href="#initializer-return-values" name="initializer-return-values"><small>28&#8202;.&#8202;4&#8202;.&#8202;2</small> Initializer return values</a></h3>
 <p>The next step is ensuring that constructing an instance of a class with an
 initializer always returns the new instance and not <code>nil</code> or whatever the body

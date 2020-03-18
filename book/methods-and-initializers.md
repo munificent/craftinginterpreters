@@ -766,11 +766,21 @@ We want it to stick around, so the GC considers it a root:
 
 ^code mark-init-string (1 before, 1 after)
 
-And we don't free it until the entire VM is shutting down:
+Look carefully. See any bug waiting to happen? No? It's a subtle one. The
+garbage collector now reads `vm.initString`. That variable gets initialized by
+the result of calling `copyString()`. But that function itself allocates memory,
+which can trigger a GC. If the collector ran at just the wrong time, it would
+read `vm.initString` before it had been initialized. So, first we zero the
+field out:
+
+^code null-init-string (2 before, 2 after)
+
+We forget the string pointer when the VM shuts down since the next line will
+free it:
 
 ^code clear-init-string (1 before, 1 after)
 
-That's calling initializers.
+OK, that lets us call initializers.
 
 ### Initializer return values
 

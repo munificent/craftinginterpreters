@@ -123,6 +123,9 @@ void initVM() {
 //< Hash Tables init-strings
 //> Methods and Initializers init-init-string
 
+//> null-init-string
+  vm.initString = NULL;
+//< null-init-string
   vm.initString = copyString("init", 4);
 //< Methods and Initializers init-init-string
 //> Calls and Functions define-native-clock
