@@ -43,9 +43,9 @@ typedef enum {
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
 //< Classes and Instances property-ops
-//> Superclasses not-yet
+//> Superclasses get-super-op
   OP_GET_SUPER,
-//< Superclasses not-yet
+//< Superclasses get-super-op
 //> Types of Values comparison-ops
   OP_EQUAL,
   OP_GREATER,
@@ -81,9 +81,9 @@ typedef enum {
 //> Methods and Initializers invoke-op
   OP_INVOKE,
 //< Methods and Initializers invoke-op
-//> Superclasses not-yet
-  OP_SUPER,
-//< Superclasses not-yet
+//> Superclasses super-invoke-op
+  OP_SUPER_INVOKE,
+//< Superclasses super-invoke-op
 //> Closures closure-op
   OP_CLOSURE,
 //< Closures closure-op
@@ -94,9 +94,9 @@ typedef enum {
 //> Classes and Instances class-op
   OP_CLASS,
 //< Classes and Instances class-op
-//> Superclasses not-yet
+//> Superclasses inherit-op
   OP_INHERIT,
-//< Superclasses not-yet
+//< Superclasses inherit-op
 //> Methods and Initializers method-op
   OP_METHOD
 //< Methods and Initializers method-op

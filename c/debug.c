@@ -120,10 +120,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_SET_PROPERTY:
       return constantInstruction("OP_SET_PROPERTY", chunk, offset);
 //< Classes and Instances disassemble-property-ops
-//> Superclasses not-yet
+//> Superclasses disassemble-get-super
     case OP_GET_SUPER:
       return constantInstruction("OP_GET_SUPER", chunk, offset);
-//< Superclasses not-yet
+//< Superclasses disassemble-get-super
 //> Types of Values disassemble-comparison
     case OP_EQUAL:
       return simpleInstruction("OP_EQUAL", offset);
@@ -172,10 +172,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_INVOKE:
       return invokeInstruction("OP_INVOKE", chunk, offset);
 //< Methods and Initializers disassemble-invoke
-//> Superclasses not-yet
-    case OP_SUPER:
-      return invokeInstruction("OP_SUPER_", chunk, offset);
-//< Superclasses not-yet
+//> Superclasses disassemble-super-invoke
+    case OP_SUPER_INVOKE:
+      return invokeInstruction("OP_SUPER_INVOKE", chunk, offset);
+//< Superclasses disassemble-super-invoke
 //> Closures disassemble-closure
     case OP_CLOSURE: {
       offset++;
@@ -208,10 +208,10 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_CLASS:
       return constantInstruction("OP_CLASS", chunk, offset);
 //< Classes and Instances disassemble-class
-//> Superclasses not-yet
+//> Superclasses disassemble-inherit
     case OP_INHERIT:
       return simpleInstruction("OP_INHERIT", offset);
-//< Superclasses not-yet
+//< Superclasses disassemble-inherit
 //> Methods and Initializers disassemble-method
     case OP_METHOD:
       return constantInstruction("OP_METHOD", chunk, offset);
