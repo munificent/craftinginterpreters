@@ -226,7 +226,7 @@ calling it directly?
 Back in the halcyon days of jlox, I showed you [this tricky example][example] to
 explain the way super calls are dispatched:
 
-[example]: http://localhost:8000/inheritance.html#semantics
+[example]: inheritance.html#semantics
 
 ```lox
 class A {
