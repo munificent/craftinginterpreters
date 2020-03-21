@@ -105,13 +105,19 @@ static void adjustCapacity(Table* table, int capacity) {
 */
 //> Optimization adjust-capacity
 static void adjustCapacity(Table* table, int capacityMask) {
-/* Hash Tables table-adjust-capacity < Optimization adjust-capacity
+//< Optimization adjust-capacity
+/* Hash Tables table-adjust-capacity < Optimization adjust-alloc
   Entry* entries = ALLOCATE(Entry, capacity);
+*/
+//> Optimization adjust-alloc
+Entry* entries = ALLOCATE(Entry, capacityMask + 1);
+//< Optimization adjust-alloc
+/* Hash Tables table-adjust-capacity < Optimization adjust-init
   for (int i = 0; i < capacity; i++) {
 */
-  Entry* entries = ALLOCATE(Entry, capacityMask + 1);
+//> Optimization adjust-init
   for (int i = 0; i <= capacityMask; i++) {
-//< Optimization adjust-capacity
+//< Optimization adjust-init
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
   }

@@ -741,6 +741,6 @@ squeeze even more perf out. If that sounds fun, [keep reading][opt]...
 
 [inheritance]: inheritance.html
 [inner]: http://journal.stuffwithstuff.com/2012/12/19/the-impoliteness-of-overriding-methods/
-[beta]: http://cs.au.dk/~beta/
+[beta]: https://beta.cs.au.dk/
 
 </div>

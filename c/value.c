@@ -37,7 +37,7 @@ void freeValueArray(ValueArray* array) {
 //> print-value
 void printValue(Value value) {
 //> Optimization print-value
-#ifdef NAN_TAGGING
+#ifdef NAN_BOXING
   if (IS_BOOL(value)) {
     printf(AS_BOOL(value) ? "true" : "false");
   } else if (IS_NIL(value)) {
@@ -73,7 +73,10 @@ void printValue(Value value) {
 //> Types of Values values-equal
 bool valuesEqual(Value a, Value b) {
 //> Optimization values-equal
-#ifdef NAN_TAGGING
+#ifdef NAN_BOXING
+//> nan-equality
+  if (IS_NUMBER(a) && IS_NUMBER(b)) return AS_NUMBER(a) == AS_NUMBER(b);
+//< nan-equality
   return a == b;
 #else
 //< Optimization values-equal
