@@ -702,6 +702,6 @@ refreshed and ready, we'll embark on our [next adventure][].
 
 [challenge]: the-lox-language.html#challenges
 [inner]: http://journal.stuffwithstuff.com/2012/12/19/the-impoliteness-of-overriding-methods/
-[beta]: http://cs.au.dk/~beta/
+[beta]: https://beta.cs.au.dk/
 
 </div>
