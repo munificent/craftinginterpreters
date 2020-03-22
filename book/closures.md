@@ -3,6 +3,7 @@
 
 > As the man said, for every complex problem there's a simple solution, and it's
 > wrong.
+>
 > <cite>Umberto Eco, <em>Foucault's Pendulum</em></cite>
 
 Thanks to our diligent labor in [the last chapter][last], we have a virtual

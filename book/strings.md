@@ -789,7 +789,7 @@ A simpler compromise is to always encode using UTF-8 and only expose a code
 point-based API. For users that want to work with grapheme clusters, let them
 use a third-party library for that. This is less Latin-centric than ASCII but
 not much more complex. You lose fast direct indexing by code point, but you can
-usually live without that or afford to make it `O(n)` instead of `O(1)`.
+usually live without that or afford to make it *O(n)* instead of *O(1)*.
 
 If I were designing a big workhorse language for people writing large
 applications, I'd probably go with the maximal approach. For my little embedded
