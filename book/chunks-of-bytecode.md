@@ -359,14 +359,14 @@ before storing an element." class="wide" />
 <aside name="amortized">
 
 Copying the existing elements when you grow the array makes it seem like
-appending an element is `O(n)`, not `O(1)` like I said above. However, you only
+appending an element is *O(n)*, not *O(1)* like I said above. However, you only
 need to do this copy step on *some* of the appends. Most of the time, there is
 already extra capacity, so you don't need to copy.
 
 To understand how this works, we need [**amortized
 analysis**](https://en.wikipedia.org/wiki/Amortized_analysis). That shows us
 that as long as we grow the array by a multiple of its current size, when we
-average out the cost of a *sequence* of appends, each append is `O(1)`.
+average out the cost of a *sequence* of appends, each append is *O(1)*.
 
 </aside>
 

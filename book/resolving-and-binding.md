@@ -387,8 +387,8 @@ execution:
 
 <aside name="fix">
 
-Variable resolution touches each node once, so its performance is `O(n)` where
-`n` is the number of syntax tree nodes. More sophisticated analyses may have
+Variable resolution touches each node once, so its performance is *O(n)* where
+*n* is the number of syntax tree nodes. More sophisticated analyses may have
 greater complexity, but most are carefully designed to be linear or not far from
 it. It's an embarrassing faux pas if your compiler gets exponentially slower as
 the user's program grows.
