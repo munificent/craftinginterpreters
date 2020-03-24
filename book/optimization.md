@@ -1,60 +1,178 @@
 ^title Optimization
 ^part A Bytecode Virtual Machine
 
-**todo: quote**
+> The evening's the best part of the day. You've done your day's work. Now you
+> can put your feet up and enjoy it.
+>
+> <cite>Kazuo Ishiguro, <em>The Remains of the Day</em></cite>
 
-- bonus chapter
+Think of this chapter as a bonus. If I still lived in New Orleans, I'd call it
+*lagniappe* -- a little something extra given for free to a customer. You've got
+a whole book and a complete already, but I wanted you to have some fun tweaking
+clox to squeeze some more performance out it.
 
-## measuring perf
+In this chapter, we'll apply two very different optimizations to the our virtual
+machine. In the process, you'll get a feel for measuring and improving the
+performance of a language implementation, or any program, really.
 
-- opt is empirical
-- cannot just "make language faster"
-- what programs?
-- on what machines?
-- how to tell if opt better at all?
+## Measuring Performance
 
-### benchmarking
+*Optimization* means taking a working program and improving its performance
+along any number of axes. In contrast with other engineering, it doesn't aim to
+change *what* the program does, instead, it reduces the number of resources it
+takes to do so. We generally think of optimization as meaning runtime speed, and
+that tends to be the main axis we optimize on. But it's often important to
+reduce memory usage, startup time, persistant storage utilization, or network
+bandwidth. All physical resources have some cost -- even if the cost is mostly
+in wasted human time -- so optimization often pays its way.
 
-- benchmarks
-- carefully crafted programs that stress some part of language
-- then measure not what program does but how long takes to do it
-- by comparing benchmark time before and after opt, can see how opt affects
-  perf
-- by tracking whole suite of benchmarks, tell which kinds of code get faster
-  and which get slower
-- benchmarks are test suite for performance
-- just like tests control how impl behave, benchmarks constrain how perf
-- choosing benchmarks is how select performance priorities for impl
-- very important
-- writing benchmark itself subtle art
-- cpu throttling, caching, etc. all affect perf
-- usually need to run multiple times, do stats
-- very much like outdoor empirical science
-- chapter not tutorial on benchmarking
+There was a time in the early days of computer technology that a skilled
+programmer could hold the entire hardware architecture and compiler pipeline in
+their head and reason about the performance of a program just by thinking about
+it. Those days are long long gone, separated from us in the present by
+microcode, cache lines, branch prediction, deep compiler pipelines, and
+sprawling instructions. We like to pretend C is a "low level" language, but the
+stack of human engineering between `printf("Hello, world!");` and a greeting
+appearing on screen is now centuries tall.
 
-### profiling
+Optimization is now firmly in the realm of empirical science. Our program is a
+border collie sprinting through the obstactle course of the hardware. If we want
+to make her reach the end faster, we can't just sit and ruminate on canine
+physiology until enlightnment strikes. Instead, we need to *observe* her
+performance, see where she stumbles, and *then* find faster paths for her to
+take.
 
-- have benchmark program
-- want to make it go faster
-- how?
-- assume done all easy work, using right algorithms and data structures
-- not using o(2^2) where o(n log n) exists
-- hardware too complex to reason about from first principles
-- must go out in the field
-- profiler tool runs program and tracks where machine spends time
-- many out there, learn a few
-- [even if never do pl work, skill at profiler set you above many other
-  progs]
-- many times learned something with five minutes in profiler would have taken
-  weeks otherwise
+Note how much of that is particular to one dog on one obstactle course. When we
+write optimizations for our virtual machine, we also can't assume that we will
+make *all* Lox programs run faster on *all* hardware. Different Log programs
+stress different areas of the VM, and different architectures have their own
+strengths and weaknesses.
 
-## faster hash table indexing
+### Benchmarks
 
-- first opt
-- fundamentally tiny change
-- though little tedious to fix everything around
-- when first got bytecode vm working, wrote little sample script
-- in oop lang, lot of code is field access and method calls, so wrote
+When we add new functionality, we validate correctness by writing tests -- Lox
+programs that use a feature and pass if the VM behaves property. This lets us
+pin down behavior and ensure we don't break things as we make other changes.
+
+We have the same needs when it comes to performance:
+
+1.  How do we validate that an optimization *does* improve performance and by
+    how much?
+
+2.  How do ensure that other unrelated changes don't *regress* performance?
+
+The Lox programs we write for that are *benchmarks*. These are carefully crafted
+programs that stress some part of the language implementation. They measure not
+*what* the program does, but how <span name="much">*long*</span> it takes to do
+it.
+
+<aside name="much">
+
+Most benchmarks measure running time. But, of course, you'll also often end up
+writing benchmarks that measure use of other resources too -- memory allocation,
+how much time is spent in the garbage collector, start up time, etc.
+
+</aside>
+
+By measuring the performance of a benchmark before and after a change, you can
+see what your change does. When you land an optimization, all of the tests
+should behave the exact same as they did before, but hopefully the benchmarks
+run faster.
+
+Once you have an entire *suite* of benchmarks, you can measure not just *that*
+an optimization changes performance, but on which *kinds* of code. Sometimes,
+you'll find that some benchmarks get faster while others get slower. Then you
+have to make hard decisions about what kinds of code your language
+implementation optimizes for.
+
+The <span name="js">suite</span> of benchmarks you choose to write is a key part
+of that decision. In the same way that your tests encode your choices around
+what correct behavior looks like, your benchmarks are the embodiment of your
+priorities when it comes to performance. They will guide which optimizations you
+implement, so choose your benchmarks carefully and don't forget to periodically
+reflect on whether they are helping you reach your larger goals.
+
+<aside name="js">
+
+In the early proliferation of JavaScript VMs, the first widely-used benchmark
+suite was Mozilla's SunSpider programs. Browser competition was fierce, and
+SunSpider results were used as marketing fodder by each browser to claim theirs
+was fastest. That highly incentivized VM hackers to optimize to those benchmarks.
+
+But, unfortunately those benchmarks often didn't reflect real-world performance.
+They were mostly microbenchmarks -- tiny toy programs that completed quickly.
+Those benchmarks penalize complex just-in-time compilers that start off slower
+but get much *much* faster once a program has "warmed up" and had enough time
+for the compiler to optimize and re-compile hot code paths. This put VM hackers
+in the unfortunate position of having to choose between making the SunSpider
+numbers get better, or actually optimizing the kinds of programs real users
+were running.
+
+Google's V8 team responded by sharing their Octane benchmark suite, which were
+closer to real-world code at the time. Years later, as JavaScript use patterns
+continued to evolve, even that eventually outlived its usefulness. Expect that
+your benchmarks will need to evolve as your language's ecosystem does.
+
+</aside>
+
+Writing good benchmarks is a subtle art. Like tests, you need to balance not
+overfitting to your implementation while ensuring that the benchmark does
+actually tickle the code paths that you care about. When you measure
+performance, you need to compensate from variance caused by CPU throttling,
+caching, and other weird hardware and operating system quirks. I won't give you
+a whole treatise here, but treat benchmarking as its own skill that you will get
+better as you practice.
+
+### Profiling
+
+OK, so you've got a few benchmarks now. You want to make them go faster. Now
+what? First of all, let's assume you've done all the obvious easy work. You are
+using the right algorithms and data structures -- or, at least, you aren't using
+ones that are aggressively wrong. I don't consider using a hash table instead of
+a linear search through a huge unsorted array "optimization" so much as "good
+software engineering".
+
+Since the hardware is too complex to reason about our program's performance from
+first principles, we have to go out into the field. That means *profiling*. A
+profiler, if you've never used one, is a tool that runs your <span
+name="program">program</span> and tracks hardware resource use as it executes.
+Simple ones show you how much time was spent in each function in your program.
+Sophisticated ones track each instruction and data cache miss, memory
+allocations, and all sorts of other metrics.
+
+<aside name="program">
+
+"Your program" here means the Lox VM itself running some *other* Lox program. We
+are trying to optimize clox, not the user's Lox script. Of course, the choice of
+which Lox program to load into our VM will highly affect which parts of clox get
+stressed the most, which is why benchmarks are so important.
+
+A profiler *won't* show us how much time is spent in each *Lox* function in the
+script being run. We'd have to write our own "Lox profiler" to do that, which is
+slightly out of scope for this book.
+
+</aside>
+
+There are many profilers out there for various operating systems and languages.
+For whatever platform you program in, it is worth getting familiar with a decent
+profiler on it. You don't need to be a master. I have learned things within
+minutes of throwing a program at a profiler that would have taken me *days* to
+discover on my own through trial and error. Seriously -- profilers wonderful,
+magical tools.
+
+## Faster Hash Table Probing
+
+Enough pontificating, let's make some performance charts go up and to the right.
+The first optimization we'll do, it turns out, is about the *tiniest* possible
+change we could make to our VM. There's a lot of scaffolding *around* the change
+we'll have to deal with, but the main optimization itself is pint-sized.
+
+When I first got the bytecode virtual machine that clox is descended from
+working, I did what any self-respecting VM hacker would do. I cobbled together a
+couple of benchmarks, fired up a profiler, and ran those scripts through my
+interpreter. In a dynamically-typed language like Lox, a large fraction of user
+code is field accesses and method calls, so one of my benchmarks looked
+something like this:
 
 ```lox
 class Zoo {
@@ -78,7 +196,7 @@ var zoo = Zoo();
 var sum = 0;
 var start = clock();
 while (sum < 100000000) {
-  sum = sum + zoo.ant()
+  sum = sum + zoo.ant() // [sum]
             + zoo.banana()
             + zoo.tuna()
             + zoo.hay()
@@ -90,39 +208,72 @@ print clock() - start;
 print sum;
 ```
 
-- benchmarks not useful or even sane way to write code
-- [useful to be idiomatic to ensure reflect realworld use]
-- just does bunch of method calls and field lookups
-- [why print sum?
-  many opt do dead code elim, good habit]
+<aside name="sum">
 
-- run in profiler, let's see where time is going
-- [again, on my machine, others may have different perf]
-- before keep reading, take a guess
-- where think clox spend most of its time?
-- anything think particularly slow?
+Another thing this benchmark is careful to do is *use* the result of the code
+it executes. By calculating a rolling sum and printing the result, we ensure
+the VM *must* execute all that code. This is an important habit to be in. Our
+Lox VM is too simple, but many compilers do aggressive dead code elimination
+and are smart enough to discard computations whose result is never used.
 
-- when run, naturally spends almost 100% of time in `run()` which is main
-  interp loop
-- where time go in there?
-- about 3.6% on `switch (instruction = READ_BYTE()) {`
-- overhead of bytecode dispatch
-- [lot techniques to reduce, threaded code, etc.]
+Many a programming language hacker has been impressed by the blazing performance
+of a VM on some benchmark, only to realize that it's because the compiler
+optimized the entire benchmark program away to nothing.
 
-- small pockets spread around various instrs: pop, return, add, etc.
-- big hotspots are ~17% in OP_GET_GLOBAL
-- 12% in OP_GET_PROPERTY
-- OP_INVOKE whopping 42%
-- three things to opt?
-- no, all three spend almost all of that time in call to tableGet()
-- in total, spend 72% in tableGet()
-- in dynamic oop expect to be relatively large
-- lot of runtime is dynamic dispatch -- looking up by name
-- but still, wow
-- dig into
-- `tableGet()` thin wrapper around `findEntry()`
-- almost all time spent in there
-- recall
+</aside>
+
+If you've never seen a benchmark before, this might seem ludicrous. *What* is
+going on here? The program itself isn't designed to do anything useful. What it
+does do is call a bunch of methods and access a bunch of fields. It does that
+and basically nothing else to ensure that our profiling results focus on the
+parts of the language we're interested in. Since fields and methods live in hash
+tables, it takes care to populate at least a <span name="more">*few*</span>
+interesting strings in the instance and method tables. Finally, it does that in
+a big loop to ensure we give our profiler enough execution time to really dig
+in and see where the cycles are going.
+
+<aside name="more">
+
+If you really want to benchmark hash table performance, you'll want to try
+tables of lots of different sizes. The six keys we add to each table here aren't
+even enough to get over our hash table's eight-element minimum threshold. But I
+didn't want to throw an enormous benchmark script at you. Feel free to add more
+animals and treats if you like.
+
+</aside>
+
+Before I tell you what my profiler showed me, spend a minute taking a few
+guesses. Where in clox's codebase do you think the VM spent most of its time? Is
+there any code we've written in previous chapters that you suspect is
+particularly slow?
+
+Here's what I found: Naturally, the VM spends almost all of its time in `run()`
+or in functions called by it. We'll use "inclusive time" to mean the time
+spent in some function or other functions it calls. The `run()` function is the
+main bytecode execution loop. It drives *everything*. Inside there, we spent
+about 3.6% of the runtime on this line:
+
+```c
+  switch (instruction = READ_BYTE()) {
+```
+
+That's the main bytecode dispatch loop, so that fraction represents some of the
+overhead that a bytecode interpreter's abstraction layer adds over native code.
+There are other small pockets of time sprinkled around inside various cases in
+the bytecode switch for common instructions like `OP_POP`, `OP_RETURN`, and
+`OP_ADD`. The big heavy instructions are `OP_GET_GLOBAL` with 17% of the
+execution time, `OP_GET_PROPERTY` at 12%, and `OP_INVOKE` which takes a whopping
+42% of the total running time.
+
+So we've got three hotspots to optimize? Actually no. Because it turns out all
+of them spend almost all of their time calling the same function: `tableGet()`.
+That function claims a whole 72% of the execution time (inclusive). Now, in a
+dynamically-typed language, we expect to spend a fair bit of time looking stuff
+up in hash tables -- it's sort of the price of dynamism. But, still, *wow.*
+
+If you take a look at `tableGet()`, you'll see it's mostly a wrapper around a
+call to `findEntry()` where the actual hash table lookup happens. To refresh
+your memory, here it is in full:
 
 ```c
 static Entry* findEntry(Entry* entries, int capacity,
@@ -151,110 +302,144 @@ static Entry* findEntry(Entry* entries, int capacity,
 }
 ```
 
-- spends 70% -- of total program exec on one line:
+When running that previous benchmark -- on my machine, at least -- the VM spends
+70% of the total execution time on one line. Any guesses as to which one? No?
+It's this:
 
 ```c
   uint32_t index = key->hash % capacity;
 ```
 
-- the pointer deref not problem
-- turns out modulo really slow
-- [modu-slow, amirite]
-- entire vm spends 70% of time on that `%`
-- can we improve?
-- in general, hard to beat cpu's own impl of modulo operation
-- if there was faster way to general impl in arith, chip would do that
-- but, as always, optimizer's trick is that if we know we have constrained
-  problem, can use those to advantage
-- in our case, always take mod size of hash entry table
-- remember how we size that?
-- start at 8
-- every time grows, double in size
-- 8, 16, 32, 64
-- divisor always power of two
-- is there fast way to calculate remainder of number divided by power of two?
-- yes, mask
-- for ex, want to 
+That pointer reference isn't the problem. It's the little `%`. It turns out the
+modulo operator is *really* slow. Much slower than other <span
+name="division">arithmetic</span> operators. Can we do something better?
+
+<aside name="division">
+
+Except for its sister operation division, which is equally slow.
+
+</aside>
+
+In the general case, it's really hard to re-implement a fundamental arithmetic
+operator in user code in a way that's faster than what the CPU itself can do.
+After all, all of our C code must ultimately compile down to the CPU's own
+arithmetic operations. If there were tricks we could use to go faster, it would
+already be using them.
+
+However, we *can* take advantage of the fact that we know more about our problem
+than the CPU does. The reason we're using modulo here is to take a key string's
+hash code and wrap it to fit within the bounds of the table's entry array. That
+array starts out at eight elements and grows by a factor of two each time. We
+know -- and the CPU and C compiler do not -- that out our table's size will
+always be a power of two.
+
+And because we're clever bit twiddlers, we know a faster way to calculate the
+remainder of a number modulo a power of two: *masking*. For example, let's say
+we want to calculate:
+
+**todo: illustrate these**
 
 ```
-01000000  64
+228 % 64 = 37
+```
+
+Decimal doesn't illuminate, but binary does:
+
+```
+11100101 229
        %
-11100101 229
+01000000  64
        =
 00100101  37
 ```
 
-- looks like result keeps all 1 bits of original number to right of `1` in
- divisor
-- if subtract 1 from divisor and use and to mask
+Note how every 1 bit in the dividend at or to the left of the divisor's only 1
+bit gets discarded. All of the remaining 1 bits in the dividend -- all the bits
+above the rightmost 0 bits pass through and form the result. In other words, it's
+exactly like taking the dividend and doing a bitwise and with one less than the
+divisor:
 
 ```
-00111111  63
+11100101 229
        &
-11100101 229
+00111111  63
        =
 00100101  37
 ```
 
-- bit op very fast
-- subtract pretty fast too
-- so could change to:
+I'm not enough of a mathematician to *prove* to you that this works, but if you
+think it through, it should make sense. This means we can replace that slow
+modulo operator with a fast subtraction followed by a very fast bitwise and.
+
+We can simply change that offending line of code to:
 
 ```c
   uint32_t index = key->hash & (capacity - 1);
 ```
 
-- but still very hot piece of code
-- don't want to do sub every time
-- only changes when capacity changes
-- so can cache that result
-- but go one farther
-- if caching capacity - 1, no need to start capacity
-- always cache + 1
-- so instead of storing capacity as size, store directly as mask
-- then to wrap hash to fit in entry array, just
+This code is still very performance critical, though, and any extra work we can
+eliminate, we should. We are performing that subtraction every time, but the
+result of `(capacity - 1)` only changes infrequently, when the table grows or
+shrinks. We can cache that result and reuse it. In fact, we can go one further.
+If we cache the *mask* used to wrap a hash key into the table size, we don't
+need to also store the *capacity*. It's trivial to calculate the capacity in
+the few places we need it by just adding one to the mask.
 
-^code initial-index (1 before, 1 after)
-
-- one line change, big perf imp
-- just have to go through and fix all other code used capacity
-- kind of chore, but sometimes opt is grunt work
-
-- first change decl in table
+So, instead of storing the entry array capacity in Table, we'll directly store
+the bit mask:
 
 ^code table-capacity-mask (1 before, 1 after)
 
-- give new name since represents different value
-- no longer size of array, but 1 minus
-- which means when array is zero, size -1
+I went ahead and changed the name to make it clearer to our future selves
+reading the code that this number no longer means the size of the array.
+
+With that field, to wrap a key, we simply apply the mask:
+
+^code initial-index (1 before, 1 after)
+
+CPUs love bitwise operators, so it's hard to improve on that. Before we can try
+that and see how the perf looks, we need to go through the VM and fix every
+piece of code that was using the old `capacity` field to work with the new
+`capacityMask` one. This is going to be kind of a chore. Sorry.
+
+---
+
+First, we initialize the field:
 
 ^code init-capacity-mask (1 before, 1 after)
 
-- would not work right if actually used as mask
-- but can't use zero as divisor for % either
-- when capacity is zero and table null, hash table doesn't check array at all
+The initial value doesn't matter much since it only has this value when the
+array is `NULL` and the hash table checks for that before using the capacity or
+mask to index into it.
 
-### find entry
+### findEntry()
 
-- couple of other changes in find entry
-- linear probing wraps around, so replace that mod too
+There are a couple of other changes to make in `findEntry()`. Our linear
+probing search may need to wrap around the end of the array, so there is another
+modulo to update:
 
 ^code next-index (4 before, 1 after)
 
-- much rarer to hit this because probe sequences tend to be short, so less
-  of a perf problem
-- also declaration of function different
+This one is just as slow as the other, but it didn't show up in the profile
+because probing past the first bucket is rare and probing at just the right
+spot to wrap around even rarer.
+
+We want to use the new name for this field consistently across the VM, so the
+declaration of `findEntry()` is different too:
 
 ^code find-entry
 
-- pass in mask not capacity now
-- now need to fix everything calls findentry
+We pass in the mask, not the actual capacity. Of course, this implies that we
+need to also fix everything that calls `findEntry()`.
 
-### adjust capacity
+### adjustCapacity()
 
-- first adjust capacity
+First up is `adjustCapacity()`. Here we switch to the new name when we call
+`findEntry()`:
 
 ^code adjust-find-entry (2 before, 1 after)
+
+
 
 - just switching name
 - new capacity passed in, so fix signature too

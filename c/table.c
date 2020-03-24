@@ -38,6 +38,10 @@ static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
 */
 //> Optimization find-entry
+//^ omit
+// NOTE: The "Optimization" chapter has a manual copy of this function.
+// If you change it here, make sure to update that copy.
+//< omit
 static Entry* findEntry(Entry* entries, int capacityMask,
                         ObjString* key) {
 //< Optimization find-entry
