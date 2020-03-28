@@ -13,13 +13,12 @@ typedef struct sObjString ObjString;
 //< Strings forward-declare-obj
 //> Optimization nan-boxing
 #ifdef NAN_BOXING
-//> sign-bit
-
-#define SIGN_BIT ((uint64_t)1 << 63)
-//< sign-bit
 //> qnan
 
-#define QNAN ((uint64_t)0x7ffc000000000000)
+//> sign-bit
+#define SIGN_BIT ((uint64_t)0x8000000000000000)
+//< sign-bit
+#define QNAN     ((uint64_t)0x7ffc000000000000)
 //< qnan
 //> tags
 

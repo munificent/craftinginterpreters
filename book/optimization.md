@@ -6,10 +6,10 @@
 >
 > <cite>Kazuo Ishiguro, <em>The Remains of the Day</em></cite>
 
-Think of this chapter as a bonus. If I still lived in New Orleans, I'd call it
+Think of this chapter as a bonus. If I still lived in New Orleans, I'd call it a
 *lagniappe* -- a little something extra given for free to a customer. You've got
-a whole book and a complete already, but I wanted you to have some fun tweaking
-clox to squeeze some more performance out it.
+a whole book and a complete virtual machine already, but I wanted you to have
+some fun tweaking clox to squeeze more performance out it.
 
 In this chapter, we'll apply two very different optimizations to the our virtual
 machine. In the process, you'll get a feel for measuring and improving the
@@ -386,31 +386,28 @@ need to also store the *capacity*. It's trivial to calculate the capacity in
 the few places we need it by just adding one to the mask.
 
 So, instead of storing the entry array capacity in Table, we'll directly store
-the bit mask:
+the bit mask. We'll keep the <span name="rename">same</span> `capacity` field
+but its meaning and value is now different. It now represents the *mask* and
+its value is always one *less* than the size of the entry array.
 
-^code table-capacity-mask (1 before, 1 after)
+<aside name="rename">
 
-I went ahead and changed the name to make it clearer to our future selves
-reading the code that this number no longer means the size of the array.
+Honestly, the code is clearer if we rename the field to `capacityMask`. But
+doing so means a slew of very uninteresting code changes to drag you through, so
+in the interest of expedience, I left the name alone.
 
-With that field, to wrap a key, we simply apply the mask:
+</aside>
+
+With that interpretation, to wrap a key, we simply apply the mask:
 
 ^code initial-index (1 before, 1 after)
 
 CPUs love bitwise operators, so it's hard to improve on that. Before we can try
 that and see how the perf looks, we need to go through the VM and fix every
-piece of code that was using the old `capacity` field to work with the new
-`capacityMask` one. This is going to be kind of a chore. Sorry.
+piece of code that uses the `capacity` field and update it to work with the
+new value it represents. This is going to be kind of a chore. Sorry.
 
----
-
-First, we initialize the field:
-
-^code init-capacity-mask (1 before, 1 after)
-
-The initial value doesn't matter much since it only has this value when the
-array is `NULL` and the hash table checks for that before using the capacity or
-mask to index into it.
+**todo: figure out what subsections to have**
 
 ### findEntry()
 
@@ -424,645 +421,868 @@ This one is just as slow as the other, but it didn't show up in the profile
 because probing past the first bucket is rare and probing at just the right
 spot to wrap around even rarer.
 
-We want to use the new name for this field consistently across the VM, so the
-declaration of `findEntry()` is different too:
-
-^code find-entry
-
-We pass in the mask, not the actual capacity. Of course, this implies that we
-need to also fix everything that calls `findEntry()`.
-
 ### adjustCapacity()
 
-First up is `adjustCapacity()`. Here we switch to the new name when we call
-`findEntry()`:
-
-^code adjust-find-entry (2 before, 1 after)
-
-
-
-- just switching name
-- new capacity passed in, so fix signature too
-
-^code adjust-capacity (1 after)
-
-- adj uses both table's current and new capacity
-- fix all
-- when alloc new array, actually do need capacity, not mask
+There are a few changes to make in `adjustCapacity()`. First, when we allocate
+the new array, we need to calculate the size from the mask:
 
 ^code adjust-alloc (1 before, 1 after)
 
-- add one
-- code path rarer, so find doing the arith here
-- init new array
+Then we iterate over the array to initialize the empty entries:
 
 ^code adjust-init (1 before, 1 after)
 
-- since capacity mask one less size, use `<=` to include full range indexes
-- similar when walking old array
+The difference here is that the `<` checking to exit the loop has become a `<=`
+since the value of the mask is now the index of the last element, not the size
+of the array.
 
 ^code re-hash (1 before, 1 after)
 
-- and when free old array
+When we free the old array, the garbage collector wants to correctly track how
+many bytes are released:
 
 ^code adjust-free (3 before, 1 after)
 
-- and finally store mask instead of capacity
+There's going to be a lot of `+ 1` in and `<=` in this rest of this section.
+This is fertile ground for subtle off-by-one bugs, so we should tread carefully
+to ensure we don't get bitten.
 
-^code adjust-set-capacity (1 before, 1 after)
+### Table operations
 
-- just updating to new names
-- [good names matter]
-
-### table get set delete
-
-- moving along, couple more fns that call find or adju
-- when doing lookup, pass capacity mask
-
-^code get-find-entry (2 before, 1 after)
-
-- this is hot code path really care about
-- setting important too
-
-^code set-find-entry (3 before, 2 after)
-
-- also need to handle growing array in tableset
+Moving up the abstraction stack, we get to the main hash table operations that
+call `adjustCapacity()` and `findEntry()`. When we grow the array before
+inserting a new entry into it, we need to calculate the capacity:
 
 ^code table-set-grow (1 before, 1 after)
 
-- lot of +1 and -1 here
-- fertile soil for off-by-one bugs to crawl around in
-- double check, but think got it right
-
-- last place call finde is delete
-
-^code delete-find-entry (1 before, 1 after)
-
-- just fixing name again
-
 ### other changes
 
-- that's find and adj
-- handful other places use capacity
-- when copying entries from one table to another
+All the way at the beginning, when we first initialize the field:
+
+^code init-capacity-mask (1 before, 1 after)
+
+As you've seen, when we need to calculate the actual array size from the
+`capacity` field we get that by adding one. When the hash table is empty, the
+size is zero, so initializing the `capacity` *mask* to -1 will correctly yield
+that size when we increment it.
+
+When copying all of the entries from one hash table to another, we iterate over
+the source table's array:
 
 ^code add-all-loop (1 before, 1 after)
 
-- again just `<=` and var name change
+That's another `<` to `<=` change.
 
-- code for interning strings mirrors find entry
-- own separate impl of hash table lookup
-- need to switch to mask there too
+The `findEntry()` function has a sister function, `tableFindStrings()` that does
+a hash table lookup for interning strings. We need to make the same changes
+there -- actual optimizations -- that we made in `findEntry()`. We use the mask
+as a mask when wrapping the string's hash key:
 
 ^code find-string-index (4 before, 2 after)
 
-- same as find entry
-- also when linear probe wraps around
+And also when the linear probing wraps around:
 
 ^code find-string-next (3 before, 1 after)
 
-- couple bits over in mem mg
-- fix for loop to mark all entries in table
+### Memory manager changes
+
+There are a few places in the memory management code where we access a hash
+table's capacity. First, using a `<=` in the loop when we mark all of the
+entries in a table:
 
 ^code mark-table (1 before, 1 after)
 
-- and fix loop to remove all unmarked entries from string table
+And another one in the loop to remove unmarked entries from the string table:
 
 ^code remove-white (1 before, 1 after)
 
-- finally gc tracks size of table when free and needs correct count
+Finally, the garbage collector tracks the amount of memory it frees so needs an
+accurate count of the entry array size:
 
 ^code free-table (1 before, 1 after)
 
-- phew
-- lot of plumbing to replace one `%` with a `&`
-- see how we did
-- on my machine 5.22452s before 2.60772s after
-- almost exactly half time, twice as fast
-- huge win
-- because methods fields so prevalent, improve perf of almost all lox progras
-  signif
+That's our last `+ 1`! That was a lot of plumbing just to turn a single `%` into
+a `&`. Let's see if it was worth it by running that zoological benchmark. On my
+machine, before the optimization the benchmark runs in about 5.22 sectons. With
+this optimization, the total runtime drops to 2.60s. That's almost exactly half
+the time, meaning our optimization got the benchmark running about twice as
+fast. That is a <span name="fault">massive</span> win when it comes to
+optimization. Usually you feel good if you can claw a few percent points here or
+there.
 
-- point not that modulo is evil or micro-optimizations super important
-- very rare find such narrow hotspot in vm with such simple fix
-- point is that didn't *know* mod was hotspot until profiler told us
-- [granted, probably good to remember that mod is slow]
+**todo: chart**
 
-- run profiler again
-- tableget still pretty hot
-- as expected, big part of exec
-- down to 35% total exec
+And, because methods, fields, and global variables are so prevalent in Lox
+programs, this tiny optimization will improve performance across the board.
+Almost every Lox program will benefit.
 
-## nan boxing
+<aside name="fault">
 
-- very different kind of optimization
-- above simply tiny change
-- profiler basically told us what to do
+We probably shouldn't congratulate ourselves *too* strongly here. Yes, it's a
+big improvement, but only *relative to our own previous implementation*. We get
+the credit for the optimization, but we also deserve the blame for its original
+speed too.
 
-- this much more subtle
-- different flavor of opt
-- invented by someone thinking deeply about lowest levels of machine arch
-  and general perf goals
-- [not sure who invented. used in vms for many years, lua jit jsc]
-- called nan boxing or nan tagging
+</aside>
 
-- on 64 bit machine, our value rep is 16 bytes
+Now, the point of this section is *not* that the modulo operator is profoundly
+evil and you should stamp it out of every program you ever write. Nor is that
+tiny micro-optimization is a vital engineering skill. It's very rare that a
+performance problem has such a narrow, effective solution. We just got lucky.
 
-**todo: illustrate**
+The point is that we didn't *know* that the modulo operator was a performance
+drain until our profiler told us so. If we wandered around our VM's codebase
+blind guessing at hotspots, we likely wouldn't have noticed it. What I want you
+to take away from this is how important it is to have a profiler in your
+programmer's toolbox.
 
-- value struct has two fields, tag and union for payload
-- largest union cases are double and Obj* which both 8 bytes
-- machine those aligned to 8 byte boundary too, so compiler pads tag to give
-  8 bytes
-- [if put tag after payload, would still do same because array of values needs
-  to keep aligned. basically struct size always multiple of largest element.]
+To reinforce that point, let's go ahead and run the same benchmark in our
+now-optimized VM and see what the profiler shows us. On my machine, `tableGet()`
+is still a fairly large chunk of execution time. That's to be expected for a
+dynamically-typed language. But it has dropped from 72% of the total execution
+time down to 35%. That's much more inline with what we'd like to see and shows
+that our optimization didn't just make the program faster, but made it faster
+*in the way we expected*. Profilers are just as useful for verifying solutions
+as they are for discovering problems.
 
-- if could cut that down then vm use less memory to store values
-- machines have enough ram don't usually worry as much about optimizing for
-  mem usage as for runtime speed
-- but cpu caching means mem also have large impact on speed
-- if make values smaller, fit more into cache line, fewer cache misses
+## NaN Boxing
 
-- in dynamically typed lang, every val has to carry some runtime rep of its
-  type
-- in statically typed lang, if store 32-bit int in var, only need exactly 32
-  bits for var
-- in dyn, also need some kind of type tag or type rep
-- one of big memory cost diff between dyn and static
-- dyn vm hackers over years spent tons time invented clever ways to store type
-  in as few bits as possible
-- [pointer tag other one]
+This next optimization has a very different feel. Thankfully, despite the odd
+name, it does not involve pugilistics with your grandmother. It's different, but
+not, like, *that* different. With our previous optimization the profiler
+basically told us where the problem was and we just had to use a little
+ingenuity to come up with a solution.
 
-- optimization do here is example of that
-- good fit for lang like js and lua where all numbers floating point
-- lox too
+**todo: illustrate?**
 
-### what is and is not a number?
+This optimization is more subtle, and its performance effects more diffuse
+across the virtual machine. The profiler won't help us come up with this.
+Instead, it was invented by <span name="someone">someone</span> thinking deeply
+about the lowest levels of machine architecture.
 
-- before get to opt, need to really understand how double rep in mem
-- way almost all machines encode floating point numbers in binary defined in
-  IEEE 754 [link]
-- look like
+<aside name="someone">
 
-**todo: illustrate**
+I'm not sure who first invented the optimization we're about to implement. The
+earliest source I can find is David Gudeman's 1993 paper "Representing Type
+Information in Dynamically Typed Languages". Everyone else cites it. But Guteman
+himself says the paper isn't novel work but instead "gathers together a body of
+folklore".
 
-- first bit is sign - whether num is positive or negative
-- [since sigh bit always present, implies both negative and positive zero, and
-  indeed has both]
-- 11 bits for exponent
-- 52 for fraction or "mantissa"
-- not treatise on floating point, so won't go into too much detail about how
-  exp and mantissa work
-- basically mantissa is set of significant digits in number (in binary)
-- exponent is how far to shift them away from decimal (well, binary) point
+Maybe the inventor has been lost to the mists of time, or maybe it's been
+reinvented a number of times. Anyone who ruminates on IEEE 754 long enough
+probably starts thinking about trying to stuff something useful into all those
+unused NaN bits.
 
-- ieee carves out special case exponent
+</aside>
 
-**todo: illustrate**
+Like the heading says, this optimization is called "NaN boxing" or sometimes
+"NaN tagging". Personally I like the latter name because "boxing" tends to imply
+some kind of heap-allocated representation, but it seems to be the more
+widely-used term. It has to do with how we represent values in the VM.
 
-- all ieee doubles that rep actual floating number have at least one zero in
-  exponent bits
-- if all exponent bits set, not just really large number
-- instead, means value is "not a number" (nan)
-- used to store special values like infinity or result of divide by zero
-- for ex nan with all mantissa zero used for infinity
-- [sign bit can be either so positive and negative infinity]
-
-- remaining nan divided into two categories -- signalling and quiet
-- determine by highest bit in mantissa
-- if zero, signalling, otherwise quiet
-- signalling nan for erroneous values that should halt computation
-- don't want to use because some cpus may trap and abort
-- [don't think any do, but good to be careful]
-- quiet nans thinks like infinity where not numeric value, but otherwise
-  "useful"
-
-- what about other mantissa bits?
-- couple combinations reserved by some cpus
-- for x86 "QNan Floating-Point Indefinite"
-- need to avoid
-- all other mantissa bit combinations unused!
-- so 64 bits can represent billions of floating point values
-- but quiet nan only requires these bits set
+On a 64-bit machine, our Value type takes up 16 bytes. The struct has two
+fields, a type tag and a union for the payload. The largest fields in the union
+are an Obj pointer and a double, which are both 8 bytes. The compiler aligns
+those to an 8-byte boundary, which means the tag takes up a full 8 bytes too.
 
 **todo: illustrate**
 
-- all unspecified bits can be anything, still considered qnan
-- in other words, [todo how many] XXX different qnan values
-- double basically has room to store extra 51 bit value in there
-- could obvious set aside couple of bit patterns to rep nil, true, and false
-- just leaves obj
-- pointer is 64 bit, so seems doesn't fit
-- but almost all 64 bit arch don't actually use full 64 bits for address
-- [would allow you to address XXX bytes of ram, which no machine has]
-- instead, only lowest 48 bits used
-- can fit 48 bit pointer in there with 3 bits left
-- enough bits to store tiny type tag to distinguish between nil, bool, or obj
+That's pretty big. If we could cut that down, then the VM could pack more values
+into the same amount of memory. Most computers have plenty of RAM these days, so
+the direct memory savings aren't a huge deal. But smaller values mean more data
+fits in a cache line. That means fewer cache misses which affects *speed*.
 
-- nan boxing
-- using qnan bit combinations to store values inside ieee double
-- cut lox value size in half
-- even better, for numeric lox code, no conversion needed to turn raw double
-  into lox value
-- double has exact same rep
-- [because dyn type, do still need to check type when performing op on double]
+But if Values need to be aligned to their largest payload size and a Lox number
+or Obj pointer needs a full 8 bytes, how can we get any smaller? In a
+dynamically typed language like Lox, each value needs to not just carry its
+payload, but enough additional information to be able to identify the value's
+*type* at runtime. If a Lox number is already using the full 8 bytes, where
+could we squirrel away a couple of extra bits to tell the runtime "this is a
+number"?
 
-- for other types, turning raw value into lox value involve some bit magic
-- fortunately, value rep already abstracted behind Value typedef and handful
-  of macros
-- change those basically rest of vm done
-- hand wavey now, but get concrete as work through types
+This is one of the perennial problems for dynamic language hackers. It
+particularly bugs them because statically-typed languages don't generally have
+this problem. The type of each value is known at compile time, so no extra
+memory is needed at runtime to track it. When your C compiler compiles 32-bit
+int, the resulting variable gets *exactly* 32 bits of storage.
 
-### conditional
+Dynamic language folks hate losing ground to the static camp, so they've come up
+with a number of very clever ways to pack some type information and a payload
+into a small number bits. NaN boxing is one of those. It's a particularly good
+fit for languages like JavaScript and Lua where all numbers are double-precision
+floating point. That describes Lox too.
 
-- instead of changing existing code in place, add compile time switch
+### What is (and is not) a number?
+
+Before we can start optimizing, we need to really understand how your friend the
+CPU represents floating point numbers. Almost all machines today use the same
+mechanism for converting a real number into a series of bits, and that scheme is
+encoded in the venerable scroll [IEEE 754][754], known to mortals as "IEEE
+Standard for Floating-Point Arithmetic".
+
+[754]: https://en.wikipedia.org/wiki/IEEE_754
+
+A 64-bit double-precision IEEE floating point number looks something like this:
+
+**todo: illustrate**
+
+*   The first bit is the <span name="sign">*sign bit*</span> and indicates
+    whether the number is positive or negative.
+
+*   After that is 11 *exponent* bits. These tell you how far the number is
+    shifted away from the decimal (well, binary) point.
+
+*   The remaining 52 bits are the *fraction* or *mantissa* bits. They represent
+    the significant digits of the number, as a binary integer.
+
+I know that's a little vague, but this chapter ain't a deep dive on floating
+point representation. If you want to know how about how the exponent and
+mantissa play together, there are better explanations out there already than I
+could write.
+
+<aside name="sign">
+
+Since the sign bit is always present even if the number is zero, that implies
+that "positive zero" and "negative zero" have different bit representations and,
+indeed, IEE 754 does have both of those.
+
+</aside>
+
+The important part for our purposes is that the spec carves out a special case
+exponent value. When all of the exponent bits are set, then instead of just
+being a really big number, the value gets a special meaning. These values are
+"not a number" (hence, "NaN") values. These are used to represent special edge
+cases like infinity or the result of trying to divide a number by zero.
+
+*Any* double who's exponent bits are all set, regardless of the mantissa bits.
+That means there's lots and lots of *different* NaN bit patterns. IEEE 754
+divides those into two categories. Values where the highest mantissa bit is zero
+are called *signalling* NaNs and the others are *quiet* NaNs. Signalling NaNs
+are intended to be the result of erroneous computations, like dividing by zero.
+A chip <span name="abort">may</span> detect when one of these values is produced
+and abort a program completely. They may self-destruct if you try to read one.
+
+<aside name="abort">
+
+I don't know if any CPUs actually *do* trap signalling NaNs and abort. The spec
+just says they *could*.
+
+</aside>
+
+Quiet NaNs are generally supposed to be safer to use. They also don't represent
+useful numbers, but they should at least not set your hand on fire if you touch
+them.
+
+Every double with all of its exponent bits set and its highest mantissa bit set
+is a quiet NaN. That leaves 52 bits unaccounted for. We'll sidestep one of those
+so that we don't step on Intel's "QNan Floating-Point Indefinite" value, leaving
+us 51 bits. Those bits can be anything. We're talking 2,251,799,813,685,248
+unique quiet NaN bit patterns.
+
+**todo: illustrate**
+
+The way to think about it is that a 64-bit double has enough room to store all
+of the various different numeric values and *also* room for another 51 bits of
+data that we can use for whatever we want. That's obviously plenty of room to
+set aside a couple of bit patterns to represent Lox's `nil`, `true`, and `false`
+values. But what about Obj pointers? Don't pointers need a full 64 bits too?
+
+Fortunately, we have another trick up our other sleeve. Yes, technically
+pointers on a 64-bit architecture are 64 bits. But, no architecture I know of
+actually uses that entire address space. Instead, most widely-used chips today
+only ever use the low <span name="48">48</span> bits. The remaining 16 bits are
+either unspecified or always zero.
+
+<aside name="48">
+
+48 bits is still enough room to address 262,144 gigabytes of memory so that
+should be sufficient for a while.
+
+</aside>
+
+If we've got 51 bits, we can stuff a 48-bit pointer in there with three bits
+to spare. Just enough to store a tiny type tag to distinguish between `nil`,
+Booleans, and Obj pointers.
+
+That's what NaN boxing is. Within a single 64-bit double, you can store all of
+the different floating pointer numeric values, as well as a pointer and a couple
+of other special sentinel values. Half the memory usage as our current Value
+struct, while retaining all of the fidelity.
+
+What's particularly nice about this representation is that there is no need to
+*convert* a raw double value into a "boxed" form. Lox numbers *are* just normal
+64-bit doubles. We'll still need to *check* their type before we use them,
+since Lox is dynamically typed, but we don't need to do any bit shifting or
+pointer indirection to go from "value" to "number".
+
+For the other value types, there is a conversion step, of course. But,
+fortunately, our VM hides all of the mechanism to go from values to raw types
+behind a handful of macros. Rewrite those to implement NaN boxing and the rest
+of the VM should just work.
+
+### Conditional support
+
+I know the details of the new value representation aren't very clear in your
+head yet. Don't worry, they will crystallize as we work through the
+implementation. Before we get to that, we're going to put some compile-time
+scaffolding in place.
+
+For our previous optimization, we just fixed the code in place and called it
+done. This one is a little different. NaN boxing relies on some very low-level
+details of how a chip represents floating point numbers and pointers. It
+*probably* works on most CPUs you're likely to encounter, but you can never be
+totally sure.
+
+It would suck if our VM completely lost support for an architecture just because
+of its value representation. To avoid that, we'll maintain support for *both*
+the old tagged union implementation of Value and the new NaN-boxed form. A
+simple compile-time flag selects the new representation:
 
 ^code define-nan-boxing (2 before, 1 after)
 
-- when enable use new nan box
-- otherwise use old tagged union
-- nan boxing requires 64 bit ieee 734 doubles
-- most arch support, not all
-- sad if couldn't use clox at all on those machines
-- so support both
+If that's defined, the VM uses the new form. Otherwise it defaults to the old
+style. The few pieces of code that are care about the details of the value
+representation -- mainly the handful of macros for wrapping and unwrapping
+Values -- will check this. The rest of the VM can continue along its merry way.
 
-- declare new section in value header
+Most of the work happens in the "value" module where we add the section for the
+new type:
 
 ^code nan-boxing (2 before, 1 after)
 
-- new value rep is unsigned 64 bit int
-- could use double
-- would make macros for working with numbers easier
-- but most other macros need to work on bits and u 64 easier for that
-- treat as opaque type to most of vm
-- so only macros care
+When Nan boxing is enabled, the actual type of a Value is a flat unsigned 64-bit
+integer. We could use double instead which would make the macros for dealing
+with Lox numbers a little simpler. But all of the other macros will need to do
+some bitwise operations and uint64_t is a much friendlier type for that. Outside
+of this module, the rest of the VM doesn't really care one way or the other.
 
-- first end conditional section
+Before we start re-implementing those macros, we need to close the `#else`
+branch of the `#ifdef`:
 
 ^code end-if-nan-boxing (1 before, 2 after)
 
-- now when NAN_BOXING defined you get new rep, otherwise old
-- remaining work is creating new definitions of all existing macros to use
-  when NAN_BOXING enabled
-- work through one value type at a time
+All that remains for us now is filling in that first `#ifdef` section with new
+implementations of all the stuff already in the `#else` side. We'll work through
+it one value type at a time, from easiest to hardest.
 
-### numbers
+### Numbers
 
-**todo: remove comments**
+We'll start with numbers since they have the most direct representation under
+NaN boxing. To "convert" a C double to a NaN boxed Lox Value, we don't need to
+touch a single bit -- the representation is exactly the same. But we do need to
+convince our C compiler of that fact, which is made harder by defining Value to
+be a uint16_t.
 
-- start with numbers since most straightforward
+We need to get the compiler to take a set of bits that it thinks are a double
+and use those same bits as a uint64_t, or vice versa, called *type punning*. The
+<span name="close">closest</span> thing to an officially supported way of doing
+that in C is through a union:
 
-- to convert c double to lox value don't need to touch single bit
-- 64 bit double is lox number value
-- but do need to convince c compiler to interpret those unsigned int 64 bits
-  as double
-- classic way is union
+<aside name="close" class="bottom">
+
+I say "closest" because it's not *entirely* clear to me that the standard
+officially supports this even though the technique has been in wide use since
+the early days of C. I've read a number of interpretations of the spec on this
+point and arguments for and against seem to read more like Biblical hermeneutics
+or literary criticism than any sort of clear answer.
+
+Regardless of what the Good Spec says, just about every compiler under the sun
+permits it, so relying on it is, at worse, a minor sin.
+
+</aside>
 
 ^code double-union (1 before, 2 after)
 
-- [part of reason make nan box optiona is because of this
-  "type punning" through union been used for decades in c to access raw bit
-  rep of value
-  but never entirely clear whether officially valid code
-  compilers generally do right thing
-  not sure if guaranteed
-  ]
-
-- alas no way in vanilla c to create union and access field in single
-  express, so call fn
+The idea is that you store a value into one of the union's fields and then read
+out the other field. Voilà, the bits have been transmuted from the first field's
+type to the second's. Alas, I don't know any elegant way to pack that operation
+into a single expression, so the conversion macros will have to call out to
+helper functions. Here's the first:
 
 ^code number-val (1 before, 2 after)
 
-- define like this
+To convert a C double to a Lox Value -- in other words a uint64_t -- we rely on:
 
 ^code num-to-value (1 before, 2 after)
 
-- create union, store double and then return uint64
-- since union fields all overlap in memory, reinterprets same bits as different
-  type
-- looks slow -- fn call, create struct, assign
-- compiler will eliminate all of it
-- compile down to nothing
+This creates a temporary union, stores the double in it, and then yanks out the
+uint64_4 whose bits overlap that in memory. This looks *really* slow: a function
+call, a local variable, an assignment, and a read. Fortunately, compilers are
+smart enough to optimize that all down to absolutely nothing.
 
-- going other way is similar
+"Unwrapping" a Lox number is the mirror image:
 
-^code as-number (2 before, 2 after)
+^code as-number (1 before, 2 after)
 
-- macro calls out to fn
+That macro calls this function:
 
 ^code value-to-num (1 before, 2 after)
 
-- fn works like other one but in reverse
-- stores value into uint field
-- returns double field
+It works exactly the same except it flips the fields that it writes to and reads
+from. Again, the compiler will eliminate all of it.
 
-- lot of code to nothing
-- type testing little more interesting
-- every lox number is a double
-- not all doubles rep lox numbers
-- how to tell?
+That was a lot of code to ultimately do nothing but silence the C type checker.
+Doing a runtime type *test* on a Lox number is a little more interesting. If all
+we have are exactly the bits for a double, how do we tell that it *is* a double?
 
 ^code is-number (1 before, 2 after)
 
-- if all of the quiet nan bits set then double is not representing number but
-  some other type
-- so mask everything out except quiet nan bits and then check to see if all set
-- these are bits care about
+It's time to get bit twiddling. We know that every Value that is *not* a number
+will use a special quiet NaN representation. And we're taking for granted that
+we have correctly avoided any of the meaningful NaN representations that may
+actually be produced by doing arithmetic on numbers.
+
+If the double has all of its NaN bits set, and the quiet NaN bit set, and
+maybe one more for good measure, we can be pretty certain it is one of the bit
+patterns we ourselves have set aside for other types. To check that, we mask
+out all of the bits except for are set of quiet NaN bits. If *all* of those bits
+are set, it must be a value of some other Lox type.
+
+The set of quiet NaN bits are declared like this:
 
 ^code qnan (1 before, 2 after)
 
+It would be nice if C supported binary literals. But if you do the conversion,
+you'll see that value is the same as:
+
 **todo: illustrate**
 
-- these are defined by ieee
-- that's it for numbers
+Which is exactly all of the exponent bits, plus the quiet NaN bit, plus one
+extra to dodge that Intel value. That's numbers.
 
-### singleton values nil true false
+### Nil, true, and false
 
-- next type is nil
-- only one nil value, so only need single bit representation for it
-- nil "singleton value"
-- two others: true and false
-- need three unique bit patterns
-- two bits enough to distinguish four different val
-- lowest bits of value as "tag" to define which singleton value
+The next type to handle is `nil`. That's pretty simple since there's only one
+`nil` value and thus we only need a single bit pattern to represent all values
+of that type. It's a "singleton" value. There are two other singleton values,
+the two Boolean values `true` and `false`. We need three unique bit patterns.
+
+Two bits gives us four different combinations, which is plenty. So we will use
+the two lowest bits of our unused bit space as a "type tag" to determine which
+of these three singleton values we're looking at.
 
 **todo: illustrate tag bit location**
 
+The three type tags are defined like so:
+
 ^code tags (1 before, 2 after)
 
-- nil then just bit representation of qnan with its tag set
+Our representation of `nil` is thus all of the bits required to define our
+quiet NaN representation along with the `nil` type tag bits:
 
 **todo: illustrate**
+
+In code, that's:
 
 ^code nil-val (2 before, 1 after)
 
-- to see if lox val is nil must exactly match bit pattern
-- simple equality on two uint64 work
+We simply bitwise or the quiet NaN bits and the type tag, and then do a little
+cast dance to teach the C compiler what we want those bits to mean.
+
+Since `nil` has only a single bit representation, we can use equality on
+uint64_t to see if a Value is `nil`:
+
+<span name="equal"></span>
 
 ^code is-nil (2 before, 1 after)
 
-- [would not work if type of Value was double
-  ieee 754 defines equality for doubles and some doubles with different bit
-  patterns defined to compare equal
-  positive and negative zero (i.e. zero mantissa, zero exp but differen sign
-  bit) compare equal
-  weirder, two identical nan bit reps compare non equal
-  uint64 avoids]
+<span name="equal"></span>
 
-- bools similar
+<aside name="equal" class="bottom">
+
+Note that using `==` would not do the right thing if our typedef for Value was
+double instead of uint64_t. Using C's equality operator on two doubles steps
+into the realm of IEEE 754 equality which has lots of weird special rules. Some
+doubles with distinct bit patterns are considered equivalent, like positive and
+negative zero.
+
+</aside>
+
+You can guess what defining the `true` and `false` values looks like:
 
 ^code false-true-vals (2 before, 1 after)
 
-- qnan bits with respective type tag bits
-
-- to convert c bool to lox bool singleton, look at value and choose which
-  one
+To convert a C bool into one a Lox Boolean, we rely on these two singleton
+values and the good old conditional operator:
 
 ^code bool-val (2 before, 1 after)
 
-- go other direction pretty simple
+There's probably a more clever bitwise way to do this, but my hunch is that the
+compiler can figure that out faster than I can.
+
+Going the other direction is simpler:
 
 ^code as-bool (2 before, 1 after)
 
-- macro should only be called after sure value is bool
-- so must be either TRUE_VAL or FALSE_VAL
-- can tell which one by comparing to either
-
-- last type test macro more subtle
+Since we know there are exactly two bit Boolean representations in Lox -- unlike
+in C where any non-zero value can be considered "true" -- if it ain't one, it
+must be the other. This macro does assume you only call it on a Value that you
+know *is* a Lox Boolean. To do that, there's one more macro:
 
 ^code is-bool (2 before, 1 after)
 
-- value could be any lox value including num
-- want to tell if bool
-- means must be either TRUE_VAL or FALSE_VAL
-- could do `((v) == TRUE_VAL || (v) == FALSE_VAL)`
-- bad -- eval macro arg twice
-- [bad because arg can have side effect]
-- would have to hoist to separate fn
+That looks a little weird. It *kind* of looks like it only checks for `false`
+but what about `true`? A more obvious macro would look like:
 
-- take advantage of tag rep
-- both TRUE_VAL and FALSE_VAL have second tag bit set
-- nil does not
-- numbers don't have qnan bits set
-- so if mask value with FALSE_VAL bits both TRUE_VAL and FALSE_VAL
-  result is FALSE_VAL
+```c
+#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)
+```
 
-**todo: illustrate**
+Unfortunately, that's not safe. The expansion mentions `v` twice which means if
+that expression has any side effects, they will be executed twice. We could call
+out to a separate function, but, ugh, what a chore.
 
-- bit hackery!
-
-### objects
-
-- last type, hardest
-- difficult because need to put entire pointer inside double bits
-- not just couple of singletons
-- so need "tag" to indicate obj type and also need set aside other bits for
-  payload
-
-- when qnan bits set, value not a double
-- so sign bit unused
-- use sign bit as tag to indivate obj versus not obj
-- (not obj mean bool or nil)
-- if sign bit and qnan bits all set, value must be obj*
-- in that case, all remaining lower bits used to store address
+Instead, we can take advantage of the bits we chose for the type tags. Note that
+both `true` and `false` have the second bit set bit `nil` does not. If our Value
+has all of its quiet NaN bits set, we know it's not a number. And if the second
+bit is set, we know it's not `nil`. It must be `true` or `false`. Conveniently,
+`FALSE_VAL` is just the right bit pattern to check the quiet NaN bits and the
+second tag bit, so we just test against that.
 
 **todo: illustrate**
 
-- to convert raw obj* to value, just or all those together
+That's a little more clever than I like to be with my bit hackery, but here we
+are.
+
+### Objects
+
+The last value type is the hardest. Unlike the singleton values, there are
+billions of different pointer values we need to box inside a NaN. This means we
+need both some kind of tag to indicate that these particular NaNs *are* Obj
+pointers and we need room for the pointers themselves.
+
+The tag bits we used for the singleton values are in the region where I decided
+to store the pointer itself, so we can't easily use a different <span
+name="ptr">bit</span> there to indicate that the value is an object reference.
+However, there is another bit we aren't using. Since all our NaN values are not
+numbers -- it's right there in the name -- the sign bit isn't used for anything.
+We'll go ahead and use that as the type tag for objects. If one of our quiet
+NaNs has its sign bit set, then it's an Obj pointer, otherwise it must be one of
+the previous singleton values.
+
+<aside name="ptr">
+
+We actually *could* use the lowest bits to store the type tag even when the
+value is an Obj pointer. That's because Obj pointers are always aligned to a
+8-byte boundaries since Obj contains a 64-bit field. That in turn implies that
+the three lowest bits of an Obj pointer will always be zero. We could store
+whatever we wanted in there and just mask it off before derefering the pointer.
+
+This is another value representation optimization called "pointer tagging".
+
+</aside>
+
+If the sign bit is set, then the remaining low bits store the pointer to the
+Obj.
+
+**todo: illustrate**
+
+To convert a raw Object pointer to a Value, we simply take the pointer and set
+all of the quiet NaN bits and the sign bit:
 
 ^code obj-val (1 before, 2 after)
 
-- take sign bit, qnan bits, and pointer and combine
-- [pointer 64 bit on 64 bit arch, higher bits of that overlap qnan and sign
-  bits
-  don't mask out here because assume will always be zero and only lower 48 bits
-  used
-  on all comp and arch tested, is true
-  working at level where c lang spec can't promise our code is correct, may
-  only be valid on some comp/arch combinations
-  not wrong to do so, just mean have to verify]
-- lot of casting on obj* in there
-- need to satisfy some picky compilers
+The pointer itself is a full 64 bits and, in <span name="safe">principle</span>,
+it could thus overlap with some of those quiet NaN and sign bits. But in
+practice, at least on the architectures I've tested, everything above the 48-th
+bit in a pointer is always zero. There's a lot of casting going on here, which
+I've found is necessary to satisfy some of the pickiest C compilers.
 
-1. (uintptr_t) Convert the pointer to a number of the right size.
-2. (uint64_t)  Pad it up to 64 bits in 32-bit builds.
-3. Or in the bits to make a tagged Nan.
-4. Cast to a typedef'd value.
+<aside name="safe">
 
-- lot of machinery, but mostly compile away
-- actual work performed just some bitwise ops
+In this book, we mostly try to follow the letter of the law when it comes to
+our Java and C code, so this paragraph is pretty dubious. There comes a point
+when doing optimization where really start to push the boundary of not just
+what the spec *says* you can do but what a real compiler and chip actually lets
+you get away with.
 
-- sign bit is highest bit:
+There are certainly risks when stepping outside of the spec, but there are
+rewards in that lawless territory too. It's up to you to decide if your
+optimizations are worth it.
 
-^code sign-bit (1 before, 2 after)
+</aside>
 
-- to get obj pointer back out, simply zero out sign and qnan bits
+That macro needs access to the sign bit:
 
-^code as-obj (1 before, 2 after)
+^code sign-bit (2 before, 2 after)
+
+An IEEE 754 double stores the sign at the very highest bit position.
 
 **todo: illustrate**
 
-- to clear bits, use `~` to create inverse mask of those bits then and value
-  with result of that
-- then cast to pointer
+To get the Obj pointer back out, we simply mask off all of those extra bits:
 
-- last macro is type test
+^code as-obj (1 before, 2 after)
+
+The `~`, if you haven't done enough bit munging to encounter before, it bitwise
+not. It flips all ones and zeroes in its operand. By masking the value's bits
+with the bitwise negation of the quiet NaN and sign bits, we clear those bits
+and let the pointer bits remain.
+
+**todo: illustrate**
+
+One last macro. A Value storing an Obj pointer will have its sign bit set, but
+so will any negative number. To tell if a Value is an Obj pointer, we need to
+check that both the sign bit and all of the quiet NaN bits are set.
 
 ^code is-obj (1 before, 2 after)
 
-- sign bit basically third type tag bit to distinguish obj from singleton types
-- value is obj if all qnan bits are set (not number) and sign bit is too (not
-  singleton)
-- so mask down to just those bits and see if they are all set
+This is similar to how we detect the type of the singleton values except this
+time we use the sign bit as the tag.
 
-### value functions
+### Value functions
 
-- macros all done
-- rest of vm goes through those so almost everything working now
-- two fns in value module work with value rep directly
-- fix those
+That's it for macros so we are almost done implementing this optimization. We
+have the representation itself fully supported. However, there are a couple of
+functions in the "value" module that peek inside the otherwise black box of
+Value and work with it's encoding directly. We need to fix those too.
 
-- first printing
-- since nan box support conditional, don't replace old code
-- instead add new code under ifdef
-
-- don't have direct enum type can switch on
-- instead use chain of type test macros to handle cases for each value type
+The first is `printValue()`. It has separate code for each value type. We no
+longer have an explicit type enum we can switch on so instead we use a series
+of type tests to handle each kind of value:
 
 ^code print-value (1 before, 1 after)
 
-- then end conditional section after old code
+This is technically a tiny bit slower than a switch, but compared to the
+overhead of actually writing to a stream, it's negligible.
+
+We keep the old code to continue to support the original tagged union
+representation so we close the conditional section after it:
 
 ^code end-print-value (1 before, 1 after)
 
-- other is equality
+The other operation is testing two values for equality:
 
 ^code values-equal (1 before, 1 after)
 
-- dead simple
-- no type checks
-- just compare raw bits
-- singleton values nil and bools only equal to exactly themselves
-- obj types like instances and classes only equal if pointing to same obj
-- strings already interned, so also only equal if point to same obj
-- numbers equal if have same bits
+It doesn't get much simpler than that! If the two bit representations are
+identical, the values are equal. That does the right thing for the singleton
+values since each has a unique bit representation and they are only equal to
+themselves. It also does the right thing for Obj pointers, since objects use
+identity for equality -- two Obj references are only equal if they point to the
+exact same object.
 
-- oops! not true
+It's *mostly* correct for numbers too. Most floating-point numbers with
+different bit representations are distinct numeric values. Alas, IEEE 754
+contains a little pothole to trip us up. For reasons that aren't entirely clear
+to me, the spec mandates that NaN values are *not* equal to *themselves.* This
+isn't a problem for the special quiet NaNs that we are using for our own
+purposes. But it's possible to produce a "real" arithmetic NaN in Lox and if we
+want to correctly implement IEEE 754 numbers then the resulting value is not
+supposed to be equal to itself. More concretely:
+
+```lox
+var nan = 0/0;
+print nan == nan;
+```
+
+IEEE 754 says this program is supposed to print "false". It does the right thing
+with our old tagged union representation because the `VAL_NUMBER` case applies
+`==` to two values that the C compiler knows are doubles. Thus the compiler
+generates the right CPU instruction to perform an IEEE floating-point equality.
+
+Our new representation breaks that by defining Value to be a uint64_t. If we
+want to be *fully* compliant with IEEE 754, we need to handle this case:
 
 ^code nan-equality (1 before, 1 after)
 
-- ieee 754 says two identical nan *not* equal to each other
-- i know, crazy
-- c compiler emits correct cpu instr to do that if types compared are double
-- not for uint64
-- need to handle
-- annoying
-- [could omit if willing to break weird corner]
+I know, it's weird. And there is a performance cost to doing this type test
+every time we check two Lox values for equality. If we are willing to sacrifice
+a little compatibility -- who *really* cares if NaN is not equal to itself in
+real code? -- we could leave this off. I'll leave it up to you to decide how
+pedantic you want to be.
 
-- close conditional
+Finally, we close the conditional compilation section around the old implementation:
 
 ^code end-values-equal (1 before, 1 after)
 
-### measuring
+And that's it. This optimization is complete, as is our clox virtual machine.
+That's the last line of new code in the book.
 
-- evaluating opt very different from earlier
-- there clear hotspot in profiler
-- fix and see go down
-- macros have different perf impact
-- get inlined whenever used so hard to see in profiler
+### Evaluating performance
 
-- here much more diffuse
-- made objs smaller
-- reduce cache misses across all code
-- depends heavily on size of lox program and amount of memory used
-- tiny microbenchmark may not show much impact since everything so small in mem
+The code is done, but we still need to figure out if we actually made anything
+better with these changes. Evaluating an optimization like this is very
+different from the previous one. There, we had a clear hotspot visible in the
+profiler. We fixed that part of the code and could instantly see the hotspot
+get faster.
 
-- basically everything get a little faster
-- opt like this unnerving
-- can't rely on single surgical microbench
-- instead want big suite of larger benchmarks roughly like real world code
-- see how behave across all
-- on my machine, try few different programs
-- seem to roughly make things 10% faster
-- not huge especially compared to prev opt
-- probably not first opt would reach for
-- other lower hanging fruit
-- in sophisticated vm where those fruits all plucked, opt obj rep like this
-  become more important
-- main goal here to show you different flavor of opt and different kind of
-  change can make
+The effects of changing the value representation are much more diffuse. The macros
+are expanded in place wherever they are used, so the performance changes are
+spread across the codebase in a way that's hard for many profilers to track
+well, especially in an <span name="opt">optimized</span> build.
 
-## where to next
+<aside name="opt">
 
-- stop here with clox
-- could tinker on it forever
-- add new features, new optimizations
-- but for this book, good stopping point
+When doing profiling work, you almost always want to profile an optimized,
+"release" build of your program since that reflects the performance story your
+end users experience. Compiler optimizations like inlining can dramatically
+affect which parts of the code are performance hotspots. Optimizing a debug
+build risks sending you off "fixing" problems that the compiler will already
+solve for you.
 
-- what next in your pl journey?
-- up to you
+Make sure you don't accidentally benchmark and optimize your debug build.
 
-- most of you probably won't do significant interp or compiler work in career
-- ok
-- even so, book has equipped you with better understanding of how language you
-  use work
-- taught you insides of several important data structures
-- given you a little practice with profiling and opt
+</aside>
 
-- more important, give new way of looking at and solving problems
-- even outside of lang, may be surprising to find problems that are "lang like"
-  if look at right
-- maybe that report you need to generate can model as little stack-based series
-  of "instructions"
-- user interface need to build and render is traversal over ast-like tree
+We also can't easily reason about the effects of our change. We've made values
+smaller, which reduces cache misses all across the VM. But the actual real-world
+performance effect of that change is highly dependent on the memory use of the
+Lox program being run. A tiny Lox microbenchmark may not have enough values
+scattered around in memory for the effect to be noticeable, and even things
+like the addresses handed out to us by the C memory allocator can affect things.
 
-- if do want to keep going further in langs, couple of directions to go next
+If we did our job right, basically everything gets a little faster, especially
+on larger, more complex Lox programs. Doing performance work like this is
+unnerving because you can't easily *prove* that you've made the VM better. You
+can't point to a single surgically targeted microbenchmark and say, "There, see?"
 
-- take "product" angle and learn more about how to not just build lang but get
-  users to come to it
-  - lang impl only one piece
-  - becoming better writer for docs and marketing surprisingly important skill
-  - ecosystem
-  - need broad set of libraries and packages for lang to be useful
-  - fun to build libs on core of stack
-  - green field always enjoyable
-  - write arg parser, file io, stuff like that
-  - tools vital too
-  - try building syntax highlighter for lox in your editor of choice
-  - how would you add a debugger to clox?
-  - very hard, some material out there on it, hugely powerful
+Instead, what we really need is a *suite* of larger benchmarks. Ideally, they
+would be distilled from real-world Lox applications -- not that such a thing
+really exists for a toy language like Lox. Then we can measure the aggregate
+performance changes across all of those. I did my best to cobble together a
+handful of larger Lox programs. On my machine, the new value representation
+seems to make everything roughly 10% across the board.
 
-- maybe want to go in more academic research angle
-  - this book not very rigorous, but hope to give you solid intuitive founda
-    to build on
-  - lot of other compiler books out there
-  - beyond that, papers
-  - lot of cs lore, especially pl, never escape academic publishing
-  - learning to find and read cs papers is own skill worth developing
+That's not a huge improvement, especially compared to profound affect of making
+hash table lookups faster. I added this optimization in large part because it's
+a good example of a certain *kind* of performance work you're likely to
+experience, and, honestly, because I think it's technically really cool. It
+might not be the first thing I reached for if I were seriously trying to make
+clox faster. There is probably other lower-hanging fruit.
 
-- or just really like designing and hacking on lang
-  - add more features
-  - tweak syntax
-  - write more benchmarks and more opt
-  - if want to go faster with clox, will hit limitation of single-pass compiler
-    soon
-  - makes very hard to do many compile-time opt like constant folding or dead
-    code elim
-  - learn about ir and insert ast or other rep between parser and code gen
+But, if you find yourself working on a virtual machine where all of the easy
+wins have been taken, then at some point you may want to think about tuning your
+value representation. This chapter has hopefully shined a light on some of the
+options you have in that area.
 
-- or maybe this satisfied curiosity and content to stop here
-- either way, hope you found it worth your time
+## Where to Next
 
-## challenges
+We'll stop here with the Lox language and our two interpreters. We could tinker
+on it forever, adding new language features and clever speed improvements. But,
+for this book, I think we've reached a natural place to call our work complete.
+I won't rehash everything we've learned in the past many pages. Instead, I'd
+like to take a minute to talk about where you might go from here. What is the
+next step in your programming language journey?
 
-1. fire up profiler and look for other hotspot. see anything can optimize?
+Most of you probably won't spend a significant part of your career working in
+compilers or interpreters. It's a pretty small slice of the computer science
+pie, and an even smaller segment of software engineering in industry. That's OK.
+Even if you never work on a compiler again in your life, you will certainly
+*use* one, and I hope this book has equipped you with a better understanding of
+how the programming languages you use are designed and implemented.
 
-2. many strings in user prog very small. often single char. heap allocating tiny
-   array and then having value to store pointer wasteful. classic obj rep opt
-   is to have separate rep for small strings where chars stored inline.
+You have also learned a handful of important, fundamental data structures, and
+gotten some practice doing low-level profiling and optimization work. That kind
+of expertise is helpful no matter what kind of code you write.
 
-   impl in clox building on earlier tagged union rep. profile and see if helps.
+Even more important, I think, is that I hope to have given you a new way of
+<span name="domain">looking</span> at and solving problems. Even if you never
+work on a language again, you may be surprised to discover how many programming
+problems can be seen as "language-like" in some way and then the tools you've
+gained in parsing and interpreting can be brought to bear on them. Maybe that
+report generator you need to write can be modeled as a little series of
+stack-based "instructions" that the generator "executes". That user interface
+you need to render looks an awful lot like traversing an AST.
 
-3. reflect back on experience with book. what worked well for you? what didn't?
-   learning your personal learning style make you more effective at learning
-   and growing.
+<aside name="domain">
+
+This goes for other domains too. I don't think there's a single topic I've
+learned in programming -- or even outside of programming -- that I haven't ended
+up finding useful in other areas. One of my favorite aspects of software
+engineering is how much it rewards those with eclectic interests.
+
+</aside>
+
+If you do want to go further down the programming language rabbit hole, here
+are some suggestions for which branches in the tunnel to explore:
+
+*   Our simple single-pass bytecode compiler pushed us towards mostly runtime
+    optimization. In a mature language implementation, compile-time optimization
+    is generally more important, and the field of compiler optimizations is
+    incredibly rich. Grab a classic <span name="cooper">compilers</span> book,
+    and rebuild the front end of clox or jlox to be a sophisticated compilation
+    pipeline with some interesting intermediate representations and optimization
+    passes.
+
+    Dynamic typing will place some restrictions on how far you can go, but there
+    is still a lot you can do.
+
+    <aside name="cooper">
+
+    I like Cooper and Torczon's "Engineering a Compiler" for this. Appel's
+    "Modern Compiler Implementation" is also well regarded.
+
+    </aside>
+
+*   In this book, I aim to be correct, but not particularly rigorous. My goal is
+    mostly to give you an *intuition* and a feel for doing language work. If you
+    like more precision, then the whole world of programming language academia
+    is waiting for. Languages and compilers have been studied formally since
+    before we even had computers, so there is no shortage of books and papers on
+    parser theory, type systems, and formal logic. Going down this path will
+    also teach you how to read CS papers, which is a valuable -- and distinct --
+    skill in its own right.
+
+*   Or, if you just really enjoy hacking on and making languages, you can take
+    Lox and turn it into your own <span name="license">plaything</span>. Change
+    the syntax to something that delights your eye. Add missing features or
+    remove ones you don't like. Jam new optimizations in there.
+
+    <aside name="license">
+
+    The *text* of this book is copyrighted to me, but the *code* and the
+    implementations of jlox and clox use the very permissive [MIT license][].
+    You are more than welcome to [take either of those interpreters][source] and
+    do whatever you want with them. Go to town.
+
+    If you do choose to release your own language based on these, it would be
+    good to change *name*, mostly to avoid confusing people about what "Lox"
+    refers to.
+
+    </aside>
+
+    Eventually you may get to a point where you have something you think others
+    could use as well. That gets you into the very distinct world of programming
+    language *popularity.* Expect to spend a ton of time writing documentation,
+    example programs, tools, and useful libraries. The marketplace is crowded
+    with languages vying for users and to compete in that space you'll have to
+    put on your marketing hat and *sell*. Not everyone enjoys that kind of
+    public-facing work, but if you do, it can be incredibly gratifying to see
+    people use your language to build their own programs.
+
+Or maybe this book alone has satisfied your craving and you'll stop here.
+Whichever way you go, or don't go, I hope you found this book worth your time.
+
+[mit license]: https://en.wikipedia.org/wiki/MIT_License
+[source]: https://github.com/munificent/craftinginterpreters
+
+<div class="challenges">
+
+## Challenges
+
+Assigning homework on the last day of school seems cruel but if you really want
+something to do during your summer vacation:
+
+1.   Fire up your profiler, run a couple of benchmarks, and look for other
+     hotspots in the VM. Do you see anything in the runtime that you can
+     improve?
+
+2.   Many strings in real-world user programs are very small, often only a
+     character or two. This is less of a concern in clox because we intern
+     strings, but most VMs don't. For those that don't, heap-allocating a tiny
+     character array for each of those little strings and then representing the
+     value as a pointer to that array is quite wasteful. Often the pointer is
+     smaller than the string's characters. A classic trick is to have a separate
+     value representation for small strings that stores the characters right
+     inline in the value.
+
+     Starting from clox's original tagged union representation, implement that
+     optimization. Write a couple of relevant benchmarks and see if it helps.
+
+3.   Reflect back on your experience with this book. What parts of worked well
+     for you? What didn't? The more you understand about your personal learning
+     style, the more effectively you can upload knowledge into your head. You
+     can specifically target material that teaches the way you learn best.
+
+</div>

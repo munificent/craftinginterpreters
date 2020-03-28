@@ -17,7 +17,7 @@ void initTable(Table* table) {
   table->capacity = 0;
 */
 //> Optimization init-capacity-mask
-  table->capacityMask = -1;
+  table->capacity = -1;
 //< Optimization init-capacity-mask
   table->entries = NULL;
 }
@@ -27,29 +27,23 @@ void freeTable(Table* table) {
   FREE_ARRAY(Entry, table->entries, table->capacity);
 */
 //> Optimization free-table
-  FREE_ARRAY(Entry, table->entries, table->capacityMask + 1);
+  FREE_ARRAY(Entry, table->entries, table->capacity + 1);
 //< Optimization free-table
   initTable(table);
 }
 //< free-table
 //> find-entry
-/* Hash Tables find-entry < Optimization find-entry
-static Entry* findEntry(Entry* entries, int capacity,
-                        ObjString* key) {
-*/
-//> Optimization find-entry
-//^ omit
+//> omit
 // NOTE: The "Optimization" chapter has a manual copy of this function.
 // If you change it here, make sure to update that copy.
 //< omit
-static Entry* findEntry(Entry* entries, int capacityMask,
+static Entry* findEntry(Entry* entries, int capacity,
                         ObjString* key) {
-//< Optimization find-entry
 /* Hash Tables find-entry < Optimization initial-index
   uint32_t index = key->hash % capacity;
 */
 //> Optimization initial-index
-  uint32_t index = key->hash & capacityMask;
+  uint32_t index = key->hash & capacity;
 //< Optimization initial-index
 //> find-entry-tombstone
   Entry* tombstone = NULL;
@@ -82,7 +76,7 @@ static Entry* findEntry(Entry* entries, int capacityMask,
     index = (index + 1) % capacity;
 */
 //> Optimization next-index
-    index = (index + 1) & capacityMask;
+    index = (index + 1) & capacity;
 //< Optimization next-index
   }
 }
@@ -91,12 +85,7 @@ static Entry* findEntry(Entry* entries, int capacityMask,
 bool tableGet(Table* table, ObjString* key, Value* value) {
   if (table->count == 0) return false;
 
-/* Hash Tables table-get < Optimization get-find-entry
   Entry* entry = findEntry(table->entries, table->capacity, key);
-*/
-//> Optimization get-find-entry
-  Entry* entry = findEntry(table->entries, table->capacityMask, key);
-//< Optimization get-find-entry
   if (entry->key == NULL) return false;
 
   *value = entry->value;
@@ -104,23 +93,18 @@ bool tableGet(Table* table, ObjString* key, Value* value) {
 }
 //< table-get
 //> table-adjust-capacity
-/* Hash Tables table-adjust-capacity < Optimization adjust-capacity
 static void adjustCapacity(Table* table, int capacity) {
-*/
-//> Optimization adjust-capacity
-static void adjustCapacity(Table* table, int capacityMask) {
-//< Optimization adjust-capacity
 /* Hash Tables table-adjust-capacity < Optimization adjust-alloc
   Entry* entries = ALLOCATE(Entry, capacity);
 */
 //> Optimization adjust-alloc
-Entry* entries = ALLOCATE(Entry, capacityMask + 1);
+  Entry* entries = ALLOCATE(Entry, capacity + 1);
 //< Optimization adjust-alloc
 /* Hash Tables table-adjust-capacity < Optimization adjust-init
   for (int i = 0; i < capacity; i++) {
 */
 //> Optimization adjust-init
-  for (int i = 0; i <= capacityMask; i++) {
+  for (int i = 0; i <= capacity; i++) {
 //< Optimization adjust-init
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
@@ -134,17 +118,12 @@ Entry* entries = ALLOCATE(Entry, capacityMask + 1);
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization re-hash
-  for (int i = 0; i <= table->capacityMask; i++) {
+  for (int i = 0; i <= table->capacity; i++) {
 //< Optimization re-hash
     Entry* entry = &table->entries[i];
     if (entry->key == NULL) continue;
 
-/* Hash Tables re-hash < Optimization adjust-find-entry
     Entry* dest = findEntry(entries, capacity, entry->key);
-*/
-//> Optimization adjust-find-entry
-    Entry* dest = findEntry(entries, capacityMask, entry->key);
-//< Optimization adjust-find-entry
     dest->key = entry->key;
     dest->value = entry->value;
 //> resize-increment-count
@@ -157,15 +136,10 @@ Entry* entries = ALLOCATE(Entry, capacityMask + 1);
   FREE_ARRAY(Entry, table->entries, table->capacity);
 */
 //> Optimization adjust-free
-  FREE_ARRAY(Entry, table->entries, table->capacityMask + 1);
+  FREE_ARRAY(Entry, table->entries, table->capacity + 1);
 //< Optimization adjust-free
   table->entries = entries;
-/* Hash Tables table-adjust-capacity < Optimization adjust-set-capacity
   table->capacity = capacity;
-*/
-//> Optimization adjust-set-capacity
-  table->capacityMask = capacityMask;
-//< Optimization adjust-set-capacity
 }
 //< table-adjust-capacity
 //> table-set
@@ -173,23 +147,17 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 /* Hash Tables table-set-grow < Optimization table-set-grow
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
     int capacity = GROW_CAPACITY(table->capacity);
-    adjustCapacity(table, capacity);
 */
-//> Optimization table-set-grow
-  if (table->count + 1 > (table->capacityMask + 1) * TABLE_MAX_LOAD) {
-    int capacityMask = GROW_CAPACITY(table->capacityMask + 1) - 1;
-    adjustCapacity(table, capacityMask);
-//< Optimization table-set-grow
 //> table-set-grow
+//> Optimization table-set-grow
+  if (table->count + 1 > (table->capacity + 1) * TABLE_MAX_LOAD) {
+    int capacity = GROW_CAPACITY(table->capacity + 1) - 1;
+//< Optimization table-set-grow
+    adjustCapacity(table, capacity);
   }
 
 //< table-set-grow
-/* Hash Tables table-set < Optimization set-find-entry
   Entry* entry = findEntry(table->entries, table->capacity, key);
-*/
-//> Optimization set-find-entry
-  Entry* entry = findEntry(table->entries, table->capacityMask, key);
-//< Optimization set-find-entry
   
   bool isNewKey = entry->key == NULL;
 /* Hash Tables table-set < Hash Tables set-increment-count
@@ -209,12 +177,7 @@ bool tableDelete(Table* table, ObjString* key) {
   if (table->count == 0) return false;
 
   // Find the entry.
-/* Hash Tables table-delete < Optimization delete-find-entry
   Entry* entry = findEntry(table->entries, table->capacity, key);
-*/
-//> Optimization delete-find-entry
-  Entry* entry = findEntry(table->entries, table->capacityMask, key);
-//< Optimization delete-find-entry
   if (entry->key == NULL) return false;
 
   // Place a tombstone in the entry.
@@ -230,7 +193,7 @@ void tableAddAll(Table* from, Table* to) {
   for (int i = 0; i < from->capacity; i++) {
 */
 //> Optimization add-all-loop
-  for (int i = 0; i <= from->capacityMask; i++) {
+  for (int i = 0; i <= from->capacity; i++) {
 //< Optimization add-all-loop
     Entry* entry = &from->entries[i];
     if (entry->key != NULL) {
@@ -248,7 +211,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
   uint32_t index = hash % table->capacity;
 */
 //> Optimization find-string-index
-  uint32_t index = hash & table->capacityMask;
+  uint32_t index = hash & table->capacity;
 //< Optimization find-string-index
 
   for (;;) {
@@ -268,7 +231,7 @@ ObjString* tableFindString(Table* table, const char* chars, int length,
     index = (index + 1) % table->capacity;
 */
 //> Optimization find-string-next
-    index = (index + 1) & table->capacityMask;
+    index = (index + 1) & table->capacity;
 //< Optimization find-string-next
   }
 }
@@ -279,7 +242,7 @@ void tableRemoveWhite(Table* table) {
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization remove-white
-  for (int i = 0; i <= table->capacityMask; i++) {
+  for (int i = 0; i <= table->capacity; i++) {
 //< Optimization remove-white
     Entry* entry = &table->entries[i];
     if (entry->key != NULL && !entry->key->obj.isMarked) {
@@ -294,7 +257,7 @@ void markTable(Table* table) {
   for (int i = 0; i < table->capacity; i++) {
 */
 //> Optimization mark-table
-  for (int i = 0; i <= table->capacityMask; i++) {
+  for (int i = 0; i <= table->capacity; i++) {
 //< Optimization mark-table
     Entry* entry = &table->entries[i];
     markObject((Obj*)entry->key);
