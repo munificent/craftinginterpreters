@@ -115,104 +115,105 @@
 can put your feet up and enjoy it.</p>
 <p><cite>Kazuo Ishiguro, <em>The Remains of the Day</em></cite></p>
 </blockquote>
-<p>Think of this chapter as a bonus. If I still lived in New Orleans, I&rsquo;d call it a
-<em>lagniappe</em><span class="em">&mdash;</span>a little something extra given for free to a customer. You&rsquo;ve got
-a whole book and a complete virtual machine already, but I wanted you to have
-some fun tweaking clox to squeeze more performance out it.</p>
-<p>In this chapter, we&rsquo;ll apply two very different optimizations to the our virtual
-machine. In the process, you&rsquo;ll get a feel for measuring and improving the
-performance of a language implementation, or any program, really.</p>
+<p>If I still lived in New Orleans, I&rsquo;d call this chapter a <em>lagniappe</em><span class="em">&mdash;</span>a little
+something extra given for free to a customer. You&rsquo;ve got a whole book and a
+complete virtual machine already, but I wanted you to have fun tweaking clox to
+squeeze more performance out it.</p>
+<p>In this chapter, we&rsquo;ll apply two very different optimizations to our virtual
+machine. We&rsquo;ll make clox much faster. In the process, you&rsquo;ll get a feel for
+measuring and improving the performance of a language implementation or any
+program, really.</p>
 <h2><a href="#measuring-performance" name="measuring-performance"><small>30&#8202;.&#8202;1</small> Measuring Performance</a></h2>
-<p><em>Optimization</em> means taking a working program and improving its performance
-along any number of axes. In contrast with other engineering, it doesn&rsquo;t aim to
+<p><em>Optimization</em> means taking a working application and improving its performance
+along any number of axes. In contrast with other programming, it doesn&rsquo;t aim to
 change <em>what</em> the program does, instead, it reduces the number of resources it
-takes to do so. We generally think of optimization as meaning runtime speed, and
-that tends to be the main axis we optimize on. But it&rsquo;s often important to
-reduce memory usage, startup time, persistant storage utilization, or network
-bandwidth. All physical resources have some cost<span class="em">&mdash;</span>even if the cost is mostly
-in wasted human time<span class="em">&mdash;</span>so optimization often pays its way.</p>
+takes to do so. We tend to assume optimization is for runtime speed. That does
+tend to be the main axis we optimize on, but it&rsquo;s often important to reduce
+memory usage, startup time, persistent storage size, or network bandwidth. All
+physical resources have some cost<span class="em">&mdash;</span>even if the cost is mostly in wasted human
+time<span class="em">&mdash;</span>so optimization work often pays off.</p>
 <p>There was a time in the early days of computer technology that a skilled
 programmer could hold the entire hardware architecture and compiler pipeline in
-their head and reason about the performance of a program just by thinking about
-it. Those days are long long gone, separated from us in the present by
-microcode, cache lines, branch prediction, deep compiler pipelines, and
-sprawling instructions. We like to pretend C is a &ldquo;low level&rdquo; language, but the
-stack of human engineering between <code>printf("Hello, world!");</code> and a greeting
-appearing on screen is now centuries tall.</p>
-<p>Optimization is now firmly in the realm of empirical science. Our program is a
-border collie sprinting through the obstactle course of the hardware. If we want
-to make her reach the end faster, we can&rsquo;t just sit and ruminate on canine
-physiology until enlightnment strikes. Instead, we need to <em>observe</em> her
-performance, see where she stumbles, and <em>then</em> find faster paths for her to
-take.</p>
-<p>Note how much of that is particular to one dog on one obstactle course. When we
+their head and understand a program&rsquo;s performance just by thinking real hard.
+Those days are long gone, separated from the present by microcode, cache lines,
+branch prediction, deep compiler pipelines, and sprawling instruction sets. We
+like to pretend C is a &ldquo;low level&rdquo; language, but the stack of technology between
+<code>printf("Hello, world!");</code> and a greeting appearing on screen is now miles tall.</p>
+<p>Optimization today is an empirical science. Our program is a border collie
+sprinting through the hardware&rsquo;s obstactle course. If we want her to reach the
+end faster, we can&rsquo;t just sit and ruminate on canine physiology until
+enlightnment strikes. Instead, we need to <em>observe</em> her performance, see where
+she stumbles, and then find faster paths for her to take.</p>
+<p>Much of that process is particular to one dog on one obstactle course. When we
 write optimizations for our virtual machine, we also can&rsquo;t assume that we will
-make <em>all</em> Lox programs run faster on <em>all</em> hardware. Different Log programs
+make <em>all</em> Lox programs run faster on <em>all</em> hardware. Different Lox programs
 stress different areas of the VM, and different architectures have their own
 strengths and weaknesses.</p>
 <h3><a href="#benchmarks" name="benchmarks"><small>30&#8202;.&#8202;1&#8202;.&#8202;1</small> Benchmarks</a></h3>
 <p>When we add new functionality, we validate correctness by writing tests<span class="em">&mdash;</span>Lox
 programs that use a feature and pass if the VM behaves property. This lets us
-pin down behavior and ensure we don&rsquo;t break things as we make other changes.</p>
-<p>We have the same needs when it comes to performance:</p>
+pin down behavior and ensure we don&rsquo;t break existing features when we add new
+ones. We have similar needs when it comes to performance:</p>
 <ol>
 <li>
 <p>How do we validate that an optimization <em>does</em> improve performance and by
     how much?</p>
 </li>
 <li>
-<p>How do ensure that other unrelated changes don&rsquo;t <em>regress</em> performance?</p>
+<p>How do we ensure that other unrelated changes don&rsquo;t <em>regress</em> performance?</p>
 </li>
 </ol>
-<p>The Lox programs we write for that are <em>benchmarks</em>. These are carefully crafted
-programs that stress some part of the language implementation. They measure not
-<em>what</em> the program does, but how <span name="much"><em>long</em></span> it takes to do
-it.</p>
+<p>The Lox programs we write for to accomplish those are <em>benchmarks</em>. These are
+carefully crafted programs that stress some part of the language implementation.
+They measure not <em>what</em> the program does, but how <span
+name="much"><em>long</em></span> it takes to do it.</p>
 <aside name="much">
-<p>Most benchmarks measure running time. But, of course, you&rsquo;ll also often end up
-writing benchmarks that measure use of other resources too<span class="em">&mdash;</span>memory allocation,
-how much time is spent in the garbage collector, start up time, etc.</p>
+<p>Most benchmarks measure running time. But, of course, you&rsquo;ll eventually find
+yourself needing to write benchmarks that measure memory allocation, how much
+time is spent in the garbage collector, start up time, etc.</p>
 </aside>
 <p>By measuring the performance of a benchmark before and after a change, you can
 see what your change does. When you land an optimization, all of the tests
 should behave the exact same as they did before, but hopefully the benchmarks
 run faster.</p>
-<p>Once you have an entire <em>suite</em> of benchmarks, you can measure not just <em>that</em>
-an optimization changes performance, but on which <em>kinds</em> of code. Sometimes,
-you&rsquo;ll find that some benchmarks get faster while others get slower. Then you
-have to make hard decisions about what kinds of code your language
-implementation optimizes for.</p>
-<p>The <span name="js">suite</span> of benchmarks you choose to write is a key part
-of that decision. In the same way that your tests encode your choices around
-what correct behavior looks like, your benchmarks are the embodiment of your
-priorities when it comes to performance. They will guide which optimizations you
-implement, so choose your benchmarks carefully and don&rsquo;t forget to periodically
-reflect on whether they are helping you reach your larger goals.</p>
+<p>Once you have an entire <span name="js"><em>suite</em></span> of benchmarks, you can
+measure not just <em>that</em> an optimization changes performance, but on which
+<em>kinds</em> of code. Sometimes you&rsquo;ll find that some benchmarks get faster while
+others get slower. Then you have to make hard decisions about what kinds of code
+your language implementation optimizes for.</p>
+<p>The suite of benchmarks you choose to write is a key part of that decision. In
+the same way that your tests encode your choices around what correct behavior
+looks like, your benchmarks are the embodiment of your priorities when it comes
+to performance. They will guide which optimizations you implement, so choose
+your benchmarks carefully and don&rsquo;t forget to periodically reflect on whether
+they are helping you reach your larger goals.</p>
 <aside name="js">
 <p>In the early proliferation of JavaScript VMs, the first widely-used benchmark
 suite was Mozilla&rsquo;s SunSpider programs. Browser competition was fierce, and
 SunSpider results were used as marketing fodder by each browser to claim theirs
 was fastest. That highly incentivized VM hackers to optimize to those benchmarks.</p>
-<p>But, unfortunately those benchmarks often didn&rsquo;t reflect real-world performance.
+<p>Unfortunately, those benchmarks often didn&rsquo;t reflect real-world performance.
 They were mostly microbenchmarks<span class="em">&mdash;</span>tiny toy programs that completed quickly.
 Those benchmarks penalize complex just-in-time compilers that start off slower
 but get much <em>much</em> faster once a program has &ldquo;warmed up&rdquo; and had enough time
 for the compiler to optimize and re-compile hot code paths. This put VM hackers
 in the unfortunate position of having to choose between making the SunSpider
-numbers get better, or actually optimizing the kinds of programs real users
-were running.</p>
-<p>Google&rsquo;s V8 team responded by sharing their Octane benchmark suite, which were
+numbers get better, or actually optimizing the kinds of programs real users were
+running.</p>
+<p>Google&rsquo;s V8 team responded by sharing their Octane benchmark suite, which was
 closer to real-world code at the time. Years later, as JavaScript use patterns
 continued to evolve, even that eventually outlived its usefulness. Expect that
 your benchmarks will need to evolve as your language&rsquo;s ecosystem does.</p>
+<p>Remember, the ultimate goal is to make <em>user programs</em> faster, and benchmarks
+are only a proxy for that.</p>
 </aside>
-<p>Writing good benchmarks is a subtle art. Like tests, you need to balance not
-overfitting to your implementation while ensuring that the benchmark does
-actually tickle the code paths that you care about. When you measure
-performance, you need to compensate from variance caused by CPU throttling,
-caching, and other weird hardware and operating system quirks. I won&rsquo;t give you
-a whole treatise here, but treat benchmarking as its own skill that you will get
-better as you practice.</p>
+<p>Benchmarking is a subtle art. Like tests, you need to balance not overfitting to
+your implementation while ensuring that the benchmark does actually tickle the
+code paths that you care about. When you measure performance, you need to
+compensate for variance caused by CPU throttling, caching, and other weird
+hardware and operating system quirks. I won&rsquo;t give you a whole treatise here,
+but treat benchmarking as its own skill that you will get better at as you
+practice.</p>
 <h3><a href="#profiling" name="profiling"><small>30&#8202;.&#8202;1&#8202;.&#8202;2</small> Profiling</a></h3>
 <p>OK, so you&rsquo;ve got a few benchmarks now. You want to make them go faster. Now
 what? First of all, let&rsquo;s assume you&rsquo;ve done all the obvious easy work. You are
@@ -223,9 +224,9 @@ software engineering&rdquo;.</p>
 <p>Since the hardware is too complex to reason about our program&rsquo;s performance from
 first principles, we have to go out into the field. That means <em>profiling</em>. A
 profiler, if you&rsquo;ve never used one, is a tool that runs your <span
-name="program">program</span> and tracks hardware resource use as it executes.
-Simple ones show you how much time was spent in each function in your program.
-Sophisticated ones track each instruction and data cache miss, memory
+name="program">program</span> and tracks hardware resource use as the code
+executes. Simple ones show you how much time was spent in each function in your
+program. Sophisticated ones track each instruction and data cache miss, memory
 allocations, and all sorts of other metrics.</p>
 <aside name="program">
 <p>&ldquo;Your program&rdquo; here means the Lox VM itself running some <em>other</em> Lox program. We
@@ -240,13 +241,13 @@ slightly out of scope for this book.</p>
 For whatever platform you program in, it is worth getting familiar with a decent
 profiler on it. You don&rsquo;t need to be a master. I have learned things within
 minutes of throwing a program at a profiler that would have taken me <em>days</em> to
-discover on my own through trial and error. Seriously<span class="em">&mdash;</span>profilers wonderful,
-magical tools.</p>
+discover on my own through trial and error. Profilers are wonderful, magical
+tools.</p>
 <h2><a href="#faster-hash-table-probing" name="faster-hash-table-probing"><small>30&#8202;.&#8202;2</small> Faster Hash Table Probing</a></h2>
-<p>Enough pontificating, let&rsquo;s make some performance charts go up and to the right.
-The first optimization we&rsquo;ll do, it turns out, is about the <em>tiniest</em> possible
-change we could make to our VM. There&rsquo;s a lot of scaffolding <em>around</em> the change
-we&rsquo;ll have to deal with, but the main optimization itself is pint-sized.</p>
+<p>Enough pontificating, let&rsquo;s get some performance charts going up and to the
+right. The first optimization we&rsquo;ll do, it turns out, is about the <em>tiniest</em>
+possible change we could make to our VM. There&rsquo;s a lot of scaffolding around the
+change we&rsquo;ll have to deal with, but the main optimization itself is pint-sized.</p>
 <p>When I first got the bytecode virtual machine that clox is descended from
 working, I did what any self-respecting VM hacker would do. I cobbled together a
 couple of benchmarks, fired up a profiler, and ran those scripts through my
@@ -274,7 +275,7 @@ something like this:</p>
 <span class="k">var</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="k">var</span> <span class="n">start</span> <span class="o">=</span> <span class="n">clock</span><span class="p">();</span>
 <span class="k">while</span> <span class="p">(</span><span class="n">sum</span> <span class="o">&lt;</span> <span class="mi">100000000</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">zoo</span><span class="p">.</span><span class="n">ant</span><span class="p">()</span><span name="sum"> </span>
+  <span class="n">sum</span> <span class="o">=</span> <span class="n">sum</span> <span class="o">+</span> <span class="n">zoo</span><span class="p">.</span><span class="n">ant</span><span class="p">()</span>
             <span class="o">+</span> <span class="n">zoo</span><span class="p">.</span><span class="n">banana</span><span class="p">()</span>
             <span class="o">+</span> <span class="n">zoo</span><span class="p">.</span><span class="n">tuna</span><span class="p">()</span>
             <span class="o">+</span> <span class="n">zoo</span><span class="p">.</span><span class="n">hay</span><span class="p">()</span>
@@ -287,57 +288,51 @@ something like this:</p>
 </pre></div>
 
 
-<aside name="sum">
-<p>Another thing this benchmark is careful to do is <em>use</em> the result of the code
-it executes. By calculating a rolling sum and printing the result, we ensure
-the VM <em>must</em> execute all that code. This is an important habit to be in. Our
-Lox VM is too simple, but many compilers do aggressive dead code elimination
-and are smart enough to discard computations whose result is never used.</p>
+<aside class="bottom" name="sum">
+<p>Another thing this benchmark is careful to do is <em>use</em> the result of the code it
+executes. By calculating a rolling sum and printing the result, we ensure the VM
+<em>must</em> execute all that code. This is an important habit. Unlike our simple Lox
+VM, many compilers do aggressive dead code elimination and are smart enough to
+discard a computation whose result is never used.</p>
 <p>Many a programming language hacker has been impressed by the blazing performance
 of a VM on some benchmark, only to realize that it&rsquo;s because the compiler
 optimized the entire benchmark program away to nothing.</p>
 </aside>
 <p>If you&rsquo;ve never seen a benchmark before, this might seem ludicrous. <em>What</em> is
-going on here? The program itself isn&rsquo;t designed to do anything useful. What it
-does do is call a bunch of methods and access a bunch of fields. It does that
-and basically nothing else to ensure that our profiling results focus on the
-parts of the language we&rsquo;re interested in. Since fields and methods live in hash
-tables, it takes care to populate at least a <span name="more"><em>few</em></span>
-interesting strings in the instance and method tables. Finally, it does that in
-a big loop to ensure we give our profiler enough execution time to really dig
-in and see where the cycles are going.</p>
+going on here? The program itself doesn&rsquo;t intend to <span name="sum">do</span>
+anything useful. What it does do is call a bunch of methods and access a bunch
+of fields since those are the parts of the language we&rsquo;re interested in. Fields
+and methods live in hash tables, so it takes care to populate at least a <span
+name="more"><em>few</em></span> interesting keys in those tables. That is all wrapped
+in a big loop to ensure our profiler has enough execution time to dig in and see
+where the cycles are going.</p>
 <aside name="more">
 <p>If you really want to benchmark hash table performance, you&rsquo;ll want to try
 tables of lots of different sizes. The six keys we add to each table here aren&rsquo;t
 even enough to get over our hash table&rsquo;s eight-element minimum threshold. But I
 didn&rsquo;t want to throw an enormous benchmark script at you. Feel free to add more
-animals and treats if you like.</p>
+critters and treats if you like.</p>
 </aside>
 <p>Before I tell you what my profiler showed me, spend a minute taking a few
 guesses. Where in clox&rsquo;s codebase do you think the VM spent most of its time? Is
 there any code we&rsquo;ve written in previous chapters that you suspect is
 particularly slow?</p>
-<p>Here&rsquo;s what I found: Naturally, the VM spends almost all of its time in <code>run()</code>
-or in functions called by it. We&rsquo;ll use &ldquo;inclusive time&rdquo; to mean the time
-spent in some function or other functions it calls. The <code>run()</code> function is the
-main bytecode execution loop. It drives <em>everything</em>. Inside there, we spent
-about 3.6% of the runtime on this line:</p>
-<div class="codehilite"><pre><span></span>  <span class="k">switch</span> <span class="p">(</span><span class="n">instruction</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="p">())</span> <span class="p">{</span>
-</pre></div>
-
-
-<p>That&rsquo;s the main bytecode dispatch loop, so that fraction represents some of the
-overhead that a bytecode interpreter&rsquo;s abstraction layer adds over native code.
-There are other small pockets of time sprinkled around inside various cases in
-the bytecode switch for common instructions like <code>OP_POP</code>, <code>OP_RETURN</code>, and
-<code>OP_ADD</code>. The big heavy instructions are <code>OP_GET_GLOBAL</code> with 17% of the
+<p>Here&rsquo;s what I found: Naturally, the function with the greatest inclusive time is
+<code>run()</code>. (<strong>Inclusive time</strong> means the total time spent in some function and all
+other functions it calls.) Since <code>run()</code> is the main bytecode execution loop, it
+drives everything.</p>
+<p>Inside <code>run()</code>, there are small pockets of time sprinkled around inside various
+cases in the bytecode switch for common instructions like <code>OP_POP</code>, <code>OP_RETURN</code>,
+and <code>OP_ADD</code>. The big heavy instructions are <code>OP_GET_GLOBAL</code> with 17% of the
 execution time, <code>OP_GET_PROPERTY</code> at 12%, and <code>OP_INVOKE</code> which takes a whopping
 42% of the total running time.</p>
-<p>So we&rsquo;ve got three hotspots to optimize? Actually no. Because it turns out all
-of them spend almost all of their time calling the same function: <code>tableGet()</code>.
-That function claims a whole 72% of the execution time (inclusive). Now, in a
-dynamically-typed language, we expect to spend a fair bit of time looking stuff
-up in hash tables<span class="em">&mdash;</span>it&rsquo;s sort of the price of dynamism. But, still, <em>wow.</em></p>
+<p>So we&rsquo;ve got three hotspots to optimize? Actually, no. Because it turns out
+those three instructions spend almost all of their time inside calls to the same
+function: <code>tableGet()</code>. That function claims a whole 72% of the execution time
+(again, inclusive). Now, in a dynamically-typed language, we expect to spend a
+fair bit of time looking stuff up in hash tables<span class="em">&mdash;</span>it&rsquo;s sort of the price of
+dynamism. But, still, <em>wow.</em></p>
+<h3><a href="#slow-key-wrapping" name="slow-key-wrapping"><small>30&#8202;.&#8202;2&#8202;.&#8202;1</small> Slow key wrapping</a></h3>
 <p>If you take a look at <code>tableGet()</code>, you&rsquo;ll see it&rsquo;s mostly a wrapper around a
 call to <code>findEntry()</code> where the actual hash table lookup happens. To refresh
 your memory, here it is in full:</p>
@@ -369,14 +364,14 @@ your memory, here it is in full:</p>
 
 
 <p>When running that previous benchmark<span class="em">&mdash;</span>on my machine, at least<span class="em">&mdash;</span>the VM spends
-70% of the total execution time on one line. Any guesses as to which one? No?
-It&rsquo;s this:</p>
+70% of the total execution time on <em>one line</em> in this function. Any guesses as
+to which one? No? It&rsquo;s this:</p>
 <div class="codehilite"><pre><span></span>  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="p">;</span>
 </pre></div>
 
 
-<p>That pointer reference isn&rsquo;t the problem. It&rsquo;s the little <code>%</code>. It turns out the
-modulo operator is <em>really</em> slow. Much slower than other <span
+<p>That pointer dereference isn&rsquo;t the problem. It&rsquo;s the little <code>%</code>. It turns out
+the modulo operator is <em>really</em> slow. Much slower than other <span
 name="division">arithmetic</span> operators. Can we do something better?</p>
 <aside name="division">
 <p>Except for its sister operation division, which is equally slow.</p>
@@ -384,63 +379,43 @@ name="division">arithmetic</span> operators. Can we do something better?</p>
 <p>In the general case, it&rsquo;s really hard to re-implement a fundamental arithmetic
 operator in user code in a way that&rsquo;s faster than what the CPU itself can do.
 After all, all of our C code must ultimately compile down to the CPU&rsquo;s own
-arithmetic operations. If there were tricks we could use to go faster, it would
-already be using them.</p>
-<p>However, we <em>can</em> take advantage of the fact that we know more about our problem
-than the CPU does. The reason we&rsquo;re using modulo here is to take a key string&rsquo;s
-hash code and wrap it to fit within the bounds of the table&rsquo;s entry array. That
-array starts out at eight elements and grows by a factor of two each time. We
-know<span class="em">&mdash;</span>and the CPU and C compiler do not<span class="em">&mdash;</span>that out our table&rsquo;s size will
-always be a power of two.</p>
-<p>And because we&rsquo;re clever bit twiddlers, we know a faster way to calculate the
-remainder of a number modulo a power of two: <em>masking</em>. For example, let&rsquo;s say
-we want to calculate:</p>
-<p><strong>todo: illustrate these</strong></p>
-<div class="codehilite"><pre><span></span><span class="mi">228</span> <span class="o">%</span> <span class="mi">64</span> <span class="o">=</span> <span class="mi">37</span>
-</pre></div>
-
-
-<p>Decimal doesn&rsquo;t illuminate, but binary does:</p>
-<div class="codehilite"><pre><span></span><span class="mi">11100101</span> <span class="mi">229</span>
-       <span class="o">%</span>
-<span class="mi">01000000</span>  <span class="mi">64</span>
-       <span class="o">=</span>
-<span class="mi">00100101</span>  <span class="mi">37</span>
-</pre></div>
-
-
-<p>Note how every 1 bit in the dividend at or to the left of the divisor&rsquo;s only 1
-bit gets discarded. All of the remaining 1 bits in the dividend<span class="em">&mdash;</span>all the bits
-above the rightmost 0 bits pass through and form the result. In other words, it&rsquo;s
-exactly like taking the dividend and doing a bitwise and with one less than the
-divisor:</p>
-<div class="codehilite"><pre><span></span><span class="mi">11100101</span> <span class="mi">229</span>
-       <span class="o">&amp;</span>
-<span class="mi">00111111</span>  <span class="mi">63</span>
-       <span class="o">=</span>
-<span class="mi">00100101</span>  <span class="mi">37</span>
-</pre></div>
-
-
-<p>I&rsquo;m not enough of a mathematician to <em>prove</em> to you that this works, but if you
-think it through, it should make sense. This means we can replace that slow
-modulo operator with a fast subtraction followed by a very fast bitwise and.</p>
-<p>We can simply change that offending line of code to:</p>
+arithmetic operations. If there were tricks we could use to go faster, the chip
+would already be using them.</p>
+<p>However, we can take advantage of the fact that we know more about our problem
+than the CPU does. We use modulo here is to take a key string&rsquo;s hash code and
+wrap it to fit within the bounds of the table&rsquo;s entry array. That array starts
+out at eight elements and grows by a factor of two each time. We know<span class="em">&mdash;</span>and the
+CPU and C compiler do not<span class="em">&mdash;</span>that out our table&rsquo;s size is always a power of two.</p>
+<p>Because we&rsquo;re clever bit twiddlers, we know a faster way to calculate the
+remainder of a number modulo a power of two: <em>masking</em>. Let&rsquo;s say we want to
+calculate 229 modulo 64. The answer is 37, which is not particularly apparent in
+decimal, but is clearer when you view those numbers in binary:</p>
+<p><img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." /></p>
+<p>On the left side of the illustration, notice how the result (37) is simply the
+dividend (229) with the highest two bits shaved off? Those two leftmost bits are
+the bits at or to the left of the divisor&rsquo;s single 1 bit.</p>
+<p>On the right side, we get the same result by taking 229 and bitwise and-ing it
+with 63, which is one less than our original power of two divisor. Subtracting
+one from a power of two gives you a series of 1 bits. That is exactly the mask
+we need in order to strip out those two leftmost bits.</p>
+<p>In other words, you can calculate a number modulo any power of two by simply
+and-ing it with that power of two minus one. I&rsquo;m not enough of a mathematician
+to <em>prove</em> to you that this works, but if you think it through, it should make
+sense. We can replace that slow modulo operator with a fast subtraction followed
+by a very fast bitwise and. We simply change the offending line of code to:</p>
 <div class="codehilite"><pre><span></span>  <span class="kt">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">capacity</span> <span class="o">-</span> <span class="mi">1</span><span class="p">);</span>
 </pre></div>
 
 
-<p>This code is still very performance critical, though, and any extra work we can
-eliminate, we should. We are performing that subtraction every time, but the
-result of <code>(capacity - 1)</code> only changes infrequently, when the table grows or
-shrinks. We can cache that result and reuse it. In fact, we can go one further.
-If we cache the <em>mask</em> used to wrap a hash key into the table size, we don&rsquo;t
-need to also store the <em>capacity</em>. It&rsquo;s trivial to calculate the capacity in
-the few places we need it by just adding one to the mask.</p>
-<p>So, instead of storing the entry array capacity in Table, we&rsquo;ll directly store
-the bit mask. We&rsquo;ll keep the <span name="rename">same</span> <code>capacity</code> field
-but its meaning and value is now different. It now represents the <em>mask</em> and
-its value is always one <em>less</em> than the size of the entry array.</p>
+<p>We can go farther. The result of <code>(capacity - 1)</code> only changes infrequently,
+when the table grows or shrinks. Instead of performing the subtraction on each
+hash table lookup, we can cache the result and reuse it. In fact, if we cache
+the <em>mask</em> used to wrap a hash key into the table size, we don&rsquo;t even need to
+store the <em>capacity</em> since we can easily calculate by incrementing the mask.</p>
+<p>Instead of storing the entry array <em>capacity</em> in Table, we&rsquo;ll directly store the
+<em>bit mask</em>. We&rsquo;ll keep the <span name="rename">same</span> <code>capacity</code> field but
+its meaning and value is now different. It now stores the mask and its value is
+always one <em>less</em> than the size of the entry array.</p>
 <aside name="rename">
 <p>Honestly, the code is clearer if we rename the field to <code>capacityMask</code>. But
 doing so means a slew of very uninteresting code changes to drag you through, so
@@ -457,15 +432,9 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
 
-<p>CPUs love bitwise operators, so it&rsquo;s hard to improve on that. Before we can try
-that and see how the perf looks, we need to go through the VM and fix every
-piece of code that uses the <code>capacity</code> field and update it to work with the
-new value it represents. This is going to be kind of a chore. Sorry.</p>
-<p><strong>todo: figure out what subsections to have</strong></p>
-<h3><a href="#findentry()" name="findentry()"><small>30&#8202;.&#8202;2&#8202;.&#8202;1</small> findEntry()</a></h3>
-<p>There are a couple of other changes to make in <code>findEntry()</code>. Our linear
-probing search may need to wrap around the end of the array, so there is another
-modulo to update:</p>
+<p>CPUs love bitwise operators, so it&rsquo;s hard to improve on that. </p>
+<p>Our linear probing search may need to wrap around the end of the array, so there
+is another modulo to update in <code>findEntry()</code> to update:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="c1">// We found the key.         </span>
       <span class="k">return</span> <span class="n">entry</span><span class="p">;</span>                
     <span class="p">}</span>                              
@@ -478,12 +447,14 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
 
-<p>This one is just as slow as the other, but it didn&rsquo;t show up in the profile
-because probing past the first bucket is rare and probing at just the right
-spot to wrap around even rarer.</p>
-<h3><a href="#adjustcapacity()" name="adjustcapacity()"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small> adjustCapacity()</a></h3>
+<p>This line didn&rsquo;t show up in the profile since most searches don&rsquo;t wrap. Before
+we can try out these changes and see how they affect the performance, we have to
+fix every piece of code that uses the <code>capacity</code> field and update it to work
+with the new value it represents. This is going to be kind of a chore. Sorry.</p>
+<hr />
+<h3><a href="#hash-table-changes" name="hash-table-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small> Hash table changes</a></h3>
 <p>There are a few changes to make in <code>adjustCapacity()</code>. First, when we allocate
-the new array, we need to calculate the size from the mask:</p>
+the new array, we calculate the size from the mask:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">adjustCapacity</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="kt">int</span> <span class="n">capacity</span><span class="p">)</span> <span class="p">{</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
@@ -505,9 +476,7 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
 
-<p>The difference here is that the <code>&lt;</code> checking to exit the loop has become a <code>&lt;=</code>
-since the value of the mask is now the index of the last element, not the size
-of the array.</p>
+<p>The difference here is that the <code>&lt;</code> checking to exit the loop has become a <code>&lt;=</code>.</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>                           
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
@@ -518,8 +487,8 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
 
-<p>When we free the old array, the garbage collector wants to correctly track how
-many bytes are released:</p>
+<p>When we free the old array, the garbage collector wants to track how many bytes
+are released:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="p">;</span>                                      
   <span class="p">}</span>                                                      
 <br></pre><div class="source-file"><em>table.c</em><br>
@@ -531,10 +500,9 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
 
-<p>There&rsquo;s going to be a lot of <code>+ 1</code> in and <code>&lt;=</code> in this rest of this section.
-This is fertile ground for subtle off-by-one bugs, so we should tread carefully
-to ensure we don&rsquo;t get bitten.</p>
-<h3><a href="#table-operations" name="table-operations"><small>30&#8202;.&#8202;2&#8202;.&#8202;3</small> Table operations</a></h3>
+<p>There&rsquo;s going to be a lot of <code>+ 1</code> in and <code>&lt;=</code> in this section. This is fertile
+ground for subtle off-by-one bugs, so we should tread carefully to ensure we
+don&rsquo;t get bitten.</p>
 <p>Moving up the abstraction stack, we get to the main hash table operations that
 call <code>adjustCapacity()</code> and <code>findEntry()</code>. When we grow the array before
 inserting a new entry into it, we need to calculate the capacity:</p>
@@ -549,7 +517,6 @@ replace 2 lines</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableSet</em>(), replace 2 lines</div>
 
-<h3><a href="#other-changes" name="other-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;4</small> other changes</a></h3>
 <p>All the way at the beginning, when we first initialize the field:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>     
 </pre><div class="source-file"><em>table.c</em><br>
@@ -563,8 +530,8 @@ replace 1 line</div>
 
 <p>As you&rsquo;ve seen, when we need to calculate the actual array size from the
 <code>capacity</code> field we get that by adding one. When the hash table is empty, the
-size is zero, so initializing the <code>capacity</code> <em>mask</em> to -1 will correctly yield
-that size when we increment it.</p>
+size is zero, so initializing <code>capacity</code> to -1 correctly yields zero when we
+increment it.</p>
 <p>When copying all of the entries from one hash table to another, we iterate over
 the source table&rsquo;s array:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="kt">void</span> <span class="nf">tableAddAll</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="p">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="p">)</span> <span class="p">{</span>   
@@ -580,8 +547,8 @@ replace 1 line</div>
 <p>That&rsquo;s another <code>&lt;</code> to <code>&lt;=</code> change.</p>
 <p>The <code>findEntry()</code> function has a sister function, <code>tableFindStrings()</code> that does
 a hash table lookup for interning strings. We need to make the same changes
-there<span class="em">&mdash;</span>actual optimizations<span class="em">&mdash;</span>that we made in <code>findEntry()</code>. We use the mask
-as a mask when wrapping the string&rsquo;s hash key:</p>
+there that we made in <code>findEntry()</code>. We use <code>capacity</code> as a mask when wrapping
+the string&rsquo;s hash key:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="p">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="p">,</span> <span class="kt">int</span> <span class="n">length</span><span class="p">,</span>
                            <span class="kt">uint32_t</span> <span class="n">hash</span><span class="p">)</span> <span class="p">{</span>                            
   <span class="k">if</span> <span class="p">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>                                  
@@ -606,7 +573,11 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableFindString</em>(), replace 1 line</div>
 
-<h3><a href="#memory-manager-changes" name="memory-manager-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;5</small> Memory manager changes</a></h3>
+<p>These changes are actual optimizations. This function is only called when
+interning strings, which wasn&rsquo;t significantly touched by our benchmark. But a
+Lox program that created lots of strings might noticeably benefit from this
+change.</p>
+<h3><a href="#memory-manager-changes" name="memory-manager-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;3</small> Memory manager changes</a></h3>
 <p>There are a few places in the memory management code where we access a hash
 table&rsquo;s capacity. First, using a <code>&lt;=</code> in the loop when we mark all of the
 entries in a table:</p>
@@ -643,32 +614,36 @@ replace 1 line</div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>freeTable</em>(), replace 1 line</div>
 
-<p>That&rsquo;s our last <code>+ 1</code>! That was a lot of plumbing just to turn a single <code>%</code> into
-a <code>&amp;</code>. Let&rsquo;s see if it was worth it by running that zoological benchmark. On my
-machine, before the optimization the benchmark runs in about 5.22 sectons. With
-this optimization, the total runtime drops to 2.60s. That&rsquo;s almost exactly half
-the time, meaning our optimization got the benchmark running about twice as
-fast. That is a <span name="fault">massive</span> win when it comes to
-optimization. Usually you feel good if you can claw a few percent points here or
-there.</p>
-<p><strong>todo: chart</strong></p>
-<p>And, because methods, fields, and global variables are so prevalent in Lox
-programs, this tiny optimization will improve performance across the board.
-Almost every Lox program will benefit.</p>
-<aside name="fault">
-<p>We probably shouldn&rsquo;t congratulate ourselves <em>too</em> strongly here. Yes, it&rsquo;s a
-big improvement, but only <em>relative to our own previous implementation</em>. We get
-the credit for the optimization, but we also deserve the blame for its original
-speed too.</p>
+<p>That&rsquo;s our last <code>+ 1</code>! That was a lot of plumbing just to turn a couple of <code>%</code>
+operators into a <code>&amp;</code>.</p>
+<p>Let&rsquo;s see if it was worth it. I tweaked that zoological benchmark to count how
+many <span name="batch">batches</span> of 10,000 calls it can run in ten
+seconds. On my machine using the unoptimized code, the benchmark gets through
+3,192 batches. With this optimization, that jumps to 6,249.</p>
+<p><img src="image/optimization/hash-chart.png" alt="Bar chart comparing the performance before and after the optimization." /></p>
+<p>That&rsquo;s almost exactly twice as much work in the same amount of time. We made the
+VM twice as fast. That is a massive win when it comes to optimization. Usually
+you feel good if you can claw a few percentage points here or there. Since
+methods, fields, and global variables are so prevalent in Lox programs, this
+tiny optimization improves performance across the board. Almost every Lox
+program benefits.</p>
+<aside name="batch">
+<p>Our original benchmark fixed the amount of <em>work</em> and then measured the <em>time</em>.
+Changing the script to count how many batches of calls it can do in ten seconds
+fixes the time and measures the work. For performance comparisons, I like that
+style of benchmark because the reported number represents <em>speed</em>. You can
+directly compare the numbers before and after an optimization. When measuring
+execution time, you have to do a little arithmetic to get to a good relative
+measure of performance.</p>
 </aside>
 <p>Now, the point of this section is <em>not</em> that the modulo operator is profoundly
-evil and you should stamp it out of every program you ever write. Nor is that
-tiny micro-optimization is a vital engineering skill. It&rsquo;s very rare that a
-performance problem has such a narrow, effective solution. We just got lucky.</p>
+evil and you should stamp it out of every program you ever write. Nor is it that
+micro-optimization is a vital engineering skill. It&rsquo;s very rare that a
+performance problem has such a narrow, effective solution. We got lucky.</p>
 <p>The point is that we didn&rsquo;t <em>know</em> that the modulo operator was a performance
-drain until our profiler told us so. If we wandered around our VM&rsquo;s codebase
-blind guessing at hotspots, we likely wouldn&rsquo;t have noticed it. What I want you
-to take away from this is how important it is to have a profiler in your
+drain until our profiler told us so. If we had wandered around our VM&rsquo;s codebase
+blindly guessing at hotspots, we likely wouldn&rsquo;t have noticed it. What I want
+you to take away from this is how important it is to have a profiler in your
 programmer&rsquo;s toolbox.</p>
 <p>To reinforce that point, let&rsquo;s go ahead and run the same benchmark in our
 now-optimized VM and see what the profiler shows us. On my machine, <code>tableGet()</code>
@@ -680,11 +655,10 @@ that our optimization didn&rsquo;t just make the program faster, but made it fas
 as they are for discovering problems.</p>
 <h2><a href="#nan-boxing" name="nan-boxing"><small>30&#8202;.&#8202;3</small> NaN Boxing</a></h2>
 <p>This next optimization has a very different feel. Thankfully, despite the odd
-name, it does not involve pugilistics with your grandmother. It&rsquo;s different, but
-not, like, <em>that</em> different. With our previous optimization the profiler
-basically told us where the problem was and we just had to use a little
-ingenuity to come up with a solution.</p>
-<p><strong>todo: illustrate?</strong></p>
+name, it does not involve punching your grandmother. It&rsquo;s different, but not,
+like, <em>that</em> different. With our previous optimization the profiler told us
+where the problem was and we merely had to use some ingenuity to come up with a
+solution.</p>
 <p>This optimization is more subtle, and its performance effects more diffuse
 across the virtual machine. The profiler won&rsquo;t help us come up with this.
 Instead, it was invented by <span name="someone">someone</span> thinking deeply
@@ -702,59 +676,60 @@ unused NaN bits.</p>
 </aside>
 <p>Like the heading says, this optimization is called &ldquo;NaN boxing&rdquo; or sometimes
 &ldquo;NaN tagging&rdquo;. Personally I like the latter name because &ldquo;boxing&rdquo; tends to imply
-some kind of heap-allocated representation, but it seems to be the more
-widely-used term. It has to do with how we represent values in the VM.</p>
+some kind of heap-allocated representation, but the former seems to be the more
+widely-used term. This technique affects how we represent values in the VM.</p>
 <p>On a 64-bit machine, our Value type takes up 16 bytes. The struct has two
 fields, a type tag and a union for the payload. The largest fields in the union
-are an Obj pointer and a double, which are both 8 bytes. The compiler aligns
-those to an 8-byte boundary, which means the tag takes up a full 8 bytes too.</p>
+are an Obj pointer and a double, which are both 8 bytes. To keep the union field
+aligned to an 8-byte boundary, the compiler gives the tag a full 8 bytes too.</p>
 <p><strong>todo: illustrate</strong></p>
 <p>That&rsquo;s pretty big. If we could cut that down, then the VM could pack more values
 into the same amount of memory. Most computers have plenty of RAM these days, so
-the direct memory savings aren&rsquo;t a huge deal. But smaller values mean more data
-fits in a cache line. That means fewer cache misses which affects <em>speed</em>.</p>
-<p>But if Values need to be aligned to their largest payload size and a Lox number
-or Obj pointer needs a full 8 bytes, how can we get any smaller? In a
-dynamically typed language like Lox, each value needs to not just carry its
-payload, but enough additional information to be able to identify the value&rsquo;s
-<em>type</em> at runtime. If a Lox number is already using the full 8 bytes, where
-could we squirrel away a couple of extra bits to tell the runtime &ldquo;this is a
-number&rdquo;?</p>
+the direct memory savings aren&rsquo;t a huge deal. But a smaller representation mean
+more Values fit in a cache line. That means fewer cache misses which affects
+<em>speed</em>.</p>
+<p>If Values need to be aligned to their largest payload size and a Lox number or
+Obj pointer needs a full 8 bytes, how can we get any smaller? In a dynamically
+typed language like Lox, each value needs to not just carry its payload, but
+enough additional information to be able to identify the value&rsquo;s type at
+runtime. If a Lox number is already using the full 8 bytes, where could we
+squirrel away a couple of extra bits to tell the runtime &ldquo;this is a number&rdquo;?</p>
 <p>This is one of the perennial problems for dynamic language hackers. It
 particularly bugs them because statically-typed languages don&rsquo;t generally have
 this problem. The type of each value is known at compile time, so no extra
-memory is needed at runtime to track it. When your C compiler compiles 32-bit
+memory is needed at runtime to track it. When your C compiler compiles a 32-bit
 int, the resulting variable gets <em>exactly</em> 32 bits of storage.</p>
 <p>Dynamic language folks hate losing ground to the static camp, so they&rsquo;ve come up
-with a number of very clever ways to pack some type information and a payload
-into a small number bits. NaN boxing is one of those. It&rsquo;s a particularly good
-fit for languages like JavaScript and Lua where all numbers are double-precision
+with a number of very clever ways to pack type information and a payload into a
+small number bits. NaN boxing is one of those. It&rsquo;s a particularly good fit for
+languages like JavaScript and Lua where all numbers are double-precision
 floating point. That describes Lox too.</p>
 <h3><a href="#what-is-(and-is-not)-a-number" name="what-is-(and-is-not)-a-number"><small>30&#8202;.&#8202;3&#8202;.&#8202;1</small> What is (and is not) a number?</a></h3>
 <p>Before we can start optimizing, we need to really understand how your friend the
 CPU represents floating point numbers. Almost all machines today use the same
-mechanism for converting a real number into a series of bits, and that scheme is
-encoded in the venerable scroll <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, known to mortals as &ldquo;IEEE
-Standard for Floating-Point Arithmetic&rdquo;.</p>
-<p>A 64-bit double-precision IEEE floating point number looks something like this:</p>
-<p><strong>todo: illustrate</strong></p>
+scheme, encoded in the venerable scroll <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, known to mortals as the
+&ldquo;IEEE Standard for Floating-Point Arithmetic&rdquo;.</p>
+<p>In the eyes of your computer, a 64-bit double-precision IEEE floating point
+number looks like this:</p>
+<p><img src="image/optimization/double.png" alt="Bit representation of an IEEE 754 double." /></p>
 <ul>
 <li>
-<p>The first bit is the <span name="sign"><em>sign bit</em></span> and indicates
+<p>The first bit is the <span name="sign"><strong>sign bit</strong></span> and indicates
     whether the number is positive or negative.</p>
 </li>
 <li>
-<p>After that is 11 <em>exponent</em> bits. These tell you how far the number is
+<p>After that is 11 <strong>exponent</strong> bits. These tell you how far the number is
     shifted away from the decimal (well, binary) point.</p>
 </li>
 <li>
-<p>The remaining 52 bits are the <em>fraction</em> or <em>mantissa</em> bits. They represent
-    the significant digits of the number, as a binary integer.</p>
+<p>The remaining 52 bits are the <strong>fraction</strong>, <strong>mantissa</strong>, or <strong>significand</strong>
+    bits. They represent the significant digits<span class="em">&mdash;</span>well, bits<span class="em">&mdash;</span>of the number,
+    as a binary integer.</p>
 </li>
 </ul>
-<p>I know that&rsquo;s a little vague, but this chapter ain&rsquo;t a deep dive on floating
+<p>I know that&rsquo;s a little vague, but this chapter isn&rsquo;t a deep dive on floating
 point representation. If you want to know how about how the exponent and
-mantissa play together, there are better explanations out there already than I
+mantissa play together, there are already better explanations out there than I
 could write.</p>
 <aside name="sign">
 <p>Since the sign bit is always present even if the number is zero, that implies
@@ -762,35 +737,36 @@ that &ldquo;positive zero&rdquo; and &ldquo;negative zero&rdquo; have different 
 indeed, IEE 754 does have both of those.</p>
 </aside>
 <p>The important part for our purposes is that the spec carves out a special case
-exponent value. When all of the exponent bits are set, then instead of just
-being a really big number, the value gets a special meaning. These values are
-&ldquo;not a number&rdquo; (hence, &ldquo;NaN&rdquo;) values. These are used to represent special edge
-cases like infinity or the result of trying to divide a number by zero.</p>
-<p><em>Any</em> double who&rsquo;s exponent bits are all set, regardless of the mantissa bits.
-That means there&rsquo;s lots and lots of <em>different</em> NaN bit patterns. IEEE 754
-divides those into two categories. Values where the highest mantissa bit is zero
-are called <em>signalling</em> NaNs and the others are <em>quiet</em> NaNs. Signalling NaNs
-are intended to be the result of erroneous computations, like dividing by zero.
-A chip <span name="abort">may</span> detect when one of these values is produced
-and abort a program completely. They may self-destruct if you try to read one.</p>
+exponent. When all of the exponent bits are set, then instead of just
+representing a really big number, the value gets a special meaning. These values
+are &ldquo;not a number&rdquo; (hence, &ldquo;NaN&rdquo;) values. They represent special edge concepts
+like infinity or the result of trying to divide a number by zero.</p>
+<p><em>Any</em> double whose exponent bits are all set is a NaN, regardless of the
+mantissa bits. That means there&rsquo;s lots and lots of <em>different</em> NaN bit patterns.
+IEEE 754 divides those into two categories. Values where the highest mantissa
+bit is zero are called <strong>signalling NaNs</strong> and the others are <strong>quiet NaNs</strong>.
+Signalling NaNs are intended to be the result of erroneous computations, like
+dividing by zero. A chip <span name="abort">may</span> detect when one of these
+values is produced and abort a program completely. They may self-destruct if you
+try to read one.</p>
 <aside name="abort">
 <p>I don&rsquo;t know if any CPUs actually <em>do</em> trap signalling NaNs and abort. The spec
 just says they <em>could</em>.</p>
 </aside>
-<p>Quiet NaNs are generally supposed to be safer to use. They also don&rsquo;t represent
-useful numbers, but they should at least not set your hand on fire if you touch
-them.</p>
+<p>Quiet NaNs are generally supposed to be safer to use. They don&rsquo;t represent
+useful numeric values, but they should at least not set your hand on fire if you
+touch them.</p>
 <p>Every double with all of its exponent bits set and its highest mantissa bit set
-is a quiet NaN. That leaves 52 bits unaccounted for. We&rsquo;ll sidestep one of those
-so that we don&rsquo;t step on Intel&rsquo;s &ldquo;QNan Floating-Point Indefinite&rdquo; value, leaving
-us 51 bits. Those bits can be anything. We&rsquo;re talking 2,251,799,813,685,248
-unique quiet NaN bit patterns.</p>
-<p><strong>todo: illustrate</strong></p>
-<p>The way to think about it is that a 64-bit double has enough room to store all
-of the various different numeric values and <em>also</em> room for another 51 bits of
-data that we can use for whatever we want. That&rsquo;s obviously plenty of room to
-set aside a couple of bit patterns to represent Lox&rsquo;s <code>nil</code>, <code>true</code>, and <code>false</code>
-values. But what about Obj pointers? Don&rsquo;t pointers need a full 64 bits too?</p>
+is a quiet NaN. That leaves 52 bits unaccounted for. We&rsquo;ll avoid one of those so
+that we don&rsquo;t step on Intel&rsquo;s &ldquo;QNan Floating-Point Indefinite&rdquo; value, leaving us
+51 bits. Those remaining bits can be anything. We&rsquo;re talking
+2,251,799,813,685,248 unique quiet NaN bit patterns.</p>
+<p><img src="image/optimization/nan.png" alt="The bits in a double that make it a quiet NaN." /></p>
+<p>This means a 64-bit double has enough room to store all of the various different
+numeric floating-point values and <em>also</em> has room for another 51 bits of data
+that we can use for whatever we want. That&rsquo;s plenty of room to set aside a
+couple of bit patterns to represent Lox&rsquo;s <code>nil</code>, <code>true</code>, and <code>false</code> values. But
+what about Obj pointers? Don&rsquo;t pointers need a full 64 bits too?</p>
 <p>Fortunately, we have another trick up our other sleeve. Yes, technically
 pointers on a 64-bit architecture are 64 bits. But, no architecture I know of
 actually uses that entire address space. Instead, most widely-used chips today
@@ -800,16 +776,16 @@ either unspecified or always zero.</p>
 <p>48 bits is still enough room to address 262,144 gigabytes of memory so that
 should be sufficient for a while.</p>
 </aside>
-<p>If we&rsquo;ve got 51 bits, we can stuff a 48-bit pointer in there with three bits
-to spare. Just enough to store a tiny type tag to distinguish between <code>nil</code>,
-Booleans, and Obj pointers.</p>
+<p>If we&rsquo;ve got 51 bits, we can stuff a 48-bit pointer in there with three bits to
+spare. Those three bits are just enough to store tiny type tags to distinguish
+between <code>nil</code>, Booleans, and Obj pointers.</p>
 <p>That&rsquo;s what NaN boxing is. Within a single 64-bit double, you can store all of
 the different floating pointer numeric values, as well as a pointer and a couple
-of other special sentinel values. Half the memory usage as our current Value
+of other special sentinel values. Half the memory usage of our current Value
 struct, while retaining all of the fidelity.</p>
 <p>What&rsquo;s particularly nice about this representation is that there is no need to
-<em>convert</em> a raw double value into a &ldquo;boxed&rdquo; form. Lox numbers <em>are</em> just normal
-64-bit doubles. We&rsquo;ll still need to <em>check</em> their type before we use them,
+<em>convert</em> a numeric double value into a &ldquo;boxed&rdquo; form. Lox numbers <em>are</em> just
+normal 64-bit doubles. We still need to <em>check</em> their type before we use them,
 since Lox is dynamically typed, but we don&rsquo;t need to do any bit shifting or
 pointer indirection to go from &ldquo;value&rdquo; to &ldquo;number&rdquo;.</p>
 <p>For the other value types, there is a conversion step, of course. But,
@@ -821,15 +797,15 @@ of the VM should just work.</p>
 head yet. Don&rsquo;t worry, they will crystallize as we work through the
 implementation. Before we get to that, we&rsquo;re going to put some compile-time
 scaffolding in place.</p>
-<p>For our previous optimization, we just fixed the code in place and called it
-done. This one is a little different. NaN boxing relies on some very low-level
-details of how a chip represents floating point numbers and pointers. It
-<em>probably</em> works on most CPUs you&rsquo;re likely to encounter, but you can never be
-totally sure.</p>
+<p>For our previous optimization, we just replaced the previous slow code and
+called it done. This one is a little different. NaN boxing relies on some very
+low-level details of how a chip represents floating point numbers and pointers.
+It <em>probably</em> works on most CPUs you&rsquo;re likely to encounter, but you can never
+be totally sure.</p>
 <p>It would suck if our VM completely lost support for an architecture just because
 of its value representation. To avoid that, we&rsquo;ll maintain support for <em>both</em>
-the old tagged union implementation of Value and the new NaN-boxed form. A
-simple compile-time flag selects the new representation:</p>
+the old tagged union implementation of Value and the new NaN-boxed form. We
+select which representation we want at compile time using this flag:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;     </span><span class="cp"></span>
 <br></pre><div class="source-file"><em>common.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define NAN_BOXING      </span>
@@ -838,10 +814,11 @@ simple compile-time flag selects the new representation:</p>
 
 <div class="source-file-narrow"><em>common.h</em></div>
 
-<p>If that&rsquo;s defined, the VM uses the new form. Otherwise it defaults to the old
-style. The few pieces of code that are care about the details of the value
+<p>If that&rsquo;s defined, the VM uses the new form. Otherwise we revert to the old
+style. The few pieces of code that care about the details of the value
 representation<span class="em">&mdash;</span>mainly the handful of macros for wrapping and unwrapping
-Values<span class="em">&mdash;</span>will check this. The rest of the VM can continue along its merry way.</p>
+Values<span class="em">&mdash;</span>vary based on whether this flag is set. The rest of the VM can
+continue along its merry way.</p>
 <p>Most of the work happens in the &ldquo;value&rdquo; module where we add the section for the
 new type:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="n">ObjString</span><span class="p">;</span>
@@ -858,11 +835,11 @@ new type:</p>
 
 <p>When Nan boxing is enabled, the actual type of a Value is a flat unsigned 64-bit
 integer. We could use double instead which would make the macros for dealing
-with Lox numbers a little simpler. But all of the other macros will need to do
-some bitwise operations and uint64_t is a much friendlier type for that. Outside
-of this module, the rest of the VM doesn&rsquo;t really care one way or the other.</p>
+with Lox numbers a little simpler. But all of the other macros need to do
+bitwise operations and uint64_t is a much friendlier type for that. Outside of
+this module, the rest of the VM doesn&rsquo;t really care one way or the other.</p>
 <p>Before we start re-implementing those macros, we need to close the <code>#else</code>
-branch of the <code>#ifdef</code>:</p>
+branch of the <code>#ifdef</code> at the end of the definitions for the old representation:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })</span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#endif                                                                 </span>
@@ -871,19 +848,19 @@ branch of the <code>#ifdef</code>:</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>All that remains for us now is filling in that first <code>#ifdef</code> section with new
+<p>Our remaining task is simply to fill in that first <code>#ifdef</code> section with new
 implementations of all the stuff already in the <code>#else</code> side. We&rsquo;ll work through
 it one value type at a time, from easiest to hardest.</p>
 <h3><a href="#numbers" name="numbers"><small>30&#8202;.&#8202;3&#8202;.&#8202;3</small> Numbers</a></h3>
 <p>We&rsquo;ll start with numbers since they have the most direct representation under
 NaN boxing. To &ldquo;convert&rdquo; a C double to a NaN boxed Lox Value, we don&rsquo;t need to
 touch a single bit<span class="em">&mdash;</span>the representation is exactly the same. But we do need to
-convince our C compiler of that fact, which is made harder by defining Value to
-be a uint16_t.</p>
+convince our C compiler of that fact, which we made harder by defining Value to
+be a uint64_t.</p>
 <p>We need to get the compiler to take a set of bits that it thinks are a double
-and use those same bits as a uint64_t, or vice versa, called <em>type punning</em>. The
-<span name="close">closest</span> thing to an officially supported way of doing
-that in C is through a union:</p>
+and use those same bits as a uint64_t, or vice versa<span class="em">&mdash;</span>called <strong>type punning</strong>.
+The <span name="close">closest</span> thing to an officially supported way of
+doing that in C is through a union:</p>
 <aside class="bottom" name="close">
 <p>I say &ldquo;closest&rdquo; because it&rsquo;s not <em>entirely</em> clear to me that the standard
 officially supports this even though the technique has been in wide use since
@@ -891,7 +868,7 @@ the early days of C. I&rsquo;ve read a number of interpretations of the spec on 
 point and arguments for and against seem to read more like Biblical hermeneutics
 or literary criticism than any sort of clear answer.</p>
 <p>Regardless of what the Good Spec says, just about every compiler under the sun
-permits it, so relying on it is, at worse, a minor sin.</p>
+permits type punning through unions, so relying on it is, at worse, a minor sin.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">;</span>
 </pre><div class="source-file"><em>value.h</em></div>
@@ -906,9 +883,9 @@ permits it, so relying on it is, at worse, a minor sin.</p>
 
 <p>The idea is that you store a value into one of the union&rsquo;s fields and then read
 out the other field. Voil&agrave;, the bits have been transmuted from the first field&rsquo;s
-type to the second&rsquo;s. Alas, I don&rsquo;t know any elegant way to pack that operation
-into a single expression, so the conversion macros will have to call out to
-helper functions. Here&rsquo;s the first:</p>
+type to the second&rsquo;s. Alas, I don&rsquo;t know an elegant way to pack those operations
+into a single expression, so the conversion macros will call out to helper
+functions. Here&rsquo;s the first macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">;</span>                
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)</span>
@@ -917,7 +894,7 @@ helper functions. Here&rsquo;s the first:</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>To convert a C double to a Lox Value<span class="em">&mdash;</span>in other words a uint64_t<span class="em">&mdash;</span>we rely on:</p>
+<p>It hands off the double to:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="p">}</span> <span class="n">DoubleUnion</span><span class="p">;</span>                              
 </pre><div class="source-file"><em>value.h</em><br>
 add after union <em>DoubleUnion</em></div>
@@ -932,9 +909,9 @@ add after union <em>DoubleUnion</em></div>
 <div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
 
 <p>This creates a temporary union, stores the double in it, and then yanks out the
-uint64_4 whose bits overlap that in memory. This looks <em>really</em> slow: a function
+uint64_4 whose bits overlap that in memory. This code appears slow: a function
 call, a local variable, an assignment, and a read. Fortunately, compilers are
-smart enough to optimize that all down to absolutely nothing.</p>
+smart enough to optimize it all away.</p>
 <p>&ldquo;Unwrapping&rdquo; a Lox number is the mirror image:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">;</span>                
 </pre><div class="source-file"><em>value.h</em></div>
@@ -958,11 +935,12 @@ add after union <em>DoubleUnion</em></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
 
-<p>It works exactly the same except it flips the fields that it writes to and reads
-from. Again, the compiler will eliminate all of it.</p>
+<p>It works exactly the same except it flips which field it writes and which it
+reads. Again, the compiler will eliminate all of it.</p>
 <p>That was a lot of code to ultimately do nothing but silence the C type checker.
 Doing a runtime type <em>test</em> on a Lox number is a little more interesting. If all
 we have are exactly the bits for a double, how do we tell that it <em>is</em> a double?</p>
+<p>It&rsquo;s time to get bit twiddling:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">;</span>                       
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
@@ -971,15 +949,15 @@ we have are exactly the bits for a double, how do we tell that it <em>is</em> a 
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>It&rsquo;s time to get bit twiddling. We know that every Value that is <em>not</em> a number
-will use a special quiet NaN representation. And we&rsquo;re taking for granted that
-we have correctly avoided any of the meaningful NaN representations that may
-actually be produced by doing arithmetic on numbers.</p>
-<p>If the double has all of its NaN bits set, and the quiet NaN bit set, and
-maybe one more for good measure, we can be pretty certain it is one of the bit
-patterns we ourselves have set aside for other types. To check that, we mask
-out all of the bits except for are set of quiet NaN bits. If <em>all</em> of those bits
-are set, it must be a value of some other Lox type.</p>
+<p>We know that every Value that is <em>not</em> a number will use a special quiet NaN
+representation. And we presume we have correctly avoided any of the meaningful
+NaN representations that may actually be produced by doing arithmetic on
+numbers.</p>
+<p>If the double has all of its NaN bits set, and the quiet NaN bit set, and one
+more for good measure, we can be pretty certain it is one of the bit patterns we
+ourselves have set aside for other types. To check that, we mask out all of the
+bits except for our set of quiet NaN bits. If <em>all</em> of those bits are set, it
+must be a NaN-boxed value of some other Lox type.</p>
 <p>The set of quiet NaN bits are declared like this:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                              </span>
 </pre><div class="source-file"><em>value.h</em></div>
@@ -991,19 +969,18 @@ are set, it must be a value of some other Lox type.</p>
 
 <p>It would be nice if C supported binary literals. But if you do the conversion,
 you&rsquo;ll see that value is the same as:</p>
-<p><strong>todo: illustrate</strong></p>
-<p>Which is exactly all of the exponent bits, plus the quiet NaN bit, plus one
-extra to dodge that Intel value. That&rsquo;s numbers.</p>
+<p><img src="image/optimization/qnan.png" alt="The quiet NaN bits." /></p>
+<p>This is exactly all of the exponent bits, plus the quiet NaN bit, plus one extra
+to dodge that Intel value.</p>
 <h3><a href="#nil-true-and-false" name="nil-true-and-false"><small>30&#8202;.&#8202;3&#8202;.&#8202;4</small> Nil, true, and false</a></h3>
 <p>The next type to handle is <code>nil</code>. That&rsquo;s pretty simple since there&rsquo;s only one
-<code>nil</code> value and thus we only need a single bit pattern to represent all values
-of that type. It&rsquo;s a &ldquo;singleton&rdquo; value. There are two other singleton values,
-the two Boolean values <code>true</code> and <code>false</code>. We need three unique bit patterns.</p>
-<p>Two bits gives us four different combinations, which is plenty. So we will use
-the two lowest bits of our unused bit space as a &ldquo;type tag&rdquo; to determine which
-of these three singleton values we&rsquo;re looking at.</p>
-<p><strong>todo: illustrate tag bit location</strong></p>
-<p>The three type tags are defined like so:</p>
+<code>nil</code> value and thus we only need a single bit pattern to represent it. <code>nil</code> is
+a <em>singleton</em> value. There are two other singleton values, the two Boolean
+values <code>true</code> and <code>false</code>. This calls for three unique bit patterns.</p>
+<p>Two bits gives us four different combinations, which is plenty. We claim the two
+lowest bits of our unused mantissa space as a &ldquo;type tag&rdquo; to determine which of
+these three singleton values we&rsquo;re looking at. The three type tags are defined
+like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define TAG_NIL   1 </span><span class="c1">// 01.                     </span>
@@ -1016,7 +993,7 @@ of these three singleton values we&rsquo;re looking at.</p>
 
 <p>Our representation of <code>nil</code> is thus all of the bits required to define our
 quiet NaN representation along with the <code>nil</code> type tag bits:</p>
-<p><strong>todo: illustrate</strong></p>
+<p><img src="image/optimization/nil.png" alt="The bit representation of the nil value." /></p>
 <p>In code, that&rsquo;s:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                      </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
@@ -1039,15 +1016,7 @@ uint64_t to see if a Value is <code>nil</code>:</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p><span name="equal"></span></p>
-<aside class="bottom" name="equal">
-<p>Note that using <code>==</code> would not do the right thing if our typedef for Value was
-double instead of uint64_t. Using C&rsquo;s equality operator on two doubles steps
-into the realm of IEEE 754 equality which has lots of weird special rules. Some
-doubles with distinct bit patterns are considered equivalent, like positive and
-negative zero.</p>
-</aside>
-<p>You can guess what defining the <code>true</code> and <code>false</code> values looks like:</p>
+<p>You can guess how we define the <code>true</code> and <code>false</code> values:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                        </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
@@ -1057,6 +1026,8 @@ negative zero.</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
+<p>The bits look like this:</p>
+<p><img src="image/optimization/bools.png" alt="The bit representation of the true and false values." /></p>
 <p>To convert a C bool into one a Lox Boolean, we rely on these two singleton
 values and the good old conditional operator:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                        </span>
@@ -1079,9 +1050,9 @@ compiler can figure that out faster than I can.</p>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>Since we know there are exactly two bit Boolean representations in Lox<span class="em">&mdash;</span>unlike
-in C where any non-zero value can be considered &ldquo;true&rdquo;<span class="em">&mdash;</span>if it ain&rsquo;t one, it
-must be the other. This macro does assume you only call it on a Value that you
-know <em>is</em> a Lox Boolean. To do that, there&rsquo;s one more macro:</p>
+in C where any non-zero value can be considered &ldquo;true&rdquo;<span class="em">&mdash;</span>if it ain&rsquo;t <code>true</code>, it
+must be <code>false</code>. This macro does assume you only call it on a Value that you
+know <em>is</em> a Lox Boolean. To check that, there&rsquo;s one more macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="kt">uint64_t</span> <span class="n">Value</span><span class="p">;</span>                                 
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define IS_BOOL(v)      (((v) &amp; FALSE_VAL) == FALSE_VAL)</span>
@@ -1100,19 +1071,18 @@ but what about <code>true</code>? A more obvious macro would look like:</p>
 that expression has any side effects, they will be executed twice. We could call
 out to a separate function, but, ugh, what a chore.</p>
 <p>Instead, we can take advantage of the bits we chose for the type tags. Note that
-both <code>true</code> and <code>false</code> have the second bit set bit <code>nil</code> does not. If our Value
-has all of its quiet NaN bits set, we know it&rsquo;s not a number. And if the second
-bit is set, we know it&rsquo;s not <code>nil</code>. It must be <code>true</code> or <code>false</code>. Conveniently,
-<code>FALSE_VAL</code> is just the right bit pattern to check the quiet NaN bits and the
-second tag bit, so we just test against that.</p>
-<p><strong>todo: illustrate</strong></p>
-<p>That&rsquo;s a little more clever than I like to be with my bit hackery, but here we
-are.</p>
+both <code>true</code> and <code>false</code> have the second bit set bit and <code>nil</code> does not. If our
+Value has all of its quiet NaN bits set, we know it&rsquo;s not a number. And if the
+second bit is set, we know it&rsquo;s not <code>nil</code>. It must be <code>true</code> or <code>false</code>.
+Conveniently, <code>FALSE_VAL</code> is just the right bit pattern to check both the quiet
+NaN bits and that second tag bit, so we just test against that.</p>
+<p><img src="image/optimization/bool-mask.png" alt="TRUE_VAL & FALSE_VAL is the same as FALSE_VAL & FALSE_VAL." /></p>
+<p>This is a more clever than I like to be with my bit hackery, but here we are.</p>
 <h3><a href="#objects" name="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small> Objects</a></h3>
 <p>The last value type is the hardest. Unlike the singleton values, there are
 billions of different pointer values we need to box inside a NaN. This means we
 need both some kind of tag to indicate that these particular NaNs <em>are</em> Obj
-pointers and we need room for the pointers themselves.</p>
+pointers and we need room for the addresses themselves.</p>
 <p>The tag bits we used for the singleton values are in the region where I decided
 to store the pointer itself, so we can&rsquo;t easily use a different <span
 name="ptr">bit</span> there to indicate that the value is an object reference.
@@ -1131,7 +1101,7 @@ whatever we wanted in there and just mask it off before derefering the pointer.<
 </aside>
 <p>If the sign bit is set, then the remaining low bits store the pointer to the
 Obj.</p>
-<p><strong>todo: illustrate</strong></p>
+<p><img src="image/optimization/obj.png" alt="Bit representation of an Obj* stored in a Value." /></p>
 <p>To convert a raw Object pointer to a Value, we simply take the pointer and set
 all of the quiet NaN bits and the sign bit:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)                  </span>
@@ -1147,18 +1117,17 @@ all of the quiet NaN bits and the sign bit:</p>
 it could thus overlap with some of those quiet NaN and sign bits. But in
 practice, at least on the architectures I&rsquo;ve tested, everything above the 48-th
 bit in a pointer is always zero. There&rsquo;s a lot of casting going on here, which
-I&rsquo;ve found is necessary to satisfy some of the pickiest C compilers.</p>
+I&rsquo;ve found is necessary to satisfy some of the pickiest C compilers, but the
+end result is just munging some bits together.</p>
 <aside name="safe">
-<p>In this book, we mostly try to follow the letter of the law when it comes to
-our Java and C code, so this paragraph is pretty dubious. There comes a point
-when doing optimization where really start to push the boundary of not just
-what the spec <em>says</em> you can do but what a real compiler and chip actually lets
-you get away with.</p>
-<p>There are certainly risks when stepping outside of the spec, but there are
-rewards in that lawless territory too. It&rsquo;s up to you to decide if your
-optimizations are worth it.</p>
+<p>I try to follow the letter of the law when it comes to the code in this book, so
+this paragraph is dubious. There comes a point when optimizating where you push
+the boundary of not just what the spec <em>says</em> you can do but what a real
+compiler and chip actually lets you get away with.</p>
+<p>There are risks when stepping outside of the spec, but there are rewards in that
+lawless territory too. It&rsquo;s up to you to decide if the gains are worth it.</p>
 </aside>
-<p>That macro needs access to the sign bit:</p>
+<p>We define the sign bit like so:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                              </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define SIGN_BIT ((uint64_t)0x8000000000000000)</span>
@@ -1167,8 +1136,6 @@ optimizations are worth it.</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>An IEEE 754 double stores the sign at the very highest bit position.</p>
-<p><strong>todo: illustrate</strong></p>
 <p>To get the Obj pointer back out, we simply mask off all of those extra bits:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                                </span>
 </pre><div class="source-file"><em>value.h</em></div>
@@ -1178,14 +1145,11 @@ optimizations are worth it.</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>The <code>~</code>, if you haven&rsquo;t done enough bit munging to encounter before, it bitwise
-not. It flips all ones and zeroes in its operand. By masking the value&rsquo;s bits
-with the bitwise negation of the quiet NaN and sign bits, we clear those bits
+<p>The tilde (<code>~</code>), if you haven&rsquo;t done enough bit munging to encounter before, is
+bitwise not. It flips all ones and zeroes in its operand. By masking the value
+with the bitwise negation of the quiet NaN and sign bits, we <em>clear</em> those bits
 and let the pointer bits remain.</p>
-<p><strong>todo: illustrate</strong></p>
-<p>One last macro. A Value storing an Obj pointer will have its sign bit set, but
-so will any negative number. To tell if a Value is an Obj pointer, we need to
-check that both the sign bit and all of the quiet NaN bits are set.</p>
+<p>One last macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)                          </span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define IS_OBJ(v)       (((v) &amp; (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))</span>
@@ -1194,13 +1158,16 @@ check that both the sign bit and all of the quiet NaN bits are set.</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>This is similar to how we detect the type of the singleton values except this
-time we use the sign bit as the tag.</p>
+<p>A Value storing an Obj pointer has its sign bit set, but so does any negative
+number. To tell if a Value is an Obj pointer, we need to check that both the
+sign bit and all of the quiet NaN bits are set. This is similar to how we detect
+the type of the singleton values except this time we use the sign bit as the
+tag.</p>
 <h3><a href="#value-functions" name="value-functions"><small>30&#8202;.&#8202;3&#8202;.&#8202;6</small> Value functions</a></h3>
-<p>That&rsquo;s it for macros so we are almost done implementing this optimization. We
-have the representation itself fully supported. However, there are a couple of
-functions in the &ldquo;value&rdquo; module that peek inside the otherwise black box of
-Value and work with it&rsquo;s encoding directly. We need to fix those too.</p>
+<p>The rest of the VM almost always goes through the macros when working with
+Values, so we are almost done. However, there are a couple of functions in the
+&ldquo;value&rdquo; module that peek inside the otherwise black box of Value and work with
+it&rsquo;s encoding directly. We need to fix those too.</p>
 <p>The first is <code>printValue()</code>. It has separate code for each value type. We no
 longer have an explicit type enum we can switch on so instead we use a series
 of type tests to handle each kind of value:</p>
@@ -1225,8 +1192,8 @@ in <em>printValue</em>()</div>
 
 <p>This is technically a tiny bit slower than a switch, but compared to the
 overhead of actually writing to a stream, it&rsquo;s negligible.</p>
-<p>We keep the old code to continue to support the original tagged union
-representation so we close the conditional section after it:</p>
+<p>We still support the original tagged union representation, so we keep the old
+code and enclose it in the <code>#else</code> conditional section:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="p">}</span>   
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
@@ -1298,7 +1265,7 @@ in <em>valuesEqual</em>()</div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>valuesEqual</em>()</div>
 
 <p>And that&rsquo;s it. This optimization is complete, as is our clox virtual machine.
-That&rsquo;s the last line of new code in the book.</p>
+That was the last line of new code in the book.</p>
 <h3><a href="#evaluating-performance" name="evaluating-performance"><small>30&#8202;.&#8202;3&#8202;.&#8202;7</small> Evaluating performance</a></h3>
 <p>The code is done, but we still need to figure out if we actually made anything
 better with these changes. Evaluating an optimization like this is very
@@ -1316,30 +1283,33 @@ end users experience. Compiler optimizations like inlining can dramatically
 affect which parts of the code are performance hotspots. Optimizing a debug
 build risks sending you off &ldquo;fixing&rdquo; problems that the compiler will already
 solve for you.</p>
-<p>Make sure you don&rsquo;t accidentally benchmark and optimize your debug build.</p>
+<p>Make sure you don&rsquo;t accidentally benchmark and optimize your debug build. I seem
+to make that mistake at least once a year.</p>
 </aside>
-<p>We also can&rsquo;t easily reason about the effects of our change. We&rsquo;ve made values
+<p>We also can&rsquo;t easily <em>reason</em> about the effects of our change. We&rsquo;ve made values
 smaller, which reduces cache misses all across the VM. But the actual real-world
 performance effect of that change is highly dependent on the memory use of the
 Lox program being run. A tiny Lox microbenchmark may not have enough values
-scattered around in memory for the effect to be noticeable, and even things
-like the addresses handed out to us by the C memory allocator can affect things.</p>
+scattered around in memory for the effect to be noticeable, and even things like
+the addresses handed out to us by the C memory allocator can affect things.</p>
 <p>If we did our job right, basically everything gets a little faster, especially
-on larger, more complex Lox programs. Doing performance work like this is
-unnerving because you can&rsquo;t easily <em>prove</em> that you&rsquo;ve made the VM better. You
-can&rsquo;t point to a single surgically targeted microbenchmark and say, &ldquo;There, see?&rdquo;</p>
+on larger, more complex Lox programs. But it is possible that the extra bitwise
+operations we do when NaN-boxing values nullifies the gains from the better
+memory use. Doing performance work like this is unnerving because you can&rsquo;t
+easily <em>prove</em> that you&rsquo;ve made the VM better. You can&rsquo;t point to a single
+surgically targeted microbenchmark and say, &ldquo;There, see?&rdquo;</p>
 <p>Instead, what we really need is a <em>suite</em> of larger benchmarks. Ideally, they
-would be distilled from real-world Lox applications<span class="em">&mdash;</span>not that such a thing
-really exists for a toy language like Lox. Then we can measure the aggregate
+would be distilled from real-world applications<span class="em">&mdash;</span>not that such a thing really
+exists for a toy language like Lox. Then we can measure the aggregate
 performance changes across all of those. I did my best to cobble together a
 handful of larger Lox programs. On my machine, the new value representation
 seems to make everything roughly 10% across the board.</p>
-<p>That&rsquo;s not a huge improvement, especially compared to profound affect of making
-hash table lookups faster. I added this optimization in large part because it&rsquo;s
-a good example of a certain <em>kind</em> of performance work you&rsquo;re likely to
-experience, and, honestly, because I think it&rsquo;s technically really cool. It
-might not be the first thing I reached for if I were seriously trying to make
-clox faster. There is probably other lower-hanging fruit.</p>
+<p>That&rsquo;s not a huge improvement, especially compared to the profound effect of
+making hash table lookups faster. I added this optimization in large part
+because it&rsquo;s a good example of a certain <em>kind</em> of performance work you&rsquo;re
+likely to experience, and, honestly, because I think it&rsquo;s technically really
+cool. It might not be the first thing I reached for if I were seriously trying
+to make clox faster. There is probably other lower-hanging fruit.</p>
 <p>But, if you find yourself working on a virtual machine where all of the easy
 wins have been taken, then at some point you may want to think about tuning your
 value representation. This chapter has hopefully shined a light on some of the
@@ -1348,9 +1318,10 @@ options you have in that area.</p>
 <p>We&rsquo;ll stop here with the Lox language and our two interpreters. We could tinker
 on it forever, adding new language features and clever speed improvements. But,
 for this book, I think we&rsquo;ve reached a natural place to call our work complete.
-I won&rsquo;t rehash everything we&rsquo;ve learned in the past many pages. Instead, I&rsquo;d
-like to take a minute to talk about where you might go from here. What is the
-next step in your programming language journey?</p>
+I won&rsquo;t rehash everything we&rsquo;ve learned in the past many pages. You were there
+with me and you remember. Instead, I&rsquo;d like to take a minute to talk about where
+you might go from here. What is the next step in your programming language
+journey?</p>
 <p>Most of you probably won&rsquo;t spend a significant part of your career working in
 compilers or interpreters. It&rsquo;s a pretty small slice of the computer science
 pie, and an even smaller segment of software engineering in industry. That&rsquo;s OK.
@@ -1360,14 +1331,14 @@ how the programming languages you use are designed and implemented.</p>
 <p>You have also learned a handful of important, fundamental data structures, and
 gotten some practice doing low-level profiling and optimization work. That kind
 of expertise is helpful no matter what kind of code you write.</p>
-<p>Even more important, I think, is that I hope to have given you a new way of
-<span name="domain">looking</span> at and solving problems. Even if you never
-work on a language again, you may be surprised to discover how many programming
-problems can be seen as &ldquo;language-like&rdquo; in some way and then the tools you&rsquo;ve
-gained in parsing and interpreting can be brought to bear on them. Maybe that
-report generator you need to write can be modeled as a little series of
-stack-based &ldquo;instructions&rdquo; that the generator &ldquo;executes&rdquo;. That user interface
-you need to render looks an awful lot like traversing an AST.</p>
+<p>I also hope to have given you a new way of <span name="domain">looking</span> at
+and solving problems. Even if you never work on a language again, you may be
+surprised to discover how many programming problems can be seen as
+&ldquo;language-like&rdquo;. Then the tools you&rsquo;ve gained in parsing and interpreting can be
+brought to bear on them. Maybe that report generator you need to write can be
+modeled as a series of stack-based &ldquo;instructions&rdquo; that the generator
+&ldquo;executes&rdquo;. That user interface you need to render looks an awful lot like
+traversing an AST.</p>
 <aside name="domain">
 <p>This goes for other domains too. I don&rsquo;t think there&rsquo;s a single topic I&rsquo;ve
 learned in programming<span class="em">&mdash;</span>or even outside of programming<span class="em">&mdash;</span>that I haven&rsquo;t ended
@@ -1386,7 +1357,9 @@ are some suggestions for which branches in the tunnel to explore:</p>
     pipeline with some interesting intermediate representations and optimization
     passes.</p>
 <p>Dynamic typing will place some restrictions on how far you can go, but there
-is still a lot you can do.</p>
+is still a lot you can do. Or maybe you want to take next big leap and add
+a static type system to Lox. That will certainly give your compiler a lot
+more information to work with.</p>
 <aside markdown="1" name="cooper">
 
 <p>I like Cooper and Torczon&rsquo;s &ldquo;Engineering a Compiler&rdquo; for this. Appel&rsquo;s
@@ -1398,10 +1371,11 @@ is still a lot you can do.</p>
 <p>In this book, I aim to be correct, but not particularly rigorous. My goal is
     mostly to give you an <em>intuition</em> and a feel for doing language work. If you
     like more precision, then the whole world of programming language academia
-    is waiting for. Languages and compilers have been studied formally since
+    is waiting for you. Languages and compilers have been studied formally since
     before we even had computers, so there is no shortage of books and papers on
     parser theory, type systems, and formal logic. Going down this path will
-    also teach you how to read CS papers, which is a valuable<span class="em">&mdash;</span>and distinct<span class="em">&mdash;</span>    skill in its own right.</p>
+    also teach you how to read CS papers, which is a valuable skill in its own
+    right.</p>
 </li>
 <li>
 <p>Or, if you just really enjoy hacking on and making languages, you can take
@@ -1422,15 +1396,20 @@ refers to.</p>
 <p>Eventually you may get to a point where you have something you think others
 could use as well. That gets you into the very distinct world of programming
 language <em>popularity.</em> Expect to spend a ton of time writing documentation,
-example programs, tools, and useful libraries. The marketplace is crowded
-with languages vying for users and to compete in that space you&rsquo;ll have to
-put on your marketing hat and <em>sell</em>. Not everyone enjoys that kind of
+example programs, tools, and useful libraries. The field is crowded with
+languages vying for users. To thrive in that space you&rsquo;ll have to put on
+your marketing hat and <em>sell</em>. Not everyone enjoys that kind of
 public-facing work, but if you do, it can be incredibly gratifying to see
-people use your language to build their own programs.</p>
+people use your language to express themselves.</p>
 </li>
 </ul>
-<p>Or maybe this book alone has satisfied your craving and you&rsquo;ll stop here.
-Whichever way you go, or don&rsquo;t go, I hope you found this book worth your time.</p>
+<p>Or maybe this book has satisfied your craving and you&rsquo;ll stop here. Whichever
+way you go, or don&rsquo;t go, there is one lesson I hope to lodge in your heart. Like
+I was, you may have initially been intimidated by programming languages. But in
+these chapters, you&rsquo;ve seen that even really challenging material can be tackled
+by us mortals if we get our hands dirty and take it a step at a time.</p>
+<p>If you can do that with compilers and interpreters, you can do that with
+anything you put your mind to.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 
