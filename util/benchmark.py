@@ -5,36 +5,9 @@ from subprocess import Popen, PIPE
 import sys
 
 
-def color_text(text, color):
-  """Converts text to a string and wraps it in the ANSI escape sequence for
-  color, if supported."""
-
-  # No ANSI escapes on Windows.
-  if sys.platform == 'win32':
-    return str(text)
-
-  return color + str(text) + '\033[0m'
-
-
-def green(text):  return color_text(text, '\033[32m')
-def pink(text):   return color_text(text, '\033[91m')
-def red(text):    return color_text(text, '\033[31m')
-def yellow(text): return color_text(text, '\033[33m')
-
-
-def print_line(line=None):
-  # Erase the line.
-  print('\033[2K', end='')
-  # Move the cursor to the beginning.
-  print('\r', end='')
-  if line:
-    print(line, end='')
-    sys.stdout.flush()
-
-
-def run_trial(benchmark):
+def run_trial(interpreter, benchmark):
   """Runs the benchmark once and returns the elapsed time."""
-  args = ['build/clox', join('test', 'benchmark', benchmark + '.lox')]
+  args = [interpreter, join('test', 'benchmark', benchmark + '.lox')]
   proc = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 
   out, err = proc.communicate()
@@ -50,21 +23,71 @@ def run_trial(benchmark):
   return float(out_lines[-1])
 
 
-def run_benchmark(benchmark):
+def run_comparison(interpreters, benchmark):
+  trial = 1
+  best = {}
+  for interpreter in interpreters:
+    best[interpreter] = 9999
+
+  while True:
+    for interpreter in interpreters:
+      elapsed = run_trial(interpreter, benchmark)
+      if elapsed < best[interpreter]:
+        best[interpreter] = elapsed
+
+    best_time = 999
+    worst_time = 0
+    for interpreter in interpreters:
+      if best[interpreter] < best_time:
+        best_time = best[interpreter]
+        best_interpreter = interpreter
+      if best[interpreter] > worst_time:
+        worst_time = best[interpreter]
+
+    # Turn the time measurement into an effort measurement in units where 1
+    # "work" is just the total thing the benchmark does.
+    worst_work = 1.0 / worst_time
+
+    print("trial #{0}".format(trial))
+    for interpreter in interpreters:
+      if interpreter == best_interpreter:
+        best_work = 1.0 / best[interpreter]
+        work_ratio = best_work / worst_work
+        faster = 100 * (work_ratio - 1.0)
+        suffix = "{0:0.4f}% faster".format(faster)
+      else:
+        ratio = best[interpreter] / best_time
+        suffix = "{0:0.4}x time of best".format(ratio)
+      print("  {0}   best {1:0.4}s  {2}".format(
+          interpreter, best[interpreter], suffix))
+
+    trial += 1
+
+
+def run_benchmark(interpreter, benchmark):
   trial = 1
   best = 9999
 
   while True:
-    elapsed = run_trial(benchmark)
+    elapsed = run_trial(interpreter, benchmark)
     if elapsed < best:
       best = elapsed
-    print_line("trial {0}   time {1:.4}s   best {2:.4}s".format(trial, elapsed, best))
+
+    print("trial #{0}  {1}   best {2:0.4}s".format(trial, interpreter, best))
     trial += 1
 
 
-if len(sys.argv) != 2:
-  print('Usage: benchmark.py <benchmark>')
+interpreters = ['build/clox']
+if len(sys.argv) == 2:
+  benchmark = sys.argv[1]
+elif len(sys.argv) > 2:
+  interpreters = sys.argv[1:-1]
+  benchmark = sys.argv[-1]
+else:
+  print('Usage: benchmark.py [interpreters...] <benchmark>')
   sys.exit(1)
 
-if not run_benchmark(sys.argv[1]):
-  sys.exit(1)
+if len(interpreters) > 1:
+  run_comparison(interpreters, benchmark)
+else:
+  run_benchmark(interpreters[0], benchmark)

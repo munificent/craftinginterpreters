@@ -39,7 +39,7 @@ That's pretty remarkable when you think about it. Imagine you've got a big stack
 of business cards and I ask you to find a certain person. The bigger the pile
 is, the longer it will take. Even if the pile is nicely sorted and you've got
 the manual dexterity to do a binary search by hand, you're still talking
-`O(log(n))`. But with a <span name="rolodex">hash table</span>, it takes the
+*O(log n)*. But with a <span name="rolodex">hash table</span>, it takes the
 same time to find that business card when the stack has ten cards as when it has
 a million.
 
@@ -220,7 +220,7 @@ then walk the list until you find an entry with the matching key.
 <img src="image/hash-tables/chaining.png" alt="An array with eight buckets. Bucket 2 links to a chain of two nodes. Bucket 5 links to a single node." />
 
 In catastrophically bad cases where every entry collides in the same bucket, the
-data structure degrades into a single unsorted linked list with `O(n)` lookup.
+data structure degrades into a single unsorted linked list with *O(n)* lookup.
 In practice, it's easy to avoid that by controlling the load factor and how
 entries get scattered across buckets. In typical separate chained hash tables,
 it's rare for a bucket to have more than one or two entries.
@@ -482,8 +482,8 @@ Over in the "object" module in ObjString, we add:
 Each ObjString stores the hash code for that string. Since strings are immutable
 in Lox, we can calculate it once up front and be certain that it will never get
 invalidated. Caching it eagerly makes a kind of sense: Allocating the string and
-copying its characters over is already an `O(n)` operation, so it's a good time
-to also do the `O(n)` calculation of the string's hash.
+copying its characters over is already an *O(n)* operation, so it's a good time
+to also do the *O(n)* calculation of the string's hash.
 
 Whenever we call the internal function to allocate a string, we pass in its
 hash code:

@@ -2,7 +2,7 @@
 ^part A Bytecode Virtual Machine
 
 > Caring too much for objects can destroy you. Only -- if you care for a thing
-> enough, it takes on a life of its own, doesn’t it? And isn’t the whole point
+> enough, it takes on a life of its own, doesn't it? And isn’t the whole point
 > of things -- beautiful things -- that they connect you to some larger beauty?
 >
 > <cite>Donna Tartt, <em>The Goldfinch</em></cite>
