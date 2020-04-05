@@ -7,9 +7,9 @@
 #include <stdint.h>
 //> A Virtual Machine define-debug-trace
 
-//> Optimization not-yet
-#define NAN_TAGGING
-//< Optimization not-yet
+//> Optimization define-nan-boxing
+#define NAN_BOXING
+//< Optimization define-nan-boxing
 //> Compiling Expressions define-debug-print-code
 #define DEBUG_PRINT_CODE
 //< Compiling Expressions define-debug-print-code
@@ -33,6 +33,6 @@
 // we don't want them to be.
 #undef DEBUG_PRINT_CODE
 #undef DEBUG_TRACE_EXECUTION
-// #undef DEBUG_STRESS_GC
+#undef DEBUG_STRESS_GC
 #undef DEBUG_LOG_GC
 //< omit

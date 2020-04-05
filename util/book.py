@@ -17,11 +17,9 @@ TOC = [
     'chapters': [
       {
         'name': 'Crafting Interpreters',
-        'topics': [],
       },
       {
         'name': 'Table of Contents',
-        'topics': [],
       }
     ],
   },
@@ -30,25 +28,13 @@ TOC = [
     'chapters': [
       {
         'name': 'Introduction',
-        'topics': [
-          'Why learn programming languages?',
-          'How this book is organized'
-        ],
         'design_note': "What's in a Name?"
       },
       {
         'name': 'A Map of the Territory',
-        'topics': [
-          'Interpreters and compilers', 'Phases of a compiler',
-          'Transpilers', 'Just-in-time compilation'
-        ],
       },
       {
         'name': 'The Lox Language',
-        'topics': [
-          'Dynamic typing', 'Automatic memory management', 'Built-in types',
-          'Expressions', 'Statements', 'Object-orientation', 'Prototypes'
-        ],
         'design_note': "Expressions and Statements"
       }
     ]
@@ -58,75 +44,39 @@ TOC = [
     'chapters': [
       {
         'name': 'Scanning',
-        'topics': [
-          'Tokens', 'Token types', 'Lexical analysis', 'Regular languages',
-          'Lookahead', 'Reserved words', 'Error reporting'
-        ],
         'design_note': "Implicit Semicolons"
       },
       {
         'name': 'Representing Code',
-        'topics': [
-          'Abstract syntax trees', 'Expression trees', 'Generating AST classes',
-          'The Visitor pattern', 'Pretty printing'
-        ],
       },
       {
         'name': 'Parsing Expressions',
-        'topics': [
-          'Expression nodes', 'Recursive descent', 'Precedence',
-          'Associativity', 'Primary expressions', 'Syntax errors'
-        ],
         'design_note': "Logic Versus History"
       },
       {
         'name': 'Evaluating Expressions',
-        'topics': [
-          'The Interpreter pattern', 'Tree-walk interpretation',
-          'Subexpressions', 'Runtime errors', 'Type checking', 'Truthiness'
-        ],
         'design_note': 'Static and Dynamic Typing'
       },
       {
         'name': 'Statements and State',
-        'topics': [
-          'Statement nodes', 'Blocks', 'Expression statements', 'Variables',
-          'Assignment', 'Lexical scope', 'Environments'
-        ],
         'design_note': 'Implicit Variable Declaration'
       },
       {
         'name': 'Control Flow',
-        'topics': [
-          'If statements', 'While statements', 'For statements', 'Desugaring',
-          'Logical operators', 'Short-circuit evaluation'
-        ],
         'design_note': 'Spoonfuls of Syntactic Sugar'
       },
       {
         'name': 'Functions',
-        'topics': [
-          'Function declarations', 'Formal parameters', 'Call expressions',
-          'Arguments', 'Return statements', 'Function objects', 'Closures',
-          'Arity', 'Native functions'
-        ],
       },
       {
         'name': 'Resolving and Binding',
-        'topics': ['Name resolution', 'Early binding', 'Static errors'],
       },
       {
         'name': 'Classes',
-        'topics': [
-          'Class declarations', 'Fields', 'Properties',
-          'Get and set expressions', 'Constructors', 'Initializers', 'this',
-          'Method references'
-        ],
         'design_note': 'Prototypes and Power'
       },
       {
         'name': 'Inheritance',
-        'topics': ['Superclasses', 'Overriding', 'Calling superclass methods'],
       }
     ]
   },
@@ -135,131 +85,62 @@ TOC = [
     'chapters': [
       {
         'name': 'Chunks of Bytecode',
-        'topics': [
-          'Allocation', 'Dynamic arrays', 'Code chunks', 'Constant tables',
-          'Instruction arguments', 'Disassembly'
-        ],
         'design_note': 'Test Your Language'
       },
       {
         'name': 'A Virtual Machine',
-        'topics': [
-          'Bytecode instructions', 'The stack', 'Instruction pointer',
-          'Loading constants', 'Arithmetic instructions', 'Interpreter loop',
-          'Instruction dispatch'
-        ],
         'design_note': 'Register-Based Bytecode'
       },
       {
         'name': 'Scanning on Demand',
-        'topics': [
-          'Reading files', 'Token values', 'Source pointers', 'LL(k) grammars'
-        ],
       },
       {
         'name': 'Compiling Expressions',
-        'topics': [
-          'Pratt parsers', 'Binary operators', 'Unary operators', 'Precedence',
-          'Single-pass compilation', 'Code generation'
-        ],
         'design_note': "It's Just Parsing"
       },
       {
         'name': 'Types of Values',
-        'topics': [
-          'Tagged unions', 'Boolean values', 'nil',
-          'Comparison and equality operators', 'Not operator', 'Runtime errors'
-        ],
       },
       {
         'name': 'Strings',
-        'topics': [
-          'Objects', 'Reference types', 'Heap tracing', 'Concatenation',
-          'Polymorphism'
-        ],
         'design_note': 'String Encoding'
       },
       {
         'name': 'Hash Tables',
-        'topics': [
-          'Hash functions', 'String hashing', 'Linear probing',
-          'Rehashing', 'Reference equality', 'String interning'
-        ],
       },
       {
         'name': 'Global Variables',
-        'topics': [
-          'Statements', 'Variable declaration', 'Assignment',
-          'Global variables table'
-        ],
       },
       {
         'name': 'Local Variables',
-        'topics': [
-          'Blocks', 'Scope depth', 'Stack variables', 'Name resolution',
-          'Byte argument instructions'
-        ],
       },
       {
         'name': 'Jumping Back and Forth',
-        'topics': [
-          'Jump instructions', 'Conditional jumps', 'Control flow statements',
-          'Short-circuiting', 'Backpatching'
-        ],
         'design_note': 'Considering Goto Harmful'
       },
       {
         'name': 'Calls and Functions',
-        'topics': [
-          'Calling convention', 'Arguments', 'Call instructions',
-          'Native functions', 'Function declarations', 'Parameters',
-          'Return statements', 'Function objects', 'Call frames',
-          'Stack overflow'
-        ],
       },
       {
         'name': 'Closures',
-        'topics': [
-          'Upvalues', 'Resolving enclosing locals', 'Closure flattening',
-          'Capturing variables', 'Closing upvalues'
-        ],
         'design_note': 'Closing Over the Loop Variable'
       },
       {
         'name': 'Garbage Collection',
-        'topics': [
-          'Roots', 'Stress testing', 'Mark-sweep collection', 'Tracing',
-          'Tri-color marking', 'Weak references', 'Heap growth'
-        ],
         'design_note': 'Generational Collectors'
       },
       {
         'name': 'Classes and Instances',
-        'topics': [
-          'Property expressions', 'Class declarations', 'Instances', 'Fields',
-          'Undefined fields'
-        ],
       },
       {
         'name': 'Methods and Initializers',
-        'topics': [
-          'Invocation expressions', 'This', 'Method declarations',
-          'Initializers', 'Bound methods'
-        ],
         'design_note': 'Novelty Budget'
       },
       {
         'name': 'Superclasses',
-        'topics': [
-          'Method inheritance', 'Super invocations'
-        ],
       },
       {
         'name': 'Optimization',
-        'topics': [
-          'Benchmarking', 'Hash code masking', 'NaN tagging'
-        ],
-        'done': False,
       }
     ]
   },
@@ -268,11 +149,9 @@ TOC = [
     'chapters': [
       {
         'name': 'Appendix I',
-        'topics': [],
       },
       {
         'name': 'Appendix II',
-        'topics': [],
       }
     ],
   },

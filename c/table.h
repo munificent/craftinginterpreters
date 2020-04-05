@@ -14,12 +14,7 @@ typedef struct {
 
 typedef struct {
   int count;
-/* Hash Tables table-h < Optimization not-yet
   int capacity;
-*/
-//> Optimization not-yet
-  int capacityMask;
-//< Optimization not-yet
   Entry* entries;
 } Table;
 
