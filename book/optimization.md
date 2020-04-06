@@ -34,12 +34,12 @@ pretend C is a "low level" language, but the stack of technology between
 `printf("Hello, world!");` and a greeting appearing on screen is now miles tall.
 
 Optimization today is an empirical science. Our program is a border collie
-sprinting through the hardware's obstactle course. If we want her to reach the
+sprinting through the hardware's obstacle course. If we want her to reach the
 end faster, we can't just sit and ruminate on canine physiology until
-enlightnment strikes. Instead, we need to *observe* her performance, see where
+enlightenment strikes. Instead, we need to *observe* her performance, see where
 she stumbles, and then find faster paths for her to take.
 
-Much of that process is particular to one dog on one obstactle course. When we
+Much of that process is particular to one dog on one obstacle course. When we
 write optimizations for our virtual machine, we also can't assume that we will
 make *all* Lox programs run faster on *all* hardware. Different Lox programs
 stress different areas of the VM, and different architectures have their own
