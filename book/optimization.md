@@ -319,7 +319,7 @@ operations. If there were tricks we could use to go faster, the chip would
 already be using them.
 
 However, we can take advantage of the fact that we know more about our problem
-than the CPU does. We use modulo here is to take a key string's hash code and
+than the CPU does. We use modulo here to take a key string's hash code and
 wrap it to fit within the bounds of the table's entry array. That array starts
 out at eight elements and grows by a factor of two each time. We know -- and the
 CPU and C compiler do not -- that out our table's size is always a power of two.
