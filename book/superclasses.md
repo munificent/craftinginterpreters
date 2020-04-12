@@ -32,7 +32,7 @@ much faster, way of handling inherited method calls this time around.
 
 ## Inheriting Methods
 
-We'll kick things of with method inheritance since it's the simpler piece. To
+We'll kick things off with method inheritance since it's the simpler piece. To
 refresh your memory, Lox inheritance syntax looks like this:
 
 ```lox
