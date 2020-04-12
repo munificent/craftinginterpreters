@@ -62,7 +62,7 @@ variable reference, and emits code to load the variable's value. In other words,
 it looks up the superclass by name and pushes it onto the stack.
 
 After that, we call `namedVariable()` to load the subclass doing the inheriting
-onto to the stack, followed by an `OP_INHERIT` instruction. That instruction
+onto the stack, followed by an `OP_INHERIT` instruction. That instruction
 wires up the superclass to the new subclass. In the last chapter, we defined an
 `OP_METHOD` instruction to mutate an existing class object by adding a method to
 its method table. This is similar -- the `OP_INHERIT` instruction takes an
