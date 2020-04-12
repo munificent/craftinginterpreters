@@ -117,7 +117,7 @@ reference to its superclass. When a method was accessed, if we didn't find it in
 the subclass's method table, we recursed through the inheritance chain looking
 at each ancestor's method table until we found it.
 
-For example, calling `cook()` on an instance Cruller sends the VM on this
+For example, calling `cook()` on an instance of Cruller sends the VM on this
 journey:
 
 <img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
