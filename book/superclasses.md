@@ -217,7 +217,7 @@ refresh your memory on how super calls are statically resolved.
 
 <aside name="may">
 
-"May" might not a strong enough word. Presumably the method *has* been
+"May" might not be a strong enough word. Presumably the method *has* been
 overridden. Otherwise, why are you bothering to use `super` instead of just
 calling it directly?
 
