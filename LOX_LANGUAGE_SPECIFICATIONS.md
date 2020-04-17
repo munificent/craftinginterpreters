@@ -127,14 +127,15 @@ The `and` expression does not evaluate the right operator if the left one is fal
 The operands have the same precedence than they have in C. 
 |Precedence|Operator|Description|
 |---|---|---|
-|1|+ -<br>!|Unary plus and minus<br>Logial NOT|
-|2|* /|Multiplication and division|
-|3|+ -|Addition and subtraction|
-|4|< <= <br> > >=|Relational operators `less than` and `less or equal` <br> Relational operators `greater than` and `greater or equal`|
-|5|== !=|Relational operators `equal` and `unequal`|
-|6|and|Logial AND|
-|7|or|Logial OR|
-|8|=|Simple assignment
+|1|()<br>.|Function call<br>Structure member access|
+|2|+ -<br>!|Unary plus and minus<br>Logial NOT|
+|3|* /|Multiplication and division|
+|4|+ -|Addition and subtraction|
+|5|< <= <br> > >=|Relational operators `less than` and `less or equal` <br> Relational operators `greater than` and `greater or equal`|
+|6|== !=|Relational operators `equal` and `unequal`|
+|7|and|Logial AND|
+|8|or|Logial OR|
+|9|=|Simple assignment
 
 In cases where the precedence should be changed, `(` and `)` can be used to form an expressional group:
 ```
