@@ -463,7 +463,7 @@ ever was one. One of the first people to recognize the promise of
 microcomputers, he created PL/M and CP/M, the first high level language and OS
 for them.
 
-He was a sea captain, business owner, licensed pilot, and motocyclist. A TV host
+He was a sea captain, business owner, licensed pilot, and motorcyclist. A TV host
 with the Kris Kristofferson-esque look sported by dashing bearded dudes in the
 80s. He took on Bill Gates and, like many, lost, before meeting his end
 in a biker bar under mysterious circumstances. He died too young, but sure as
