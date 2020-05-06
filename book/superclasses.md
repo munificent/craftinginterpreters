@@ -570,10 +570,10 @@ I... I'm sorry for this terrible joke.
 
 </aside>
 
-Otherwise, if we don't find a `(`, then we continue to compile the expression as
-a super access like we did before and emit an `OP_GET_SUPER`.
+Otherwise, if we don't find a `(`, we continue to compile the expression as a
+super access like we did before and emit an `OP_GET_SUPER`.
 
-Drifting down compilation pipeline, our first stop is a new instruction:
+Drifting down the compilation pipeline, our first stop is a new instruction:
 
 ^code super-invoke-op (1 before, 1 after)
 
