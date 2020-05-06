@@ -574,8 +574,8 @@ int, the resulting variable gets *exactly* 32 bits of storage.
 
 Dynamic language folks hate losing ground to the static camp, so they've come up
 with a number of very clever ways to pack type information and a payload into a
-small number bits. NaN boxing is one of those. It's a particularly good fit for
-languages like JavaScript and Lua where all numbers are double-precision
+small number of bits. NaN boxing is one of those. It's a particularly good fit
+for languages like JavaScript and Lua where all numbers are double-precision
 floating point. Lox is in that same boat.
 
 ### What is (and is not) a number?
