@@ -91,7 +91,7 @@ they are helping you reach your larger goals.
 <aside name="js">
 
 In the early proliferation of JavaScript VMs, the first widely-used benchmark
-suite was SunSpider from Mozilla. During the browser wars, marketing folks used
+suite was SunSpider from WebKit. During the browser wars, marketing folks used
 SunSpider results to claim their browser was fastest. That highly incentivized
 VM hackers to optimize to those benchmarks.
 
