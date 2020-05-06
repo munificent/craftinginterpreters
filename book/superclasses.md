@@ -32,7 +32,7 @@ much faster, way of handling inherited method calls this time around.
 
 ## Inheriting Methods
 
-We'll kick things of with method inheritance since it's the simpler piece. To
+We'll kick things off with method inheritance since it's the simpler piece. To
 refresh your memory, Lox inheritance syntax looks like this:
 
 ```lox
@@ -62,7 +62,7 @@ variable reference, and emits code to load the variable's value. In other words,
 it looks up the superclass by name and pushes it onto the stack.
 
 After that, we call `namedVariable()` to load the subclass doing the inheriting
-onto to the stack, followed by an `OP_INHERIT` instruction. That instruction
+onto the stack, followed by an `OP_INHERIT` instruction. That instruction
 wires up the superclass to the new subclass. In the last chapter, we defined an
 `OP_METHOD` instruction to mutate an existing class object by adding a method to
 its method table. This is similar -- the `OP_INHERIT` instruction takes an
@@ -117,7 +117,7 @@ reference to its superclass. When a method was accessed, if we didn't find it in
 the subclass's method table, we recursed through the inheritance chain looking
 at each ancestor's method table until we found it.
 
-For example, calling `cook()` on an instance Cruller sends the VM on this
+For example, calling `cook()` on an instance of Cruller sends the VM on this
 journey:
 
 <img src="image/superclasses/jlox-resolve.png" alt="Resolving a call to cook() in an instance of Cruller means walking the superclass chain." />
@@ -217,7 +217,7 @@ refresh your memory on how super calls are statically resolved.
 
 <aside name="may">
 
-"May" might not a strong enough word. Presumably the method *has* been
+"May" might not be a strong enough word. Presumably the method *has* been
 overridden. Otherwise, why are you bothering to use `super` instead of just
 calling it directly?
 
