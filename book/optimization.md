@@ -779,7 +779,7 @@ It hands off the double to:
 ^code num-to-value (1 before, 2 after)
 
 This creates a temporary union, stores the double in it, and then yanks out the
-uint64_4 whose bits overlap that in memory. This code appears slow: a function
+uint64_t whose bits overlap that in memory. This code appears slow: a function
 call, a local variable, an assignment, and a read. Fortunately, compilers are
 smart enough to optimize it all away.
 
