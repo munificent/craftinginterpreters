@@ -100,7 +100,7 @@ least, we'll be able to once we [implement a garbage collector][gc].
 
 </aside>
 
-Lox let's you print any object, and functions are first-class objects, so we
+Lox lets you print any object, and functions are first-class objects, so we
 need to handle them too:
 
 ^code print-function (1 before, 1 after)
