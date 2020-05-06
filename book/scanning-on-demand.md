@@ -555,8 +555,8 @@ Once we've found an identifier, we scan the rest of it using:
 ^code identifier
 
 After the first letter, we allow digits too, and we keep consuming alphanumerics
-until we run out of them. Then we produce a token with the proper type. "Proper
-type" is where the excitement happens:
+until we run out of them. Then we produce a token with the proper type.
+Determining that "proper" type is where the excitement happens:
 
 ^code identifier-type
 
