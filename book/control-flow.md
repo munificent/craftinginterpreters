@@ -521,7 +521,7 @@ could be rewritten to:
 
 <aside name="sugar">
 
-This delighful turn of phrase was coined by Peter J. Landin in 1964 to describe
+This delightful turn of phrase was coined by Peter J. Landin in 1964 to describe
 how some of the nice expression forms supported by languages like ALGOL were a
 sugaring over the more fundamental, yet presumably less palatable lambda
 calculus underneath.
