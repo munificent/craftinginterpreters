@@ -1349,7 +1349,7 @@ existing one. Some languages collapse those to only assignment syntax. Assigning
 to a non-existent variable automatically brings it into being. This is called
 **implicit variable declaration** and exists in Python, Ruby, and CoffeeScript,
 among others. JavaScript has an explicit syntax to declare variables, but can
-also create new variables on assignment. Visual BASIC has [an option to enable
+also create new variables on assignment. Visual Basic has [an option to enable
 or disable implicit variables][vb].
 
 [vb]: https://msdn.microsoft.com/en-us/library/xe53dz5w(v=vs.100).aspx
