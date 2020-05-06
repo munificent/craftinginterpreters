@@ -438,7 +438,7 @@ make it tangible, consider this example program:
 class Doughnut {
   cook() {
     print "Dunk in the fryer.";
-    this.finish();
+    this.finish("sprinkles");
   }
 
   finish(ingredient) {
@@ -447,7 +447,8 @@ class Doughnut {
 }
 
 class Cruller < Doughnut {
-  finish() {
+  finish(ingredient) {
+    // No sprinkles.
     super.finish("icing");
   }
 }
