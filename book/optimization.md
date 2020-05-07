@@ -173,14 +173,14 @@ something like this:
 ```lox
 class Zoo {
   init() {
-    this.aarvark  = 1;
+    this.aardvark = 1;
     this.baboon   = 1;
     this.cat      = 1;
     this.donkey   = 1;
     this.elephant = 1;
     this.fox      = 1;
   }
-  ant()    { return this.aarvark; }
+  ant()    { return this.aardvark; }
   banana() { return this.baboon; }
   tuna()   { return this.cat; }
   hay()    { return this.donkey; }
