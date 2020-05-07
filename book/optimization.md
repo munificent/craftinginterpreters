@@ -816,7 +816,7 @@ of those bits are set, it must be a NaN-boxed value of some other Lox type.
 <aside name="certain">
 
 Pretty certain, but not strictly guaranteed. As far as I know, there is nothing
-preventing a CPU from a producing a NaN value as a result of some operation
+preventing a CPU from producing a NaN value as the result of some operation
 whose bit representation collides with ones we have claimed. But in my tests
 across a number of architectures, I haven't seen it happen.
 
