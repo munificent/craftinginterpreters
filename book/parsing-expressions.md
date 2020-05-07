@@ -265,13 +265,13 @@ with limited precision, roundoff and overflow mean that associativity can affect
 the result of a sequence of multiplications. Consider:
 
 ```lox
-print 0.1 + (0.2 + 0.3);
-print (0.1 + 0.2) + 0.3;
+print 0.1 * (0.2 * 0.3);
+print (0.1 * 0.2) * 0.3;
 ```
 
 In languages like Lox that use [IEEE 754][754] double-precision floating-point
-numbers, the first evaluates to `0.6`, while the second yields
-`0.6000000000000001`. Sometimes that tiny difference matters.
+numbers, the first evaluates to `0.006`, while the second yields
+`0.006000000000000001`. Sometimes that tiny difference matters.
 [This][float] is a good place to learn more.
 
 [754]: https://en.wikipedia.org/wiki/Double-precision_floating-point_format
