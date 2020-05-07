@@ -837,7 +837,7 @@ you how to apply this pattern in languages that don't support overloading.
 
 To define a new operation that can be performed on pastries, we create a new
 class that implements that interface. It has a concrete method for each type of
-pastry. That keeps the code for the operation on both types all nestled snuggly
+pastry. That keeps the code for the operation on both types all nestled snugly
 together in one class.
 
 Given some pastry, how do we route it to the correct method on the visitor based
