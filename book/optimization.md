@@ -1173,9 +1173,9 @@ are some suggestions for which branches in the tunnel to explore:
     passes.
 
     Dynamic typing will place some restrictions on how far you can go, but there
-    is still a lot you can do. Or maybe you want to take next big leap and add
-    a static type system to Lox. That will certainly give your front end a lot
-    more to chew on.
+    is still a lot you can do. Or maybe you want to take a big leap and add
+    static types and a type checker to Lox. That will certainly give your front
+    end a lot more to chew on.
 
     <aside name="cooper">
 
