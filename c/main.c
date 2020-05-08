@@ -33,7 +33,8 @@ static void repl() {
 //< Scanning on Demand repl
 //> Scanning on Demand read-file
 static char* readFile(const char* path) {
-  FILE* file = fopen(path, "rb");
+  FILE* file = NULL;
+  fopen_s(&file, path, "rb");
 //> no-file
   if (file == NULL) {
     fprintf(stderr, "Could not open file \"%s\".\n", path);
