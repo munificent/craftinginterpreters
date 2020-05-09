@@ -241,7 +241,7 @@ choice in order to get the code to run.
 Since the book contains literally every line of code needed for the
 implementations, the snippets are quite precise. Also, because I try to keep the
 program in a runnable state even when it's half-implemented, sometimes we add
-temporary code that is replaced in later snippets.
+temporary code that gets replaced in later snippets.
 
 A snippet with all the bells and whistles looks like this:
 
