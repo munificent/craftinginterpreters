@@ -85,7 +85,7 @@ C-syntax languages do. As we'll learn later, Lox's approach to scoping hews
 closely to Scheme. The C flavor of Lox we'll build in [Part III][] is heavily
 indebted to Lua's clean, efficient implementation.
 
-[part iii]: a-bytecode-interpreter-in-c.html
+[part iii]: a-bytecode-virtual-machine.html
 
 <aside name="js">
 
