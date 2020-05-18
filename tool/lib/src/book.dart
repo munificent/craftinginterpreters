@@ -1,6 +1,8 @@
 /// Tracks metadata about the material in the book.
 import 'package:path/path.dart' as p;
 
+import 'text.dart';
+
 /*
 from functools import total_ordering
 import os
@@ -168,7 +170,10 @@ class Page {
   // TODO: Enum.
   final String type;
 
-  Page(this.title, this.type);
+  /// The chapter or part number, like "12", "II", or "".
+  final String number;
+
+  Page(this.title, this.type, this.number);
 
   /// The base file path and URI for the page, without any extension.
   String get fileName {
@@ -182,7 +187,7 @@ class Page {
     // collide with the real "Challenges" section.
     if (title == "Challenges") return "challenges_";
 
-    return title.toLowerCase().replaceAll(" ", "-").replaceAll(r'[,.?!:/"]', "");
+    return toFileName(title);
   }
 
   /// The path to this page's Markdown source file.
@@ -196,20 +201,46 @@ class Page {
   static List<Page> _flattenPages() {
     var pages = <Page>[];
 
+    var partIndex = 1;
+    var chapterIndex = 1;
+    var inMatter = false;
+
     for (var part in tableOfContents) {
+      // Front- and backmatter have no names, pages, or numbers.
+      var partNumber = "";
+      inMatter = part["name"] == "" || part["name"] == "Backmatter";
+      if (!inMatter) {
+        partNumber = roman(partIndex);
+        partIndex += 1;
+      }
+
       // There are no part pages for the front- and backmatter.
       if (part["name"] != "") {
-        pages.add(Page(part["name"], "Part"));
+        pages.add(Page(part["name"], "Part", partNumber));
       }
 
       for (var chapter in part["chapters"]) {
-        pages.add(Page(chapter["name"], "Chapter"));
+        var name = chapter["name"];
+
+        var chapterNumber = "";
+        if (inMatter) {
+          // Front- and backmatter chapters are specially numbered.
+          if (name == "Appendix I") {
+            chapterNumber = "A1";
+          } else if (name == "Appendix II") {
+            chapterNumber = "A2";
+          }
+        } else {
+          chapterNumber = chapterIndex.toString();
+          chapterIndex++;
+        }
+
+        pages.add(Page(name, "Chapter", chapterNumber));
       }
     }
 
     return pages;
   }
-
 }
 
 /*
@@ -228,49 +259,6 @@ def list_code_chapters():
   return chapters
 
 CODE_CHAPTERS = list_code_chapters()
-
-
-def roman(n):
-  """Convert n to roman numerals."""
-  if n <= 3:
-    return "I" * n
-  elif n == 4:
-    return "IV"
-  elif n < 10:
-    return "V" + "I" * (n - 5)
-  else:
-    raise "Can't convert " + str(n) + " to Roman."
-
-def number_chapters():
-  """Determine the part or chapter numbers for each part or chapter."""
-  numbers = {}
-  part_num = 1
-  chapter_num = 1
-  in_matter = False
-  for part in TOC:
-    # Front- and backmatter have no names, pages, or numbers.
-    in_matter = part['name'] == '' or part['name'] == 'Backmatter'
-    if not in_matter:
-      numbers[part['name']] = roman(part_num)
-      part_num += 1
-
-    for chapter in part['chapters']:
-      if in_matter:
-        # Front- and backmatter chapters are specially numbered.
-        name = chapter['name']
-        if name == 'Appendix I':
-          numbers[chapter['name']] = 'A1'
-        elif name == 'Appendix II':
-          numbers[chapter['name']] = 'A2'
-        else:
-          numbers[chapter['name']] = ''
-      else:
-        numbers[chapter['name']] = chapter_num
-        chapter_num += 1
-
-  return numbers
-
-NUMBERS = number_chapters()
 
 def adjacent_page(title, offset):
   '''The title of the page [offset] pages before or after [title].'''
