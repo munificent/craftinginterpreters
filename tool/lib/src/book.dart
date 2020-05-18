@@ -197,6 +197,9 @@ class Page {
   /// The path to this page's generated HTML file.
   String get htmlPath => p.join("site_dart", "$fileName.html");
 
+  Page get previous => _adjacent(-1);
+  Page get next => _adjacent(1);
+
   /// Flatten the tree of parts and chapters to a single linear list of pages.
   static List<Page> _flattenPages() {
     var pages = <Page>[];
@@ -241,6 +244,13 @@ class Page {
 
     return pages;
   }
+
+  /// Gets the [Page] [offset] pages before or after this one.
+  Page _adjacent(int offset) {
+    var index = all.indexOf(this) + offset;
+    if (index < 0 || index >= all.length) return null;
+    return all[index];
+  }
 }
 
 /*
@@ -259,13 +269,6 @@ def list_code_chapters():
   return chapters
 
 CODE_CHAPTERS = list_code_chapters()
-
-def adjacent_page(title, offset):
-  '''The title of the page [offset] pages before or after [title].'''
-  page_index = PAGES.index(title) + offset
-  if page_index < 0 or page_index >= len(PAGES): return None
-
-  return PAGES[page_index]
 
 
 def adjacent_type(title, offset):

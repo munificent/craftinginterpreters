@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:glob/glob.dart';
+import 'package:mustache_template/mustache_template.dart';
 import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 
@@ -25,14 +26,6 @@ void main(List<String> arguments) {
 //  buildSass(skipUpToDate: true);
 
   /*
-
-environment = jinja2.Environment(
-    loader=jinja2.FileSystemLoader('asset/template'),
-    lstrip_blocks=True,
-    trim_blocks=True)
-
-environment.filters['file'] = book.get_file_name
-
 if len(sys.argv) == 2 and sys.argv[1] == "--watch":
   run_server()
   while True:
@@ -98,14 +91,13 @@ void formatFile(Page page) {
 //    if source_mod < dest_mod:
 //      return
 //
-//  title = ''
-//  title_html = ''
-//  part = None
-//  template_file = 'page'
-//
+  var title = "TODO";
+  String part;
+  var templateFile = 'page';
+
 //  errors = []
   // TODO: Something better typed.
-  var sections = <List<Object>>[];
+  var sections = <Map<String, String>>[];
   var headerIndex = 0;
   var subheaderIndex = 0;
   var hasChallenges = false;
@@ -121,41 +113,48 @@ void formatFile(Page page) {
     var indentation = line.substring(0, line.length - stripped.length);
 
     if (line.startsWith("^")) {
-      print("TODO: Snippet");
-      buffer.writeln(line);
-//        command,_,arg = stripped.rstrip('\n').lstrip('^').partition(' ')
-//        arg = arg.strip()
-//
-//        if command == 'title':
-//          title = arg
-//          title_html = title
-//
-//          # Remove any discretionary hyphens from the title.
-//          title = title.replace('&shy;', '')
-//
-//          # Load the code snippets now that we know the title.
+      var commandLine = stripped.substring(1).trim();
+      var space = commandLine.indexOf(" ");
+      var command = commandLine.substring(0, space);
+      var argument = commandLine.substring(space + 1).trim();
+
+      switch (command) {
+        case "code":
+//          contents = insert_snippet(snippets, arg, contents, errors)
+          print("TODO: Snippet $argument");
+          buffer.writeln(line);
+          break;
+        case "part":
+          part = argument;
+          break;
+        case "template":
+          templateFile = argument;
+          break;
+        case "title":
+          title = argument;
+
+          // Remove any discretionary hyphens from the title.
+          // TODO: Still needed?
+          title = title.replaceAll("&shy;", "");
+
+//          // Load the code snippets now that we know the title.
 //          snippets = source_code.find_all(title)
-//
+
 //          # If there were any errors loading the code, include them.
 //          if title in book.CODE_CHAPTERS:
 //            errors.extend(source_code.errors[title])
-//        elif command == 'part':
-//          part = arg
-//        elif command == 'template':
-//          template_file = arg
-//        elif command == 'code':
-//          contents = insert_snippet(snippets, arg, contents, errors)
-//        else:
-//          raise Exception('Unknown command "^{} {}"'.format(command, arg))
-//
+          break;
+        default:
+          throw "Unknown command '$command'.";
+      }
     } else if (stripped.startsWith("## Challenges")) {
-        hasChallenges = true;
-        buffer.writeln('<h2><a href="#challenges" name="challenges">'
-            'Challenges</a></h2>');
+      hasChallenges = true;
+      buffer.writeln('<h2><a href="#challenges" name="challenges">'
+          'Challenges</a></h2>');
     } else if (stripped.startsWith("## Design Note:")) {
-        designNote = stripped.substring('## Design Note:'.length + 1);
-        buffer.writeln('<h2><a href="#design-note" name="design-note">'
-            'Design Note: $designNote</a></h2>');
+      designNote = stripped.substring('## Design Note:'.length + 1);
+      buffer.writeln('<h2><a href="#design-note" name="design-note">'
+          'Design Note: $designNote</a></h2>');
     } else if (stripped.startsWith("# ") ||
         stripped.startsWith("## ") ||
         stripped.startsWith("### ")) {
@@ -184,7 +183,11 @@ void formatFile(Page page) {
 
       // Build the section navigation.
       if (headerType.length == 2) {
-        sections.add([headerIndex, header]);
+        sections.add({
+          "name": header,
+          "anchor": toFileName(header),
+          "index": headerIndex.toString()
+        });
       }
     } else {
       buffer.writeln(pretty(line));
@@ -225,34 +228,60 @@ void formatFile(Page page) {
 //  # <span class="c1">// [repl]</span>
 //  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"> </span>', body)
 //  body = ASIDE_WITH_COMMENT_PATTERN.sub(r'<span class="c1" name="\2">// \1</span>', body)
-//
-//  up = 'Table of Contents'
-//  if part:
-//    up = part
-//  elif title == 'Table of Contents':
-//    up = 'Crafting Interpreters'
-//
-//  data = {
-//    'title': title,
-//    'part': part,
-//    'body': body,
-//    'sections': sections,
-//    'chapters': get_part_chapters(title),
-//    'design_note': design_note,
-//    'hasChallenges': hasChallenges,
-//    'number': book.chapter_number(title),
-//    'prev': book.adjacent_page(title, -1),
-//    'prev_type': book.adjacent_type(title, -1),
-//    'next': book.adjacent_page(title, 1),
-//    'next_type': book.adjacent_type(title, 1),
-//    'up': up,
-//    'toc': book.TOC
-//  }
-//
-//  template = environment.get_template(template_file + '.html')
-//  output = template.render(data)
-  // TODO: Use template.
-  var output = body;
+
+  var up = "Table of Contents";
+  if (part != null) {
+    up = part;
+  } else if (title == "Table of Contents") {
+    up = "Crafting Interpreters";
+  }
+
+  var data = {
+    "has_title": title != null,
+    "title": title,
+    "has_part": part != null,
+    "part": part,
+    "body": body,
+    "sections": sections,
+    // TODO:
+//    "chapters": get_part_chapters(title),
+    "chapters": ["TODO", "chapters"],
+    "design_note": designNote,
+    "has_design_note": designNote != null,
+    "has_challenges": hasChallenges,
+    "has_challenges_or_design_note": hasChallenges || designNote != null,
+    "has_number": page.number != "",
+    "number": page.number,
+    // Previous page.
+    "has_prev": page.previous != null,
+    "prev": page.previous?.title,
+    "prev_file": page.previous?.fileName,
+    "prev_type": page.previous?.type,
+    // Next page.
+    "has_next": page.next != null,
+    "next": page.next?.title,
+    "next_file": page.next?.fileName,
+    "next_type": page.next?.type,
+    "has_up": up != null,
+    "up": up,
+    "up_file": up != null ? toFileName(up) : null,
+    "toc": tableOfContents
+  };
+
+  // TODO: Move to separate lib.
+  var partials = <String, Template>{};
+  Template resolvePartial(String partial) {
+    return partials.putIfAbsent(partial, () {
+      var path = p.join("asset", "mustache", "$partial.html");
+      return Template(File(path).readAsStringSync(),
+          name: path, partialResolver: resolvePartial);
+    });
+  }
+
+  var templatePath = p.join("asset", "mustache", "$templateFile.html");
+  var template = Template(File(templatePath).readAsStringSync(),
+      name: templatePath, partialResolver: resolvePartial);
+  var output = template.renderString(data);
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p></aside>", "</p>\n</aside>");
