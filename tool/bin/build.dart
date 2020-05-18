@@ -6,6 +6,7 @@ import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
 import 'package:tool/src/markdown.dart';
+import 'package:tool/src/text.dart';
 
 // The "(?!-)" is a hack. scanning.md has an inline code sample containing a
 // "--" operator. We don't want that to get matched, so fail the match if the
@@ -103,9 +104,10 @@ void formatFile(Page page) {
 //  template_file = 'page'
 //
 //  errors = []
-//  sections = []
-//  header_index = 0
-//  subheader_index = 0
+  // TODO: Something better typed.
+  var sections = <List<Object>>[];
+  var headerIndex = 0;
+  var subheaderIndex = 0;
 //  has_challenges = False
 //  design_note = None
 //  snippets = None
@@ -158,35 +160,34 @@ void formatFile(Page page) {
     } else if (stripped.startsWith("# ") ||
         stripped.startsWith("## ") ||
         stripped.startsWith("### ")) {
-      print("TODO: Headers");
-//        # Build the section navigation from the headers.
-//        index = stripped.find(" ")
-//        header_type = stripped[:index]
-//        header = pretty(stripped[index:].strip())
-//        anchor = book.get_file_name(header)
-//        anchor = re.sub(r'[.?!:/"]', '', anchor)
-//
-//        # Add an anchor to the header.
-//        contents += indentation + header_type
-//
-//        if len(header_type) == 2:
-//          header_index += 1
-//          subheader_index = 0
-//          page_number = book.chapter_number(title)
-//          number = '{0}&#8202;.&#8202;{1}'.format(page_number, header_index)
-//        elif len(header_type) == 3:
-//          subheader_index += 1
-//          page_number = book.chapter_number(title)
-//          number = '{0}&#8202;.&#8202;{1}&#8202;.&#8202;{2}'.format(page_number, header_index, subheader_index)
-//
-//        header_line = '<a href="#{0}" name="{0}"><small>{1}</small> {2}</a>\n'.format(anchor, number, header)
-//        contents += header_line
-//
-//        # Build the section navigation.
-//        if len(header_type) == 2:
-//          sections.append([header_index, header])
+      // Build the section navigation from the headers.
+      var index = stripped.indexOf(" ");
+      var headerType = stripped.substring(0, index);
+      var header = pretty(stripped.substring(index).trim());
+
+      var anchor = toFileName(header);
+
+      // Add an anchor to the header.
+      buffer.write("$indentation$headerType ");
+
+      if (headerType.length == 2) {
+        headerIndex += 1;
+        subheaderIndex = 0;
+      } else if (headerType.length == 3) {
+        subheaderIndex += 1;
+      }
+
+      var number = "${page.number}&#8202;.&#8202;$headerIndex";
+      if (headerType.length == 3) number += "&#8202;.&#8202;$subheaderIndex";
+
+      buffer.writeln('<a href="$anchor" name="$anchor">'
+          '<small>$number</small> $header</a>\n');
+
+      // Build the section navigation.
+      if (headerType.length == 2) {
+        sections.add([headerIndex, header]);
+      }
     } else {
-      // TODO: Call pretty() on line.
       buffer.writeln(pretty(line));
     }
   }
@@ -208,7 +209,9 @@ void formatFile(Page page) {
   // Fix up em dashes. We do this on the entire contents instead of in pretty()
   // so that we can handle surrounding whitespace even when the "--" is at the
   // beginning of end of a line in Markdown.
-  var contents = buffer.toString().replaceAll(_emDashPattern, '<span class="em">&mdash;</span>');
+  var contents = buffer
+      .toString()
+      .replaceAll(_emDashPattern, '<span class="em">&mdash;</span>');
 
 //  # Allow processing markdown inside some tags.
 //  contents = contents.replace('<aside', '<aside markdown="1"')
@@ -290,17 +293,6 @@ void formatFile(Page page) {
 //    else:
 //      print("{} {}{} ({} words)".format(
 //          term.green("✓"), num, title, word_count))
-}
-
-/// Use nicer HTML entities and special characters.
-String pretty(String text) {
-  return text
-      .replaceAll("...", "&hellip;")
-      // Foreign characters.
-      .replaceAll("à", "&agrave;")
-      .replaceAll("ï", "&iuml;")
-      .replaceAll("ø", "&oslash;")
-      .replaceAll("æ", "&aelig;");
 }
 
 /// Process each SASS file.
