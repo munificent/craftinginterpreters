@@ -108,8 +108,8 @@ void formatFile(Page page) {
   var sections = <List<Object>>[];
   var headerIndex = 0;
   var subheaderIndex = 0;
-//  has_challenges = False
-//  design_note = None
+  var hasChallenges = false;
+  String designNote;
 //  snippets = None
 
   // Read the markdown file and preprocess it.
@@ -149,14 +149,13 @@ void formatFile(Page page) {
 //          raise Exception('Unknown command "^{} {}"'.format(command, arg))
 //
     } else if (stripped.startsWith("## Challenges")) {
-      print("TODO: Challenges");
-//        has_challenges = True
-//        contents += '<h2><a href="#challenges" name="challenges">Challenges</a></h2>\n'
+        hasChallenges = true;
+        buffer.writeln('<h2><a href="#challenges" name="challenges">'
+            'Challenges</a></h2>');
     } else if (stripped.startsWith("## Design Note:")) {
-      print("TODO: Design note");
-//        has_design_note = True
-//        design_note = stripped[len('## Design Note:') + 1:]
-//        contents += '<h2><a href="#design-note" name="design-note">Design Note: {}</a></h2>\n'.format(design_note)
+        designNote = stripped.substring('## Design Note:'.length + 1);
+        buffer.writeln('<h2><a href="#design-note" name="design-note">'
+            'Design Note: $designNote</a></h2>');
     } else if (stripped.startsWith("# ") ||
         stripped.startsWith("## ") ||
         stripped.startsWith("### ")) {
@@ -240,7 +239,7 @@ void formatFile(Page page) {
 //    'sections': sections,
 //    'chapters': get_part_chapters(title),
 //    'design_note': design_note,
-//    'has_challenges': has_challenges,
+//    'hasChallenges': hasChallenges,
 //    'number': book.chapter_number(title),
 //    'prev': book.adjacent_page(title, -1),
 //    'prev_type': book.adjacent_type(title, -1),
@@ -258,6 +257,7 @@ void formatFile(Page page) {
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p></aside>", "</p>\n</aside>");
   output = output.replaceAll("</p><aside", "</p>\n<aside");
+  output = output.replaceAll("</div><div", "</div>\n<div");
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
