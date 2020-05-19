@@ -1,8 +1,9 @@
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
-import 'book.dart';
+import 'page.dart';
 import 'snippet.dart';
+import 'snippet_tag.dart';
 import 'source_file_parser.dart';
 
 /// All of the source files in the book.
