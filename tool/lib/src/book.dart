@@ -1,18 +1,7 @@
-/// Tracks metadata about the material in the book.
-import 'dart:io';
+import 'package:tool/src/source_code.dart';
 
-import 'package:path/path.dart' as p;
-
+import 'page.dart';
 import 'text.dart';
-
-/*
-from functools import total_ordering
-import os
-
-# Matches the name in a `^code` tag and ignores the rest.
-SNIPPET_TAG_PATTERN = re.compile(r'\s*\^code ([-a-z0-9]+).*')
-TITLE_PATTERN = re.compile(r'\^title (.*)')
-*/
 
 // TODO: Make private?
 // TODO: Make less stringly typed.
@@ -123,9 +112,75 @@ const tableOfContents = [
   },
 ];
 
+/// TODO: This is basically a global, eagerly-loaded God object. If we want to
+/// handle incremental refresh better, this should probably be less monolithic.
+class Book {
+  final List<Page> pages = [];
+
+  final SourceCode code = SourceCode();
+
+  /// The chapter pages that have code.
+  Iterable<Page> get codeChapters => pages
+      .where((page) =>
+          page.part != "" && page.part != "" && page.part != "Backmatter")
+      .toList();
+
+  Book() {
+    var partIndex = 1;
+    var chapterIndex = 1;
+    var inMatter = false;
+
+    for (var part in tableOfContents) {
+      // Front- and backmatter have no names, pages, or numbers.
+      var partNumber = "";
+      var partName = part["name"];
+      inMatter = partName == "" || partName == "Backmatter";
+      if (!inMatter) {
+        partNumber = roman(partIndex);
+        partIndex += 1;
+      }
+
+      // There are no part pages for the front- and backmatter.
+      if (part["name"] != "") {
+        pages.add(Page(partName, null, "Part", partNumber, null));
+      }
+
+      for (var chapter in part["chapters"]) {
+        var name = chapter["name"];
+
+        var chapterNumber = "";
+        if (inMatter) {
+          // Front- and backmatter chapters are specially numbered.
+          if (name == "Appendix I") {
+            chapterNumber = "A1";
+          } else if (name == "Appendix II") {
+            chapterNumber = "A2";
+          }
+        } else {
+          chapterNumber = chapterIndex.toString();
+          chapterIndex++;
+        }
+
+        pages.add(Page(name, partName, "Chapter", chapterNumber, chapterIndex));
+      }
+    }
+
+    code.load(this);
+  }
+
+  /// Looks for a page with [title].
+  Page findPage(String title) =>
+      pages.firstWhere((page) => page.title == title);
+
+  /// Gets the [Page] [offset] pages before or after this one.
+  Page adjacentPage(Page start, int offset) {
+    var index = pages.indexOf(start) + offset;
+    if (index < 0 || index >= pages.length) return null;
+    return pages[index];
+  }
+}
+
 /*
-
-
 def adjacent_type(title, offset):
   '''Generate template data to link to the previous or next page.'''
   page_index = PAGES.index(title) + offset
@@ -161,7 +216,5 @@ def get_short_name(name):
     first_word = "user"
 
   return "chap{0:02d}_{1}".format(number, first_word)
-
-
 
 */

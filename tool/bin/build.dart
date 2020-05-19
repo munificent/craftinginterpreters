@@ -9,7 +9,7 @@ import 'package:tool/src/book.dart';
 import 'package:tool/src/highlighter.dart';
 import 'package:tool/src/markdown.dart';
 import 'package:tool/src/page.dart';
-import 'package:tool/src/source_code.dart';
+import 'package:tool/src/snippet.dart';
 import 'package:tool/src/text.dart';
 
 // The "(?!-)" is a hack. scanning.md has an inline code sample containing a
@@ -73,20 +73,20 @@ def format_files(skip_up_to_date, one_file=None):
 */
 
   // TODO: Temp. Just one chapter for now.
-  formatFile(Page.all[10]);
-  return;
+  var book = Book();
+  formatFile(book, book.pages[10]);
 
-  for (var page in Page.all) {
+//  for (var page in Page.all) {
 //    if (one_file == None or page_file == one_file) {
-    formatFile(page);
+//    formatFile(page);
 //      format_file(file, skip_up_to_date, max(code_mod, templates_mod))
 //    }
-  }
+//  }
 }
 
 // TODO: Move to library.
 // TODO: Skip up to date stuff.
-void formatFile(Page page) {
+void formatFile(Book book, Page page) {
   print(page.markdownPath);
 // def format_file(path, skip_up_to_date, dependencies_mod):
 //
@@ -109,7 +109,9 @@ void formatFile(Page page) {
   var subheaderIndex = 0;
   var hasChallenges = false;
   String designNote;
-//  snippets = None
+
+  // TODO: Move this into Page and load lazily.
+  Map<String, Snippet> snippets;
 
   // Read the markdown file and preprocess it.
   var buffer = StringBuffer();
@@ -127,8 +129,7 @@ void formatFile(Page page) {
 
       switch (command) {
         case "code":
-          insertSnippet(page, buffer, argument);
-//          insertSnippet(buffer, snippets, arg, errors);
+          insertSnippet(book, page, snippets, buffer, argument);
           break;
         case "part":
           part = argument;
@@ -143,8 +144,8 @@ void formatFile(Page page) {
           // TODO: Still needed?
           title = title.replaceAll("&shy;", "");
 
-//          // Load the code snippets now that we know the title.
-//          snippets = source_code.find_all(title)
+          // Load the code snippets now that we know the title.
+          snippets = book.code.findAll(page);
 
 //          # If there were any errors loading the code, include them.
 //          if title in book.CODE_CHAPTERS:
@@ -242,6 +243,9 @@ void formatFile(Page page) {
     up = "Crafting Interpreters";
   }
 
+  var previousPage = book.adjacentPage(page, -1);
+  var nextPage = book.adjacentPage(page, 1);
+
   var data = {
     "has_title": title != null,
     "title": title,
@@ -259,15 +263,15 @@ void formatFile(Page page) {
     "has_number": page.numberString != "",
     "number": page.numberString,
     // Previous page.
-    "has_prev": page.previous != null,
-    "prev": page.previous?.title,
-    "prev_file": page.previous?.fileName,
-    "prev_type": page.previous?.type,
+    "has_prev": previousPage != null,
+    "prev": previousPage?.title,
+    "prev_file": previousPage?.fileName,
+    "prev_type": previousPage?.type,
     // Next page.
-    "has_next": page.next != null,
-    "next": page.next?.title,
-    "next_file": page.next?.fileName,
-    "next_type": page.next?.type,
+    "has_next": nextPage != null,
+    "next": nextPage?.title,
+    "next_file": nextPage?.fileName,
+    "next_type": nextPage?.type,
     "has_up": up != null,
     "up": up,
     "up_file": up != null ? toFileName(up) : null,
@@ -295,6 +299,9 @@ void formatFile(Page page) {
   output = output.replaceAll("><aside", ">\n<aside");
   output = output.replaceAll("</aside><", "</aside>\n<");
   output = output.replaceAll("</table>\n<", "</table>\n\n<");
+  output = output.replaceAllMapped(
+      RegExp(r'<div class="source-file-narrow">(.*?)</div>'),
+      (match) => '\n<div class="source-file-narrow">${match[1]}</div>\n');
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
@@ -332,15 +339,15 @@ void formatFile(Page page) {
 //          term.green("✓"), num, title, word_count))
 }
 
-void insertSnippet(Page page, StringBuffer buffer, String name) {
+void insertSnippet(Book book, Page page, Map<String, Snippet> snippets, StringBuffer buffer, String name) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 //def insert_snippet(snippets, arg, contents, errors):
 
   // Parse the location annotations after the name, if present.
   var showLocation = true;
-  var beforeLines = 0;
-  var afterLines = 0;
+  var beforeCount = 0;
+  var afterCount = 0;
 
   var match = _codeOptionsPattern.firstMatch(name);
   if (match != null) {
@@ -351,23 +358,30 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
       if (option == "no location") {
         showLocation = false;
       } else if ((match = _beforePattern.firstMatch(option)) != null) {
-        beforeLines = int.parse(match.group(1));
+        beforeCount = int.parse(match.group(1));
       } else if ((match = _afterPattern.firstMatch(option)) != null) {
-        afterLines = int.parse(match.group(1));
+        afterCount = int.parse(match.group(1));
       }
     }
   }
 
-  // TODO: Don't create every time!
-  var sourceCode = SourceCode();
-  sourceCode.load();
-  var snippets = sourceCode.findAll(page);
   var snippet = snippets[name];
 
   // TODO: Temp.
   if (snippet == null) {
     print("Could not find snippet $name");
     return;
+  }
+
+  List<String> linesBefore;
+  if (beforeCount > 0) {
+    linesBefore = snippet.contextBefore
+        .sublist(snippet.contextBefore.length - beforeCount);
+  }
+
+  List<String> linesAfter;
+  if (afterCount > 0) {
+    linesAfter = snippet.contextAfter.take(afterCount).toList();
   }
 
 //  if name not in snippets:
@@ -398,32 +412,33 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
 //
 //  # TODO: Show indentation in snippets somehow.
 //
-//  # Figure out the length of the longest line. We pad all of the snippets to
-//  # this length so that the background on the pre sections is as wide as the
-//  # entire chunk of code.
-//  length = 0
-//  if beforeLines > 0:
-//    length = longest_line(length, snippet.context_before[-beforeLines:])
-//  if snippet.removed and not snippet.added:
-//    length = longest_line(length, snippet.removed)
+  // Figure out the length of the longest line. We pad all of the snippets to
+  // this length so that the background on the pre sections is as wide as the
+  // entire chunk of code.
+  var length = 0;
+  if (linesBefore != null) {
+    length = longestLine(length, linesBefore);
+  }
+  if (snippet.removed.isNotEmpty && snippet.added.isEmpty) {
+    length = longestLine(length, snippet.removed);
+  }
 //  if snippet.added_comma:
 //    length = longest_line(length, snippet.added_comma)
-//  if snippet.added:
-//    length = longest_line(length, snippet.added)
-//  if afterLines > 0:
-//    length = longest_line(length, snippet.context_after[:afterLines])
-  // TODO: Temp.
-  var length = 64;
+  if (snippet.added.isNotEmpty) {
+    length = longestLine(length, snippet.added);
+  }
+  if (linesAfter != null) {
+    length = longestLine(length, linesAfter);
+  }
 
   buffer.write('<div class="codehilite">');
 
-//  if beforeLines > 0:
-//    before = format_code(snippet.file.language(), length,
-//        snippet.context_before[-beforeLines:])
-//    if snippet.added:
-//      before = before.replace('<pre>', '<pre class="insert-before">')
-//    contents += before
-//
+  if (linesBefore != null) {
+    var before = formatCode(snippet.file.language, length, linesBefore,
+        snippet.added.isNotEmpty ? "insert-before" : null);
+    buffer.writeln(before);
+  }
+
 //  if snippet.added_comma:
 //    def replace_last(string, old, new):
 //      return new.join(string.rsplit(old, 1))
@@ -432,7 +447,7 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
 //    comma = comma.replace('<pre>', '<pre class="insert-before">')
 //    comma = replace_last(comma, ',', '<span class="insert-comma">,</span>')
 //    contents += comma
-//
+
   if (showLocation) {
     var lines = location.join("<br>\n");
     buffer.writeln('<div class="source-file">$lines</div>\n');
@@ -444,24 +459,22 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
 //    contents += removed
 
   if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, length, snippet.added);
-//    if beforeLines > 0 or afterLines > 0:
-//      added = added.replace('<pre>', '<pre class="insert">')
+    var added = formatCode(snippet.file.language, length, snippet.added,
+        beforeCount > 0 || afterCount > 0 ? "insert" : null);
     buffer.writeln(added);
   }
 
-//  if afterLines > 0:
-//    after = format_code(snippet.file.language(), length,
-//        snippet.context_after[:afterLines])
-//    if snippet.added:
-//      after = after.replace('<pre>', '<pre class="insert-after">')
-//    contents += after
+  if (linesAfter != null) {
+    var after = formatCode(snippet.file.language, length, linesAfter,
+        snippet.added.isNotEmpty ? "insert-after" : null);
+    buffer.writeln(after);
+  }
 
   buffer.writeln('</div>');
 
   if (showLocation) {
     var lines = location.join(", ");
-    buffer.writeln('<div class="source-file-narrow">$lines</div>\n');
+    buffer.writeln('<div class="source-file-narrow">$lines</div>');
   }
 }
 

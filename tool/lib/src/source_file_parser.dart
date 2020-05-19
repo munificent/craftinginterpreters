@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'book.dart';
 import 'location.dart';
 import 'page.dart';
 import 'snippet_tag.dart';
@@ -29,6 +30,7 @@ final _typePattern =
 const _keywords = {"new", "return", "throw"};
 
 class SourceFileParser {
+  final Book _book;
   final String _path;
   final SourceFile _file;
   final List<_ParseState> _states = [];
@@ -36,7 +38,7 @@ class SourceFileParser {
   Location _location;
   Location _locationBeforeBlock;
 
-  SourceFileParser(this._path, String relative) : _file = SourceFile(relative) {
+  SourceFileParser(this._book, this._path, String relative) : _file = SourceFile(relative) {
     _location = Location(null, "file", _file.nicePath);
   }
 
@@ -207,9 +209,9 @@ class SourceFileParser {
     var match = _blockPattern.firstMatch(line);
     if (match != null) {
       _push(
-          startChapter: Page.find(match.group(1)),
+          startChapter: _book.findPage(match.group(1)),
           startName: match.group(2),
-          endChapter: Page.find(match.group(3)),
+          endChapter: _book.findPage(match.group(3)),
           endName: match.group(4));
       _locationBeforeBlock = _location;
       return true;
@@ -253,7 +255,7 @@ class SourceFileParser {
 
     match = _beginChapterPattern.firstMatch(line);
     if (match != null) {
-      var chapter = Page.find(match.group(1));
+      var chapter = _book.findPage(match.group(1));
       var name = match.group(2);
 
 //        if state.start != None:

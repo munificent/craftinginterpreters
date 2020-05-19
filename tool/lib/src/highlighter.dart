@@ -1,5 +1,8 @@
 import 'package:string_scanner/string_scanner.dart';
 
+final _classPattern = RegExp(r"class (\w+)");
+final _packagePattern = RegExp(r"package (\w+(\.\w+)*);");
+
 final _annotationPattern = RegExp(r"@[a-zA-Z_][a-zA-Z0-9_]*");
 final _identifierPattern = RegExp(r"[a-zA-Z_][a-zA-Z0-9_]*");
 final _lineCommentPattern = RegExp(r"//.*");
@@ -30,6 +33,8 @@ final _keywords = {
 
   // Declarators.
   "class": "kd",
+  "extends": "kd",
+  "implements": "kd",
   "private": "kd",
   "protected": "kd",
   "public": "kd",
@@ -37,15 +42,16 @@ final _keywords = {
 
 /// Takes a string of source code and returns a block of HTML with spans for
 /// syntax highlighting.
-String highlightCode(String code) {
-
-}
-
-String formatCode(String language, int length, List<String> lines) {
+String formatCode(String language, int length, List<String> lines, [String preClass]) {
   // TODO: Pass in StringBuffer.
   var buffer = StringBuffer();
 
-  buffer.writeln("<pre>");
+  buffer.write("<pre");
+  if (preClass != null) buffer.write(' class="$preClass"');
+  buffer.write(">");
+
+  // TODO: Temp hack. Munge it some to match the old build output.
+  buffer.write("<span></span>");
 
 //  # Hack. Markdown seems to discard leading and trailing newlines, so we'll
 //  # add them back ourselves.
@@ -75,6 +81,15 @@ String formatCode(String language, int length, List<String> lines) {
         token("o", "&lt;");
       } else if (scanner.scan(">")) {
         token("o", "&gt;");
+      } else if (scanner.scan(_classPattern)) {
+        token("kd", "class");
+        buffer.write(" ");
+        token("nn", scanner.lastMatch.group(1));
+      } else if (scanner.scan(_packagePattern)) {
+        token("kn", "package");
+        buffer.write(" ");
+        token("nn", scanner.lastMatch.group(1));
+        token("o", ";");
       } else if (scanner.scan(_annotationPattern)) {
         token("nd");
       } else if (scanner.scan(_identifierPattern)) {

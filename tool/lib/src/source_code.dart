@@ -1,6 +1,7 @@
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
+import 'book.dart';
 import 'location.dart';
 import 'page.dart';
 import 'snippet.dart';
@@ -22,11 +23,11 @@ class SourceCode {
 //      self.errors[chapter] = []
   }
 
-  void load() {
+  void load(Book book) {
     for (var language in ["java", "c"]) {
       for (var file in Glob("$language/**.{c,h,java}").listSync()) {
         var shortPath = p.relative(file.path, from: language);
-        files.add(SourceFileParser(file.path, shortPath).parse());
+        files.add(SourceFileParser(book, file.path, shortPath).parse());
       }
     }
 
@@ -86,39 +87,41 @@ class SourceCode {
 
         lineNum++;
       }
+    }
 
-      // Find the surrounding context lines and location for each snippet.
-      for (var name in snippets.keys) {
-        var snippet = snippets[name];
-        var currentSnippet = chapter.snippetTags[name];
+    // Find the surrounding context lines and location for each snippet.
+    for (var name in snippets.keys) {
+      var snippet = snippets[name];
+      var currentSnippet = chapter.snippetTags[name];
 
-        // Look for preceding lines.
-        var i = firstLines[snippet] - 1;
-        var before = <String>[];
-        while (i >= 0 && before.length <= 5) {
-          var line = snippet.file.lines[i];
-          if (line.isPresent(currentSnippet)) before.add(line.text);
+      // Look for preceding lines.
+      var i = firstLines[snippet] - 1;
+      var before = <String>[];
+      while (i >= 0 && before.length <= 5) {
+        var line = snippet.file.lines[i];
+        if (line.isPresent(currentSnippet)) {
+          before.add(line.text);
 
           // Store the most precise preceding location we find.
           if (snippet.precedingLocation == null ||
               line.location.depth > snippet.precedingLocation.depth) {
             snippet.precedingLocation = line.location;
           }
-
-          i--;
         }
-        snippet.contextBefore.addAll(before.reversed);
 
-        // Look for following lines.
-        i = lastLines[snippet] + 1;
-        var after = <String>[];
-        while (i < snippet.file.lines.length && after.length <= 5) {
-          var line = snippet.file.lines[i];
-          if (line.isPresent(currentSnippet)) after.add(line.text);
-          i++;
-        }
-        snippet.contextAfter.addAll(after);
+        i--;
       }
+      snippet.contextBefore.addAll(before.reversed);
+
+      // Look for following lines.
+      i = lastLines[snippet] + 1;
+      var after = <String>[];
+      while (i < snippet.file.lines.length && after.length <= 5) {
+        var line = snippet.file.lines[i];
+        if (line.isPresent(currentSnippet)) after.add(line.text);
+        i++;
+      }
+      snippet.contextAfter.addAll(after);
     }
 
 //    # Find line changes that just add a trailing comma.
