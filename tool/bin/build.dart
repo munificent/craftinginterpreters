@@ -7,6 +7,8 @@ import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
 import 'package:tool/src/markdown.dart';
+import 'package:tool/src/page.dart';
+import 'package:tool/src/snippet_tag.dart';
 import 'package:tool/src/source_code.dart';
 import 'package:tool/src/text.dart';
 

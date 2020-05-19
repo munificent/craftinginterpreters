@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'book.dart';
+import 'page.dart';
+import 'snippet_tag.dart';
 import 'source_code.dart';
 
 //BLOCK_PATTERN = re.compile(
