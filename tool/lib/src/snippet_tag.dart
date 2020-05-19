@@ -1,7 +1,7 @@
 import 'page.dart';
 
-// TODO: Move to separate file? Rename to "CodeTag"?
-class SnippetTag implements Comparable<SnippetTag> {
+// TODO: Rename to "CodeTag" or just "Tag"?
+class SnippetTag with Ordering<SnippetTag> implements Comparable<SnippetTag> {
   final Page chapter;
   final String name;
   final int index;
@@ -26,4 +26,12 @@ class SnippetTag implements Comparable<SnippetTag> {
   }
 
   String toString() => "Tag(${chapter.chapterIndex}|$index: $chapter $name)";
+}
+
+/// Implements the comparison operators in terms of [compareTo()].
+mixin Ordering<T> implements Comparable<T> {
+  bool operator <(T other) => compareTo(other) < 0;
+  bool operator <=(T other) => compareTo(other) <= 0;
+  bool operator >(T other) => compareTo(other) > 0;
+  bool operator >=(T other) => compareTo(other) >= 0;
 }

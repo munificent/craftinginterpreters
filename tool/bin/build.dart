@@ -290,9 +290,8 @@ void formatFile(Page page) {
   var output = template.renderString(data);
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
-  output = output.replaceAll("</p></aside>", "</p>\n</aside>");
-  output = output.replaceAll("</p><aside", "</p>\n<aside");
-  output = output.replaceAll("</div><div", "</div>\n<div");
+  output = output.replaceAll("</p><", "</p>\n<");
+  output = output.replaceAll("</div><", "</div>\n<");
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
@@ -381,9 +380,10 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
 //  # Consume it.
 //  snippets[name] = False
 
-//  location = []
-//  if showLocation:
-//    location = snippet.describe_location()
+  var location = <String>[];
+  if (showLocation) {
+    location = snippet.locationDescription;
+  }
 
 //  # Make sure every snippet shows the reader where it goes.
 //  if (showLocation and len(location) <= 1
@@ -430,36 +430,36 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
 //    comma = replace_last(comma, ',', '<span class="insert-comma">,</span>')
 //    contents += comma
 //
-//  if showLocation:
-//    contents += '<div class="source-file">{}</div>\n'.format(
-//        '<br>\n'.join(location))
-//
+  if (showLocation) {
+    var lines = location.join("<br>\n");
+    buffer.writeln('<div class="source-file">$lines</div>\n');
+  }
+
 //  if snippet.removed and not snippet.added:
 //    removed = format_code(snippet.file.language(), length, snippet.removed)
 //    removed = removed.replace('<pre>', '<pre class="delete">')
 //    contents += removed
-//
+
   if (snippet.added != null) {
     var added = formatCode(snippet.file.language, length, snippet.added);
 //    if beforeLines > 0 or afterLines > 0:
 //      added = added.replace('<pre>', '<pre class="insert">')
     buffer.writeln(added);
   }
-//
+
 //  if afterLines > 0:
 //    after = format_code(snippet.file.language(), length,
 //        snippet.context_after[:afterLines])
 //    if snippet.added:
 //      after = after.replace('<pre>', '<pre class="insert-after">')
 //    contents += after
-//
+
   buffer.writeln('</div>');
-//
-//  if showLocation:
-//    contents += '<div class="source-file-narrow">{}</div>\n'.format(
-//        ', '.join(location))
-//
-  buffer.writeln("snippet $name, $showLocation, $beforeLines, $afterLines");
+
+  if (showLocation) {
+    var lines = location.join(", ");
+    buffer.writeln('<div class="source-file-narrow">$lines</div>\n');
+  }
 }
 
 String formatCode(String language, int length, List<String> lines) {
