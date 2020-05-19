@@ -184,7 +184,7 @@ void formatFile(Page page) {
       var number = "${page.numberString}&#8202;.&#8202;$headerIndex";
       if (headerType.length == 3) number += "&#8202;.&#8202;$subheaderIndex";
 
-      buffer.writeln('<a href="$anchor" name="$anchor">'
+      buffer.writeln('<a href="#$anchor" name="$anchor">'
           '<small>$number</small> $header</a>\n');
 
       // Build the section navigation.
@@ -292,6 +292,9 @@ void formatFile(Page page) {
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p><", "</p>\n<");
   output = output.replaceAll("</div><", "</div>\n<");
+  output = output.replaceAll("><aside", ">\n<aside");
+  output = output.replaceAll("</aside><", "</aside>\n<");
+  output = output.replaceAll("</table>\n<", "</table>\n\n<");
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
