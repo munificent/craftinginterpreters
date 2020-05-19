@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import 'book.dart';
 import 'snippet_tag.dart';
 import 'text.dart';
 
@@ -10,18 +9,6 @@ import 'text.dart';
 ///
 /// Each chapter, part introduction, and backmatter section is a page.
 class Page {
-  static final all = _flattenPages();
-
-  /// The chapter pages that have code.
-  static final codeChapters = all
-      .where((page) =>
-  page.part != "" && page.part != "" && page.part != "Backmatter")
-      .toList();
-
-  /// Looks for a page with [title].
-  static Page find(String title) =>
-      all.firstWhere((page) => page.title == title);
-
 //  // TODO: Not needed?
 //  /// Parses the snippet tags from every chapter. Returns a map of chapter names
 //  /// to maps of snippet names to SnippetTags.
@@ -84,55 +71,6 @@ class Page {
   /// The path to this page's generated HTML file.
   String get htmlPath => p.join("site_dart", "$fileName.html");
 
-  Page get previous => _adjacent(-1);
-  Page get next => _adjacent(1);
-
-  /// Flatten the tree of parts and chapters to a single linear list of pages.
-  static List<Page> _flattenPages() {
-    var pages = <Page>[];
-
-    var partIndex = 1;
-    var chapterIndex = 1;
-    var inMatter = false;
-
-    for (var part in tableOfContents) {
-      // Front- and backmatter have no names, pages, or numbers.
-      var partNumber = "";
-      var partName = part["name"];
-      inMatter = partName == "" || partName == "Backmatter";
-      if (!inMatter) {
-        partNumber = roman(partIndex);
-        partIndex += 1;
-      }
-
-      // There are no part pages for the front- and backmatter.
-      if (part["name"] != "") {
-        pages.add(Page(partName, null, "Part", partNumber, null));
-      }
-
-      for (var chapter in part["chapters"]) {
-        var name = chapter["name"];
-
-        var chapterNumber = "";
-        if (inMatter) {
-          // Front- and backmatter chapters are specially numbered.
-          if (name == "Appendix I") {
-            chapterNumber = "A1";
-          } else if (name == "Appendix II") {
-            chapterNumber = "A2";
-          }
-        } else {
-          chapterNumber = chapterIndex.toString();
-          chapterIndex++;
-        }
-
-        pages.add(Page(name, partName, "Chapter", chapterNumber, chapterIndex));
-      }
-    }
-
-    return pages;
-  }
-
   SnippetTag findSnippetTag(String name) {
     // TODO: snippetTags() parses the file each time. Do something caching
     // somewhere.
@@ -189,11 +127,4 @@ class Page {
   }
 
   String toString() => title;
-
-  /// Gets the [Page] [offset] pages before or after this one.
-  Page _adjacent(int offset) {
-    var index = all.indexOf(this) + offset;
-    if (index < 0 || index >= all.length) return null;
-    return all[index];
-  }
 }
