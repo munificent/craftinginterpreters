@@ -4,9 +4,9 @@ import 'page.dart';
 import 'snippet_tag.dart';
 import 'source_code.dart';
 
-//BLOCK_PATTERN = re.compile(
-//    r'/\* ([A-Z][A-Za-z\s]+) ([-a-z0-9]+) < ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)')
-//BLOCK_SNIPPET_PATTERN = re.compile(r'/\* < ([-a-z0-9]+)')
+final _blockPattern = RegExp(
+    r"^/\* ([A-Z][A-Za-z\s]+) ([-a-z0-9]+) < ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
+final _blockSnippetPattern = RegExp(r"^/\* < ([-a-z0-9]+)$");
 final _beginSnippetPattern = RegExp(r"^//> ([-a-z0-9]+)$");
 final _endSnippetPattern = RegExp(r"^//< ([-a-z0-9]+)$");
 final _beginChapterPattern = RegExp(r"^//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
@@ -31,6 +31,7 @@ class SourceFileParser {
   final List<_ParseState> _states = [];
 
   Location _currentLocation;
+  Location _locationBeforeBlock;
 
   SourceFileParser(this._path, String relative) : _file = SourceFile(relative) {
     _currentLocation = Location(null, "file", _file.nicePath);
@@ -38,10 +39,7 @@ class SourceFileParser {
 
   SourceFile parse() {
 //  line_num = 1
-//  state = ParseState(None, None)
 //  handled = False
-//
-//  location_before_block = None
 //
 //  def error(message):
 //    print("Error: {} line {}: {}".format(relative, line_num, message),
@@ -88,6 +86,50 @@ class SourceFileParser {
 //          printed_file = True
 //        print("{0:4} ({1:2} chars): {2}".format(line_num, len(trimmed), trimmed))
 //
+
+    var handled = _updateState(line);
+//
+//      if not handled:
+//        if not state.start:
+//          error("No snippet in effect.".format(relative))
+
+    if (!handled) {
+      var sourceLine = SourceLine(
+          line, _currentLocation, _currentState.start, _currentState.end);
+      _file.lines.add(sourceLine);
+    }
+
+//      match = TYPEDEF_NAME_PATTERN.match(line)
+//      if (match != null) {
+//        # Now we know the typedef name.
+//        _currentLocation.name = match.group(1)
+//        _currentLocation = _currentLocation.parent
+//
+//      # Use "startswith" to include lines like "} [aside-marker]".
+//      # TODO: Hacky. Generalize?
+//      if line.startswith('}'):
+//        _currentLocation = _currentLocation.pop_to_depth(0)
+//      elif line.startswith('  }'):
+//        _currentLocation = _currentLocation.pop_to_depth(1)
+//      elif line.startswith('    }'):
+//        _currentLocation = _currentLocation.pop_to_depth(2)
+//
+//      # If we reached a function declaration, not a definition, then it's done
+//      # after one line.
+//      if is_function_declaration:
+//        _currentLocation = _currentLocation.parent
+//
+//      # Module variables are only a single line.
+//      if _currentLocation.kind == 'variable':
+//        _currentLocation = _currentLocation.parent
+//
+//      # Hack. There is a one-line class in Parser.java.
+//      if 'class ParseError' in line:
+//        _currentLocation = _currentLocation.parent
+  }
+
+  /// Keep track of the current location where the parser is in the source file.
+  void _updateLocation(String line) {
 //      # See if we reached a new function or method declaration.
 //      match = FUNCTION_PATTERN.search(line)
 //      is_function_declaration = False
@@ -133,33 +175,46 @@ class SourceFileParser {
 //        _currentLocation = Location(_currentLocation, 'variable',
 //                                    match.group(1))
 //
-//      match = BLOCK_PATTERN.match(line)
-//      if (match != null) {
-//        push(match.group(1), match.group(2), match.group(3), match.group(4))
-//        location_before_block = _currentLocation
-//
-//      match = BLOCK_SNIPPET_PATTERN.match(line)
-//      if (match != null) {
-//        name = match.group(1)
-//        push(state.start.chapter, state.start.name, state.start.chapter, name)
-//        location_before_block = _currentLocation
-//
-//      if line.strip() == '*/' and state.end:
-//        _currentLocation = location_before_block
-//        pop()
-//
-    var match = _beginSnippetPattern.firstMatch(line);
+  }
+
+  /// Processes any [line] that changes what snippet the parser is currently in.
+  ///
+  /// Returns `true` if the line contained a snippet annotation.
+  bool _updateState(String line) {
+    var match = _blockPattern.firstMatch(line);
+    if (match != null) {
+      _push(
+          startChapter: Page.find(match.group(1)),
+          startName: match.group(2),
+          endChapter: Page.find(match.group(3)),
+          endName: match.group(4));
+      _locationBeforeBlock = _currentLocation;
+      return true;
+    }
+
+    match = _blockSnippetPattern.firstMatch(line);
+    if (match != null) {
+      _push(endChapter: _currentState.start.chapter, endName: match.group(1));
+      _locationBeforeBlock = _currentLocation;
+      return true;
+    }
+
+    if (line.trim() == "*/" && _currentState.end != null) {
+      _currentLocation = _locationBeforeBlock;
+      _pop();
+      return true;
+    }
+
+    match = _beginSnippetPattern.firstMatch(line);
     if (match != null) {
       var name = match.group(1);
-      // TODO: Temp.
-      SnippetTag tag;
 //        var tag = source_code.find_snippet_tag(state.start.chapter, name);
 //        if tag < state.start:
 //          error("Can't push earlier snippet {} from {}.".format(name, state.start.name))
 //        elif tag == state.start:
 //          error("Can't push to same snippet {}.".format(name))
-      _push(_currentState.start.chapter, name);
-      return;
+      _push(startName: name);
+      return true;
     }
 
     match = _endSnippetPattern.firstMatch(line);
@@ -170,12 +225,12 @@ class SourceFileParser {
 //        if state.parent.start.chapter == None:
 //          error('Cannot pop last state {}.'.format(state.start))
       _pop();
-      return;
+      return true;
     }
 
     match = _beginChapterPattern.firstMatch(line);
     if (match != null) {
-      var chapter = match.group(1);
+      var chapter = Page.find(match.group(1));
       var name = match.group(2);
 
 //        if state.start != None:
@@ -189,8 +244,8 @@ class SourceFileParser {
 //          if new_chapter < old_chapter:
 //            error('Can\'t push earlier chapter "{}" from "{}".'.format(
 //                chapter, state.start.chapter))
-      _push(Page.find(chapter), name);
-      return;
+      _push(startChapter: chapter, startName: name);
+      return true;
     }
 
     match = _endChapterPattern.firstMatch(line);
@@ -203,53 +258,26 @@ class SourceFileParser {
 //        if state.start.chapter == None:
 //          error('Cannot pop last state "{}".'.format(state.start))
       _pop();
-      return;
+      return true;
     }
-//
-//      if not handled:
-//        if not state.start:
-//          error("No snippet in effect.".format(relative))
-//
-    var sourceLine = SourceLine(
-        line, _currentLocation, _currentState.start, _currentState.end);
-    _file.lines.add(sourceLine);
-//
-//      match = TYPEDEF_NAME_PATTERN.match(line)
-//      if (match != null) {
-//        # Now we know the typedef name.
-//        _currentLocation.name = match.group(1)
-//        _currentLocation = _currentLocation.parent
-//
-//      # Use "startswith" to include lines like "} [aside-marker]".
-//      # TODO: Hacky. Generalize?
-//      if line.startswith('}'):
-//        _currentLocation = _currentLocation.pop_to_depth(0)
-//      elif line.startswith('  }'):
-//        _currentLocation = _currentLocation.pop_to_depth(1)
-//      elif line.startswith('    }'):
-//        _currentLocation = _currentLocation.pop_to_depth(2)
-//
-//      # If we reached a function declaration, not a definition, then it's done
-//      # after one line.
-//      if is_function_declaration:
-//        _currentLocation = _currentLocation.parent
-//
-//      # Module variables are only a single line.
-//      if _currentLocation.kind == 'variable':
-//        _currentLocation = _currentLocation.parent
-//
-//      # Hack. There is a one-line class in Parser.java.
-//      if 'class ParseError' in line:
-//        _currentLocation = _currentLocation.parent
+
+    return false;
   }
 
   _ParseState get _currentState => _states.last;
 
-  void _push(Page chapter, String name, [Page endChapter, String endName]) {
-//    print("push ${chapter.title} $name");
-    var start = chapter.findSnippetTag(name);
-    SnippetTag end;
+  void _push(
+      {Page startChapter, String startName, Page endChapter, String endName}) {
+    startChapter ??= _currentState.start.chapter;
 
+    SnippetTag start;
+    if (startName != null) {
+      start = startChapter.findSnippetTag(startName);
+    } else {
+      start = _currentState.start;
+    }
+
+    SnippetTag end;
     if (endChapter != null) {
       end = endChapter.findSnippetTag(endName);
     }
@@ -258,20 +286,18 @@ class SourceFileParser {
   }
 
   void _pop() {
-//    print("pop ${_currentState.start.chapter.title}");
     _states.removeLast();
   }
 }
 
 class _ParseState {
-  // TODO: Types?
   final SnippetTag start;
   final SnippetTag end;
 
   _ParseState(this.start, [this.end]);
 
   String toString() {
-    if (end != null) return "state $start -> $end";
-    return "state $start";
+    if (end != null) return "_ParseState($start > $end)";
+    return "_ParseState($start)";
   }
 }
