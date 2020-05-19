@@ -3,16 +3,16 @@ import 'package:markdown/markdown.dart';
 String renderMarkdown(String contents) {
   return markdownToHtml(contents.toString(),
       inlineSyntaxes: [
+        // Put inline Markdown code syntax before our smart quotes so that
+        // quotes inside `code` spans don't get smartened.
+        CodeSyntax(),
+        // Smart quotes.
         _ApostropheSyntax(),
         _SmartLeftQuoteSyntax(),
         _SmartRightQuoteSyntax()
       ],
       extensionSet: ExtensionSet.gitHubFlavored);
 }
-
-// TODO: These do the wrong thing when inside inline backticks. At that point,
-// they should be left alone, but these syntaxes still kick in and transform
-// the characters.
 
 class _ApostropheSyntax extends InlineSyntax {
   _ApostropheSyntax() : super(r"(\S)'(\S)");
