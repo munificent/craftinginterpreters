@@ -1,4 +1,6 @@
 /// Tracks metadata about the material in the book.
+import 'dart:io';
+
 import 'package:path/path.dart' as p;
 
 import 'text.dart';
@@ -29,33 +31,21 @@ const tableOfContents = [
   {
     'name': 'Welcome',
     'chapters': [
-      {
-        'name': 'Introduction',
-        'design_note': "What's in a Name?"
-      },
+      {'name': 'Introduction', 'design_note': "What's in a Name?"},
       {
         'name': 'A Map of the Territory',
       },
-      {
-        'name': 'The Lox Language',
-        'design_note': "Expressions and Statements"
-      }
+      {'name': 'The Lox Language', 'design_note': "Expressions and Statements"}
     ]
   },
   {
     'name': 'A Tree-Walk Interpreter',
     'chapters': [
-      {
-        'name': 'Scanning',
-        'design_note': "Implicit Semicolons"
-      },
+      {'name': 'Scanning', 'design_note': "Implicit Semicolons"},
       {
         'name': 'Representing Code',
       },
-      {
-        'name': 'Parsing Expressions',
-        'design_note': "Logic Versus History"
-      },
+      {'name': 'Parsing Expressions', 'design_note': "Logic Versus History"},
       {
         'name': 'Evaluating Expressions',
         'design_note': 'Static and Dynamic Typing'
@@ -64,20 +54,14 @@ const tableOfContents = [
         'name': 'Statements and State',
         'design_note': 'Implicit Variable Declaration'
       },
-      {
-        'name': 'Control Flow',
-        'design_note': 'Spoonfuls of Syntactic Sugar'
-      },
+      {'name': 'Control Flow', 'design_note': 'Spoonfuls of Syntactic Sugar'},
       {
         'name': 'Functions',
       },
       {
         'name': 'Resolving and Binding',
       },
-      {
-        'name': 'Classes',
-        'design_note': 'Prototypes and Power'
-      },
+      {'name': 'Classes', 'design_note': 'Prototypes and Power'},
       {
         'name': 'Inheritance',
       }
@@ -86,28 +70,16 @@ const tableOfContents = [
   {
     'name': 'A Bytecode Virtual Machine',
     'chapters': [
-      {
-        'name': 'Chunks of Bytecode',
-        'design_note': 'Test Your Language'
-      },
-      {
-        'name': 'A Virtual Machine',
-        'design_note': 'Register-Based Bytecode'
-      },
+      {'name': 'Chunks of Bytecode', 'design_note': 'Test Your Language'},
+      {'name': 'A Virtual Machine', 'design_note': 'Register-Based Bytecode'},
       {
         'name': 'Scanning on Demand',
       },
-      {
-        'name': 'Compiling Expressions',
-        'design_note': "It's Just Parsing"
-      },
+      {'name': 'Compiling Expressions', 'design_note': "It's Just Parsing"},
       {
         'name': 'Types of Values',
       },
-      {
-        'name': 'Strings',
-        'design_note': 'String Encoding'
-      },
+      {'name': 'Strings', 'design_note': 'String Encoding'},
       {
         'name': 'Hash Tables',
       },
@@ -124,21 +96,12 @@ const tableOfContents = [
       {
         'name': 'Calls and Functions',
       },
-      {
-        'name': 'Closures',
-        'design_note': 'Closing Over the Loop Variable'
-      },
-      {
-        'name': 'Garbage Collection',
-        'design_note': 'Generational Collectors'
-      },
+      {'name': 'Closures', 'design_note': 'Closing Over the Loop Variable'},
+      {'name': 'Garbage Collection', 'design_note': 'Generational Collectors'},
       {
         'name': 'Classes and Instances',
       },
-      {
-        'name': 'Methods and Initializers',
-        'design_note': 'Novelty Budget'
-      },
+      {'name': 'Methods and Initializers', 'design_note': 'Novelty Budget'},
       {
         'name': 'Superclasses',
       },
@@ -166,14 +129,55 @@ const tableOfContents = [
 class Page {
   static final all = _flattenPages();
 
+  /// The chapter pages that have code.
+  static final codeChapters = all
+      .where((page) =>
+          page.part != "" && page.part != "" && page.part != "Backmatter")
+      .toList();
+
+  /// Looks for a page with [title].
+  static Page find(String title) =>
+      all.firstWhere((page) => page.title == title);
+
+//  // TODO: Not needed?
+//  /// Parses the snippet tags from every chapter. Returns a map of chapter names
+//  /// to maps of snippet names to SnippetTags.
+//  static Map<Page, Map<String, SnippetTag>> getChapterSnippetTags() {
+//    var chapters = {};
+//
+//    for (var chapter in Page.codeChapters) {
+//      chapters[chapter] = chapter.snippetTags();
+//
+////    chapters.forEach((chapter, tags) {
+////      print(chapter);
+////      for (var tag in tags.values) {
+////        print("  $tag");
+////      }
+////    });
+//    }
+//
+//    return chapters;
+//  }
+
+  /// The title of this page.
   final String title;
+
+  /// The part that contains this page, or null if the page is not a chapter
+  /// within a part.
+  final String part;
+
   // TODO: Enum.
   final String type;
 
   /// The chapter or part number, like "12", "II", or "".
-  final String number;
+  final String numberString;
 
-  Page(this.title, this.type, this.number);
+  /// If the page is a chapter, the numeric index of it or `null` otherwise.
+  final int chapterIndex;
+
+  Map<String, SnippetTag> _snippetTags;
+
+  Page(this.title, this.part, this.type, this.numberString, this.chapterIndex);
 
   /// The base file path and URI for the page, without any extension.
   String get fileName {
@@ -211,7 +215,8 @@ class Page {
     for (var part in tableOfContents) {
       // Front- and backmatter have no names, pages, or numbers.
       var partNumber = "";
-      inMatter = part["name"] == "" || part["name"] == "Backmatter";
+      var partName = part["name"];
+      inMatter = partName == "" || partName == "Backmatter";
       if (!inMatter) {
         partNumber = roman(partIndex);
         partIndex += 1;
@@ -219,7 +224,7 @@ class Page {
 
       // There are no part pages for the front- and backmatter.
       if (part["name"] != "") {
-        pages.add(Page(part["name"], "Part", partNumber));
+        pages.add(Page(partName, null, "Part", partNumber, null));
       }
 
       for (var chapter in part["chapters"]) {
@@ -238,12 +243,69 @@ class Page {
           chapterIndex++;
         }
 
-        pages.add(Page(name, "Chapter", chapterNumber));
+        pages.add(Page(name, partName, "Chapter", chapterNumber, chapterIndex));
       }
     }
 
     return pages;
   }
+
+  SnippetTag findSnippetTag(String name) {
+    // TODO: snippetTags() parses the file each time. Do something caching
+    // somewhere.
+    var tag = snippetTags[name];
+    if (tag != null) return tag;
+
+    print("Could not find snippet '$name' in chapter '$title'.");
+
+//    if name != 'not-yet' and name != 'omit':
+//      print('Error: "{}" does not use snippet "{}".'.format(chapter, name),
+//          file=sys.stderr)
+
+    // Synthesize a fake one so we can keep going.
+    return snippetTags[name] = SnippetTag(this, name, snippetTags.length);
+
+//  def last_snippet_for_chapter(self, chapter):
+//    """ Returns the last snippet tag appearing in [chapter]. """
+//    snippets = self.snippet_tags[chapter]
+//    last = None
+//    for snippet in snippets.values():
+//      if not last or snippet > last:
+//        last = snippet
+//
+//    return last
+  }
+
+  /// Parses the page's Markdown file and finds all of the `^code` tags.
+  ///
+  /// Returns a map of snippet names to SnippetTags for them.
+  Map<String, SnippetTag> get snippetTags {
+    if (_snippetTags != null) return _snippetTags;
+
+    // TODO: Redundant with code in build.dart that parses commands. Unify?
+    final _codeTagPattern = RegExp(r"\s*\^code ([-a-z0-9]+).*");
+
+    _snippetTags = {};
+
+    // TODO: Each Markdown file gets read from disc twice. Once to find all the
+    // snippet tags and once when building. Merge those two into one read.
+    // (Maybe just cache the read lines in this class?)
+    for (var line in File(markdownPath).readAsLinesSync()) {
+      var match = _codeTagPattern.firstMatch(line);
+      if (match != null) {
+        _snippetTags[match.group(1)] =
+            SnippetTag(this, match.group(1), _snippetTags.length);
+      }
+    }
+
+    // Add fake tags for the placeholders.
+    _snippetTags["omit"] = SnippetTag(this, "omit", _snippetTags.length);
+    _snippetTags["not-yet"] = SnippetTag(this, "not-yet", _snippetTags.length);
+
+    return _snippetTags;
+  }
+
+  String toString() => title;
 
   /// Gets the [Page] [offset] pages before or after this one.
   Page _adjacent(int offset) {
@@ -253,22 +315,35 @@ class Page {
   }
 }
 
+// TODO: Move to separate file? Rename to "CodeTag"?
+class SnippetTag implements Comparable<SnippetTag> {
+  final Page chapter;
+  final String name;
+  final int index;
+
+  factory SnippetTag(Page chapter, String name, int index) {
+    // Hackish. Always want "not-yet" to be the last tag even if it appears
+    // before a real tag. That ensures we can push it for other tags that have
+    // been named.
+    if (name == "not-yet") index = 9999;
+
+    return SnippetTag._(chapter, name, index);
+  }
+
+  SnippetTag._(this.chapter, this.name, this.index);
+
+  int compareTo(SnippetTag other) {
+    if (chapter.chapterIndex != other.chapter.chapterIndex) {
+      return chapter.chapterIndex.compareTo(other.chapter.chapterIndex);
+    }
+
+    return index.compareTo(other.index);
+  }
+
+  String toString() => "Tag(${chapter.chapterIndex}|$index: $chapter $name)";
+}
+
 /*
-def list_code_chapters():
-  """Gets the list of titles of the chapters that have code."""
-  chapters = []
-
-  def walk_part(part):
-    for chapter in part['chapters']:
-      chapters.append(chapter['name'])
-
-  walk_part(TOC[2])
-  walk_part(TOC[3])
-  walk_part(TOC[4])
-
-  return chapters
-
-CODE_CHAPTERS = list_code_chapters()
 
 
 def adjacent_type(title, offset):
@@ -308,75 +383,5 @@ def get_short_name(name):
   return "chap{0:02d}_{1}".format(number, first_word)
 
 
-@total_ordering
-class SnippetTag:
-  def __init__(self, chapter, name, index):
-    self.chapter = chapter
-    self.name = name
-    self.chapter_index = chapter_number(chapter)
-    self.index = index
-
-    # Hackish. Always want "not-yet" to be the last tag even if it appears
-    # before a real tag. That ensures we can push it for other tags that have
-    # been named.
-    if name == "not-yet":
-      self.index = 9999
-
-  def __eq__(self, other):
-      return (isinstance(other, SnippetTag) and
-          self.chapter_index == other.chapter_index and
-          self.index < other.index)
-
-  def __lt__(self, other):
-    if self.chapter_index != other.chapter_index:
-      return self.chapter_index < other.chapter_index
-
-    return self.index < other.index
-
-  def __repr__(self):
-    return "Tag({}|{}: {} {})".format(
-        self.chapter_index, self.index, self.chapter, self.name)
-
-
-def get_chapter_snippet_tags():
-  """
-  Parses the snippet tags from every chapter. Returns a map of chapter names
-  to maps of snippet names to SnippetTags.
-  """
-  chapters = {}
-
-  for chapter in CODE_CHAPTERS:
-    chapters[chapter] = get_snippet_tags(get_markdown_path(chapter))
-
-  # for chapter, tags in chapters.items():
-  #   print(chapter)
-  #   for tag in tags.values():
-  #     print("  {}".format(tag))
-
-  return chapters
-
-
-def get_snippet_tags(path):
-  """
-  Parses the Markdown file at [path] and finds all of the `^code` tags.
-  Returns a map of snippet names to SnippetTags for them.
-  """
-  tags = {}
-
-  with open(path, 'r') as input:
-    title = None
-
-    for line in input:
-      match = TITLE_PATTERN.match(line)
-      if match:
-        title = match.group(1)
-
-      match = SNIPPET_TAG_PATTERN.match(line)
-      if match:
-        if title == None:
-          raise Exception("Should have found title first.")
-        tags[match.group(1)] = SnippetTag(title, match.group(1), len(tags))
-
-  return tags
 
 */
