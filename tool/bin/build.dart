@@ -6,9 +6,9 @@ import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
+import 'package:tool/src/highlighter.dart';
 import 'package:tool/src/markdown.dart';
 import 'package:tool/src/page.dart';
-import 'package:tool/src/snippet_tag.dart';
 import 'package:tool/src/source_code.dart';
 import 'package:tool/src/text.dart';
 
@@ -463,42 +463,6 @@ void insertSnippet(Page page, StringBuffer buffer, String name) {
     var lines = location.join(", ");
     buffer.writeln('<div class="source-file-narrow">$lines</div>\n');
   }
-}
-
-String formatCode(String language, int length, List<String> lines) {
-  // TODO: Pass in StringBuffer.
-  var markup = "```$language\n";
-
-//  # Hack. Markdown seems to discard leading and trailing newlines, so we'll
-//  # add them back ourselves.
-//  leading_newlines = 0
-//  while lines and lines[0].strip() == '':
-//    lines = lines[1:]
-//    leading_newlines += 1
-//
-//  trailing_newlines = 0
-//  while lines and lines[-1].strip() == '':
-//    lines = lines[:-1]
-//    trailing_newlines += 1
-//
-  for (var line in lines) {
-    markup += line.padRight(length, " ") + "\n";
-  }
-
-  markup += "```";
-
-  var html = renderMarkdown(markup);
-
-//  if leading_newlines > 0:
-//    html = html.replace('<pre>', '<pre>' + ('<br>' * leading_newlines))
-//
-//  if trailing_newlines > 0:
-//    html = html.replace('</pre>', ('<br>' * trailing_newlines) + '</pre>')
-//
-//  # Strip off the div wrapper. We just want the <pre>.
-//  html = html.replace('<div class="codehilite">', '')
-//  html = html.replace('</div>', '')
-  return html;
 }
 
 /// Process each SASS file.
