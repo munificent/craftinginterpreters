@@ -1,6 +1,7 @@
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
+import 'location.dart';
 import 'page.dart';
 import 'snippet.dart';
 import 'snippet_tag.dart';
@@ -37,27 +38,28 @@ class SourceCode {
   Map<String, Snippet> findAll(Page chapter) {
     // TODO: Type.
     var snippets = <String, Snippet>{};
-//
-//    first_lines = {}
-//    last_lines = {}
-//
+
+    var firstLines = <Snippet, int>{};
+    var lastLines = <Snippet, int>{};
+
     // Create a new snippet for [name] if it doesn't already exist.
     Snippet ensureSnippet(SourceFile file, String name, [int lineNum]) {
       if (!snippets.containsKey(name)) {
         var snippet = Snippet(file, name);
         snippets[name] = snippet;
-//        first_lines[snippet] = lineNum
+        if (lineNum != null) firstLines[snippet] = lineNum;
         return snippet;
       }
-//
+
       var snippet = snippets[name];
-//      if first_lines[snippet] is None:
-//        first_lines[snippet] = lineNum
+      if (lineNum != null && !firstLines.containsKey(snippet)) {
+        firstLines[snippet] = lineNum;
 //      if name != 'not-yet' and name != 'omit' and snippet.file.path != file.path:
 //        print('Error: "{} {}" appears in two files, {} and {}.'.format(
 //                chapter, name, snippet.file.path, file.path),
 //            file=sys.stderr)
-//
+      }
+
       return snippet;
     }
 
@@ -70,8 +72,8 @@ class SourceCode {
           var snippet = ensureSnippet(file, line.start.name, lineNum);
           // TODO: Move most of this logic into snippet.
           snippet.added.add(line.text);
-//          last_lines[snippet] = lineNum
-//
+          lastLines[snippet] = lineNum;
+
           if (snippet.added.length == 1) {
             snippet.location = line.location;
           }
@@ -85,36 +87,38 @@ class SourceCode {
         lineNum++;
       }
 
-//    # Find the surrounding context lines and location for each snippet.
-//    for name, snippet in snippets.items():
-//      current_snippet = self.snippet_tags[chapter][name]
-//
-//      # Look for preceding lines.
-//      i = first_lines[snippet] - 1
-//      before = []
-//      while i >= 0 and len(before) <= 5:
-//        line = snippet.file.lines[i]
-//        if line.is_present(current_snippet):
-//          before.append(line.text)
-//
-//          # Store the more precise preceding location we find.
-//          if (not snippet.preceding_location or
-//              line.location.depth() > snippet.preceding_location.depth()):
-//            snippet.preceding_location = line.location
-//
-//        i -= 1
-//      snippet.context_before = before[::-1]
-//
-//      # Look for following lines.
-//      i = last_lines[snippet] + 1
-//      after = []
-//      while i < len(snippet.file.lines) and len(after) <= 5:
-//        line = snippet.file.lines[i]
-//        if line.is_present(current_snippet):
-//          after.append(line.text)
-//        i += 1
-//      snippet.context_after = after
-//
+      // Find the surrounding context lines and location for each snippet.
+      for (var name in snippets.keys) {
+        var snippet = snippets[name];
+        var currentSnippet = chapter.snippetTags[name];
+
+        // Look for preceding lines.
+        var i = firstLines[snippet] - 1;
+        var before = <String>[];
+        while (i >= 0 && before.length <= 5) {
+          var line = snippet.file.lines[i];
+          if (line.isPresent(currentSnippet)) before.add(line.text);
+
+          // Store the most precise preceding location we find.
+          if (snippet.precedingLocation == null ||
+              line.location.depth > snippet.precedingLocation.depth) {
+            snippet.precedingLocation = line.location;
+          }
+
+          i--;
+        }
+        snippet.contextBefore.addAll(before.reversed);
+
+        // Look for following lines.
+        i = lastLines[snippet] + 1;
+        var after = <String>[];
+        while (i < snippet.file.lines.length && after.length <= 5) {
+          var line = snippet.file.lines[i];
+          if (line.isPresent(currentSnippet)) after.add(line.text);
+          i++;
+        }
+        snippet.contextAfter.addAll(after);
+      }
     }
 
 //    # Find line changes that just add a trailing comma.
@@ -125,7 +129,7 @@ class SourceCode {
 //        snippet.added_comma = snippet.added[0]
 //        del snippet.added[0]
 //        del snippet.removed[-1]
-//
+
     return snippets;
   }
 
@@ -183,128 +187,20 @@ class SourceLine {
 
   SourceLine(this.text, this.location, this.start, this.end);
 
-//  def is_present(self, snippet):
-//    """
-//    Returns true if this line exists by the time we reach [snippet].
-//    """
-//    if snippet < self.start:
-//      # We haven't reached this line's snippet yet.
-//      return False
-//
-//    if self.end and snippet > self.end:
-//      # We are past the snippet where it is removed.
-//      return False
-//
-//    return True
-//
-//  def __str__(self):
-//    result = "{:72} // {}".format(self.text, self.start)
-//
-//    if self.end:
-//      result += " < {}".format(self.end)
-//
-//    return result + " in {}".format(self.location)
-}
+  /// Returns true if this line exists by the time we reach [snippet].
+  bool isPresent(SnippetTag snippet) {
+    // If we haven't reached this line's snippet yet.
+    if (snippet < start) return false;
 
-/// The context in which a line of code appears. The chain of types and
-/// functions it's in.
-class Location {
-  final Location parent;
-  final String kind;
-  final String name;
-  final String signature;
+    // If we are past the snippet where it is removed.
+    if (end != null && snippet > end) return false;
 
-  Location(this.parent, this.kind, this.name, [this.signature]);
+    return true;
+  }
 
-//  def __str__(self):
-//    result = self.kind + ' ' + self.name
-//    if self.signature:
-//      result += "(" + self.signature + ")"
-//    if self.parent:
-//      result = str(self.parent) + ' > ' + result
-//    return result
-//
-//  def __eq__(self, other):
-//    # Note: Signature is deliberately not considered part of equality. There's
-//    # a case in calls-and-functions where the signature of a function changes
-//    # and it confuses the build script if we treat the signatures as
-//    # significant.
-//    return other != None and self.kind == other.kind and self.name == other.name
-//
-//  @property
-//  def is_file(self):
-//    return self.kind == 'file'
-//
-//  @property
-//  def is_function(self):
-//    return self.kind in ['constructor', 'function', 'method']
-//
-//  def to_html(self, preceding, removed):
-//    """
-//    Generates a string of HTML that describes a snippet at this location, when
-//    following the [preceding] location.
-//    """
-//
-//    # Note: The order of these is highly significant.
-//    if self.kind == 'class' and self.parent and self.parent.kind == 'class':
-//      return 'nest inside class <em>{}</em>'.format(self.parent.name)
-//
-//    if self.is_function and preceding == self:
-//      # Hack. There's one place where we add a new overload and that shouldn't
-//      # be treated as in the same function. But we can't always look at the
-//      # signature because there's another place where a change signature would
-//      # confuse the build script. So just check for the one-off case here.
-//      if self.name == 'resolve' and self.signature == 'Expr expr':
-//        return 'add after <em>{}</em>({})'.format(
-//            preceding.name, preceding.signature)
-//
-//      # We're still inside a function.
-//      return 'in <em>{}</em>()'.format(self.name)
-//
-//    if self.is_function and removed:
-//      # Hack. We don't appear to be in the middle of a function, but we are
-//      # replacing lines, so assume we're replacing the entire function.
-//      return '{} <em>{}</em>()'.format(self.kind, self.name)
-//
-//    if self.parent == preceding and not preceding.is_file:
-//      # We're nested inside a type.
-//      return 'in {} <em>{}</em>'.format(preceding.kind, preceding.name)
-//
-//    if preceding == self and not self.is_file:
-//      # We're still inside a type.
-//      return 'in {} <em>{}</em>'.format(self.kind, self.name)
-//
-//    if preceding.is_function:
-//      # We aren't inside a function, but we do know the preceding one.
-//      return 'add after <em>{}</em>()'.format(preceding.name)
-//
-//    if not preceding.is_file:
-//      # We aren't inside any function, but we do know what we follow.
-//      return 'add after {} <em>{}</em>'.format(preceding.kind, preceding.name)
-//
-//    return None
-//
-//  def depth(self):
-//    current = self
-//    result = 0
-//    while current:
-//      result += 1
-//      current = current.parent
-//
-//    return result
-//
-//  def pop_to_depth(self, depth):
-//    """
-//    Discard as many children as needed to get to [depth] parents.
-//    """
-//    current = self
-//    locations = []
-//    while current:
-//      locations.append(current)
-//      current = current.parent
-//
-//    # If we are already shallower, there is nothing to pop.
-//    if len(locations) < depth + 1: return self
-//
-//    return locations[-depth - 1]
+  String toString() {
+    var result = "${text.padRight(72)} // $start";
+    if (end != null) result += " < $end";
+    return result;
+  }
 }

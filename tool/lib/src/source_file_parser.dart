@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'location.dart';
 import 'page.dart';
 import 'snippet_tag.dart';
 import 'source_code.dart';
@@ -11,30 +12,32 @@ final _beginSnippetPattern = RegExp(r"^//> ([-a-z0-9]+)$");
 final _endSnippetPattern = RegExp(r"^//< ([-a-z0-9]+)$");
 final _beginChapterPattern = RegExp(r"^//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
 final _endChapterPattern = RegExp(r"^//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
-//
-//# Hacky regexes that matches a function, method or constructor declaration.
-//CONSTRUCTOR_PATTERN = re.compile(r'^  ([A-Z][a-z]\w+)\(')
-//FUNCTION_PATTERN = re.compile(r'(\w+)>*\*? (\w+)\(([^)]*)')
+
+// Hacky regexes that matches a function, method or constructor declaration.
+final _constructorPattern = RegExp(r"^  ([A-Z][a-z]\w+)\(");
+final _functionPattern = RegExp(r"(\w+)>*\*? (\w+)\(([^)]*)");
 //MODULE_PATTERN = re.compile(r'^(\w+) (\w+);')
 //STRUCT_PATTERN = re.compile(r'struct (s\w+)? {')
-//TYPE_PATTERN = re.compile(r'(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)')
+final _typePattern =
+    RegExp(r"^(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
 //TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union)( \w+)? {')
 //TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
 //
-//# Reserved words that can appear like a return type in a function declaration
-//# but shouldn't be treated as one.
-//KEYWORDS = ['new', 'return', 'throw']
+
+/// Reserved words that can appear like a return type in a function declaration
+/// but shouldn't be treated as one.
+const _keywords = {"new", "return", "throw"};
 
 class SourceFileParser {
   final String _path;
   final SourceFile _file;
   final List<_ParseState> _states = [];
 
-  Location _currentLocation;
+  Location _location;
   Location _locationBeforeBlock;
 
   SourceFileParser(this._path, String relative) : _file = SourceFile(relative) {
-    _currentLocation = Location(null, "file", _file.nicePath);
+    _location = Location(null, "file", _file.nicePath);
   }
 
   SourceFile parse() {
@@ -87,6 +90,7 @@ class SourceFileParser {
 //        print("{0:4} ({1:2} chars): {2}".format(line_num, len(trimmed), trimmed))
 //
 
+    _updateLocationBefore(line);
     var handled = _updateState(line);
 //
 //      if not handled:
@@ -94,73 +98,58 @@ class SourceFileParser {
 //          error("No snippet in effect.".format(relative))
 
     if (!handled) {
-      var sourceLine = SourceLine(
-          line, _currentLocation, _currentState.start, _currentState.end);
+      var sourceLine =
+          SourceLine(line, _location, _currentState.start, _currentState.end);
       _file.lines.add(sourceLine);
     }
 
-//      match = TYPEDEF_NAME_PATTERN.match(line)
-//      if (match != null) {
-//        # Now we know the typedef name.
-//        _currentLocation.name = match.group(1)
-//        _currentLocation = _currentLocation.parent
-//
-//      # Use "startswith" to include lines like "} [aside-marker]".
-//      # TODO: Hacky. Generalize?
-//      if line.startswith('}'):
-//        _currentLocation = _currentLocation.pop_to_depth(0)
-//      elif line.startswith('  }'):
-//        _currentLocation = _currentLocation.pop_to_depth(1)
-//      elif line.startswith('    }'):
-//        _currentLocation = _currentLocation.pop_to_depth(2)
-//
-//      # If we reached a function declaration, not a definition, then it's done
-//      # after one line.
-//      if is_function_declaration:
-//        _currentLocation = _currentLocation.parent
-//
-//      # Module variables are only a single line.
-//      if _currentLocation.kind == 'variable':
-//        _currentLocation = _currentLocation.parent
-//
-//      # Hack. There is a one-line class in Parser.java.
-//      if 'class ParseError' in line:
-//        _currentLocation = _currentLocation.parent
+    _updateLocationAfter(line);
   }
 
   /// Keep track of the current location where the parser is in the source file.
-  void _updateLocation(String line) {
-//      # See if we reached a new function or method declaration.
-//      match = FUNCTION_PATTERN.search(line)
-//      is_function_declaration = False
-//      if match and "#define" not in line and match.group(1) not in KEYWORDS:
-//        # Hack. Don't get caught by comments or string literals.
-//        if '//' not in line and '"' not in line:
-//          _currentLocation = Location(
-//              _currentLocation,
-//              'method' if file.path.endswith('.java') else 'function',
-//              match.group(2),
-//              match.group(3))
-//          # TODO: What about declarations with aside comments:
-//          #   void foo(); // [wat]
-//          is_function_declaration = line.endswith(';')
-//
-//          # Hack: Handle multi-line declarations.
-//          if line.endswith(',') and lines[line_num].endswith(';'):
-//            is_function_declaration = True
-//
-//      match = CONSTRUCTOR_PATTERN.match(line)
-//      if (match != null) {
-//        _currentLocation = Location(_currentLocation,
-//                                    'constructor', match.group(1))
-//
-//      match = TYPE_PATTERN.search(line)
-//      if (match != null) {
-//        # Hack. Don't get caught by comments or string literals.
-//        if '//' not in line and '"' not in line:
-//          _currentLocation = Location(_currentLocation,
-//                                      match.group(3), match.group(4))
-//
+  void _updateLocationBefore(String line) {
+    // See if we reached a new function or method declaration.
+    var match = _functionPattern.firstMatch(line);
+    if (match != null &&
+        !line.contains("#define") &&
+        !_keywords.contains(match.group(1))) {
+      // Hack. Don't get caught by comments or string literals.
+      if (!line.contains("//") && !line.contains('"')) {
+        // TODO: What about declarations with aside comments:
+        //   void foo(); // [wat]
+        var isFunctionDeclaration = line.endsWith(";");
+
+        // TODO:
+//        // Hack: Handle multi-line declarations.
+//        if (line.endsWith(",") && lines[line_num].endsWith(";")) {
+//          isFunctionDeclaration = true;
+//        }
+
+        _location = Location(_location,
+            _file.language == "java" ? "method" : "function", match.group(2),
+            signature: match.group(3),
+            isFunctionDeclaration: isFunctionDeclaration);
+        return;
+      }
+    }
+
+    match = _constructorPattern.firstMatch(line);
+    if (match != null) {
+      _location = Location(_location, "constructor", match.group(1));
+      return;
+    }
+
+    match = _typePattern.firstMatch(line);
+    if (match != null) {
+      // Hack. Don't get caught by comments or string literals.
+      if (!line.contains("//") && !line.contains('"')) {
+        var kind = match.group(3);
+        var name = match.group(4);
+        _location = Location(_location, kind, name);
+      }
+      return;
+    }
+
 //      match = STRUCT_PATTERN.match(line)
 //      if (match != null) {
 //        _currentLocation = Location(_currentLocation, 'struct', match.group(1))
@@ -177,6 +166,40 @@ class SourceFileParser {
 //
   }
 
+  void _updateLocationAfter(String line) {
+//      match = TYPEDEF_NAME_PATTERN.match(line)
+//      if (match != null) {
+//        # Now we know the typedef name.
+//        _currentLocation.name = match.group(1)
+//        _currentLocation = _currentLocation.parent
+
+    // Use "startsWith" to include lines like "} [aside-marker]".
+    // TODO: Hacky. Generalize?
+    if (line.startsWith("}")) {
+      _location = _location.popToDepth(0);
+    } else if (line.startsWith("  }")) {
+      _location = _location.popToDepth(1);
+    } else if (line.startsWith("    }")) {
+      _location = _location.popToDepth(2);
+    }
+
+    // If we reached a function declaration, not a definition, then it's done
+    // after one line.
+    if (_location.isFunctionDeclaration) {
+      _location = _location.parent;
+    }
+
+    // Module variables are only a single line.
+    if (_location.kind == 'variable') {
+      _location = _location.parent;
+    }
+
+    // Hack. There is a one-line class in Parser.java.
+    if (line.contains("class ParseError")) {
+      _location = _location.parent;
+    }
+  }
+
   /// Processes any [line] that changes what snippet the parser is currently in.
   ///
   /// Returns `true` if the line contained a snippet annotation.
@@ -188,19 +211,19 @@ class SourceFileParser {
           startName: match.group(2),
           endChapter: Page.find(match.group(3)),
           endName: match.group(4));
-      _locationBeforeBlock = _currentLocation;
+      _locationBeforeBlock = _location;
       return true;
     }
 
     match = _blockSnippetPattern.firstMatch(line);
     if (match != null) {
       _push(endChapter: _currentState.start.chapter, endName: match.group(1));
-      _locationBeforeBlock = _currentLocation;
+      _locationBeforeBlock = _location;
       return true;
     }
 
     if (line.trim() == "*/" && _currentState.end != null) {
-      _currentLocation = _locationBeforeBlock;
+      _location = _locationBeforeBlock;
       _pop();
       return true;
     }
