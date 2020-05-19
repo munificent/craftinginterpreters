@@ -7,6 +7,7 @@ import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
 import 'package:tool/src/markdown.dart';
+import 'package:tool/src/source_code.dart';
 import 'package:tool/src/text.dart';
 
 // The "(?!-)" is a hack. scanning.md has an inline code sample containing a
@@ -14,6 +15,10 @@ import 'package:tool/src/text.dart';
 // character after the "-- " is "-", which is the next character in the code
 // sample.
 final _emDashPattern = RegExp(r"\s+--\s(?!-)");
+
+final _codeOptionsPattern = RegExp(r"([-a-z0-9]+) \(([^)]+)\)");
+final _beforePattern = RegExp(r"(\d+) before");
+final _afterPattern = RegExp(r"(\d+) after");
 
 void main(List<String> arguments) {
   formatFiles();
@@ -120,9 +125,8 @@ void formatFile(Page page) {
 
       switch (command) {
         case "code":
-//          contents = insert_snippet(snippets, arg, contents, errors)
-          print("TODO: Snippet $argument");
-          buffer.writeln(line);
+          insertSnippet(page, buffer, argument);
+//          insertSnippet(buffer, snippets, arg, errors);
           break;
         case "part":
           part = argument;
@@ -175,7 +179,7 @@ void formatFile(Page page) {
         subheaderIndex += 1;
       }
 
-      var number = "${page.number}&#8202;.&#8202;$headerIndex";
+      var number = "${page.numberString}&#8202;.&#8202;$headerIndex";
       if (headerType.length == 3) number += "&#8202;.&#8202;$subheaderIndex";
 
       buffer.writeln('<a href="$anchor" name="$anchor">'
@@ -250,8 +254,8 @@ void formatFile(Page page) {
     "has_design_note": designNote != null,
     "has_challenges": hasChallenges,
     "has_challenges_or_design_note": hasChallenges || designNote != null,
-    "has_number": page.number != "",
-    "number": page.number,
+    "has_number": page.numberString != "",
+    "number": page.numberString,
     // Previous page.
     "has_prev": page.previous != null,
     "prev": page.previous?.title,
@@ -322,6 +326,174 @@ void formatFile(Page page) {
 //    else:
 //      print("{} {}{} ({} words)".format(
 //          term.green("✓"), num, title, word_count))
+}
+
+void insertSnippet(Page page, StringBuffer buffer, String name) {
+  // NOTE: If you change this, be sure to update the baked in example snippet
+  // in introduction.md.
+//def insert_snippet(snippets, arg, contents, errors):
+
+  // Parse the location annotations after the name, if present.
+  var showLocation = true;
+  var beforeLines = 0;
+  var afterLines = 0;
+
+  var match = _codeOptionsPattern.firstMatch(name);
+  if (match != null) {
+    name = match.group(1);
+    var options = match.group(2).split(", ");
+
+    for (var option in options) {
+      if (option == "no location") {
+        showLocation = false;
+      } else if ((match = _beforePattern.firstMatch(option)) != null) {
+        beforeLines = int.parse(match.group(1));
+      } else if ((match = _afterPattern.firstMatch(option)) != null) {
+        afterLines = int.parse(match.group(1));
+      }
+    }
+  }
+
+  // TODO: Don't create every time!
+  var sourceCode = SourceCode();
+  sourceCode.load();
+  var snippets = sourceCode.findAll(page);
+  var snippet = snippets[name];
+
+  // TODO: Temp.
+  if (snippet == null) {
+    print("Could not find snippet $name");
+    return;
+  }
+
+//  if name not in snippets:
+//    errors.append("Undefined snippet {}".format(name))
+//    contents += "**ERROR: Missing snippet {}**\n".format(name)
+//    return contents
+//
+//  if snippets[name] == False:
+//    errors.append("Reused snippet {}".format(name))
+//    contents += "**ERROR: Reused snippet {}**\n".format(name)
+//    return contents
+
+//  # Consume it.
+//  snippets[name] = False
+
+//  location = []
+//  if showLocation:
+//    location = snippet.describe_location()
+
+//  # Make sure every snippet shows the reader where it goes.
+//  if (showLocation and len(location) <= 1
+//      and beforeLines == 0 and afterLines == 0):
+//    print("No location or context for {}".format(name))
+//    errors.append("No location or context for {}".format(name))
+//    contents += "**ERROR: No location or context for {}**\n".format(name)
+//    return contents
+//
+//  # TODO: Show indentation in snippets somehow.
+//
+//  # Figure out the length of the longest line. We pad all of the snippets to
+//  # this length so that the background on the pre sections is as wide as the
+//  # entire chunk of code.
+//  length = 0
+//  if beforeLines > 0:
+//    length = longest_line(length, snippet.context_before[-beforeLines:])
+//  if snippet.removed and not snippet.added:
+//    length = longest_line(length, snippet.removed)
+//  if snippet.added_comma:
+//    length = longest_line(length, snippet.added_comma)
+//  if snippet.added:
+//    length = longest_line(length, snippet.added)
+//  if afterLines > 0:
+//    length = longest_line(length, snippet.context_after[:afterLines])
+  // TODO: Temp.
+  var length = 64;
+
+  buffer.write('<div class="codehilite">');
+
+//  if beforeLines > 0:
+//    before = format_code(snippet.file.language(), length,
+//        snippet.context_before[-beforeLines:])
+//    if snippet.added:
+//      before = before.replace('<pre>', '<pre class="insert-before">')
+//    contents += before
+//
+//  if snippet.added_comma:
+//    def replace_last(string, old, new):
+//      return new.join(string.rsplit(old, 1))
+//
+//    comma = format_code(snippet.file.language(), length, [snippet.added_comma])
+//    comma = comma.replace('<pre>', '<pre class="insert-before">')
+//    comma = replace_last(comma, ',', '<span class="insert-comma">,</span>')
+//    contents += comma
+//
+//  if showLocation:
+//    contents += '<div class="source-file">{}</div>\n'.format(
+//        '<br>\n'.join(location))
+//
+//  if snippet.removed and not snippet.added:
+//    removed = format_code(snippet.file.language(), length, snippet.removed)
+//    removed = removed.replace('<pre>', '<pre class="delete">')
+//    contents += removed
+//
+  if (snippet.added != null) {
+    var added = formatCode(snippet.file.language, length, snippet.added);
+//    if beforeLines > 0 or afterLines > 0:
+//      added = added.replace('<pre>', '<pre class="insert">')
+    buffer.writeln(added);
+  }
+//
+//  if afterLines > 0:
+//    after = format_code(snippet.file.language(), length,
+//        snippet.context_after[:afterLines])
+//    if snippet.added:
+//      after = after.replace('<pre>', '<pre class="insert-after">')
+//    contents += after
+//
+  buffer.writeln('</div>');
+//
+//  if showLocation:
+//    contents += '<div class="source-file-narrow">{}</div>\n'.format(
+//        ', '.join(location))
+//
+  buffer.writeln("snippet $name, $showLocation, $beforeLines, $afterLines");
+}
+
+String formatCode(String language, int length, List<String> lines) {
+  // TODO: Pass in StringBuffer.
+  var markup = "```$language\n";
+
+//  # Hack. Markdown seems to discard leading and trailing newlines, so we'll
+//  # add them back ourselves.
+//  leading_newlines = 0
+//  while lines and lines[0].strip() == '':
+//    lines = lines[1:]
+//    leading_newlines += 1
+//
+//  trailing_newlines = 0
+//  while lines and lines[-1].strip() == '':
+//    lines = lines[:-1]
+//    trailing_newlines += 1
+//
+  for (var line in lines) {
+    markup += line.padRight(length, " ") + "\n";
+  }
+
+  markup += "```";
+
+  var html = renderMarkdown(markup);
+
+//  if leading_newlines > 0:
+//    html = html.replace('<pre>', '<pre>' + ('<br>' * leading_newlines))
+//
+//  if trailing_newlines > 0:
+//    html = html.replace('</pre>', ('<br>' * trailing_newlines) + '</pre>')
+//
+//  # Strip off the div wrapper. We just want the <pre>.
+//  html = html.replace('<div class="codehilite">', '')
+//  html = html.replace('</div>', '')
+  return html;
 }
 
 /// Process each SASS file.
