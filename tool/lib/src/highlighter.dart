@@ -1,5 +1,7 @@
 import 'package:string_scanner/string_scanner.dart';
 
+/// Match these first because they apply smarter styles in certain contexts.
+final _attributePattern = RegExp(r"\.([a-zA-Z_][a-zA-Z0-9_]*)");
 final _classPattern = RegExp(r"class (\w+)");
 final _packagePattern = RegExp(r"package (\w+(\.\w+)*);");
 
@@ -17,6 +19,7 @@ final _keywords = {
   "instanceof": "k",
   "return": "k",
   "switch": "k",
+  "this": "k",
   "while": "k",
 
   // Constants.
@@ -25,19 +28,19 @@ final _keywords = {
   "true": "kc",
 
   // Types.
-  "bool": "kt",
-  "boolean": "kt",
-  "double": "kt",
-  "int": "kt",
-  "void": "kt",
+  "bool": "k",
+  "boolean": "k",
+  "double": "k",
+  "int": "k",
+  "void": "k",
 
   // Declarators.
-  "class": "kd",
-  "extends": "kd",
-  "implements": "kd",
-  "private": "kd",
-  "protected": "kd",
-  "public": "kd",
+  "class": "k",
+  "extends": "k",
+  "implements": "k",
+  "private": "k",
+  "protected": "k",
+  "public": "k",
 };
 
 /// Takes a string of source code and returns a block of HTML with spans for
@@ -81,14 +84,17 @@ String formatCode(String language, int length, List<String> lines, [String preCl
         token("o", "&lt;");
       } else if (scanner.scan(">")) {
         token("o", "&gt;");
+      } else if (scanner.scan(_attributePattern)) {
+        token("o", ".");
+        token("n", scanner.lastMatch.group(1));
       } else if (scanner.scan(_classPattern)) {
-        token("kd", "class");
+        token("k", "class");
         buffer.write(" ");
-        token("nn", scanner.lastMatch.group(1));
+        token("nc", scanner.lastMatch.group(1));
       } else if (scanner.scan(_packagePattern)) {
-        token("kn", "package");
+        token("k", "package");
         buffer.write(" ");
-        token("nn", scanner.lastMatch.group(1));
+        token("n", scanner.lastMatch.group(1));
         token("o", ";");
       } else if (scanner.scan(_annotationPattern)) {
         token("nd");
