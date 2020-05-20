@@ -1,45 +1,19 @@
-{% include 'header.html' %}
-
-{% macro part_section(part, part_number, chapter_start) -%}
-  <h2><span class="num">{{ part_number }}.</span><a href="{{ part.name | file }}.html" name="{{ part.name | file }}">{{ part.name }}</a></h2>
-  <ul>
-  {% for chapter in part.chapters %}
-    <li><span class="num">{{ chapter_start + loop.index0 }}.</span><a href="{{ chapter.name | file }}.html">{{ chapter.name }}</a>
-    </li>
-    {% if chapter.design_note %}
-    <li class="design-note">
-    <span class="num">&nbsp;</span><a href="{{ chapter.name | file }}.html#design-note">Design Note: {{ chapter.design_note }}</a>
-    </li>
-    {% endif %}
-  {% endfor %}
-  </ul>
-{%- endmacro %}
-
-{% macro navigation() -%}
-  <h2><a href="#top"><small>&nbsp;</small> Table of Contents</a></h2>
-  <ul>
-    <li><a href="#welcome"><small>I</small>Welcome</a></li>
-    <li><a href="#a-tree-walk-interpreter"><small>II</small>A Tree-Walk Interpreter</a></li>
-    <li><a href="#a-bytecode-virtual-machine"><small>III</small>A Bytecode Virtual Machine</a></li>
-    <li><a href="#backmatter"><small>&#10087;</small>Backmatter</a></li>
-  </ul>
-  {% include 'prev-next.html' %}
-{%- endmacro %}
+{{> header }}
 
 <nav class="wide">
   <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
   <div class="contents">
-    {{ navigation() }}
+    {{> contents-nav }}
   </div>
 </nav>
 
 <nav class="narrow">
 <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
 {{# has_prev }}
-<a href="{{ prev|file }}.html" title="{{ prev }}" class="prev">←</a>
+<a href="{{ prev_file }}.html" title="{{ prev }}" class="prev">←</a>
 {{/ has_prev }}
 {{# has_next }}
-<a href="{{ next|file }}.html" title="{{ next }}" class="next">→</a>
+<a href="{{ next_file }}.html" title="{{ next }}" class="next">→</a>
 {{/ has_next }}
 </nav>
 
@@ -48,7 +22,7 @@
 <nav class="floating">
   <a href="/"><img src="image/logotype-small.png" title="Crafting Interpreters"></a>
   <div class="expandable">
-    {{ navigation() }}
+    {{> contents-nav }}
   </div>
   <a id="expand-nav">≡</a>
 </nav>
@@ -61,11 +35,17 @@
 <div class="chapters">
   <div class="row">
     <div class="first">
-    {{ part_section(toc[1], "I", 1) }}
-    {{ part_section(toc[2], "II", 4) }}
+    {{# part_1 }}
+      {{> contents-part }}
+    {{/ part_1 }}
+    {{# part_2 }}
+      {{> contents-part }}
+    {{/ part_2 }}
     </div>
     <div class="second">
-    {{ part_section(toc[3], "III", 14) }}
+    {{# part_3 }}
+      {{> contents-part }}
+    {{/ part_3 }}
 
     <h2><span class="num">&#10087;</span><a href="backmatter.html" name="backmatter">Backmatter</a></h2>
     <ul>
@@ -77,11 +57,11 @@
 </div>
 
 <footer>
-  <a href="{{ next|file }}.html" class="next">
+  <a href="{{ next_file }}.html" class="next">
     First {{ next_type }}: &ldquo;{{ next }}&rdquo; &rarr;
   </a>
 Hand-crafted by Robert Nystrom&ensp;&mdash;&ensp;<a href="https://github.com/munificent/craftinginterpreters/blob/master/LICENSE" target="_blank">&copy; 2015&hairsp;&ndash;&hairsp;2020</a>
 </footer>
 </article>
 
-{% include 'footer.html' %}
+{{> footer }}

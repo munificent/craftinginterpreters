@@ -15,7 +15,8 @@ class Location {
 
   bool get isFile => kind == "file";
 
-  bool get isFunction => const {"constructor", "function", "method"}.contains(kind);
+  bool get isFunction =>
+      const {"constructor", "function", "method"}.contains(kind);
 
   int get depth {
     var current = this;

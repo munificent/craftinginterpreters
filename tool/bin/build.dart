@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:glob/glob.dart';
-import 'package:mustache_template/mustache_template.dart';
 import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
 import 'package:tool/src/highlighter.dart';
 import 'package:tool/src/markdown.dart';
+import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
 import 'package:tool/src/snippet.dart';
 import 'package:tool/src/text.dart';
@@ -72,21 +72,20 @@ def format_files(skip_up_to_date, one_file=None):
   templates_mod = latest_mod("asset/template/ *.html")
 */
 
-  // TODO: Temp. Just one chapter for now.
   var book = Book();
-  formatFile(book, book.pages[10]);
+  var mustache = Mustache();
 
-//  for (var page in Page.all) {
-//    if (one_file == None or page_file == one_file) {
-//    formatFile(page);
-//      format_file(file, skip_up_to_date, max(code_mod, templates_mod))
-//    }
+  // TODO: Temp. Just one chapter for now.
+  formatFile(book, mustache, book.pages[20]);
+//
+//  for (var page in book.pages) {
+//    formatFile(book, page);
 //  }
 }
 
 // TODO: Move to library.
 // TODO: Skip up to date stuff.
-void formatFile(Book book, Page page) {
+void formatFile(Book book, Mustache mustache, Page page) {
   print(page.markdownPath);
 // def format_file(path, skip_up_to_date, dependencies_mod):
 //
@@ -99,8 +98,7 @@ void formatFile(Book book, Page page) {
 //      return
 //
   var title = "TODO";
-  String part;
-  var templateFile = 'page';
+  var template = 'page';
 
 //  errors = []
   // TODO: Something better typed.
@@ -132,10 +130,10 @@ void formatFile(Book book, Page page) {
           insertSnippet(book, page, snippets, buffer, argument);
           break;
         case "part":
-          part = argument;
+          // TODO: No longer used. Remove from Markdown files.
           break;
         case "template":
-          templateFile = argument;
+          template = argument;
           break;
         case "title":
           title = argument;
@@ -145,7 +143,7 @@ void formatFile(Book book, Page page) {
           title = title.replaceAll("&shy;", "");
 
           // Load the code snippets now that we know the title.
-          snippets = book.code.findAll(page);
+          snippets = book.code.findAll(page as ChapterPage);
 
 //          # If there were any errors loading the code, include them.
 //          if title in book.CODE_CHAPTERS:
@@ -229,69 +227,15 @@ void formatFile(Book book, Page page) {
 
   var body = renderMarkdown(contents);
 
+  var output =
+      mustache.render(template, book, page, body, sections, hasChallenges);
+
 //  # Turn aside markers in code into spans. In the empty span case, insert a
 //  # zero-width space because Chrome seems to lose the span's position if it has
 //  # no content.
 //  # <span class="c1">// [repl]</span>
 //  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"> </span>', body)
 //  body = ASIDE_WITH_COMMENT_PATTERN.sub(r'<span class="c1" name="\2">// \1</span>', body)
-
-  var up = "Table of Contents";
-  if (part != null) {
-    up = part;
-  } else if (title == "Table of Contents") {
-    up = "Crafting Interpreters";
-  }
-
-  var previousPage = book.adjacentPage(page, -1);
-  var nextPage = book.adjacentPage(page, 1);
-
-  var data = {
-    "has_title": title != null,
-    "title": title,
-    "has_part": part != null,
-    "part": part,
-    "body": body,
-    "sections": sections,
-    // TODO:
-//    "chapters": get_part_chapters(title),
-    "chapters": ["TODO", "chapters"],
-    "design_note": designNote,
-    "has_design_note": designNote != null,
-    "has_challenges": hasChallenges,
-    "has_challenges_or_design_note": hasChallenges || designNote != null,
-    "has_number": page.numberString != "",
-    "number": page.numberString,
-    // Previous page.
-    "has_prev": previousPage != null,
-    "prev": previousPage?.title,
-    "prev_file": previousPage?.fileName,
-    "prev_type": previousPage?.type,
-    // Next page.
-    "has_next": nextPage != null,
-    "next": nextPage?.title,
-    "next_file": nextPage?.fileName,
-    "next_type": nextPage?.type,
-    "has_up": up != null,
-    "up": up,
-    "up_file": up != null ? toFileName(up) : null,
-    "toc": tableOfContents
-  };
-
-  // TODO: Move to separate lib.
-  var partials = <String, Template>{};
-  Template resolvePartial(String partial) {
-    return partials.putIfAbsent(partial, () {
-      var path = p.join("asset", "mustache", "$partial.html");
-      return Template(File(path).readAsStringSync(),
-          name: path, partialResolver: resolvePartial);
-    });
-  }
-
-  var templatePath = p.join("asset", "mustache", "$templateFile.html");
-  var template = Template(File(templatePath).readAsStringSync(),
-      name: templatePath, partialResolver: resolvePartial);
-  var output = template.renderString(data);
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p><", "</p>\n<");
@@ -339,7 +283,8 @@ void formatFile(Book book, Page page) {
 //          term.green("✓"), num, title, word_count))
 }
 
-void insertSnippet(Book book, Page page, Map<String, Snippet> snippets, StringBuffer buffer, String name) {
+void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
+    StringBuffer buffer, String name) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 //def insert_snippet(snippets, arg, contents, errors):

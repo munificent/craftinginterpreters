@@ -12,8 +12,19 @@ String pretty(String text) {
 }
 
 /// Converts [text] to a string suitable for use as a file or anchor name.
-String toFileName(String text) =>
-    text.toLowerCase().replaceAll(" ", "-").replaceAll(r'[,.?!:/"]', "");
+String toFileName(String text) {
+  if (text == "Crafting Interpreters") return "index";
+  if (text == "Table of Contents") return "contents";
+
+  // TODO: Is this still needed?
+  // Hack. The introduction has a *subheader* named "Challenges" distinct from
+  // the challenges section. This function here is also used to generate the
+  // anchor names for the links, so handle that one specially so it doesn't
+  // collide with the real "Challenges" section.
+  if (text == "Challenges") return "challenges_";
+
+  return text.toLowerCase().replaceAll(" ", "-").replaceAll(r'[,.?!:/"]', "");
+}
 
 /// Convert n to roman numerals.
 String roman(int n) {

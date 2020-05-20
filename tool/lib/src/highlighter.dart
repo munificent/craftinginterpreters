@@ -14,6 +14,7 @@ final _operatorPattern = RegExp(r"[(){}[\]!+\-/*:;.,|?=]+");
 final _keywords = {
   // Reserved words.
   "case": "k",
+  "else": "k",
   "for": "k",
   "if": "k",
   "instanceof": "k",
@@ -30,8 +31,11 @@ final _keywords = {
   // Types.
   "bool": "k",
   "boolean": "k",
+  "char": "k",
   "double": "k",
+  "FILE": "k",
   "int": "k",
+  "size_t": "k",
   "void": "k",
 
   // Declarators.
@@ -45,7 +49,8 @@ final _keywords = {
 
 /// Takes a string of source code and returns a block of HTML with spans for
 /// syntax highlighting.
-String formatCode(String language, int length, List<String> lines, [String preClass]) {
+String formatCode(String language, int length, List<String> lines,
+    [String preClass]) {
   // TODO: Pass in StringBuffer.
   var buffer = StringBuffer();
 
