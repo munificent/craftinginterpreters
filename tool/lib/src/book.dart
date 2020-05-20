@@ -115,6 +115,7 @@ const tableOfContents = [
 /// TODO: This is basically a global, eagerly-loaded God object. If we want to
 /// handle incremental refresh better, this should probably be less monolithic.
 class Book {
+  final List<PartPage> parts = [];
   final List<Page> pages = [];
 
   final SourceCode code = SourceCode();
@@ -122,7 +123,9 @@ class Book {
   /// The chapter pages that have code.
   Iterable<Page> get codeChapters => pages
       .where((page) =>
-          page.part != "" && page.part != "" && page.part != "Backmatter")
+          page is ChapterPage &&
+          page.part != null &&
+          page.part.title != "Backmatter")
       .toList();
 
   Book() {
@@ -133,20 +136,24 @@ class Book {
     for (var part in tableOfContents) {
       // Front- and backmatter have no names, pages, or numbers.
       var partNumber = "";
-      var partName = part["name"];
+      var partName = part["name"] as String;
       inMatter = partName == "" || partName == "Backmatter";
       if (!inMatter) {
         partNumber = roman(partIndex);
         partIndex += 1;
       }
 
+      PartPage partPage;
+
       // There are no part pages for the front- and backmatter.
       if (part["name"] != "") {
-        pages.add(Page(partName, null, "Part", partNumber, null));
+        partPage = PartPage(partName, partNumber);
+        pages.add(partPage);
+        parts.add(partPage);
       }
 
       for (var chapter in part["chapters"]) {
-        var name = chapter["name"];
+        var name = chapter["name"] as String;
 
         var chapterNumber = "";
         if (inMatter) {
@@ -161,16 +168,25 @@ class Book {
           chapterIndex++;
         }
 
-        pages.add(Page(name, partName, "Chapter", chapterNumber, chapterIndex));
+        var chapterPage = ChapterPage(name, partPage, chapterNumber,
+            chapterIndex, chapter["design_note"] as String);
+        pages.add(chapterPage);
+        if (partPage != null) partPage.chapters.add(chapterPage);
       }
     }
 
     code.load(this);
   }
 
+  // TODO: The casts here are kind of hokey. Do something cleaner.
   /// Looks for a page with [title].
-  Page findPage(String title) =>
-      pages.firstWhere((page) => page.title == title);
+  ChapterPage findChapter(String title) =>
+      pages.firstWhere((page) => page is ChapterPage && page.title == title)
+          as ChapterPage;
+
+  /// Looks for a page with [number];
+  Page findNumber(String number) =>
+      pages.firstWhere((page) => page.numberString == number);
 
   /// Gets the [Page] [offset] pages before or after this one.
   Page adjacentPage(Page start, int offset) {

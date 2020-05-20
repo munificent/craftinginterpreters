@@ -38,7 +38,8 @@ class SourceFileParser {
   Location _location;
   Location _locationBeforeBlock;
 
-  SourceFileParser(this._book, this._path, String relative) : _file = SourceFile(relative) {
+  SourceFileParser(this._book, this._path, String relative)
+      : _file = SourceFile(relative) {
     _location = Location(null, "file", _file.nicePath);
   }
 
@@ -209,9 +210,9 @@ class SourceFileParser {
     var match = _blockPattern.firstMatch(line);
     if (match != null) {
       _push(
-          startChapter: _book.findPage(match.group(1)),
+          startChapter: _book.findChapter(match.group(1)),
           startName: match.group(2),
-          endChapter: _book.findPage(match.group(3)),
+          endChapter: _book.findChapter(match.group(3)),
           endName: match.group(4));
       _locationBeforeBlock = _location;
       return true;
@@ -255,7 +256,7 @@ class SourceFileParser {
 
     match = _beginChapterPattern.firstMatch(line);
     if (match != null) {
-      var chapter = _book.findPage(match.group(1));
+      var chapter = _book.findChapter(match.group(1));
       var name = match.group(2);
 
 //        if state.start != None:
@@ -292,7 +293,10 @@ class SourceFileParser {
   _ParseState get _currentState => _states.last;
 
   void _push(
-      {Page startChapter, String startName, Page endChapter, String endName}) {
+      {ChapterPage startChapter,
+      String startName,
+      ChapterPage endChapter,
+      String endName}) {
     startChapter ??= _currentState.start.chapter;
 
     SnippetTag start;

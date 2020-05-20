@@ -2,11 +2,11 @@ import 'page.dart';
 
 // TODO: Rename to "CodeTag" or just "Tag"?
 class SnippetTag with Ordering<SnippetTag> implements Comparable<SnippetTag> {
-  final Page chapter;
+  final ChapterPage chapter;
   final String name;
   final int index;
 
-  factory SnippetTag(Page chapter, String name, int index) {
+  factory SnippetTag(ChapterPage chapter, String name, int index) {
     // Hackish. Always want "not-yet" to be the last tag even if it appears
     // before a real tag. That ensures we can push it for other tags that have
     // been named.

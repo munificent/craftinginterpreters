@@ -36,7 +36,7 @@ class SourceCode {
 
   // TODO: Move into Page.
   /// Gets the list of snippets that occur in [chapter].
-  Map<String, Snippet> findAll(Page chapter) {
+  Map<String, Snippet> findAll(ChapterPage chapter) {
     // TODO: Type.
     var snippets = <String, Snippet>{};
 

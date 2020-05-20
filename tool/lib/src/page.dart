@@ -8,7 +8,7 @@ import 'text.dart';
 /// One page (in the HTML sense) of the book.
 ///
 /// Each chapter, part introduction, and backmatter section is a page.
-class Page {
+abstract class Page {
 //  // TODO: Not needed?
 //  /// Parses the snippet tags from every chapter. Returns a map of chapter names
 //  /// to maps of snippet names to SnippetTags.
@@ -32,44 +32,45 @@ class Page {
   /// The title of this page.
   final String title;
 
-  /// The part that contains this page, or null if the page is not a chapter
-  /// within a part.
-  final String part;
-
-  // TODO: Enum.
-  final String type;
-
   /// The chapter or part number, like "12", "II", or "".
   final String numberString;
 
-  /// If the page is a chapter, the numeric index of it or `null` otherwise.
-  final int chapterIndex;
-
   Map<String, SnippetTag> _snippetTags;
 
-  Page(this.title, this.part, this.type, this.numberString, this.chapterIndex);
+  Page(this.title, this.numberString);
 
   /// The base file path and URI for the page, without any extension.
-  String get fileName {
-    if (title == "Crafting Interpreters") return "index";
-    if (title == "Table of Contents") return "contents";
-
-    // TODO: Is this still needed?
-    // Hack. The introduction has a *subheader* named "Challenges" distinct from
-    // the challenges section. This function here is also used to generate the
-    // anchor names for the links, so handle that one specially so it doesn't
-    // collide with the real "Challenges" section.
-    if (title == "Challenges") return "challenges_";
-
-    return toFileName(title);
-  }
+  String get fileName => toFileName(title);
 
   /// The path to this page's Markdown source file.
   String get markdownPath => p.join("book", "$fileName.md");
 
   // TODO: Change to "site" when working.
   /// The path to this page's generated HTML file.
-  String get htmlPath => p.join("site_dart", "$fileName.html");
+  String get htmlPath => p.join("build", "site_dart", "$fileName.html");
+
+  String toString() => title;
+}
+
+class PartPage extends Page {
+  final List<ChapterPage> chapters = [];
+
+  PartPage(String title, String numberString) : super(title, numberString);
+}
+
+class ChapterPage extends Page {
+  /// The part that contains this page.
+  final PartPage part;
+
+  /// If the page is a chapter, the numeric index of it or `null` otherwise.
+  final int chapterIndex;
+
+  /// The name of the design note or `null` if there is none.
+  final String designNote;
+
+  ChapterPage(String title, this.part, String numberString, this.chapterIndex,
+      this.designNote)
+      : super(title, numberString);
 
   SnippetTag findSnippetTag(String name) {
     // TODO: snippetTags() parses the file each time. Do something caching
@@ -125,6 +126,4 @@ class Page {
 
     return _snippetTags;
   }
-
-  String toString() => title;
 }
