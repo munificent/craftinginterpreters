@@ -3,15 +3,22 @@
 class Location {
   final Location parent;
   final String kind;
-  final String name;
+  String _name;
   final String signature;
 
   /// If [kind] is "method" or "function" then this tracks where we are
   /// declaring or defining the function.
   final bool isFunctionDeclaration;
 
-  Location(this.parent, this.kind, this.name,
+  Location(this.parent, this.kind, this._name,
       {this.signature, this.isFunctionDeclaration = false});
+
+  String get name => _name;
+  set name(String value) {
+    // Can only set the name if it's an unnamed typedef.
+    assert(_name == null);
+    _name = name;
+  }
 
   bool get isFile => kind == "file";
 

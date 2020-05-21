@@ -14,16 +14,15 @@ final _endSnippetPattern = RegExp(r"^//< ([-a-z0-9]+)$");
 final _beginChapterPattern = RegExp(r"^//> ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
 final _endChapterPattern = RegExp(r"^//< ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");
 
-// Hacky regexes that matches a function, method or constructor declaration.
+// Hacky regexes that matches various declarations.
 final _constructorPattern = RegExp(r"^  ([A-Z][a-z]\w+)\(");
 final _functionPattern = RegExp(r"(\w+)>*\*? (\w+)\(([^)]*)");
-//MODULE_PATTERN = re.compile(r'^(\w+) (\w+);')
-//STRUCT_PATTERN = re.compile(r'struct (s\w+)? {')
+final _modulePattern = RegExp(r"^(\w+) (\w+);");
+final _structPattern = RegExp(r"^struct (s\w+)? {$");
 final _typePattern =
     RegExp(r"^(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
-//TYPEDEF_PATTERN = re.compile(r'typedef (enum|struct|union)( \w+)? {')
-//TYPEDEF_NAME_PATTERN = re.compile(r'\} (\w+);')
-//
+final _typedefPattern = RegExp(r"^typedef (enum|struct|union)( \w+)? {$");
+final _typedefNamePattern = RegExp(r"^\} (\w+);$");
 
 /// Reserved words that can appear like a return type in a function declaration
 /// but shouldn't be treated as one.
@@ -153,28 +152,33 @@ class SourceFileParser {
       return;
     }
 
-//      match = STRUCT_PATTERN.match(line)
-//      if (match != null) {
-//        _currentLocation = Location(_currentLocation, 'struct', match.group(1))
-//
-//      match = TYPEDEF_PATTERN.match(line)
-//      if (match != null) {
-//        # We don't know the name of the typedef.
-//        _currentLocation = Location(_currentLocation, match.group(1), '???')
-//
-//      match = MODULE_PATTERN.match(line)
-//      if (match != null) {
-//        _currentLocation = Location(_currentLocation, 'variable',
-//                                    match.group(1))
-//
+    match = _structPattern.firstMatch(line);
+    if (match != null) {
+      _location = Location(_location, "struct", match.group(1));
+      return;
+    }
+
+    match = _typedefPattern.firstMatch(line);
+    if (match != null) {
+      // We don't know the name of the typedef yet.
+      _location = Location(_location, match.group(1), null);
+      return;
+    }
+
+    match = _modulePattern.firstMatch(line);
+    if (match != null) {
+      _location = Location(_location, "variable", match.group(1));
+      return;
+    }
   }
 
   void _updateLocationAfter(String line) {
-//      match = TYPEDEF_NAME_PATTERN.match(line)
-//      if (match != null) {
-//        # Now we know the typedef name.
-//        _currentLocation.name = match.group(1)
-//        _currentLocation = _currentLocation.parent
+    var match = _typedefNamePattern.firstMatch(line);
+    if (match != null) {
+      // Now we know the typedef name.
+      _location.name = match.group(1);
+      _location = _location.parent;
+    }
 
     // Use "startsWith" to include lines like "} [aside-marker]".
     // TODO: Hacky. Generalize?
@@ -193,7 +197,7 @@ class SourceFileParser {
     }
 
     // Module variables are only a single line.
-    if (_location.kind == 'variable') {
+    if (_location.kind == "variable") {
       _location = _location.parent;
     }
 
