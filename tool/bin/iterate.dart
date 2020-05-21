@@ -69,6 +69,9 @@ void copyDirectory(String from) {
       // lines.
       source = source.replaceAll('<span class="cp"></span>', "");
 
+      // The old files don't have a newline at the end.
+      if (source.endsWith("</html>")) source += "\n";
+
       // Sometimes Pygments doesn't collapse adjacent operator spans.
       source = source.replaceAllMapped(
           RegExp(r'<span class="o">([^<]+)</span>'

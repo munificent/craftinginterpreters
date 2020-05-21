@@ -18,7 +18,7 @@ class Mustache {
     String designNote;
 
     if (page is ChapterPage) {
-      part = page.part.title;
+      part = page.part?.title;
       designNote = page.designNote;
     }
 
@@ -38,6 +38,11 @@ class Mustache {
       nextType = "Part";
     }
 
+    List<Map<String, dynamic>> chapters;
+    if (page is PartPage) {
+      chapters = _makeChapterList(page);
+    }
+
     var data = <String, dynamic>{
       "has_title": page.title != null,
       "title": page.title,
@@ -45,9 +50,7 @@ class Mustache {
       "part": part,
       "body": body,
       "sections": sections,
-      // TODO:
-//    "chapters": get_part_chapters(title),
-      "chapters": ["TODO", "chapters"],
+      "chapters": chapters,
       "design_note": designNote,
       "has_design_note": designNote != null,
       "has_challenges": hasChallenges,
@@ -81,16 +84,20 @@ class Mustache {
       "title": partPage.title,
       "number": partPage.numberString,
       "file": partPage.fileName,
-      "chapters": [
-        for (var chapter in partPage.chapters)
-          {
-            "title": chapter.title,
-            "number": chapter.numberString,
-            "file": chapter.fileName,
-            "design_note": chapter.designNote?.replaceAll("'", "&rsquo;"),
-          }
-      ]
+      "chapters": _makeChapterList(partPage)
     };
+  }
+
+  List<Map<String, dynamic>> _makeChapterList(PartPage part) {
+    return [
+      for (var chapter in part.chapters)
+        <String, dynamic>{
+          "title": chapter.title,
+          "number": chapter.numberString,
+          "file": chapter.fileName,
+          "design_note": chapter.designNote?.replaceAll("'", "&rsquo;"),
+        }
+    ];
   }
 
   Template _load(String name) {

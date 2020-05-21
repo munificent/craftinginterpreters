@@ -76,11 +76,11 @@ def format_files(skip_up_to_date, one_file=None):
   var mustache = Mustache();
 
   // TODO: Temp. Just one chapter for now.
-  formatFile(book, mustache, book.pages[20]);
-//
-//  for (var page in book.pages) {
-//    formatFile(book, page);
-//  }
+//  formatFile(book, mustache, book.pages[20]);
+
+  for (var page in book.pages) {
+    formatFile(book, mustache, page);
+  }
 }
 
 // TODO: Move to library.
@@ -143,7 +143,9 @@ void formatFile(Book book, Mustache mustache, Page page) {
           title = title.replaceAll("&shy;", "");
 
           // Load the code snippets now that we know the title.
-          snippets = book.code.findAll(page as ChapterPage);
+          if (page is ChapterPage) {
+            snippets = book.code.findAll(page);
+          }
 
 //          # If there were any errors loading the code, include them.
 //          if title in book.CODE_CHAPTERS:
@@ -242,6 +244,7 @@ void formatFile(Book book, Mustache mustache, Page page) {
   output = output.replaceAll("</div><", "</div>\n<");
   output = output.replaceAll("><aside", ">\n<aside");
   output = output.replaceAll("</aside><", "</aside>\n<");
+  output = output.replaceAll("</ol><", "</ol>\n<");
   output = output.replaceAll("</table>\n<", "</table>\n\n<");
   output = output.replaceAllMapped(
       RegExp(r'<div class="source-file-narrow">(.*?)</div>'),
