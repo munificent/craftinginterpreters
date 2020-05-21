@@ -11,8 +11,8 @@ Our second interpreter, clox, has three phases -- scanner, compiler, and virtual
 machine. A data structure joins each pair of phases. Tokens flow from scanner to
 compiler, and chunks of bytecode from compiler to VM. We began our
 implementation near the end with [chunks][] and the [VM][]. Now, we're going to
-hop back to the beginning and build a scanner that makes tokens. In the [next
-chapter][], we'll tie the two ends together with our bytecode compiler.
+hop back to the beginning and build a scanner that makes tokens. In the
+[next chapter][], we'll tie the two ends together with our bytecode compiler.
 
 [chunks]: chunks-of-bytecode.html
 [vm]: a-virtual-machine.html
