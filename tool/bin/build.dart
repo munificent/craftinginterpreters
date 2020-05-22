@@ -250,6 +250,10 @@ void formatFile(Book book, Mustache mustache, Page page) {
       RegExp(r'<div class="source-file-narrow">(.*?)</div>'),
       (match) => '\n<div class="source-file-narrow">${match[1]}</div>\n');
 
+  // Python Markdown wraps images in paragraphs.
+  output = output.replaceAllMapped(
+      RegExp(r'\n(<img [^>]*>)\n'), (match) => '\n<p>${match[1]}</p>\n');
+
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
 
