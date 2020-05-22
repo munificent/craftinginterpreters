@@ -1,15 +1,21 @@
 import 'package:charcode/ascii.dart';
 import 'package:markdown/markdown.dart';
 
+import 'highlighter.dart';
+import 'text.dart';
+
 String renderMarkdown(String contents) {
   return markdownToHtml(contents.toString(),
+      blockSyntaxes: [
+        HighlightedCodeBlockSyntax(),
+      ],
       inlineSyntaxes: [
         // Put inline Markdown code syntax before our smart quotes so that
         // quotes inside `code` spans don't get smartened.
         CodeSyntax(),
         // Smart quotes.
         _ApostropheSyntax(),
-        _SmartQuoteSyntax()
+        _SmartQuoteSyntax(),
       ],
       extensionSet: ExtensionSet.gitHubFlavored);
 }
@@ -53,5 +59,70 @@ class _SmartQuoteSyntax extends InlineSyntax {
 
     // Default to left.
     return false;
+  }
+}
+
+/// Custom code block formatter that uses our syntax highlighter.
+class HighlightedCodeBlockSyntax extends BlockSyntax {
+  // TODO: Can we remove the spaces from this?
+  static final _codeFencePattern = RegExp(r'^[ ]{0,3}```(.*)$');
+
+  RegExp get pattern => _codeFencePattern;
+
+  bool canParse(BlockParser parser) => pattern.firstMatch(parser.current) != null;
+
+  List<String> parseChildLines(BlockParser parser) {
+    var childLines = <String>[];
+    parser.advance();
+
+    while (!parser.isDone) {
+      var match = pattern.firstMatch(parser.current);
+      if (match == null) {
+        childLines.add(parser.current);
+        parser.advance();
+      } else {
+        parser.advance();
+        break;
+      }
+    }
+
+    return childLines;
+  }
+
+  Node parse(BlockParser parser) {
+    // Get the syntax identifier, if there is one.
+    var match = pattern.firstMatch(parser.current);
+    var language = match.group(1);
+
+    var childLines = parseChildLines(parser);
+
+    // The Markdown tests expect a trailing newline.
+    childLines.add("");
+
+    String code;
+    if (language == "text") {
+      // Don't syntax highlight text.
+      code = escapeHtml(childLines.join("\n"));
+
+      // TODO: The Markdown/Pygments puts a pointless empty span at the
+      // beginning. Remove this when not trying to match that.
+      code = "<span></span>$code";
+    } else {
+      // TODO: Find a cleaner way to handle this. Maybe move the trailing
+      // newline code into `insertSnippet()`?
+      // Remove the trailing empty line so that `formatCode()` doesn't put a
+      // <br> at the end.
+      childLines.removeLast();
+      code = formatCode(language, 72, childLines);
+    }
+
+    var element = Element.text("pre", code);
+
+    // TODO: Remove this when no longer trying to match the existing output.
+    // Wrap in codehilite div.
+    element = Element("div", [element]);
+    element.attributes["class"] = "codehilite";
+
+    return element;
   }
 }
