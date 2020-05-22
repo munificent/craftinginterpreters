@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+/// Punctuation characters removed from file names and anchors.
+final _punctuation = RegExp(r'[,.?!:/"]');
+
 /// Use nicer HTML entities and special characters.
 String pretty(String text) {
   return text
@@ -23,7 +26,7 @@ String toFileName(String text) {
   // collide with the real "Challenges" section.
   if (text == "Challenges") return "challenges_";
 
-  return text.toLowerCase().replaceAll(" ", "-").replaceAll(r'[,.?!:/"]', "");
+  return text.toLowerCase().replaceAll(" ", "-").replaceAll(_punctuation, "");
 }
 
 /// Convert n to roman numerals.
