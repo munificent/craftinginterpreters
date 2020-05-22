@@ -9,7 +9,8 @@ void main(List<String> arguments) {
     print("Options:");
     print("iterate.dart old # Copy old files to working directory.");
     print("iterate.dart new # Copy new files to working directory.");
-    print("iterate.dart run # Generate and copy new files to working directory.");
+    print(
+        "iterate.dart run # Generate and copy new files to working directory.");
     exit(1);
   }
 
@@ -77,6 +78,25 @@ void copyDirectory(String from) {
           RegExp(r'<span class="o">([^<]+)</span>'
               r'<span class="o">([^<]+)</span>'),
           (match) => '<span class="o">${match[1]}${match[2]}</span>');
+
+      // Python Markdown preserves leading indentation for bullet list items.
+      // Super hacky fix to strip out that leading indentation but not from
+      // other lines.
+      source = source.replaceAllMapped(RegExp(r"\n +(\w.*)"), (match) {
+        var text = match[1];
+        const nonListLines = [
+          "ga('",
+          "s.getElements",
+          "-->",
+          "Next Chapter: ",
+          "Part: &ldquo;",
+          "2 39 ",
+          "15 | function"
+        ];
+        if (nonListLines.any(text.contains)) return match[0];
+
+        return "\n$text";
+      });
 
       File(outPath).writeAsStringSync(source);
       print(outPath);
