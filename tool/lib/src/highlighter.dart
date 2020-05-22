@@ -7,8 +7,10 @@ final _classPattern = RegExp(r"class (\w+)");
 final _packagePattern = RegExp(r"package (\w+(\.\w+)*);");
 
 final _annotationPattern = RegExp(r"@[a-zA-Z_][a-zA-Z0-9_]*");
+final _floatPattern = RegExp(r"[0-9]+\.[0-9]+f?");
 final _identifierPattern = RegExp(r"[a-zA-Z_][a-zA-Z0-9_]*");
 final _integerPattern = RegExp(r"[0-9]+L?");
+final _labelPattern = RegExp(r"([a-zA-Z_][a-zA-Z0-9_]*)(\s*)(:)");
 final _lineCommentPattern = RegExp(r"//.*");
 final _operatorPattern = RegExp(r"[(){}[\]!+\-/*:;.,|?=<>&]+");
 
@@ -58,6 +60,7 @@ final _keywords = {
   "FILE": "k",
   "int": "k",
   "size_t": "k",
+  "uint8_t": "k",
   "void": "k",
 
   // Declarators.
@@ -75,23 +78,42 @@ final _keywords = {
 
 /// Takes a string of source code and returns a block of HTML with spans for
 /// syntax highlighting.
-String formatCode(String language, int length, List<String> lines,
-        [String preClass]) =>
-    Highlighter(length)._highlight(lines, preClass);
+///
+/// Does not wrap the result in a <pre> tag.
+String formatCode(String language, int length, List<String> lines) {
+  // TODO: Pass in StringBuffer.
+  var buffer = StringBuffer();
+  Highlighter(buffer, length)._highlight(lines);
+  return buffer.toString();
+}
+
+/// Takes a string of source code and returns a block of HTML with spans for
+/// syntax highlighting.
+///
+/// Wraps the result in a <pre> tag with the given [preClass].
+String formatPre(String language, int length, List<String> lines,
+    [String preClass]) {
+  // TODO: Pass in StringBuffer.
+  var buffer = StringBuffer();
+
+  buffer.write("<pre");
+  if (preClass != null) buffer.write(' class="$preClass"');
+  buffer.write(">");
+
+  Highlighter(buffer, length)._highlight(lines);
+
+  buffer.writeln("</pre>");
+  return buffer.toString();
+}
 
 class Highlighter {
   final int _lineLength;
-  final StringBuffer _buffer = StringBuffer();
+  final StringBuffer _buffer;
   StringScanner _scanner;
 
-  Highlighter(this._lineLength);
+  Highlighter(this._buffer, this._lineLength);
 
-  String _highlight(List<String> lines, String preClass) {
-    // TODO: Pass in StringBuffer.
-    _buffer.write("<pre");
-    if (preClass != null) _buffer.write(' class="$preClass"');
-    _buffer.write(">");
-
+  String _highlight(List<String> lines) {
     // TODO: If we change build to not pass this output through the Markdown
     // parser, then revisit this.
     // Hack. Markdown seems to discard leading and trailing newlines, so we'll
@@ -120,11 +142,6 @@ class Highlighter {
       _buffer.write("<br>");
     }
 
-    //  # Strip off the div wrapper. We just want the <pre>.
-//  html = html.replace('<div class="codehilite">', '')
-//  html = html.replace('</div>', '')
-
-    _buffer.writeln("</pre>");
     return _buffer.toString();
   }
 
@@ -158,6 +175,19 @@ class Highlighter {
         _token("nd");
       } else if (_scanner.scan(_charPattern)) {
         _token("s", "'${_scanner.lastMatch[1]}'");
+      } else if (_scanner.scan(_floatPattern)) {
+        _token("mf");
+      } else if (_scanner.scan(_labelPattern)) {
+        var name = _scanner.lastMatch[1];
+        var space = _scanner.lastMatch[2];
+        var colon = _scanner.lastMatch[3];
+        _token("nl", name);
+        // TODO: Allowing space here means that this incorrectly parses an
+        // identifier before a conditional operator as a label name. Pygments
+        // does this wrong so this matches that. Once we aren't trying to match
+        // exactly, remove the (\s*) from the regex to fix that.
+        _write(space);
+        _token("o", colon);
       } else if (_scanner.scan(_identifierPattern)) {
         var identifier = _scanner.lastMatch[0];
         _token(_keywords[identifier] ?? "n");

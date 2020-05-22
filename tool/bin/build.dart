@@ -156,12 +156,12 @@ void formatFile(Book book, Mustache mustache, Page page) {
       }
     } else if (stripped.startsWith("## Challenges")) {
       hasChallenges = true;
-      buffer.writeln('<h2><a href="#challenges" name="challenges">'
-          'Challenges</a></h2>');
+      buffer.writeln('## <a href="#challenges" name="challenges">'
+          'Challenges</a>');
     } else if (stripped.startsWith("## Design Note:")) {
       designNote = stripped.substring('## Design Note:'.length + 1);
-      buffer.writeln('<h2><a href="#design-note" name="design-note">'
-          'Design Note: $designNote</a></h2>');
+      buffer.writeln('## <a href="#design-note" name="design-note">'
+          'Design Note: $designNote</a>');
     } else if (stripped.startsWith("# ") ||
         stripped.startsWith("## ") ||
         stripped.startsWith("### ")) {
@@ -253,6 +253,12 @@ void formatFile(Book book, Mustache mustache, Page page) {
   // Python Markdown wraps images in paragraphs.
   output = output.replaceAllMapped(
       RegExp(r'\n(<img [^>]*>)\n'), (match) => '\n<p>${match[1]}</p>\n');
+
+  // Dart Markdown library puts a newline before <pre>.
+  output = output.replaceAll('<div class="codehilite">\n<pre>', '<div class="codehilite"><pre>');
+
+  // Python Markdown puts some extra blank lines after the pre tags.
+  output = output.replaceAll('</pre></div>\n<p>', '</pre></div>\n\n\n<p>');
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
@@ -386,7 +392,7 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
   buffer.write('<div class="codehilite">');
 
   if (linesBefore != null) {
-    var before = formatCode(snippet.file.language, length, linesBefore,
+    var before = formatPre(snippet.file.language, length, linesBefore,
         snippet.added.isNotEmpty ? "insert-before" : null);
     buffer.writeln(before);
   }
@@ -411,13 +417,13 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
 //    contents += removed
 
   if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, length, snippet.added,
+    var added = formatPre(snippet.file.language, length, snippet.added,
         beforeCount > 0 || afterCount > 0 ? "insert" : null);
     buffer.writeln(added);
   }
 
   if (linesAfter != null) {
-    var after = formatCode(snippet.file.language, length, linesAfter,
+    var after = formatPre(snippet.file.language, length, linesAfter,
         snippet.added.isNotEmpty ? "insert-after" : null);
     buffer.writeln(after);
   }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 /// Punctuation characters removed from file names and anchors.
@@ -46,3 +47,6 @@ int longestLine(int longest, Iterable<String> lines) {
   }
   return longest;
 }
+
+String escapeHtml(String html) =>
+    const HtmlEscape(HtmlEscapeMode.element).convert(html);
