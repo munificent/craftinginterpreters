@@ -1,3 +1,4 @@
+import 'package:charcode/ascii.dart';
 import 'package:markdown/markdown.dart';
 
 String renderMarkdown(String contents) {
@@ -8,35 +9,49 @@ String renderMarkdown(String contents) {
         CodeSyntax(),
         // Smart quotes.
         _ApostropheSyntax(),
-        _SmartLeftQuoteSyntax(),
-        _SmartRightQuoteSyntax()
+        _SmartQuoteSyntax()
       ],
       extensionSet: ExtensionSet.gitHubFlavored);
 }
 
 class _ApostropheSyntax extends InlineSyntax {
-  _ApostropheSyntax() : super(r"(\S)'(\S)");
+  _ApostropheSyntax() : super(r"'", startCharacter: $apostrophe);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text("${match[1]}&rsquo;${match[2]}"));
+    parser.addNode(Text("&rsquo;"));
     return true;
   }
 }
 
-class _SmartLeftQuoteSyntax extends InlineSyntax {
-  _SmartLeftQuoteSyntax() : super(r'"(\S)', startCharacter: '"'.codeUnitAt(0));
+class _SmartQuoteSyntax extends InlineSyntax {
+  _SmartQuoteSyntax() : super(r'"', startCharacter: $double_quote);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text("&ldquo;${match[1]}"));
+    var before = -1;
+    if (parser.pos > 0) {
+      before = parser.charAt(parser.pos - 1);
+    }
+    var after = -1;
+    if (parser.pos < parser.source.length - 1) {
+      after = parser.charAt(parser.pos + 1);
+    }
+
+    var quote = _isRight(before, after) ? "rdquo" : "ldquo";
+    parser.addNode(Text("&$quote;"));
     return true;
   }
-}
 
-class _SmartRightQuoteSyntax extends InlineSyntax {
-  _SmartRightQuoteSyntax() : super(r'(\S)"');
+  bool _isRight(int before, int after) {
+    if (after == $space) return true;
+    if (before >= $a && before <= $z) return true;
+    if (before >= $A && before <= $Z) return true;
+    if (before >= $0 && before <= $9) return true;
+    if (before == $dot) return true;
+    if (before == $question) return true;
+    if (before == $exclamation) return true;
+    if (after == $comma) return true;
 
-  bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text("${match[1]}&rdquo;"));
-    return true;
+    // Default to left.
+    return false;
   }
 }

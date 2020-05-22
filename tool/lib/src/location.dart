@@ -89,8 +89,10 @@ class Location {
       return "add after ${preceding.kind} <em>${preceding.name}</em>";
     }
 
+    // If we get here, there isn't a useful location to show. The snippet will
+    // have enough surrounding context to make it clear. This is usually stuff
+    // like imports or includes near the top of the file.
     // TODO: How do we get here?
-    print("No location for $this");
     return null;
   }
 
