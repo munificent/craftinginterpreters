@@ -255,10 +255,14 @@ void formatFile(Book book, Mustache mustache, Page page) {
       RegExp(r'\n(<img [^>]*>)\n'), (match) => '\n<p>${match[1]}</p>\n');
 
   // Dart Markdown library puts a newline before <pre>.
-  output = output.replaceAll('<div class="codehilite">\n<pre>', '<div class="codehilite"><pre>');
+  output = output.replaceAll(
+      '<div class="codehilite">\n<pre>', '<div class="codehilite"><pre>');
 
   // Python Markdown puts some extra blank lines after the pre tags.
-  output = output.replaceAll('</pre></div>\n<p>', '</pre></div>\n\n\n<p>');
+  output = output.replaceAll('</pre></div>\n<', '</pre></div>\n\n\n<');
+
+  // Python Markdown puts a blank line before the closing pre tag.
+  output = output.replaceAll('</span></pre></div>', '</span>\n</pre></div>');
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
@@ -324,12 +328,6 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
   }
 
   var snippet = snippets[name];
-
-  // TODO: Temp.
-  if (snippet == null) {
-    print("Could not find snippet $name");
-    return;
-  }
 
   List<String> linesBefore;
   if (beforeCount > 0) {

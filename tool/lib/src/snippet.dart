@@ -1,5 +1,6 @@
 import 'location.dart';
 import 'source_code.dart';
+import 'text.dart';
 
 /// A snippet of source code that is inserted in the book.
 class Snippet {
@@ -39,31 +40,16 @@ class Snippet {
       if (html != null) result.add(html);
     }
 
-//    if self.removed and self.added:
-//      result.append('replace {} line{}'.format(
-//          len(self.removed), '' if len(self.removed) == 1 else 's'))
-//    elif self.removed and not self.added:
-//      result.append('remove {} line{}'.format(
-//          len(self.removed), '' if len(self.removed) == 1 else 's'))
-//
+    if (removed.isNotEmpty && added.isNotEmpty) {
+      result.add("replace ${removed.length} line${pluralize(removed)}");
+    } else if (removed.isNotEmpty && added.isEmpty) {
+      result.add("remove ${removed.length} line${pluralize(removed)}");
+    }
+
 //    if self.added_comma:
 //      result.append('add <em>&ldquo;,&rdquo;</em> to previous line')
     return result;
   }
 
   String toString() => "${file.nicePath} $name";
-
-//  def dump(self):
-//    print(self.name)
-//    print("prev: {}".format(self.preceding_location))
-//    print("here: {}".format(self.location))
-//    for line in self.context_before:
-//      print("    {}".format(line))
-//    for line in self.removed:
-//      print("  - {}".format(line))
-//    for line in self.added:
-//      print("  + {}".format(line))
-//    for line in self.context_after:
-//      print("    {}".format(line))
-//
 }

@@ -196,7 +196,7 @@ class SourceLine {
     if (snippet < start) return false;
 
     // If we are past the snippet where it is removed.
-    if (end != null && snippet > end) return false;
+    if (end != null && snippet >= end) return false;
 
     return true;
   }

@@ -12,6 +12,8 @@ final _identifierPattern = RegExp(r"[a-zA-Z_][a-zA-Z0-9_]*");
 final _integerPattern = RegExp(r"[0-9]+L?");
 final _labelPattern = RegExp(r"([a-zA-Z_][a-zA-Z0-9_]*)(\s*)(:)");
 final _lineCommentPattern = RegExp(r"//.*");
+// TODO: Allowing a space in here will produce visually identical output but
+// collapse to fewer spans in cases like ") + (".
 final _operatorPattern = RegExp(r"[(){}[\]!+\-/*:;.,|?=<>&]+");
 
 final _includePattern = RegExp(r"(#include)(\s+)(.*)");
@@ -24,8 +26,7 @@ final _preprocessorPattern = RegExp(r"#.*");
 final _charPattern = RegExp(r"'(\\?.)'");
 final _stringEscapePattern = RegExp(r"\\.");
 
-// TODO: More.
-final _keywords = {
+final _sharedKeywords = {
   // Reserved words.
   "break": "k",
   "case": "k",
@@ -35,17 +36,62 @@ final _keywords = {
   "do": "k",
   "else": "k",
   "enum": "k",
-  "extern": "k",
   "for": "k",
   "if": "k",
-  "instanceof": "k",
   "return": "k",
   "static": "k",
   "struct": "k",
   "switch": "k",
-  "this": "k",
-  "typedef": "k",
   "while": "k",
+
+  // Types.
+  "bool": "k",
+  "char": "k",
+  "double": "k",
+  "int": "k",
+  "void": "k",
+};
+
+final _cKeywords = {
+  ..._sharedKeywords,
+
+  // Reserved words.
+  "extern": "k",
+  "sizeof": "k",
+  "typedef": "k",
+
+  // Types.
+  "FILE": "k",
+  "size_t": "k",
+  "uint8_t": "k",
+  "uint16_t": "k",
+  "uint32_t": "k",
+
+  // Built-in names.
+  "false": "nb",
+  "NULL": "nb",
+  "true": "nb",
+};
+
+final _javaKeywords = {
+  ..._sharedKeywords,
+
+  // Reserved words.
+  "abstract": "k",
+  "catch": "k",
+  "class": "k",
+  "extends": "k",
+  "final": "k",
+  "implements": "k",
+  "import": "k",
+  "instanceof": "k",
+  "interface": "k",
+  "new": "k",
+  "private": "k",
+  "protected": "k",
+  "public": "k",
+  "this": "k",
+  "throw": "k",
 
   // Constants.
   "false": "kc",
@@ -53,27 +99,34 @@ final _keywords = {
   "true": "kc",
 
   // Types.
-  "bool": "k",
   "boolean": "k",
-  "char": "k",
-  "double": "k",
-  "FILE": "k",
-  "int": "k",
-  "size_t": "k",
-  "uint8_t": "k",
-  "void": "k",
+};
 
-  // Declarators.
-  "class": "k",
-  "extends": "k",
-  "implements": "k",
-  "private": "k",
-  "protected": "k",
-  "public": "k",
+final _loxKeywords = {
+  ..._sharedKeywords,
+
+  // Reserved words.
+  "fun": "k",
+  "print": "k",
+  "var": "k",
 
   // Built-in names.
-  "NULL": "nb",
+  // TODO: Make this a keyword? It is in Java.
   "this": "nb"
+};
+
+final _languages = {
+  "c": _cKeywords,
+  "java": _javaKeywords,
+  "js": _sharedKeywords,
+  // TODO: Add JS support.
+  "lox": _loxKeywords,
+  "lisp": _sharedKeywords,
+  // TODO: Add Lisp support.
+  "python": _sharedKeywords,
+  // TODO: Add Python support.
+  "ruby": _sharedKeywords
+  // TODO: Add Ruby support.
 };
 
 /// Takes a string of source code and returns a block of HTML with spans for
@@ -83,7 +136,7 @@ final _keywords = {
 String formatCode(String language, int length, List<String> lines) {
   // TODO: Pass in StringBuffer.
   var buffer = StringBuffer();
-  Highlighter(buffer, length)._highlight(lines);
+  Highlighter(buffer, language, length)._highlight(lines);
   return buffer.toString();
 }
 
@@ -100,7 +153,7 @@ String formatPre(String language, int length, List<String> lines,
   if (preClass != null) buffer.write(' class="$preClass"');
   buffer.write(">");
 
-  Highlighter(buffer, length)._highlight(lines);
+  Highlighter(buffer, language, length)._highlight(lines);
 
   buffer.writeln("</pre>");
   return buffer.toString();
@@ -110,8 +163,11 @@ class Highlighter {
   final int _lineLength;
   final StringBuffer _buffer;
   StringScanner _scanner;
+  final Map<String, String> _keywords;
 
-  Highlighter(this._buffer, this._lineLength);
+  Highlighter(this._buffer, String language, this._lineLength)
+      : _keywords =
+            _languages[language] ?? (throw "Unknown language '$language'.");
 
   String _highlight(List<String> lines) {
     // TODO: If we change build to not pass this output through the Markdown
@@ -181,7 +237,7 @@ class Highlighter {
         var name = _scanner.lastMatch[1];
         var space = _scanner.lastMatch[2];
         var colon = _scanner.lastMatch[3];
-        _token("nl", name);
+        _token(_keywords[name] ?? "nl", name);
         // TODO: Allowing space here means that this incorrectly parses an
         // identifier before a conditional operator as a label name. Pygments
         // does this wrong so this matches that. Once we aren't trying to match
@@ -190,7 +246,17 @@ class Highlighter {
         _token("o", colon);
       } else if (_scanner.scan(_identifierPattern)) {
         var identifier = _scanner.lastMatch[0];
-        _token(_keywords[identifier] ?? "n");
+        var type = _keywords[identifier] ?? "n";
+
+        // Capitalized identifiers are treated specially in Lox.
+        // TODO: Do something less hacky.
+        if (_keywords == _loxKeywords &&
+            identifier.codeUnitAt(0) >= $A &&
+            identifier.codeUnitAt(0) <= $Z) {
+          type = "nc";
+        }
+
+        _token(type);
       } else if (_scanner.scan(_integerPattern)) {
         _token("mi");
       } else if (_scanner.scan(_lineCommentPattern)) {
@@ -218,6 +284,15 @@ class Highlighter {
             _scanner.position++;
           }
         }
+      } else if (_scanner.scan("\\")) {
+        // TODO: Pygments doesn't handle backslashes in multi-line defines, so
+        // report the same error here. Remove this when not trying to match
+        // that.
+        _token("err", _scanner.lastMatch[0]);
+      } else if (_scanner.scan("→")) {
+        // TODO: Just leave this as plain text once we aren't trying to match
+        // Pygments.
+        _token("err", _scanner.lastMatch[0]);
       } else {
         _writeChar(_scanner.readChar());
       }

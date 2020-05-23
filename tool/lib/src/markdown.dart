@@ -69,7 +69,8 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
 
   RegExp get pattern => _codeFencePattern;
 
-  bool canParse(BlockParser parser) => pattern.firstMatch(parser.current) != null;
+  bool canParse(BlockParser parser) =>
+      pattern.firstMatch(parser.current) != null;
 
   List<String> parseChildLines(BlockParser parser) {
     var childLines = <String>[];
