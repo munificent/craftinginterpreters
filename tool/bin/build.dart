@@ -22,6 +22,11 @@ final _codeOptionsPattern = RegExp(r"([-a-z0-9]+) \(([^)]+)\)");
 final _beforePattern = RegExp(r"(\d+) before");
 final _afterPattern = RegExp(r"(\d+) after");
 
+final _asideCommentPattern =
+    RegExp(r' ?<span class="c1">// \[([-a-z0-9]+)\] *</span>');
+final _asideWithCommentPattern =
+    RegExp(r' ?<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>');
+
 void main(List<String> arguments) {
   formatFiles();
 //  for (var entry in Directory("book").listSync()) {
@@ -232,12 +237,15 @@ void formatFile(Book book, Mustache mustache, Page page) {
   var output =
       mustache.render(template, book, page, body, sections, hasChallenges);
 
-//  # Turn aside markers in code into spans. In the empty span case, insert a
-//  # zero-width space because Chrome seems to lose the span's position if it has
-//  # no content.
-//  # <span class="c1">// [repl]</span>
-//  body = ASIDE_COMMENT_PATTERN.sub(r'<span name="\1"> </span>', body)
-//  body = ASIDE_WITH_COMMENT_PATTERN.sub(r'<span class="c1" name="\2">// \1</span>', body)
+  // Turn aside markers in code into spans. In the empty span case, insert a
+  // zero-width space because Chrome seems to lose the span's position if it has
+  // no content.
+  // <span class="c1">// [repl]</span>
+  // TODO: Do this directly in the syntax highlighter instead of after the fact.
+  output = output.replaceAllMapped(
+      _asideCommentPattern, (match) => '<span name="${match[1]}"> </span>');
+  output = output.replaceAllMapped(_asideWithCommentPattern,
+      (match) => '<span class="c1" name="${match[2]}">// ${match[1]}</span>');
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p><", "</p>\n<");
