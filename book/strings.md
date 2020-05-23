@@ -657,9 +657,9 @@ languages: the venerable [hash table][]. But that's for the next chapter...
     from a value requires two pointer indirections, which can be bad for
     performance.
 
-    A more efficient solution relies on a technique called "[flexible array
-    members][]". Use that to store the ObjString and its character array in a
-    single contiguous allocation.
+    A more efficient solution relies on a technique called
+    "[flexible array members][]". Use that to store the ObjString and its
+    character array in a single contiguous allocation.
 
 2.  When we create the ObjString for each string literal, we copy the characters
     onto the heap. That way, when the string is later freed, we know it is safe
