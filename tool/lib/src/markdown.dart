@@ -25,7 +25,20 @@ class _ApostropheSyntax extends InlineSyntax {
   _ApostropheSyntax() : super(r"'", startCharacter: $apostrophe);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text("&rsquo;"));
+    var before = -1;
+    if (parser.pos > 0) {
+      before = parser.charAt(parser.pos - 1);
+    }
+
+    var quote = _isRight(before) ? "rsquo" : "lsquo";
+    parser.addNode(Text("&$quote;"));
+    return true;
+  }
+
+  bool _isRight(int before) {
+    if (before == $space) return false;
+
+    // Default to right.
     return true;
   }
 }
