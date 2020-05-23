@@ -14,10 +14,11 @@ class Location {
       {this.signature, this.isFunctionDeclaration = false});
 
   String get name => _name;
+
   set name(String value) {
     // Can only set the name if it's an unnamed typedef.
     assert(_name == null);
-    _name = name;
+    _name = value;
   }
 
   bool get isFile => kind == "file";
