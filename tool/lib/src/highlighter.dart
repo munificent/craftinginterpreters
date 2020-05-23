@@ -117,16 +117,20 @@ final _loxKeywords = {
 
 final _languages = {
   "c": _cKeywords,
+  // TODO: Add C++ support.
+  "c++": _cKeywords,
   "java": _javaKeywords,
-  "js": _sharedKeywords,
   // TODO: Add JS support.
-  "lox": _loxKeywords,
-  "lisp": _sharedKeywords,
+  "js": _sharedKeywords,
   // TODO: Add Lisp support.
-  "python": _sharedKeywords,
+  "lisp": _sharedKeywords,
+  "lox": _loxKeywords,
+  // TODO: Add Lua support.
+  "lua": _sharedKeywords,
   // TODO: Add Python support.
-  "ruby": _sharedKeywords
+  "python": _sharedKeywords,
   // TODO: Add Ruby support.
+  "ruby": _sharedKeywords
 };
 
 /// Takes a string of source code and returns a block of HTML with spans for
