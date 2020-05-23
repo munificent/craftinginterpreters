@@ -338,9 +338,9 @@ for it.
 
 There is a whole pack of parsing techniques whose names mostly seem to be
 combinations of "L" and "R" -- [LL(k)][], [LR(1)][lr], [LALR][] -- along with
-more exotic beasts like [parser combinators][], [Earley parsers][], [the
-shunting yard algorithm][], and [packrat parsing][]. For our first interpreter,
-one technique is more than sufficient: **recursive descent**.
+more exotic beasts like [parser combinators][], [Earley parsers][],
+[the shunting yard algorithm][], and [packrat parsing][]. For our first
+interpreter, one technique is more than sufficient: **recursive descent**.
 
 [ll(k)]: https://en.wikipedia.org/wiki/LL_parser
 [lr]: https://en.wikipedia.org/wiki/LR_parser

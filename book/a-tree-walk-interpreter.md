@@ -14,9 +14,9 @@ have to write as simple and plain as possible.
 In less than two thousand lines of clean Java code, we'll build a complete
 interpreter for Lox that implements every single feature of the language,
 exactly as we've specified. The first few chapters work front-to-back through
-the phases of the interpreter -- [scanning][], [parsing][], and [evaluating
-code][]. After that, we add language features one at a time, growing a simple
-calculator into a full-fledged scripting language.
+the phases of the interpreter -- [scanning][], [parsing][], and
+[evaluating code][]. After that, we add language features one at a time,
+growing a simple calculator into a full-fledged scripting language.
 
 [scanning]: scanning.html
 [parsing]: parsing-expressions.html

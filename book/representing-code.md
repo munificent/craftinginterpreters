@@ -96,10 +96,10 @@ But regular languages aren't powerful enough to handle expressions which can
 nest arbitrarily deeply.
 
 We need a bigger hammer, and that hammer is a **context-free grammar**
-(**CFG**). It's the next heaviest tool in the toolbox of **[formal
-grammars][]**. A formal grammar takes a set of atomic pieces it calls its
-"alphabet". Then it defines a (usually infinite) set of "strings" that are "in"
-the grammar. Each string is a sequence of "letters" in the alphabet.
+(**CFG**). It's the next heaviest tool in the toolbox of
+**[formal grammars][]**. A formal grammar takes a set of atomic pieces it calls
+its "alphabet". Then it defines a (usually infinite) set of "strings" that are
+"in" the grammar. Each string is a sequence of "letters" in the alphabet.
 
 [formal grammars]: https://en.wikipedia.org/wiki/Formal_grammar
 
@@ -677,10 +677,10 @@ which each subclass then implements to interpret itself.
 
 <aside name="interpreter-pattern">
 
-This exact thing is literally called the ["Interpreter pattern"][interpreter
-pattern] in "Design Patterns: Elements of Reusable Object-Oriented Software".
+This exact thing is literally called the ["Interpreter pattern"][interp] in
+"Design Patterns: Elements of Reusable Object-Oriented Software".
 
-[interpreter pattern]: https://en.wikipedia.org/wiki/Interpreter_pattern
+[interp]: https://en.wikipedia.org/wiki/Interpreter_pattern
 
 </aside>
 

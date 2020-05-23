@@ -781,15 +781,15 @@ classes right in.
 
 <aside name="waterbed">
 
-Larry Wall, Perl's inventor/prophet calls this the "[waterbed
-theory][]". Some complexity is essential and cannot be eliminated. If you push
-it down in one place it swells up in another.
+Larry Wall, Perl's inventor/prophet calls this the "[waterbed theory][]". Some
+complexity is essential and cannot be eliminated. If you push it down in one
+place it swells up in another.
+
+[waterbed theory]: http://wiki.c2.com/?WaterbedTheory
 
 Prototypal languages don't so much *eliminate* the complexity of classes as they
 do make the *user* take that complexity by building their own class-like
 metaprogramming libraries.
-
-[waterbed theory]: http://wiki.c2.com/?WaterbedTheory
 
 </aside>
 
