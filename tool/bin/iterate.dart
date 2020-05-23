@@ -59,7 +59,6 @@ void copyDirectory(String from) {
 
       source = source.replaceAll('class="sc"', 'class="s"');
       source = source.replaceAll('class="s1"', 'class="s"');
-//      source = source.replaceAll('class="cpf"', 'class="s"');
 
       // TODO: We don't color this at all, so we could remove the class
       // entirely.

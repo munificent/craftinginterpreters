@@ -253,7 +253,7 @@ class IdentifierRule extends Rule {
 
     // Capitalized identifiers are treated specially in Lox.
     // TODO: Do something less hacky.
-    if (highlighter._language == _languages["lox"] &&
+    if (highlighter._language == _lox &&
         identifier.codeUnitAt(0) >= $A &&
         identifier.codeUnitAt(0) <= $Z) {
       type = "nc";
@@ -284,51 +284,107 @@ class LabelRule extends Rule {
   }
 }
 
+final _c = Language(
+  keywords: "bool break case char const continue default do double else enum "
+      "extern FILE for if inline int return size_t sizeof static struct switch "
+      "typedef uint16_t uint32_t uint8_t union va_list void while",
+  names: "false NULL true",
+  rules: [
+    Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]), // Include.
+    // TODO: This includes all trailing whitespace, which I guess is technically
+    // correct but looks a little funny. Pygments works this way. If we don't want
+    // to match that, a better regex is "#[a-zA-Z_][a-zA-Z0-9_]*".
+    Rule(r"#.*", "cp"), // Preprocessor.
+
+    LabelRule(),
+
+    ..._commonRules,
+    _cOperatorRule,
+  ],
+);
+
+final _java = Language(
+  keywords: "abstract assert boolean break byte case catch char class const "
+      "continue default do double else enum extends final finally float for "
+      "goto if implements import instanceof int interface long native new "
+      "package private protected public return short static strictfp super "
+      "switch synchronized this throw throws transient try void volatile while",
+  constants: "false null true",
+  rules: [
+    // Class.
+    Rule.capture(r"(class)(\s+)(\w+)", ["k", "", "nc"]),
+    // Import.
+    Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
+    // Package.
+    Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
+    // Annotation.
+    Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "nd"),
+
+    ..._commonRules,
+    _cOperatorRule,
+  ],
+);
+
+final _lox = Language(
+  keywords: "and class else fun for if or print return super var while",
+  names: "false nil this true",
+  rules: [
+    ..._commonRules,
+    // Lox has fewer operator characters.
+    Rule(r"[(){}[\]!+\-/*;.,=<>]+", "o"),
+
+    // Other operators are errors. (This shows up when using Lox for EBNF
+    // snippets.)
+    // TODO: Make a separate language for EBNF and stop using "err".
+    Rule(r"[|&?]+", "err"),
+  ],
+);
+
+final _ruby = Language(
+  keywords: "__LINE__ _ENCODING__ __FILE__ BEGIN END alias and begin break "
+      "case class def defined? do else elsif end ensure for if in module next "
+      "nil not or redo rescue retry return self super then undef unless until "
+      "when while yield",
+  names: "puts",
+  other: {
+    // TODO: Remove these and use an existing type when not trying to match
+    // old output.
+    "false": "kp",
+    "true": "kp",
+  },
+  rules: [
+    ..._commonRules,
+    _cOperatorRule,
+  ],
+);
+
 final _languages = {
-  "c": Language(
-      keywords: "bool break case char const continue default do double else "
-          "enum extern FILE for if int return size_t sizeof static struct "
-          "switch typedef uint16_t uint32_t uint8_t void while",
-      names: "false NULL TRUE",
-      rules: _rules),
+  "c": _c,
   // TODO: Add C++ support.
   "c++": Language(),
-  "java": Language(
-      keywords: "abstract assert boolean break byte case catch char class "
-          "const continue default do double else enum extends final finally "
-          "float for goto if implements import instanceof int interface long "
-          "native new package private protected public return short static "
-          "strictfp super switch synchronized this throw throws transient try "
-          "void volatile while",
-      constants: "false null true",
-      rules: _rules),
+  "java": _java,
   // TODO: Add JS support.
   "js": Language(),
   // TODO: Add Lisp support.
   "lisp": Language(),
   // TODO: Make `this` a keyword? It is in Java.
-  "lox": Language(
-      keywords: "and class else false fun for if nil or print return super "
-          "true var while",
-      names: "this",
-      rules: _rules),
+  "lox": _lox,
   // TODO: Add Lua support.
   "lua": Language(),
   // TODO: Add Python support.
   "python": Language(),
   // TODO: Add Ruby support.
-  "ruby": Language(),
+  "ruby": _ruby,
 };
 
-final _rules = [
+/// Matches the operator characters in C-like languages.
+// TODO: Allowing a space in here would produce visually identical output but
+// collapse to fewer spans in cases like ") + (".
+final _cOperatorRule = Rule(r"[(){}[\]!+\-/*:;.,|?=<>&]+", "o");
+
+final _commonRules = [
   Rule.capture(r"(\.)([a-zA-Z_][a-zA-Z0-9_]*)", ["o", "n"]), // Attribute.
 
-  /// Match these first because they apply smarter styles in certain contexts.
-  Rule.capture(r"(class)(\s+)(\w+)", ["k", "", "nc"]), // Class.
-  Rule.capture(
-      r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]), // Package.
-
-  Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "nd"), // Annotation.
   // TODO: Multi-character escapes?
   Rule(r"'\\?.'", "s"), // Character.
   StringRule(),
@@ -337,15 +393,6 @@ final _rules = [
   Rule(r"[0-9]+L?", "mi"), // Integer.
 
   Rule(r"//.*", "c1"), // Line comment.
-  // TODO: Allowing a space in here will produce visually identical output but
-  // collapse to fewer spans in cases like ") + (".
-  Rule(r"[(){}[\]!+\-/*:;.,|?=<>&]+", "o"), // Operator.
-
-  Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]), // Include.
-  // TODO: This includes all trailing whitespace, which I guess is technically
-  // correct but looks a little funny. Pygments works this way. If we don't want
-  // to match that, a better regex is "#[a-zA-Z_][a-zA-Z0-9_]*".
-  Rule(r"#.*", "cp"), // Preprocessor.
 
   IdentifierRule(),
 
