@@ -52,7 +52,6 @@ void copyDirectory(String from) {
       source = source.replaceAll('class="kr"', 'class="k"');
 
       source = source.replaceAll('class="na"', 'class="n"');
-      source = source.replaceAll('class="nc"', 'class="n"');
       source = source.replaceAll('class="nn"', 'class="n"');
       source = source.replaceAll('class="nf"', 'class="n"');
 
@@ -74,10 +73,12 @@ void copyDirectory(String from) {
       if (source.endsWith("</html>")) source += "\n";
 
       // Sometimes Pygments doesn't collapse adjacent operator spans.
-      source = source.replaceAllMapped(
-          RegExp(r'<span class="o">([^<]+)</span>'
-              r'<span class="o">([^<]+)</span>'),
-          (match) => '<span class="o">${match[1]}${match[2]}</span>');
+      for (var i = 0; i < 5; i++) {
+        source = source.replaceAllMapped(
+            RegExp(r'<span class="o">([^<]+)</span>'
+            r'<span class="o">([^<]+)</span>'),
+                (match) => '<span class="o">${match[1]}${match[2]}</span>');
+      }
 
       // Python Markdown preserves leading indentation for bullet list items.
       // Super hacky fix to strip out that leading indentation but not from
