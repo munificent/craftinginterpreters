@@ -679,7 +679,7 @@ arithmetic expression is some boilerplate code to pull values off the stack and
 push the result. When we later add dynamic typing, that boilerplate will grow.
 To avoid repeating that code four times, I wrapped it up in a macro:
 
-^code binary-op (1 before, 1 after)
+^code binary-op (1 before, 2 after)
 
 I admit this is a fairly <span name="operator">adventurous</span> use of the C
 preprocessor. I hesitated to do this, but you'll be glad in later chapters when
