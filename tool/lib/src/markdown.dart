@@ -14,11 +14,21 @@ String renderMarkdown(String contents) {
         // Put inline Markdown code syntax before our smart quotes so that
         // quotes inside `code` spans don't get smartened.
         CodeSyntax(),
+        _EllipseSyntax(),
         // Smart quotes.
         _ApostropheSyntax(),
         _SmartQuoteSyntax(),
       ],
       extensionSet: ExtensionSet.gitHubFlavored);
+}
+
+class _EllipseSyntax extends InlineSyntax {
+  _EllipseSyntax() : super(r"\.\.\.", startCharacter: $dot);
+
+  bool onMatch(InlineParser parser, Match match) {
+    parser.addNode(Text("&hellip;"));
+    return true;
+  }
 }
 
 class _ApostropheSyntax extends InlineSyntax {
@@ -70,6 +80,7 @@ class _SmartQuoteSyntax extends InlineSyntax {
     if (before == $question) return true;
     if (before == $exclamation) return true;
 
+    if (after == $colon) return true;
     if (after == $comma) return true;
     if (after == $dot) return true;
 

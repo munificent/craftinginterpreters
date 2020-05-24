@@ -286,19 +286,24 @@ class LabelRule extends Rule {
 
 final _c = Language(
   keywords: "bool break case char const continue default do double else enum "
-      "extern FILE for if inline int return size_t sizeof static struct switch "
-      "typedef uint16_t uint32_t uint8_t union va_list void while",
+      "extern FILE for goto if inline int return size_t sizeof static struct "
+      "switch typedef uint16_t uint32_t uint64_t uint8_t uintptr_t union "
+      "va_list void while",
   names: "false NULL true",
   rules: [
-    Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]), // Include.
-    // TODO: This includes all trailing whitespace, which I guess is technically
-    // correct but looks a little funny. Pygments works this way. If we don't want
-    // to match that, a better regex is "#[a-zA-Z_][a-zA-Z0-9_]*".
-    Rule(r"#.*", "cp"), // Preprocessor.
+    // Include.
+    Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]),
+
+    // Preprocessor with comment.
+    Rule.capture(r"(#.*?)(//.*)", ["cp", "c1"]),
+
+    // Preprocessor.
+    Rule(r"#.*", "cp"),
 
     LabelRule(),
 
     ..._commonRules,
+    _characterRule,
     _cOperatorRule,
   ],
 );
@@ -311,16 +316,19 @@ final _java = Language(
       "switch synchronized this throw throws transient try void volatile while",
   constants: "false null true",
   rules: [
-    // Class.
-    Rule.capture(r"(class)(\s+)(\w+)", ["k", "", "nc"]),
+    // Type declaration.
+    Rule.capture(r"(class|enum|interface)(\s+)(\w+)", ["k", "", "nc"]),
     // Import.
     Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
+    // Static import.
+    Rule.capture(r"(import\s+static?)(\s+)(\w+(?:\.\w+)*(?:\.\*)?)(;)", ["k", "", "n", "o"]),
     // Package.
     Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
     // Annotation.
     Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "nd"),
 
     ..._commonRules,
+    _characterRule,
     _cOperatorRule,
   ],
 );
@@ -336,7 +344,7 @@ final _lox = Language(
     // Other operators are errors. (This shows up when using Lox for EBNF
     // snippets.)
     // TODO: Make a separate language for EBNF and stop using "err".
-    Rule(r"[|&?]+", "err"),
+    Rule(r"[|&?']+", "err"),
   ],
 );
 
@@ -345,7 +353,7 @@ final _ruby = Language(
       "case class def defined? do else elsif end ensure for if in module next "
       "nil not or redo rescue retry return self super then undef unless until "
       "when while yield",
-  names: "puts",
+  names: "lambda puts",
   other: {
     // TODO: Remove these and use an existing type when not trying to match
     // old output.
@@ -364,33 +372,54 @@ final _languages = {
   "c++": Language(),
   "java": _java,
   // TODO: Add JS support.
-  "js": Language(),
+  "js": Language(
+    keywords: "break case catch class const continue debugger default delete "
+        "do else export extends finally for function if import in instanceof "
+        "let new return super switch this throw try typeof var void while "
+        "with yield",
+    rules: [
+      ..._commonRules,
+      _cOperatorRule
+      ]
+  ),
   // TODO: Add Lisp support.
   "lisp": Language(),
   // TODO: Make `this` a keyword? It is in Java.
   "lox": _lox,
   // TODO: Add Lua support.
   "lua": Language(),
-  // TODO: Add Python support.
-  "python": Language(),
-  // TODO: Add Ruby support.
+  "python": Language(
+      keywords: "and as assert break class continue def del elif else except "
+          "exec finally for from global if import is lambda not or pass print "
+          "raise return try while with yield",
+      names: "range",
+      other: {
+        // TODO: Get rid of this and just make it a keyword.
+        "in": "ow",
+      },
+      rules: [
+    ..._commonRules,
+    _cOperatorRule,
+  ]),
   "ruby": _ruby,
 };
 
 /// Matches the operator characters in C-like languages.
 // TODO: Allowing a space in here would produce visually identical output but
 // collapse to fewer spans in cases like ") + (".
-final _cOperatorRule = Rule(r"[(){}[\]!+\-/*:;.,|?=<>&]+", "o");
+final _cOperatorRule = Rule(r"[(){}[\]!+\-/*:;.,|?=<>&^%]+", "o");
+
+// TODO: Multi-character escapes?
+final _characterRule = Rule(r"'\\?.'", "s");
 
 final _commonRules = [
   Rule.capture(r"(\.)([a-zA-Z_][a-zA-Z0-9_]*)", ["o", "n"]), // Attribute.
 
-  // TODO: Multi-character escapes?
-  Rule(r"'\\?.'", "s"), // Character.
   StringRule(),
 
   Rule(r"[0-9]+\.[0-9]+f?", "mf"), // Float.
-  Rule(r"[0-9]+L?", "mi"), // Integer.
+  Rule(r"0x[0-9a-fA-F]+", "mh"), // Hex integer.
+  Rule(r"[0-9]+[Lu]?", "mi"), // Integer.
 
   Rule(r"//.*", "c1"), // Line comment.
 

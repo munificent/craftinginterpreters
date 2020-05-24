@@ -7,8 +7,6 @@ final _punctuation = RegExp(r'[,.?!:/"]');
 /// Use nicer HTML entities and special characters.
 String pretty(String text) {
   return text
-      .replaceAll("...", "&hellip;")
-      // Foreign characters.
       .replaceAll("à", "&agrave;")
       .replaceAll("ï", "&iuml;")
       .replaceAll("ø", "&oslash;")
