@@ -47,6 +47,7 @@ class _ApostropheSyntax extends InlineSyntax {
 
   bool _isRight(int before) {
     if (before == $space) return false;
+    if (before == $lf) return false;
 
     // Default to right.
     return true;
@@ -131,7 +132,6 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
   }
 }
 
-
 /// Custom code block formatter that uses our syntax highlighter.
 ///
 /// Recognizes Python Markdown's ":::language" syntax.
@@ -181,21 +181,19 @@ Element _formatCodeLines(String language, List<String> childLines) {
 
     // TODO: The Markdown/Pygments puts a pointless empty span at the
     // beginning. Remove this when not trying to match that.
-    code = "<span></span>$code";
+    code = "<pre><span></span>$code</pre>";
   } else {
     // TODO: Find a cleaner way to handle this. Maybe move the trailing
     // newline code into `insertSnippet()`?
     // Remove the trailing empty line so that `formatCode()` doesn't put a
     // <br> at the end.
-    childLines.removeLast();
+    if (childLines.last.trim().isEmpty) childLines.removeLast();
     code = formatCode(language, 72, childLines);
   }
 
-  var element = Element.text("pre", code);
-
   // TODO: Remove this when no longer trying to match the existing output.
   // Wrap in codehilite div.
-  element = Element("div", [element]);
+  var element = Element.text("div", code);
   element.attributes["class"] = "codehilite";
   return element;
 }

@@ -10,6 +10,7 @@ import 'package:tool/src/markdown.dart';
 import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
 import 'package:tool/src/snippet.dart';
+import 'package:tool/src/term.dart' as term;
 import 'package:tool/src/text.dart';
 
 // The "(?!-)" is a hack. scanning.md has an inline code sample containing a
@@ -51,7 +52,6 @@ else:
   format_files(False)
   build_sass(False)
 
-  print("{} words".format(total_words))
    */
 }
 
@@ -81,18 +81,18 @@ def format_files(skip_up_to_date, one_file=None):
   var mustache = Mustache();
 
   // TODO: Temp. Just one chapter for now.
-//  formatFile(book, mustache, book.pages[20]);
+//  formatFile(book, mustache, book.findChapter("Classes"));
 
+  var totalWords = 0;
   for (var page in book.pages) {
-    formatFile(book, mustache, page);
+    totalWords += formatFile(book, mustache, page);
   }
+  print("$totalWords words");
 }
 
 // TODO: Move to library.
 // TODO: Skip up to date stuff.
-void formatFile(Book book, Mustache mustache, Page page) {
-  print(page.markdownPath);
-// def format_file(path, skip_up_to_date, dependencies_mod):
+int formatFile(Book book, Mustache mustache, Page page) {
 //
 //  # See if the HTML is up to date.
 //  if skip_up_to_date:
@@ -116,6 +116,8 @@ void formatFile(Book book, Mustache mustache, Page page) {
   // TODO: Move this into Page and load lazily.
   Map<String, Snippet> snippets;
 
+  var insertedSnippets = <String>[];
+
   // Read the markdown file and preprocess it.
   var buffer = StringBuffer();
 
@@ -132,7 +134,14 @@ void formatFile(Book book, Mustache mustache, Page page) {
 
       switch (command) {
         case "code":
-          insertSnippet(book, page, snippets, buffer, argument);
+          // Leave a unique HTML comment where the snippet should go. We will
+          // replace this with the real snippet after the Markdown is rendered.
+          // This way, the snippet HTML is not run through the Markdown engine,
+          // which is pointlessly slow and tends to unnecessarily muck with the
+          // HTML.
+          var snippetCode = createSnippet(book, page, snippets, argument);
+          buffer.writeln("<!-- snippet ${insertedSnippets.length} -->");
+          insertedSnippets.add(snippetCode);
           break;
         case "part":
           // TODO: No longer used. Remove from Markdown files.
@@ -227,12 +236,12 @@ void formatFile(Book book, Mustache mustache, Page page) {
       .toString()
       .replaceAll(_emDashPattern, '<span class="em">&mdash;</span>');
 
-//  # Allow processing markdown inside some tags.
-//  contents = contents.replace('<aside', '<aside markdown="1"')
-//  contents = contents.replace('<div class="challenges">', '<div class="challenges" markdown="1">')
-//  contents = contents.replace('<div class="design-note">', '<div class="design-note" markdown="1">')
-
   var body = renderMarkdown(contents);
+
+  // Put the snippets in.
+  for (var i = 0; i < insertedSnippets.length; i++) {
+    body = body.replaceAll("<!-- snippet $i -->", insertedSnippets[i]);
+  }
 
   var output =
       mustache.render(template, book, page, body, sections, hasChallenges);
@@ -249,67 +258,57 @@ void formatFile(Book book, Mustache mustache, Page page) {
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p><", "</p>\n<");
-  output = output.replaceAll("</div><", "</div>\n<");
+//  output = output.replaceAll("</div><", "</div>\n<");
   output = output.replaceAll("><aside", ">\n<aside");
   output = output.replaceAll("</aside><", "</aside>\n<");
   output = output.replaceAll("</ol><", "</ol>\n<");
   output = output.replaceAll("</table>\n<", "</table>\n\n<");
-  output = output.replaceAllMapped(
-      RegExp(r'<div class="source-file-narrow">(.*?)</div>'),
-      (match) => '\n<div class="source-file-narrow">${match[1]}</div>\n');
+//  output = output.replaceAllMapped(
+//      RegExp(r'<div class="source-file-narrow">(.*?)</div>'),
+//      (match) => '\n<div class="source-file-narrow">${match[1]}</div>\n');
 
   // Python Markdown wraps images in paragraphs.
   output = output.replaceAllMapped(
       RegExp(r'\n(<img [^>]*>)\n'), (match) => '\n<p>${match[1]}</p>\n');
+  output = output.replaceAllMapped(
+      RegExp(r'\n(<img [^>]*>)</'), (match) => '\n<p>${match[1]}</p>\n</');
 
   // Dart Markdown library puts a newline before <pre>.
-  output = output.replaceAll(
-      '<div class="codehilite">\n<pre>', '<div class="codehilite"><pre>');
+//  output = output.replaceAll(
+//      '<div class="codehilite">\n<pre>', '<div class="codehilite"><pre>');
 
   // Python Markdown puts some extra blank lines after the pre tags.
   output = output.replaceAll('</pre></div>\n<', '</pre></div>\n\n\n<');
 
   // Python Markdown puts a blank line before the closing pre tag.
-  output = output.replaceAll('</span></pre></div>', '</span>\n</pre></div>');
+//  output = output.replaceAll('</span></pre></div>', '</span>\n</pre></div>');
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
 
-//  global total_words
-//  global num_chapters
-//  global empty_chapters
-//
-//  word_count = len(contents.split(None))
-//  num = book.chapter_number(title)
-//  if num:
-//    num = '{}. '.format(num)
-//
-//  # Non-chapter pages aren't counted like regular chapters.
-//  if part:
-//    num_chapters += 1
-//    if word_count < 50:
-//      empty_chapters += 1
-//      print("    " + term.gray("{}{}".format(num, title)))
-//    elif part != "Backmatter" and word_count < 2000:
-//      empty_chapters += 1
-//      print("  {} {}{} ({} words)".format(
-//          term.yellow("-"), num, title, word_count))
-//    else:
-//      total_words += word_count
-//      print("  {} {}{} ({} words)".format(
-//          term.green("✓"), num, title, word_count))
-//  elif title in ["Crafting Interpreters", "Table of Contents"]:
-//    print("{} {}{}".format(term.green("•"), num, title))
-//  else:
-//    if word_count < 50:
-//      print("    " + term.gray("{}{}".format(num, title)))
-//    else:
-//      print("{} {}{} ({} words)".format(
-//          term.green("✓"), num, title, word_count))
+  // TODO: Do this faster.
+  // TODO: Note: This no longer includes the word count of the code snippets.
+  // Fix that if I want an accurate count.
+  var wordCount = contents.split(RegExp(r"\s+")).length;
+  var words = term.gray("($wordCount words)");
+  var number = "";
+  if (page.numberString.isNotEmpty) {
+    number = "${page.numberString}. ";
+  }
+
+  if (const ["index", "contents"].contains(page.fileName)) {
+    print("${term.green('•')} $number${page.title}");
+  } else if (page is ChapterPage) {
+    print("  ${term.green('✓')} $number${page.title} $words");
+  } else {
+    print("${term.green('✓')} $number${page.title} $words");
+  }
+
+  return wordCount;
 }
 
-void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
-    StringBuffer buffer, String name) {
+String createSnippet(
+    Book book, Page page, Map<String, Snippet> snippets, String name) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
 //def insert_snippet(snippets, arg, contents, errors):
@@ -362,9 +361,7 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
 //  snippets[name] = False
 
   var location = <String>[];
-  if (showLocation) {
-    location = snippet.locationDescription;
-  }
+  if (showLocation) location = snippet.locationDescription;
 
 //  # Make sure every snippet shows the reader where it goes.
 //  if (showLocation and len(location) <= 1
@@ -386,8 +383,9 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
   if (snippet.removed.isNotEmpty && snippet.added.isEmpty) {
     length = longestLine(length, snippet.removed);
   }
-//  if snippet.added_comma:
-//    length = longest_line(length, snippet.added_comma)
+  if (snippet.addedComma != null) {
+    length = longestLine(length, [snippet.addedComma]);
+  }
   if (snippet.added.isNotEmpty) {
     length = longestLine(length, snippet.added);
   }
@@ -395,26 +393,27 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
     length = longestLine(length, linesAfter);
   }
 
+  var buffer = StringBuffer();
   buffer.write('<div class="codehilite">');
 
   if (linesBefore != null) {
-    var before = formatPre(snippet.file.language, length, linesBefore,
+    var before = formatCode(snippet.file.language, length, linesBefore,
         snippet.added.isNotEmpty ? "insert-before" : null);
-    buffer.writeln(before);
+    buffer.write(before);
   }
 
-//  if snippet.added_comma:
-//    def replace_last(string, old, new):
-//      return new.join(string.rsplit(old, 1))
-//
-//    comma = format_code(snippet.file.language(), length, [snippet.added_comma])
-//    comma = comma.replace('<pre>', '<pre class="insert-before">')
-//    comma = replace_last(comma, ',', '<span class="insert-comma">,</span>')
-//    contents += comma
+  if (snippet.addedComma != null) {
+    var commaLine = formatCode(
+        snippet.file.language, length, [snippet.addedComma], "insert-before");
+    var comma = commaLine.lastIndexOf(",");
+    buffer.write(commaLine.substring(0, comma));
+    buffer.write('<span class="insert-comma">,</span>');
+    buffer.write(commaLine.substring(comma + 1));
+  }
 
   if (showLocation) {
     var lines = location.join("<br>\n");
-    buffer.writeln('<div class="source-file">$lines</div>\n');
+    buffer.writeln('<div class="source-file">$lines</div>');
   }
 
 //  if snippet.removed and not snippet.added:
@@ -423,23 +422,28 @@ void insertSnippet(Book book, Page page, Map<String, Snippet> snippets,
 //    contents += removed
 
   if (snippet.added != null) {
-    var added = formatPre(snippet.file.language, length, snippet.added,
+    var added = formatCode(snippet.file.language, length, snippet.added,
         beforeCount > 0 || afterCount > 0 ? "insert" : null);
-    buffer.writeln(added);
+    buffer.write(added);
   }
 
   if (linesAfter != null) {
-    var after = formatPre(snippet.file.language, length, linesAfter,
+    var after = formatCode(snippet.file.language, length, linesAfter,
         snippet.added.isNotEmpty ? "insert-after" : null);
-    buffer.writeln(after);
+    buffer.write(after);
   }
 
   buffer.writeln('</div>');
 
   if (showLocation) {
+    // TODO: Just to match the old output. Delete when not needed.
+    buffer.writeln();
+
     var lines = location.join(", ");
     buffer.writeln('<div class="source-file-narrow">$lines</div>');
   }
+
+  return buffer.toString();
 }
 
 /// Process each SASS file.
@@ -456,7 +460,7 @@ void buildSass({bool skipUpToDate = false}) {
     var output =
         sass.compile(sourcePath, color: true, style: sass.OutputStyle.expanded);
     File(dest).writeAsStringSync(output);
-    print("$sourcePath -> $dest");
+    print("${term.green('-')} $dest");
   }
 }
 

@@ -4,44 +4,27 @@ import 'package:string_scanner/string_scanner.dart';
 /// Takes a string of source code and returns a block of HTML with spans for
 /// syntax highlighting.
 ///
-/// Does not wrap the result in a <pre> tag.
-String formatCode(String language, int length, List<String> lines) {
-  // TODO: Pass in StringBuffer.
-  var buffer = StringBuffer();
-  Highlighter(buffer, language, length)._highlight(lines);
-  return buffer.toString();
-}
-
-/// Takes a string of source code and returns a block of HTML with spans for
-/// syntax highlighting.
-///
 /// Wraps the result in a <pre> tag with the given [preClass].
-String formatPre(String language, int length, List<String> lines,
+String formatCode(String language, int length, List<String> lines,
     [String preClass]) {
-  // TODO: Pass in StringBuffer.
-  var buffer = StringBuffer();
-
-  buffer.write("<pre");
-  if (preClass != null) buffer.write(' class="$preClass"');
-  buffer.write(">");
-
-  Highlighter(buffer, language, length)._highlight(lines);
-
-  buffer.writeln("</pre>");
-  return buffer.toString();
+  return Highlighter(language, length)._highlight(lines, preClass);
 }
 
 class Highlighter {
   final int _lineLength;
-  final StringBuffer _buffer;
+  final StringBuffer _buffer = StringBuffer();
   StringScanner _scanner;
   final Language _language;
 
-  Highlighter(this._buffer, String language, this._lineLength)
+  Highlighter(String language, this._lineLength)
       : _language =
             _languages[language] ?? (throw "Unknown language '$language'.");
 
-  String _highlight(List<String> lines) {
+  String _highlight(List<String> lines, [String preClass]) {
+    _buffer.write("<pre");
+    if (preClass != null) _buffer.write(' class="$preClass"');
+    _buffer.write(">");
+
     // TODO: If we change build to not pass this output through the Markdown
     // parser, then revisit this.
     // Hack. Markdown seems to discard leading and trailing newlines, so we'll
@@ -70,6 +53,7 @@ class Highlighter {
       _buffer.write("<br>");
     }
 
+    _buffer.write("</pre>");
     return _buffer.toString();
   }
 
@@ -235,11 +219,14 @@ class StringRule extends Rule {
         start = scanner.position;
       } else if (scanner.scanChar($double_quote)) {
         highlighter._token("s", scanner.substring(start, scanner.position));
-        break;
+        return;
       } else {
         scanner.position++;
       }
     }
+
+    // Error: Unterminated string.
+    highlighter._token("err", scanner.substring(start, scanner.position));
   }
 }
 
@@ -321,7 +308,8 @@ final _java = Language(
     // Import.
     Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
     // Static import.
-    Rule.capture(r"(import\s+static?)(\s+)(\w+(?:\.\w+)*(?:\.\*)?)(;)", ["k", "", "n", "o"]),
+    Rule.capture(r"(import\s+static?)(\s+)(\w+(?:\.\w+)*(?:\.\*)?)(;)",
+        ["k", "", "n", "o"]),
     // Package.
     Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
     // Annotation.
@@ -340,6 +328,10 @@ final _lox = Language(
     ..._commonRules,
     // Lox has fewer operator characters.
     Rule(r"[(){}[\]!+\-/*;.,=<>]+", "o"),
+
+    // TODO: Only used because we use "lox" for EBNF snippets. Remove this and
+    // create a separate grammar language.
+    _characterRule,
 
     // Other operators are errors. (This shows up when using Lox for EBNF
     // snippets.)
@@ -373,15 +365,11 @@ final _languages = {
   "java": _java,
   // TODO: Add JS support.
   "js": Language(
-    keywords: "break case catch class const continue debugger default delete "
-        "do else export extends finally for function if import in instanceof "
-        "let new return super switch this throw try typeof var void while "
-        "with yield",
-    rules: [
-      ..._commonRules,
-      _cOperatorRule
-      ]
-  ),
+      keywords: "break case catch class const continue debugger default delete "
+          "do else export extends finally for function if import in instanceof "
+          "let new return super switch this throw try typeof var void while "
+          "with yield",
+      rules: [..._commonRules, _cOperatorRule]),
   // TODO: Add Lisp support.
   "lisp": Language(),
   // TODO: Make `this` a keyword? It is in Java.
@@ -398,9 +386,9 @@ final _languages = {
         "in": "ow",
       },
       rules: [
-    ..._commonRules,
-    _cOperatorRule,
-  ]),
+        ..._commonRules,
+        _cOperatorRule,
+      ]),
   "ruby": _ruby,
 };
 

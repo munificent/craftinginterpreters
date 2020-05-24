@@ -79,8 +79,8 @@ void copyDirectory(String from) {
       for (var i = 0; i < 5; i++) {
         source = source.replaceAllMapped(
             RegExp(r'<span class="o">([^<]+)</span>'
-            r'<span class="o">([^<]+)</span>'),
-                (match) => '<span class="o">${match[1]}${match[2]}</span>');
+                r'<span class="o">([^<]+)</span>'),
+            (match) => '<span class="o">${match[1]}${match[2]}</span>');
       }
 
       // Python Markdown preserves leading indentation for bullet list items.
