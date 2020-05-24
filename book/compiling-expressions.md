@@ -67,7 +67,7 @@ We pass in the chunk where the compiler will write the code, and then
 `compile()` returns whether or not compilation succeeded. Over in the
 implementation...
 
-^code compile-signature (1 before, 1 after)
+^code compile-signature (2 before, 1 after)
 
 That call to `initScanner()` is the only line that survives this chapter. Rip
 out the temporary code we wrote to test the scanner and replace it with these
