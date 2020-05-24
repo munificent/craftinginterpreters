@@ -124,14 +124,17 @@ class SourceCode {
       snippet.contextAfter.addAll(after);
     }
 
-//    # Find line changes that just add a trailing comma.
-//    for name, snippet in snippets.items():
-//      if (len(snippet.added) > 0 and
-//          len(snippet.removed) > 0 and
-//          snippet.added[0] == snippet.removed[-1] + ","):
-//        snippet.added_comma = snippet.added[0]
-//        del snippet.added[0]
-//        del snippet.removed[-1]
+    // Find line changes that just add a trailing comma.
+    for (var name in snippets.keys) {
+      var snippet = snippets[name];
+      if (snippet.added.isNotEmpty &&
+          snippet.removed.isNotEmpty &&
+          snippet.added.first == snippet.removed.last + ",") {
+        snippet.addedComma = snippet.added.first;
+        snippet.added.removeAt(0);
+        snippet.removed.removeLast();
+      }
+    }
 
     return snippets;
   }

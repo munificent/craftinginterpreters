@@ -47,7 +47,7 @@ int longestLine(int longest, Iterable<String> lines) {
 }
 
 String escapeHtml(String html) =>
-    const HtmlEscape(HtmlEscapeMode.element).convert(html);
+    const HtmlEscape(HtmlEscapeMode.attribute).convert(html);
 
 String pluralize<T>(Iterable<T> sequence) {
   if (sequence.length == 1) return "";

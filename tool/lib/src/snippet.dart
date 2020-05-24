@@ -13,11 +13,12 @@ class Snippet {
   // TODO: Make final?
   Location precedingLocation;
 
-//    # If the snippet replaces a line with the same line but with a trailing
-//    # comma, this is that line (with the comma).
-//    self.added_comma = None
-
   final List<String> contextBefore = [];
+
+  /// If the snippet replaces a line with the same line but with a trailing
+  /// comma, this is that line (with the comma).
+  String addedComma;
+
   final List<String> added = [];
   final List<String> removed = [];
   final List<String> contextAfter = [];
@@ -46,8 +47,10 @@ class Snippet {
       result.add("remove ${removed.length} line${pluralize(removed)}");
     }
 
-//    if self.added_comma:
-//      result.append('add <em>&ldquo;,&rdquo;</em> to previous line')
+    if (addedComma != null) {
+      result.add("add <em>&ldquo;,&rdquo;</em> to previous line");
+    }
+
     return result;
   }
 

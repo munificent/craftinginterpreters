@@ -20,7 +20,7 @@ final _functionPattern = RegExp(r"(\w+)>*\*? (\w+)\(([^)]*)");
 final _modulePattern = RegExp(r"^(\w+) (\w+);");
 final _structPattern = RegExp(r"^struct (s\w+)? {$");
 final _typePattern =
-    RegExp(r"^(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
+    RegExp(r"(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
 final _typedefPattern = RegExp(r"^typedef (enum|struct|union)( \w+)? {$");
 final _typedefNamePattern = RegExp(r"^\} (\w+);$");
 
