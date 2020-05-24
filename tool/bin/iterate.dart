@@ -54,11 +54,13 @@ void copyDirectory(String from) {
       source = source.replaceAll('class="na"', 'class="n"');
       source = source.replaceAll('class="nn"', 'class="n"');
       source = source.replaceAll('class="nf"', 'class="n"');
+      source = source.replaceAll('class="nx"', 'class="n"');
 
       source = source.replaceAll('class="vg"', 'class="nc"');
 
       source = source.replaceAll('class="sc"', 'class="s"');
       source = source.replaceAll('class="s1"', 'class="s"');
+      source = source.replaceAll('class="s2"', 'class="s"');
 
       // TODO: We don't color this at all, so we could remove the class
       // entirely.
@@ -67,6 +69,8 @@ void copyDirectory(String from) {
       // For some reason, Pygments puts empty spans at the end of preprocessor
       // lines.
       source = source.replaceAll('<span class="cp"></span>', "");
+
+      source = source.replaceAll('<aside markdown="1"', "<aside");
 
       // The old files don't have a newline at the end.
       if (source.endsWith("</html>")) source += "\n";
@@ -97,6 +101,8 @@ void copyDirectory(String from) {
 
         return "\n$text";
       });
+
+      source = source.replaceAll('\n</a></h2>\n\n', '</a></h2>\n');
 
       File(outPath).writeAsStringSync(source);
       print(outPath);
