@@ -382,7 +382,7 @@ execution:
     have no effect.
 
 *   **There is no control flow.** Loops are only visited <span
-    name="fix">once</>. Both branches are visited in if statements. Logic
+    name="fix">once</span>. Both branches are visited in if statements. Logic
     operators are not short-circuited.
 
 <aside name="fix">

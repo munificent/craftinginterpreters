@@ -601,7 +601,7 @@ OK, now when we're done marking the roots we have both set a bunch of fields
 and filled our work list with objects to chew through. It's time for the next
 phase:
 
-^code call-trace-references (1 before, 1 after)
+^code call-trace-references (1 before, 2 after)
 
 Here's the implementation:
 
@@ -698,7 +698,7 @@ either black or white. The black objects are reachable and we want to hang on to
 them. Anything still white never got touched by the trace and is thus garbage.
 All that's left is to reclaim them:
 
-^code call-sweep (1 before, 1 after)
+^code call-sweep (1 before, 2 after)
 
 All of the logic lives in one function:
 

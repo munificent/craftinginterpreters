@@ -258,7 +258,7 @@ another instruction that expresses that:
 
 We interpret it like so:
 
-^code op-jump (1 before, 1 after)
+^code op-jump (2 before, 1 after)
 
 Nothing too surprising here -- the only difference is that it doesn't check a
 condition and always applies the offset.
@@ -281,7 +281,7 @@ branch:
 
 Otherwise, we pop it at the beginning of the else branch:
 
-^code pop-end (1 before, 1 after)
+^code pop-end (1 before, 2 after)
 
 This little instruction here also means that every if statement has an implicit
 else branch even if the user didn't write an else clause. In the case where they
@@ -565,7 +565,7 @@ it when the condition is true.
 
 After the loop body, we need to patch that jump:
 
-^code exit-jump (2 before, 1 after)
+^code exit-jump (2 before, 2 after)
 
 We only do this when there is a condition clause. If there isn't, there's no
 jump to patch and no condition to pop.

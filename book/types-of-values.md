@@ -654,7 +654,7 @@ Anyway, as we add more types to clox, this function will grow new cases. For
 now, these three are sufficient. The other comparison operators are easier since
 they only work on numbers:
 
-^code interpret-comparison (1 before, 1 after)
+^code interpret-comparison (4 before, 1 after)
 
 We already extended the `BINARY_OP` macro to handle operators that return
 non-numeric types. Now we get to use that. We pass in `BOOL_VAL` since the

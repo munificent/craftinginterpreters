@@ -933,7 +933,7 @@ each other. At runtime, we create the environment after we find the method on
 the instance. We replace the previous line of code that simply returned the
 method's LoxFunction with this:
 
-^code lox-instance-bind-method (1 before, 1 after)
+^code lox-instance-bind-method (1 before, 3 after)
 
 Note the new call to `bind()`. That looks like so:
 
@@ -1223,8 +1223,6 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
     Smalltalk and Ruby are a particularly elegant approach. *Hint: Make LoxClass
     extend LoxInstance and go from there.*
 
-[metaclasses]: https://en.wikipedia.org/wiki/Metaclass
-
 2.  Most modern languages support "getters" and "setters" -- members on a class
     that look like field reads and writes but that actually execute user-defined
     code. Extend Lox to support getter methods. These are declared without a
@@ -1254,6 +1252,8 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 
     What are the trade-offs between these approaches and why might a language
     prefer one or the other?
+
+[metaclasses]: https://en.wikipedia.org/wiki/Metaclass
 
 </div>
 
@@ -1318,8 +1318,6 @@ actual quantification.
     systems to user applications to games. Domain-specific languages like
     AppleScript and Matlab have less breadth.
 
-[proto]: https://en.wikipedia.org/wiki/Prototype-based_programming
-
 *   **Ease** is how little effort it takes to make the language do what you
     want. "Usability" might be another term, though it carries more baggage than
     I want to bring in. "Higher-level" languages tend to have more ease than
@@ -1331,6 +1329,8 @@ actual quantification.
     language's spec, or how many keywords it has. It's how much the user has to
     load into their wetware before they can be productive in the system. It is
     the antonym of simplicity.
+
+[proto]: https://en.wikipedia.org/wiki/Prototype-based_programming
 
 Reducing complexity *does* increase power. The smaller the denominator, the
 larger the resulting value, so our intuition that simplicity is good is valid.
