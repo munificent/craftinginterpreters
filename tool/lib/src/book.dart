@@ -3,68 +3,52 @@ import 'package:tool/src/source_code.dart';
 import 'page.dart';
 import 'text.dart';
 
-// TODO: Simplify.
-const tableOfContents = [
-  {
-    'name': '',
-    'chapters': [
-      {'name': 'Crafting Interpreters'},
-      {'name': 'Table of Contents'}
-    ],
-  },
-  {
-    'name': 'Welcome',
-    'chapters': [
-      {'name': 'Introduction'},
-      {'name': 'A Map of the Territory'},
-      {'name': 'The Lox Language'}
-    ]
-  },
-  {
-    'name': 'A Tree-Walk Interpreter',
-    'chapters': [
-      {'name': 'Scanning'},
-      {'name': 'Representing Code'},
-      {'name': 'Parsing Expressions'},
-      {'name': 'Evaluating Expressions'},
-      {'name': 'Statements and State'},
-      {'name': 'Control Flow'},
-      {'name': 'Functions'},
-      {'name': 'Resolving and Binding'},
-      {'name': 'Classes'},
-      {'name': 'Inheritance'}
-    ]
-  },
-  {
-    'name': 'A Bytecode Virtual Machine',
-    'chapters': [
-      {'name': 'Chunks of Bytecode'},
-      {'name': 'A Virtual Machine'},
-      {'name': 'Scanning on Demand'},
-      {'name': 'Compiling Expressions'},
-      {'name': 'Types of Values'},
-      {'name': 'Strings'},
-      {'name': 'Hash Tables'},
-      {'name': 'Global Variables'},
-      {'name': 'Local Variables'},
-      {'name': 'Jumping Back and Forth'},
-      {'name': 'Calls and Functions'},
-      {'name': 'Closures'},
-      {'name': 'Garbage Collection'},
-      {'name': 'Classes and Instances'},
-      {'name': 'Methods and Initializers'},
-      {'name': 'Superclasses'},
-      {'name': 'Optimization'}
-    ]
-  },
-  {
-    'name': 'Backmatter',
-    'chapters': [
-      {'name': 'Appendix I'},
-      {'name': 'Appendix II'}
-    ],
-  },
-];
+const _tableOfContents = {
+  '': [
+    'Crafting Interpreters',
+    'Table of Contents',
+  ],
+  'Welcome': [
+    'Introduction',
+    'A Map of the Territory',
+    'The Lox Language',
+  ],
+  'A Tree-Walk Interpreter': [
+    'Scanning',
+    'Representing Code',
+    'Parsing Expressions',
+    'Evaluating Expressions',
+    'Statements and State',
+    'Control Flow',
+    'Functions',
+    'Resolving and Binding',
+    'Classes',
+    'Inheritance',
+  ],
+  'A Bytecode Virtual Machine': [
+    'Chunks of Bytecode',
+    'A Virtual Machine',
+    'Scanning on Demand',
+    'Compiling Expressions',
+    'Types of Values',
+    'Strings',
+    'Hash Tables',
+    'Global Variables',
+    'Local Variables',
+    'Jumping Back and Forth',
+    'Calls and Functions',
+    'Closures',
+    'Garbage Collection',
+    'Classes and Instances',
+    'Methods and Initializers',
+    'Superclasses',
+    'Optimization',
+  ],
+  'Backmatter': [
+    'Appendix I',
+    'Appendix II',
+  ],
+};
 
 /// TODO: This is basically a global, eagerly-loaded God object. If we want to
 /// handle incremental refresh better, this should probably be less monolithic.
@@ -79,34 +63,30 @@ class Book {
     var chapterIndex = 1;
     var inMatter = false;
 
-    for (var part in tableOfContents) {
+    for (var part in _tableOfContents.keys) {
       // Front- and backmatter have no names, pages, or numbers.
       var partNumber = "";
-      var partName = part["name"] as String;
-      inMatter = partName == "" || partName == "Backmatter";
+      inMatter = part == "" || part == "Backmatter";
       if (!inMatter) {
         partNumber = roman(partIndex);
         partIndex += 1;
       }
 
-      Page partPage;
-
       // There are no part pages for the front- and backmatter.
-      if (part["name"] != "") {
-        partPage = Page(partName, null, partNumber, pages.length);
+      Page partPage;
+      if (part != "") {
+        partPage = Page(part, null, partNumber, pages.length);
         pages.add(partPage);
         parts.add(partPage);
       }
 
-      for (var chapter in part["chapters"]) {
-        var name = chapter["name"] as String;
-
+      for (var chapter in _tableOfContents[part]) {
         var chapterNumber = "";
         if (inMatter) {
           // Front- and backmatter chapters are specially numbered.
-          if (name == "Appendix I") {
+          if (chapter == "Appendix I") {
             chapterNumber = "A1";
-          } else if (name == "Appendix II") {
+          } else if (chapter == "Appendix II") {
             chapterNumber = "A2";
           }
         } else {
@@ -114,9 +94,9 @@ class Book {
           chapterIndex++;
         }
 
-        var chapterPage = Page(name, partPage, chapterNumber, pages.length);
-        pages.add(chapterPage);
-        if (partPage != null) partPage.chapters.add(chapterPage);
+        var page = Page(chapter, partPage, chapterNumber, pages.length);
+        pages.add(page);
+        if (partPage != null) partPage.chapters.add(page);
       }
     }
 
