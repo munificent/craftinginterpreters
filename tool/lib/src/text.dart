@@ -4,6 +4,8 @@ import 'dart:math' as math;
 /// Punctuation characters removed from file names and anchors.
 final _punctuation = RegExp(r'[,.?!:/"]');
 
+final _whitespace = RegExp(r"\s+");
+
 /// Use nicer HTML entities and special characters.
 String pretty(String text) {
   return text
@@ -18,7 +20,6 @@ String toFileName(String text) {
   if (text == "Crafting Interpreters") return "index";
   if (text == "Table of Contents") return "contents";
 
-  // TODO: Is this still needed?
   // Hack. The introduction has a *subheader* named "Challenges" distinct from
   // the challenges section. This function here is also used to generate the
   // anchor names for the links, so handle that one specially so it doesn't
@@ -53,3 +54,6 @@ String pluralize<T>(Iterable<T> sequence) {
   if (sequence.length == 1) return "";
   return "s";
 }
+
+// TODO: Do this faster?
+int countWords(String text) => text.split(_whitespace).length;

@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'book.dart';
+import 'code_tag.dart';
 import 'location.dart';
 import 'page.dart';
-import 'snippet_tag.dart';
 import 'source_code.dart';
 
 final _blockPattern = RegExp(
@@ -297,22 +297,19 @@ class SourceFileParser {
   _ParseState get _currentState => _states.last;
 
   void _push(
-      {ChapterPage startChapter,
-      String startName,
-      ChapterPage endChapter,
-      String endName}) {
+      {Page startChapter, String startName, Page endChapter, String endName}) {
     startChapter ??= _currentState.start.chapter;
 
-    SnippetTag start;
+    CodeTag start;
     if (startName != null) {
-      start = startChapter.findSnippetTag(startName);
+      start = startChapter.findCodeTag(startName);
     } else {
       start = _currentState.start;
     }
 
-    SnippetTag end;
+    CodeTag end;
     if (endChapter != null) {
-      end = endChapter.findSnippetTag(endName);
+      end = endChapter.findCodeTag(endName);
     }
 
     _states.add(_ParseState(start, end));
@@ -324,8 +321,8 @@ class SourceFileParser {
 }
 
 class _ParseState {
-  final SnippetTag start;
-  final SnippetTag end;
+  final CodeTag start;
+  final CodeTag end;
 
   _ParseState(this.start, [this.end]);
 

@@ -2,18 +2,15 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
 import 'book.dart';
+import 'code_tag.dart';
 import 'location.dart';
 import 'page.dart';
 import 'snippet.dart';
-import 'snippet_tag.dart';
 import 'source_file_parser.dart';
 
 /// All of the source files in the book.
 class SourceCode {
   final List<SourceFile> files = [];
-
-  // TODO: Not needed?
-//  final Map<Page, Map<String, SnippetTag>> snippetTags = getChapterSnippetTags();
 
   SourceCode() {
 //    # The errors that occurred when parsing the source code, mapped to the
@@ -30,14 +27,10 @@ class SourceCode {
         files.add(SourceFileParser(book, file.path, shortPath).parse());
       }
     }
-
-//  return source_code
   }
 
-  // TODO: Move into Page.
   /// Gets the list of snippets that occur in [chapter].
-  Map<String, Snippet> findAll(ChapterPage chapter) {
-    // TODO: Type.
+  Map<String, Snippet> findAll(Page chapter) {
     var snippets = <String, Snippet>{};
 
     var firstLines = <Snippet, int>{};
@@ -92,14 +85,14 @@ class SourceCode {
     // Find the surrounding context lines and location for each snippet.
     for (var name in snippets.keys) {
       var snippet = snippets[name];
-      var currentSnippet = chapter.snippetTags[name];
+      var tag = chapter.findCodeTag(name);
 
       // Look for preceding lines.
       var i = firstLines[snippet] - 1;
       var before = <String>[];
       while (i >= 0 && before.length <= 5) {
         var line = snippet.file.lines[i];
-        if (line.isPresent(currentSnippet)) {
+        if (line.isPresent(tag)) {
           before.add(line.text);
 
           // Store the most precise preceding location we find.
@@ -118,7 +111,7 @@ class SourceCode {
       var after = <String>[];
       while (i < snippet.file.lines.length && after.length <= 5) {
         var line = snippet.file.lines[i];
-        if (line.isPresent(currentSnippet)) after.add(line.text);
+        if (line.isPresent(tag)) after.add(line.text);
         i++;
       }
       snippet.contextAfter.addAll(after);
@@ -185,21 +178,21 @@ class SourceLine {
   final Location location;
 
   /// The first snippet where this line appears in the book.
-  final SnippetTag start;
+  final CodeTag start;
 
   /// The last snippet where this line is removed, or null if the line reaches
   /// the end of the book.
-  final SnippetTag end;
+  final CodeTag end;
 
   SourceLine(this.text, this.location, this.start, this.end);
 
-  /// Returns true if this line exists by the time we reach [snippet].
-  bool isPresent(SnippetTag snippet) {
+  /// Returns true if this line exists by the time we reach [tag].
+  bool isPresent(CodeTag tag) {
     // If we haven't reached this line's snippet yet.
-    if (snippet < start) return false;
+    if (tag < start) return false;
 
     // If we are past the snippet where it is removed.
-    if (end != null && snippet >= end) return false;
+    if (end != null && tag >= end) return false;
 
     return true;
   }

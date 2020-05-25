@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
+import 'package:tool/src/code_tag.dart';
 import 'package:tool/src/markdown.dart';
 import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
@@ -19,24 +20,24 @@ import 'package:tool/src/text.dart';
 // sample.
 final _emDashPattern = RegExp(r"\s+--\s(?!-)");
 
-final _codeOptionsPattern = RegExp(r"([-a-z0-9]+) \(([^)]+)\)");
-final _beforePattern = RegExp(r"(\d+) before");
-final _afterPattern = RegExp(r"(\d+) after");
-
 final _asideCommentPattern =
     RegExp(r' ?<span class="c1">// \[([-a-z0-9]+)\] *</span>');
 final _asideWithCommentPattern =
     RegExp(r' ?<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>');
 
 void main(List<String> arguments) {
-  formatFiles();
+  var watch = Stopwatch()..start();
+  var totalWords = formatFiles();
 //  for (var entry in Directory("book").listSync()) {
 //    if (entry.path.endsWith(".md")) {
 //      print(entry.path);
 //    }
 //  }
 
-//  buildSass(skipUpToDate: true);
+  buildSass();
+
+  var seconds = (watch.elapsedMilliseconds / 1000).toStringAsFixed(2);
+  print("Built $totalWords words in ${seconds}s");
 
   /*
 if len(sys.argv) == 2 and sys.argv[1] == "--watch":
@@ -56,7 +57,7 @@ else:
 }
 
 /// Process each Markdown file.
-void formatFiles({bool skipUpToDate = false}) {
+int formatFiles({bool skipUpToDate = false}) {
   // TODO: Support formatting a single file.
 /*
 def format_files(skip_up_to_date, one_file=None):
@@ -87,7 +88,8 @@ def format_files(skip_up_to_date, one_file=None):
   for (var page in book.pages) {
     totalWords += formatFile(book, mustache, page);
   }
-  print("$totalWords words");
+
+  return totalWords;
 }
 
 // TODO: Move to library.
@@ -102,131 +104,43 @@ int formatFile(Book book, Mustache mustache, Page page) {
 //    if source_mod < dest_mod:
 //      return
 //
-  var title = "TODO";
-  var template = 'page';
 
-//  errors = []
-  // TODO: Something better typed.
-  var sections = <Map<String, String>>[];
-  var headerIndex = 0;
-  var subheaderIndex = 0;
-  var hasChallenges = false;
-  String designNote;
-
-  // TODO: Move this into Page and load lazily.
-  Map<String, Snippet> snippets;
-
-  var insertedSnippets = <String>[];
-
-  // Read the markdown file and preprocess it.
   var buffer = StringBuffer();
+  for (var i = 0; i < page.lines.length; i++) {
+    var line = page.lines[i];
 
-  // Read each line, preprocessing the special codes.
-  for (var line in File(page.markdownPath).readAsLinesSync()) {
-    var stripped = line.trimLeft();
-    var indentation = line.substring(0, line.length - stripped.length);
+    if (page.codeTags.containsKey(i)) {
+      // Leave a unique HTML comment where the snippet should go. We will
+      // replace this with the real snippet after the Markdown is rendered.
+      // This way, the snippet HTML is not run through the Markdown engine,
+      // which is pointlessly slow and tends to unnecessarily muck with the
+      // HTML.
+      buffer.writeln("<!-- snippet $i -->");
+    } else if (line.startsWith("^")) {
+      // Skip non-code tag lines. We've already parsed them.
+    } else if (line.startsWith("# ") ||
+        line.startsWith("## ") ||
+        line.startsWith("### ")) {
+      var header = page.headers[line];
 
-    if (line.startsWith("^")) {
-      var commandLine = stripped.substring(1).trim();
-      var space = commandLine.indexOf(" ");
-      var command = commandLine.substring(0, space);
-      var argument = commandLine.substring(space + 1).trim();
+      buffer.write("#" * header.level + " ");
 
-      switch (command) {
-        case "code":
-          // Leave a unique HTML comment where the snippet should go. We will
-          // replace this with the real snippet after the Markdown is rendered.
-          // This way, the snippet HTML is not run through the Markdown engine,
-          // which is pointlessly slow and tends to unnecessarily muck with the
-          // HTML.
-          var snippetCode = createSnippet(book, page, snippets, argument);
-          buffer.writeln("<!-- snippet ${insertedSnippets.length} -->");
-          insertedSnippets.add(snippetCode);
-          break;
-        case "part":
-          // TODO: No longer used. Remove from Markdown files.
-          break;
-        case "template":
-          template = argument;
-          break;
-        case "title":
-          title = argument;
+      buffer.write('<a href="#${header.anchor}" name="${header.anchor}">');
 
-          // Remove any discretionary hyphens from the title.
-          // TODO: Still needed?
-          title = title.replaceAll("&shy;", "");
-
-          // Load the code snippets now that we know the title.
-          if (page is ChapterPage) {
-            snippets = book.code.findAll(page);
-          }
-
-//          # If there were any errors loading the code, include them.
-//          if title in book.CODE_CHAPTERS:
-//            errors.extend(source_code.errors[title])
-          break;
-        default:
-          throw "Unknown command '$command'.";
-      }
-    } else if (stripped.startsWith("## Challenges")) {
-      hasChallenges = true;
-      buffer.writeln('## <a href="#challenges" name="challenges">'
-          'Challenges</a>');
-    } else if (stripped.startsWith("## Design Note:")) {
-      designNote = stripped.substring('## Design Note:'.length + 1);
-      buffer.writeln('## <a href="#design-note" name="design-note">'
-          'Design Note: $designNote</a>');
-    } else if (stripped.startsWith("# ") ||
-        stripped.startsWith("## ") ||
-        stripped.startsWith("### ")) {
-      // Build the section navigation from the headers.
-      var index = stripped.indexOf(" ");
-      var headerType = stripped.substring(0, index);
-      var header = pretty(stripped.substring(index).trim());
-
-      var anchor = toFileName(header);
-
-      // Add an anchor to the header.
-      buffer.write("$indentation$headerType ");
-
-      if (headerType.length == 2) {
-        headerIndex += 1;
-        subheaderIndex = 0;
-      } else if (headerType.length == 3) {
-        subheaderIndex += 1;
+      if (!header.isSpecial) {
+        buffer.write(
+            "<small>${page.numberString}&#8202;.&#8202;${header.headerIndex}");
+        if (header.subheaderIndex != null) {
+          buffer.write("&#8202;.&#8202;${header.subheaderIndex}");
+        }
+        buffer.write("</small> ");
       }
 
-      var number = "${page.numberString}&#8202;.&#8202;$headerIndex";
-      if (headerType.length == 3) number += "&#8202;.&#8202;$subheaderIndex";
-
-      buffer.writeln('<a href="#$anchor" name="$anchor">'
-          '<small>$number</small> $header</a>\n');
-
-      // Build the section navigation.
-      if (headerType.length == 2) {
-        sections.add({
-          "name": header,
-          "anchor": toFileName(header),
-          "index": headerIndex.toString()
-        });
-      }
+      buffer.writeln("${header.name}</a>\n");
     } else {
       buffer.writeln(pretty(line));
     }
   }
-
-//  # Validate that every snippet for the chapter is included.
-//  for name, snippet in snippets.items():
-//    if name != 'not-yet' and name != 'omit' and snippet != False:
-//      errors.append("Unused snippet {}".format(name))
-//
-//  # Show any errors at the top of the file.
-//  if errors:
-//    error_markdown = ""
-//    for error in errors:
-//      error_markdown += "**Error: {}**\n\n".format(error)
-//    contents = error_markdown + contents
-//
 
   // TODO: Do this in a cleaner way.
   // Fix up em dashes. We do this on the entire contents instead of in pretty()
@@ -236,15 +150,24 @@ int formatFile(Book book, Mustache mustache, Page page) {
       .toString()
       .replaceAll(_emDashPattern, '<span class="em">&mdash;</span>');
 
+  var wordCount = countWords(contents);
+
   var body = renderMarkdown(contents);
 
   // Put the snippets in.
-  for (var i = 0; i < insertedSnippets.length; i++) {
-    body = body.replaceAll("<!-- snippet $i -->", insertedSnippets[i]);
+  if (page.isChapter) {
+    var snippets = book.code.findAll(page);
+
+    page.codeTags.forEach((i, tag) {
+      var snippet = snippets[tag.name];
+      var snippetHtml = buildSnippet(tag, snippet);
+      body = body.replaceAll("<!-- snippet $i -->", snippetHtml);
+
+      wordCount += countWords(snippetHtml);
+    });
   }
 
-  var output =
-      mustache.render(template, book, page, body, sections, hasChallenges);
+  var output = mustache.render(book, page, body);
 
   // Turn aside markers in code into spans. In the empty span case, insert a
   // zero-width space because Chrome seems to lose the span's position if it has
@@ -258,14 +181,10 @@ int formatFile(Book book, Mustache mustache, Page page) {
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p><", "</p>\n<");
-//  output = output.replaceAll("</div><", "</div>\n<");
   output = output.replaceAll("><aside", ">\n<aside");
   output = output.replaceAll("</aside><", "</aside>\n<");
   output = output.replaceAll("</ol><", "</ol>\n<");
   output = output.replaceAll("</table>\n<", "</table>\n\n<");
-//  output = output.replaceAllMapped(
-//      RegExp(r'<div class="source-file-narrow">(.*?)</div>'),
-//      (match) => '\n<div class="source-file-narrow">${match[1]}</div>\n');
 
   // Python Markdown wraps images in paragraphs.
   output = output.replaceAllMapped(
@@ -273,23 +192,12 @@ int formatFile(Book book, Mustache mustache, Page page) {
   output = output.replaceAllMapped(
       RegExp(r'\n(<img [^>]*>)</'), (match) => '\n<p>${match[1]}</p>\n</');
 
-  // Dart Markdown library puts a newline before <pre>.
-//  output = output.replaceAll(
-//      '<div class="codehilite">\n<pre>', '<div class="codehilite"><pre>');
-
   // Python Markdown puts some extra blank lines after the pre tags.
   output = output.replaceAll('</pre></div>\n<', '</pre></div>\n\n\n<');
-
-  // Python Markdown puts a blank line before the closing pre tag.
-//  output = output.replaceAll('</span></pre></div>', '</span>\n</pre></div>');
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
 
-  // TODO: Do this faster.
-  // TODO: Note: This no longer includes the word count of the code snippets.
-  // Fix that if I want an accurate count.
-  var wordCount = contents.split(RegExp(r"\s+")).length;
   var words = term.gray("($wordCount words)");
   var number = "";
   if (page.numberString.isNotEmpty) {
@@ -298,7 +206,7 @@ int formatFile(Book book, Mustache mustache, Page page) {
 
   if (const ["index", "contents"].contains(page.fileName)) {
     print("${term.green('•')} $number${page.title}");
-  } else if (page is ChapterPage) {
+  } else if (page.isChapter) {
     print("  ${term.green('✓')} $number${page.title} $words");
   } else {
     print("${term.green('✓')} $number${page.title} $words");
@@ -307,44 +215,18 @@ int formatFile(Book book, Mustache mustache, Page page) {
   return wordCount;
 }
 
-String createSnippet(
-    Book book, Page page, Map<String, Snippet> snippets, String name) {
+String buildSnippet(CodeTag tag, Snippet snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
-//def insert_snippet(snippets, arg, contents, errors):
-
-  // Parse the location annotations after the name, if present.
-  var showLocation = true;
-  var beforeCount = 0;
-  var afterCount = 0;
-
-  var match = _codeOptionsPattern.firstMatch(name);
-  if (match != null) {
-    name = match.group(1);
-    var options = match.group(2).split(", ");
-
-    for (var option in options) {
-      if (option == "no location") {
-        showLocation = false;
-      } else if ((match = _beforePattern.firstMatch(option)) != null) {
-        beforeCount = int.parse(match.group(1));
-      } else if ((match = _afterPattern.firstMatch(option)) != null) {
-        afterCount = int.parse(match.group(1));
-      }
-    }
-  }
-
-  var snippet = snippets[name];
-
   List<String> linesBefore;
-  if (beforeCount > 0) {
+  if (tag.beforeCount > 0) {
     linesBefore = snippet.contextBefore
-        .sublist(snippet.contextBefore.length - beforeCount);
+        .sublist(snippet.contextBefore.length - tag.beforeCount);
   }
 
   List<String> linesAfter;
-  if (afterCount > 0) {
-    linesAfter = snippet.contextAfter.take(afterCount).toList();
+  if (tag.afterCount > 0) {
+    linesAfter = snippet.contextAfter.take(tag.afterCount).toList();
   }
 
 //  if name not in snippets:
@@ -361,7 +243,7 @@ String createSnippet(
 //  snippets[name] = False
 
   var location = <String>[];
-  if (showLocation) location = snippet.locationDescription;
+  if (tag.showLocation) location = snippet.locationDescription;
 
 //  # Make sure every snippet shows the reader where it goes.
 //  if (showLocation and len(location) <= 1
@@ -372,7 +254,7 @@ String createSnippet(
 //    return contents
 //
 //  # TODO: Show indentation in snippets somehow.
-//
+
   // Figure out the length of the longest line. We pad all of the snippets to
   // this length so that the background on the pre sections is as wide as the
   // entire chunk of code.
@@ -411,7 +293,7 @@ String createSnippet(
     buffer.write(commaLine.substring(comma + 1));
   }
 
-  if (showLocation) {
+  if (tag.showLocation) {
     var lines = location.join("<br>\n");
     buffer.writeln('<div class="source-file">$lines</div>');
   }
@@ -423,7 +305,7 @@ String createSnippet(
 
   if (snippet.added != null) {
     var added = formatCode(snippet.file.language, length, snippet.added,
-        beforeCount > 0 || afterCount > 0 ? "insert" : null);
+        tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
   }
 
@@ -435,7 +317,7 @@ String createSnippet(
 
   buffer.writeln('</div>');
 
-  if (showLocation) {
+  if (tag.showLocation) {
     // TODO: Just to match the old output. Delete when not needed.
     buffer.writeln();
 
