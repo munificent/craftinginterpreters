@@ -1,4 +1,6 @@
 BUILD_DIR := build
+TOOL_SOURCES := tool/pubspec.lock $(shell find tool -name '*.dart')
+BUILD_SNAPSHOT := $(BUILD_DIR)/build.dart.snapshot
 
 default: book clox jlox
 
@@ -10,6 +12,14 @@ setup:
 # Build the site.
 book:
 	@ ./util/build.py
+
+# Build the site using the Dart build script.
+book_dart: $(BUILD_SNAPSHOT)
+	@ dart $(BUILD_SNAPSHOT)
+
+$(BUILD_SNAPSHOT): $(TOOL_SOURCES)
+	@ echo "Generating Dart snapshot..."
+	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/build.dart
 
 # Compile a debug build of clox.
 debug:
