@@ -5,11 +5,11 @@ import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
-import 'package:tool/src/highlighter.dart';
 import 'package:tool/src/markdown.dart';
 import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
 import 'package:tool/src/snippet.dart';
+import 'package:tool/src/syntax/highlighter.dart';
 import 'package:tool/src/term.dart' as term;
 import 'package:tool/src/text.dart';
 

@@ -1,7 +1,7 @@
 import 'package:charcode/ascii.dart';
 import 'package:markdown/markdown.dart';
 
-import 'highlighter.dart';
+import 'syntax/highlighter.dart';
 import 'text.dart';
 
 String renderMarkdown(String contents) {
