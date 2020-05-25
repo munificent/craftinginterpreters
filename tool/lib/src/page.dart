@@ -1,43 +1,33 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 
-import 'snippet_tag.dart';
+import 'code_tag.dart';
+import 'page_parser.dart';
 import 'text.dart';
 
 /// One page (in the HTML sense) of the book.
 ///
 /// Each chapter, part introduction, and backmatter section is a page.
-abstract class Page {
-//  // TODO: Not needed?
-//  /// Parses the snippet tags from every chapter. Returns a map of chapter names
-//  /// to maps of snippet names to SnippetTags.
-//  static Map<Page, Map<String, SnippetTag>> getChapterSnippetTags() {
-//    var chapters = {};
-//
-//    for (var chapter in Page.codeChapters) {
-//      chapters[chapter] = chapter.snippetTags();
-//
-////    chapters.forEach((chapter, tags) {
-////      print(chapter);
-////      for (var tag in tags.values) {
-////        print("  $tag");
-////      }
-////    });
-//    }
-//
-//    return chapters;
-//  }
-
+class Page {
   /// The title of this page.
   final String title;
 
   /// The chapter or part number, like "12", "II", or "".
   final String numberString;
 
-  Map<String, SnippetTag> _snippetTags;
+  /// The numeric index of the page in chapter order.
+  ///
+  /// Used to determine which order snippets appear in the book.
+  final int ordinal;
 
-  Page(this.title, this.numberString);
+  /// If this page is a part page, the list of chapter pages it contains.
+  final List<Page> chapters = [];
+
+  /// If this page is a chapter page, the part that contains this page.
+  final Page part;
+
+  PageFile _file;
+
+  Page(this.title, this.part, this.numberString, this.ordinal);
 
   /// The base file path and URI for the page, without any extension.
   String get fileName => toFileName(title);
@@ -49,81 +39,83 @@ abstract class Page {
   /// The path to this page's generated HTML file.
   String get htmlPath => p.join("build", "site_dart", "$fileName.html");
 
-  String toString() => title;
-}
+  /// Whether this page is a chapter page, as opposed to a part.
+  bool get isChapter => part != null;
 
-class PartPage extends Page {
-  final List<ChapterPage> chapters = [];
+  /// Whether this page is a part page, as opposed to a chapter.
+  bool get isPart => part == null;
 
-  PartPage(String title, String numberString) : super(title, numberString);
-}
+  List<String> get lines => _ensureFile().lines;
 
-class ChapterPage extends Page {
-  /// The part that contains this page.
-  final PartPage part;
+  String get template => _ensureFile().template;
 
-  /// If the page is a chapter, the numeric index of it or `null` otherwise.
-  final int chapterIndex;
+  Map<String, Header> get headers => _ensureFile().headers;
 
-  /// The name of the design note or `null` if there is none.
-  final String designNote;
+  bool get hasChallenges => _ensureFile().hasChallenges;
 
-  ChapterPage(String title, this.part, String numberString, this.chapterIndex,
-      this.designNote)
-      : super(title, numberString);
+  String get designNote => _ensureFile().designNote;
 
-  SnippetTag findSnippetTag(String name) {
-    // TODO: snippetTags() parses the file each time. Do something caching
-    // somewhere.
-    var tag = snippetTags[name];
-    if (tag != null) return tag;
+  Map<int, CodeTag> get codeTags => _ensureFile().codeTags;
 
-    print("Could not find snippet '$name' in chapter '$title'.");
+  CodeTag findCodeTag(String name) {
+    // Return fake tags for the placeholders.
+    if (name == "omit") return CodeTag(this, "omit", 9998, 0, 0, false);
+    if (name == "not-yet") return CodeTag(this, "omit", 9999, 0, 0, false);
 
-//    if name != 'not-yet' and name != 'omit':
-//      print('Error: "{}" does not use snippet "{}".'.format(chapter, name),
-//          file=sys.stderr)
-
-    // Synthesize a fake one so we can keep going.
-    return snippetTags[name] = SnippetTag(this, name, snippetTags.length);
-
-//  def last_snippet_for_chapter(self, chapter):
-//    """ Returns the last snippet tag appearing in [chapter]. """
-//    snippets = self.snippet_tags[chapter]
-//    last = None
-//    for snippet in snippets.values():
-//      if not last or snippet > last:
-//        last = snippet
-//
-//    return last
-  }
-
-  /// Parses the page's Markdown file and finds all of the `^code` tags.
-  ///
-  /// Returns a map of snippet names to SnippetTags for them.
-  Map<String, SnippetTag> get snippetTags {
-    if (_snippetTags != null) return _snippetTags;
-
-    // TODO: Redundant with code in build.dart that parses commands. Unify?
-    final _codeTagPattern = RegExp(r"\s*\^code ([-a-z0-9]+).*");
-
-    _snippetTags = {};
-
-    // TODO: Each Markdown file gets read from disc twice. Once to find all the
-    // snippet tags and once when building. Merge those two into one read.
-    // (Maybe just cache the read lines in this class?)
-    for (var line in File(markdownPath).readAsLinesSync()) {
-      var match = _codeTagPattern.firstMatch(line);
-      if (match != null) {
-        _snippetTags[match.group(1)] =
-            SnippetTag(this, match.group(1), _snippetTags.length);
-      }
+    // TODO: Store a separate map of code tags by name?
+    for (var codeTag in _ensureFile().codeTags.values) {
+      if (codeTag.name == name) return codeTag;
     }
 
-    // Add fake tags for the placeholders.
-    _snippetTags["omit"] = SnippetTag(this, "omit", _snippetTags.length);
-    _snippetTags["not-yet"] = SnippetTag(this, "not-yet", _snippetTags.length);
+    throw ArgumentError("Could not find code tag '$name'.");
+  }
 
-    return _snippetTags;
+  String toString() => title;
+
+  /// Lazily parse the Markdown file for the page.
+  PageFile _ensureFile() => _file ??= parsePage(this);
+}
+
+/// The data for a page parsed from the Markdown source.
+class PageFile {
+  final List<String> lines;
+  final String template;
+  final Map<String, Header> headers;
+  final bool hasChallenges;
+
+  /// The name of the design note in this page, or `null` if there is none.
+  final String designNote;
+  final Map<int, CodeTag> codeTags;
+
+  PageFile(this.lines, this.template, this.headers,
+      this.hasChallenges, this.designNote, this.codeTags);
+}
+
+/// A section header in a page.
+class Header {
+  /// The header depth: 1 is the page title, 2 header, 3 subheader.
+  final int level;
+  final int headerIndex;
+  final int subheaderIndex;
+  final String name;
+
+  Header(this.level, this.headerIndex, this.subheaderIndex, this.name);
+
+  /// Whether this header is for the special "Challenges" or "Design Note"
+  /// sections.
+  bool get isSpecial => isChallenges || isDesignNote;
+
+  bool get isChallenges {
+    // Check for a subheader because there is a "Challenges" *subheader* in
+    // the Introduction.
+    return name == "Challenges" && level == 2;
+  }
+
+  bool get isDesignNote => name.startsWith("Design Note:");
+
+  String get anchor {
+    if (isChallenges) return "challenges";
+    if (isDesignNote) return "design-note";
+    return toFileName(name);
   }
 }

@@ -12,15 +12,8 @@ import 'text.dart';
 class Mustache {
   final Map<String, Template> _templates = {};
 
-  String render(String template, Book book, Page page, String body,
-      List<Map<String, String>> sections, bool hasChallenges) {
-    String part;
-    String designNote;
-
-    if (page is ChapterPage) {
-      part = page.part?.title;
-      designNote = page.designNote;
-    }
+  String render(Book book, Page page, String body) {
+    var part = page.part?.title;
 
     var up = "Table of Contents";
     if (part != null) {
@@ -32,14 +25,14 @@ class Mustache {
     var previousPage = book.adjacentPage(page, -1);
     var nextPage = book.adjacentPage(page, 1);
     String nextType;
-    if (nextPage is ChapterPage) {
+    if (nextPage != null && nextPage.isChapter) {
       nextType = "Chapter";
-    } else if (nextPage is PartPage) {
+    } else if (nextPage != null && nextPage.isPart) {
       nextType = "Part";
     }
 
     List<Map<String, dynamic>> chapters;
-    if (page is PartPage) {
+    if (page.isPart) {
       chapters = _makeChapterList(page);
     }
 
@@ -49,12 +42,12 @@ class Mustache {
       "has_part": part != null,
       "part": part,
       "body": body,
-      "sections": sections,
+      "sections": _makeSections(page),
       "chapters": chapters,
-      "design_note": designNote,
-      "has_design_note": designNote != null,
-      "has_challenges": hasChallenges,
-      "has_challenges_or_design_note": hasChallenges || designNote != null,
+      "design_note": page.designNote,
+      "has_design_note": page.designNote != null,
+      "has_challenges": page.hasChallenges,
+      "has_challenges_or_design_note": page.hasChallenges || page.designNote != null,
       "has_number": page.numberString != "",
       "number": page.numberString,
       // Previous page.
@@ -75,7 +68,7 @@ class Mustache {
       "part_3": _makePartData(book, 2),
     };
 
-    return _load(template).renderString(data);
+    return _load(page.template).renderString(data);
   }
 
   Map<String, dynamic> _makePartData(Book book, int partIndex) {
@@ -88,7 +81,7 @@ class Mustache {
     };
   }
 
-  List<Map<String, dynamic>> _makeChapterList(PartPage part) {
+  List<Map<String, dynamic>> _makeChapterList(Page part) {
     return [
       for (var chapter in part.chapters)
         <String, dynamic>{
@@ -98,6 +91,22 @@ class Mustache {
           "design_note": chapter.designNote?.replaceAll("'", "&rsquo;"),
         }
     ];
+  }
+
+  List<Map<String, dynamic>> _makeSections(Page page) {
+    var sections = <Map<String, dynamic>>[];
+
+    for (var header in page.headers.values) {
+      if (!header.isSpecial && header.level == 2) {
+        sections.add(<String, dynamic>{
+          "name": header.name,
+          "anchor": header.anchor,
+          "index": header.headerIndex
+        });
+      }
+    }
+
+    return sections;
   }
 
   Template _load(String name) {
