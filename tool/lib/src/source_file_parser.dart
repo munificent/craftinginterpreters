@@ -249,7 +249,7 @@ class SourceFileParser {
 
     match = _endSnippetPattern.firstMatch(line);
     if (match != null) {
-      var name = match.group(1);
+//      var name = match.group(1);
 //        if name != state.start.name:
 //          error("Expecting to pop {} but got {}.".format(state.start.name, name))
 //        if state.parent.start.chapter == None:
@@ -280,8 +280,8 @@ class SourceFileParser {
 
     match = _endChapterPattern.firstMatch(line);
     if (match != null) {
-      var chapter = match.group(1);
-      var name = match.group(2);
+//      var chapter = match.group(1);
+//      var name = match.group(2);
 //        if chapter != state.start.chapter or name != state.start.name:
 //          error('Expecting to pop "{} {}" but got "{} {}".'.format(
 //              state.start.chapter, state.start.name, chapter, name))

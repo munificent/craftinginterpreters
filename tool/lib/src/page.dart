@@ -55,17 +55,13 @@ class Page {
 
   String get designNote => _ensureFile().designNote;
 
-  Map<int, CodeTag> get codeTags => _ensureFile().codeTags;
-
   CodeTag findCodeTag(String name) {
     // Return fake tags for the placeholders.
     if (name == "omit") return CodeTag(this, "omit", 9998, 0, 0, false);
     if (name == "not-yet") return CodeTag(this, "omit", 9999, 0, 0, false);
 
-    // TODO: Store a separate map of code tags by name?
-    for (var codeTag in _ensureFile().codeTags.values) {
-      if (codeTag.name == name) return codeTag;
-    }
+    var codeTag = _ensureFile().codeTags[name];
+    if (codeTag != null) return codeTag;
 
     throw ArgumentError("Could not find code tag '$name'.");
   }
@@ -85,10 +81,11 @@ class PageFile {
 
   /// The name of the design note in this page, or `null` if there is none.
   final String designNote;
-  final Map<int, CodeTag> codeTags;
 
-  PageFile(this.lines, this.template, this.headers,
-      this.hasChallenges, this.designNote, this.codeTags);
+  final Map<String, CodeTag> codeTags;
+
+  PageFile(this.lines, this.template, this.headers, this.hasChallenges,
+      this.designNote, this.codeTags);
 }
 
 /// A section header in a page.

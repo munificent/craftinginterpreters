@@ -47,7 +47,8 @@ class Mustache {
       "design_note": page.designNote,
       "has_design_note": page.designNote != null,
       "has_challenges": page.hasChallenges,
-      "has_challenges_or_design_note": page.hasChallenges || page.designNote != null,
+      "has_challenges_or_design_note":
+          page.hasChallenges || page.designNote != null,
       "has_number": page.numberString != "",
       "number": page.numberString,
       // Previous page.
