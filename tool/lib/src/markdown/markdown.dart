@@ -1,7 +1,7 @@
 import 'package:markdown/markdown.dart';
 
+import '../book.dart';
 import '../page.dart';
-import '../snippet.dart';
 import 'block_syntax.dart';
 import 'code_syntax.dart';
 import 'inline_syntax.dart';
@@ -26,12 +26,11 @@ final _inlineSyntaxes = [
   UnicodeEscapeSyntax("æ".codeUnitAt(0), "aelig"),
 ];
 
-String renderMarkdown(
-    Page page, Map<String, Snippet> snippets, List<String> lines) {
+String renderMarkdown(Book book, Page page, List<String> lines) {
   var document = Document(
       blockSyntaxes: [
         BookHeaderSyntax(page),
-        CodeTagBlockSyntax(page, snippets),
+        CodeTagBlockSyntax(book, page),
         IgnoreTagBlockSyntax(),
         HighlightedCodeBlockSyntax(),
         TripleColonCodeBlockSyntax(),

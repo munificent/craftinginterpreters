@@ -4,7 +4,6 @@ import 'book.dart';
 import 'code_tag.dart';
 import 'location.dart';
 import 'page.dart';
-import 'source_code.dart';
 
 final _blockPattern = RegExp(
     r"^/\* ([A-Z][A-Za-z\s]+) ([-a-z0-9]+) < ([A-Z][A-Za-z\s]+) ([-a-z0-9]+)$");

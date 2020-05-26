@@ -1,5 +1,6 @@
 import 'package:markdown/markdown.dart';
 
+import '../book.dart';
 import '../code_tag.dart';
 import '../page.dart';
 import '../snippet.dart';
@@ -96,11 +97,10 @@ class TripleColonCodeBlockSyntax extends BlockSyntax {
 class CodeTagBlockSyntax extends BlockSyntax {
   static final _startPattern = RegExp(r'\^code ([a-z0-9-]+)');
 
+  final Book _book;
   final Page _page;
-  // TODO: Get this from Page.
-  final Map<String, Snippet> _snippets;
 
-  CodeTagBlockSyntax(this._page, this._snippets);
+  CodeTagBlockSyntax(this._book, this._page);
 
   RegExp get pattern => _startPattern;
 
@@ -112,7 +112,8 @@ class CodeTagBlockSyntax extends BlockSyntax {
     var name = match[1];
     parser.advance();
 
-    return Text(_buildSnippet(_page.findCodeTag(name), _snippets[name]));
+    var codeTag = _page.findCodeTag(name);
+    return Text(_buildSnippet(codeTag, _book.findSnippet(codeTag)));
   }
 }
 
