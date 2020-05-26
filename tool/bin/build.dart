@@ -11,7 +11,6 @@ import 'package:tool/src/book.dart';
 import 'package:tool/src/markdown/markdown.dart';
 import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
-import 'package:tool/src/snippet.dart';
 import 'package:tool/src/term.dart' as term;
 import 'package:tool/src/text.dart';
 
@@ -30,7 +29,7 @@ Future<void> main(List<String> arguments) async {
 }
 
 /// Process each Markdown file.
-int _buildPages({bool skipUpToDate = false}) {
+void _buildPages({bool skipUpToDate = false}) {
   var watch = Stopwatch()..start();
   var book = Book();
   var mustache = Mustache();
@@ -38,7 +37,7 @@ int _buildPages({bool skipUpToDate = false}) {
   DateTime dependenciesModified;
   if (skipUpToDate) {
     dependenciesModified = _mostRecentlyModified(
-        ["asset/mustache/*.html", "c/*.c", "c/*.h", "java/**.java"]);
+        ["asset/mustache/*.html", "c/*.{c,h}", "java/**.java"]);
   }
 
   var totalWords = 0;
@@ -68,13 +67,7 @@ int _buildPage(Book book, Mustache mustache, Page page,
   var wordCount = 0;
   for (var line in page.lines) wordCount += countWords(line);
 
-  // TODO: Move this into Page.
-  Map<String, Snippet> snippets;
-  if (page.isChapter) {
-    snippets = book.code.findAll(page);
-  }
-
-  var body = renderMarkdown(page, snippets, page.lines);
+  var body = renderMarkdown(book, page, page.lines);
   var output = mustache.render(book, page, body);
 
   // Turn aside markers in code into spans. In the empty span case, insert a
