@@ -5,20 +5,12 @@ import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
 
 import 'package:tool/src/book.dart';
-import 'package:tool/src/code_tag.dart';
-import 'package:tool/src/markdown.dart';
+import 'package:tool/src/markdown/markdown.dart';
 import 'package:tool/src/mustache.dart';
 import 'package:tool/src/page.dart';
 import 'package:tool/src/snippet.dart';
-import 'package:tool/src/syntax/highlighter.dart';
 import 'package:tool/src/term.dart' as term;
 import 'package:tool/src/text.dart';
-
-// The "(?!-)" is a hack. scanning.md has an inline code sample containing a
-// "--" operator. We don't want that to get matched, so fail the match if the
-// character after the "-- " is "-", which is the next character in the code
-// sample.
-final _emDashPattern = RegExp(r"\s+--\s(?!-)");
 
 final _asideCommentPattern =
     RegExp(r' ?<span class="c1">// \[([-a-z0-9]+)\] *</span>');
@@ -105,68 +97,16 @@ int formatFile(Book book, Mustache mustache, Page page) {
 //      return
 //
 
-  var buffer = StringBuffer();
-  for (var i = 0; i < page.lines.length; i++) {
-    var line = page.lines[i];
+  var wordCount = 0;
+  for (var line in page.lines) wordCount += countWords(line);
 
-    if (page.codeTags.containsKey(i)) {
-      // Leave a unique HTML comment where the snippet should go. We will
-      // replace this with the real snippet after the Markdown is rendered.
-      // This way, the snippet HTML is not run through the Markdown engine,
-      // which is pointlessly slow and tends to unnecessarily muck with the
-      // HTML.
-      buffer.writeln("<!-- snippet $i -->");
-    } else if (line.startsWith("^")) {
-      // Skip non-code tag lines. We've already parsed them.
-    } else if (line.startsWith("# ") ||
-        line.startsWith("## ") ||
-        line.startsWith("### ")) {
-      var header = page.headers[line];
-
-      buffer.write("#" * header.level + " ");
-
-      buffer.write('<a href="#${header.anchor}" name="${header.anchor}">');
-
-      if (!header.isSpecial) {
-        buffer.write(
-            "<small>${page.numberString}&#8202;.&#8202;${header.headerIndex}");
-        if (header.subheaderIndex != null) {
-          buffer.write("&#8202;.&#8202;${header.subheaderIndex}");
-        }
-        buffer.write("</small> ");
-      }
-
-      buffer.writeln("${header.name}</a>\n");
-    } else {
-      buffer.writeln(pretty(line));
-    }
-  }
-
-  // TODO: Do this in a cleaner way.
-  // Fix up em dashes. We do this on the entire contents instead of in pretty()
-  // so that we can handle surrounding whitespace even when the "--" is at the
-  // beginning of end of a line in Markdown.
-  var contents = buffer
-      .toString()
-      .replaceAll(_emDashPattern, '<span class="em">&mdash;</span>');
-
-  var wordCount = countWords(contents);
-
-  var body = renderMarkdown(contents);
-
-  // Put the snippets in.
+  // TODO: Move this into Page.
+  Map<String, Snippet> snippets;
   if (page.isChapter) {
-    var snippets = book.code.findAll(page);
-
-    page.codeTags.forEach((i, tag) {
-      var snippet = snippets[tag.name];
-      var snippetHtml = buildSnippet(tag, snippet);
-      body = body.replaceAll("<!-- snippet $i -->", snippetHtml);
-
-      wordCount += countWords(snippetHtml);
-    });
+    snippets = book.code.findAll(page);
   }
 
+  var body = renderMarkdown(page, snippets, page.lines);
   var output = mustache.render(book, page, body);
 
   // Turn aside markers in code into spans. In the empty span case, insert a
@@ -213,119 +153,6 @@ int formatFile(Book book, Mustache mustache, Page page) {
   }
 
   return wordCount;
-}
-
-String buildSnippet(CodeTag tag, Snippet snippet) {
-  // NOTE: If you change this, be sure to update the baked in example snippet
-  // in introduction.md.
-  List<String> linesBefore;
-  if (tag.beforeCount > 0) {
-    linesBefore = snippet.contextBefore
-        .sublist(snippet.contextBefore.length - tag.beforeCount);
-  }
-
-  List<String> linesAfter;
-  if (tag.afterCount > 0) {
-    linesAfter = snippet.contextAfter.take(tag.afterCount).toList();
-  }
-
-//  if name not in snippets:
-//    errors.append("Undefined snippet {}".format(name))
-//    contents += "**ERROR: Missing snippet {}**\n".format(name)
-//    return contents
-//
-//  if snippets[name] == False:
-//    errors.append("Reused snippet {}".format(name))
-//    contents += "**ERROR: Reused snippet {}**\n".format(name)
-//    return contents
-
-//  # Consume it.
-//  snippets[name] = False
-
-  var location = <String>[];
-  if (tag.showLocation) location = snippet.locationDescription;
-
-//  # Make sure every snippet shows the reader where it goes.
-//  if (showLocation and len(location) <= 1
-//      and beforeLines == 0 and afterLines == 0):
-//    print("No location or context for {}".format(name))
-//    errors.append("No location or context for {}".format(name))
-//    contents += "**ERROR: No location or context for {}**\n".format(name)
-//    return contents
-//
-//  # TODO: Show indentation in snippets somehow.
-
-  // Figure out the length of the longest line. We pad all of the snippets to
-  // this length so that the background on the pre sections is as wide as the
-  // entire chunk of code.
-  var length = 0;
-  if (linesBefore != null) {
-    length = longestLine(length, linesBefore);
-  }
-  if (snippet.removed.isNotEmpty && snippet.added.isEmpty) {
-    length = longestLine(length, snippet.removed);
-  }
-  if (snippet.addedComma != null) {
-    length = longestLine(length, [snippet.addedComma]);
-  }
-  if (snippet.added.isNotEmpty) {
-    length = longestLine(length, snippet.added);
-  }
-  if (linesAfter != null) {
-    length = longestLine(length, linesAfter);
-  }
-
-  var buffer = StringBuffer();
-  buffer.write('<div class="codehilite">');
-
-  if (linesBefore != null) {
-    var before = formatCode(snippet.file.language, length, linesBefore,
-        snippet.added.isNotEmpty ? "insert-before" : null);
-    buffer.write(before);
-  }
-
-  if (snippet.addedComma != null) {
-    var commaLine = formatCode(
-        snippet.file.language, length, [snippet.addedComma], "insert-before");
-    var comma = commaLine.lastIndexOf(",");
-    buffer.write(commaLine.substring(0, comma));
-    buffer.write('<span class="insert-comma">,</span>');
-    buffer.write(commaLine.substring(comma + 1));
-  }
-
-  if (tag.showLocation) {
-    var lines = location.join("<br>\n");
-    buffer.writeln('<div class="source-file">$lines</div>');
-  }
-
-//  if snippet.removed and not snippet.added:
-//    removed = format_code(snippet.file.language(), length, snippet.removed)
-//    removed = removed.replace('<pre>', '<pre class="delete">')
-//    contents += removed
-
-  if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, length, snippet.added,
-        tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
-    buffer.write(added);
-  }
-
-  if (linesAfter != null) {
-    var after = formatCode(snippet.file.language, length, linesAfter,
-        snippet.added.isNotEmpty ? "insert-after" : null);
-    buffer.write(after);
-  }
-
-  buffer.writeln('</div>');
-
-  if (tag.showLocation) {
-    // TODO: Just to match the old output. Delete when not needed.
-    buffer.writeln();
-
-    var lines = location.join(", ");
-    buffer.writeln('<div class="source-file-narrow">$lines</div>');
-  }
-
-  return buffer.toString();
 }
 
 /// Process each SASS file.

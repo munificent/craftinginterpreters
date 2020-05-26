@@ -13,7 +13,7 @@ final _afterPattern = RegExp(r"(\d+) after");
 PageFile parsePage(Page page) {
   var template = 'page';
   var headers = <String, Header>{};
-  var codeTags = <int, CodeTag>{};
+  var codeTagsByName = <String, CodeTag>{};
   String designNote;
   var hasChallenges = false;
 
@@ -31,7 +31,8 @@ PageFile parsePage(Page page) {
 
       switch (command) {
         case "code":
-          codeTags[i] = createCodeTag(page, i, argument);
+          var codeTag = createCodeTag(page, i, argument);
+          codeTagsByName[codeTag.name] = codeTag;
           break;
         case "template":
           template = argument;
@@ -83,10 +84,10 @@ PageFile parsePage(Page page) {
 //    contents = error_markdown + contents
 //
   return PageFile(
-      lines, template, headers, hasChallenges, designNote, codeTags);
+      lines, template, headers, hasChallenges, designNote, codeTagsByName);
 }
 
-CodeTag createCodeTag(Page chapter, int line, String argument) {
+CodeTag createCodeTag(Page page, int line, String argument) {
   var name = argument;
 
   // Parse the location annotations after the name, if present.
@@ -110,5 +111,5 @@ CodeTag createCodeTag(Page chapter, int line, String argument) {
     }
   }
 
-  return CodeTag(chapter, name, line, beforeCount, afterCount, showLocation);
+  return CodeTag(page, name, line, beforeCount, afterCount, showLocation);
 }
