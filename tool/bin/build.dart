@@ -1,8 +1,11 @@
 import 'dart:io';
 
 import 'package:glob/glob.dart';
+import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart' as p;
 import 'package:sass/sass.dart' as sass;
+import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf/shelf_io.dart' as io;
 
 import 'package:tool/src/book.dart';
 import 'package:tool/src/markdown/markdown.dart';
@@ -17,85 +20,50 @@ final _asideCommentPattern =
 final _asideWithCommentPattern =
     RegExp(r' ?<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>');
 
-void main(List<String> arguments) {
-  var watch = Stopwatch()..start();
-  var totalWords = formatFiles();
-//  for (var entry in Directory("book").listSync()) {
-//    if (entry.path.endsWith(".md")) {
-//      print(entry.path);
-//    }
-//  }
-
-  buildSass();
-
-  var seconds = (watch.elapsedMilliseconds / 1000).toStringAsFixed(2);
-  print("Built $totalWords words in ${seconds}s");
-
-  /*
-if len(sys.argv) == 2 and sys.argv[1] == "--watch":
-  run_server()
-  while True:
-    format_files(True)
-    build_sass(True)
-    time.sleep(0.3)
-if len(sys.argv) == 2 and sys.argv[1] == "--serve":
-  format_files(True)
-  run_server()
-else:
-  format_files(False)
-  build_sass(False)
-
-   */
+Future<void> main(List<String> arguments) async {
+  if (arguments.contains("--serve")) {
+    await _runServer();
+  } else {
+    _buildSass();
+    _buildPages();
+  }
 }
 
 /// Process each Markdown file.
-int formatFiles({bool skipUpToDate = false}) {
-  // TODO: Support formatting a single file.
-/*
-def format_files(skip_up_to_date, one_file=None):
-  code_mod = max(
-      latest_mod("c/ *.c"),
-      latest_mod("c/ *.h"),
-      latest_mod("java/com/craftinginterpreters/tool/ *.java"),
-      latest_mod("java/com/craftinginterpreters/lox/ *.java"))
-
-  # Reload the source snippets if the code was changed.
-  global source_code
-  global last_code_load_time
-  if not last_code_load_time or code_mod > last_code_load_time:
-    source_code = code_snippets.load()
-    last_code_load_time = time.time()
-
-  # See if any of the templates were modified. If so, all pages will be rebuilt.
-  templates_mod = latest_mod("asset/template/ *.html")
-*/
-
+int _buildPages({bool skipUpToDate = false}) {
+  var watch = Stopwatch()..start();
   var book = Book();
   var mustache = Mustache();
 
-  // TODO: Temp. Just one chapter for now.
-//  formatFile(book, mustache, book.findChapter("Classes"));
+  DateTime dependenciesModified;
+  if (skipUpToDate) {
+    dependenciesModified = _mostRecentlyModified(
+        ["asset/mustache/*.html", "c/*.c", "c/*.h", "java/**.java"]);
+  }
 
   var totalWords = 0;
   for (var page in book.pages) {
-    totalWords += formatFile(book, mustache, page);
+    totalWords += _buildPage(book, mustache, page,
+        dependenciesModified: dependenciesModified);
   }
 
-  return totalWords;
+  if (totalWords > 0) {
+    var wordString = totalWords.toString();
+    if (totalWords > 1000) {
+      wordString = "${totalWords ~/ 1000},${totalWords % 1000}";
+    }
+    var seconds = (watch.elapsedMilliseconds / 1000).toStringAsFixed(2);
+    print("Built ${term.green(wordString)} words in $seconds seconds");
+  }
 }
 
-// TODO: Move to library.
-// TODO: Skip up to date stuff.
-int formatFile(Book book, Mustache mustache, Page page) {
-//
-//  # See if the HTML is up to date.
-//  if skip_up_to_date:
-//    source_mod = max(os.path.getmtime(path), dependencies_mod)
-//    dest_mod = os.path.getmtime(output_path)
-//
-//    if source_mod < dest_mod:
-//      return
-//
+int _buildPage(Book book, Mustache mustache, Page page,
+    {DateTime dependenciesModified}) {
+  // See if the HTML is up to date.
+  if (dependenciesModified != null &&
+      _isUpToDate(page.htmlPath, page.markdownPath, dependenciesModified)) {
+    return 0;
+  }
 
   var wordCount = 0;
   for (var line in page.lines) wordCount += countWords(line);
@@ -156,31 +124,77 @@ int formatFile(Book book, Mustache mustache, Page page) {
 }
 
 /// Process each SASS file.
-void buildSass({bool skipUpToDate = false}) {
-  var modules =
-      Glob("asset/sass/*.scss").listSync().map((file) => file.path).toList();
+void _buildSass({bool skipUpToDate = false}) {
+  var moduleModified = _mostRecentlyModified(["asset/sass/*.scss"]);
 
   for (var source in Glob("asset/*.scss").listSync()) {
-    var sourcePath = p.normalize(source.path);
-    var dest = p.join("site", p.basenameWithoutExtension(source.path) + ".css");
+    var scssPath = p.normalize(source.path);
+    var cssPath =
+        p.join("site", p.basenameWithoutExtension(source.path) + ".css");
 
-    if (skipUpToDate && !isOutOfDate([...modules, sourcePath], dest)) continue;
+    if (skipUpToDate && _isUpToDate(cssPath, scssPath, moduleModified)) {
+      continue;
+    }
 
     var output =
-        sass.compile(sourcePath, color: true, style: sass.OutputStyle.expanded);
-    File(dest).writeAsStringSync(output);
-    print("${term.green('-')} $dest");
+        sass.compile(scssPath, color: true, style: sass.OutputStyle.expanded);
+    File(cssPath).writeAsStringSync(output);
+    print("${term.green('-')} $cssPath");
   }
 }
 
-/// Returns whether any of the [inputs] have been modified more recently than
-/// [output.
-bool isOutOfDate(List<String> inputs, String output) {
-  var outputModified = File(output).lastModifiedSync();
-  for (var input in inputs) {
-    var inputModified = File(input).lastModifiedSync();
-    if (inputModified.isAfter(outputModified)) return true;
+Future<void> _runServer() async {
+  Future<shelf.Response> handleRequest(shelf.Request request) async {
+    var filePath = p.normalize(p.fromUri(request.url));
+    if (filePath == ".") filePath = "index.html";
+    var extension = p.extension(filePath).replaceAll(".", "");
+
+    // Refresh files that are being requested.
+    if (extension == "html") {
+      _buildPages(skipUpToDate: true);
+    } else if (extension == "css") {
+      _buildSass(skipUpToDate: true);
+    }
+
+    try {
+      var contents = await File(p.join("site", filePath)).readAsBytes();
+      return shelf.Response.ok(contents, headers: {
+        HttpHeaders.contentTypeHeader: mimeFromExtension(extension)
+      });
+    } on FileSystemException {
+      print(
+          "${term.red(request.method)} Not found: ${request.url} ($filePath)");
+      return shelf.Response.notFound("Could not find '$filePath'.");
+    }
   }
 
-  return false;
+  var handler = const shelf.Pipeline().addHandler(handleRequest);
+
+  var server = await io.serve(handler, "localhost", 8080);
+  print("Serving at http://${server.address.host}:${server.port}");
+}
+
+/// Returns `true` if [outputPath] was generated after [inputPath] and more
+/// recently than [dependenciesModified].
+bool _isUpToDate(
+    String outputPath, String inputPath, DateTime dependenciesModified) {
+  var outputModified = File(outputPath).lastModifiedSync();
+  var inputModified = File(inputPath).lastModifiedSync();
+  return outputModified.isAfter(dependenciesModified) &&
+      outputModified.isAfter(inputModified);
+}
+
+/// The most recently modified time of all files that match [globs].
+DateTime _mostRecentlyModified(List<String> globs) {
+  DateTime latest;
+  for (var glob in globs) {
+    for (var entry in Glob(glob).listSync()) {
+      if (entry is File) {
+        var modified = entry.lastModifiedSync();
+        if (latest == null || modified.isAfter(latest)) latest = modified;
+      }
+    }
+  }
+
+  return latest;
 }
