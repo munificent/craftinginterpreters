@@ -55,6 +55,8 @@ class Page {
 
   String get designNote => _ensureFile().designNote;
 
+  Iterable<CodeTag> get codeTags => _ensureFile().codeTags.values;
+
   CodeTag findCodeTag(String name) {
     // Return fake tags for the placeholders.
     if (name == "omit") return CodeTag(this, "omit", 9998, 0, 0, false);

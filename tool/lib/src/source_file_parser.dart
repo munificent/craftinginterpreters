@@ -74,10 +74,10 @@ class SourceFileParser {
 //      sys.exit(1)
 //
 
-//  # TODO: Validate that we don't define two snippets with the same chapter and
-//  # number. A snippet may end up in disjoint lines in the final output because
-//  # a later snippet is inserted in it, but it shouldn't be explicitly authored
-//  # that way.
+    // TODO: Validate that we don't define two snippets with the same chapter
+    // and number. A snippet may end up in disjoint lines in the final output
+    // because a later snippet is inserted in it, but it shouldn't be explicitly
+    // authored that way.
     return _file;
   }
 
@@ -92,13 +92,8 @@ class SourceFileParser {
 //
 
     _updateLocationBefore(line);
-    var handled = _updateState(line);
-//
-//      if not handled:
-//        if not state.start:
-//          error("No snippet in effect.".format(relative))
 
-    if (!handled) {
+    if (!_updateState(line)) {
       var sourceLine =
           SourceLine(line, _location, _currentState.start, _currentState.end);
       _file.lines.add(sourceLine);

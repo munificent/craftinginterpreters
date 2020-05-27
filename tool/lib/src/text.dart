@@ -55,5 +55,4 @@ String pluralize<T>(Iterable<T> sequence) {
   return "s";
 }
 
-// TODO: Do this faster?
 int countWords(String text) => text.split(_whitespace).length;

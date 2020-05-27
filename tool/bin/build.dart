@@ -67,6 +67,13 @@ int _buildPage(Book book, Mustache mustache, Page page,
   var wordCount = 0;
   for (var line in page.lines) wordCount += countWords(line);
 
+  for (var tag in page.codeTags) {
+    var snippet = book.findSnippet(tag);
+    for (var line in snippet.added) wordCount += countWords(line);
+    for (var line in snippet.contextBefore) wordCount += countWords(line);
+    for (var line in snippet.contextAfter) wordCount += countWords(line);
+  }
+
   var body = renderMarkdown(book, page, page.lines);
   var output = mustache.render(book, page, body);
 

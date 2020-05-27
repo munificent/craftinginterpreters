@@ -46,6 +46,9 @@ class Location {
   /// Generates a string of HTML that describes a snippet at this location,
   /// when following the [preceding] location.
   String toHtml(Location preceding, List<String> removed) {
+    if (kind == "new") return "create new file";
+    if (kind == "top") return "add to top of file";
+
     // Note: The order of these is highly significant.
     if (kind == "class" && parent?.kind == "class") {
       return "nest inside class <em>${parent.name}</em>";
@@ -93,7 +96,6 @@ class Location {
     // If we get here, there isn't a useful location to show. The snippet will
     // have enough surrounding context to make it clear. This is usually stuff
     // like imports or includes near the top of the file.
-    // TODO: How do we get here?
     return null;
   }
 

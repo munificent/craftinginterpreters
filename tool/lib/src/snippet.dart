@@ -8,30 +8,24 @@ class Snippet {
   final SourceFile file;
   final CodeTag tag;
 
-  Location get location => _location;
   Location _location;
 
   int _firstLine;
   int _lastLine;
 
-  Location get precedingLocation => _ensureContext()._precedingLocation;
+  Location get precedingLocation => _precedingLocation;
   Location _precedingLocation;
 
   /// If the snippet replaces a line with the same line but with a trailing
   /// comma, this is that line (with the comma).
-  String get addedComma => _ensureContext()._addedComma;
+  String get addedComma => _addedComma;
   String _addedComma;
 
   final List<String> added = [];
   final List<String> removed = [];
 
-  bool _hasContext = false;
-
-  final List<String> _contextBefore = [];
-  List<String> get contextBefore => _ensureContext()._contextBefore;
-
-  final List<String> _contextAfter = [];
-  List<String> get contextAfter => _ensureContext()._contextAfter;
+  final List<String> contextBefore = [];
+  final List<String> contextAfter = [];
 
   Snippet(this.file, this.tag);
 
@@ -58,16 +52,8 @@ class Snippet {
   List<String> get locationDescription {
     var result = ["<em>${file.nicePath}</em>"];
 
-    if (contextBefore.isEmpty && contextAfter.isEmpty) {
-      // No lines around the snippet, it must be a new file.
-      result.add("create new file");
-    } else if (contextBefore.isEmpty) {
-      // No lines before the snippet, it must be at the beginning.
-      result.add("add to top of file");
-    } else {
-      var html = location.toHtml(precedingLocation, removed);
-      if (html != null) result.add(html);
-    }
+    var html = _location.toHtml(precedingLocation, removed);
+    if (html != null) result.add(html);
 
     if (removed.isNotEmpty && added.isNotEmpty) {
       result.add("replace ${removed.length} line${pluralize(removed)}");
@@ -84,34 +70,58 @@ class Snippet {
 
   String toString() => "${file.nicePath} ${tag.name}";
 
-  /// Lazily calculate the surrounding context information for this snippet.
-  Snippet _ensureContext() {
-    if (_hasContext) return this;
-
+  /// Calculate the surrounding context information for this snippet.
+  void calculateContext() {
     // TODO: Should only need to grab as many preceding lines as the tag
     // requests and until we find a preceding location, but changing the `<= 5`
     // causes some locations to become wrong. Figure out why.
 
     // Get the preceding lines.
-    for (var i = _firstLine - 1; i >= 0 && _contextBefore.length <= 5; i--) {
+    for (var i = _firstLine - 1;
+        i >= 0 && contextBefore.length < tag.beforeCount;
+        i--) {
       var line = file.lines[i];
-      if (line.isPresent(tag)) {
-        _contextBefore.insert(0, line.text);
-
-        // Store the most precise preceding location we find.
-        if (_precedingLocation == null ||
-            line.location.depth > _precedingLocation.depth) {
-          _precedingLocation = line.location;
-        }
-      }
+      if (!line.isPresent(tag)) continue;
+      contextBefore.insert(0, line.text);
     }
 
     // Get the following lines.
     for (var i = _lastLine + 1;
-        i < file.lines.length && _contextAfter.length < tag.afterCount;
+        i < file.lines.length && contextAfter.length < tag.afterCount;
         i++) {
       var line = file.lines[i];
-      if (line.isPresent(tag)) _contextAfter.add(line.text);
+      if (line.isPresent(tag)) contextAfter.add(line.text);
+    }
+
+    // Get the preceding location.
+    // TODO: This constant is somewhat arbitrary. Come up with a more precise
+    // way to track the preceding location.
+    int checkedLines = 0;
+    for (var i = _firstLine - 1; i >= 0 && checkedLines <= 4; i--) {
+      var line = file.lines[i];
+      if (!line.isPresent(tag)) continue;
+      checkedLines++;
+
+      // Store the most precise preceding location we find.
+      if (_precedingLocation == null ||
+          line.location.depth > _precedingLocation.depth) {
+        _precedingLocation = line.location;
+      }
+    }
+
+    // Update the current location based on surrounding lines.
+    var hasCodeBefore = contextBefore.isNotEmpty;
+    var hasCodeAfter = contextAfter.isNotEmpty;
+    for (var i = _firstLine - 1; !hasCodeBefore && i >= 0; i--) {
+      hasCodeBefore = file.lines[i].isPresent(tag);
+    }
+
+    for (var i = _lastLine + 1; !hasCodeAfter && i < file.lines.length; i++) {
+      hasCodeAfter = file.lines[i].isPresent(tag);
+    }
+
+    if (!hasCodeBefore) {
+      _location = Location(null, hasCodeAfter ? "top" : "new", null);
     }
 
     // Find line changes that just add a trailing comma.
@@ -122,8 +132,5 @@ class Snippet {
       added.removeAt(0);
       removed.removeLast();
     }
-
-    _hasContext = true;
-    return this;
   }
 }
