@@ -1,5 +1,6 @@
 //> Evaluating Expressions interpreter-class
 package com.craftinginterpreters.lox;
+//> Statements and State import-list
 
 //> Functions import-array-list
 import java.util.ArrayList;
@@ -7,7 +8,6 @@ import java.util.ArrayList;
 //> Resolving and Binding import-hash-map
 import java.util.HashMap;
 //< Resolving and Binding import-hash-map
-//> Statements and State import-list
 import java.util.List;
 //< Statements and State import-list
 //> Resolving and Binding import-map
