@@ -9,8 +9,7 @@ import '../text.dart';
 
 /// Custom code block formatter that uses our syntax highlighter.
 class HighlightedCodeBlockSyntax extends BlockSyntax {
-  // TODO: Can we remove the spaces from this?
-  static final _codeFencePattern = RegExp(r'^[ ]{0,3}```(.*)$');
+  static final _codeFencePattern = RegExp(r'^```(.*)$');
 
   RegExp get pattern => _codeFencePattern;
 
@@ -143,20 +142,9 @@ Element _formatCodeLines(String language, List<String> childLines) {
   return element;
 }
 
-// TODO: Move elsewhere?
 String _buildSnippet(CodeTag tag, Snippet snippet) {
   // NOTE: If you change this, be sure to update the baked in example snippet
   // in introduction.md.
-  List<String> linesBefore;
-  if (tag.beforeCount > 0) {
-    linesBefore = snippet.contextBefore
-        .sublist(snippet.contextBefore.length - tag.beforeCount);
-  }
-
-  List<String> linesAfter;
-  if (tag.afterCount > 0) {
-    linesAfter = snippet.contextAfter.take(tag.afterCount).toList();
-  }
 
 //  if name not in snippets:
 //    errors.append("Undefined snippet {}".format(name))
@@ -188,8 +176,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   // this length so that the background on the pre sections is as wide as the
   // entire chunk of code.
   var length = 0;
-  if (linesBefore != null) {
-    length = longestLine(length, linesBefore);
+  if (snippet.contextBefore.isNotEmpty) {
+    length = longestLine(length, snippet.contextBefore);
   }
   if (snippet.removed.isNotEmpty && snippet.added.isEmpty) {
     length = longestLine(length, snippet.removed);
@@ -200,15 +188,15 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   if (snippet.added.isNotEmpty) {
     length = longestLine(length, snippet.added);
   }
-  if (linesAfter != null) {
-    length = longestLine(length, linesAfter);
+  if (snippet.contextAfter.isNotEmpty) {
+    length = longestLine(length, snippet.contextAfter);
   }
 
   var buffer = StringBuffer();
   buffer.write('<div class="codehilite">');
 
-  if (linesBefore != null) {
-    var before = formatCode(snippet.file.language, length, linesBefore,
+  if (snippet.contextBefore.isNotEmpty) {
+    var before = formatCode(snippet.file.language, length, snippet.contextBefore,
         snippet.added.isNotEmpty ? "insert-before" : null);
     buffer.write(before);
   }
@@ -238,8 +226,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
     buffer.write(added);
   }
 
-  if (linesAfter != null) {
-    var after = formatCode(snippet.file.language, length, linesAfter,
+  if (snippet.contextAfter.isNotEmpty) {
+    var after = formatCode(snippet.file.language, length, snippet.contextAfter,
         snippet.added.isNotEmpty ? "insert-after" : null);
     buffer.write(after);
   }

@@ -24,13 +24,9 @@ class IgnoreTagBlockSyntax extends BlockSyntax {
 /// - Generates anchor links.
 /// - Includes the section numbers.
 class BookHeaderSyntax extends BlockSyntax {
-  // TODO: Simplify.
-  /// Leading (and trailing) `#` define atx-style headers.
-  ///
-  /// Starts with 1-6 unescaped `#` characters which must not be followed by a
-  /// non-space character. Line may end with any number of `#` characters,.
+  /// Leading `#` define atx-style headers.
   static final _headerPattern =
-      RegExp(r'^ {0,3}(#{1,6})[ \x09\x0b\x0c](.*?)#*$');
+      RegExp(r'^(#{1,6}) (.*)$');
 
   final Page _page;
 

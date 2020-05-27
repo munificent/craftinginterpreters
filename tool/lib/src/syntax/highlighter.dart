@@ -28,8 +28,8 @@ class Highlighter {
     if (preClass != null) _buffer.write(' class="$preClass"');
     _buffer.write(">");
 
-    // TODO: If we change build to not pass this output through the Markdown
-    // parser, then revisit this.
+    // TODO: Is this still needed now that this output doesn't go through the
+    // Python Markdown parser?
     // Hack. Markdown seems to discard leading and trailing newlines, so we'll
     // add them back ourselves.
     var leadingNewlines = 0;
@@ -66,9 +66,7 @@ class Highlighter {
       return;
     }
 
-    // TODO: Reuse scanner for all lines?
     scanner = StringScanner(line.padRight(_lineLength, " "));
-
     while (!scanner.isDone) {
       var found = false;
       for (var rule in language.rules) {

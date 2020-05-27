@@ -55,8 +55,8 @@ const _tableOfContents = {
   ],
 };
 
-/// TODO: This is basically a global, eagerly-loaded God object. If we want to
-/// handle incremental refresh better, this should probably be less monolithic.
+/// The contents of the Markdown and source files for the book, loaded and
+/// parsed.
 class Book {
   final List<Page> parts = [];
   final List<Page> pages = [];
@@ -128,6 +128,12 @@ class Book {
           lineIndex++;
         }
       }
+    }
+
+    for (var snippet in _snippets.values) {
+      if (snippet.tag.name == "not-yet") continue;
+      if (snippet.tag.name == "omit") continue;
+      snippet.calculateContext();
     }
   }
 
