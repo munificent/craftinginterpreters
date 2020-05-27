@@ -720,7 +720,7 @@ There are two facets to a string encoding:
     confusing Unicode *also* has a single code point that looks like "ä".)
 
     If a user accesses the fourth "character" in "naïve", do they expect to get
-    back "v" or "¨"? The former means they are thinking of each code point and
+    back "v" or &ldquo;¨&rdquo;? The former means they are thinking of each code point and
     its combining characters as a single unit -- what Unicode calls an *extended
     grapheme cluster* -- the latter means they are thinking in individual code
     points. Which do your users expect?

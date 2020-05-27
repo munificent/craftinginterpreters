@@ -109,8 +109,8 @@ static void adjustCapacity(Table* table, int capacity) {
     entries[i].key = NULL;
     entries[i].value = NIL_VAL;
   }
-  
 //> re-hash
+
 //> resize-init-count
   table->count = 0;
 //< resize-init-count

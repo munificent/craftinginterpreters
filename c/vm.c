@@ -244,14 +244,13 @@ static bool callValue(Value callee, int argCount) {
 //> Closures call-value-closure
       case OBJ_CLOSURE:
         return call(AS_CLOSURE(callee), argCount);
-
 //< Closures call-value-closure
 /* Calls and Functions call-value < Closures call-value-closure
       case OBJ_FUNCTION: // [switch]
         return call(AS_FUNCTION(callee), argCount);
-
 */
 //> call-native
+        
       case OBJ_NATIVE: {
         NativeFn native = AS_NATIVE(callee);
         Value result = native(argCount, vm.stackTop - argCount);

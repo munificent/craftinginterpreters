@@ -1065,12 +1065,12 @@ the [next chapter][vm], we will see how the virtual machine does exactly that.
     What is required to allocate a block of memory? Free it? How do they make
     that efficient? What do they do about fragmentation?
 
-    *Hardcore mode: Implement `reallocate()` without calling `realloc()`,
+    *Hardcore mode:* Implement `reallocate()` without calling `realloc()`,
     `malloc()`, or `free()`. You are allowed to call `malloc()` *once*, at the
     beginning of the interpreter's execution, to allocate a single big block of
     memory which your `reallocate()` function has access to. It parcels out
     blobs of memory from that single region, your own personal heap. It's your
-    job to define how it does that.*
+    job to define how it does that.
 
 </div>
 

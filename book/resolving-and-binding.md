@@ -568,8 +568,7 @@ for a matching name. If we find the variable, we tell the interpreter it has
 been resolved, passing in the number of scopes between the current innermost
 scope and the scope where the variable was found. So, if the variable was found
 in the current scope, it passes in 0. If it's in the immediately enclosing
-scope,
-1. You get the idea.
+scope, 1. You get the idea.
 
 We'll get to the implementation of that method a little later. For now, let's
 keep on cranking through the other syntax nodes.
