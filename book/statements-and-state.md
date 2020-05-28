@@ -877,7 +877,10 @@ Consider a complex field assignment like:
 
 You can still use this trick even if there are assignment targets that are not
 valid expressions. Define a **cover grammar**, a looser grammar that accepts
-both all of the valid expression *and* assignment target syntaxes. When you hit a `=`, report an error if the left-hand side isn't within the valid assignment target grammar. Conversely, if you *don't* hit a `=`, report an error if the left-hand side isn't a valid *expression*.
+both all of the valid expression *and* assignment target syntaxes. When you hit
+an `=`, report an error if the left-hand side isn't within the valid assignment
+target grammar. Conversely, if you *don't* hit an `=`, report an error if the
+left-hand side isn't a valid *expression*.
 
 </aside>
 
