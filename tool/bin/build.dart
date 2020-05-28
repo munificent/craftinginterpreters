@@ -20,11 +20,11 @@ final _asideWithCommentPattern =
     RegExp(r' ?<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>');
 
 Future<void> main(List<String> arguments) async {
+  _buildSass();
+  _buildPages();
+
   if (arguments.contains("--serve")) {
     await _runServer();
-  } else {
-    _buildSass();
-    _buildPages();
   }
 }
 
@@ -98,7 +98,9 @@ int _buildPage(Book book, Mustache mustache, Page page,
   output = output.replaceAllMapped(
       RegExp(r'\n(<img [^>]*>)\n'), (match) => '\n<p>${match[1]}</p>\n');
   output = output.replaceAllMapped(
-      RegExp(r'\n(<img [^>]*>)</'), (match) => '\n<p>${match[1]}</p>\n</');
+      RegExp(r'\n(<img [^>]*>)<'), (match) => '\n<p>${match[1]}</p>\n<');
+  output = output.replaceAllMapped(
+      RegExp(r'<aside name="(\w+)">(<img [^>]*>)'), (match) => '<aside name="${match[1]}"><p>${match[2]}</p>');
 
   // Python Markdown puts some extra blank lines after the pre tags.
   output = output.replaceAll('</pre></div>\n<', '</pre></div>\n\n\n<');
