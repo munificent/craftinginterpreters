@@ -31,7 +31,7 @@ PageFile parsePage(Page page) {
 
       switch (command) {
         case "code":
-          var codeTag = createCodeTag(page, i, argument);
+          var codeTag = _createCodeTag(page, codeTagsByName.length, argument);
           codeTagsByName[codeTag.name] = codeTag;
           break;
         case "template":
@@ -87,7 +87,7 @@ PageFile parsePage(Page page) {
       lines, template, headers, hasChallenges, designNote, codeTagsByName);
 }
 
-CodeTag createCodeTag(Page page, int line, String argument) {
+CodeTag _createCodeTag(Page page, int index, String argument) {
   var name = argument;
 
   // Parse the location annotations after the name, if present.
@@ -111,5 +111,5 @@ CodeTag createCodeTag(Page page, int line, String argument) {
     }
   }
 
-  return CodeTag(page, name, line, beforeCount, afterCount, showLocation);
+  return CodeTag(page, name, index, beforeCount, afterCount, showLocation);
 }

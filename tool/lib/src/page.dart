@@ -45,6 +45,25 @@ class Page {
   /// Whether this page is a part page, as opposed to a chapter.
   bool get isPart => part == null;
 
+  /// The code language used for this chapter page or `null` if this isn't one
+  /// of the main chapter pages.
+  String get language {
+    if (isPart) return null;
+    if (part.title == "A Tree-Walk Interpreter") return "java";
+    if (part.title == "A Bytecode Virtual Machine") return "c";
+    return null;
+  }
+
+  String get shortName {
+    var number = numberString.padLeft(2, "0");
+
+    var words = title.split(" ");
+    var word = words.first.toLowerCase();
+    if (word == "a" || word == "the") word = words[1].toLowerCase();
+
+    return "chap${number}_$word";
+  }
+
   List<String> get lines => _ensureFile().lines;
 
   String get template => _ensureFile().template;
