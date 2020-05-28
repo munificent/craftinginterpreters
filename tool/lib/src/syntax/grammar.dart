@@ -3,22 +3,23 @@ import 'rule.dart';
 
 final languages = {
   "c": c,
-  // TODO: Add C++ support.
-  "c++": Language(),
+  "c++": cpp,
   "java": java,
-  // TODO: Add JS support.
   "js": Language(
       keywords: "break case catch class const continue debugger default delete "
           "do else export extends finally for function if import in instanceof "
           "let new return super switch this throw try typeof var void while "
           "with yield",
       rules: [..._commonRules, _cOperatorRule]),
-  // TODO: Add Lisp support.
-  "lisp": Language(),
-  // TODO: Make `this` a keyword? It is in Java.
+  "lisp": Language(rules: [
+    // TODO: Other punctuation characters.
+    Rule(r"[a-zA-Z0-9_-]+", "n"),
+    Rule(r"[()[\]{}]+", "o"),
+  ]),
   "lox": lox,
-  // TODO: Add Lua support.
-  "lua": Language(),
+  // TODO: This is just enough for the one line in "scanning". To more if
+  // needed.
+  "lua": Language(rules: [..._commonRules]),
   "python": Language(
       keywords: "and as assert break class continue def del elif else except "
           "exec finally for from global if import is lambda not or pass print "
@@ -26,6 +27,7 @@ final languages = {
       names: "range",
       other: {
         // TODO: Get rid of this and just make it a keyword.
+        // TODO: "ow"?
         "in": "ow",
       },
       rules: [
@@ -36,27 +38,16 @@ final languages = {
 };
 
 final c = Language(
-  keywords: "bool break case char const continue default do double else enum "
-      "extern FILE for goto if inline int return size_t sizeof static struct "
-      "switch typedef uint16_t uint32_t uint64_t uint8_t uintptr_t union "
-      "va_list void while",
+  keywords: _cKeywords,
   names: "false NULL true",
-  rules: [
-    // Include.
-    Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]),
+  rules: _cRules,
+);
 
-    // Preprocessor with comment.
-    Rule.capture(r"(#.*?)(//.*)", ["cp", "c1"]),
-
-    // Preprocessor.
-    Rule(r"#.*", "cp"),
-
-    LabelRule(),
-
-    ..._commonRules,
-    _characterRule,
-    _cOperatorRule,
-  ],
+final cpp = Language(
+  keywords: _cKeywords,
+  names: "false NULL true",
+  types: "vector string",
+  rules: _cRules,
 );
 
 final java = Language(
@@ -68,7 +59,9 @@ final java = Language(
   constants: "false null true",
   rules: [
     // Type declaration.
-    Rule.capture(r"(class|enum|interface)(\s+)(\w+)", ["k", "", "nc"]),
+    // TODO: Should match enum here too. Or just use identifier capitalization
+    // for "nc" and remove this rule.
+    Rule.capture(r"(class|interface)(\s+)(\w+)", ["k", "", "nc"]),
     // Import.
     Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
     // Static import.
@@ -87,6 +80,7 @@ final java = Language(
 
 final lox = Language(
   keywords: "and class else fun for if or print return super var while",
+  // TODO: Make `this` a keyword? It is in Java.
   names: "false nil this true",
   rules: [
     ..._commonRules,
@@ -121,6 +115,29 @@ final ruby = Language(
     _cOperatorRule,
   ],
 );
+
+final _cKeywords =
+    "bool break case char const continue default do double else enum "
+    "extern FILE for goto if inline int return size_t sizeof static struct "
+    "switch typedef uint16_t uint32_t uint64_t uint8_t uintptr_t union "
+    "va_list void while";
+
+final _cRules = [
+  // Include.
+  Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]),
+
+  // Preprocessor with comment.
+  Rule.capture(r"(#.*?)(//.*)", ["cp", "c1"]),
+
+  // Preprocessor.
+  Rule(r"#.*", "cp"),
+
+  LabelRule(),
+
+  ..._commonRules,
+  _characterRule,
+  _cOperatorRule,
+];
 
 /// Matches the operator characters in C-like languages.
 // TODO: Allowing a space in here would produce visually identical output but

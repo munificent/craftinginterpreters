@@ -31,13 +31,15 @@ class SourceFileParser {
   final Book _book;
   final String _path;
   final SourceFile _file;
+  final List<String> _lines;
   final List<_ParseState> _states = [];
 
   Location _location;
   Location _locationBeforeBlock;
 
   SourceFileParser(this._book, this._path, String relative)
-      : _file = SourceFile(relative) {
+      : _file = SourceFile(relative),
+        _lines = File(_path).readAsLinesSync() {
     _location = Location(null, "file", _file.nicePath);
   }
 
@@ -54,11 +56,28 @@ class SourceFileParser {
     // Split the source file into lines.
 //    printed_file = False
 //    line_num = 1
-    for (var line in File(_path).readAsLinesSync()) {
-      line = line.trimRight();
+    for (var i = 0; i < _lines.length; i++) {
+      var line = _lines[i].trimRight();
 //      handled = False
 //
-      _parseLine(line);
+//      # Report any lines that are too long.
+//      trimmed = re.sub(r'// \[([-a-z0-9]+)\]', '', line)
+//      if len(trimmed) > 72 and not '/*' in trimmed:
+//        if not printed_file:
+//          print("Long line in {}:".format(file.path))
+//          printed_file = True
+//        print("{0:4} ({1:2} chars): {2}".format(line_num, len(trimmed), trimmed))
+//
+
+      _updateLocationBefore(line, i);
+
+      if (!_updateState(line)) {
+        var sourceLine =
+            SourceLine(line, _location, _currentState.start, _currentState.end);
+        _file.lines.add(sourceLine);
+      }
+
+      _updateLocationAfter(line);
 //
 //      line_num += 1
     }
@@ -81,29 +100,8 @@ class SourceFileParser {
     return _file;
   }
 
-  void _parseLine(String line) {
-//      # Report any lines that are too long.
-//      trimmed = re.sub(r'// \[([-a-z0-9]+)\]', '', line)
-//      if len(trimmed) > 72 and not '/*' in trimmed:
-//        if not printed_file:
-//          print("Long line in {}:".format(file.path))
-//          printed_file = True
-//        print("{0:4} ({1:2} chars): {2}".format(line_num, len(trimmed), trimmed))
-//
-
-    _updateLocationBefore(line);
-
-    if (!_updateState(line)) {
-      var sourceLine =
-          SourceLine(line, _location, _currentState.start, _currentState.end);
-      _file.lines.add(sourceLine);
-    }
-
-    _updateLocationAfter(line);
-  }
-
   /// Keep track of the current location where the parser is in the source file.
-  void _updateLocationBefore(String line) {
+  void _updateLocationBefore(String line, int lineIndex) {
     // See if we reached a new function or method declaration.
     var match = _functionPattern.firstMatch(line);
     if (match != null &&
@@ -115,11 +113,10 @@ class SourceFileParser {
         //   void foo(); // [wat]
         var isFunctionDeclaration = line.endsWith(";");
 
-        // TODO:
-//        // Hack: Handle multi-line declarations.
-//        if (line.endsWith(",") && lines[line_num].endsWith(";")) {
-//          isFunctionDeclaration = true;
-//        }
+        // Hack: Handle multi-line declarations.
+        if (line.endsWith(",") && _lines[lineIndex + 1].endsWith(";")) {
+          isFunctionDeclaration = true;
+        }
 
         _location = Location(_location,
             _file.language == "java" ? "method" : "function", match.group(2),

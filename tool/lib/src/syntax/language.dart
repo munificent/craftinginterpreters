@@ -9,6 +9,7 @@ class Language {
       {String keywords,
       String constants,
       String names,
+      String types,
       Map<String, String> other,
       List<Rule> rules})
       // TODO: Allow omitting rules for languages that aren't supported yet.
@@ -23,6 +24,7 @@ class Language {
     keywordType(keywords, "k");
     keywordType(constants, "kc");
     keywordType(names, "nb");
+    keywordType(types, "nc");
     if (other != null) words.addAll(other);
   }
 }

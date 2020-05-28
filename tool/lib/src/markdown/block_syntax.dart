@@ -25,8 +25,7 @@ class IgnoreTagBlockSyntax extends BlockSyntax {
 /// - Includes the section numbers.
 class BookHeaderSyntax extends BlockSyntax {
   /// Leading `#` define atx-style headers.
-  static final _headerPattern =
-      RegExp(r'^(#{1,6}) (.*)$');
+  static final _headerPattern = RegExp(r'^(#{1,6}) (.*)$');
 
   final Page _page;
 

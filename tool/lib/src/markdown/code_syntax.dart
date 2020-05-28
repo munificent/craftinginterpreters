@@ -131,7 +131,7 @@ Element _formatCodeLines(String language, List<String> childLines) {
     // Remove the trailing empty line so that `formatCode()` doesn't put a
     // <br> at the end.
     if (childLines.last.trim().isEmpty) childLines.removeLast();
-    code = formatCode(language, 72, childLines);
+    code = formatCode(language, 0, childLines);
   }
 
   // TODO: Just return Text instead of Element?
@@ -196,7 +196,10 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
-    var before = formatCode(snippet.file.language, length, snippet.contextBefore,
+    var before = formatCode(
+        snippet.file.language,
+        length,
+        snippet.contextBefore,
         snippet.added.isNotEmpty ? "insert-before" : null);
     buffer.write(before);
   }
