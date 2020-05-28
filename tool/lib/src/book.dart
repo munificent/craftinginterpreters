@@ -153,6 +153,32 @@ class Book {
   }
 
   Snippet findSnippet(CodeTag tag) => _snippets[tag];
+
+  /// Gets the last snippet that appears in [page].
+  ///
+  /// Note: Not very fast.
+  Snippet lastSnippet(Page page) {
+    Snippet last;
+    for (var snippet in _snippets.values) {
+      if (snippet.tag.chapter != page) continue;
+      if (last == null || snippet.tag > last.tag) last = snippet;
+    }
+
+    return last;
+  }
+
+  /// Find the [CodeTag] with [name] on [page].
+  ///
+  /// Note: Not very fast.
+  CodeTag findTag(Page page, String name) {
+    Snippet last;
+    for (var tag in _snippets.keys) {
+      if (tag.chapter != page) continue;
+      if (tag.name == name) return tag;
+    }
+
+    throw ArgumentError("Could not find tag '$name' in '${page.title}'.");
+  }
 }
 
 /// A single source file whose code is included in the book.
