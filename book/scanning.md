@@ -42,10 +42,11 @@ starts with a class in Java:
 
 <aside name="64">
 
-For exit codes, I'm using the conventions defined in the UNIX "[sysexits.h][]"
-header. It's the closest thing to a standard I could find.
+For exit codes, I'm using the conventions defined in the UNIX
+["sysexits.h"][sysexits] header. It's the closest thing to a standard I could
+find.
 
-[sysexits.h]: https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
+[sysexits]: https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html
 
 </aside>
 

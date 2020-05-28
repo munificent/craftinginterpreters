@@ -368,9 +368,11 @@ a sister function for returning error tokens:
 <span name="axolotl"></span>
 
 <aside name="axolotl">
+
 This part of the chapter is pretty dry, so here's a picture of an axolotl.
 
 <img src="image/scanning-on-demand/axolotl.png" alt="A drawing of an axolotl." />
+
 </aside>
 
 The only difference is that the "lexeme" points to the error message string

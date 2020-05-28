@@ -879,8 +879,6 @@ precedence and associativity correctly? Not bad for less than 200 lines of code.
     operand and discards the result. Then it evaluates and returns the right
     operand.
 
-[comma operator]: https://en.wikipedia.org/wiki/Comma_operator
-
     Add support for comma expressions. Give them the same precedence and
     associativity as in C. Write the grammar, and then implement the necessary
     parsing code.
@@ -893,6 +891,8 @@ precedence and associativity correctly? Not bad for less than 200 lines of code.
     left-hand operand. In other words, detect a binary operator appearing at the
     beginning of an expression. Report that as an error, but also parse and
     discard a right-hand operand with the appropriate precedence.
+
+[comma operator]: https://en.wikipedia.org/wiki/Comma_operator
 
 </div>
 

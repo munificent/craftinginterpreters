@@ -84,8 +84,7 @@ the jargon economy led today to the name "domain-specific languages". These are
 pidgins tailor-built to a specific task. Things like application scripting
 languages, template engines, markup formats, and configuration files.
 
-<span name="little"></span>
-<img src="image/introduction/little-languages.png" alt="A random selection of little languages." />
+<span name="little"></span><img src="image/introduction/little-languages.png" alt="A random selection of little languages." />
 
 <aside name="little">
 
