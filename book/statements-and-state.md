@@ -297,7 +297,6 @@ constructs.
         :::lox
         var beverage = "espresso";
 
-
     This creates a new binding that associates a name (here "beverage") with a
     value (here, the string `"espresso"`).
 

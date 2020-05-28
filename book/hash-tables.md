@@ -789,7 +789,7 @@ entry works.
 
 <aside name="tombstone">
 
-<img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry bagel -> 3.75, gone but not deleted." />
+<img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry bagel &rarr; 3.75, gone but not deleted'." />
 
 </aside>
 
