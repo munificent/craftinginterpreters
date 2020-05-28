@@ -700,7 +700,7 @@ violates [separation of concerns][] and leads to hard to maintain code.
 
 ### The Expression Problem
 
-This problem is more fundamental than it may at first seem. We have a handful of
+This problem is more fundamental than it may seem at first. We have a handful of
 types, and a handful of high level operations like "interpret". For each pair of
 type and operation, we need a specific implementation. Picture a table:
 
