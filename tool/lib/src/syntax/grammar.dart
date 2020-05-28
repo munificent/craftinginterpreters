@@ -19,7 +19,7 @@ final languages = {
   "lox": lox,
   // TODO: This is just enough for the one line in "scanning". To more if
   // needed.
-  "lua": Language(rules: [..._commonRules]),
+  "lua": Language(rules: [..._commonRules, _cOperatorRule]),
   "python": Language(
       keywords: "and as assert break class continue def del elif else except "
           "exec finally for from global if import is lambda not or pass print "

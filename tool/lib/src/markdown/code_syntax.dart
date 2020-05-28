@@ -66,12 +66,17 @@ class TripleColonCodeBlockSyntax extends BlockSyntax {
     parser.advance();
 
     while (!parser.isDone) {
+      var line = parser.current;
+
       // Stop when we hit a non-empty line whose indentation is less than the
       // ":::" line.
-      var match = _indentationPattern.firstMatch(parser.current);
+      var match = _indentationPattern.firstMatch(line);
       if (match != null && match[1].length < indentation.length) break;
 
-      childLines.add(parser.current);
+      if (line.length > indentation.length) {
+        line = line.substring(indentation.length);
+      }
+      childLines.add(line);
       parser.advance();
     }
 
