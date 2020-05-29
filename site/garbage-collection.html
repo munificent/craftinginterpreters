@@ -253,7 +253,7 @@ up unneeded memory:</p>
 <ol>
 <li>
 <p>Starting with the roots, traverse through object references to find the
-    full set of reachable objects.</p>
+full set of reachable objects.</p>
 </li>
 <li>
 <p>Free all objects <em>not</em> in that set.</p>
@@ -291,15 +291,15 @@ of CS seem to be timeless.</p>
 <ul>
 <li>
 <p><strong>Marking.</strong> We start with the roots and traverse or <span
-    name="trace"><em>trace</em></span> through all of the objects those roots refer to.
-    This is a classic graph traversal of all of the reachable objects. Each time
-    we visit an object, we <em>mark</em> it in some way. (Implementations differ in how
-    they record the mark.)</p>
+name="trace"><em>trace</em></span> through all of the objects those roots refer to.
+This is a classic graph traversal of all of the reachable objects. Each time
+we visit an object, we <em>mark</em> it in some way. (Implementations differ in how
+they record the mark.)</p>
 </li>
 <li>
 <p><strong>Sweeping.</strong> Once the mark phase completes, every reachable object in the
-    heap is marked. That means any unmarked object is unreachable and ripe for
-    reclamation. We go through all the unmarked objects and free each one.</p>
+heap is marked. That means any unmarked object is unreachable and ripe for
+reclamation. We go through all the unmarked objects and free each one.</p>
 </li>
 </ul>
 <p>It looks something like this:</p>
@@ -767,21 +767,21 @@ publication.</p>
 <li>
 <p><strong>White</strong> <img src="image/garbage-collection/white.png" class="dot" />
     &ndash; At the beginning of a garbage collection, every object is white.
-    This color means we have not reached or processed the object at all.</p>
+This color means we have not reached or processed the object at all.</p>
 </li>
 <li>
 <p><strong>Gray</strong> <img src="image/garbage-collection/gray.png" class="dot" /> &ndash;
-    During marking, when we first reach an object, we darken it gray. This color
-    means we know it is reachable and should not be collected. But we have not
-    yet traced <em>through</em> it to see what <em>other</em> objects it references. In graph
-    algorithm terms, this is the <em>worklist</em><span class="em">&mdash;</span>the set of objects we know about
-    but haven&rsquo;t processed yet.</p>
+During marking, when we first reach an object, we darken it gray. This color
+means we know it is reachable and should not be collected. But we have not
+yet traced <em>through</em> it to see what <em>other</em> objects it references. In graph
+algorithm terms, this is the <em>worklist</em><span class="em">&mdash;</span>the set of objects we know about
+but haven&rsquo;t processed yet.</p>
 </li>
 <li>
 <p><strong>Black</strong> <img src="image/garbage-collection/black.png" class="dot" />
     &ndash; When we take a gray object and mark all of the objects it
-    references, we then turn it black. This color means the mark phase is done
-    with that object.</p>
+references, we then turn it black. This color means the mark phase is done
+with that object.</p>
 </li>
 </ul>
 <p>In terms of that abstraction, the marking process now looks like this:</p>
@@ -797,7 +797,7 @@ publication.</p>
 <ol>
 <li>
 <p>Pick a gray object. Turn any white objects that the object mentions to
-    gray.</p>
+gray.</p>
 </li>
 <li>
 <p>Mark the original gray object black.</p>
@@ -1229,10 +1229,10 @@ collector is to minimize that overhead.</p>
 <ul>
 <li>
 <p><strong>Throughput</strong> is the total fraction of time spent running user code versus
-    doing garbage collection work. Say you run a clox program for ten seconds
-    and it spends a second of that inside <code>collectGarbage()</code>. That means the
-    throughput is 90%<span class="em">&mdash;</span>it spent 90% of the time running the program and 10%
-    on GC overhead.</p>
+doing garbage collection work. Say you run a clox program for ten seconds
+and it spends a second of that inside <code>collectGarbage()</code>. That means the
+throughput is 90%<span class="em">&mdash;</span>it spent 90% of the time running the program and 10%
+on GC overhead.</p>
 <p>Throughput is the most fundamental measure because it tracks the total cost
 of collection overhead. All else being equal, you want to maximize
 throughput. Up until this chapter, clox had no GC at all and thus <span
@@ -1250,9 +1250,9 @@ list, so there was some tiny overhead for setting those pointers.</p>
 <ul>
 <li>
 <p><strong>Latency</strong> is the longest <em>continuous</em> chunk of time where the user&rsquo;s
-    program is completely paused while garbage collection happens. It&rsquo;s a
-    measure of how &ldquo;chunky&rdquo; the collector is. Latency is an entirely different
-    metric than throughput.</p>
+program is completely paused while garbage collection happens. It&rsquo;s a
+measure of how &ldquo;chunky&rdquo; the collector is. Latency is an entirely different
+metric than throughput.</p>
 <p>Consider two runs of a clox program that both take ten seconds. In the first
 run, the GC kicks in once and spends a solid second in <code>collectGarbage()</code> in
 one massive collection. In the second run, the GC gets invoked five times,
@@ -1628,19 +1628,19 @@ mark-sweep garbage collector.</p>
 <li>
 <p>The Obj header struct at the top of each object now has three fields:
     <code>type</code>, <code>isMarked</code>, and <code>next</code>. How much memory do those take up (on your
-    machine)? Can you come up with something more compact? Is there a runtime
-    cost to doing so?</p>
+machine)? Can you come up with something more compact? Is there a runtime
+cost to doing so?</p>
 </li>
 <li>
 <p>When the sweep phase traverses a live object, it clears the <code>isMarked</code>
-    field to prepare it for the next collection cycle. Can you come up with a
-    more efficient approach?</p>
+field to prepare it for the next collection cycle. Can you come up with a
+more efficient approach?</p>
 </li>
 <li>
 <p>Mark-sweep is only one of a variety of garbage collection algorithms out
-    there. Explore those by replacing or augmenting the current collector with
-    another one. Good candidates to consider are reference counting, Cheney&rsquo;s
-    algorithm, or the Lisp 2 mark-compact algorithm.</p>
+there. Explore those by replacing or augmenting the current collector with
+another one. Good candidates to consider are reference counting, Cheney&rsquo;s
+algorithm, or the Lisp 2 mark-compact algorithm.</p>
 </li>
 </ol>
 </div>

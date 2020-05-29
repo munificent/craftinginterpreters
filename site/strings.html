@@ -1008,17 +1008,17 @@ languages: the venerable <a href="hash-tables.html">hash table</a>. But that&rsq
 <ol>
 <li>
 <p>Each string requires two separate dynamic allocations<span class="em">&mdash;</span>one for the
-    ObjString and a second for the character array. Accessing the characters
-    from a value requires two pointer indirections, which can be bad for
-    performance.</p>
+ObjString and a second for the character array. Accessing the characters
+from a value requires two pointer indirections, which can be bad for
+performance.</p>
 <p>A more efficient solution relies on a technique called
 &ldquo;<a href="https://en.wikipedia.org/wiki/Flexible_array_member">flexible array members</a>&rdquo;. Use that to store the ObjString and its
 character array in a single contiguous allocation.</p>
 </li>
 <li>
 <p>When we create the ObjString for each string literal, we copy the characters
-    onto the heap. That way, when the string is later freed, we know it is safe
-    to free the characters too.</p>
+onto the heap. That way, when the string is later freed, we know it is safe
+to free the characters too.</p>
 <p>This is a simpler approach, but wastes some memory, which might be a problem
 on very constrained devices. Instead, we could keep track of which
 ObjStrings own their character array and which are &ldquo;constant strings&rdquo; that
@@ -1028,7 +1028,7 @@ location. Add support for this.</p>
 <li>
 <p>If Lox was your language, what would you have it do when a user tries to use
     <code>+</code> with one string operand and the other some other type? Justify your
-    choice. What do other languages do?</p>
+choice. What do other languages do?</p>
 </li>
 </ol>
 </div>
@@ -1044,13 +1044,13 @@ nasty conundrum: deciding how to represent strings.</p>
 <ol>
 <li>
 <p><strong>What is a single &ldquo;character&rdquo; in a string?</strong> How many different values are
-    there and what do they represent? The first widely-adopted standard answer
-    to this was <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a>. It gave you 127 different character values and
-    specified what they were. It was great&hellip; if you only ever cared about
-    English. While it has weird, mostly-forgotten characters like &ldquo;record
-    separator&rdquo; and &ldquo;synchronous idle&rdquo;, it doesn&rsquo;t have a single umlaut, acute,
-    or grave. It can&rsquo;t represent &ldquo;jalapeño&rdquo;, &ldquo;na&iuml;ve&rdquo;, <span
-    name="gruyere">&ldquo;Gruyère&rdquo;</span>, or &ldquo;Mötley Crüe&rdquo;.</p>
+there and what do they represent? The first widely-adopted standard answer
+to this was <a href="https://en.wikipedia.org/wiki/ASCII">ASCII</a>. It gave you 127 different character values and
+specified what they were. It was great&hellip; if you only ever cared about
+English. While it has weird, mostly-forgotten characters like &ldquo;record
+separator&rdquo; and &ldquo;synchronous idle&rdquo;, it doesn&rsquo;t have a single umlaut, acute,
+or grave. It can&rsquo;t represent &ldquo;jalapeño&rdquo;, &ldquo;na&iuml;ve&rdquo;, <span
+name="gruyere">&ldquo;Gruyère&rdquo;</span>, or &ldquo;Mötley Crüe&rdquo;.</p>
 <aside name="gruyere">
 
 <p>It goes without saying that a language that does not let one discuss Gruyère
@@ -1075,12 +1075,12 @@ points. Which do your users expect?</p>
 </li>
 <li>
 <p><strong>How is a single unit represented in memory?</strong> Most systems using ASCII
-    gave a single byte to each character and left the high bit unused. Unicode
-    has a handful of common encodings. UTF-16 packs most code points into 16
-    bits. That was great when every code point fit in that size. When that
-    overflowed, they added <em>surrogate pairs</em> that use multiple 16-bit code units
-    to represent a single code point. UTF-32 is the next evolution of
-    UTF-16<span class="em">&mdash;</span>it gives a full 32 bits to each and every code point.</p>
+gave a single byte to each character and left the high bit unused. Unicode
+has a handful of common encodings. UTF-16 packs most code points into 16
+bits. That was great when every code point fit in that size. When that
+overflowed, they added <em>surrogate pairs</em> that use multiple 16-bit code units
+to represent a single code point. UTF-32 is the next evolution of
+UTF-16<span class="em">&mdash;</span>it gives a full 32 bits to each and every code point.</p>
 <p>UTF-8 is more complex than either of those. It uses a variable number of
 bytes to encode a code point. Lower-valued code points fit in fewer bytes.
 Since each character may occupy a different number of bytes, you can&rsquo;t
@@ -1100,25 +1100,25 @@ string encoding.</p>
 <ul>
 <li>
 <p>ASCII is memory efficient and fast, but it kicks non-Latin languages to the
-    side.</p>
+side.</p>
 </li>
 <li>
 <p>UTF-32 is fast and supports the whole Unicode range, but wastes a lot of
-    memory given that most code points do tend to be in the lower range of
-    values where a full 32 bits aren&rsquo;t needed.</p>
+memory given that most code points do tend to be in the lower range of
+values where a full 32 bits aren&rsquo;t needed.</p>
 </li>
 <li>
 <p>UTF-8 is memory efficient and supports the whole Unicode range, but it&rsquo;s
-    variable-length encoding makes it slow to access arbitrary code points.</p>
+variable-length encoding makes it slow to access arbitrary code points.</p>
 </li>
 <li>
 <p>UTF-16 is worse than all of them<span class="em">&mdash;</span>an ugly consequence of Unicode
-    outgrowing its earlier 16-bit range. It&rsquo;s less memory efficient than UTF-8,
-    but is still a variable-length encoding thanks to surrogate pairs. Avoid it
-    if you can. Alas, if your language needs to run on or interoperate with the
-    browser, the JVM, or the CLR, you might be stuck with it, since those all
-    use UTF-16 for their strings and you don&rsquo;t want to have to convert every
-    time you pass a string to the underlying system.</p>
+outgrowing its earlier 16-bit range. It&rsquo;s less memory efficient than UTF-8,
+but is still a variable-length encoding thanks to surrogate pairs. Avoid it
+if you can. Alas, if your language needs to run on or interoperate with the
+browser, the JVM, or the CLR, you might be stuck with it, since those all
+use UTF-16 for their strings and you don&rsquo;t want to have to convert every
+time you pass a string to the underlying system.</p>
 </li>
 </ul>
 <p>One option is to take the maximal approach and do the &ldquo;rightest&rdquo; thing. Support
