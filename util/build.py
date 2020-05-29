@@ -405,7 +405,11 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   body = body.replace('<span class="nn">', '<span class="n">')
   body = body.replace('<span class="nf">', '<span class="n">')
   body = body.replace('<span class="nx">', '<span class="n">')
-
+  body = body.replace('<span class="vg">', '<span class="nc">')
+  body = body.replace('<span class="sc">', '<span class="s">')
+  body = body.replace('<span class="s1">', '<span class="s">')
+  body = body.replace('<span class="s2">', '<span class="s">')
+  
   up = 'Table of Contents'
   if part:
     up = part
