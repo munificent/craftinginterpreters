@@ -401,6 +401,10 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   body = body.replace('<span class="kt">', '<span class="k">')
   body = body.replace('<span class="kn">', '<span class="k">')
   body = body.replace('<span class="kr">', '<span class="k">')
+  body = body.replace('<span class="na">', '<span class="n">')
+  body = body.replace('<span class="nn">', '<span class="n">')
+  body = body.replace('<span class="nf">', '<span class="n">')
+  body = body.replace('<span class="nx">', '<span class="n">')
 
   up = 'Table of Contents'
   if part:

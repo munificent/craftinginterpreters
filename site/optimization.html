@@ -333,7 +333,7 @@ dynamism. But, still, <em>wow.</em></p>
 <p>If you take a look at <code>tableGet()</code>, you&rsquo;ll see it&rsquo;s mostly a wrapper around a
 call to <code>findEntry()</code> where the actual hash table lookup happens. To refresh
 your memory, here it is in full:</p>
-<div class="codehilite"><pre><span></span><span class="k">static</span> <span class="n">Entry</span><span class="o">*</span> <span class="nf">findEntry</span><span class="o">(</span><span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="o">,</span> <span class="k">int</span> <span class="n">capacity</span><span class="o">,</span>
+<div class="codehilite"><pre><span></span><span class="k">static</span> <span class="n">Entry</span><span class="o">*</span> <span class="n">findEntry</span><span class="o">(</span><span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="o">,</span> <span class="k">int</span> <span class="n">capacity</span><span class="o">,</span>
                         <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="o">;</span>
   <span class="n">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>
@@ -452,7 +452,7 @@ with the new value it represents. This is going to be kind of a chore. Sorry.</p
 <h3><a href="#hash-table-changes" name="hash-table-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small> Hash table changes</a></h3>
 <p>There are a few changes to make in <code>adjustCapacity()</code>. First, when we allocate
 the new array, we calculate the size from the mask:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="nf">adjustCapacity</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">int</span> <span class="n">capacity</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">adjustCapacity</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">int</span> <span class="n">capacity</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
@@ -503,7 +503,7 @@ don&rsquo;t get stung.</p>
 <p>Moving up the abstraction stack, we get to the main hash table operations that
 call <code>adjustCapacity()</code> and <code>findEntry()</code>. When we grow the array before
 inserting a new entry into it, we need to calculate the capacity:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">bool</span> <span class="nf">tableSet</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">,</span> <span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>        
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">bool</span> <span class="n">tableSet</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">,</span> <span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>        
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()<br>
 replace 2 lines</div>
@@ -531,7 +531,7 @@ size is zero, so initializing <code>capacity</code> to -1 correctly yields zero 
 increment it.</p>
 <p>When copying all of the entries from one hash table to another, we iterate over
 the source table&rsquo;s array:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="nf">tableAddAll</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="o">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="o">)</span> <span class="o">{</span>   
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">tableAddAll</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="o">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="o">)</span> <span class="o">{</span>   
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableAddAll</em>()<br>
 replace 1 line</div>
@@ -546,7 +546,7 @@ replace 1 line</div>
 a hash table lookup for interning strings. We need to make the same changes
 there that we made in <code>findEntry()</code>. We use <code>capacity</code> as a mask when wrapping
 the string&rsquo;s hash key:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">tableFindString</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="k">int</span> <span class="n">length</span><span class="o">,</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="n">tableFindString</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="k">int</span> <span class="n">length</span><span class="o">,</span>
                            <span class="k">uint32_t</span> <span class="n">hash</span><span class="o">)</span> <span class="o">{</span>                            
   <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="o">;</span>                                  
 <br></pre><div class="source-file"><em>table.c</em><br>
@@ -577,7 +577,7 @@ created lots of strings might noticeably benefit from this change.</p>
 <p>There are a few places in the memory management code where we access a hash
 table&rsquo;s capacity. First, using a <code>&lt;=</code> in the loop when we mark all of the
 entries in a table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="nf">markTable</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">markTable</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>markTable</em>()<br>
 replace 1 line</div>
@@ -588,7 +588,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>table.c</em>, in <em>markTable</em>(), replace 1 line</div>
 
 <p>And another one in the loop to remove unmarked entries from the string table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="nf">tableRemoveWhite</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>         
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">tableRemoveWhite</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>         
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableRemoveWhite</em>()<br>
 replace 1 line</div>
@@ -600,7 +600,7 @@ replace 1 line</div>
 
 <p>Finally, the garbage collector tracks the amount of memory it frees so needs an
 accurate count of the entry array size:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="nf">freeTable</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                           
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">freeTable</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                           
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>freeTable</em>()<br>
 replace 1 line</div>
@@ -895,7 +895,7 @@ functions. Here&rsquo;s the first macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="n">DoubleUnion</span><span class="o">;</span>                              
 </pre><div class="source-file"><em>value.h</em><br>
 add after union <em>DoubleUnion</em></div>
-<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="n">Value</span> <span class="nf">numToValue</span><span class="o">(</span><span class="k">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="n">Value</span> <span class="n">numToValue</span><span class="o">(</span><span class="k">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">DoubleUnion</span> <span class="n">data</span><span class="o">;</span>                         
   <span class="n">data</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="n">num</span><span class="o">;</span>                           
   <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">bits</span><span class="o">;</span>                         
@@ -922,12 +922,12 @@ smart enough to optimize it all away.</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="n">DoubleUnion</span><span class="o">;</span>                                
 </pre><div class="source-file"><em>value.h</em><br>
 add after union <em>DoubleUnion</em></div>
-<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="k">double</span> <span class="nf">valueToNum</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="k">double</span> <span class="n">valueToNum</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">DoubleUnion</span> <span class="n">data</span><span class="o">;</span>                           
   <span class="n">data</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>                          
   <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">num</span><span class="o">;</span>                            
 <span class="o">}</span>                                             
-</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="n">Value</span> <span class="nf">numToValue</span><span class="o">(</span><span class="k">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>  
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="n">Value</span> <span class="n">numToValue</span><span class="o">(</span><span class="k">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>  
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
@@ -1174,7 +1174,7 @@ encoding directly. We need to fix those too.</p>
 <p>The first is <code>printValue()</code>. It has separate code for each value type. We no
 longer have an explicit type enum we can switch on so instead we use a series
 of type tests to handle each kind of value:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="nf">printValue</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">printValue</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
 <pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                             </span>
@@ -1207,7 +1207,7 @@ in <em>printValue</em>()</div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
 
 <p>The other operation is testing two values for equality:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">bool</span> <span class="nf">valuesEqual</span><span class="o">(</span><span class="n">Value</span> <span class="n">a</span><span class="o">,</span> <span class="n">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span> 
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">bool</span> <span class="n">valuesEqual</span><span class="o">(</span><span class="n">Value</span> <span class="n">a</span><span class="o">,</span> <span class="n">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span> 
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
 <pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                    </span>
