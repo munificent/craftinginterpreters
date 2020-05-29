@@ -409,7 +409,10 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   body = body.replace('<span class="sc">', '<span class="s">')
   body = body.replace('<span class="s1">', '<span class="s">')
   body = body.replace('<span class="s2">', '<span class="s">')
-  
+
+  # Pygments puts empty spans at the end of preprocessor lines.
+  body = body.replace('<span class="cp"></span>', '')
+
   up = 'Table of Contents'
   if part:
     up = part
