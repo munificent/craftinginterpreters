@@ -201,6 +201,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
+    // TODO: No need to syntax highlight context lines since they aren't shown
+    // highlighted anyway.
     var before = formatCode(
         snippet.file.language,
         length,
@@ -235,6 +237,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.contextAfter.isNotEmpty) {
+    // TODO: No need to syntax highlight context lines since they aren't shown
+    // highlighted anyway.
     var after = formatCode(snippet.file.language, length, snippet.contextAfter,
         snippet.added.isNotEmpty ? "insert-after" : null);
     buffer.write(after);
