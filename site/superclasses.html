@@ -189,7 +189,7 @@ detect:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">variable</span><span class="o">(</span><span class="nb">false</span><span class="o">);</span>                                     
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">identifiersEqual</span><span class="o">(</span><span class="o">&amp;</span><span class="n">className</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">))</span> <span class="o">{</span>
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">identifiersEqual</span><span class="o">(&amp;</span><span class="n">className</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">))</span> <span class="o">{</span>
       <span class="n">error</span><span class="o">(</span><span class="s">&quot;A class cannot inherit from itself.&quot;</span><span class="o">);</span>      
     <span class="o">}</span>                                                    
 <br></pre><pre class="insert-after"><span></span>    <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="nb">false</span><span class="o">);</span>                     
@@ -235,7 +235,7 @@ in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_INHERIT</span><span class="o">:</span> <span class="o">{</span>                                                
         <span class="n">Value</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>                                     
         <span class="n">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>                         
-        <span class="n">tableAddAll</span><span class="o">(</span><span class="o">&amp;</span><span class="n">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
+        <span class="n">tableAddAll</span><span class="o">(&amp;</span><span class="n">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
         <span class="n">pop</span><span class="o">();</span> <span class="c1">// Subclass.                                             </span>
         <span class="k">break</span><span class="o">;</span>                                                          
       <span class="o">}</span>                                                                 
@@ -312,12 +312,12 @@ fixes that:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">Value</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>                                     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">IS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">))</span> <span class="o">{</span>                                    
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(!</span><span class="n">IS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">))</span> <span class="o">{</span>                                    
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Superclass must be a class.&quot;</span><span class="o">);</span>                  
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                               
         <span class="o">}</span>                                                               
 <br></pre><pre class="insert-after"><span></span>        <span class="n">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>                         
-        <span class="n">tableAddAll</span><span class="o">(</span><span class="o">&amp;</span><span class="n">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
+        <span class="n">tableAddAll</span><span class="o">(&amp;</span><span class="n">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -534,7 +534,7 @@ add after <em>syntheticToken</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">super_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                          
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>            
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass method name.&quot;</span><span class="o">);</span>
-  <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>        
+  <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>        
 <span class="o">}</span>                                                             
 </pre></div>
 
@@ -572,7 +572,7 @@ then look for a method name. Methods are looked up dynamically, so we use
 <code>identifierConstant()</code> to take the lexeme of the method name token and store it
 in the constant table just like we do for property access expressions.</p>
 <p>Here is what the compiler does after consuming those tokens:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>super_</em>()</div>
 <pre class="insert"><br><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">syntheticToken</span><span class="o">(</span><span class="s">&quot;this&quot;</span><span class="o">),</span> <span class="nb">false</span><span class="o">);</span>       
@@ -634,7 +634,7 @@ for reporting:</p>
 in <em>super_</em>()</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="o">{</span>                                  
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Cannot use &#39;super&#39; outside of a class.&quot;</span><span class="o">);</span>           
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">hasSuperclass</span><span class="o">)</span> <span class="o">{</span>                   
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(!</span><span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">hasSuperclass</span><span class="o">)</span> <span class="o">{</span>                   
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Cannot use &#39;super&#39; in a class with no superclass.&quot;</span><span class="o">);</span>
   <span class="o">}</span>                                                            
 <br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>             
@@ -678,7 +678,7 @@ in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_SUPER</span><span class="o">:</span> <span class="o">{</span>                     
         <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>       
         <span class="n">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>
-        <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">bindMethod</span><span class="o">(</span><span class="n">superclass</span><span class="o">,</span> <span class="n">name</span><span class="o">))</span> <span class="o">{</span>   
+        <span class="k">if</span> <span class="o">(!</span><span class="n">bindMethod</span><span class="o">(</span><span class="n">superclass</span><span class="o">,</span> <span class="n">name</span><span class="o">))</span> <span class="o">{</span>   
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>      
         <span class="o">}</span>                                      
         <span class="k">break</span><span class="o">;</span>                                 
@@ -793,7 +793,7 @@ in <em>run</em>()</div>
         <span class="n">ObjString</span><span class="o">*</span> <span class="n">method</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>                   
         <span class="k">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                          
         <span class="n">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">AS_CLASS</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>              
-        <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">invokeFromClass</span><span class="o">(</span><span class="n">superclass</span><span class="o">,</span> <span class="n">method</span><span class="o">,</span> <span class="n">argCount</span><span class="o">))</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">invokeFromClass</span><span class="o">(</span><span class="n">superclass</span><span class="o">,</span> <span class="n">method</span><span class="o">,</span> <span class="n">argCount</span><span class="o">))</span> <span class="o">{</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                    
         <span class="o">}</span>                                                    
         <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>               

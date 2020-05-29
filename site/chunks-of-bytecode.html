@@ -509,7 +509,7 @@ add after <em>initChunk</em>()</div>
   <span class="o">}</span>
 
   <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">]</span> <span class="o">=</span> <span class="n">byte</span><span class="o">;</span>               
-  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="o">;</span>                                 
+  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++;</span>                                 
 <span class="o">}</span>                                                 
 </pre></div>
 
@@ -565,7 +565,7 @@ using <code>GROW_ARRAY()</code>:</p>
     <span class="o">((</span><span class="n">capacity</span><span class="o">)</span> <span class="o">&lt;</span> <span class="mi">8</span> <span class="o">?</span> <span class="mi">8</span> <span class="o">:</span> <span class="o">(</span><span class="n">capacity</span><span class="o">)</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)</span>                        
 </pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define GROW_ARRAY(previous, type, oldCount, count) \            </span>
-    <span class="o">(</span><span class="n">type</span><span class="o">*</span><span class="o">)</span><span class="n">reallocate</span><span class="o">(</span><span class="n">previous</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="n">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">oldCount</span><span class="o">),</span> <span class="err">\</span>     
+    <span class="o">(</span><span class="n">type</span><span class="o">*)</span><span class="n">reallocate</span><span class="o">(</span><span class="n">previous</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="n">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">oldCount</span><span class="o">),</span> <span class="err">\</span>     
         <span class="k">sizeof</span><span class="o">(</span><span class="n">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">count</span><span class="o">))</span>
 
 <span class="k">void</span><span class="o">*</span> <span class="n">reallocate</span><span class="o">(</span><span class="k">void</span><span class="o">*</span> <span class="n">previous</span><span class="o">,</span> <span class="k">size_t</span> <span class="n">oldSize</span><span class="o">,</span> <span class="k">size_t</span> <span class="n">newSize</span><span class="o">);</span>
@@ -689,7 +689,7 @@ add after <em>initChunk</em>()</div>
 fields leaving the chunk in a well-defined empty state. To free the memory, we
 add one more macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define GROW_ARRAY(previous, type, oldCount, count) \            </span>
-    <span class="o">(</span><span class="n">type</span><span class="o">*</span><span class="o">)</span><span class="n">reallocate</span><span class="o">(</span><span class="n">previous</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="n">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">oldCount</span><span class="o">),</span> <span class="err">\</span>     
+    <span class="o">(</span><span class="n">type</span><span class="o">*)</span><span class="n">reallocate</span><span class="o">(</span><span class="n">previous</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="n">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">oldCount</span><span class="o">),</span> <span class="err">\</span>     
         <span class="k">sizeof</span><span class="o">(</span><span class="n">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">count</span><span class="o">))</span>                                  
 </pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define FREE_ARRAY(type, pointer, oldCount) \                    </span>
@@ -708,9 +708,9 @@ it out by hand-building a sample chunk:</p>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert"><span></span>  <span class="n">Chunk</span> <span class="n">chunk</span><span class="o">;</span>                          
-  <span class="n">initChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                    
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">);</span>        
-  <span class="n">freeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                    
+  <span class="n">initChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                    
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">);</span>        
+  <span class="n">freeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                    
 </pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="mi">0</span><span class="o">;</span>                             
 </pre></div>
 
@@ -741,12 +741,12 @@ interpreter&rsquo;s internal representation of code.</p>
 <p>In jlox, our analogous tool was the <a href="representing-code.html#a-(not-very)-pretty-printer">AstPrinter class</a>.</p>
 </aside>
 <p>In <code>main()</code>, after we create the chunk, we pass it to the disassembler:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">);</span>         
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">);</span>         
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
-<pre class="insert"><br><span></span>  <span class="n">disassembleChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>  <span class="n">freeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
+<pre class="insert"><br><span></span>  <span class="n">disassembleChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">freeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
@@ -995,7 +995,7 @@ add after <em>initValueArray</em>()</div>
   <span class="o">}</span>
 
   <span class="n">array</span><span class="o">-&gt;</span><span class="n">values</span><span class="o">[</span><span class="n">array</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>                       
-  <span class="n">array</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="o">;</span>                                            
+  <span class="n">array</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++;</span>                                            
 <span class="o">}</span>                                                            
 </pre></div>
 
@@ -1039,7 +1039,7 @@ initialize a new chunk, we initialize its constant list too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>               
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>initChunk</em>()</div>
-<pre class="insert"><span></span>  <span class="n">initValueArray</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="n">initValueArray</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span><span class="o">}</span>                                   
 </pre></div>
 
@@ -1053,7 +1053,7 @@ chunk:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">FREE_ARRAY</span><span class="o">(</span><span class="k">uint8_t</span><span class="o">,</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">,</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">);</span>
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>freeChunk</em>()</div>
-<pre class="insert"><span></span>  <span class="n">freeValueArray</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>                
+<pre class="insert"><span></span>  <span class="n">freeValueArray</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>                
 </pre><pre class="insert-after"><span></span>  <span class="n">initChunk</span><span class="o">(</span><span class="n">chunk</span><span class="o">);</span>                                 
 </pre></div>
 
@@ -1076,7 +1076,7 @@ add after <em>writeChunk</em>()</div>
 <div class="codehilite"><div class="source-file"><em>chunk.c</em><br>
 add after <em>writeChunk</em>()</div>
 <pre><span></span><span class="k">int</span> <span class="n">addConstant</span><span class="o">(</span><span class="n">Chunk</span><span class="o">*</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">writeValueArray</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
+  <span class="n">writeValueArray</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
   <span class="k">return</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">.</span><span class="n">count</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>        
 <span class="o">}</span>                                           
 </pre></div>
@@ -1135,13 +1135,13 @@ constant to load from the chunk&rsquo;s constant array.</p>
 <p><img src="image/chunks-of-bytecode/format.png" alt="OP_CONSTANT is a byte for
 the opcode followed by a byte for the constant index." /></p>
 <p>Since we don&rsquo;t have a compiler yet, we &ldquo;hand-compile&rdquo; one in our test chunk:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                      
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
-<pre class="insert"><br><span></span>  <span class="k">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">);</span>
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">);</span>        
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">);</span>           
-<br></pre><pre class="insert-after"><span></span>  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">);</span>          
+<pre class="insert"><br><span></span>  <span class="k">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">);</span>
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">);</span>        
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">);</span>           
+<br></pre><pre class="insert-after"><span></span>  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">);</span>          
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
@@ -1272,7 +1272,7 @@ the line number array, starting with initialization:</p>
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>initChunk</em>()</div>
 <pre class="insert"><span></span>  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">lines</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>              
-</pre><pre class="insert-after"><span></span>  <span class="n">initValueArray</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">initValueArray</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>initChunk</em>()</div>
@@ -1282,7 +1282,7 @@ in <em>initChunk</em>()</div>
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>freeChunk</em>()</div>
 <pre class="insert"><span></span>  <span class="n">FREE_ARRAY</span><span class="o">(</span><span class="k">int</span><span class="o">,</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">lines</span><span class="o">,</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">);</span>   
-</pre><pre class="insert-after"><span></span>  <span class="n">freeValueArray</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>                
+</pre><pre class="insert-after"><span></span>  <span class="n">freeValueArray</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">);</span>                
 </pre></div>
 
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>freeChunk</em>()</div>
@@ -1326,7 +1326,7 @@ in <em>writeChunk</em>()</div>
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>writeChunk</em>()</div>
 <pre class="insert"><span></span>  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">lines</span><span class="o">[</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">]</span> <span class="o">=</span> <span class="n">line</span><span class="o">;</span>
-</pre><pre class="insert-after"><span></span>  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++</span><span class="o">;</span>                   
+</pre><pre class="insert-after"><span></span>  <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">++;</span>                   
 </pre></div>
 
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>writeChunk</em>()</div>
@@ -1335,15 +1335,15 @@ in <em>writeChunk</em>()</div>
 <p>Alright, let&rsquo;s try this out with our little, uh, artisanal chunk. First, since
 we added a new parameter to <code>writeChunk()</code>, we need to fix those calls to pass
 in some<span class="em">&mdash;</span>arbitrary at this point<span class="em">&mdash;</span>line number:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()<br>
 replace 4 lines</div>
-<pre class="insert"><span></span>  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
 
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
-</pre><pre class="insert-after"><br><span></span>  <span class="n">disassembleChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span> 
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
+</pre><pre class="insert-after"><br><span></span>  <span class="n">disassembleChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span> 
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>(), replace 4 lines</div>

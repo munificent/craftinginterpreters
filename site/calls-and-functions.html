@@ -203,7 +203,7 @@ add after <em>allocateObject</em>()</div>
 
   <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>                                            
   <span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>                                          
-  <span class="n">initChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">);</span>                                    
+  <span class="n">initChunk</span><span class="o">(&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">);</span>                                    
   <span class="k">return</span> <span class="n">function</span><span class="o">;</span>                                                
 <span class="o">}</span>                                                                 
 </pre></div>
@@ -232,8 +232,8 @@ to the operating system:</p>
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="o">:</span> <span class="o">{</span>                           
-      <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">ObjFunction</span><span class="o">*</span><span class="o">)</span><span class="n">object</span><span class="o">;</span>
-      <span class="n">freeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">);</span>                 
+      <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="o">(</span><span class="n">ObjFunction</span><span class="o">*)</span><span class="n">object</span><span class="o">;</span>
+      <span class="n">freeChunk</span><span class="o">(&amp;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">);</span>                 
       <span class="n">FREE</span><span class="o">(</span><span class="n">ObjFunction</span><span class="o">,</span> <span class="n">object</span><span class="o">);</span>                   
       <span class="k">break</span><span class="o">;</span>                                       
     <span class="o">}</span>                                              
@@ -393,7 +393,7 @@ into the compiler:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><span></span>  <span class="n">initCompiler</span><span class="o">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="o">,</span> <span class="n">TYPE_SCRIPT</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="n">initCompiler</span><span class="o">(&amp;</span><span class="n">compiler</span><span class="o">,</span> <span class="n">TYPE_SCRIPT</span><span class="o">);</span>
 </pre><pre class="insert-after"><br><span></span>  <span class="n">parser</span><span class="o">.</span><span class="n">hadError</span> <span class="o">=</span> <span class="nb">false</span><span class="o">;</span>             
 </pre></div>
 
@@ -445,7 +445,7 @@ the story gets more complex.</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">current</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">;</span>                                    
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
-<pre class="insert"><br><span></span>  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="o">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="o">];</span>
+<pre class="insert"><br><span></span>  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="o">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++];</span>
   <span class="n">local</span><span class="o">-&gt;</span><span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>                                      
   <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">;</span>                                
   <span class="n">local</span><span class="o">-&gt;</span><span class="n">name</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>                                
@@ -497,7 +497,7 @@ some diagnostic code to have the VM dump the disassembled bytecode so we can
 debug the compiler. We should fix that now that the generated chunk is wrapped
 in a function:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE                                              </span>
-  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">parser</span><span class="o">.</span><span class="n">hadError</span><span class="o">)</span> <span class="o">{</span>                                            
+  <span class="k">if</span> <span class="o">(!</span><span class="n">parser</span><span class="o">.</span><span class="n">hadError</span><span class="o">)</span> <span class="o">{</span>                                            
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()<br>
 replace 1 line</div>
@@ -532,7 +532,7 @@ replace 1 line</div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>compile</em>(), replace 1 line</div>
 
 <p>Finally we get to some actual code. At the very end of the function:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">while</span> <span class="o">(</span><span class="o">!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_EOF</span><span class="o">))</span> <span class="o">{</span>              
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">while</span> <span class="o">(!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_EOF</span><span class="o">))</span> <span class="o">{</span>              
     <span class="n">declaration</span><span class="o">();</span>                         
   <span class="o">}</span>                                        
 <br></pre><div class="source-file"><em>compiler.c</em><br>
@@ -793,7 +793,7 @@ replace 4 lines</div>
 
 <span class="cp">#define READ_BYTE() (*frame-&gt;ip++)                                    </span>
 <span class="cp">#define READ_SHORT() \                                                </span>
-    <span class="o">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">,</span> <span class="o">(</span><span class="k">uint16_t</span><span class="o">)((</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">2</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">|</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">1</span><span class="o">]))</span>
+    <span class="o">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">,</span> <span class="o">(</span><span class="k">uint16_t</span><span class="o">)((</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[-</span><span class="mi">2</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">|</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[-</span><span class="mi">1</span><span class="o">]))</span>
 <span class="cp">#define READ_CONSTANT() \                                             </span>
     <span class="o">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">values</span><span class="o">[</span><span class="n">READ_BYTE</span><span class="o">()])</span>            
 </pre><pre class="insert-after"><span></span><span class="cp">#define READ_STRING() AS_STRING(READ_CONSTANT())                      </span>
@@ -883,7 +883,7 @@ us debug our VM. That needs to work with the new structure too:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>    <span class="n">disassembleInstruction</span><span class="o">(</span><span class="o">&amp;</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">,</span>     
+<pre class="insert"><span></span>    <span class="n">disassembleInstruction</span><span class="o">(&amp;</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">,</span>     
         <span class="o">(</span><span class="k">int</span><span class="o">)(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">));</span>
 </pre><pre class="insert-after"><span></span><span class="cp">#endif                                                  </span>
 </pre></div>
@@ -903,7 +903,7 @@ replace 10 lines</div>
   <span class="k">if</span> <span class="o">(</span><span class="n">function</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="o">;</span>
 
   <span class="n">push</span><span class="o">(</span><span class="n">OBJ_VAL</span><span class="o">(</span><span class="n">function</span><span class="o">));</span>                             
-  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++</span><span class="o">];</span>      
+  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++];</span>      
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="o">;</span>                          
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">;</span>                    
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">;</span>                             
@@ -1031,7 +1031,7 @@ incrementally, starting with this:</p>
 add after <em>block</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">function</span><span class="o">(</span><span class="n">FunctionType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>                       
   <span class="n">Compiler</span> <span class="n">compiler</span><span class="o">;</span>                                            
-  <span class="n">initCompiler</span><span class="o">(</span><span class="o">&amp;</span><span class="n">compiler</span><span class="o">,</span> <span class="n">type</span><span class="o">);</span>                                
+  <span class="n">initCompiler</span><span class="o">(&amp;</span><span class="n">compiler</span><span class="o">,</span> <span class="n">type</span><span class="o">);</span>                                
   <span class="n">beginScope</span><span class="o">();</span><span name="no-end-scope"> </span>
 
   <span class="c1">// Compile the parameter list.                                </span>
@@ -1134,9 +1134,9 @@ parameters next:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after function name.&quot;</span><span class="o">);</span>       
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>function</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">check</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                                    
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                                    
     <span class="k">do</span> <span class="o">{</span>                                                              
-      <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">++</span><span class="o">;</span>                                     
+      <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">++;</span>                                     
       <span class="k">if</span> <span class="o">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="o">)</span> <span class="o">{</span>                           
         <span class="n">errorAtCurrent</span><span class="o">(</span><span class="s">&quot;Cannot have more than 255 parameters.&quot;</span><span class="o">);</span>      
       <span class="o">}</span>
@@ -1168,7 +1168,7 @@ in <em>initCompiler</em>()</div>
     <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">name</span> <span class="o">=</span> <span class="n">copyString</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">start</span><span class="o">,</span>  
                                          <span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">length</span><span class="o">);</span>
   <span class="o">}</span>                                                              
-</pre><pre class="insert-after"><br><span></span>  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="o">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++</span><span class="o">];</span>        
+</pre><pre class="insert-after"><br><span></span>  <span class="n">Local</span><span class="o">*</span> <span class="n">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">locals</span><span class="o">[</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">localCount</span><span class="o">++];</span>        
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
@@ -1232,10 +1232,10 @@ instruction to invoke the function, using the argument count as an operand.</p>
 add after <em>defineVariable</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">uint8_t</span> <span class="n">argumentList</span><span class="o">()</span> <span class="o">{</span>                             
   <span class="k">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>                                     
-  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">check</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                          
+  <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                          
     <span class="k">do</span> <span class="o">{</span>                                                    
       <span class="n">expression</span><span class="o">();</span>                                         
-      <span class="n">argCount</span><span class="o">++</span><span class="o">;</span>                                           
+      <span class="n">argCount</span><span class="o">++;</span>                                           
     <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_COMMA</span><span class="o">));</span>                           
   <span class="o">}</span>
 
@@ -1260,7 +1260,7 @@ in <em>argumentList</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">if</span> <span class="o">(</span><span class="n">argCount</span> <span class="o">==</span> <span class="mi">255</span><span class="o">)</span> <span class="o">{</span>                          
         <span class="n">error</span><span class="o">(</span><span class="s">&quot;Cannot have more than 255 arguments.&quot;</span><span class="o">);</span>
       <span class="o">}</span>                                               
-</pre><pre class="insert-after"><span></span>      <span class="n">argCount</span><span class="o">++</span><span class="o">;</span>                                     
+</pre><pre class="insert-after"><span></span>      <span class="n">argCount</span><span class="o">++;</span>                                     
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>argumentList</em>()</div>
@@ -1330,7 +1330,7 @@ performance. Time to implement it:</p>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_CALL</span><span class="o">:</span> <span class="o">{</span>                              
         <span class="k">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                
-        <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">callValue</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="n">argCount</span><span class="o">),</span> <span class="n">argCount</span><span class="o">))</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="n">callValue</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="n">argCount</span><span class="o">),</span> <span class="n">argCount</span><span class="o">))</span> <span class="o">{</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>          
         <span class="o">}</span>                                          
         <span class="k">break</span><span class="o">;</span>                                     
@@ -1402,7 +1402,7 @@ it&rsquo;s not a function, we error out. Otherwise, the actual call happens here
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>peek</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">bool</span> <span class="n">call</span><span class="o">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="o">,</span> <span class="k">int</span> <span class="n">argCount</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++</span><span class="o">];</span>      
+  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++];</span>      
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="o">;</span>                          
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">;</span>
 
@@ -1461,7 +1461,7 @@ in <em>call</em>()</div>
         <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">,</span> <span class="n">argCount</span><span class="o">);</span>                    
     <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                                      
   <span class="o">}</span>                                                    
-<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++</span><span class="o">];</span>      
+<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++];</span>      
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
@@ -1478,7 +1478,7 @@ in <em>call</em>()</div>
     <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Stack overflow.&quot;</span><span class="o">);</span>             
     <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                                
   <span class="o">}</span>                                              
-<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++</span><span class="o">];</span>
+<br></pre><pre class="insert-after"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++];</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>()</div>
@@ -1500,7 +1500,7 @@ looks like this:</p>
 <br></pre><div class="source-file"><em>vm.c</em><br>
 in <em>runtimeError</em>()<br>
 replace 4 lines</div>
-<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">--</span><span class="o">)</span> <span class="o">{</span>                 
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">--)</span> <span class="o">{</span>                 
     <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>                            
     <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">;</span>                     
     <span class="c1">// -1 because the IP is sitting on the next instruction to be</span>
@@ -1570,7 +1570,7 @@ in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert"><span></span>        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">pop</span><span class="o">();</span>
 
-        <span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">--</span><span class="o">;</span>                      
+        <span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">--;</span>                      
         <span class="k">if</span> <span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>             
           <span class="n">pop</span><span class="o">();</span>                              
           <span class="k">return</span> <span class="n">INTERPRET_OK</span><span class="o">;</span>                
@@ -1733,7 +1733,7 @@ object type:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="n">ObjFunction</span><span class="o">;</span>                                       
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjFunction</em></div>
-<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="n">Value</span> <span class="o">(</span><span class="o">*</span><span class="n">NativeFn</span><span class="o">)(</span><span class="k">int</span> <span class="n">argCount</span><span class="o">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">args</span><span class="o">);</span>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="n">Value</span> <span class="o">(*</span><span class="n">NativeFn</span><span class="o">)(</span><span class="k">int</span> <span class="n">argCount</span><span class="o">,</span> <span class="n">Value</span><span class="o">*</span> <span class="n">args</span><span class="o">);</span>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>                                     
   <span class="n">Obj</span> <span class="n">obj</span><span class="o">;</span>                                           
@@ -1868,7 +1868,7 @@ add after <em>runtimeError</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">defineNative</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">name</span><span class="o">,</span> <span class="n">NativeFn</span> <span class="n">function</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">push</span><span class="o">(</span><span class="n">OBJ_VAL</span><span class="o">(</span><span class="n">copyString</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="o">(</span><span class="k">int</span><span class="o">)</span><span class="n">strlen</span><span class="o">(</span><span class="n">name</span><span class="o">))));</span>          
   <span class="n">push</span><span class="o">(</span><span class="n">OBJ_VAL</span><span class="o">(</span><span class="n">newNative</span><span class="o">(</span><span class="n">function</span><span class="o">)));</span>                          
-  <span class="n">tableSet</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">AS_STRING</span><span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">[</span><span class="mi">0</span><span class="o">]),</span> <span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">[</span><span class="mi">1</span><span class="o">]);</span>  
+  <span class="n">tableSet</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">AS_STRING</span><span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">[</span><span class="mi">0</span><span class="o">]),</span> <span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">[</span><span class="mi">1</span><span class="o">]);</span>  
   <span class="n">pop</span><span class="o">();</span>                                                       
   <span class="n">pop</span><span class="o">();</span>                                                       
 <span class="o">}</span>                                                              
@@ -1904,7 +1904,7 @@ add after variable <em>VM</em></div>
 
 <p>This returns the elapsed time since the program started running, in seconds. It&rsquo;s
 handy for benchmarking Lox programs. In Lox, we&rsquo;ll name it <code>clock()</code>:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>            
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>            
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert"><br><span></span>  <span class="n">defineNative</span><span class="o">(</span><span class="s">&quot;clock&quot;</span><span class="o">,</span> <span class="n">clockNative</span><span class="o">);</span>

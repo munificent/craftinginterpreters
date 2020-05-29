@@ -207,11 +207,11 @@ in <em>main</em>()</div>
 
 <p>We spin up the VM when the interpreter first starts. Then when we&rsquo;re about to
 exit, we wind it down:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">disassembleChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">disassembleChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert"><span></span>  <span class="n">freeVM</span><span class="o">();</span>                              
-</pre><pre class="insert-after"><span></span>  <span class="n">freeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
+</pre><pre class="insert-after"><span></span>  <span class="n">freeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
@@ -230,10 +230,10 @@ chunk from the <a href="chunks-of-bytecode.html#disassembling-chunks">last chapt
 to do something.</p>
 <h3><a href="#executing-instructions" name="executing-instructions"><small>15&#8202;.&#8202;1&#8202;.&#8202;1</small> Executing instructions</a></h3>
 <p>The VM springs into action when we command it to interpret a chunk of bytecode:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">disassembleChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">disassembleChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="s">&quot;test chunk&quot;</span><span class="o">);</span>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
-<pre class="insert"><span></span>  <span class="n">interpret</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
+<pre class="insert"><span></span>  <span class="n">interpret</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                     
 </pre><pre class="insert-after"><span></span>  <span class="n">freeVM</span><span class="o">();</span>                              
 </pre></div>
 
@@ -736,7 +736,7 @@ recently pushed value back off. Here&rsquo;s the first function:</p>
 add after <em>freeVM</em>()</div>
 <pre><span></span><span class="k">void</span> <span class="n">push</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
   <span class="o">*</span><span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span> 
-  <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">++</span><span class="o">;</span>        
+  <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">++;</span>        
 <span class="o">}</span>                       
 </pre></div>
 
@@ -751,7 +751,7 @@ array now that the previous slot is occupied. Popping is the mirror image:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>push</em>()</div>
 <pre><span></span><span class="n">Value</span> <span class="n">pop</span><span class="o">()</span> <span class="o">{</span>         
-  <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">--</span><span class="o">;</span>      
+  <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">--;</span>      
   <span class="k">return</span> <span class="o">*</span><span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">;</span>
 <span class="o">}</span>                     
 </pre></div>
@@ -772,9 +772,9 @@ contents of the stack before we interpret each instruction:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><span></span>    <span class="n">printf</span><span class="o">(</span><span class="s">&quot;          &quot;</span><span class="o">);</span>                                           
-    <span class="k">for</span> <span class="o">(</span><span class="n">Value</span><span class="o">*</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">;</span> <span class="n">slot</span> <span class="o">&lt;</span> <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">;</span> <span class="n">slot</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>      
+    <span class="k">for</span> <span class="o">(</span><span class="n">Value</span><span class="o">*</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">stack</span><span class="o">;</span> <span class="n">slot</span> <span class="o">&lt;</span> <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">;</span> <span class="n">slot</span><span class="o">++)</span> <span class="o">{</span>      
       <span class="n">printf</span><span class="o">(</span><span class="s">&quot;[ &quot;</span><span class="o">);</span>                                                 
-      <span class="n">printValue</span><span class="o">(</span><span class="o">*</span><span class="n">slot</span><span class="o">);</span>                                            
+      <span class="n">printValue</span><span class="o">(*</span><span class="n">slot</span><span class="o">);</span>                                            
       <span class="n">printf</span><span class="o">(</span><span class="s">&quot; ]&quot;</span><span class="o">);</span>                                                 
     <span class="o">}</span>                                                               
     <span class="n">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">);</span>                                                   
@@ -844,7 +844,7 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="o">}</span>                                     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="o">:</span>   <span class="n">push</span><span class="o">(</span><span class="o">-</span><span class="n">pop</span><span class="o">());</span> <span class="k">break</span><span class="o">;</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="o">:</span>   <span class="n">push</span><span class="o">(-</span><span class="n">pop</span><span class="o">());</span> <span class="k">break</span><span class="o">;</span>
 </pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="o">:</span> <span class="o">{</span>                     
 </pre></div>
 
@@ -865,11 +865,11 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>And we can try it out in our test chunk:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span> 
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span> 
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
-<pre class="insert"><span></span>  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_NEGATE</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
-</pre><pre class="insert-after"><br><span></span>  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_NEGATE</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>
@@ -908,11 +908,11 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="o">}</span>                                     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="o">+</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="nl">OP_SUBTRACT</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(</span><span class="o">-</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="nl">OP_MULTIPLY</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(</span><span class="o">*</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(</span><span class="o">/</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="o">:</span>   <span class="n">push</span><span class="o">(</span><span class="o">-</span><span class="n">pop</span><span class="o">());</span> <span class="k">break</span><span class="o">;</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(+);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="nl">OP_SUBTRACT</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(-);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="nl">OP_MULTIPLY</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(*);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(/);</span> <span class="k">break</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="o">:</span>   <span class="n">push</span><span class="o">(-</span><span class="n">pop</span><span class="o">());</span> <span class="k">break</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -1034,25 +1034,25 @@ larger expression:</p>
 evaluated: -((1.2 + 3.4) / 5.6)" /></p>
 <p>Building on our existing example chunk, here&rsquo;s the additional instructions we
 need:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">);</span>
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">);</span>
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>      
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
-<pre class="insert"><br><span></span>  <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">3.4</span><span class="o">);</span>    
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
+<pre class="insert"><br><span></span>  <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">3.4</span><span class="o">);</span>    
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>
 
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_ADD</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>        
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_ADD</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>        
 
-  <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">5.6</span><span class="o">);</span>    
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>      
+  <span class="n">constant</span> <span class="o">=</span> <span class="n">addConstant</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="mf">5.6</span><span class="o">);</span>    
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_CONSTANT</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>   
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">constant</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>      
 
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_DIVIDE</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
-</pre><pre class="insert-after"><span></span>  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_NEGATE</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_DIVIDE</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
+</pre><pre class="insert-after"><span></span>  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_NEGATE</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
 
-  <span class="n">writeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
+  <span class="n">writeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">,</span> <span class="n">OP_RETURN</span><span class="o">,</span> <span class="mi">123</span><span class="o">);</span>     
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>()</div>

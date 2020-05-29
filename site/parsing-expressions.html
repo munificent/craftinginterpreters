@@ -356,7 +356,7 @@ numbers, the first evaluates to <code>0.006</code>, while the second yields
 is the same as the head of the rule means this production is <strong>left-recursive</strong>.
 Some parsing techniques, including the one we&rsquo;re going to use, have trouble with
 left recursion. Instead, we&rsquo;ll use this other style:</p>
-<div class="codehilite"><pre><span></span><span class="n">multiplication</span> <span class="err">→</span> <span class="n">unary</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="o">)</span> <span class="n">unary</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
+<div class="codehilite"><pre><span></span><span class="n">multiplication</span> <span class="err">→</span> <span class="n">unary</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="o">)</span> <span class="n">unary</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -365,10 +365,10 @@ expression is a flat <em>sequence</em> of multiplications and divisions. This mi
 the code we&rsquo;ll use to parse a sequence of multiplications.</p>
 <p>If we rejigger all of the binary operator rules in the same way, we get:</p>
 <div class="codehilite"><pre><span></span><span class="n">expression</span>     <span class="err">→</span> <span class="n">equality</span> <span class="o">;</span>
-<span class="n">equality</span>       <span class="err">→</span> <span class="n">comparison</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="o">)</span> <span class="n">comparison</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
-<span class="n">comparison</span>     <span class="err">→</span> <span class="n">addition</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="o">)</span> <span class="n">addition</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
-<span class="n">addition</span>       <span class="err">→</span> <span class="n">multiplication</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;-&quot;</span> <span class="err">|</span> <span class="s">&quot;+&quot;</span> <span class="o">)</span> <span class="n">multiplication</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
-<span class="n">multiplication</span> <span class="err">→</span> <span class="n">unary</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="o">)</span> <span class="n">unary</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
+<span class="n">equality</span>       <span class="err">→</span> <span class="n">comparison</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="o">)</span> <span class="n">comparison</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="n">comparison</span>     <span class="err">→</span> <span class="n">addition</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="o">)</span> <span class="n">addition</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="n">addition</span>       <span class="err">→</span> <span class="n">multiplication</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;-&quot;</span> <span class="err">|</span> <span class="s">&quot;+&quot;</span> <span class="o">)</span> <span class="n">multiplication</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="n">multiplication</span> <span class="err">→</span> <span class="n">unary</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="o">)</span> <span class="n">unary</span> <span class="o">)*</span> <span class="o">;</span>
 <span class="n">unary</span>          <span class="err">→</span> <span class="o">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="o">)</span> <span class="n">unary</span>
                <span class="err">|</span> <span class="n">primary</span> <span class="o">;</span>
 <span class="n">primary</span>        <span class="err">→</span> <span class="nc">NUMBER</span> <span class="err">|</span> <span class="nc">STRING</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span>
@@ -489,7 +489,7 @@ for a left-recursive rule immediately calls itself, which calls itself again,
 and so on, until the parser hits a stack overflow and dies.</p>
 </aside>
 <p>The rule for equality is a little more complex:</p>
-<div class="codehilite"><pre><span></span><span class="n">equality</span> <span class="err">→</span> <span class="n">comparison</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="o">)</span> <span class="n">comparison</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
+<div class="codehilite"><pre><span></span><span class="n">equality</span> <span class="err">→</span> <span class="n">comparison</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="o">)</span> <span class="n">comparison</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -607,7 +607,7 @@ a single equality operator, then it never enters the loop. In that case, the
 <code>equality()</code> method effectively calls and returns <code>comparison()</code>. In that way,
 this method matches an equality operator <em>or anything of higher precedence</em>.</p>
 <p>Moving on to the next rule&hellip;</p>
-<div class="codehilite"><pre><span></span><span class="n">comparison</span> <span class="err">→</span> <span class="n">addition</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="o">)</span> <span class="n">addition</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
+<div class="codehilite"><pre><span></span><span class="n">comparison</span> <span class="err">→</span> <span class="n">addition</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="o">)</span> <span class="n">addition</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
 
 

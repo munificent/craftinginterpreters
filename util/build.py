@@ -416,6 +416,12 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   # Remove markdown attributes now that we don't need them.
   body = body.replace('<aside markdown="1"', "<aside")
 
+  # Sometimes Pygments doesn't collapse adjacent operator spans.
+  SPAN_PATTERN = re.compile(
+      r'<span class="o">([^<]+)</span><span class="o">([^<]+)</span>')
+  for i in range(0, 5):
+    body = SPAN_PATTERN.sub(r'<span class="o">\1\2</span>', body)
+
   up = 'Table of Contents'
   if part:
     up = part
