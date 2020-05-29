@@ -431,16 +431,16 @@ few thousand lines of code.
 
 ## Challenges
 
-1. There are at least six domain-specific languages used in the [little system I
-   cobbled together][repo] to write and publish this book. What are they?
+1.  There are at least six domain-specific languages used in the [little system
+    I cobbled together][repo] to write and publish this book. What are they?
 
-1. Get a "Hello, world!" program written and running in Java. Set up whatever
-   Makefiles or IDE projects you need to get it working. If you have a debugger,
-   get comfortable with it and step through your program as it runs.
+1.  Get a "Hello, world!" program written and running in Java. Set up whatever
+    Makefiles or IDE projects you need to get it working. If you have a
+    debugger, get comfortable with it and step through your program as it runs.
 
-1. Do the same thing for C. To get some practice with pointers, define a
-   [doubly-linked list][] of heap-allocated strings. Write functions to insert,
-   find, and delete items from it. Test them.
+1.  Do the same thing for C. To get some practice with pointers, define a
+    [doubly-linked list][] of heap-allocated strings. Write functions to insert,
+    find, and delete items from it. Test them.
 
 [repo]: https://github.com/munificent/craftinginterpreters
 [doubly-linked list]: https://en.wikipedia.org/wiki/Doubly_linked_list
@@ -456,23 +456,23 @@ the language it implements. I went through *pages* of candidates before I found
 one that worked. As you'll discover on the first day you start building your own
 language, naming is deviously hard. A good name satisfies a few criteria:
 
-1. **It isn't in use.** You can run into all sorts of trouble, legal and social,
-   if you inadvertently step on someone else's name.
+1.  **It isn't in use.** You can run into all sorts of trouble, legal and
+    social, if you inadvertently step on someone else's name.
 
-2. **It's easy to pronounce.** If things go well, hordes of people will be
-   saying and writing your language's name. Anything longer than a couple of
-   syllables or a handful of letters will annoy them to no end.
+2.  **It's easy to pronounce.** If things go well, hordes of people will be
+    saying and writing your language's name. Anything longer than a couple of
+    syllables or a handful of letters will annoy them to no end.
 
-3. **It's distinct enough to search for.** People will Google your language's
-   name to find docs for it, so you want a word that's rare enough that most
-   results point to your docs. Though, with the amount of AI most search engines
-   are packing today, that's less of an issue. Still, you won't be doing your
-   users any favors if you name your language "for".
+3.  **It's distinct enough to search for.** People will Google your language's
+    name to find docs for it, so you want a word that's rare enough that most
+    results point to your docs. Though, with the amount of AI most search
+    engines are packing today, that's less of an issue. Still, you won't be
+    doing your users any favors if you name your language "for".
 
-4. **It doesn't have negative connotations across a number of cultures.** This
-   is hard to guard for, but it's worth considering. The designer of Nimrod
-   ended up renaming his language to "Nim" because too many people only remember
-   that Bugs Bunny used "Nimrod" as an insult.
+4.  **It doesn't have negative connotations across a number of cultures.** This
+    is hard to guard for, but it's worth considering. The designer of Nimrod
+    ended up renaming his language to "Nim" because too many people only
+    remember that Bugs Bunny used "Nimrod" as an insult.
 
 If your potential name makes it through that gauntlet, keep it. Don't get hung
 up on trying to find an appellation that captures the quintessence of your

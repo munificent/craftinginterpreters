@@ -422,6 +422,27 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   for i in range(0, 5):
     body = SPAN_PATTERN.sub(r'<span class="o">\1\2</span>', body)
 
+  # Python Markdown preserves leading indentation for bullet list items.
+  # Super hacky fix to strip out that leading indentation but not from
+  # other lines.
+  LIST_INDENT_PATTERN = re.compile(r"\n +(\w.*)")
+  def remove_indent(match):
+    text = match.group(1)
+    non_list_lines = {
+      "ga('",
+      "s.getElements",
+      "-->",
+      "Next Chapter: ",
+      "Part: &ldquo;",
+      "2 39 ",
+      "15 | function"
+    }
+    for line in non_list_lines:
+      if line in text: return match.group(0)
+    return "\n" + text
+
+  body = LIST_INDENT_PATTERN.sub(remove_indent, body)
+
   up = 'Table of Contents'
   if part:
     up = part

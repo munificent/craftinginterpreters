@@ -702,13 +702,13 @@ squeeze even more perf out. If that sounds fun, [keep reading][opt]...
     Take out Lox's current overriding and `super` behavior and replace it with
     BETA's semantics. In short:
 
-    * When calling a method on a class, prefer the method *highest* on the
-      class's inheritance chain.
+    *   When calling a method on a class, prefer the method *highest* on the
+        class's inheritance chain.
 
-    * Inside the body of a method, a call to `inner` looks for a method with the
-      same name in the nearest subclass along the inheritance chain between the
-      class containing the `inner` and the class of `this`. If there is no
-      matching method, the `inner` call does nothing.
+    *   Inside the body of a method, a call to `inner` looks for a method with
+        the same name in the nearest subclass along the inheritance chain
+        between the class containing the `inner` and the class of `this`. If
+        there is no matching method, the `inner` call does nothing.
 
     For example:
 

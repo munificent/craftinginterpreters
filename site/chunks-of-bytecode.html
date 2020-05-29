@@ -176,16 +176,16 @@ going with bytecode, let&rsquo;s stack it up against a couple of alternatives.</
 <ul>
 <li>
 <p>Well, first, we already wrote it. It&rsquo;s done. And the main reason it&rsquo;s done
-    is because this style of interpreter is <strong>really simple to implement.</strong> The
-    runtime representation of the code directly maps to the syntax. It&rsquo;s
-    virtually effortless to get from the parser to the data structures we need
-    at runtime.</p>
+is because this style of interpreter is <strong>really simple to implement.</strong> The
+runtime representation of the code directly maps to the syntax. It&rsquo;s
+virtually effortless to get from the parser to the data structures we need
+at runtime.</p>
 </li>
 <li>
 <p>It&rsquo;s <strong>portable.</strong> Our current interpreter is written in Java and runs on
-    any platform Java supports. We could write a new implementation in C using
-    the same approach and compile and run our language on basically every
-    platform under the sun.</p>
+any platform Java supports. We could write a new implementation in C using
+the same approach and compile and run our language on basically every
+platform under the sun.</p>
 </li>
 </ul>
 <p>Those are real advantages. But, on the other hand, <strong>it&rsquo;s not
@@ -1399,9 +1399,9 @@ the <a href="a-virtual-machine.html">next chapter</a>, we will see how the virtu
 <ol>
 <li>
 <p>Our encoding of line information is hilariously wasteful of memory. Given
-    that a series of instructions often correspond to the same source line, a
-    natural solution is something akin to <a href="https://en.wikipedia.org/wiki/Run-length_encoding">run-length encoding</a> of the line
-    numbers.</p>
+that a series of instructions often correspond to the same source line, a
+natural solution is something akin to <a href="https://en.wikipedia.org/wiki/Run-length_encoding">run-length encoding</a> of the line
+numbers.</p>
 <p>Devise an encoding that compresses the line information for a
 series of instructions on the same line. Change <code>writeChunk()</code> to write this
 compressed form, and implement a <code>getLine()</code> function that, given the index
@@ -1412,12 +1412,12 @@ critical path where performance matters.</em></p>
 </li>
 <li>
 <p>Because <code>OP_CONSTANT</code> only uses a single byte for its operand, a chunk may
-    only contain up to 256 different constants. That&rsquo;s small enough that people
-    writing real-world code will hit that limit. We could use two or more bytes
-    to store the operand, but that makes <em>every</em> constant instruction take up
-    more space. Most chunks won&rsquo;t need that many unique constants, so that
-    wastes space and sacrifices some locality in the common case to support the
-    rare case.</p>
+only contain up to 256 different constants. That&rsquo;s small enough that people
+writing real-world code will hit that limit. We could use two or more bytes
+to store the operand, but that makes <em>every</em> constant instruction take up
+more space. Most chunks won&rsquo;t need that many unique constants, so that
+wastes space and sacrifices some locality in the common case to support the
+rare case.</p>
 <p>To balance those two competing aims, many instruction sets feature multiple
 instructions that perform the same operation but with operands of different
 sizes. Leave our existing one-byte <code>OP_CONSTANT</code> instruction alone, and
@@ -1438,11 +1438,11 @@ sacrifices, if any, does it force on us?</p>
 </li>
 <li>
 <p>Our <code>reallocate()</code> function relies on the C standard library for dynamic
-    memory allocation and freeing. <code>malloc()</code> and <code>free()</code> aren&rsquo;t magic. Find
-    a couple of open source implementations of them and explain how they work.
-    How do they keep track of which bytes are allocated and which are free?
-    What is required to allocate a block of memory? Free it? How do they make
-    that efficient? What do they do about fragmentation?</p>
+memory allocation and freeing. <code>malloc()</code> and <code>free()</code> aren&rsquo;t magic. Find
+a couple of open source implementations of them and explain how they work.
+How do they keep track of which bytes are allocated and which are free?
+What is required to allocate a block of memory? Free it? How do they make
+that efficient? What do they do about fragmentation?</p>
 <p><em>Hardcore mode:</em> Implement <code>reallocate()</code> without calling <code>realloc()</code>,
 <code>malloc()</code>, or <code>free()</code>. You are allowed to call <code>malloc()</code> <em>once</em>, at the
 beginning of the interpreter&rsquo;s execution, to allocate a single big block of
@@ -1467,33 +1467,33 @@ programming language for at least a couple of reasons:</p>
 <ul>
 <li>
 <p><strong>Users expect their programming languages to be rock solid.</strong> We are so
-    used to mature, stable compilers and interpreters that &ldquo;It&rsquo;s your code, not
-    the compiler&rdquo; is <a href="https://blog.codinghorror.com/the-first-rule-of-programming-its-always-your-fault/">an ingrained part of software culture</a>. If there
-    are bugs in your language, users will go through the full five stages of
-    grief before they can figure out what&rsquo;s going on, and you don&rsquo;t want to put
-    them through all that.</p>
+used to mature, stable compilers and interpreters that &ldquo;It&rsquo;s your code, not
+the compiler&rdquo; is <a href="https://blog.codinghorror.com/the-first-rule-of-programming-its-always-your-fault/">an ingrained part of software culture</a>. If there
+are bugs in your language, users will go through the full five stages of
+grief before they can figure out what&rsquo;s going on, and you don&rsquo;t want to put
+them through all that.</p>
 </li>
 <li>
 <p><strong>A language implementation is a deeply interconnected piece of software.</strong>
-    Some codebases are broad and shallow. If the file loading code is broken in
-    your text editor, it<span class="em">&mdash;</span>hopefully!<span class="em">&mdash;</span>won&rsquo;t cause failures in the text
-    rendering on screen. Language implementations are narrower and deeper,
-    especially the core of the interpreter that handles the language&rsquo;s actual
-    semantics. That makes it easy for subtle bugs to creep in caused by weird
-    interactions between various parts of the system. It takes good tests to
-    flush those out.</p>
+Some codebases are broad and shallow. If the file loading code is broken in
+your text editor, it<span class="em">&mdash;</span>hopefully!<span class="em">&mdash;</span>won&rsquo;t cause failures in the text
+rendering on screen. Language implementations are narrower and deeper,
+especially the core of the interpreter that handles the language&rsquo;s actual
+semantics. That makes it easy for subtle bugs to creep in caused by weird
+interactions between various parts of the system. It takes good tests to
+flush those out.</p>
 </li>
 <li>
 <p><strong>The input to a language implementation is, by design, combinatorial.</strong>
-    There are an infinite number of possible programs a user could write, and
-    your implementation needs to run them all correctly. You obviously can&rsquo;t
-    test that exhaustively, but you need to work hard to cover as much of the
-    input space as you can.</p>
+There are an infinite number of possible programs a user could write, and
+your implementation needs to run them all correctly. You obviously can&rsquo;t
+test that exhaustively, but you need to work hard to cover as much of the
+input space as you can.</p>
 </li>
 <li>
 <p><strong>Language implementations are often complex, constantly changing, and full
-    of optimizations.</strong> That leads to gnarly code with lots of dark corners
-    where bugs can hide.</p>
+of optimizations.</strong> That leads to gnarly code with lots of dark corners
+where bugs can hide.</p>
 </li>
 </ul>
 <p>All of that means you&rsquo;re gonna want a lot of tests. But <em>what</em> tests? Projects
@@ -1505,37 +1505,37 @@ Writing your tests in the language itself has a few nice advantages:</p>
 <ul>
 <li>
 <p>The tests aren&rsquo;t coupled to any particular API or internal architecture
-    decisions of the implementation. This frees you to reorganize or rewrite
-    parts of your interpreter or compiler without needing to update a slew of
-    tests.</p>
+decisions of the implementation. This frees you to reorganize or rewrite
+parts of your interpreter or compiler without needing to update a slew of
+tests.</p>
 </li>
 <li>
 <p>You can use the same tests for multiple implementations of the language.</p>
 </li>
 <li>
 <p>Tests can often be terse and easy to read and maintain since they are
-    simply scripts in your language.</p>
+simply scripts in your language.</p>
 </li>
 </ul>
 <p>It&rsquo;s not all rosy, though:</p>
 <ul>
 <li>
 <p>End-to-end tests help you determine <em>if</em> there is a bug, but not <em>where</em> the
-    bug is. It can be harder to figure out where the erroneous code in the
-    implementation is because all the test tells you is that the right output
-    didn&rsquo;t appear.</p>
+bug is. It can be harder to figure out where the erroneous code in the
+implementation is because all the test tells you is that the right output
+didn&rsquo;t appear.</p>
 </li>
 <li>
 <p>It can be a chore to craft a valid program that tickles some obscure corner
-    of the implementation. This is particularly true for highly-optimized
-    compilers where you may need to write convoluted code to ensure that you
-    end up on just the right optimization path where a bug may be hiding.</p>
+of the implementation. This is particularly true for highly-optimized
+compilers where you may need to write convoluted code to ensure that you
+end up on just the right optimization path where a bug may be hiding.</p>
 </li>
 <li>
 <p>The overhead can be high to fire up the interpreter, parse, compile, and
-    run each test script. With a big suite of tests<span class="em">&mdash;</span>which you <em>do</em> want,
-    remember<span class="em">&mdash;</span>that can mean a lot of time spent waiting for the tests to
-    finish running.</p>
+run each test script. With a big suite of tests<span class="em">&mdash;</span>which you <em>do</em> want,
+remember<span class="em">&mdash;</span>that can mean a lot of time spent waiting for the tests to
+finish running.</p>
 </li>
 </ul>
 <p>I could go on, but I don&rsquo;t want this to turn into a sermon. Also, I don&rsquo;t
