@@ -442,6 +442,9 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   template = environment.get_template(template_file + '.html')
   output = template.render(data)
 
+  # The old files don't have a newline at the end.
+  if output.endswith("</html>"): output += "\n"
+
   # Write the output.
   with codecs.open(output_path, "w", encoding="utf-8") as out:
     out.write(output)
