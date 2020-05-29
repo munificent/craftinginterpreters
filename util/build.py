@@ -328,7 +328,7 @@ def format_file(path, skip_up_to_date, dependencies_mod):
 
       elif stripped.startswith('## Design Note:'):
         has_design_note = True
-        design_note = stripped[len('## Design Note:') + 1:]
+        design_note = stripped[len('## Design Note:') + 1:].strip()
         contents += '<h2><a href="#design-note" name="design-note">Design Note: {}</a></h2>\n'.format(design_note)
 
       elif stripped.startswith('# ') or stripped.startswith('## ') or stripped.startswith('### '):
