@@ -1207,12 +1207,12 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 
 1.  We have methods on instances, but there is no way to define "static" methods
     that can be called directly on the class object itself. Add support for
-    them. Use a `class` keyword preceding the method to indicate a static method
+    them. Use the `fun` keyword preceding the method to indicate a static method
     that hangs off the class object:
 
         :::lox
         class Math {
-          class square(n) {
+          fun square(n) {
             return n * n;
           }
         }
