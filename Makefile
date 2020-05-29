@@ -1,6 +1,7 @@
 BUILD_DIR := build
 TOOL_SOURCES := tool/pubspec.lock $(shell find tool -name '*.dart')
 BUILD_SNAPSHOT := $(BUILD_DIR)/build.dart.snapshot
+TEST_SNAPSHOT := $(BUILD_DIR)/test.dart.snapshot
 
 default: book clox jlox
 
@@ -19,7 +20,7 @@ book_dart: $(BUILD_SNAPSHOT)
 
 $(BUILD_SNAPSHOT): $(TOOL_SOURCES)
 	@ echo "Generating Dart snapshot..."
-	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/build.dart
+	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/build.dart >/dev/null
 
 # Compile a debug build of clox.
 debug:
@@ -30,30 +31,33 @@ serve:
 	@ ./util/build.py --serve
 
 # Run the tests for the final versions of clox and jlox.
-test: debug jlox
-	# TODO: Get this working even if the first returns non-zero.
-	@ ./util/test.py clox
-	@ ./util/test.py jlox
+test: $(TEST_SNAPSHOT) debug jlox
+	@- dart $(TEST_SNAPSHOT) clox
+	@ dart $(TEST_SNAPSHOT) jlox
 
 # Run the tests for the final version of clox.
-test_clox: debug
-	@ ./util/test.py clox
+test_clox: $(TEST_SNAPSHOT) debug
+	@ dart $(TEST_SNAPSHOT) clox
 
 # Run the tests for final version of jlox.
-test_jlox: jlox
-	@ ./util/test.py jlox
+test_jlox: $(TEST_SNAPSHOT) jlox
+	@ dart $(TEST_SNAPSHOT) jlox
 
 # Run the tests for every chapter's version of clox.
-test_c: debug c_chapters
-	@ ./util/test.py c
+test_c: $(TEST_SNAPSHOT) debug c_chapters
+	@ dart $(TEST_SNAPSHOT) c
 
 # Run the tests for every chapter's version of jlox.
-test_java: jlox java_chapters
-	@ ./util/test.py java
+test_java: $(TEST_SNAPSHOT) jlox java_chapters
+	@ dart $(TEST_SNAPSHOT) java
 
 # Run the tests for every chapter's version of clox and jlox.
-test_all: debug jlox c_chapters java_chapters compile_snippets
-	@ ./util/test.py all
+test_all: $(TEST_SNAPSHOT) debug jlox c_chapters java_chapters compile_snippets
+	@ dart $(TEST_SNAPSHOT) all
+
+$(TEST_SNAPSHOT): $(TOOL_SOURCES)
+	@ echo "Generating Dart snapshot..."
+	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/test.dart clox >/dev/null
 
 # Remove all build outputs and intermediate files.
 clean:
@@ -169,10 +173,10 @@ diffs: split_chapters java_chapters
 	@ -diff --new-file gen/chap29_superclasses/ gen/chap30_optimization/ > build/diffs/chap30_optimization.diff
 
 split_chapters:
-	@ ./util/split_chapters.py
+	@ dart tool/bin/split_chapters.dart
 
 compile_snippets:
-	@ python3 util/compile_snippets.py
+	@ dart tool/bin/compile_snippets.dart
 
 .PHONY: book c_chapters clean clox compile_snippets debug default diffs \
 	java_chapters jlox serve split_chapters test test_all test_c test_java
