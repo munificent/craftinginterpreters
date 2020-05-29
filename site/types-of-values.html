@@ -368,17 +368,17 @@ can&rsquo;t assume the operand is a number anymore. The user could just as well 
 Before performing an operation that requires a certain type, we need to make
 sure the value <em>is</em> that type.</p>
 <p>For unary negate, the check looks like this:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(</span><span class="o">/</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>        
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(/);</span> <span class="k">break</span><span class="o">;</span>        
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="o">:</span>                               
-        <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">)))</span> <span class="o">{</span>                  
+        <span class="k">if</span> <span class="o">(!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">)))</span> <span class="o">{</span>                  
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Operand must be a number.&quot;</span><span class="o">);</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>           
         <span class="o">}</span>
 
-        <span class="n">push</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">(</span><span class="o">-</span><span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">pop</span><span class="o">())));</span>        
+        <span class="n">push</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">(-</span><span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">pop</span><span class="o">())));</span>        
         <span class="k">break</span><span class="o">;</span>                                      
 </pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_RETURN</span><span class="o">:</span> <span class="o">{</span>                             
 </pre></div>
@@ -399,7 +399,7 @@ remedy.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>pop</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Value</span> <span class="n">peek</span><span class="o">(</span><span class="k">int</span> <span class="n">distance</span><span class="o">)</span> <span class="o">{</span>   
-  <span class="k">return</span> <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">[</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">distance</span><span class="o">];</span>
+  <span class="k">return</span> <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span><span class="o">[-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">distance</span><span class="o">];</span>
 <span class="o">}</span>                                   
 </pre></div>
 
@@ -496,7 +496,7 @@ in <em>run</em>()<br>
 replace 6 lines</div>
 <pre class="insert"><span></span><span class="cp">#define BINARY_OP(valueType, op) \                               </span>
     <span class="k">do</span> <span class="o">{</span> <span class="err">\</span>                                                       
-      <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">))</span> <span class="o">||</span> <span class="o">!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span> <span class="o">{</span> <span class="err">\</span>        
+      <span class="k">if</span> <span class="o">(!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">))</span> <span class="o">||</span> <span class="o">!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">)))</span> <span class="o">{</span> <span class="err">\</span>        
         <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Operands must be numbers.&quot;</span><span class="o">);</span> <span class="err">\</span>             
         <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span> <span class="err">\</span>                        
       <span class="o">}</span> <span class="err">\</span>                                                        
@@ -527,10 +527,10 @@ existing arithmetic operators, the result is a number, so we pass in the
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 4 lines</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="nl">OP_SUBTRACT</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">-</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="nl">OP_MULTIPLY</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">*</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">/</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="nl">OP_SUBTRACT</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">-);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="nl">OP_MULTIPLY</span><span class="o">:</span> <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">*);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">/);</span> <span class="k">break</span><span class="o">;</span>
 </pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_NEGATE</span><span class="o">:</span>                                   
 </pre></div>
 
@@ -648,7 +648,7 @@ in <em>run</em>()</div>
 <pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NIL</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">NIL_VAL</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>                
       <span class="k">case</span> <span class="nl">OP_TRUE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="nb">true</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>        
       <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="nb">false</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>      
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+);</span> <span class="k">break</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -738,7 +738,7 @@ in <em>unary</em>()</div>
 
 <p>That&rsquo;s it for the front end. Let&rsquo;s head over to the VM and conjure this
 instruction into life:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">/</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_DIVIDE</span><span class="o">:</span>   <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">/);</span> <span class="k">break</span><span class="o">;</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NOT</span><span class="o">:</span>                                      
@@ -885,7 +885,7 @@ in <em>run</em>()</div>
         <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="n">valuesEqual</span><span class="o">(</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">)));</span>              
         <span class="k">break</span><span class="o">;</span>                                          
       <span class="o">}</span>                                                 
-<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+);</span> <span class="k">break</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -953,9 +953,9 @@ they only work on numbers:</p>
       <span class="o">}</span>                                                 
 <br></pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_GREATER</span><span class="o">:</span>  <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">,</span> <span class="o">&gt;</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>  
-      <span class="k">case</span> <span class="nl">OP_LESS</span><span class="o">:</span>     <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">,</span> <span class="o">&lt;</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>  
-</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_GREATER</span><span class="o">:</span>  <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">,</span> <span class="o">&gt;);</span> <span class="k">break</span><span class="o">;</span>  
+      <span class="k">case</span> <span class="nl">OP_LESS</span><span class="o">:</span>     <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">,</span> <span class="o">&lt;);</span> <span class="k">break</span><span class="o">;</span>  
+</pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+);</span> <span class="k">break</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -981,7 +981,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>With that, our numeric calculator has become something closer to a general
 expression evaluator. Fire up clox and type in:</p>
-<div class="codehilite"><pre><span></span><span class="o">!</span><span class="o">(</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">==</span> <span class="o">!</span><span class="nb">nil</span><span class="o">)</span>
+<div class="codehilite"><pre><span></span><span class="o">!(</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">==</span> <span class="o">!</span><span class="nb">nil</span><span class="o">)</span>
 </pre></div>
 
 

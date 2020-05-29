@@ -161,10 +161,10 @@ with something more useful:</p>
 in <em>interpret</em>()<br>
 replace 2 lines</div>
 <pre class="insert"><span></span>  <span class="n">Chunk</span> <span class="n">chunk</span><span class="o">;</span>                                 
-  <span class="n">initChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>
+  <span class="n">initChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>
 
-  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">compile</span><span class="o">(</span><span class="n">source</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">chunk</span><span class="o">))</span> <span class="o">{</span>              
-    <span class="n">freeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                         
+  <span class="k">if</span> <span class="o">(!</span><span class="n">compile</span><span class="o">(</span><span class="n">source</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">chunk</span><span class="o">))</span> <span class="o">{</span>              
+    <span class="n">freeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                         
     <span class="k">return</span> <span class="n">INTERPRET_COMPILE_ERROR</span><span class="o">;</span>            
   <span class="o">}</span>                                            
 
@@ -173,7 +173,7 @@ replace 2 lines</div>
 
   <span class="n">InterpretResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">run</span><span class="o">();</span>              
 
-  <span class="n">freeChunk</span><span class="o">(</span><span class="o">&amp;</span><span class="n">chunk</span><span class="o">);</span>                           
+  <span class="n">freeChunk</span><span class="o">(&amp;</span><span class="n">chunk</span><span class="o">);</span>                           
   <span class="k">return</span> <span class="n">result</span><span class="o">;</span>                               
 </pre><pre class="insert-after"><span></span><span class="o">}</span>                                              
 </pre></div>
@@ -339,7 +339,7 @@ happens using this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">errorAtCurrent</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">errorAt</span><span class="o">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>             
+  <span class="n">errorAt</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>             
 <span class="o">}</span>                                                
 </pre></div>
 
@@ -352,7 +352,7 @@ to this other function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">error</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">errorAt</span><span class="o">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>   
+  <span class="n">errorAt</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>   
 <span class="o">}</span>                                       
 </pre></div>
 
@@ -1039,7 +1039,7 @@ reflects use&rdquo; thing<span class="em">&mdash;</span>but I think it was a fai
 <div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="n">Precedence</span><span class="o">;</span>             
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em></div>
-<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="n">void</span> <span class="o">(</span><span class="o">*</span><span class="n">ParseFn</span><span class="o">)();</span>
+<pre class="insert"><br><span></span><span class="k">typedef</span> <span class="n">void</span> <span class="o">(*</span><span class="n">ParseFn</span><span class="o">)();</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>          
 </pre></div>
 
@@ -1157,7 +1157,7 @@ prefix expressions:</p>
 in <em>parsePrecedence</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="n">advance</span><span class="o">();</span>                                                 
-  <span class="n">ParseFn</span> <span class="n">prefixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">prefix</span><span class="o">;</span>
+  <span class="n">ParseFn</span> <span class="n">prefixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">prefix</span><span class="o">;</span>
   <span class="k">if</span> <span class="o">(</span><span class="n">prefixRule</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="o">{</span>                                  
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Expect expression.&quot;</span><span class="o">);</span>                             
     <span class="k">return</span><span class="o">;</span>                                                  
@@ -1180,9 +1180,9 @@ simple:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">prefixRule</span><span class="o">();</span>                                                   
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()</div>
-<pre class="insert"><br><span></span>  <span class="k">while</span> <span class="o">(</span><span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">precedence</span><span class="o">)</span> <span class="o">{</span>
+<pre class="insert"><br><span></span>  <span class="k">while</span> <span class="o">(</span><span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">precedence</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">advance</span><span class="o">();</span>                                                    
-    <span class="n">ParseFn</span> <span class="n">infixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">infix</span><span class="o">;</span>     
+    <span class="n">ParseFn</span> <span class="n">infixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">infix</span><span class="o">;</span>     
     <span class="n">infixRule</span><span class="o">();</span>                                                  
   <span class="o">}</span>                                                               
 </pre><pre class="insert-after"><span></span><span class="o">}</span>                                                                 
@@ -1249,7 +1249,7 @@ chunk&rsquo;s bytecode:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()</div>
 <pre class="insert"><span></span><span class="cp">#ifdef DEBUG_PRINT_CODE                      </span>
-  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">parser</span><span class="o">.</span><span class="n">hadError</span><span class="o">)</span> <span class="o">{</span>                    
+  <span class="k">if</span> <span class="o">(!</span><span class="n">parser</span><span class="o">.</span><span class="n">hadError</span><span class="o">)</span> <span class="o">{</span>                    
     <span class="n">disassembleChunk</span><span class="o">(</span><span class="n">currentChunk</span><span class="o">(),</span> <span class="s">&quot;code&quot;</span><span class="o">);</span>
   <span class="o">}</span>                                          
 <span class="cp">#endif                                       </span>
@@ -1288,7 +1288,7 @@ but the foundation is in place.</p>
 <p>To really understand the parser, you need to see how execution threads
     through the interesting parsing functions<span class="em">&mdash;</span><code>parsePrecedence()</code> and the
     parser functions stored in the table. Take this (strange) expression:</p>
-<div class="codehilite"><pre><span></span><span class="o">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="o">-</span><span class="mi">4</span>
+<div class="codehilite"><pre><span></span><span class="o">(-</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span><span class="o">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="o">-</span><span class="mi">4</span>
 </pre></div>
 
 

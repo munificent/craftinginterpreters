@@ -249,7 +249,7 @@ add after <em>emitBytes</em>()</div>
   <span class="n">emitByte</span><span class="o">(</span><span class="n">instruction</span><span class="o">);</span>                  
   <span class="n">emitByte</span><span class="o">(</span><span class="mh">0xff</span><span class="o">);</span>                         
   <span class="n">emitByte</span><span class="o">(</span><span class="mh">0xff</span><span class="o">);</span>                         
-  <span class="k">return</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="mi">2</span><span class="o">;</span>       
+  <span class="k">return</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="mi">2</span><span class="o">;</span>       
 <span class="o">}</span>                                         
 </pre></div>
 
@@ -270,14 +270,14 @@ compiling the then branch, we take that offset and pass it to:</p>
 add after <em>emitConstant</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">patchJump</span><span class="o">(</span><span class="k">int</span> <span class="n">offset</span><span class="o">)</span> <span class="o">{</span>                           
   <span class="c1">// -2 to adjust for the bytecode for the jump offset itself.</span>
-  <span class="k">int</span> <span class="n">jump</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="o">;</span>
+  <span class="k">int</span> <span class="n">jump</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="o">;</span>
 
   <span class="k">if</span> <span class="o">(</span><span class="n">jump</span> <span class="o">&gt;</span> <span class="n">UINT16_MAX</span><span class="o">)</span> <span class="o">{</span>                                    
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Too much code to jump over.&quot;</span><span class="o">);</span>                     
   <span class="o">}</span>                                                           
 
-  <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="n">jump</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="o">;</span>          
-  <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="n">jump</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="o">;</span>             
+  <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="n">jump</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="o">;</span>          
+  <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span> <span class="o">+</span> <span class="mi">1</span><span class="o">]</span> <span class="o">=</span> <span class="n">jump</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="o">;</span>             
 <span class="o">}</span>                                                             
 </pre></div>
 
@@ -319,7 +319,7 @@ that from the chunk, we use this new macro:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><span></span><span class="cp">#define READ_SHORT() \                                           </span>
-    <span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">,</span> <span class="o">(</span><span class="k">uint16_t</span><span class="o">)((</span><span class="n">vm</span><span class="o">.</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">2</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">|</span> <span class="n">vm</span><span class="o">.</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">1</span><span class="o">]))</span>       
+    <span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">,</span> <span class="o">(</span><span class="k">uint16_t</span><span class="o">)((</span><span class="n">vm</span><span class="o">.</span><span class="n">ip</span><span class="o">[-</span><span class="mi">2</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">|</span> <span class="n">vm</span><span class="o">.</span><span class="n">ip</span><span class="o">[-</span><span class="mi">1</span><span class="o">]))</span>       
 </pre><pre class="insert-after"><span></span><span class="cp">#define READ_STRING() AS_STRING(READ_CONSTANT())                 </span>
 </pre></div>
 
@@ -672,7 +672,7 @@ now. We&rsquo;ve already compiled the point in code that we want to jump back to
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">whileStatement</span><span class="o">()</span> <span class="o">{</span>                           
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>whileStatement</em>()</div>
-<pre class="insert"><span></span>  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">;</span>                 
+<pre class="insert"><span></span>  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>                 
 <br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span><span class="o">);</span>
 </pre></div>
 
@@ -688,7 +688,7 @@ add after <em>emitBytes</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">emitLoop</span><span class="o">(</span><span class="k">int</span> <span class="n">loopStart</span><span class="o">)</span> <span class="o">{</span>                    
   <span class="n">emitByte</span><span class="o">(</span><span class="n">OP_LOOP</span><span class="o">);</span>
 
-  <span class="k">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">loopStart</span> <span class="o">+</span> <span class="mi">2</span><span class="o">;</span>    
+  <span class="k">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">loopStart</span> <span class="o">+</span> <span class="mi">2</span><span class="o">;</span>    
   <span class="k">if</span> <span class="o">(</span><span class="n">offset</span> <span class="o">&gt;</span> <span class="n">UINT16_MAX</span><span class="o">)</span> <span class="n">error</span><span class="o">(</span><span class="s">&quot;Loop body too large.&quot;</span><span class="o">);</span>
 
   <span class="n">emitByte</span><span class="o">((</span><span class="n">offset</span> <span class="o">&gt;&gt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">&amp;</span> <span class="mh">0xff</span><span class="o">);</span>                        
@@ -796,7 +796,7 @@ add after <em>expressionStatement</em>()</div>
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span><span class="o">);</span>       
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="o">);</span>
 
-  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">;</span>                      
+  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>                      
 
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="o">);</span>                    
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="o">);</span>
@@ -831,7 +831,7 @@ replace 1 line</div>
   <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                             
     <span class="n">expressionStatement</span><span class="o">();</span>                             
   <span class="o">}</span>                                                    
-</pre><pre class="insert-after"><br><span></span>  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">;</span>               
+</pre><pre class="insert-after"><br><span></span>  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>               
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
@@ -865,12 +865,12 @@ in <em>forStatement</em>()</div>
 
 <h3><a href="#condition-clause" name="condition-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;2</small> Condition clause</a></h3>
 <p>Next, is the condition expression that can be used to exit the loop:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">;</span>                         
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>                         
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="k">int</span> <span class="n">exitJump</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>                                             
-  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">))</span> <span class="o">{</span>                                 
+  <span class="k">if</span> <span class="o">(!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">))</span> <span class="o">{</span>                                 
     <span class="n">expression</span><span class="o">();</span>                                                
     <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span><span class="o">);</span>
 
@@ -920,10 +920,10 @@ C, right? Here&rsquo;s the code:</p>
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                              
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                              
     <span class="k">int</span> <span class="n">bodyJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="o">(</span><span class="n">OP_JUMP</span><span class="o">);</span>
 
-    <span class="k">int</span> <span class="n">incrementStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()</span><span class="o">-&gt;</span><span class="n">count</span><span class="o">;</span>                 
+    <span class="k">int</span> <span class="n">incrementStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>                 
     <span class="n">expression</span><span class="o">();</span>                                               
     <span class="n">emitByte</span><span class="o">(</span><span class="n">OP_POP</span><span class="o">);</span>                                           
     <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="o">);</span>
@@ -1153,9 +1153,9 @@ exit out of a series of nested loops:</p>
 </p>
 <div class="codehilite"><pre><span></span><span class="c1">// See if the matrix contains a zero.</span>
 <span class="k">bool</span> <span class="n">found</span> <span class="o">=</span> <span class="nb">false</span><span class="o">;</span>
-<span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="o">;</span> <span class="n">x</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="o">;</span> <span class="n">y</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">zSize</span><span class="o">;</span> <span class="n">z</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
+<span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="o">;</span> <span class="n">x</span><span class="o">++)</span> <span class="o">{</span>
+  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="o">;</span> <span class="n">y</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">zSize</span><span class="o">;</span> <span class="n">z</span><span class="o">++)</span> <span class="o">{</span>
       <span class="k">if</span> <span class="o">(</span><span class="n">matrix</span><span class="o">[</span><span class="n">x</span><span class="o">][</span><span class="n">y</span><span class="o">][</span><span class="n">z</span><span class="o">]</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
         <span class="n">printf</span><span class="o">(</span><span class="s">&quot;found&quot;</span><span class="o">);</span>
         <span class="n">found</span> <span class="o">=</span> <span class="nb">true</span><span class="o">;</span>
@@ -1170,9 +1170,9 @@ exit out of a series of nested loops:</p>
 
 
 <p>Is that really better than:</p>
-<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="o">;</span> <span class="n">x</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="o">;</span> <span class="n">y</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">zSize</span><span class="o">;</span> <span class="n">z</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="o">;</span> <span class="n">x</span><span class="o">++)</span> <span class="o">{</span>
+  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="o">;</span> <span class="n">y</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">zSize</span><span class="o">;</span> <span class="n">z</span><span class="o">++)</span> <span class="o">{</span>
       <span class="k">if</span> <span class="o">(</span><span class="n">matrix</span><span class="o">[</span><span class="n">x</span><span class="o">][</span><span class="n">y</span><span class="o">][</span><span class="n">z</span><span class="o">]</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
         <span class="n">printf</span><span class="o">(</span><span class="s">&quot;found&quot;</span><span class="o">);</span>
         <span class="k">goto</span> <span class="n">done</span><span class="o">;</span>

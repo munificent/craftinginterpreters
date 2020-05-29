@@ -224,7 +224,7 @@ declarations. We&rsquo;re ready to support that now:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><br><span></span>  <span class="k">while</span> <span class="o">(</span><span class="o">!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_EOF</span><span class="o">))</span> <span class="o">{</span>
+<pre class="insert"><br><span></span>  <span class="k">while</span> <span class="o">(!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_EOF</span><span class="o">))</span> <span class="o">{</span>
     <span class="n">declaration</span><span class="o">();</span>           
   <span class="o">}</span>                          
 <br></pre><pre class="insert-after"><span></span>  <span class="n">endCompiler</span><span class="o">();</span>             
@@ -275,7 +275,7 @@ function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">bool</span> <span class="n">match</span><span class="o">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>  
+  <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>  
   <span class="n">advance</span><span class="o">();</span>                       
   <span class="k">return</span> <span class="nb">true</span><span class="o">;</span>                     
 <span class="o">}</span>                                  
@@ -613,7 +613,7 @@ first one is:</p>
 add after <em>parsePrecedence</em>()</div>
 <pre class="insert"><span></span><span class="k">static</span> <span class="k">uint8_t</span> <span class="n">parseVariable</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">errorMessage</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="n">errorMessage</span><span class="o">);</span>              
-  <span class="k">return</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>          
+  <span class="k">return</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>          
 <span class="o">}</span>                                                       
 </pre></div>
 
@@ -678,7 +678,7 @@ in enum <em>OpCode</em></div>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_DEFINE_GLOBAL</span><span class="o">:</span> <span class="o">{</span>               
         <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>     
-        <span class="n">tableSet</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+        <span class="n">tableSet</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
         <span class="n">pop</span><span class="o">();</span>                               
         <span class="k">break</span><span class="o">;</span>                               
       <span class="o">}</span>                                      
@@ -743,8 +743,8 @@ state when the VM boots up:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">vm</span><span class="o">.</span><span class="n">objects</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
-<pre class="insert"><br><span></span>  <span class="n">initTable</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>  <span class="n">initTable</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>
+<pre class="insert"><br><span></span>  <span class="n">initTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">initTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
@@ -757,8 +757,8 @@ the operating system to clean up our mess.</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">freeVM</span><span class="o">()</span> <span class="o">{</span>          
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
-<pre class="insert"><span></span>  <span class="n">freeTable</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>  <span class="n">freeTable</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="n">freeTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">);</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">freeTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>freeVM</em>()</div>
@@ -803,7 +803,7 @@ pointless now but will become more useful in later chapters. I promise.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>string</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">namedVariable</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>   
-  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">name</span><span class="o">);</span>
+  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">name</span><span class="o">);</span>
   <span class="n">emitBytes</span><span class="o">(</span><span class="n">OP_GET_GLOBAL</span><span class="o">,</span> <span class="n">arg</span><span class="o">);</span>          
 <span class="o">}</span>                                         
 </pre></div>
@@ -831,7 +831,7 @@ in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_GLOBAL</span><span class="o">:</span> <span class="o">{</span>                                     
         <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>                        
         <span class="n">Value</span> <span class="n">value</span><span class="o">;</span>                                            
-        <span class="k">if</span> <span class="o">(</span><span class="o">!</span><span class="n">tableGet</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>             
+        <span class="k">if</span> <span class="o">(!</span><span class="n">tableGet</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>             
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Undefined variable &#39;%s&#39;.&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="o">);</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                       
         <span class="o">}</span>                                                       
@@ -906,7 +906,7 @@ be used as an assignment target, we look for a subsequent <code>=</code> token. 
 one, we compile it as an assignment or setter instead of a variable access or
 getter.</p>
 <p>We don&rsquo;t have setters to worry about yet, so all we need to handle is variables:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">name</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">name</span><span class="o">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
@@ -940,8 +940,8 @@ in enum <em>OpCode</em></div>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_SET_GLOBAL</span><span class="o">:</span> <span class="o">{</span>                                     
         <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>                        
-        <span class="k">if</span> <span class="o">(</span><span class="n">tableSet</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">)))</span> <span class="o">{</span>             
-          <span class="n">tableDelete</span><span class="o">(</span><span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span><span name="delete"> </span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">tableSet</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">)))</span> <span class="o">{</span>             
+          <span class="n">tableDelete</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">globals</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span><span name="delete"> </span>
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Undefined variable &#39;%s&#39;.&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="o">);</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                       
         <span class="o">}</span>                                                       
@@ -1021,7 +1021,7 @@ in <em>parsePrecedence</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="k">bool</span> <span class="n">canAssign</span> <span class="o">=</span> <span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">PREC_ASSIGNMENT</span><span class="o">;</span>                 
   <span class="n">prefixRule</span><span class="o">(</span><span class="n">canAssign</span><span class="o">);</span>                                          
-</pre><pre class="insert-after"><br><span></span>  <span class="k">while</span> <span class="o">(</span><span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">precedence</span><span class="o">)</span> <span class="o">{</span>
+</pre><pre class="insert-after"><br><span></span>  <span class="k">while</span> <span class="o">(</span><span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">precedence</span><span class="o">)</span> <span class="o">{</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>(), replace 1 line</div>
@@ -1044,13 +1044,13 @@ replace 3 lines</div>
 function <em>namedVariable</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">namedVariable</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">,</span> <span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>
-</pre><pre class="insert-after"><span></span>  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">name</span><span class="o">);</span>             
+</pre><pre class="insert-after"><span></span>  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">name</span><span class="o">);</span>             
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>namedVariable</em>(), replace 1 line</div>
 
 <p>And then uses it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">name</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">uint8_t</span> <span class="n">arg</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">name</span><span class="o">);</span>
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
@@ -1073,9 +1073,9 @@ with <code>=</code>, so it skips that loop.</p>
 <p>Then <code>parsePrecedence()</code> silently returns back to the caller. That also isn&rsquo;t
 right. If the <code>=</code> doesn&rsquo;t get consumed as part of the expression, nothing else
 is going to consume it. It&rsquo;s an error and we should report it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">while</span> <span class="o">(</span><span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">precedence</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">while</span> <span class="o">(</span><span class="n">precedence</span> <span class="o">&lt;=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">current</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">precedence</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">advance</span><span class="o">();</span>                                                    
-    <span class="n">ParseFn</span> <span class="n">infixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">infix</span><span class="o">;</span>     
+    <span class="n">ParseFn</span> <span class="n">infixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">infix</span><span class="o">;</span>     
     <span class="n">infixRule</span><span class="o">();</span>                                                  
   <span class="o">}</span>                                                               
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1101,7 +1101,7 @@ would also allow assignment to support <code>array[index] = value</code>.</p>
 </aside>
 <p>So we&rsquo;re going to finish off this chapter with some grunt work. First, let&rsquo;s go
 ahead and pass the flag to the infix parse functions:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">ParseFn</span> <span class="n">infixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)</span><span class="o">-&gt;</span><span class="n">infix</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">ParseFn</span> <span class="n">infixRule</span> <span class="o">=</span> <span class="n">getRule</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">type</span><span class="o">)-&gt;</span><span class="n">infix</span><span class="o">;</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()<br>
 replace 1 line</div>
@@ -1117,7 +1117,7 @@ function type:</p>
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span><span class="k">typedef</span> <span class="n">void</span> <span class="o">(</span><span class="o">*</span><span class="n">ParseFn</span><span class="o">)(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">);</span>
+<pre class="insert"><span></span><span class="k">typedef</span> <span class="n">void</span> <span class="o">(*</span><span class="n">ParseFn</span><span class="o">)(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">);</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>                        
 </pre></div>
 
