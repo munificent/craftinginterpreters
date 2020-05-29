@@ -227,9 +227,9 @@ if statement on. It gets a new production under the statement grammar rule:</p>
 <div class="codehilite"><pre><span></span><span class="n">statement</span> <span class="err">→</span> <span class="n">exprStmt</span>
           <span class="err">|</span> <span class="n">ifStmt</span>
           <span class="err">|</span> <span class="n">printStmt</span>
-          <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
+          <span class="err">|</span> <span class="n">block</span> <span class="o">;</span>
 
-<span class="n">ifStmt</span>    <span class="err">→</span> <span class="s">&quot;if&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="p">(</span> <span class="s">&quot;else&quot;</span> <span class="n">statement</span> <span class="p">)</span><span class="err">?</span> <span class="p">;</span>
+<span class="n">ifStmt</span>    <span class="err">→</span> <span class="s">&quot;if&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="o">(</span> <span class="s">&quot;else&quot;</span> <span class="n">statement</span> <span class="o">)</span><span class="err">?</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -303,7 +303,7 @@ clause by looking for the preceding <code>else</code> keyword. If there isn&rsqu
 <code>elseBranch</code> field in the syntax tree is <code>null</code>.</p>
 <p>That seemingly innocuous optional else has in fact opened up an ambiguity in our
 grammar. Consider:</p>
-<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="p">(</span><span class="n">first</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">second</span><span class="p">)</span> <span class="n">whenTrue</span><span class="p">();</span> <span class="k">else</span> <span class="n">whenFalse</span><span class="p">();</span>
+<div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="n">first</span><span class="o">)</span> <span class="k">if</span> <span class="o">(</span><span class="n">second</span><span class="o">)</span> <span class="n">whenTrue</span><span class="o">();</span> <span class="k">else</span> <span class="n">whenFalse</span><span class="o">();</span>
 </pre></div>
 
 
@@ -373,7 +373,7 @@ operators that are technically control flow constructs<span class="em">&mdash;</
 <p>These aren&rsquo;t like other binary operators because they <strong>short-circuit</strong>. If,
 after evaluating the left operand, we know what the result of the logical
 expression must be, we don&rsquo;t evaluate the right operand. For example:</p>
-<div class="codehilite"><pre><span></span><span class="nb">false</span> <span class="k">and</span> <span class="n">sideEffect</span><span class="p">();</span>
+<div class="codehilite"><pre><span></span><span class="nb">false</span> <span class="k">and</span> <span class="n">sideEffect</span><span class="o">();</span>
 </pre></div>
 
 
@@ -390,11 +390,11 @@ right between <code>assignment</code> and <code>equality</code>:</p>
 <p>I&rsquo;ve always wondered why they don&rsquo;t have the same precedence like the various
 comparison or equality operators do.</p>
 </aside>
-<div class="codehilite"><pre><span></span><span class="n">expression</span> <span class="err">→</span> <span class="n">assignment</span> <span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="n">expression</span> <span class="err">→</span> <span class="n">assignment</span> <span class="o">;</span>
 <span class="n">assignment</span> <span class="err">→</span> <span class="n">identifier</span> <span class="s">&quot;=&quot;</span> <span class="n">assignment</span>
-           <span class="err">|</span> <span class="n">logic_or</span> <span class="p">;</span>
-<span class="n">logic_or</span>   <span class="err">→</span> <span class="n">logic_and</span> <span class="p">(</span> <span class="s">&quot;or&quot;</span> <span class="n">logic_and</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
-<span class="n">logic_and</span>  <span class="err">→</span> <span class="n">equality</span> <span class="p">(</span> <span class="s">&quot;and&quot;</span> <span class="n">equality</span> <span class="p">)</span><span class="o">*</span> <span class="p">;</span>
+           <span class="err">|</span> <span class="n">logic_or</span> <span class="o">;</span>
+<span class="n">logic_or</span>   <span class="err">→</span> <span class="n">logic_and</span> <span class="o">(</span> <span class="s">&quot;or&quot;</span> <span class="n">logic_and</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
+<span class="n">logic_and</span>  <span class="err">→</span> <span class="n">equality</span> <span class="o">(</span> <span class="s">&quot;and&quot;</span> <span class="n">equality</span> <span class="o">)</span><span class="o">*</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -503,8 +503,8 @@ result. Instead of promising to literally return <code>true</code> or <code>fals
 operator merely guarantees it will return a value with appropriate truthiness.</p>
 <p>Fortunately, we have values with proper truthiness right at hand<span class="em">&mdash;</span>the results
 of the operands itself. So we use those. For example:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="s">&quot;hi&quot;</span> <span class="k">or</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// &quot;hi&quot;.</span>
-<span class="k">print</span> <span class="nb">nil</span> <span class="k">or</span> <span class="s">&quot;yes&quot;</span><span class="p">;</span> <span class="c1">// &quot;yes&quot;.</span>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="s">&quot;hi&quot;</span> <span class="k">or</span> <span class="mi">2</span><span class="o">;</span> <span class="c1">// &quot;hi&quot;.</span>
+<span class="k">print</span> <span class="nb">nil</span> <span class="k">or</span> <span class="s">&quot;yes&quot;</span><span class="o">;</span> <span class="c1">// &quot;yes&quot;.</span>
 </pre></div>
 
 
@@ -521,9 +521,9 @@ simpler one so we&rsquo;ll start there. Its grammar is the same as in C:</p>
           <span class="err">|</span> <span class="n">ifStmt</span>
           <span class="err">|</span> <span class="n">printStmt</span>
           <span class="err">|</span> <span class="n">whileStmt</span>
-          <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
+          <span class="err">|</span> <span class="n">block</span> <span class="o">;</span>
 
-<span class="n">whileStmt</span> <span class="err">→</span> <span class="s">&quot;while&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="p">;</span>
+<span class="n">whileStmt</span> <span class="err">→</span> <span class="s">&quot;while&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -597,7 +597,7 @@ code.</p>
 <h2><a href="#for-loops" name="for-loops"><small>9&#8202;.&#8202;5</small> For Loops</a></h2>
 <p>We&rsquo;re down to the last control flow construct, <span name="for">Ye Olde</span>
 C-style for loop. I probably don&rsquo;t need to remind you, but it looks like this:</p>
-<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="p">(</span><span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">print</span> <span class="n">i</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="k">for</span> <span class="o">(</span><span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">;</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="k">print</span> <span class="n">i</span><span class="o">;</span>
 </pre></div>
 
 
@@ -607,11 +607,11 @@ C-style for loop. I probably don&rsquo;t need to remind you, but it looks like t
           <span class="err">|</span> <span class="n">ifStmt</span>
           <span class="err">|</span> <span class="n">printStmt</span>
           <span class="err">|</span> <span class="n">whileStmt</span>
-          <span class="err">|</span> <span class="n">block</span> <span class="p">;</span>
+          <span class="err">|</span> <span class="n">block</span> <span class="o">;</span>
 
-<span class="n">forStmt</span>   <span class="err">→</span> <span class="s">&quot;for&quot;</span> <span class="s">&quot;(&quot;</span> <span class="p">(</span> <span class="n">varDecl</span> <span class="err">|</span> <span class="n">exprStmt</span> <span class="err">|</span> <span class="s">&quot;;&quot;</span> <span class="p">)</span>
+<span class="n">forStmt</span>   <span class="err">→</span> <span class="s">&quot;for&quot;</span> <span class="s">&quot;(&quot;</span> <span class="o">(</span> <span class="n">varDecl</span> <span class="err">|</span> <span class="n">exprStmt</span> <span class="err">|</span> <span class="s">&quot;;&quot;</span> <span class="o">)</span>
                       <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;;&quot;</span>
-                      <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="p">;</span>
+                      <span class="n">expression</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="n">statement</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -667,13 +667,13 @@ sugaring over the more fundamental, yet presumably less palatable lambda
 calculus underneath.</p>
 <p><img class="above" src="image/control-flow/sugar.png" alt="Slightly more than a spoonful of sugar."></p>
 </aside>
-<div class="codehilite"><pre><span></span><span class="p">{</span>
-  <span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-  <span class="k">while</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="n">i</span><span class="p">;</span>
-    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="o">{</span>
+  <span class="k">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+  <span class="k">while</span> <span class="o">(</span><span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="n">i</span><span class="o">;</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 </pre></div>
 
 
@@ -860,15 +860,15 @@ how to visit, there is no more work to do.</p>
 <p>Finally, Lox is powerful enough to entertain us, at least for a few minutes.
 Here&rsquo;s a tiny program to print the first 21 elements in the Fibonacci
 sequence:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+<span class="k">var</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
 
-<span class="k">while</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">print</span> <span class="n">a</span><span class="p">;</span>
-  <span class="k">var</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">a</span><span class="p">;</span>
-  <span class="n">a</span> <span class="o">=</span> <span class="n">b</span><span class="p">;</span>
-  <span class="n">b</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="k">while</span> <span class="o">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">print</span> <span class="n">a</span><span class="o">;</span>
+  <span class="k">var</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">a</span><span class="o">;</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="n">b</span><span class="o">;</span>
+  <span class="n">b</span> <span class="o">=</span> <span class="n">temp</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+<span class="o">}</span>
 </pre></div>
 
 
