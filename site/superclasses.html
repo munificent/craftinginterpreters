@@ -218,7 +218,7 @@ in enum <em>OpCode</em></div>
 
 <p>There are no operands to worry about. The two values we need<span class="em">&mdash;</span>superclass and
 subclass<span class="em">&mdash;</span>are both found on the stack. That means disassembling is easy:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_CLASS&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_CLASS&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_INHERIT</span><span class="o">:</span>                                        
@@ -436,7 +436,7 @@ we add a little helper function to create a synthetic token for the given <span
 name="constant">constant</span> string:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>variable</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="nf">syntheticToken</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">text</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="n">syntheticToken</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">text</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">Token</span> <span class="n">token</span><span class="o">;</span>                                 
   <span class="n">token</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="n">text</span><span class="o">;</span>                          
   <span class="n">token</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="o">(</span><span class="k">int</span><span class="o">)</span><span class="n">strlen</span><span class="o">(</span><span class="n">text</span><span class="o">);</span>            
@@ -531,7 +531,7 @@ replace 1 line</div>
 parsing function which starts off like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>syntheticToken</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="nf">super_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                          
+<pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">super_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                          
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>            
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass method name.&quot;</span><span class="o">);</span>
   <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(</span><span class="o">&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>        
@@ -629,7 +629,7 @@ list and calling a function.</p>
 <p>We&rsquo;re almost ready to implement the new <code>OP_GET_SUPER</code> instruction in the
 interpreter. But before we do, the compiler has some errors it is responsible
 for reporting:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="nf">super_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                           
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">super_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                           
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>super_</em>()</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="o">{</span>                                  
@@ -660,7 +660,7 @@ in enum <em>OpCode</em></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>We disassemble it like other opcodes that take a constant table index operand:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_SET_PROPERTY&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_SET_PROPERTY&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_GET_SUPER</span><span class="o">:</span>                                             
@@ -773,7 +773,7 @@ in enum <em>OpCode</em></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And just past that, its disassembler support:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="nf">invokeInstruction</span><span class="o">(</span><span class="s">&quot;OP_INVOKE&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>      
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">invokeInstruction</span><span class="o">(</span><span class="s">&quot;OP_INVOKE&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>      
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_SUPER_INVOKE</span><span class="o">:</span>                                        
