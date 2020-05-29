@@ -233,7 +233,7 @@ add after <em>repl</em>()</div>
 
   <span class="k">char</span><span class="o">*</span> <span class="n">buffer</span> <span class="o">=</span> <span class="o">(</span><span class="k">char</span><span class="o">*</span><span class="o">)</span><span class="n">malloc</span><span class="o">(</span><span class="n">fileSize</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>                    
   <span class="k">size_t</span> <span class="n">bytesRead</span> <span class="o">=</span> <span class="n">fread</span><span class="o">(</span><span class="n">buffer</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="k">char</span><span class="o">),</span> <span class="n">fileSize</span><span class="o">,</span> <span class="n">file</span><span class="o">);</span>
-  <span class="n">buffer</span><span class="o">[</span><span class="n">bytesRead</span><span class="o">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="o">;</span>                                      
+  <span class="n">buffer</span><span class="o">[</span><span class="n">bytesRead</span><span class="o">]</span> <span class="o">=</span> <span class="s">&#39;\0&#39;</span><span class="o">;</span>                                      
 
   <span class="n">fclose</span><span class="o">(</span><span class="n">file</span><span class="o">);</span>                                                  
   <span class="k">return</span> <span class="n">buffer</span><span class="o">;</span>                                                 
@@ -305,7 +305,7 @@ in <em>readFile</em>()</div>
     <span class="n">fprintf</span><span class="o">(</span><span class="n">stderr</span><span class="o">,</span> <span class="s">&quot;Could not read file </span><span class="se">\&quot;</span><span class="s">%s</span><span class="se">\&quot;</span><span class="s">.</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">,</span> <span class="n">path</span><span class="o">);</span>      
     <span class="n">exit</span><span class="o">(</span><span class="mi">74</span><span class="o">);</span>                                                    
   <span class="o">}</span>                                                              
-<br></pre><pre class="insert-after"><span></span>  <span class="n">buffer</span><span class="o">[</span><span class="n">bytesRead</span><span class="o">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="o">;</span>                                      
+<br></pre><pre class="insert-after"><span></span>  <span class="n">buffer</span><span class="o">[</span><span class="n">bytesRead</span><span class="o">]</span> <span class="o">=</span> <span class="s">&#39;\0&#39;</span><span class="o">;</span>                                      
 </pre></div>
 
 <div class="source-file-narrow"><em>main.c</em>, in <em>readFile</em>()</div>
@@ -637,7 +637,7 @@ jlox. First up:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">bool</span> <span class="n">isAtEnd</span><span class="o">()</span> <span class="o">{</span>           
-  <span class="k">return</span> <span class="o">*</span><span class="n">scanner</span><span class="o">.</span><span class="n">current</span> <span class="o">==</span> <span class="sc">&#39;\0&#39;</span><span class="o">;</span>
+  <span class="k">return</span> <span class="o">*</span><span class="n">scanner</span><span class="o">.</span><span class="n">current</span> <span class="o">==</span> <span class="s">&#39;\0&#39;</span><span class="o">;</span>
 <span class="o">}</span>                                 
 </pre></div>
 
@@ -701,17 +701,17 @@ in <em>scanToken</em>()</div>
 <pre class="insert"><br><span></span>  <span class="k">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">advance</span><span class="o">();</span>
 
   <span class="k">switch</span> <span class="o">(</span><span class="n">c</span><span class="o">)</span> <span class="o">{</span>                                    
-    <span class="k">case</span> <span class="sc">&#39;(&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="o">);</span> 
-    <span class="k">case</span> <span class="sc">&#39;)&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">);</span>
-    <span class="k">case</span> <span class="sc">&#39;{&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="o">);</span> 
-    <span class="k">case</span> <span class="sc">&#39;}&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_RIGHT_BRACE</span><span class="o">);</span>
-    <span class="k">case</span> <span class="sc">&#39;;&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">);</span>  
-    <span class="k">case</span> <span class="sc">&#39;,&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_COMMA</span><span class="o">);</span>      
-    <span class="k">case</span> <span class="sc">&#39;.&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_DOT</span><span class="o">);</span>        
-    <span class="k">case</span> <span class="sc">&#39;-&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_MINUS</span><span class="o">);</span>      
-    <span class="k">case</span> <span class="sc">&#39;+&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_PLUS</span><span class="o">);</span>       
-    <span class="k">case</span> <span class="sc">&#39;/&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_SLASH</span><span class="o">);</span>      
-    <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_STAR</span><span class="o">);</span>       
+    <span class="k">case</span> <span class="s">&#39;(&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="o">);</span> 
+    <span class="k">case</span> <span class="s">&#39;)&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">);</span>
+    <span class="k">case</span> <span class="s">&#39;{&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="o">);</span> 
+    <span class="k">case</span> <span class="s">&#39;}&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_RIGHT_BRACE</span><span class="o">);</span>
+    <span class="k">case</span> <span class="s">&#39;;&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;,&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_COMMA</span><span class="o">);</span>      
+    <span class="k">case</span> <span class="s">&#39;.&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_DOT</span><span class="o">);</span>        
+    <span class="k">case</span> <span class="s">&#39;-&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_MINUS</span><span class="o">);</span>      
+    <span class="k">case</span> <span class="s">&#39;+&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_PLUS</span><span class="o">);</span>       
+    <span class="k">case</span> <span class="s">&#39;/&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_SLASH</span><span class="o">);</span>      
+    <span class="k">case</span> <span class="s">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_STAR</span><span class="o">);</span>       
   <span class="o">}</span>                                               
 </pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="n">errorToken</span><span class="o">(</span><span class="s">&quot;Unexpected character.&quot;</span><span class="o">);</span>     
 </pre></div>
@@ -736,17 +736,17 @@ add after <em>isAtEnd</em>()</div>
 these also has a corresponding single-character token. That means that when we
 see a character like <code>!</code>, we don&rsquo;t know if we&rsquo;re in a <code>!</code> token or a <code>!=</code> until
 we look at the next character too. We handle those like so:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_STAR</span><span class="o">);</span>                          
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="s">&#39;*&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">TOKEN_STAR</span><span class="o">);</span>                          
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="sc">&#39;!&#39;</span><span class="o">:</span>                                                        
-      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="sc">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="nl">TOKEN_BANG_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_BANG</span><span class="o">);</span>  
-    <span class="k">case</span> <span class="sc">&#39;=&#39;</span><span class="o">:</span>                                                        
-      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="sc">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="nl">TOKEN_EQUAL_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_EQUAL</span><span class="o">);</span>
-    <span class="k">case</span> <span class="sc">&#39;&lt;&#39;</span><span class="o">:</span>                                                        
-      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="sc">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="nl">TOKEN_LESS_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_LESS</span><span class="o">);</span>  
-    <span class="k">case</span> <span class="sc">&#39;&gt;&#39;</span><span class="o">:</span>                                                        
-      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="sc">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span>                                  
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="s">&#39;!&#39;</span><span class="o">:</span>                                                        
+      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="s">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="nl">TOKEN_BANG_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_BANG</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;=&#39;</span><span class="o">:</span>                                                        
+      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="s">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="nl">TOKEN_EQUAL_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_EQUAL</span><span class="o">);</span>
+    <span class="k">case</span> <span class="s">&#39;&lt;&#39;</span><span class="o">:</span>                                                        
+      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="s">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span> <span class="nl">TOKEN_LESS_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_LESS</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;&gt;&#39;</span><span class="o">:</span>                                                        
+      <span class="k">return</span> <span class="n">makeToken</span><span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="s">&#39;=&#39;</span><span class="o">)</span> <span class="o">?</span>                                  
                        <span class="nl">TOKEN_GREATER_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_GREATER</span><span class="o">);</span>         
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                                  
 <br></pre></div>
@@ -802,9 +802,9 @@ add after <em>errorToken</em>()</div>
   <span class="k">for</span> <span class="o">(;;)</span> <span class="o">{</span>                  
     <span class="k">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">peek</span><span class="o">();</span>          
     <span class="k">switch</span> <span class="o">(</span><span class="n">c</span><span class="o">)</span> <span class="o">{</span>              
-      <span class="k">case</span> <span class="sc">&#39; &#39;</span><span class="o">:</span>               
-      <span class="k">case</span> <span class="sc">&#39;\r&#39;</span><span class="o">:</span>              
-      <span class="k">case</span> <span class="sc">&#39;\t&#39;</span><span class="o">:</span>              
+      <span class="k">case</span> <span class="s">&#39; &#39;</span><span class="o">:</span>               
+      <span class="k">case</span> <span class="s">&#39;\r&#39;</span><span class="o">:</span>              
+      <span class="k">case</span> <span class="s">&#39;\t&#39;</span><span class="o">:</span>              
         <span class="n">advance</span><span class="o">();</span>            
         <span class="k">break</span><span class="o">;</span>
 
@@ -834,7 +834,7 @@ code handles all the whitespace characters except for newlines:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="o">;</span>         
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
-<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="sc">&#39;\n&#39;</span><span class="o">:</span>       
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="s">&#39;\n&#39;</span><span class="o">:</span>       
         <span class="n">scanner</span><span class="o">.</span><span class="n">line</span><span class="o">++</span><span class="o">;</span>
         <span class="n">advance</span><span class="o">();</span>     
         <span class="k">break</span><span class="o">;</span>         
@@ -851,10 +851,10 @@ skip those too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="o">;</span>                                           
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
-<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="sc">&#39;/&#39;</span><span class="o">:</span>                                          
-        <span class="k">if</span> <span class="o">(</span><span class="n">peekNext</span><span class="o">()</span> <span class="o">==</span> <span class="sc">&#39;/&#39;</span><span class="o">)</span> <span class="o">{</span>                         
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="s">&#39;/&#39;</span><span class="o">:</span>                                          
+        <span class="k">if</span> <span class="o">(</span><span class="n">peekNext</span><span class="o">()</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span><span class="o">)</span> <span class="o">{</span>                         
           <span class="c1">// A comment goes until the end of the line.   </span>
-          <span class="k">while</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">!=</span> <span class="sc">&#39;\n&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="n">advance</span><span class="o">();</span>
+          <span class="k">while</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">!=</span> <span class="s">&#39;\n&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="n">advance</span><span class="o">();</span>
         <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                         
           <span class="k">return</span><span class="o">;</span>                                        
         <span class="o">}</span>                                                
@@ -872,7 +872,7 @@ even if the <code>=</code> wasn&rsquo;t found. Comments are different, if we don
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>peek</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">char</span> <span class="n">peekNext</span><span class="o">()</span> <span class="o">{</span>     
-  <span class="k">if</span> <span class="o">(</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="k">return</span> <span class="sc">&#39;\0&#39;</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="k">return</span> <span class="s">&#39;\0&#39;</span><span class="o">;</span>
   <span class="k">return</span> <span class="n">scanner</span><span class="o">.</span><span class="n">current</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span> 
 <span class="o">}</span>                            
 </pre></div>
@@ -892,7 +892,7 @@ recognize<span class="em">&mdash;</span>they always begin with a double quote:</
 <div class="codehilite"><pre class="insert-before"><span></span>                       <span class="nl">TOKEN_GREATER_EQUAL</span> <span class="o">:</span> <span class="n">TOKEN_GREATER</span><span class="o">);</span>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">case</span> <span class="sc">&#39;&quot;&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">string</span><span class="o">();</span>                              
+<pre class="insert"><br><span></span>    <span class="k">case</span> <span class="s">&#39;&quot;&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">string</span><span class="o">();</span>                              
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                         
 <br></pre></div>
 
@@ -902,8 +902,8 @@ in <em>scanToken</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="n">Token</span> <span class="n">string</span><span class="o">()</span> <span class="o">{</span>                                    
-  <span class="k">while</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">!=</span> <span class="sc">&#39;&quot;&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                    
-    <span class="k">if</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">==</span> <span class="sc">&#39;\n&#39;</span><span class="o">)</span> <span class="n">scanner</span><span class="o">.</span><span class="n">line</span><span class="o">++</span><span class="o">;</span>                    
+  <span class="k">while</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">!=</span> <span class="s">&#39;&quot;&#39;</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                    
+    <span class="k">if</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">==</span> <span class="s">&#39;\n&#39;</span><span class="o">)</span> <span class="n">scanner</span><span class="o">.</span><span class="n">line</span><span class="o">++</span><span class="o">;</span>                    
     <span class="n">advance</span><span class="o">();</span>                                             
   <span class="o">}</span>
 
@@ -955,7 +955,7 @@ in <em>scanToken</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">bool</span> <span class="n">isDigit</span><span class="o">(</span><span class="k">char</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span> 
-  <span class="k">return</span> <span class="n">c</span> <span class="o">&gt;=</span> <span class="sc">&#39;0&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="sc">&#39;9&#39;</span><span class="o">;</span>
+  <span class="k">return</span> <span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39;0&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s">&#39;9&#39;</span><span class="o">;</span>
 <span class="o">}</span>                             
 </pre></div>
 
@@ -968,7 +968,7 @@ add after <em>skipWhitespace</em>()</div>
   <span class="k">while</span> <span class="o">(</span><span class="n">isDigit</span><span class="o">(</span><span class="n">peek</span><span class="o">()))</span> <span class="n">advance</span><span class="o">();</span>
 
   <span class="c1">// Look for a fractional part.             </span>
-  <span class="k">if</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">==</span> <span class="sc">&#39;.&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">isDigit</span><span class="o">(</span><span class="n">peekNext</span><span class="o">()))</span> <span class="o">{</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">peek</span><span class="o">()</span> <span class="o">==</span> <span class="s">&#39;.&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">isDigit</span><span class="o">(</span><span class="n">peekNext</span><span class="o">()))</span> <span class="o">{</span>
     <span class="c1">// Consume the &quot;.&quot;.                      </span>
     <span class="n">advance</span><span class="o">();</span>                               
 
@@ -1002,9 +1002,9 @@ in <em>scanToken</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">bool</span> <span class="n">isAlpha</span><span class="o">(</span><span class="k">char</span> <span class="n">c</span><span class="o">)</span> <span class="o">{</span>     
-  <span class="k">return</span> <span class="o">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="sc">&#39;a&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="sc">&#39;z&#39;</span><span class="o">)</span> <span class="o">||</span>
-         <span class="o">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="sc">&#39;A&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="sc">&#39;Z&#39;</span><span class="o">)</span> <span class="o">||</span>
-          <span class="n">c</span> <span class="o">==</span> <span class="sc">&#39;_&#39;</span><span class="o">;</span>               
+  <span class="k">return</span> <span class="o">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39;a&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s">&#39;z&#39;</span><span class="o">)</span> <span class="o">||</span>
+         <span class="o">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39;A&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s">&#39;Z&#39;</span><span class="o">)</span> <span class="o">||</span>
+          <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;_&#39;</span><span class="o">;</span>               
 <span class="o">}</span>                                 
 </pre></div>
 
@@ -1147,17 +1147,17 @@ implementations.</p>
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert"><span></span>  <span class="k">switch</span> <span class="o">(</span><span class="n">scanner</span><span class="o">.</span><span class="n">start</span><span class="o">[</span><span class="mi">0</span><span class="o">])</span> <span class="o">{</span>                                  
-    <span class="k">case</span> <span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;nd&quot;</span><span class="o">,</span> <span class="n">TOKEN_AND</span><span class="o">);</span>      
-    <span class="k">case</span> <span class="sc">&#39;c&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;lass&quot;</span><span class="o">,</span> <span class="n">TOKEN_CLASS</span><span class="o">);</span>  
-    <span class="k">case</span> <span class="sc">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;lse&quot;</span><span class="o">,</span> <span class="n">TOKEN_ELSE</span><span class="o">);</span>    
-    <span class="k">case</span> <span class="sc">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;f&quot;</span><span class="o">,</span> <span class="n">TOKEN_IF</span><span class="o">);</span>        
-    <span class="k">case</span> <span class="sc">&#39;n&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;il&quot;</span><span class="o">,</span> <span class="n">TOKEN_NIL</span><span class="o">);</span>      
-    <span class="k">case</span> <span class="sc">&#39;o&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;r&quot;</span><span class="o">,</span> <span class="n">TOKEN_OR</span><span class="o">);</span>        
-    <span class="k">case</span> <span class="sc">&#39;p&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;rint&quot;</span><span class="o">,</span> <span class="n">TOKEN_PRINT</span><span class="o">);</span>  
-    <span class="k">case</span> <span class="sc">&#39;r&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="s">&quot;eturn&quot;</span><span class="o">,</span> <span class="n">TOKEN_RETURN</span><span class="o">);</span>
-    <span class="k">case</span> <span class="sc">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;uper&quot;</span><span class="o">,</span> <span class="n">TOKEN_SUPER</span><span class="o">);</span>  
-    <span class="k">case</span> <span class="sc">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;ar&quot;</span><span class="o">,</span> <span class="n">TOKEN_VAR</span><span class="o">);</span>      
-    <span class="k">case</span> <span class="sc">&#39;w&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;hile&quot;</span><span class="o">,</span> <span class="n">TOKEN_WHILE</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;a&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;nd&quot;</span><span class="o">,</span> <span class="n">TOKEN_AND</span><span class="o">);</span>      
+    <span class="k">case</span> <span class="s">&#39;c&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;lass&quot;</span><span class="o">,</span> <span class="n">TOKEN_CLASS</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;lse&quot;</span><span class="o">,</span> <span class="n">TOKEN_ELSE</span><span class="o">);</span>    
+    <span class="k">case</span> <span class="s">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;f&quot;</span><span class="o">,</span> <span class="n">TOKEN_IF</span><span class="o">);</span>        
+    <span class="k">case</span> <span class="s">&#39;n&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;il&quot;</span><span class="o">,</span> <span class="n">TOKEN_NIL</span><span class="o">);</span>      
+    <span class="k">case</span> <span class="s">&#39;o&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;r&quot;</span><span class="o">,</span> <span class="n">TOKEN_OR</span><span class="o">);</span>        
+    <span class="k">case</span> <span class="s">&#39;p&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;rint&quot;</span><span class="o">,</span> <span class="n">TOKEN_PRINT</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;r&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">5</span><span class="o">,</span> <span class="s">&quot;eturn&quot;</span><span class="o">,</span> <span class="n">TOKEN_RETURN</span><span class="o">);</span>
+    <span class="k">case</span> <span class="s">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;uper&quot;</span><span class="o">,</span> <span class="n">TOKEN_SUPER</span><span class="o">);</span>  
+    <span class="k">case</span> <span class="s">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;ar&quot;</span><span class="o">,</span> <span class="n">TOKEN_VAR</span><span class="o">);</span>      
+    <span class="k">case</span> <span class="s">&#39;w&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;hile&quot;</span><span class="o">,</span> <span class="n">TOKEN_WHILE</span><span class="o">);</span>  
   <span class="o">}</span>                                                            
 <br></pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">TOKEN_IDENTIFIER</span><span class="o">;</span>                                     
 </pre></div>
@@ -1196,19 +1196,19 @@ regular identifier.</p>
 <p>We have a couple of keywords where the tree branches again after the first
 letter. If the lexeme starts with &ldquo;f&rdquo;, it could be <code>false</code>, <code>for</code>, or <code>fun</code>. So
 we add another switch for the branches coming off the &ldquo;f&rdquo; node:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;lse&quot;</span><span class="o">,</span> <span class="n">TOKEN_ELSE</span><span class="o">);</span>       
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="s">&#39;e&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;lse&quot;</span><span class="o">,</span> <span class="n">TOKEN_ELSE</span><span class="o">);</span>       
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="sc">&#39;f&#39;</span><span class="o">:</span>                                                     
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="s">&#39;f&#39;</span><span class="o">:</span>                                                     
       <span class="k">if</span> <span class="o">(</span><span class="n">scanner</span><span class="o">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">scanner</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>                  
         <span class="k">switch</span> <span class="o">(</span><span class="n">scanner</span><span class="o">.</span><span class="n">start</span><span class="o">[</span><span class="mi">1</span><span class="o">])</span> <span class="o">{</span>                               
-          <span class="k">case</span> <span class="sc">&#39;a&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;lse&quot;</span><span class="o">,</span> <span class="n">TOKEN_FALSE</span><span class="o">);</span>
-          <span class="k">case</span> <span class="sc">&#39;o&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;r&quot;</span><span class="o">,</span> <span class="n">TOKEN_FOR</span><span class="o">);</span>    
-          <span class="k">case</span> <span class="sc">&#39;u&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;n&quot;</span><span class="o">,</span> <span class="n">TOKEN_FUN</span><span class="o">);</span>    
+          <span class="k">case</span> <span class="s">&#39;a&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="s">&quot;lse&quot;</span><span class="o">,</span> <span class="n">TOKEN_FALSE</span><span class="o">);</span>
+          <span class="k">case</span> <span class="s">&#39;o&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;r&quot;</span><span class="o">,</span> <span class="n">TOKEN_FOR</span><span class="o">);</span>    
+          <span class="k">case</span> <span class="s">&#39;u&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;n&quot;</span><span class="o">,</span> <span class="n">TOKEN_FUN</span><span class="o">);</span>    
         <span class="o">}</span>                                                         
       <span class="o">}</span>                                                           
       <span class="k">break</span><span class="o">;</span>                                                      
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="sc">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;f&quot;</span><span class="o">,</span> <span class="n">TOKEN_IF</span><span class="o">);</span>           
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="s">&#39;i&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">&quot;f&quot;</span><span class="o">,</span> <span class="n">TOKEN_IF</span><span class="o">);</span>           
 </pre></div>
 
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
@@ -1216,18 +1216,18 @@ in <em>identifierType</em>()</div>
 <p>Before we switch, we need to check that there even <em>is</em> a second letter. &ldquo;f&rdquo; by
 itself is a valid identifier too, after all. The other letter that branches is
 &ldquo;t&rdquo;:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="sc">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;uper&quot;</span><span class="o">,</span> <span class="n">TOKEN_SUPER</span><span class="o">);</span>   
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">case</span> <span class="s">&#39;s&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="s">&quot;uper&quot;</span><span class="o">,</span> <span class="n">TOKEN_SUPER</span><span class="o">);</span>   
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="sc">&#39;t&#39;</span><span class="o">:</span>                                                   
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="s">&#39;t&#39;</span><span class="o">:</span>                                                   
       <span class="k">if</span> <span class="o">(</span><span class="n">scanner</span><span class="o">.</span><span class="n">current</span> <span class="o">-</span> <span class="n">scanner</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">)</span> <span class="o">{</span>                
         <span class="k">switch</span> <span class="o">(</span><span class="n">scanner</span><span class="o">.</span><span class="n">start</span><span class="o">[</span><span class="mi">1</span><span class="o">])</span> <span class="o">{</span>                             
-          <span class="k">case</span> <span class="sc">&#39;h&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;is&quot;</span><span class="o">,</span> <span class="n">TOKEN_THIS</span><span class="o">);</span>
-          <span class="k">case</span> <span class="sc">&#39;r&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;ue&quot;</span><span class="o">,</span> <span class="n">TOKEN_TRUE</span><span class="o">);</span>
+          <span class="k">case</span> <span class="s">&#39;h&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;is&quot;</span><span class="o">,</span> <span class="n">TOKEN_THIS</span><span class="o">);</span>
+          <span class="k">case</span> <span class="s">&#39;r&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;ue&quot;</span><span class="o">,</span> <span class="n">TOKEN_TRUE</span><span class="o">);</span>
         <span class="o">}</span>                                                       
       <span class="o">}</span>                                                         
       <span class="k">break</span><span class="o">;</span>                                                    
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="sc">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;ar&quot;</span><span class="o">,</span> <span class="n">TOKEN_VAR</span><span class="o">);</span>       
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="s">&#39;v&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="n">checkKeyword</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="s">&quot;ar&quot;</span><span class="o">,</span> <span class="n">TOKEN_VAR</span><span class="o">);</span>       
 </pre></div>
 
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
