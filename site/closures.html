@@ -387,7 +387,7 @@ do something more interesting.</p>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                     
       <span class="n">offset</span><span class="o">++</span><span class="o">;</span>                                            
-      <span class="kt">uint8_t</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++</span><span class="o">];</span>            
+      <span class="k">uint8_t</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++</span><span class="o">];</span>            
       <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%-16s %4d &quot;</span><span class="o">,</span> <span class="s">&quot;OP_CLOSURE&quot;</span><span class="o">,</span> <span class="n">constant</span><span class="o">);</span>        
       <span class="n">printValue</span><span class="o">(</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">.</span><span class="n">values</span><span class="o">[</span><span class="n">constant</span><span class="o">]);</span>       
       <span class="n">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">);</span>
@@ -452,7 +452,7 @@ are over in that function. First, we update its signature:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 function <em>call</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">call</span><span class="o">(</span><span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span><span class="o">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="o">)</span> <span class="o">{</span>
+<pre class="insert"><span></span><span class="k">static</span> <span class="k">bool</span> <span class="nf">call</span><span class="o">(</span><span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span><span class="o">,</span> <span class="k">int</span> <span class="n">argCount</span><span class="o">)</span> <span class="o">{</span>
 </pre><pre class="insert-after"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">argCount</span> <span class="o">!=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">)</span> <span class="o">{</span>                 
 </pre></div>
 
@@ -461,7 +461,7 @@ replace 1 line</div>
 <p>Then, in the body, we need to fix everything that referenced the function to
 handle the fact that we&rsquo;ve introduced a layer of indirection. First, the
 arity checking:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="kt">bool</span> <span class="nf">call</span><span class="o">(</span><span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span><span class="o">,</span> <span class="kt">int</span> <span class="n">argCount</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">bool</span> <span class="nf">call</span><span class="o">(</span><span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span><span class="o">,</span> <span class="k">int</span> <span class="n">argCount</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>call</em>()<br>
 replace 3 lines</div>
@@ -494,7 +494,7 @@ replace 2 lines</div>
 in struct <em>CallFrame</em><br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span><span class="o">;</span>
-</pre><pre class="insert-after"><span></span>  <span class="kt">uint8_t</span><span class="o">*</span> <span class="n">ip</span><span class="o">;</span>        
+</pre><pre class="insert-after"><span></span>  <span class="k">uint8_t</span><span class="o">*</span> <span class="n">ip</span><span class="o">;</span>        
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>CallFrame</em>, replace 1 line</div>
@@ -502,7 +502,7 @@ replace 1 line</div>
 <p>That change triggers a few other cascading changes. Every place in the VM that
 accessed CallFrame&rsquo;s function needs to use a closure instead. First, the macro
 for reading a constant from the current function&rsquo;s constant table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="o">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">,</span> <span class="o">(</span><span class="kt">uint16_t</span><span class="o">)((</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">2</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">|</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">1</span><span class="o">]))</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="o">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">,</span> <span class="o">(</span><span class="k">uint16_t</span><span class="o">)((</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">2</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="mi">8</span><span class="o">)</span> <span class="o">|</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span><span class="o">[</span><span class="o">-</span><span class="mi">1</span><span class="o">]))</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
@@ -520,7 +520,7 @@ closure:</p>
 in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert"><span></span>    <span class="n">disassembleInstruction</span><span class="o">(</span><span class="o">&amp;</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">closure</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">,</span>     
-        <span class="o">(</span><span class="kt">int</span><span class="o">)(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">closure</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">));</span>
+        <span class="o">(</span><span class="k">int</span><span class="o">)(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">-</span> <span class="n">frame</span><span class="o">-&gt;</span><span class="n">closure</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">));</span>
 </pre><pre class="insert-after"><span></span><span class="cp">#endif                                                           </span>
 </pre></div>
 
@@ -677,12 +677,12 @@ runtime soon. The part to focus on now is how the compiler actually resolves the
 identifier:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>resolveLocal</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">resolveUpvalue</span><span class="o">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="o">,</span> <span class="n">Token</span><span class="o">*</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span><span class="k">static</span> <span class="k">int</span> <span class="nf">resolveUpvalue</span><span class="o">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="o">,</span> <span class="n">Token</span><span class="o">*</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">if</span> <span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>
 
-  <span class="kt">int</span> <span class="n">local</span> <span class="o">=</span> <span class="n">resolveLocal</span><span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>      
+  <span class="k">int</span> <span class="n">local</span> <span class="o">=</span> <span class="n">resolveLocal</span><span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>      
   <span class="k">if</span> <span class="o">(</span><span class="n">local</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>                                        
-    <span class="k">return</span> <span class="n">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="kt">uint8_t</span><span class="o">)</span><span class="n">local</span><span class="o">,</span> <span class="nb">true</span><span class="o">);</span>      
+    <span class="k">return</span> <span class="n">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="k">uint8_t</span><span class="o">)</span><span class="n">local</span><span class="o">,</span> <span class="nb">true</span><span class="o">);</span>      
   <span class="o">}</span>                                                         
 
   <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>                                                
@@ -723,8 +723,8 @@ so that the inner function can access the variable through that. The upvalue is
 created here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>resolveLocal</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">addUpvalue</span><span class="o">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="o">,</span> <span class="kt">uint8_t</span> <span class="n">index</span><span class="o">,</span> <span class="kt">bool</span> <span class="n">isLocal</span><span class="o">)</span> <span class="o">{</span>
-  <span class="kt">int</span> <span class="n">upvalueCount</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span>                  
+<pre><span></span><span class="k">static</span> <span class="k">int</span> <span class="nf">addUpvalue</span><span class="o">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="o">,</span> <span class="k">uint8_t</span> <span class="n">index</span><span class="o">,</span> <span class="k">bool</span> <span class="n">isLocal</span><span class="o">)</span> <span class="o">{</span>
+  <span class="k">int</span> <span class="n">upvalueCount</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span>                  
   <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="o">[</span><span class="n">upvalueCount</span><span class="o">].</span><span class="n">isLocal</span> <span class="o">=</span> <span class="n">isLocal</span><span class="o">;</span>                   
   <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="o">[</span><span class="n">upvalueCount</span><span class="o">].</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="o">;</span>                       
   <span class="k">return</span> <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">++</span><span class="o">;</span>                            
@@ -759,10 +759,10 @@ multiple times. In that case, we don&rsquo;t want to waste time and memory creat
 separate upvalue for each identifier expression. To fix that, before we add a
 new upvalue, we first check to see if the function already has an upvalue that
 closes over that variable:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">upvalueCount</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span>           
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">upvalueCount</span> <span class="o">=</span> <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span>           
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addUpvalue</em>()</div>
-<pre class="insert"><br><span></span>  <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>                       
+<pre class="insert"><br><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>                       
     <span class="n">Upvalue</span><span class="o">*</span> <span class="n">upvalue</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>                   
     <span class="k">if</span> <span class="o">(</span><span class="n">upvalue</span><span class="o">-&gt;</span><span class="n">index</span> <span class="o">==</span> <span class="n">index</span> <span class="o">&amp;&amp;</span> <span class="n">upvalue</span><span class="o">-&gt;</span><span class="n">isLocal</span> <span class="o">==</span> <span class="n">isLocal</span><span class="o">)</span> <span class="o">{</span>
       <span class="k">return</span> <span class="n">i</span><span class="o">;</span>                                                  
@@ -778,10 +778,10 @@ adding, we just return that <em>upvalue</em> index and reuse it. Otherwise, we f
 through and add the new upvalue.</p>
 <p>These two functions access and modify a bunch of new state, so let&rsquo;s define
 that. First, we add the upvalue count to ObjFunction:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">arity</span><span class="o">;</span>       
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">arity</span><span class="o">;</span>       
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjFunction</em></div>
-<pre class="insert"><span></span>  <span class="kt">int</span> <span class="n">upvalueCount</span><span class="o">;</span>
+<pre class="insert"><span></span>  <span class="k">int</span> <span class="n">upvalueCount</span><span class="o">;</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">Chunk</span> <span class="n">chunk</span><span class="o">;</span>     
 </pre></div>
 
@@ -799,11 +799,11 @@ in <em>newFunction</em>()</div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>newFunction</em>()</div>
 
 <p>In the compiler, we add a field for the upvalue array:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">localCount</span><span class="o">;</span>               
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">localCount</span><span class="o">;</span>               
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Compiler</em></div>
 <pre class="insert"><span></span>  <span class="n">Upvalue</span> <span class="n">upvalues</span><span class="o">[</span><span class="n">UINT8_COUNT</span><span class="o">];</span>
-</pre><pre class="insert-after"><span></span>  <span class="kt">int</span> <span class="n">scopeDepth</span><span class="o">;</span>               
+</pre><pre class="insert-after"><span></span>  <span class="k">int</span> <span class="n">scopeDepth</span><span class="o">;</span>               
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
@@ -832,8 +832,8 @@ in <em>addUpvalue</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>Local</em></div>
 <pre><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>
-  <span class="kt">uint8_t</span> <span class="n">index</span><span class="o">;</span>
-  <span class="kt">bool</span> <span class="n">isLocal</span><span class="o">;</span> 
+  <span class="k">uint8_t</span> <span class="n">index</span><span class="o">;</span>
+  <span class="k">bool</span> <span class="n">isLocal</span><span class="o">;</span> 
 <span class="o">}</span> <span class="n">Upvalue</span><span class="o">;</span>      
 </pre></div>
 
@@ -925,13 +925,13 @@ upvalue<span class="em">&mdash;</span>from the immediately surrounding function,
 still be around at the point that the inner function declaration executes.</p>
 <p>In order to implement this, <code>resolveUpvalue()</code> becomes recursive:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">local</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>                                      
-    <span class="k">return</span> <span class="n">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="kt">uint8_t</span><span class="o">)</span><span class="n">local</span><span class="o">,</span> <span class="nb">true</span><span class="o">);</span>    
+    <span class="k">return</span> <span class="n">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="k">uint8_t</span><span class="o">)</span><span class="n">local</span><span class="o">,</span> <span class="nb">true</span><span class="o">);</span>    
   <span class="o">}</span>                                                       
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveUpvalue</em>()</div>
-<pre class="insert"><br><span></span>  <span class="kt">int</span> <span class="n">upvalue</span> <span class="o">=</span> <span class="n">resolveUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>
+<pre class="insert"><br><span></span>  <span class="k">int</span> <span class="n">upvalue</span> <span class="o">=</span> <span class="n">resolveUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>
   <span class="k">if</span> <span class="o">(</span><span class="n">upvalue</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>                                    
-    <span class="k">return</span> <span class="n">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="kt">uint8_t</span><span class="o">)</span><span class="n">upvalue</span><span class="o">,</span> <span class="nb">false</span><span class="o">);</span> 
+    <span class="k">return</span> <span class="n">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="k">uint8_t</span><span class="o">)</span><span class="n">upvalue</span><span class="o">,</span> <span class="nb">false</span><span class="o">);</span> 
   <span class="o">}</span>                                                       
 </pre><pre class="insert-after"><br><span></span>  <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>                                              
 </pre></div>
@@ -987,7 +987,7 @@ correct variables:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitBytes</span><span class="o">(</span><span class="n">OP_CLOSURE</span><span class="o">,</span> <span class="n">makeConstant</span><span class="o">(</span><span class="n">OBJ_VAL</span><span class="o">(</span><span class="n">function</span><span class="o">)));</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>function</em>()</div>
-<pre class="insert"><br><span></span>  <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>     
+<pre class="insert"><br><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>     
     <span class="n">emitByte</span><span class="o">(</span><span class="n">compiler</span><span class="o">.</span><span class="n">upvalues</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="n">isLocal</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="o">);</span>      
     <span class="n">emitByte</span><span class="o">(</span><span class="n">compiler</span><span class="o">.</span><span class="n">upvalues</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="n">index</span><span class="o">);</span>                
   <span class="o">}</span>                                                      
@@ -1011,9 +1011,9 @@ for <code>OP_CLOSURE</code>:</p>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert"><span></span>      <span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span> <span class="o">=</span> <span class="n">AS_FUNCTION</span><span class="o">(</span>                       
           <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">.</span><span class="n">values</span><span class="o">[</span><span class="n">constant</span><span class="o">]);</span>                    
-      <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">j</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>         
-        <span class="kt">int</span> <span class="n">isLocal</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++</span><span class="o">];</span>                     
-        <span class="kt">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++</span><span class="o">];</span>                       
+      <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">j</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>         
+        <span class="k">int</span> <span class="n">isLocal</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++</span><span class="o">];</span>                     
+        <span class="k">int</span> <span class="n">index</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++</span><span class="o">];</span>                       
         <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%04d      |                     %s %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">,</span>        
                <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="o">,</span> <span class="n">isLocal</span> <span class="o">?</span> <span class="s">&quot;local&quot;</span> <span class="o">:</span> <span class="s">&quot;upvalue&quot;</span><span class="o">,</span> <span class="n">index</span><span class="o">);</span>
       <span class="o">}</span>                                                          
@@ -1115,11 +1115,11 @@ actual variable, not a copy. For example:</p>
 the surrounding function accesses it.</p>
 <p>Because upvalues are objects, we&rsquo;ve got all the usual object machinery. A
 constructor-like function:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="o">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="kt">int</span> <span class="n">length</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="nf">copyString</span><span class="o">(</span><span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="k">int</span> <span class="n">length</span><span class="o">);</span>
 </pre><div class="source-file"><em>object.h</em><br>
 add after <em>copyString</em>()</div>
 <pre class="insert"><span></span><span class="n">ObjUpvalue</span><span class="o">*</span> <span class="nf">newUpvalue</span><span class="o">(</span><span class="n">Value</span><span class="o">*</span> <span class="n">slot</span><span class="o">);</span>                 
-</pre><pre class="insert-after"><span></span><span class="kt">void</span> <span class="nf">printObject</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">);</span>                       
+</pre><pre class="insert-after"><span></span><span class="k">void</span> <span class="nf">printObject</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">);</span>                       
 </pre></div>
 
 <div class="source-file-narrow"><em>object.h</em>, add after <em>copyString</em>()</div>
@@ -1191,7 +1191,7 @@ We&rsquo;ve finally worked our way back to implementing that:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjClosure</em></div>
 <pre class="insert"><span></span>  <span class="n">ObjUpvalue</span><span class="o">**</span> <span class="n">upvalues</span><span class="o">;</span>
-  <span class="kt">int</span> <span class="n">upvalueCount</span><span class="o">;</span>     
+  <span class="k">int</span> <span class="n">upvalueCount</span><span class="o">;</span>     
 </pre><pre class="insert-after"><span></span><span class="o">}</span> <span class="n">ObjClosure</span><span class="o">;</span>           
 </pre></div>
 
@@ -1214,7 +1214,7 @@ which we determined at compile time and stored in the ObjFunction:</p>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClosure</em>()</div>
 <pre class="insert"><span></span>  <span class="n">ObjUpvalue</span><span class="o">**</span> <span class="n">upvalues</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="o">(</span><span class="n">ObjUpvalue</span><span class="o">*</span><span class="o">,</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">);</span>
-  <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>                    
+  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>                    
     <span class="n">upvalues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>                                                 
   <span class="o">}</span>                                                                     
 <br></pre><pre class="insert-after"><span></span>  <span class="n">ObjClosure</span><span class="o">*</span> <span class="n">closure</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="o">(</span><span class="n">ObjClosure</span><span class="o">,</span> <span class="n">OBJ_CLOSURE</span><span class="o">);</span>          
@@ -1257,9 +1257,9 @@ kind of upvalue each slot captures:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="n">push</span><span class="o">(</span><span class="n">OBJ_VAL</span><span class="o">(</span><span class="n">closure</span><span class="o">));</span>                                         
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>        <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>               
-          <span class="kt">uint8_t</span> <span class="n">isLocal</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                                
-          <span class="kt">uint8_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                                  
+<pre class="insert"><span></span>        <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalueCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>               
+          <span class="k">uint8_t</span> <span class="n">isLocal</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                                
+          <span class="k">uint8_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                                  
           <span class="k">if</span> <span class="o">(</span><span class="n">isLocal</span><span class="o">)</span> <span class="o">{</span>                                                
             <span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">captureUpvalue</span><span class="o">(</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">+</span> <span class="n">index</span><span class="o">);</span>
           <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                                      
@@ -1310,7 +1310,7 @@ an array full of upvalues pointing to variables.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_UPVALUE</span><span class="o">:</span> <span class="o">{</span>                            
-        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                     
+        <span class="k">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                     
         <span class="n">push</span><span class="o">(</span><span class="o">*</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="o">[</span><span class="n">slot</span><span class="o">]</span><span class="o">-&gt;</span><span class="n">location</span><span class="o">);</span>
         <span class="k">break</span><span class="o">;</span>                                          
       <span class="o">}</span>                                                 
@@ -1326,7 +1326,7 @@ the value in that slot. Setting a variable is similar:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_SET_UPVALUE</span><span class="o">:</span> <span class="o">{</span>                                
-        <span class="kt">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                         
+        <span class="k">uint8_t</span> <span class="n">slot</span> <span class="o">=</span> <span class="n">READ_BYTE</span><span class="o">();</span>                         
         <span class="o">*</span><span class="n">frame</span><span class="o">-&gt;</span><span class="n">closure</span><span class="o">-&gt;</span><span class="n">upvalues</span><span class="o">[</span><span class="n">slot</span><span class="o">]</span><span class="o">-&gt;</span><span class="n">location</span> <span class="o">=</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
         <span class="k">break</span><span class="o">;</span>                                              
       <span class="o">}</span>                                                     
@@ -1484,10 +1484,10 @@ upvalue state.</p>
 capture, but not in the other direction. So we first need to add some extra
 tracking inside the existing Local struct so that we can tell if a given local
 is captured by a closure:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="kt">int</span> <span class="n">depth</span><span class="o">;</span>      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">int</span> <span class="n">depth</span><span class="o">;</span>      
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Local</em></div>
-<pre class="insert"><span></span>  <span class="kt">bool</span> <span class="n">isCaptured</span><span class="o">;</span>
+<pre class="insert"><span></span>  <span class="k">bool</span> <span class="n">isCaptured</span><span class="o">;</span>
 </pre><pre class="insert-after"><span></span><span class="o">}</span> <span class="n">Local</span><span class="o">;</span>          
 </pre></div>
 
@@ -1525,7 +1525,7 @@ variable, we mark it as captured:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveUpvalue</em>()</div>
 <pre class="insert"><span></span>    <span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="o">-&gt;</span><span class="n">locals</span><span class="o">[</span><span class="n">local</span><span class="o">].</span><span class="n">isCaptured</span> <span class="o">=</span> <span class="nb">true</span><span class="o">;</span>
-</pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="nf">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="kt">uint8_t</span><span class="o">)</span><span class="n">local</span><span class="o">,</span> <span class="nb">true</span><span class="o">);</span>   
+</pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="nf">addUpvalue</span><span class="o">(</span><span class="n">compiler</span><span class="o">,</span> <span class="o">(</span><span class="k">uint8_t</span><span class="o">)</span><span class="n">local</span><span class="o">,</span> <span class="nb">true</span><span class="o">);</span>   
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
@@ -1798,7 +1798,7 @@ which it does by calling <code>pop()</code>.</p>
 <p>The fun stuff happens here:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>captureUpvalue</em>()</div>
-<pre><span></span><span class="k">static</span> <span class="kt">void</span> <span class="nf">closeUpvalues</span><span class="o">(</span><span class="n">Value</span><span class="o">*</span> <span class="n">last</span><span class="o">)</span> <span class="o">{</span>     
+<pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="nf">closeUpvalues</span><span class="o">(</span><span class="n">Value</span><span class="o">*</span> <span class="n">last</span><span class="o">)</span> <span class="o">{</span>     
   <span class="k">while</span> <span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">openUpvalues</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span>          
          <span class="n">vm</span><span class="o">.</span><span class="n">openUpvalues</span><span class="o">-&gt;</span><span class="n">location</span> <span class="o">&gt;=</span> <span class="n">last</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">ObjUpvalue</span><span class="o">*</span> <span class="n">upvalue</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">openUpvalues</span><span class="o">;</span>   
@@ -2021,9 +2021,9 @@ variables? Is there only one <code>a</code> for the entire duration of the loop,
 each iteration get its own distinct <code>a</code> variable?</p>
 <p>The script here is strange and contrived, but this does show up in real code
 in languages that aren&rsquo;t as minimal as clox. Here&rsquo;s a JavaScript example:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="nx">closures</span> <span class="o">=</span> <span class="o">[];</span>
-<span class="k">for</span> <span class="o">(</span><span class="kd">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-  <span class="nx">closures</span><span class="o">.</span><span class="nx">push</span><span class="o">(</span><span class="kd">function</span> <span class="o">()</span> <span class="o">{</span> <span class="nx">console</span><span class="o">.</span><span class="nx">log</span><span class="o">(</span><span class="nx">i</span><span class="o">);</span> <span class="o">});</span>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="nx">closures</span> <span class="o">=</span> <span class="o">[];</span>
+<span class="k">for</span> <span class="o">(</span><span class="k">var</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
+  <span class="nx">closures</span><span class="o">.</span><span class="nx">push</span><span class="o">(</span><span class="k">function</span> <span class="o">()</span> <span class="o">{</span> <span class="nx">console</span><span class="o">.</span><span class="nx">log</span><span class="o">(</span><span class="nx">i</span><span class="o">);</span> <span class="o">});</span>
 <span class="o">}</span>
 
 <span class="nx">closures</span><span class="o">[</span><span class="mi">0</span><span class="o">]();</span>
@@ -2044,10 +2044,10 @@ run forever.</p>
 <p>If you&rsquo;re familiar with JavaScript, you probably know that variables declared
 using <code>var</code> are implicitly <em>hoisted</em> to the surrounding function or top level
 scope. It&rsquo;s as if you really wrote:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="nx">closures</span> <span class="o">=</span> <span class="o">[];</span>
-<span class="kd">var</span> <span class="nx">i</span><span class="o">;</span>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="nx">closures</span> <span class="o">=</span> <span class="o">[];</span>
+<span class="k">var</span> <span class="nx">i</span><span class="o">;</span>
 <span class="k">for</span> <span class="o">(</span><span class="nx">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-  <span class="nx">closures</span><span class="o">.</span><span class="nx">push</span><span class="o">(</span><span class="kd">function</span> <span class="o">()</span> <span class="o">{</span> <span class="nx">console</span><span class="o">.</span><span class="nx">log</span><span class="o">(</span><span class="nx">i</span><span class="o">);</span> <span class="o">});</span>
+  <span class="nx">closures</span><span class="o">.</span><span class="nx">push</span><span class="o">(</span><span class="k">function</span> <span class="o">()</span> <span class="o">{</span> <span class="nx">console</span><span class="o">.</span><span class="nx">log</span><span class="o">(</span><span class="nx">i</span><span class="o">);</span> <span class="o">});</span>
 <span class="o">}</span>
 
 <span class="nx">closures</span><span class="o">[</span><span class="mi">0</span><span class="o">]();</span>
@@ -2057,9 +2057,9 @@ scope. It&rsquo;s as if you really wrote:</p>
 
 <p>At that point, it&rsquo;s clearer that there is only a single <code>i</code>. Now consider if
 you change the program to use the newer <code>let</code> keyword:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="nx">closures</span> <span class="o">=</span> <span class="o">[];</span>
-<span class="k">for</span> <span class="o">(</span><span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
-  <span class="nx">closures</span><span class="o">.</span><span class="nx">push</span><span class="o">(</span><span class="kd">function</span> <span class="o">()</span> <span class="o">{</span> <span class="nx">console</span><span class="o">.</span><span class="nx">log</span><span class="o">(</span><span class="nx">i</span><span class="o">);</span> <span class="o">});</span>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="nx">closures</span> <span class="o">=</span> <span class="o">[];</span>
+<span class="k">for</span> <span class="o">(</span><span class="k">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="nx">i</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">;</span> <span class="nx">i</span><span class="o">++</span><span class="o">)</span> <span class="o">{</span>
+  <span class="nx">closures</span><span class="o">.</span><span class="nx">push</span><span class="o">(</span><span class="k">function</span> <span class="o">()</span> <span class="o">{</span> <span class="nx">console</span><span class="o">.</span><span class="nx">log</span><span class="o">(</span><span class="nx">i</span><span class="o">);</span> <span class="o">});</span>
 <span class="o">}</span>
 
 <span class="nx">closures</span><span class="o">[</span><span class="mi">0</span><span class="o">]();</span>

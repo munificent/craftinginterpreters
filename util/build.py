@@ -397,6 +397,10 @@ def format_file(path, skip_up_to_date, dependencies_mod):
 
   # Unify some code hilite classes that look the same.
   body = body.replace('<span class="p">', '<span class="o">')
+  body = body.replace('<span class="kd">', '<span class="k">')
+  body = body.replace('<span class="kt">', '<span class="k">')
+  body = body.replace('<span class="kn">', '<span class="k">')
+  body = body.replace('<span class="kr">', '<span class="k">')
 
   up = 'Table of Contents'
   if part:
