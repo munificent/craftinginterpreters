@@ -413,6 +413,9 @@ def format_file(path, skip_up_to_date, dependencies_mod):
   # Pygments puts empty spans at the end of preprocessor lines.
   body = body.replace('<span class="cp"></span>', '')
 
+  # Remove markdown attributes now that we don't need them.
+  body = body.replace('<aside markdown="1"', "<aside")
+
   up = 'Table of Contents'
   if part:
     up = part
