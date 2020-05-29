@@ -171,20 +171,20 @@ in parentheses after the class name. Simula puts the superclass&rsquo;s name <em
 the <code>class</code> keyword.</p>
 <p>This late in the game, I&rsquo;d rather not add a new reserved word or token to the
 lexer. We don&rsquo;t have <code>extends</code> or even <code>:</code>, so we&rsquo;ll follow Ruby and use <code>&lt;</code>:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="o">{</span>
   <span class="c1">// General doughnut stuff...</span>
-<span class="p">}</span>
+<span class="o">}</span>
 
-<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="p">{</span>
+<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="o">{</span>
   <span class="c1">// Boston Cream-specific stuff...</span>
-<span class="p">}</span>
+<span class="o">}</span>
 </pre></div>
 
 
 <p>To work this into the grammar, we add a new optional clause in our existing
 <code>classDecl</code> rule:</p>
-<div class="codehilite"><pre><span></span><span class="n">classDecl</span> <span class="err">→</span> <span class="s">&quot;class&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">(</span> <span class="s">&quot;&lt;&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">)</span><span class="err">?</span>
-            <span class="s">&quot;{&quot;</span> <span class="n">function</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="n">classDecl</span> <span class="err">→</span> <span class="s">&quot;class&quot;</span> <span class="vg">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;&lt;&quot;</span> <span class="vg">IDENTIFIER</span> <span class="o">)</span><span class="err">?</span>
+            <span class="s">&quot;{&quot;</span> <span class="n">function</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -257,7 +257,7 @@ inside blocks, so it&rsquo;s possible the superclass name refers to a local vari
 In that case, we need to make sure it&rsquo;s resolved.</p>
 <p>Because even well-intentioned programmers sometimes write weird code, there&rsquo;s a
 silly edge case we need to worry about while we&rsquo;re in here. Take a look at:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Oops</span> <span class="o">&lt;</span> <span class="vg">Oops</span> <span class="p">{}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Oops</span> <span class="o">&lt;</span> <span class="vg">Oops</span> <span class="o">{}</span>
 </pre></div>
 
 
@@ -299,9 +299,9 @@ in <em>visitClassStmt</em>()</div>
 potentially evaluate to some other kind of object, we have to check at runtime
 that the thing you want to be the superclass is actually a class. Bad things
 would happen if we allowed code like:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="vg">NotAClass</span> <span class="o">=</span> <span class="s">&quot;I am totally not a class&quot;</span><span class="p">;</span>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="vg">NotAClass</span> <span class="o">=</span> <span class="s">&quot;I am totally not a class&quot;</span><span class="o">;</span>
 
-<span class="k">class</span> <span class="vg">Subclass</span> <span class="o">&lt;</span> <span class="vg">NotAClass</span> <span class="p">{}</span> <span class="c1">// ?!</span>
+<span class="k">class</span> <span class="vg">Subclass</span> <span class="o">&lt;</span> <span class="vg">NotAClass</span> <span class="o">{}</span> <span class="c1">// ?!</span>
 </pre></div>
 
 
@@ -380,15 +380,15 @@ in <em>findMethod</em>()</div>
 <p>That&rsquo;s literally all there is to it. When we are looking up a method on an
 instance, if we don&rsquo;t find it on the instance&rsquo;s class, we recurse up through the
 superclass chain and look there. Give it a try:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="p">{</span>
-  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="o">{</span>
+  <span class="n">cook</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="p">{}</span>
+<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="o">{}</span>
 
-<span class="vg">BostonCream</span><span class="p">().</span><span class="n">cook</span><span class="p">();</span>
+<span class="vg">BostonCream</span><span class="o">().</span><span class="n">cook</span><span class="o">();</span>
 </pre></div>
 
 
@@ -408,20 +408,20 @@ to the original one. If the subclass method tries to call it by name, it will
 just recursively hit its own override. We need a way to say &ldquo;Call this method,
 but look for it directly on my superclass and ignore my override&rdquo;. Java uses
 <code>super</code> for this, and we&rsquo;ll use that same syntax in Lox:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="p">{</span>
-  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="o">{</span>
+  <span class="n">cook</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="p">{</span>
-  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">super</span><span class="p">.</span><span class="n">cook</span><span class="p">();</span>
-    <span class="k">print</span> <span class="s">&quot;Pipe full of custard and coat with chocolate.&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="o">{</span>
+  <span class="n">cook</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">super</span><span class="o">.</span><span class="n">cook</span><span class="o">();</span>
+    <span class="k">print</span> <span class="s">&quot;Pipe full of custard and coat with chocolate.&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="vg">BostonCream</span><span class="p">().</span><span class="n">cook</span><span class="p">();</span>
+<span class="vg">BostonCream</span><span class="o">().</span><span class="n">cook</span><span class="o">();</span>
 <span class="c1">// Prints:</span>
 <span class="c1">// Fry until golden brown.</span>
 <span class="c1">// Pipe full of custard and coat with chocolate.</span>
@@ -435,7 +435,7 @@ that name. Unlike calls on <code>this</code>, the search starts at the superclas
 is that one lone token. But with <code>super</code>, the subsequent <code>.</code> and property name
 are inseparable parts of the super expression. You can&rsquo;t have a bare <code>super</code>
 token all by itself:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="k">super</span><span class="p">;</span> <span class="c1">// Syntax error.</span>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="k">super</span><span class="o">;</span> <span class="c1">// Syntax error.</span>
 </pre></div>
 
 
@@ -443,7 +443,7 @@ token all by itself:</p>
 property access as well:</p>
 <div class="codehilite"><pre><span></span><span class="n">primary</span> <span class="err">→</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span> <span class="err">|</span> <span class="s">&quot;this&quot;</span>
         <span class="err">|</span> <span class="vg">NUMBER</span> <span class="err">|</span> <span class="vg">STRING</span> <span class="err">|</span> <span class="vg">IDENTIFIER</span> <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span>
-        <span class="err">|</span> <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="vg">IDENTIFIER</span> <span class="p">;</span>
+        <span class="err">|</span> <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="vg">IDENTIFIER</span> <span class="o">;</span>
 </pre></div>
 
 
@@ -451,8 +451,8 @@ property access as well:</p>
 methods, the argument list is <em>not</em> part of the expression. Instead, a super
 <em>call</em> is a super <em>access</em> followed by a function call. Like other method calls,
 you can get a handle to a superclass method and invoke it separately:</p>
-<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">method</span> <span class="o">=</span> <span class="k">super</span><span class="p">.</span><span class="n">cook</span><span class="p">;</span>
-<span class="n">method</span><span class="p">();</span>
+<div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">method</span> <span class="o">=</span> <span class="k">super</span><span class="o">.</span><span class="n">cook</span><span class="o">;</span>
+<span class="n">method</span><span class="o">();</span>
 </pre></div>
 
 
@@ -497,25 +497,25 @@ superclass&rdquo;, but <em>which</em> superclass? I need to be more precise. The
 is the superclass of <code>this</code>, the object the surrounding method was called on.
 That coincidentally produces the right behavior in a lot of cases, but that&rsquo;s
 not actually correct. Gaze upon:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">A</span> <span class="p">{</span>
-  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;A method&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">A</span> <span class="o">{</span>
+  <span class="n">method</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="s">&quot;A method&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="k">class</span> <span class="vg">B</span> <span class="o">&lt;</span> <span class="vg">A</span> <span class="p">{</span>
-  <span class="n">method</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;B method&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
+<span class="k">class</span> <span class="vg">B</span> <span class="o">&lt;</span> <span class="vg">A</span> <span class="o">{</span>
+  <span class="n">method</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="s">&quot;B method&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
 
-  <span class="n">test</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">super</span><span class="p">.</span><span class="n">method</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+  <span class="n">test</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">super</span><span class="o">.</span><span class="n">method</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="k">class</span> <span class="vg">C</span> <span class="o">&lt;</span> <span class="vg">B</span> <span class="p">{}</span>
+<span class="k">class</span> <span class="vg">C</span> <span class="o">&lt;</span> <span class="vg">B</span> <span class="o">{}</span>
 
-<span class="vg">C</span><span class="p">().</span><span class="n">test</span><span class="p">();</span>
+<span class="vg">C</span><span class="o">().</span><span class="n">test</span><span class="o">();</span>
 </pre></div>
 
 
@@ -742,12 +742,12 @@ with cream.</p>
 <p>As with previous language features, our implementation does the right thing when
 the user writes correct code, but we haven&rsquo;t bulletproofed the intepreter
 against bad code. In particular, consider:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Eclair</span> <span class="p">{</span>
-  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">super</span><span class="p">.</span><span class="n">cook</span><span class="p">();</span>
-    <span class="k">print</span> <span class="s">&quot;Pipe full of crème pâtissière.&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Eclair</span> <span class="o">{</span>
+  <span class="n">cook</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">super</span><span class="o">.</span><span class="n">cook</span><span class="o">();</span>
+    <span class="k">print</span> <span class="s">&quot;Pipe full of crème pâtissière.&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 </pre></div>
 
 
@@ -757,7 +757,7 @@ will be found in the environment. That&rsquo;s going to fail here because there 
 surrounding environment for the superclass since there is no superclass. The JVM
 will throw an exception and bring our interpreter to its knees.</p>
 <p>Heck, there are even simpler broken uses of super:</p>
-<div class="codehilite"><pre><span></span><span class="k">super</span><span class="p">.</span><span class="n">notEvenInAClass</span><span class="p">();</span>
+<div class="codehilite"><pre><span></span><span class="k">super</span><span class="o">.</span><span class="n">notEvenInAClass</span><span class="o">();</span>
 </pre></div>
 
 
@@ -891,21 +891,21 @@ BETA&rsquo;s semantics. In short:</p>
 </li>
 </ul>
 <p>For example:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="p">{</span>
-  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="p">;</span>
-    <span class="n">inner</span><span class="p">();</span>
-    <span class="k">print</span> <span class="s">&quot;Place in a nice box.&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="vg">Doughnut</span> <span class="o">{</span>
+  <span class="n">cook</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="s">&quot;Fry until golden brown.&quot;</span><span class="o">;</span>
+    <span class="n">inner</span><span class="o">();</span>
+    <span class="k">print</span> <span class="s">&quot;Place in a nice box.&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="p">{</span>
-  <span class="n">cook</span><span class="p">()</span> <span class="p">{</span>
-    <span class="k">print</span> <span class="s">&quot;Pipe full of custard and coat with chocolate.&quot;</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
+<span class="k">class</span> <span class="vg">BostonCream</span> <span class="o">&lt;</span> <span class="vg">Doughnut</span> <span class="o">{</span>
+  <span class="n">cook</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">print</span> <span class="s">&quot;Pipe full of custard and coat with chocolate.&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-<span class="vg">BostonCream</span><span class="p">().</span><span class="n">cook</span><span class="p">();</span>
+<span class="vg">BostonCream</span><span class="o">().</span><span class="n">cook</span><span class="o">();</span>
 </pre></div>
 
 
