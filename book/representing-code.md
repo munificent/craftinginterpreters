@@ -315,14 +315,16 @@ expressions in the body of a rule:
 *   Instead of repeating the rule name each time we want to add another
     production for it, we'll allow a series of productions separated by `|`:
 
-        :::lox
-        bread → "toast" | "biscuits" | "English muffin" ;
+    ```lox
+    bread → "toast" | "biscuits" | "English muffin" ;
+    ```
 
 *   Further, we'll allow `(` and `)` for grouping and then allow `|` within that
     to select one from a series of options within the middle of a production:
 
-        :::lox
-        protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
+    ```lox
+    protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
+    ```
 
 *   Using <span name="recursion">recursion</span> to support repeated sequences
     of symbols has a certain appealing <span name="purity">purity</span>, but
@@ -330,8 +332,9 @@ expressions in the body of a rule:
     loop. Instead, we allow a postfix `*` to mean the previous symbol or group
     may be repeated zero or more times.
 
-        :::lox
-        crispiness → "really" "really"* ;
+    ```lox
+    crispiness → "really" "really"* ;
+    ```
 
 <aside name="purity">
 
@@ -344,14 +347,16 @@ recursion.
 *   A postfix `+` is similar, but requires the preceding production to appear
     at least once.
 
-        :::lox
-        crispiness → "really"+ ;
+    ```lox
+    crispiness → "really"+ ;
+    ```
 
 *   A postfix `?` is for an optional production. The thing before it can appear
     zero or one time, but not more.
 
-        :::lox
-        breakfast → protein ( "with" breakfast "on the side" )? ;
+    ```lox
+    breakfast → protein ( "with" breakfast "on the side" )? ;
+    ```
 
 With all of that sugar, our breakfast grammar condenses down to:
 
@@ -999,10 +1004,11 @@ when we start parsing Lox code into syntax trees.
 1.  Earlier, I said that the `|`, `*`, and `+` forms we added to our grammar
     metasyntax were just syntactic sugar. Given this grammar:
 
-        :::lox
-        expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )*
-             | IDENTIFIER
-             | NUMBER
+    ```lox
+    expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )*
+         | IDENTIFIER
+         | NUMBER
+    ```
 
     Produce a grammar that matches the same language but does not use any of
     that notational sugar.
@@ -1023,13 +1029,15 @@ when we start parsing Lox code into syntax trees.
     stack. An arithmetic operator pops the top two numbers, performs the
     operation, and pushes the result. Thus, this:
 
-        :::lox
-        (1 + 2) * (4 - 3)
+    ```lox
+    (1 + 2) * (4 - 3)
+    ```
 
     in RPN becomes:
 
-        :::lox
-        1 2 + 4 3 - *
+    ```lox
+    1 2 + 4 3 - *
+    ```
 
     Define a visitor class for our syntax tree classes that takes an expression,
     converts it to RPN, and returns the resulting string.

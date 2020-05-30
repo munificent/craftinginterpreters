@@ -674,8 +674,9 @@ the bare bits.
 
 1.  How do other languages handle code like:
 
-        :::lox
-        var a = a;
+    ```lox
+    var a = a;
+    ```
 
     What would you do? Why?
 

@@ -806,11 +806,12 @@ generate it for us.
 1.  What bytecode instruction sequences would you generate for the following
     expressions:
 
-        :::lox
-        1 * 2 + 3
-        1 + 2 * 3
-        3 - 2 - 1
-        1 + 2 * 3 - 4 / -5
+    ```lox
+    1 * 2 + 3
+    1 + 2 * 3
+    3 - 2 - 1
+    1 + 2 * 3 - 4 / -5
+    ```
 
     (Remember that Lox does not have a syntax for negative number literals, so
     the `-5` is negating the number 5.)
@@ -819,8 +820,9 @@ generate it for us.
     `OP_NEGATE` or `OP_SUBTRACT`. Show the bytecode instruction sequence you
     would generate for:
 
-        :::lox
-        4 - 3 * -2
+    ```lox
+    4 - 3 * -2
+    ```
 
     First, without using `OP_NEGATE`. Then, without using `OP_SUBTRACT`.
 

@@ -417,8 +417,9 @@ The Java behavior does have one thing going for it, though -- it correctly stops
 executing any code when the error occurs. Let's say the user enters some
 expression like:
 
-    :::lox
-    2 * (3 / -"muffin")
+```lox
+2 * (3 / -"muffin")
+```
 
 You can't negate a <span name="muffin">muffin</span>, so we need to report a
 runtime error at that inner `-` expression. That in turn means we can't evaluate

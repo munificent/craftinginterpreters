@@ -804,12 +804,13 @@ It's starting to look like real code for an actual language!
     But when a user runs a Lox *script*, the compiler has access to the full
     text of the entire program before any code is run. Consider this program:
 
-        :::lox
-        fun useVar() {
-          print oops;
-        }
+    ```lox
+    fun useVar() {
+      print oops;
+    }
 
-        var ooops = "too many o's!";
+    var ooops = "too many o's!";
+    ```
 
     Here, we can tell statically that `oops` will not be defined because there
     is *no* declaration of that global anywhere in the program. Note that

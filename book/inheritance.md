@@ -669,29 +669,31 @@ refreshed and ready, we'll embark on our [next adventure][].
 
     For example:
 
-        :::lox
-        class Doughnut {
-          cook() {
-            print "Fry until golden brown.";
-            inner();
-            print "Place in a nice box.";
-          }
-        }
+    ```lox
+    class Doughnut {
+      cook() {
+        print "Fry until golden brown.";
+        inner();
+        print "Place in a nice box.";
+      }
+    }
 
-        class BostonCream < Doughnut {
-          cook() {
-            print "Pipe full of custard and coat with chocolate.";
-          }
-        }
+    class BostonCream < Doughnut {
+      cook() {
+        print "Pipe full of custard and coat with chocolate.";
+      }
+    }
 
-        BostonCream().cook();
+    BostonCream().cook();
+    ```
 
     This should print:
 
-        :::text
-        Fry until golden brown.
-        Pipe full of custard and coat with chocolate.
-        Place in a nice box.
+    ```text
+    Fry until golden brown.
+    Pipe full of custard and coat with chocolate.
+    Place in a nice box.
+    ```
 
 1.  In the chapter where I introduced Lox, [I challenged you][challenge] to
     come up with a couple of features you think the language is missing. Now

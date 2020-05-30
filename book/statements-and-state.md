@@ -291,8 +291,9 @@ constructs.
 
 1.  A **variable declaration** statement brings a new variable into the world:
 
-        :::lox
-        var beverage = "espresso";
+    ```lox
+    var beverage = "espresso";
+    ```
 
     This creates a new binding that associates a name (here "beverage") with a
     value (here, the string `"espresso"`).
@@ -301,8 +302,9 @@ constructs.
     identifier "beverage" is used as an expression, it looks up the value bound
     to that name and returns it:
 
-        :::lox
-        print beverage; // "espresso".
+    ```lox
+    print beverage; // "espresso".
+    ```
 
 Later, we'll add assignment and block scope, but that's enough to get started.
 
@@ -1314,24 +1316,26 @@ something resembling a full-featured programming language.
     it a runtime error to access a variable that has not been initialized or
     assigned to, as in:
 
-        :::lox
-        // No initializers.
-        var a;
-        var b;
+    ```lox
+    // No initializers.
+    var a;
+    var b;
 
-        a = "assigned";
-        print a; // OK, was assigned first.
+    a = "assigned";
+    print a; // OK, was assigned first.
 
-        print b; // Error!
+    print b; // Error!
+    ```
 
 3.  What does the following program do?
 
-        :::lox
-        var a = 1;
-        {
-          var a = a + 2;
-          print a;
-        }
+    ```lox
+    var a = 1;
+    {
+      var a = a + 2;
+      print a;
+    }
+    ```
 
     What did you *expect* it to do? Is it what you think it should do? What
     does analogous code in other languages you are familiar with do? What do

@@ -1043,10 +1043,11 @@ the [next chapter][vm], we will see how the virtual machine does exactly that.
 
     Implement this function:
 
-        :::c
-        void writeConstant(Chunk* chunk, Value value, int line) {
-          // Implement me...
-        }
+    ```c
+    void writeConstant(Chunk* chunk, Value value, int line) {
+      // Implement me...
+    }
+    ```
 
     It adds `value` to `chunk`&rsquo;s constant array and then writes an
     appropriate instruction to load the constant. Also add support to the

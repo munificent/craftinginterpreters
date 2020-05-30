@@ -68,12 +68,13 @@ There's a lot to unpack in that:
 
 *   "Preceding" means appearing before *in the program text*. Given:
 
-        :::lox
-        var a = "outer";
-        {
-          print a;
-          var a = "inner";
-        }
+    ```lox
+    var a = "outer";
+    {
+      print a;
+      var a = "inner";
+    }
+    ```
 
     Here, the `a` being printed is the outer one since it appears <span
     name="hoisting">before</span> the print statement that uses it. In most
@@ -89,20 +90,22 @@ There's a lot to unpack in that:
     that variable, even if the use appears before the declaration. When you
     write this in JavaScript:
 
-        :::js
-        {
-          console.log(a);
-          var a = "value";
-        }
+    ```js
+    {
+      console.log(a);
+      var a = "value";
+    }
+    ```
 
     It behaves like:
 
-        :::js
-        {
-          var a; // Hoist.
-          console.log(a);
-          a = "value";
-        }
+    ```js
+    {
+      var a; // Hoist.
+      console.log(a);
+      a = "value";
+    }
+    ```
 
     That means that in some cases you can read a variable before its initializer
     has run -- an annoying source of bugs. The alternate `let` syntax for
@@ -113,12 +116,13 @@ There's a lot to unpack in that:
 *   "Innermost" is there because of our good friend shadowing. There may be more
     than one variable with the given name in enclosing scopes, as in:
 
-        :::lox
-        var a = "outer";
-        {
-          var a = "inner";
-          print a;
-        }
+    ```lox
+    var a = "outer";
+    {
+      var a = "inner";
+      print a;
+    }
+    ```
 
     Our rule disambiguates this case by saying the innermost scope wins.
 
@@ -492,10 +496,11 @@ the same name as what's being declared? We have a few options:
     the new local `a` would be initialized with "outer", the value of the
     *global* one. In other words, the previous declaration desugars to:
 
-        :::lox
-        var temp = a; // Run the initializer.
-        var a;        // Declare the variable.
-        a = temp;     // Initialize it.
+    ```lox
+    var temp = a; // Run the initializer.
+    var a;        // Declare the variable.
+    a = temp;     // Initialize it.
+    ```
 
 *   **Put the new variable in scope, then run the initializer.** This means you
     can observe a variable before it's initialized, so we need to figure out
@@ -503,9 +508,10 @@ the same name as what's being declared? We have a few options:
     would be re-initialized to its own implicitly initialized value, `nil`. Now
     the desugaring looks like:
 
-        :::lox
-        var a; // Define the variable.
-        a = a; // Run the initializer.
+    ```lox
+    var a; // Define the variable.
+    a = a; // Run the initializer.
+    ```
 
 *   **Make it an error to reference a variable in its initializer.** Have the
     interpreter fail either at compile time or runtime if an initializer
@@ -959,11 +965,12 @@ surprising that it took this much work to do it.
 1.  How do other languages you know handle local variables that refer to the
     same name in their initializer, like:
 
-        :::lox
-        var a = "outer";
-        {
-          var a = a;
-        }
+    ```lox
+    var a = "outer";
+    {
+      var a = a;
+    }
+    ```
 
     Is it a runtime error? Compile error? Allowed? Do they treat global
     variables differently? Do you agree with their choices? Justify your answer.

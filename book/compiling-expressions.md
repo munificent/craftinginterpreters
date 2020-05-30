@@ -870,8 +870,9 @@ but the foundation is in place.
     through the interesting parsing functions -- `parsePrecedence()` and the
     parser functions stored in the table. Take this (strange) expression:
 
-        :::lox
-        (-1 + 2) * 3 - -4
+    ```lox
+    (-1 + 2) * 3 - -4
+    ```
 
     Write a trace of how those functions are called. Show the order they are
     called, which calls which, and the arguments passed to them.

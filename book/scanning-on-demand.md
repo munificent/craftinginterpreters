@@ -784,16 +784,18 @@ writing the simplest code I can is sufficient to accomplish that.
 
     For example, if Lox supported string interpolation, then this:
 
-        :::lox
-        var drink = "Tea";
-        var steep = 4;
-        var cool = 2;
-        print "${drink} will be ready in ${steep + cool} minutes.";
+    ```lox
+    var drink = "Tea";
+    var steep = 4;
+    var cool = 2;
+    print "${drink} will be ready in ${steep + cool} minutes.";
+    ```
 
     Would print:
 
-        :::text
-        Tea will be ready in 6 minutes.
+    ```text
+    Tea will be ready in 6 minutes.
+    ```
 
     What token types would you define to implement a scanner for string
     interpolation? What sequence of tokens would you emit for the above string
@@ -801,8 +803,9 @@ writing the simplest code I can is sufficient to accomplish that.
 
     What tokens would you emit for:
 
-        :::text
-        "Nested ${"interpolation?! Are you ${"mad?!"}"}"
+    ```text
+    "Nested ${"interpolation?! Are you ${"mad?!"}"}"
+    ```
 
     Consider looking at other language implementations that support
     interpolation to see how they handle it.
@@ -810,8 +813,9 @@ writing the simplest code I can is sufficient to accomplish that.
 2.  Several languages use angle brackets for generics and also have a `>>` right
     shift operator. This led to a classic problem in early versions of C++:
 
-        :::c++
-        vector<vector<string>> nestedVectors;
+    ```c++
+    vector<vector<string>> nestedVectors;
+    ```
 
     This would produce a compile error because the `>>` was lexed to a single
     right shift token, not two `>` tokens. Users were forced to avoid this by

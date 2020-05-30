@@ -778,27 +778,30 @@ detect, but there are a handful of nasty ones:
 
 * A return value on the next line:
 
-        :::js
-        return
-        "value"
+    ```js
+    return
+    "value"
+    ```
 
     Is "value" the value being returned, or do we have a return statement with
     no value followed by an expression statement containing a string literal?
 
 * A parenthesized expression on the next line:
 
-        :::js
-        func
-        (parenthesized)
+    ```js
+    func
+    (parenthesized)
+    ```
 
     Is this a call to `func(parenthesized)`, or two expression statements, one
     for `func` and one for a parenthesized expression?
 
 * A `-` on the next line:
 
-        :::js
-        first
-        -second
+    ```js
+    first
+    -second
+    ```
 
     Is this `first - second` -- an infix subtraction -- or two expression
     statements, one for `first` and one to negate `second`?
@@ -812,8 +815,9 @@ are separators. Here are a couple:
     that no separator between statements is needed at all in most cases. This is
     perfectly legit:
 
-        :::lua
-        a = 1 b = 2
+    ```lua
+    a = 1 b = 2
+    ```
 
     Lua avoids the `return` problem by requiring a `return` statement to be the
     very last statement in a block. If there is a value after `return` before
@@ -841,10 +845,11 @@ are separators. Here are a couple:
 
     For example, in JavaScript:
 
-        :::js
-        console.log(function() {
-          statement();
-        });
+    ```js
+    console.log(function() {
+      statement();
+    });
+    ```
 
     Here, the `console.log()` *expression* contains a function literal which
     in turn contains the *statement* `statement();`.
