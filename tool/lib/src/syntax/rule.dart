@@ -99,24 +99,3 @@ class IdentifierRule extends Rule {
     highlighter.writeToken(type);
   }
 }
-
-// TODO: This is pretty hacky. The Pygments lexers for C and Java handle
-// colons differently. Probably need to fork this.
-/// Parses an identifier followed by a colon and treats it as a label or a
-/// keyword followed by a ":" as needed.
-class LabelRule extends Rule {
-  LabelRule() : super._(r"([a-zA-Z_][a-zA-Z0-9_]*)(\s*)(:)");
-
-  void applyRule(Highlighter highlighter) {
-    var name = highlighter.scanner.lastMatch[1];
-    var space = highlighter.scanner.lastMatch[2];
-    var colon = highlighter.scanner.lastMatch[3];
-    highlighter.writeToken(highlighter.language.words[name] ?? "nl", name);
-    // TODO: Allowing space here means that this incorrectly parses an
-    // identifier before a conditional operator as a label name. Pygments
-    // does this wrong so this matches that. Once we aren't trying to match
-    // exactly, remove the (\s*) from the regex to fix that.
-    highlighter.writeText(space);
-    highlighter.writeToken("o", colon);
-  }
-}

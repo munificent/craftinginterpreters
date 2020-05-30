@@ -13,6 +13,7 @@ class LoxInstance {
   LoxInstance(LoxClass klass) {
     this.klass = klass;
   }
+
 //> lox-instance-get-property
   Object get(Token name) {
     if (fields.containsKey(name.lexeme)) {

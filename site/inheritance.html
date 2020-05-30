@@ -211,25 +211,25 @@ but at runtime, that identifier is evaluated as a variable access. Wrapping the
 name in an Expr.Variable early on in the parser gives us an object that the
 resolver can hang the resolution information off of.</p>
 <p>The new parser code follows the grammar directly:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="t">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="t">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect class name.&quot;</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="t">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect class name.&quot;</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert"><br><span></span>    <span class="t">Expr</span><span class="o">.</span><span class="n">Variable</span> <span class="n">superclass</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>                       
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">LESS</span><span class="o">))</span> <span class="o">{</span>                                     
-      <span class="n">consume</span><span class="o">(</span><span class="t">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass name.&quot;</span><span class="o">);</span>      
-      <span class="n">superclass</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Variable</span><span class="o">(</span><span class="n">previous</span><span class="o">());</span>          
+<pre class="insert"><br><span></span>    <span class="t">Expr</span><span class="o">.</span><span class="t">Variable</span> <span class="n">superclass</span> <span class="o">=</span> <span class="k">null</span><span class="o">;</span>                       
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LESS</span><span class="o">))</span> <span class="o">{</span>                                     
+      <span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass name.&quot;</span><span class="o">);</span>      
+      <span class="n">superclass</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Variable</span><span class="o">(</span><span class="n">previous</span><span class="o">());</span>          
     <span class="o">}</span>                                                      
-<br></pre><pre class="insert-after"><span></span>    <span class="n">consume</span><span class="o">(</span><span class="t">LEFT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;{&#39; before class body.&quot;</span><span class="o">);</span>  
+<br></pre><pre class="insert-after"><span></span>    <span class="n">consume</span><span class="o">(</span><span class="n">LEFT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;{&#39; before class body.&quot;</span><span class="o">);</span>  
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>classDeclaration</em>()</div>
 
 <p>Once we&rsquo;ve (possibly) parsed a superclass declaration, we store it in the AST:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">consume</span><span class="o">(</span><span class="t">RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after class body.&quot;</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after class body.&quot;</span><span class="o">);</span>
 <br></pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>classDeclaration</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Class</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">superclass</span><span class="o">,</span> <span class="n">methods</span><span class="o">);</span>    
+<pre class="insert"><span></span>    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Class</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">superclass</span><span class="o">,</span> <span class="n">methods</span><span class="o">);</span>    
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>                                                      
 </pre></div>
 
@@ -241,7 +241,7 @@ those is the resolver:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>            
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>
       <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span><span class="o">);</span>   
     <span class="o">}</span>                             
 </pre><pre class="insert-after"><br><span></span>    <span class="n">beginScope</span><span class="o">();</span>                 
@@ -268,29 +268,29 @@ report it as an error:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>                                         
 <br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span>                             
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span> <span class="o">&amp;&amp;</span>                             
         <span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">.</span><span class="n">equals</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">))</span> <span class="o">{</span>
       <span class="t">Lox</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span><span class="o">.</span><span class="n">name</span><span class="o">,</span>                          
           <span class="s">&quot;A class cannot inherit from itself.&quot;</span><span class="o">);</span>              
     <span class="o">}</span>                                                          
-<br></pre><pre class="insert-after"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                             
+<br></pre><pre class="insert-after"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                             
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
 
 <p>Assuming the code resolves without error, it travels to the interpreter:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitClassStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="n">Class</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>     
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitClassStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Class</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>     
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><span></span>    <span class="t">Object</span> <span class="n">superclass</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>                       
-    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                  
+<pre class="insert"><span></span>    <span class="t">Object</span> <span class="n">superclass</span> <span class="o">=</span> <span class="k">null</span><span class="o">;</span>                       
+    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                  
       <span class="n">superclass</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span><span class="o">);</span>       
       <span class="k">if</span> <span class="o">(!(</span><span class="n">superclass</span> <span class="k">instanceof</span> <span class="t">LoxClass</span><span class="o">))</span> <span class="o">{</span>      
         <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span><span class="o">.</span><span class="n">name</span><span class="o">,</span>
             <span class="s">&quot;Superclass must be a class.&quot;</span><span class="o">);</span>         
       <span class="o">}</span>                                             
     <span class="o">}</span>                                               
-<br></pre><pre class="insert-after"><span></span>    <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>     
+<br></pre><pre class="insert-after"><span></span>    <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">,</span> <span class="k">null</span><span class="o">);</span>     
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitClassStmt</em>()</div>
@@ -369,10 +369,10 @@ astonishingly easy:</p>
     <span class="o">}</span>                                    
 <br></pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in <em>findMethod</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>            
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>            
       <span class="k">return</span> <span class="n">superclass</span><span class="o">.</span><span class="n">findMethod</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
     <span class="o">}</span>                                    
-<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                         
+<br></pre><pre class="insert-after"><span></span>    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                         
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, in <em>findMethod</em>()</div>
@@ -472,18 +472,18 @@ in <em>main</em>()</div>
 </aside>
 <p>Following the grammar, the new parsing code goes inside our existing <code>primary()</code>
 method:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="n">literal</span><span class="o">);</span>    
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="n">literal</span><span class="o">);</span>    
     <span class="o">}</span>                                                 
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>primary</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">SUPER</span><span class="o">))</span> <span class="o">{</span>                               
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">SUPER</span><span class="o">))</span> <span class="o">{</span>                               
       <span class="t">Token</span> <span class="n">keyword</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                     
-      <span class="n">consume</span><span class="o">(</span><span class="t">DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>      
-      <span class="t">Token</span> <span class="n">method</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="t">IDENTIFIER</span><span class="o">,</span>              
+      <span class="n">consume</span><span class="o">(</span><span class="n">DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>      
+      <span class="t">Token</span> <span class="n">method</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span>              
           <span class="s">&quot;Expect superclass method name.&quot;</span><span class="o">);</span>          
-      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Super</span><span class="o">(</span><span class="n">keyword</span><span class="o">,</span> <span class="n">method</span><span class="o">);</span>         
+      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Super</span><span class="o">(</span><span class="n">keyword</span><span class="o">,</span> <span class="n">method</span><span class="o">);</span>         
     <span class="o">}</span>                                                 
-</pre><pre class="insert-after"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">THIS</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">This</span><span class="o">(</span><span class="n">previous</span><span class="o">());</span>
+</pre><pre class="insert-after"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">THIS</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">This</span><span class="o">(</span><span class="n">previous</span><span class="o">());</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
@@ -582,9 +582,9 @@ corresponding scope chain in the resolver:</p>
     <span class="o">}</span>                                  
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>     
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>     
       <span class="n">beginScope</span><span class="o">();</span>                    
-      <span class="n">scopes</span><span class="o">.</span><span class="n">peek</span><span class="o">().</span><span class="n">put</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">,</span> <span class="kc">true</span><span class="o">);</span>
+      <span class="n">scopes</span><span class="o">.</span><span class="n">peek</span><span class="o">().</span><span class="n">put</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">,</span> <span class="k">true</span><span class="o">);</span>
     <span class="o">}</span>                                  
 </pre><pre class="insert-after"><br><span></span>    <span class="n">beginScope</span><span class="o">();</span>                      
 </pre></div>
@@ -597,7 +597,7 @@ we&rsquo;re done resolving the class&rsquo;s methods, we discard that scope:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">endScope</span><span class="o">();</span>                             
 <br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="n">endScope</span><span class="o">();</span>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="n">endScope</span><span class="o">();</span>
 <br></pre><pre class="insert-after"><span></span>    <span class="n">currentClass</span> <span class="o">=</span> <span class="n">enclosingClass</span><span class="o">;</span>          
 </pre></div>
 
@@ -610,10 +610,10 @@ a superclass since there&rsquo;d be no superclass to store in it anyway.</p>
 expression itself:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitSetExpr</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                    
-  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitSuperExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="n">Super</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="a">@Override</span>                                    
+  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitSuperExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Super</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">resolveLocal</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">keyword</span><span class="o">);</span>          
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                               
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                               
   <span class="o">}</span>                                            
 </pre></div>
 
@@ -629,10 +629,10 @@ definition, we create a new environment:</p>
       <span class="o">}</span>                                                
     <span class="o">}</span>                                                  
 
-    <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>        
+    <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">,</span> <span class="k">null</span><span class="o">);</span>        
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                     
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                     
       <span class="n">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Environment</span><span class="o">(</span><span class="n">environment</span><span class="o">);</span>      
       <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">,</span> <span class="n">superclass</span><span class="o">);</span>         
     <span class="o">}</span>                                                  
@@ -650,7 +650,7 @@ onto the superclass like we need. Once that&rsquo;s done, we pop the environment
         <span class="o">(</span><span class="t">LoxClass</span><span class="o">)</span><span class="n">superclass</span><span class="o">,</span> <span class="n">methods</span><span class="o">);</span>            
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                      
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                      
       <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="n">enclosing</span><span class="o">;</span>         
     <span class="o">}</span>                                              
 </pre><pre class="insert-after"><br><span></span>    <span class="n">environment</span><span class="o">.</span><span class="n">assign</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">,</span> <span class="n">klass</span><span class="o">);</span>          
@@ -662,8 +662,8 @@ in <em>visitClassStmt</em>()</div>
 parts, so we&rsquo;ll build this method up in pieces:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitSetExpr</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                           
-  <span class="k">public</span> <span class="t">Object</span> <span class="n">visitSuperExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="n">Super</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>     
+<pre><span></span>  <span class="a">@Override</span>                                           
+  <span class="k">public</span> <span class="t">Object</span> <span class="n">visitSuperExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Super</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>     
     <span class="t">int</span> <span class="n">distance</span> <span class="o">=</span> <span class="n">locals</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>                  
     <span class="t">LoxClass</span> <span class="n">superclass</span> <span class="o">=</span> <span class="o">(</span><span class="t">LoxClass</span><span class="o">)</span><span class="n">environment</span><span class="o">.</span><span class="n">getAt</span><span class="o">(</span>
         <span class="n">distance</span><span class="o">,</span> <span class="s">&quot;super&quot;</span><span class="o">);</span>                           
@@ -724,7 +724,7 @@ So we check for that too:</p>
 <div class="codehilite"><pre class="insert-before"><br><span></span>    <span class="t">LoxFunction</span> <span class="n">method</span> <span class="o">=</span> <span class="n">superclass</span><span class="o">.</span><span class="n">findMethod</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">lexeme</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitSuperExpr</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">method</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                                          
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">method</span> <span class="o">==</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                                          
       <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">method</span><span class="o">,</span>                          
           <span class="s">&quot;Undefined property &#39;&quot;</span> <span class="o">+</span> <span class="n">expr</span><span class="o">.</span><span class="n">method</span><span class="o">.</span><span class="n">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="o">);</span>     
     <span class="o">}</span>                                                              
@@ -771,12 +771,12 @@ it sooner rather than later. So we&rsquo;ll report these errors statically, in t
 resolver.</p>
 <p>First, we add a new case to the enum we use to keep track of what kind of class
 is surrounding the current code being visited:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="t">NONE</span><span class="o">,</span>   
-</pre><pre class="insert-before"><span></span>    <span class="t">CLASS</span><span class="o"><span class="insert-comma">,</span></span>  
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">NONE</span><span class="o">,</span>   
+</pre><pre class="insert-before"><span></span>    <span class="n">CLASS</span><span class="o"><span class="insert-comma">,</span></span>  
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in enum <em>ClassType</em><br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
-<pre class="insert"><span></span>    <span class="t">SUBCLASS</span>
+<pre class="insert"><span></span>    <span class="n">SUBCLASS</span>
 </pre><pre class="insert-after"><span></span>  <span class="o">}</span>         
 </pre></div>
 
@@ -785,7 +785,7 @@ add <em>&ldquo;,&rdquo;</em> to previous line</div>
 <p>We&rsquo;ll use that to distinguish when we&rsquo;re inside a class that has a superclass
 versus one that doesn&rsquo;t. When we resolve a class declaration, we set that if the
 class is a subclass:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>      
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">superclass</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>      
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
 <pre class="insert"><span></span>      <span class="n">currentClass</span> <span class="o">=</span> <span class="t">ClassType</span><span class="o">.</span><span class="n">SUBCLASS</span><span class="o">;</span>
@@ -796,7 +796,7 @@ in <em>visitClassStmt</em>()</div>
 
 <p>Then, when we resolve a super expression, we check to see that we are currently
 inside a scope where that&rsquo;s allowed:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitSuperExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="n">Super</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>                
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitSuperExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Super</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitSuperExpr</em>()</div>
 <pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="t">ClassType</span><span class="o">.</span><span class="n">NONE</span><span class="o">)</span> <span class="o">{</span>                      

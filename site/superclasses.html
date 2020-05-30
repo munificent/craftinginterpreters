@@ -155,11 +155,11 @@ inheritance works. Let&rsquo;s start compiling the new syntax:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">currentClass</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">classCompiler</span><span class="o">;</span>                         
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">TOKEN_LESS</span><span class="o">))</span> <span class="o">{</span>                               
-    <span class="n">consume</span><span class="o">(</span><span class="t">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass name.&quot;</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="a">TOKEN_LESS</span><span class="o">))</span> <span class="o">{</span>                               
+    <span class="n">consume</span><span class="o">(</span><span class="a">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass name.&quot;</span><span class="o">);</span>
     <span class="n">variable</span><span class="o">(</span><span class="k">false</span><span class="o">);</span>                                     
     <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>                     
-    <span class="n">emitByte</span><span class="o">(</span><span class="t">OP_INHERIT</span><span class="o">);</span>                                
+    <span class="n">emitByte</span><span class="o">(</span><span class="a">OP_INHERIT</span><span class="o">);</span>                                
   <span class="o">}</span>                                                      
 <br></pre><pre class="insert-after"><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>                       
 </pre></div>
@@ -207,11 +207,11 @@ anything <em>useful</em>, but I don&rsquo;t think it would cause a crash or infi
 </aside>
 <h3><a href="#executing-inheritance" name="executing-inheritance"><small>29&#8202;.&#8202;1&#8202;.&#8202;1</small> Executing inheritance</a></h3>
 <p>Now onto the new instruction:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="t">OP_CLASS</span><span class="o">,</span>  
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="a">OP_CLASS</span><span class="o">,</span>  
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert"><span></span>  <span class="t">OP_INHERIT</span><span class="o">,</span>
-</pre><pre class="insert-after"><span></span>  <span class="t">OP_METHOD</span>  
+<pre class="insert"><span></span>  <span class="a">OP_INHERIT</span><span class="o">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="a">OP_METHOD</span>  
 </pre></div>
 
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -221,9 +221,9 @@ subclass<span class="em">&mdash;</span>are both found on the stack. That means d
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_CLASS&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_INHERIT</span><span class="o">:</span>                                        
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="a">OP_INHERIT</span><span class="o">:</span>                                        
       <span class="k">return</span> <span class="n">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_INHERIT&quot;</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>       
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_METHOD</span><span class="o">:</span>                                         
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="a">OP_METHOD</span><span class="o">:</span>                                         
 </pre></div>
 
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
@@ -232,14 +232,14 @@ in <em>disassembleInstruction</em>()</div>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="k">break</span><span class="o">;</span>                                                          
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_INHERIT</span><span class="o">:</span> <span class="o">{</span>                                                
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="a">OP_INHERIT</span><span class="o">:</span> <span class="o">{</span>                                                
         <span class="t">Value</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>                                     
-        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="t">AS_CLASS</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>                         
-        <span class="n">tableAddAll</span><span class="o">(&amp;</span><span class="t">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
+        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="a">AS_CLASS</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>                         
+        <span class="n">tableAddAll</span><span class="o">(&amp;</span><span class="a">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
         <span class="n">pop</span><span class="o">();</span> <span class="c">// Subclass.                                             </span>
         <span class="k">break</span><span class="o">;</span>                                                          
       <span class="o">}</span>                                                                 
-</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="nl">OP_METHOD</span><span class="o">:</span>                                                   
+</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="a">OP_METHOD</span><span class="o">:</span>                                                   
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -312,12 +312,12 @@ fixes that:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>        <span class="t">Value</span> <span class="n">superclass</span> <span class="o">=</span> <span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>                                     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(!</span><span class="t">IS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">))</span> <span class="o">{</span>                                    
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(!</span><span class="a">IS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">))</span> <span class="o">{</span>                                    
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Superclass must be a class.&quot;</span><span class="o">);</span>                  
-          <span class="k">return</span> <span class="t">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                               
+          <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                               
         <span class="o">}</span>                                                               
-<br></pre><pre class="insert-after"><span></span>        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="t">AS_CLASS</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>                         
-        <span class="n">tableAddAll</span><span class="o">(&amp;</span><span class="t">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
+<br></pre><pre class="insert-after"><span></span>        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">subclass</span> <span class="o">=</span> <span class="a">AS_CLASS</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>                         
+        <span class="n">tableAddAll</span><span class="o">(&amp;</span><span class="a">AS_CLASS</span><span class="o">(</span><span class="n">superclass</span><span class="o">)-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">subclass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -417,7 +417,7 @@ in <em>classDeclaration</em>()</div>
     <span class="n">addLocal</span><span class="o">(</span><span class="n">syntheticToken</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">));</span>
     <span class="n">defineVariable</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>                
 <br></pre><pre class="insert-after"><span></span>    <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>  
-    <span class="n">emitByte</span><span class="o">(</span><span class="t">OP_INHERIT</span><span class="o">);</span>             
+    <span class="n">emitByte</span><span class="o">(</span><span class="a">OP_INHERIT</span><span class="o">);</span>             
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
@@ -453,7 +453,7 @@ in the executable&rsquo;s constant data section and never needs to be freed, so 
 fine.</p>
 </aside>
 <p>Since we opened a local scope for the superclass variable, we need to close it:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitByte</span><span class="o">(</span><span class="t">OP_POP</span><span class="o">);</span>                      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                      
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
 <pre class="insert"><br><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">classCompiler</span><span class="o">.</span><span class="n">hasSuperclass</span><span class="o">)</span> <span class="o">{</span>     
@@ -495,7 +495,7 @@ in <em>classDeclaration</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
 
 <p>Then, if we see a superclass clause, we know we are compiling a subclass:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">emitByte</span><span class="o">(</span><span class="t">OP_INHERIT</span><span class="o">);</span>              
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">emitByte</span><span class="o">(</span><span class="a">OP_INHERIT</span><span class="o">);</span>              
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
 <pre class="insert"><span></span>    <span class="n">classCompiler</span><span class="o">.</span><span class="n">hasSuperclass</span> <span class="o">=</span> <span class="k">true</span><span class="o">;</span>
@@ -517,11 +517,11 @@ name="last">begins</span>, naturally enough, with the <code>super</code> keyword
 <aside name="last">
 <p>This is it, friend. The very last entry you&rsquo;ll add to the parsing table.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="t">NULL</span><span class="o">,</span>     <span class="t">NULL</span><span class="o">,</span>    <span class="t">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_RETURN</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="a">NULL</span><span class="o">,</span>     <span class="a">NULL</span><span class="o">,</span>    <span class="a">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_RETURN</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">super_</span><span class="o">,</span>   <span class="t">NULL</span><span class="o">,</span>    <span class="t">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_SUPER </span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="n">this_</span><span class="o">,</span>    <span class="t">NULL</span><span class="o">,</span>    <span class="t">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_THIS  </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">super_</span><span class="o">,</span>   <span class="a">NULL</span><span class="o">,</span>    <span class="a">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_SUPER </span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="n">this_</span><span class="o">,</span>    <span class="a">NULL</span><span class="o">,</span>    <span class="a">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_THIS  </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
@@ -531,8 +531,8 @@ parsing function which starts off like so:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>syntheticToken</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="t">void</span> <span class="n">super_</span><span class="o">(</span><span class="t">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                          
-  <span class="n">consume</span><span class="o">(</span><span class="t">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>            
-  <span class="n">consume</span><span class="o">(</span><span class="t">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass method name.&quot;</span><span class="o">);</span>
+  <span class="n">consume</span><span class="o">(</span><span class="a">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>            
+  <span class="n">consume</span><span class="o">(</span><span class="a">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect superclass method name.&quot;</span><span class="o">);</span>
   <span class="t">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>        
 <span class="o">}</span>                                                             
 </pre></div>
@@ -576,7 +576,7 @@ in the constant table just like we do for property access expressions.</p>
 in <em>super_</em>()</div>
 <pre class="insert"><br><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">syntheticToken</span><span class="o">(</span><span class="s">&quot;this&quot;</span><span class="o">),</span> <span class="k">false</span><span class="o">);</span>       
   <span class="n">namedVariable</span><span class="o">(</span><span class="n">syntheticToken</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">),</span> <span class="k">false</span><span class="o">);</span>      
-  <span class="n">emitBytes</span><span class="o">(</span><span class="t">OP_GET_SUPER</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>                      
+  <span class="n">emitBytes</span><span class="o">(</span><span class="a">OP_GET_SUPER</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>                      
 </pre><pre class="insert-after"><span></span><span class="o">}</span>                                                     
 </pre></div>
 
@@ -631,12 +631,12 @@ for reporting:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="t">void</span> <span class="n">super_</span><span class="o">(</span><span class="t">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                           
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>super_</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="t">NULL</span><span class="o">)</span> <span class="o">{</span>                                  
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="o">{</span>                                  
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Cannot use &#39;super&#39; outside of a class.&quot;</span><span class="o">);</span>           
   <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(!</span><span class="n">currentClass</span><span class="o">-&gt;</span><span class="n">hasSuperclass</span><span class="o">)</span> <span class="o">{</span>                   
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Cannot use &#39;super&#39; in a class with no superclass.&quot;</span><span class="o">);</span>
   <span class="o">}</span>                                                            
-<br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="o">(</span><span class="t">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>             
+<br></pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="o">(</span><span class="a">TOKEN_DOT</span><span class="o">,</span> <span class="s">&quot;Expect &#39;.&#39; after &#39;super&#39;.&quot;</span><span class="o">);</span>             
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>super_</em>()</div>
@@ -649,11 +649,11 @@ that&rsquo;s <code>NULL</code> or points to a class with no superclass, we repor
 <p>Assuming the user didn&rsquo;t put a super expression where it&rsquo;s not allowed, their
 code passes from the compiler over to the runtime. We&rsquo;ve got ourselves a new
 instruction:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="t">OP_SET_PROPERTY</span><span class="o">,</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="a">OP_SET_PROPERTY</span><span class="o">,</span>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert"><span></span>  <span class="t">OP_GET_SUPER</span><span class="o">,</span>   
-</pre><pre class="insert-after"><span></span>  <span class="t">OP_EQUAL</span><span class="o">,</span>       
+<pre class="insert"><span></span>  <span class="a">OP_GET_SUPER</span><span class="o">,</span>   
+</pre><pre class="insert-after"><span></span>  <span class="a">OP_EQUAL</span><span class="o">,</span>       
 </pre></div>
 
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -662,9 +662,9 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_SET_PROPERTY&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_GET_SUPER</span><span class="o">:</span>                                             
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="a">OP_GET_SUPER</span><span class="o">:</span>                                             
       <span class="k">return</span> <span class="n">constantInstruction</span><span class="o">(</span><span class="s">&quot;OP_GET_SUPER&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>   
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="o">:</span>                                                 
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span>                                                 
 </pre></div>
 
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
@@ -674,15 +674,15 @@ similar to executing a normal property access:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="o">}</span>                                        
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_SUPER</span><span class="o">:</span> <span class="o">{</span>                     
-        <span class="t">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="t">READ_STRING</span><span class="o">();</span>       
-        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="t">AS_CLASS</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>
+<pre class="insert"><br><span></span>      <span class="k">case</span> <span class="a">OP_GET_SUPER</span><span class="o">:</span> <span class="o">{</span>                     
+        <span class="t">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="a">READ_STRING</span><span class="o">();</span>       
+        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="a">AS_CLASS</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>
         <span class="k">if</span> <span class="o">(!</span><span class="n">bindMethod</span><span class="o">(</span><span class="n">superclass</span><span class="o">,</span> <span class="n">name</span><span class="o">))</span> <span class="o">{</span>   
-          <span class="k">return</span> <span class="t">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>      
+          <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>      
         <span class="o">}</span>                                      
         <span class="k">break</span><span class="o">;</span>                                 
       <span class="o">}</span>                                        
-</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                         
+</pre><pre class="insert-after"><br><span></span>      <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                         
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
@@ -735,14 +735,14 @@ load the superclass and emit <code>OP_GET_SUPER</code> and replace them with thi
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>super_</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">TOKEN_LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                  
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="a">TOKEN_LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                  
     <span class="t">uint8_t</span> <span class="n">argCount</span> <span class="o">=</span> <span class="n">argumentList</span><span class="o">();</span>            
     <span class="n">namedVariable</span><span class="o">(</span><span class="n">syntheticToken</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">),</span> <span class="k">false</span><span class="o">);</span>
-    <span class="n">emitBytes</span><span class="o">(</span><span class="t">OP_SUPER_INVOKE</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>             
+    <span class="n">emitBytes</span><span class="o">(</span><span class="a">OP_SUPER_INVOKE</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>             
     <span class="n">emitByte</span><span class="o">(</span><span class="n">argCount</span><span class="o">);</span>                           
   <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                        
     <span class="n">namedVariable</span><span class="o">(</span><span class="n">syntheticToken</span><span class="o">(</span><span class="s">&quot;super&quot;</span><span class="o">),</span> <span class="k">false</span><span class="o">);</span>
-    <span class="n">emitBytes</span><span class="o">(</span><span class="t">OP_GET_SUPER</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>                
+    <span class="n">emitBytes</span><span class="o">(</span><span class="a">OP_GET_SUPER</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>                
   <span class="o">}</span>                                               
 </pre><pre class="insert-after"><span></span><span class="o">}</span>                                                 
 </pre></div>
@@ -762,11 +762,11 @@ I&hellip; I&rsquo;m sorry for this terrible joke.</p>
 <p>Otherwise, if we don&rsquo;t find a <code>(</code>, we continue to compile the expression as a
 super access like we did before and emit an <code>OP_GET_SUPER</code>.</p>
 <p>Drifting down the compilation pipeline, our first stop is a new instruction:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="t">OP_INVOKE</span><span class="o">,</span>      
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="a">OP_INVOKE</span><span class="o">,</span>      
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
-<pre class="insert"><span></span>  <span class="t">OP_SUPER_INVOKE</span><span class="o">,</span>
-</pre><pre class="insert-after"><span></span>  <span class="t">OP_CLOSURE</span><span class="o">,</span>     
+<pre class="insert"><span></span>  <span class="a">OP_SUPER_INVOKE</span><span class="o">,</span>
+</pre><pre class="insert-after"><span></span>  <span class="a">OP_CLOSURE</span><span class="o">,</span>     
 </pre></div>
 
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
@@ -775,9 +775,9 @@ in enum <em>OpCode</em></div>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="n">invokeInstruction</span><span class="o">(</span><span class="s">&quot;OP_INVOKE&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>      
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
-<pre class="insert"><span></span>    <span class="k">case</span> <span class="nl">OP_SUPER_INVOKE</span><span class="o">:</span>                                        
+<pre class="insert"><span></span>    <span class="k">case</span> <span class="a">OP_SUPER_INVOKE</span><span class="o">:</span>                                        
       <span class="k">return</span> <span class="n">invokeInstruction</span><span class="o">(</span><span class="s">&quot;OP_SUPER_INVOKE&quot;</span><span class="o">,</span> <span class="n">chunk</span><span class="o">,</span> <span class="n">offset</span><span class="o">);</span>
-</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="nl">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                           
+</pre><pre class="insert-after"><span></span>    <span class="k">case</span> <span class="a">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                           
 </pre></div>
 
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
@@ -788,17 +788,17 @@ the interpreter:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="o">}</span>                                                      
 <br></pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
-<pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_SUPER_INVOKE</span><span class="o">:</span> <span class="o">{</span>                                
-        <span class="t">ObjString</span><span class="o">*</span> <span class="n">method</span> <span class="o">=</span> <span class="t">READ_STRING</span><span class="o">();</span>                   
-        <span class="t">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="t">READ_BYTE</span><span class="o">();</span>                          
-        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="t">AS_CLASS</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>              
+<pre class="insert"><span></span>      <span class="k">case</span> <span class="a">OP_SUPER_INVOKE</span><span class="o">:</span> <span class="o">{</span>                                
+        <span class="t">ObjString</span><span class="o">*</span> <span class="n">method</span> <span class="o">=</span> <span class="a">READ_STRING</span><span class="o">();</span>                   
+        <span class="t">int</span> <span class="n">argCount</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>                          
+        <span class="t">ObjClass</span><span class="o">*</span> <span class="n">superclass</span> <span class="o">=</span> <span class="a">AS_CLASS</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>              
         <span class="k">if</span> <span class="o">(!</span><span class="n">invokeFromClass</span><span class="o">(</span><span class="n">superclass</span><span class="o">,</span> <span class="n">method</span><span class="o">,</span> <span class="n">argCount</span><span class="o">))</span> <span class="o">{</span>
-          <span class="k">return</span> <span class="t">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                    
+          <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                    
         <span class="o">}</span>                                                    
         <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>               
         <span class="k">break</span><span class="o">;</span>                                               
       <span class="o">}</span>                                                      
-<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                     
+<br></pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="a">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                     
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>

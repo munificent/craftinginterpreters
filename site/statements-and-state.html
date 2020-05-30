@@ -274,7 +274,7 @@ Gods since we are using ArrayList now:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">Stmt</span> <span class="n">statement</span><span class="o">()</span> <span class="o">{</span>                  
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">PRINT</span><span class="o">))</span> <span class="k">return</span> <span class="n">printStatement</span><span class="o">();</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">PRINT</span><span class="o">))</span> <span class="k">return</span> <span class="n">printStatement</span><span class="o">();</span>
 
     <span class="k">return</span> <span class="n">expressionStatement</span><span class="o">();</span>             
   <span class="o">}</span>                                           
@@ -294,8 +294,8 @@ its first token.</p>
 add after <em>statement</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">Stmt</span> <span class="n">printStatement</span><span class="o">()</span> <span class="o">{</span>                 
     <span class="t">Expr</span> <span class="n">value</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>                    
-    <span class="n">consume</span><span class="o">(</span><span class="t">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after value.&quot;</span><span class="o">);</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Print</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>                 
+    <span class="n">consume</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after value.&quot;</span><span class="o">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Print</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>                 
   <span class="o">}</span>                                               
 </pre></div>
 
@@ -315,8 +315,8 @@ is in when a method is called. For Lox&rsquo;s little parser, I didn&rsquo;t bot
 add after <em>printStatement</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">Stmt</span> <span class="n">expressionStatement</span><span class="o">()</span> <span class="o">{</span>                 
     <span class="t">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>                          
-    <span class="n">consume</span><span class="o">(</span><span class="t">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after expression.&quot;</span><span class="o">);</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Expression</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>                  
+    <span class="n">consume</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after expression.&quot;</span><span class="o">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Expression</span><span class="o">(</span><span class="n">expr</span><span class="o">);</span>                  
   <span class="o">}</span>                                                    
 </pre></div>
 
@@ -333,7 +333,7 @@ implement since statements have their own base class.</p>
 <p>We add that to the list of interfaces Interpreter implements:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;,</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="t">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+<pre class="insert"><span></span><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;,</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">Void</span><span class="o">&gt;</span> <span class="o">{</span>
 </pre><pre class="insert-after"><span></span>  <span class="t">void</span> <span class="n">interpret</span><span class="o">(</span><span class="t">Expr</span> <span class="n">expression</span><span class="o">)</span> <span class="o">{</span>                                    
 </pre></div>
 
@@ -353,10 +353,10 @@ Visitor pattern.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>evaluate</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                              
-  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitExpressionStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="n">Expression</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="a">@Override</span>                                              
+  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitExpressionStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Expression</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">evaluate</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">expression</span><span class="o">);</span>                           
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span><span name="void"> </span>
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span><span name="void"> </span>
   <span class="o">}</span>                                                      
 </pre></div>
 
@@ -369,11 +369,11 @@ special capitalized Void return type. Weird, but what can you do?</p>
 <p>The print statement&rsquo;s visit method isn&rsquo;t much different:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                    
-  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitPrintStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="n">Print</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="a">@Override</span>                                    
+  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitPrintStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Print</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
     <span class="t">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">expression</span><span class="o">);</span>  
     <span class="t">System</span><span class="o">.</span><span class="n">out</span><span class="o">.</span><span class="n">println</span><span class="o">(</span><span class="n">stringify</span><span class="o">(</span><span class="n">value</span><span class="o">));</span>      
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                               
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                               
   <span class="o">}</span>                                            
 </pre></div>
 
@@ -417,7 +417,7 @@ expressions. Since we&rsquo;re working with lists now, we need to let Java know:
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>                                  
 </pre><div class="source-file"><em>lox/Interpreter.java</em></div>
 <pre class="insert"><br><span></span><span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>                                                 
-</pre><pre class="insert-after"><br><span></span><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;,</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="t">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+</pre><pre class="insert-after"><br><span></span><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;,</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">Void</span><span class="o">&gt;</span> <span class="o">{</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em></div>
@@ -621,12 +621,12 @@ replace 1 line</div>
 add after <em>expression</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">Stmt</span> <span class="n">declaration</span><span class="o">()</span> <span class="o">{</span>                
     <span class="k">try</span> <span class="o">{</span>                                     
-      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">VAR</span><span class="o">))</span> <span class="k">return</span> <span class="n">varDeclaration</span><span class="o">();</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">VAR</span><span class="o">))</span> <span class="k">return</span> <span class="n">varDeclaration</span><span class="o">();</span>
 
       <span class="k">return</span> <span class="n">statement</span><span class="o">();</span>                     
     <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="t">ParseError</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>              
       <span class="n">synchronize</span><span class="o">();</span>                          
-      <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                            
+      <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                            
     <span class="o">}</span>                                         
   <span class="o">}</span>                                           
 </pre></div>
@@ -653,15 +653,15 @@ error if a valid declaration or statement isn&rsquo;t parsed.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">Stmt</span> <span class="n">varDeclaration</span><span class="o">()</span> <span class="o">{</span>                                
-    <span class="t">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="t">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect variable name.&quot;</span><span class="o">);</span>   
+    <span class="t">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect variable name.&quot;</span><span class="o">);</span>   
 
-    <span class="t">Expr</span> <span class="n">initializer</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>                                     
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">EQUAL</span><span class="o">))</span> <span class="o">{</span>                                          
+    <span class="t">Expr</span> <span class="n">initializer</span> <span class="o">=</span> <span class="k">null</span><span class="o">;</span>                                     
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">EQUAL</span><span class="o">))</span> <span class="o">{</span>                                          
       <span class="n">initializer</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>                                
     <span class="o">}</span>                                                            
 
-    <span class="n">consume</span><span class="o">(</span><span class="t">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after variable declaration.&quot;</span><span class="o">);</span>
-    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Var</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">initializer</span><span class="o">);</span>                      
+    <span class="n">consume</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after variable declaration.&quot;</span><span class="o">);</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Var</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">initializer</span><span class="o">);</span>                      
   <span class="o">}</span>                                                              
 </pre></div>
 
@@ -676,14 +676,14 @@ consumes the required semicolon at the end of the statement. All this gets
 wrapped in a Stmt.Var syntax tree node and we&rsquo;re groovy.</p>
 <p>Parsing a variable expression is even easier. In <code>primary()</code>, we look for an
 identifier token:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="n">literal</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="n">literal</span><span class="o">);</span>
     <span class="o">}</span>                                             
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>primary</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">IDENTIFIER</span><span class="o">))</span> <span class="o">{</span>                      
-      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Variable</span><span class="o">(</span><span class="n">previous</span><span class="o">());</span>       
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">))</span> <span class="o">{</span>                      
+      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Variable</span><span class="o">(</span><span class="n">previous</span><span class="o">());</span>       
     <span class="o">}</span>                                             
-</pre><pre class="insert-after"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                      
+</pre><pre class="insert-after"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                      
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
@@ -863,7 +863,7 @@ by throwing an exception. The exception contains the variable&rsquo;s token so w
 tell the user where in their code they messed up.</p>
 <h3><a href="#interpreting-global-variables" name="interpreting-global-variables"><small>8&#8202;.&#8202;3&#8202;.&#8202;1</small> Interpreting global variables</a></h3>
 <p>The Interpreter class gets an instance of the new Environment class:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;,</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Visitor</span><span class="o">&lt;</span><span class="t">Void</span><span class="o">&gt;</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">class</span> <span class="t">Interpreter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;,</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">Void</span><span class="o">&gt;</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
 <pre class="insert"><span></span>  <span class="k">private</span> <span class="t">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Environment</span><span class="o">();</span>                 
@@ -878,15 +878,15 @@ memory as long as the interpreter is still running.</p>
 declaration statements:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitPrintStmt</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                     
-  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitVarStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="n">Var</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>     
-    <span class="t">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>                        
-    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">initializer</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>             
+<pre><span></span>  <span class="a">@Override</span>                                     
+  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitVarStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Var</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>     
+    <span class="t">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="k">null</span><span class="o">;</span>                        
+    <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">initializer</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>             
       <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">initializer</span><span class="o">);</span>       
     <span class="o">}</span>                                           
 
     <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                
   <span class="o">}</span>                                             
 </pre></div>
 
@@ -912,8 +912,8 @@ the variable to that value.</p>
 <p>Next, to evaluate a variable expression:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                            
-  <span class="k">public</span> <span class="t">Object</span> <span class="n">visitVariableExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="n">Variable</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="a">@Override</span>                                            
+  <span class="k">public</span> <span class="t">Object</span> <span class="n">visitVariableExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Variable</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">return</span> <span class="n">environment</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>                 
   <span class="o">}</span>                                                    
 </pre></div>
@@ -1044,13 +1044,13 @@ add after <em>expressionStatement</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">Expr</span> <span class="n">assignment</span><span class="o">()</span> <span class="o">{</span>                                   
     <span class="t">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">equality</span><span class="o">();</span>                                     
 
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">EQUAL</span><span class="o">))</span> <span class="o">{</span>                                         
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">EQUAL</span><span class="o">))</span> <span class="o">{</span>                                         
       <span class="t">Token</span> <span class="n">equals</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                                
       <span class="t">Expr</span> <span class="n">value</span> <span class="o">=</span> <span class="n">assignment</span><span class="o">();</span>                                
 
-      <span class="k">if</span> <span class="o">(</span><span class="n">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Variable</span><span class="o">)</span> <span class="o">{</span>                      
-        <span class="t">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="o">((</span><span class="t">Expr</span><span class="o">.</span><span class="n">Variable</span><span class="o">)</span><span class="n">expr</span><span class="o">).</span><span class="n">name</span><span class="o">;</span>                
-        <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="n">Assign</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>                    
+      <span class="k">if</span> <span class="o">(</span><span class="n">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Variable</span><span class="o">)</span> <span class="o">{</span>                      
+        <span class="t">Token</span> <span class="n">name</span> <span class="o">=</span> <span class="o">((</span><span class="t">Expr</span><span class="o">.</span><span class="t">Variable</span><span class="o">)</span><span class="n">expr</span><span class="o">).</span><span class="n">name</span><span class="o">;</span>                
+        <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Assign</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>                    
       <span class="o">}</span>                                                         
 
       <span class="n">error</span><span class="o">(</span><span class="n">equals</span><span class="o">,</span> <span class="s">&quot;Invalid assignment target.&quot;</span><span class="o">);</span><span name="no-throw"> </span>
@@ -1122,8 +1122,8 @@ being assigned. All with only a single token of lookahead and no backtracking.</
 <p>We have a new syntax tree node, so our interpreter gets a new visit method:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitVarStmt</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                        
-  <span class="k">public</span> <span class="t">Object</span> <span class="n">visitAssignExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="n">Assign</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
+<pre><span></span>  <span class="a">@Override</span>                                        
+  <span class="k">public</span> <span class="t">Object</span> <span class="n">visitAssignExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Assign</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="t">Object</span> <span class="n">value</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="o">);</span>           
 
     <span class="n">environment</span><span class="o">.</span><span class="n">assign</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>          
@@ -1343,7 +1343,7 @@ in class <em>Environment</em></div>
 <div class="codehilite"><div class="source-file"><em>lox/Environment.java</em><br>
 in class <em>Environment</em></div>
 <pre><span></span>  <span class="t">Environment</span><span class="o">()</span> <span class="o">{</span>                     
-    <span class="n">enclosing</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>                 
+    <span class="n">enclosing</span> <span class="o">=</span> <span class="k">null</span><span class="o">;</span>                 
   <span class="o">}</span>                                   
 
   <span class="t">Environment</span><span class="o">(</span><span class="t">Environment</span> <span class="n">enclosing</span><span class="o">)</span> <span class="o">{</span>
@@ -1364,7 +1364,7 @@ lookup:</p>
     <span class="o">}</span>                                                 
 </pre><div class="source-file"><em>lox/Environment.java</em><br>
 in <em>get</em>()</div>
-<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">enclosing</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="k">return</span> <span class="n">enclosing</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
+<pre class="insert"><br><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">enclosing</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="k">return</span> <span class="n">enclosing</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">name</span><span class="o">);</span>
 </pre><pre class="insert-after"><br><span></span>    <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="n">name</span><span class="o">,</span>                      
         <span class="s">&quot;Undefined variable &#39;&quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">.</span><span class="n">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="o">);</span> 
 </pre></div>
@@ -1383,7 +1383,7 @@ solution is prettier. We&rsquo;ll do something <em>much</em> faster in clox.</p>
     <span class="o">}</span>                                
 <br></pre><div class="source-file"><em>lox/Environment.java</em><br>
 in <em>assign</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">enclosing</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>         
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">enclosing</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>         
       <span class="n">enclosing</span><span class="o">.</span><span class="n">assign</span><span class="o">(</span><span class="n">name</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span> 
       <span class="k">return</span><span class="o">;</span>                        
     <span class="o">}</span>                                
@@ -1426,10 +1426,10 @@ beginning of a block by its leading token<span class="em">&mdash;</span>in this 
 <aside name="generate">
 <p>As always, don&rsquo;t forget to run &ldquo;GenerateAst.java&rdquo;.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">PRINT</span><span class="o">))</span> <span class="k">return</span> <span class="n">printStatement</span><span class="o">();</span>            
+<div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">PRINT</span><span class="o">))</span> <span class="k">return</span> <span class="n">printStatement</span><span class="o">();</span>            
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
-<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="t">LEFT_BRACE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="n">Block</span><span class="o">(</span><span class="n">block</span><span class="o">());</span>
+<pre class="insert"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_BRACE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span><span class="o">.</span><span class="t">Block</span><span class="o">(</span><span class="n">block</span><span class="o">());</span>
 </pre><pre class="insert-after"><br><span></span>    <span class="k">return</span> <span class="n">expressionStatement</span><span class="o">();</span>                         
 </pre></div>
 
@@ -1441,11 +1441,11 @@ add after <em>expressionStatement</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="t">List</span><span class="o">&lt;</span><span class="t">Stmt</span><span class="o">&gt;</span> <span class="n">block</span><span class="o">()</span> <span class="o">{</span>                      
     <span class="t">List</span><span class="o">&lt;</span><span class="t">Stmt</span><span class="o">&gt;</span> <span class="n">statements</span> <span class="o">=</span> <span class="k">new</span> <span class="t">ArrayList</span><span class="o">&lt;&gt;();</span>      
 
-    <span class="k">while</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="t">RIGHT_BRACE</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>     
+    <span class="k">while</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">RIGHT_BRACE</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>     
       <span class="n">statements</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">declaration</span><span class="o">());</span>                
     <span class="o">}</span>                                               
 
-    <span class="n">consume</span><span class="o">(</span><span class="t">RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span><span class="o">);</span>
+    <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span><span class="o">);</span>
     <span class="k">return</span> <span class="n">statements</span><span class="o">;</span>                              
   <span class="o">}</span>                                                 
 </pre></div>
@@ -1460,10 +1460,10 @@ infinite loops, even when parsing invalid code. If the user forgot a closing
 <p>That&rsquo;s it for syntax. For semantics, we add another visit method to Interpreter:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>execute</em>()</div>
-<pre><span></span>  <span class="nd">@Override</span>                                                     
-  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitBlockStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="n">Block</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>                 
+<pre><span></span>  <span class="a">@Override</span>                                                     
+  <span class="k">public</span> <span class="t">Void</span> <span class="n">visitBlockStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Block</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>                 
     <span class="n">executeBlock</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">statements</span><span class="o">,</span> <span class="k">new</span> <span class="t">Environment</span><span class="o">(</span><span class="n">environment</span><span class="o">));</span>
-    <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                                
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                                
   <span class="o">}</span>                                                             
 </pre></div>
 
