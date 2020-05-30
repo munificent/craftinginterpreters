@@ -197,14 +197,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
-    // TODO: No need to syntax highlight context lines since they aren't shown
-    // highlighted anyway.
-    var before = formatCode(
-        snippet.file.language,
-        length,
-        snippet.contextBefore,
+    _writeContextLines(buffer, length, snippet.contextBefore,
         snippet.added.isNotEmpty ? "insert-before" : null);
-    buffer.write(before);
   }
 
   if (snippet.addedComma != null) {
@@ -228,11 +222,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.contextAfter.isNotEmpty) {
-    // TODO: No need to syntax highlight context lines since they aren't shown
-    // highlighted anyway.
-    var after = formatCode(snippet.file.language, length, snippet.contextAfter,
+    _writeContextLines(buffer, length, snippet.contextAfter,
         snippet.added.isNotEmpty ? "insert-after" : null);
-    buffer.write(after);
   }
 
   buffer.writeln('</div>');
@@ -243,4 +234,17 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   return buffer.toString();
+}
+
+String _writeContextLines(
+    StringBuffer buffer, int length, List<String> lines, String preClass) {
+  buffer.write("<pre");
+  if (preClass != null) buffer.write(' class="$preClass"');
+  buffer.writeln(">");
+
+  for (var line in lines) {
+    buffer.writeln(escapeHtml(line.padRight(length)));
+  }
+
+  buffer.write("</pre>");
 }

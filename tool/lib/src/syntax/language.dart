@@ -5,10 +5,7 @@ class Language {
   final Map<String, String> words = {};
   final List<Rule> rules;
 
-  Language(
-      {String keywords,
-      String types,
-      List<Rule> rules})
+  Language({String keywords, String types, List<Rule> rules})
       // TODO: Allow omitting rules for languages that aren't supported yet.
       : rules = rules ?? const [] {
     keywordType(String wordList, String type) {

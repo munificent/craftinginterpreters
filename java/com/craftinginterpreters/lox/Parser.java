@@ -75,7 +75,6 @@ class Parser {
   }
 //< Statements and State declaration
 //> Classes parse-class-declaration
-
   private Stmt classDeclaration() {
     Token name = consume(IDENTIFIER, "Expect class name.");
 //> Inheritance parse-superclass

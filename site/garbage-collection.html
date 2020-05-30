@@ -311,13 +311,13 @@ didn&rsquo;t get marked, and then resume the user&rsquo;s program.</p>
 <p>Of course, we&rsquo;ll end up adding a bunch of helper functions too.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">);</span>
+void* reallocate(void* previous, size_t oldSize, size_t newSize);
 </pre><div class="source-file"><em>memory.h</em><br>
 add after <em>reallocate</em>()</div>
 <pre class="insert">
 <span class="t">void</span> <span class="i">collectGarbage</span><span class="o">();</span>                                           
 </pre><pre class="insert-after">
-<span class="t">void</span> <span class="i">freeObjects</span><span class="o">();</span>                                              
+void freeObjects();                                              
 </pre></div>
 <div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
 
@@ -335,14 +335,14 @@ turns out that&rsquo;s a subtle question that we&rsquo;ll spend some time on lat
 chapter. For now we&rsquo;ll sidestep the issue and build ourselves a handy diagnostic
 tool in the process:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#define DEBUG_TRACE_EXECUTION      </span>
+#define DEBUG_TRACE_EXECUTION      
 </pre><div class="source-file"><em>common.h</em></div>
 <pre class="insert">
 
 <span class="a">#define DEBUG_STRESS_GC            </span>
 </pre><pre class="insert-after">
-
-<span class="a">#define UINT8_COUNT (UINT8_MAX + 1)</span>
+                                   
+#define UINT8_COUNT (UINT8_MAX + 1)
 </pre></div>
 <div class="source-file-narrow"><em>common.h</em></div>
 
@@ -352,8 +352,8 @@ horrendous for performance. But it&rsquo;s great for flushing out memory managem
 bugs that only occur when a GC is triggered at just the right moment. If <em>every</em>
 moment triggers a GC, you&rsquo;re likely to hit it.</p>
 <div class="codehilite"><pre class="insert-before">
-
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">)</span> <span class="o">{</span>
+                                                                  
+void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>reallocate</em>()</div>
 <pre class="insert">
@@ -364,7 +364,7 @@ in <em>reallocate</em>()</div>
   <span class="o">}</span>                                                               
 
 </pre><pre class="insert-after">
-  <span class="k">if</span> <span class="o">(</span><span class="i">newSize</span> <span class="o">==</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>                                             
+  if (newSize == 0) {                                             
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>reallocate</em>()</div>
 
@@ -393,20 +393,20 @@ add one, how do we tell if it&rsquo;s doing anything useful? Can we only tell if
 write programs that plow through acres of memory? How do we debug that?</p>
 <p>An easy way to shine a light into the GC&rsquo;s inner workings is with some logging:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#define DEBUG_STRESS_GC            </span>
+#define DEBUG_STRESS_GC            
 </pre><div class="source-file"><em>common.h</em></div>
 <pre class="insert">
 <span class="a">#define DEBUG_LOG_GC               </span>
 </pre><pre class="insert-after">
-
-<span class="a">#define UINT8_COUNT (UINT8_MAX + 1)</span>
+                                   
+#define UINT8_COUNT (UINT8_MAX + 1)
 </pre></div>
 <div class="source-file-narrow"><em>common.h</em></div>
 
 <p>When this is enabled, clox prints information to the console when it does
 something with dynamic memory. We need a couple of includes:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#include &quot;vm.h&quot;                                                   </span>
+#include &quot;vm.h&quot;                                                   
 </pre><div class="source-file"><em>memory.c</em></div>
 <pre class="insert">
 
@@ -415,15 +415,15 @@ something with dynamic memory. We need a couple of includes:</p>
 <span class="a">#include &quot;debug.h&quot;                                                </span>
 <span class="a">#endif                                                            </span>
 </pre><pre class="insert-after">
-
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">)</span> <span class="o">{</span>
+                                                                  
+void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em></div>
 
 <p>We don&rsquo;t have a collector yet, but we can start putting in some of the logging
 now. We&rsquo;ll want to know when a collection run starts:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">void</span> <span class="i">collectGarbage</span><span class="o">()</span> <span class="o">{</span>   
+void collectGarbage() {   
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
@@ -431,16 +431,16 @@ in <em>collectGarbage</em>()</div>
   <span class="i">printf</span><span class="o">(</span><span class="s">&quot;-- gc begin</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>
 <span class="a">#endif                    </span>
 </pre><pre class="insert-after">
-<span class="o">}</span>                         
-<span class="t">void</span> <span class="i">freeObjects</span><span class="o">()</span> <span class="o">{</span>      
+}                         
+void freeObjects() {      
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>Eventually we will log some other operations during the collection, so we&rsquo;ll
 also want to know when the show&rsquo;s over:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">printf</span><span class="o">(</span><span class="s">&quot;-- gc begin</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>
-<span class="a">#endif                    </span>
+  printf(&quot;-- gc begin\n&quot;);
+#endif                    
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
@@ -449,14 +449,14 @@ in <em>collectGarbage</em>()</div>
   <span class="i">printf</span><span class="o">(</span><span class="s">&quot;-- gc end</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>  
 <span class="a">#endif                    </span>
 </pre><pre class="insert-after">
-<span class="o">}</span>                         
+}                         
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>We don&rsquo;t have any code for the collector yet, but we do have functions for
 allocating and freeing, so we can instrument those now:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">vm</span><span class="o">.</span><span class="i">objects</span> <span class="o">=</span> <span class="i">object</span><span class="o">;</span>                                          
+  vm.objects = object;                                          
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateObject</em>()</div>
 <pre class="insert">
@@ -466,13 +466,13 @@ in <em>allocateObject</em>()</div>
 <span class="a">#endif                                                          </span>
 
 </pre><pre class="insert-after">
-  <span class="k">return</span> <span class="i">object</span><span class="o">;</span>                                                
+  return object;                                                
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
 <p>And at the end of an object&rsquo;s lifespan:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="k">static</span> <span class="t">void</span> <span class="i">freeObject</span><span class="o">(</span><span class="t">Obj</span><span class="o">*</span> <span class="i">object</span><span class="o">)</span> <span class="o">{</span>                      
+static void freeObject(Obj* object) {                      
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
@@ -481,7 +481,7 @@ in <em>freeObject</em>()</div>
 <span class="a">#endif                                                     </span>
 
 </pre><pre class="insert-after">
-  <span class="k">switch</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span><span class="o">)</span> <span class="o">{</span>                                  
+  switch (object-&gt;type) {                                  
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
@@ -492,17 +492,17 @@ work through the rest of the chapter.</p>
 reference from one object to another forms a connection and these constellations
 are the graph that the mark phase traverses. Marking begins at the roots:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#ifdef DEBUG_LOG_GC       </span>
-  <span class="i">printf</span><span class="o">(</span><span class="s">&quot;-- gc begin</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>
-<span class="a">#endif                    </span>
+#ifdef DEBUG_LOG_GC       
+  printf(&quot;-- gc begin\n&quot;);
+#endif                    
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
 
   <span class="i">markRoots</span><span class="o">();</span>            
 </pre><pre class="insert-after">
-
-<span class="a">#ifdef DEBUG_LOG_GC       </span>
+                          
+#ifdef DEBUG_LOG_GC       
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
@@ -521,13 +521,13 @@ add after <em>freeObject</em>()</div>
 
 <p>To mark a Lox value, we use this new function:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">);</span>
+void* reallocate(void* previous, size_t oldSize, size_t newSize);
 </pre><div class="source-file"><em>memory.h</em><br>
 add after <em>reallocate</em>()</div>
 <pre class="insert">
 <span class="t">void</span> <span class="i">markValue</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">);</span>                                     
 </pre><pre class="insert-after">
-<span class="t">void</span> <span class="i">collectGarbage</span><span class="o">();</span>                                           
+void collectGarbage();                                           
 </pre></div>
 <div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
 
@@ -547,13 +547,13 @@ Value and require no heap allocation. The garbage collector doesn&rsquo;t need t
 worry about them at all, so the first thing we do is ensure that the value is an
 actual heap object. If so, the real work happens in this function:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">);</span>
+void* reallocate(void* previous, size_t oldSize, size_t newSize);
 </pre><div class="source-file"><em>memory.h</em><br>
 add after <em>reallocate</em>()</div>
 <pre class="insert">
 <span class="t">void</span> <span class="i">markObject</span><span class="o">(</span><span class="t">Obj</span><span class="o">*</span> <span class="i">object</span><span class="o">);</span>                                    
 </pre><pre class="insert-after">
-<span class="t">void</span> <span class="i">markValue</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">);</span>                                     
+void markValue(Value value);                                     
 </pre></div>
 <div class="source-file-narrow"><em>memory.h</em>, add after <em>reallocate</em>()</div>
 
@@ -575,34 +575,34 @@ being pointed to is optional.</p>
 <p>Assuming we do have a valid object, we mark it by setting a flag. That new field
 lives in the Obj header struct all objects share:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="t">ObjType</span> <span class="i">type</span><span class="o">;</span>     
+  ObjType type;     
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>sObj</em></div>
 <pre class="insert">
   <span class="t">bool</span> <span class="i">isMarked</span><span class="o">;</span>    
 </pre><pre class="insert-after">
-  <span class="k">struct</span> <span class="i">sObj</span><span class="o">*</span> <span class="i">next</span><span class="o">;</span>
+  struct sObj* next;
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>sObj</em></div>
 
 <p>Every new object begins life unmarked because we haven&rsquo;t determined if it is
 reachable or not yet:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span> <span class="o">=</span> <span class="i">type</span><span class="o">;</span>      
+  object-&gt;type = type;      
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateObject</em>()</div>
 <pre class="insert">
   <span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span> 
 </pre><pre class="insert-after">
-
-  <span class="i">object</span><span class="o">-&gt;</span><span class="i">next</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">objects</span><span class="o">;</span>
+                            
+  object-&gt;next = vm.objects;
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateObject</em>()</div>
 
 <p>Before we go any farther, let&rsquo;s add some logging to <code>markObject()</code>:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">void</span> <span class="i">markObject</span><span class="o">(</span><span class="t">Obj</span><span class="o">*</span> <span class="i">object</span><span class="o">)</span> <span class="o">{</span>      
-  <span class="k">if</span> <span class="o">(</span><span class="i">object</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>       
+void markObject(Obj* object) {      
+  if (object == NULL) return;       
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markObject</em>()</div>
 <pre class="insert">
@@ -613,37 +613,37 @@ in <em>markObject</em>()</div>
 <span class="a">#endif                              </span>
 
 </pre><pre class="insert-after">
-  <span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span> <span class="o">=</span> <span class="k">true</span><span class="o">;</span>          
+  object-&gt;isMarked = true;          
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markObject</em>()</div>
 
 <p>Marking the stack covers local variables and temporaries. The other main source
 of roots are the global variables:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="i">markValue</span><span class="o">(*</span><span class="i">slot</span><span class="o">);</span>    
-  <span class="o">}</span>                      
+    markValue(*slot);    
+  }                      
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markRoots</em>()</div>
 <pre class="insert">
 
   <span class="i">markTable</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">globals</span><span class="o">);</span>
 </pre><pre class="insert-after">
-<span class="o">}</span>                        
+}                        
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
 <p>Those live in a hash table owned by the VM, so we&rsquo;ll declare another helper
 function for marking all of the objects in a table:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">ObjString</span><span class="o">*</span> <span class="i">tableFindString</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="i">table</span><span class="o">,</span> <span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">,</span>
-                           <span class="t">uint32_t</span> <span class="i">hash</span><span class="o">);</span>                             
+ObjString* tableFindString(Table* table, const char* chars, int length,
+                           uint32_t hash);                             
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableFindString</em>()</div>
 <pre class="insert">
 <span class="t">void</span> <span class="i">markTable</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="i">table</span><span class="o">);</span>                                          
 </pre><pre class="insert-after">
-
-<span class="a">#endif                                                                 </span>
+                                                                       
+#endif                                                                 
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableFindString</em>()</div>
 
@@ -673,7 +673,7 @@ separate stack of CallFrames. Each CallFrame contains a pointer to the closure
 being called. The VM uses those pointers to access constants and upvalues, so
 those closures need to be kept around too:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="o">}</span>                                        
+  }                                        
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markRoots</em>()</div>
 <pre class="insert">
@@ -682,17 +682,17 @@ in <em>markRoots</em>()</div>
     <span class="i">markObject</span><span class="o">((</span><span class="t">Obj</span><span class="o">*)</span><span class="i">vm</span><span class="o">.</span><span class="i">frames</span><span class="o">[</span><span class="i">i</span><span class="o">].</span><span class="i">closure</span><span class="o">);</span>
   <span class="o">}</span>                                        
 </pre><pre class="insert-after">
-
-  <span class="i">markTable</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">globals</span><span class="o">);</span>                  
+                                           
+  markTable(&amp;vm.globals);                  
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
 <p>Speaking of upvalues, the open upvalue list is another set of values that the
 VM can directly reach:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;</span> <span class="i">vm</span><span class="o">.</span><span class="i">frameCount</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>  
-    <span class="i">markObject</span><span class="o">((</span><span class="t">Obj</span><span class="o">*)</span><span class="i">vm</span><span class="o">.</span><span class="i">frames</span><span class="o">[</span><span class="i">i</span><span class="o">].</span><span class="i">closure</span><span class="o">);</span>  
-  <span class="o">}</span>                                          
+  for (int i = 0; i &lt; vm.frameCount; i++) {  
+    markObject((Obj*)vm.frames[i].closure);  
+  }                                          
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markRoots</em>()</div>
 <pre class="insert">
@@ -703,8 +703,8 @@ in <em>markRoots</em>()</div>
     <span class="i">markObject</span><span class="o">((</span><span class="t">Obj</span><span class="o">*)</span><span class="i">upvalue</span><span class="o">);</span>               
   <span class="o">}</span>                                          
 </pre><pre class="insert-after">
-
-  <span class="i">markTable</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">globals</span><span class="o">);</span>                    
+                                             
+  markTable(&amp;vm.globals);                    
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
@@ -716,37 +716,37 @@ the compiler directly accesses need to be treated as roots too.</p>
 <p>To keep the compiler module cleanly separated from the rest of the VM, we&rsquo;ll do
 that in a separate function:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">markTable</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">globals</span><span class="o">);</span>
+  markTable(&amp;vm.globals);
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markRoots</em>()</div>
 <pre class="insert">
   <span class="i">markCompilerRoots</span><span class="o">();</span>   
 </pre><pre class="insert-after">
-<span class="o">}</span>                        
+}                        
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markRoots</em>()</div>
 
 <p>It&rsquo;s declared here:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">ObjFunction</span><span class="o">*</span> <span class="i">compile</span><span class="o">(</span><span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">source</span><span class="o">);</span>
+ObjFunction* compile(const char* source);
 </pre><div class="source-file"><em>compiler.h</em><br>
 add after <em>compile</em>()</div>
 <pre class="insert">
 <span class="t">void</span> <span class="i">markCompilerRoots</span><span class="o">();</span>                
 </pre><pre class="insert-after">
-
-<span class="a">#endif                                   </span>
+                                         
+#endif                                   
 </pre></div>
 <div class="source-file-narrow"><em>compiler.h</em>, add after <em>compile</em>()</div>
 
 <p>Which means the &ldquo;memory&rdquo; module needs an include:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#include &quot;common.h&quot;  </span>
+#include &quot;common.h&quot;  
 </pre><div class="source-file"><em>memory.c</em></div>
 <pre class="insert">
 <span class="a">#include &quot;compiler.h&quot;</span>
 </pre><pre class="insert-after">
-<span class="a">#include &quot;memory.h&quot;  </span>
+#include &quot;memory.h&quot;  
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em></div>
 
@@ -770,12 +770,12 @@ declarations can nest, the compiler has a linked list of those and we walk the
 whole list.</p>
 <p>Since the &ldquo;compiler&rdquo; module is calling <code>markObject()</code>, it also needs an include:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#include &quot;compiler.h&quot;</span>
+#include &quot;compiler.h&quot;
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert">
 <span class="a">#include &quot;memory.h&quot;  </span>
 </pre><pre class="insert-after">
-<span class="a">#include &quot;scanner.h&quot; </span>
+#include &quot;scanner.h&quot; 
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em></div>
 
@@ -891,7 +891,7 @@ that field set.</p>
 <p>Instead, we&rsquo;ll create a separate worklist to keep track of all of the gray
 objects. When an object turns gray<span class="em">&mdash;</span>in addition to setting the mark field<span class="em">&mdash;</span>we&rsquo;ll also add it to the worklist:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span> <span class="o">=</span> <span class="k">true</span><span class="o">;</span>                                 
+  object-&gt;isMarked = true;                                 
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markObject</em>()</div>
 <pre class="insert">
@@ -904,7 +904,7 @@ in <em>markObject</em>()</div>
 
   <span class="i">vm</span><span class="o">.</span><span class="i">grayStack</span><span class="o">[</span><span class="i">vm</span><span class="o">.</span><span class="i">grayCount</span><span class="o">++]</span> <span class="o">=</span> <span class="i">object</span><span class="o">;</span>                   
 </pre><pre class="insert-after">
-<span class="o">}</span>                                                          
+}                                                          
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markObject</em>()</div>
 
@@ -918,7 +918,7 @@ GC to cause the GC to recursively start a new GC. That could tear a hole in the
 space-time continuum.</p>
 <p>We&rsquo;ll manage its memory ourselves, explicitly. The VM owns the gray stack:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="t">Obj</span><span class="o">*</span> <span class="i">objects</span><span class="o">;</span>    
+  Obj* objects;    
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
 <pre class="insert">
@@ -926,13 +926,13 @@ in struct <em>VM</em></div>
   <span class="t">int</span> <span class="i">grayCapacity</span><span class="o">;</span>
   <span class="t">Obj</span><span class="o">**</span> <span class="i">grayStack</span><span class="o">;</span> 
 </pre><pre class="insert-after">
-<span class="o">}</span> <span class="a">VM</span><span class="o">;</span>              
+} VM;              
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
 <p>It starts out empty:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">vm</span><span class="o">.</span><span class="i">objects</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>     
+  vm.objects = NULL;     
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert">
@@ -941,22 +941,22 @@ in <em>initVM</em>()</div>
   <span class="i">vm</span><span class="o">.</span><span class="i">grayCapacity</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>   
   <span class="i">vm</span><span class="o">.</span><span class="i">grayStack</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>   
 </pre><pre class="insert-after">
-
-  <span class="i">initTable</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">globals</span><span class="o">);</span>
+                         
+  initTable(&amp;vm.globals);
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
 <p>And, because we manage it ourselves, we need to free it when the VM shuts down:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="i">object</span> <span class="o">=</span> <span class="i">next</span><span class="o">;</span>   
-  <span class="o">}</span>                  
+    object = next;   
+  }                  
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObjects</em>()</div>
 <pre class="insert">
 
   <span class="i">free</span><span class="o">(</span><span class="i">vm</span><span class="o">.</span><span class="i">grayStack</span><span class="o">);</span>
 </pre><pre class="insert-after">
-<span class="o">}</span>                    
+}                    
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObjects</em>()</div>
 
@@ -965,14 +965,14 @@ in <em>freeObjects</em>()</div>
 and filled our work list with objects to chew through. It&rsquo;s time for the next
 phase:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">markRoots</span><span class="o">();</span>      
+  markRoots();      
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
   <span class="i">traceReferences</span><span class="o">();</span>
 </pre><pre class="insert-after">
-
-<span class="a">#ifdef DEBUG_LOG_GC </span>
+                    
+#ifdef DEBUG_LOG_GC 
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
@@ -1028,8 +1028,8 @@ time, friend.</p>
 </aside>
 <p>Now let&rsquo;s start adding in the other object types. The simplest is upvalues:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="k">static</span> <span class="t">void</span> <span class="i">blackenObject</span><span class="o">(</span><span class="t">Obj</span><span class="o">*</span> <span class="i">object</span><span class="o">)</span> <span class="o">{</span>       
-  <span class="k">switch</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span><span class="o">)</span> <span class="o">{</span>                      
+static void blackenObject(Obj* object) {       
+  switch (object-&gt;type) {                      
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert">
@@ -1038,7 +1038,7 @@ in <em>blackenObject</em>()</div>
       <span class="k">break</span><span class="o">;</span>                                   
 
 </pre><pre class="insert-after">
-    <span class="k">case</span> <span class="a">OBJ_NATIVE</span><span class="o">:</span>                           
+    case OBJ_NATIVE:                           
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -1047,7 +1047,7 @@ Since the value is no longer on the stack, we need to make sure we trace the
 reference to it from the upvalue.</p>
 <p>Next are functions:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">switch</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span><span class="o">)</span> <span class="o">{</span>                          
+  switch (object-&gt;type) {                          
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert">
@@ -1059,7 +1059,7 @@ in <em>blackenObject</em>()</div>
     <span class="o">}</span>                                              
 
 </pre><pre class="insert-after">
-    <span class="k">case</span> <span class="a">OBJ_UPVALUE</span><span class="o">:</span>                              
+    case OBJ_UPVALUE:                              
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -1080,7 +1080,7 @@ add after <em>markValue</em>()</div>
 <p>The last object type we have now<span class="em">&mdash;</span>we&rsquo;ll add more in later chapters<span class="em">&mdash;</span>is
 closures:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">switch</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span><span class="o">)</span> <span class="o">{</span>                              
+  switch (object-&gt;type) {                              
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert">
@@ -1094,7 +1094,7 @@ in <em>blackenObject</em>()</div>
     <span class="o">}</span>                                                  
 
 </pre><pre class="insert-after">
-    <span class="k">case</span> <span class="a">OBJ_FUNCTION</span><span class="o">:</span> <span class="o">{</span>                               
+    case OBJ_FUNCTION: {                               
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -1103,7 +1103,7 @@ of pointers to the upvalues it captures.</p>
 <p>That&rsquo;s the basic mechanism for processing a gray object, but there are two loose
 ends to tie off. First, some logging:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="k">static</span> <span class="t">void</span> <span class="i">blackenObject</span><span class="o">(</span><span class="t">Obj</span><span class="o">*</span> <span class="i">object</span><span class="o">)</span> <span class="o">{</span>
+static void blackenObject(Obj* object) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>blackenObject</em>()</div>
 <pre class="insert">
@@ -1114,7 +1114,7 @@ in <em>blackenObject</em>()</div>
 <span class="a">#endif                                  </span>
 
 </pre><pre class="insert-after">
-  <span class="k">switch</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span><span class="o">)</span> <span class="o">{</span>               
+  switch (object-&gt;type) {               
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
@@ -1126,14 +1126,14 @@ an infinite loop as it continually re-adds the same series of objects to the
 gray stack.</p>
 <p>The fix is easy:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">if</span> <span class="o">(</span><span class="i">object</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>  
+  if (object == NULL) return;  
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>markObject</em>()</div>
 <pre class="insert">
   <span class="k">if</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
 
 </pre><pre class="insert-after">
-<span class="a">#ifdef DEBUG_LOG_GC            </span>
+#ifdef DEBUG_LOG_GC            
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>markObject</em>()</div>
 
@@ -1148,14 +1148,14 @@ either black or white. The black objects are reachable and we want to hang on to
 them. Anything still white never got touched by the trace and is thus garbage.
 All that&rsquo;s left is to reclaim them:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">traceReferences</span><span class="o">();</span>
+  traceReferences();
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
   <span class="i">sweep</span><span class="o">();</span>          
 </pre><pre class="insert-after">
-
-<span class="a">#ifdef DEBUG_LOG_GC </span>
+                    
+#ifdef DEBUG_LOG_GC 
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
@@ -1198,13 +1198,13 @@ node so we can unlink its next pointer, and we have to handle the edge case
 where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple<span class="em">&mdash;</span>delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
 <p>There&rsquo;s one little addition:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="k">if</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span><span class="o">)</span> <span class="o">{</span>    
+    if (object-&gt;isMarked) {    
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>sweep</em>()</div>
 <pre class="insert">
       <span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span>
 </pre><pre class="insert-after">
-      <span class="i">previous</span> <span class="o">=</span> <span class="i">object</span><span class="o">;</span>       
+      previous = object;       
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>sweep</em>()</div>
 
@@ -1250,29 +1250,29 @@ unreachable. We don&rsquo;t know that until after the mark phase has completed. 
 can&rsquo;t wait until after the sweep phase is done because by then the objects<span class="em">&mdash;</span>and their mark bits<span class="em">&mdash;</span>are no longer around to check. So the right time is
 exactly between the marking and sweeping phases:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">traceReferences</span><span class="o">();</span>            
+  traceReferences();            
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
   <span class="i">tableRemoveWhite</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">strings</span><span class="o">);</span>
 </pre><pre class="insert-after">
-  <span class="i">sweep</span><span class="o">();</span>                      
+  sweep();                      
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>The logic for removing the about-to-be-deleted strings exists in a new function
 in the &ldquo;table&rdquo; module:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">ObjString</span><span class="o">*</span> <span class="i">tableFindString</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="i">table</span><span class="o">,</span> <span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">,</span>
-                           <span class="t">uint32_t</span> <span class="i">hash</span><span class="o">);</span>                             
+ObjString* tableFindString(Table* table, const char* chars, int length,
+                           uint32_t hash);                             
 </pre><div class="source-file"><em>table.h</em><br>
 add after <em>tableFindString</em>()</div>
 <pre class="insert">
 
 <span class="t">void</span> <span class="i">tableRemoveWhite</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="i">table</span><span class="o">);</span>                                   
 </pre><pre class="insert-after">
-<span class="t">void</span> <span class="i">markTable</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="i">table</span><span class="o">);</span>                                          
-
+void markTable(Table* table);                                          
+                                                                       
 </pre></div>
 <div class="source-file-narrow"><em>table.h</em>, add after <em>tableFindString</em>()</div>
 
@@ -1451,7 +1451,7 @@ pile of live objects. As the amount of live memory goes down, we collect more
 frequently so that we don&rsquo;t lose too much latency by waiting too long.</p>
 <p>The implementation requires two new bookkeeping fields in the VM:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">openUpvalues</span><span class="o">;</span>
+  ObjUpvalue* openUpvalues;
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
 <pre class="insert">
@@ -1459,8 +1459,8 @@ in struct <em>VM</em></div>
   <span class="t">size_t</span> <span class="i">bytesAllocated</span><span class="o">;</span>   
   <span class="t">size_t</span> <span class="i">nextGC</span><span class="o">;</span>           
 </pre><pre class="insert-after">
-
-  <span class="t">Obj</span><span class="o">*</span> <span class="i">objects</span><span class="o">;</span>            
+                           
+  Obj* objects;            
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
@@ -1468,15 +1468,15 @@ in struct <em>VM</em></div>
 allocated. The second is the threshold that triggers the next collection. We
 initialize them when the VM starts up:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">vm</span><span class="o">.</span><span class="i">objects</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>      
+  vm.objects = NULL;      
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert">
   <span class="i">vm</span><span class="o">.</span><span class="i">bytesAllocated</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>  
   <span class="i">vm</span><span class="o">.</span><span class="i">nextGC</span> <span class="o">=</span> <span class="n">1024</span> <span class="o">*</span> <span class="n">1024</span><span class="o">;</span>
 </pre><pre class="insert-after">
-
-  <span class="i">vm</span><span class="o">.</span><span class="i">grayCount</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>       
+                          
+  vm.grayCount = 0;       
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>initVM</em>()</div>
 
@@ -1493,23 +1493,23 @@ real-world programs it is actually intended for. It&rsquo;s like tuning a rally 
 </aside>
 <p>Every time we allocate or free some memory, we adjust the counter by that delta:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">)</span> <span class="o">{</span>
+void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>reallocate</em>()</div>
 <pre class="insert">
   <span class="i">vm</span><span class="o">.</span><span class="i">bytesAllocated</span> <span class="o">+=</span> <span class="i">newSize</span> <span class="o">-</span> <span class="i">oldSize</span><span class="o">;</span>                         
 
 </pre><pre class="insert-after">
-  <span class="k">if</span> <span class="o">(</span><span class="i">newSize</span> <span class="o">&gt;</span> <span class="i">oldSize</span><span class="o">)</span> <span class="o">{</span>                                        
+  if (newSize &gt; oldSize) {                                        
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>reallocate</em>()</div>
 
 <p>When the total crosses the limit, we run the collector:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">if</span> <span class="o">(</span><span class="i">newSize</span> <span class="o">&gt;</span> <span class="i">oldSize</span><span class="o">)</span> <span class="o">{</span>              
-<span class="a">#ifdef DEBUG_STRESS_GC                  </span>
-    <span class="i">collectGarbage</span><span class="o">();</span>                   
-<span class="a">#endif                                  </span>
+  if (newSize &gt; oldSize) {              
+#ifdef DEBUG_STRESS_GC                  
+    collectGarbage();                   
+#endif                                  
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>reallocate</em>()</div>
 <pre class="insert">
@@ -1518,7 +1518,7 @@ in <em>reallocate</em>()</div>
       <span class="i">collectGarbage</span><span class="o">();</span>                 
     <span class="o">}</span>                                   
 </pre><pre class="insert-after">
-  <span class="o">}</span>                                     
+  }                                     
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>reallocate</em>()</div>
 
@@ -1528,15 +1528,15 @@ objects by calling <code>reallocate()</code>, which lowers the value of <code>by
 so after the collection completes we know how many live bytes remain. We adjust
 the threshold of the next GC based on that:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">sweep</span><span class="o">();</span>                                            
+  sweep();                                            
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
 
   <span class="i">vm</span><span class="o">.</span><span class="i">nextGC</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">bytesAllocated</span> <span class="o">*</span> <span class="a">GC_HEAP_GROW_FACTOR</span><span class="o">;</span>
 </pre><pre class="insert-after">
-
-<span class="a">#ifdef DEBUG_LOG_GC                                   </span>
+                                                      
+#ifdef DEBUG_LOG_GC                                   
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
@@ -1545,14 +1545,14 @@ the program uses grows, the threshold moves farther out to limit the total time
 spent re-traversing the larger live set. Like other numbers in this chapter, the
 scaling factor is basically arbitrary:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#endif                                                            </span>
+#endif                                                            
 </pre><div class="source-file"><em>memory.c</em></div>
 <pre class="insert">
 
 <span class="a">#define GC_HEAP_GROW_FACTOR 2                                     </span>
 </pre><pre class="insert-after">
-
-<span class="t">void</span><span class="o">*</span> <span class="i">reallocate</span><span class="o">(</span><span class="t">void</span><span class="o">*</span> <span class="i">previous</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">oldSize</span><span class="o">,</span> <span class="t">size_t</span> <span class="i">newSize</span><span class="o">)</span> <span class="o">{</span>
+                                                                  
+void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em></div>
 
@@ -1560,19 +1560,19 @@ scaling factor is basically arbitrary:</p>
 to benchmark it on. Right now, we can at least log some of the statistics that
 we have. We capture the heap size before the collection:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">printf</span><span class="o">(</span><span class="s">&quot;-- gc begin</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>          
+  printf(&quot;-- gc begin\n&quot;);          
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
   <span class="t">size_t</span> <span class="i">before</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">bytesAllocated</span><span class="o">;</span>
 </pre><pre class="insert-after">
-<span class="a">#endif                              </span>
+#endif                              
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
 <p>And then print the results at the end:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">printf</span><span class="o">(</span><span class="s">&quot;-- gc end</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>                                          
+  printf(&quot;-- gc end\n&quot;);                                          
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>collectGarbage</em>()</div>
 <pre class="insert">
@@ -1580,7 +1580,7 @@ in <em>collectGarbage</em>()</div>
          <span class="i">before</span> <span class="o">-</span> <span class="i">vm</span><span class="o">.</span><span class="i">bytesAllocated</span><span class="o">,</span> <span class="i">before</span><span class="o">,</span> <span class="i">vm</span><span class="o">.</span><span class="i">bytesAllocated</span><span class="o">,</span>   
          <span class="i">vm</span><span class="o">.</span><span class="i">nextGC</span><span class="o">);</span>                                              
 </pre><pre class="insert-after">
-<span class="a">#endif                                                            </span>
+#endif                                                            
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, in <em>collectGarbage</em>()</div>
 
@@ -1647,25 +1647,25 @@ thus sweeps it right before we have a chance to add it to the table. Crash.</p>
 <p>The fix, as you&rsquo;ve seen in other places, is to push it onto the stack
 temporarily:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="t">int</span> <span class="i">addConstant</span><span class="o">(</span><span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">,</span> <span class="t">Value</span> <span class="i">value</span><span class="o">)</span> <span class="o">{</span>
+int addConstant(Chunk* chunk, Value value) {
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>addConstant</em>()</div>
 <pre class="insert">
   <span class="i">push</span><span class="o">(</span><span class="i">value</span><span class="o">);</span>                              
 </pre><pre class="insert-after">
-  <span class="i">writeValueArray</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">-&gt;</span><span class="i">constants</span><span class="o">,</span> <span class="i">value</span><span class="o">);</span>
+  writeValueArray(&amp;chunk-&gt;constants, value);
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>addConstant</em>()</div>
 
 <p>Once the constant table contains the object, we pop it off the stack:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">writeValueArray</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">-&gt;</span><span class="i">constants</span><span class="o">,</span> <span class="i">value</span><span class="o">);</span>
+  writeValueArray(&amp;chunk-&gt;constants, value);
 </pre><div class="source-file"><em>chunk.c</em><br>
 in <em>addConstant</em>()</div>
 <pre class="insert">
   <span class="i">pop</span><span class="o">();</span>                                    
 </pre><pre class="insert-after">
-  <span class="k">return</span> <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">constants</span><span class="o">.</span><span class="i">count</span> <span class="o">-</span> <span class="n">1</span><span class="o">;</span>        
+  return chunk-&gt;constants.count - 1;        
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>addConstant</em>()</div>
 
@@ -1673,13 +1673,13 @@ in <em>addConstant</em>()</div>
 their functions, so the new constant is reachable now. We do need an include
 to call into the VM from the &ldquo;chunk&rdquo; module:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="a">#include &quot;memory.h&quot;           </span>
+#include &quot;memory.h&quot;           
 </pre><div class="source-file"><em>chunk.c</em></div>
 <pre class="insert">
 <span class="a">#include &quot;vm.h&quot;               </span>
 </pre><pre class="insert-after">
-
-<span class="t">void</span> <span class="i">initChunk</span><span class="o">(</span><span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">)</span> <span class="o">{</span>
+                              
+void initChunk(Chunk* chunk) {
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em></div>
 
@@ -1689,27 +1689,27 @@ is going. Since the string is brand new, it isn&rsquo;t reachable anywhere. And
 resizing the string pool can trigger a collection. Again, we go ahead and stash
 the string on the stack first:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">string</span><span class="o">-&gt;</span><span class="i">hash</span> <span class="o">=</span> <span class="i">hash</span><span class="o">;</span>                   
-
+  string-&gt;hash = hash;                   
+                                         
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
 <pre class="insert">
   <span class="i">push</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">string</span><span class="o">));</span>                 
 </pre><pre class="insert-after">
-  <span class="i">tableSet</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">strings</span><span class="o">,</span> <span class="i">string</span><span class="o">,</span> <span class="a">NIL_VAL</span><span class="o">);</span>
+  tableSet(&amp;vm.strings, string, NIL_VAL);
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 
 <p>And then pop it back off once it&rsquo;s safely nestled in the table:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="i">tableSet</span><span class="o">(&amp;</span><span class="i">vm</span><span class="o">.</span><span class="i">strings</span><span class="o">,</span> <span class="i">string</span><span class="o">,</span> <span class="a">NIL_VAL</span><span class="o">);</span>
+  tableSet(&amp;vm.strings, string, NIL_VAL);
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>allocateString</em>()</div>
 <pre class="insert">
   <span class="i">pop</span><span class="o">();</span>                                 
 </pre><pre class="insert-after">
-
-  <span class="k">return</span> <span class="i">string</span><span class="o">;</span>                         
+                                         
+  return string;                         
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, in <em>allocateString</em>()</div>
 
@@ -1726,7 +1726,7 @@ heap, which can in turn trigger a GC. Since we&rsquo;ve already popped the opera
 strings by that point, they can potentially be missed by the mark phase and get
 swept away. Instead of popping them off the stack eagerly, we <em>peek</em> them:</p>
 <div class="codehilite"><pre class="insert-before">
-<span class="k">static</span> <span class="t">void</span> <span class="i">concatenate</span><span class="o">()</span> <span class="o">{</span>          
+static void concatenate() {          
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>concatenate</em>()<br>
 replace 2 lines</div>
@@ -1734,8 +1734,8 @@ replace 2 lines</div>
   <span class="t">ObjString</span><span class="o">*</span> <span class="i">b</span> <span class="o">=</span> <span class="a">AS_STRING</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">));</span> 
   <span class="t">ObjString</span><span class="o">*</span> <span class="i">a</span> <span class="o">=</span> <span class="a">AS_STRING</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">1</span><span class="o">));</span> 
 </pre><pre class="insert-after">
-
-  <span class="t">int</span> <span class="i">length</span> <span class="o">=</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">+</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">;</span>
+                                     
+  int length = a-&gt;length + b-&gt;length;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>concatenate</em>(), replace 2 lines</div>
 
@@ -1743,14 +1743,14 @@ replace 2 lines</div>
 string. Once that&rsquo;s done, we can safely pop them off and replace them with the
 result:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="t">ObjString</span><span class="o">*</span> <span class="i">result</span> <span class="o">=</span> <span class="i">takeString</span><span class="o">(</span><span class="i">chars</span><span class="o">,</span> <span class="i">length</span><span class="o">);</span>
+  ObjString* result = takeString(chars, length);
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>concatenate</em>()</div>
 <pre class="insert">
   <span class="i">pop</span><span class="o">();</span>                                        
   <span class="i">pop</span><span class="o">();</span>                                        
 </pre><pre class="insert-after">
-  <span class="i">push</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">result</span><span class="o">));</span>                        
+  push(OBJ_VAL(result));                        
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>concatenate</em>()</div>
 
