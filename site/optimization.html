@@ -250,7 +250,7 @@ couple of benchmarks, fired up a profiler, and ran those scripts through my
 interpreter. In a dynamically-typed language like Lox, a large fraction of user
 code is field accesses and method calls, so one of my benchmarks looked
 something like this:</p>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Zoo</span> <span class="o">{</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Zoo</span> <span class="o">{</span>
   <span class="n">init</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">this</span><span class="o">.</span><span class="n">aardvark</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
     <span class="k">this</span><span class="o">.</span><span class="n">baboon</span>   <span class="o">=</span> <span class="mi">1</span><span class="o">;</span>
@@ -267,7 +267,7 @@ something like this:</p>
   <span class="n">mouse</span><span class="o">()</span>  <span class="o">{</span> <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="n">fox</span><span class="o">;</span> <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="k">var</span> <span class="n">zoo</span> <span class="o">=</span> <span class="nc">Zoo</span><span class="o">();</span>
+<span class="k">var</span> <span class="n">zoo</span> <span class="o">=</span> <span class="t">Zoo</span><span class="o">();</span>
 <span class="k">var</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
 <span class="k">var</span> <span class="n">start</span> <span class="o">=</span> <span class="n">clock</span><span class="o">();</span>
 <span class="k">while</span> <span class="o">(</span><span class="n">sum</span> <span class="o">&lt;</span> <span class="mi">100000000</span><span class="o">)</span> <span class="o">{</span>
@@ -333,21 +333,21 @@ dynamism. But, still, <em>wow.</em></p>
 <p>If you take a look at <code>tableGet()</code>, you&rsquo;ll see it&rsquo;s mostly a wrapper around a
 call to <code>findEntry()</code> where the actual hash table lookup happens. To refresh
 your memory, here it is in full:</p>
-<div class="codehilite"><pre><span></span><span class="k">static</span> <span class="n">Entry</span><span class="o">*</span> <span class="n">findEntry</span><span class="o">(</span><span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="o">,</span> <span class="k">int</span> <span class="n">capacity</span><span class="o">,</span>
-                        <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="o">;</span>
-  <span class="n">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>
+<div class="codehilite"><pre><span></span><span class="k">static</span> <span class="t">Entry</span><span class="o">*</span> <span class="n">findEntry</span><span class="o">(</span><span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="o">,</span> <span class="t">int</span> <span class="n">capacity</span><span class="o">,</span>
+                        <span class="t">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+  <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="o">;</span>
+  <span class="t">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>
 
   <span class="k">for</span> <span class="o">(;;)</span> <span class="o">{</span>
-    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">entries</span><span class="o">[</span><span class="n">index</span><span class="o">];</span>
+    <span class="t">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">entries</span><span class="o">[</span><span class="n">index</span><span class="o">];</span>
 
-    <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="k">NULL</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">if</span> <span class="o">(</span><span class="n">IS_NIL</span><span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="t">NULL</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="t">IS_NIL</span><span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>
         <span class="c">// Empty entry.</span>
-        <span class="k">return</span> <span class="n">tombstone</span> <span class="o">!=</span> <span class="k">NULL</span> <span class="o">?</span> <span class="nl">tombstone</span> <span class="o">:</span> <span class="n">entry</span><span class="o">;</span>
+        <span class="k">return</span> <span class="n">tombstone</span> <span class="o">!=</span> <span class="t">NULL</span> <span class="o">?</span> <span class="nl">tombstone</span> <span class="o">:</span> <span class="n">entry</span><span class="o">;</span>
       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
         <span class="c">// We found a tombstone.</span>
-        <span class="k">if</span> <span class="o">(</span><span class="n">tombstone</span> <span class="o">==</span> <span class="k">NULL</span><span class="o">)</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="n">entry</span><span class="o">;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">tombstone</span> <span class="o">==</span> <span class="t">NULL</span><span class="o">)</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="n">entry</span><span class="o">;</span>
       <span class="o">}</span>
     <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
       <span class="c">// We found the key.</span>
@@ -363,7 +363,7 @@ your memory, here it is in full:</p>
 <p>When running that previous benchmark<span class="em">&mdash;</span>on my machine, at least<span class="em">&mdash;</span>the VM spends
 70% of the total execution time on <em>one line</em> in this function. Any guesses as
 to which one? No? It&rsquo;s this:</p>
-<div class="codehilite"><pre><span></span>  <span class="k">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="o">;</span>
+<div class="codehilite"><pre><span></span>  <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="o">;</span>
 </pre></div>
 
 
@@ -400,7 +400,7 @@ and-ing it with that power of two minus one. I&rsquo;m not enough of a mathemati
 to <em>prove</em> to you that this works, but if you think it through, it should make
 sense. We can replace that slow modulo operator with a fast subtraction followed
 by a very fast bitwise and. We simply change the offending line of code to:</p>
-<div class="codehilite"><pre><span></span>  <span class="k">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">&amp;</span> <span class="o">(</span><span class="n">capacity</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
+<div class="codehilite"><pre><span></span>  <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">&amp;</span> <span class="o">(</span><span class="n">capacity</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
 </pre></div>
 
 
@@ -420,12 +420,12 @@ doing so means a slew of very uninteresting code changes to drag you through, so
 in the interest of expedience, I left the name alone.</p>
 </aside>
 <p>With that interpretation, to wrap a key, we simply apply the mask:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>                        <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span>                        <span class="t">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>findEntry</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">&amp;</span> <span class="n">capacity</span><span class="o">;</span> 
-</pre><pre class="insert-after"><span></span>  <span class="n">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>               
+<pre class="insert"><span></span>  <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">&amp;</span> <span class="n">capacity</span><span class="o">;</span> 
+</pre><pre class="insert-after"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>               
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
@@ -452,23 +452,23 @@ with the new value it represents. This is going to be kind of a chore. Sorry.</p
 <h3><a href="#hash-table-changes" name="hash-table-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small> Hash table changes</a></h3>
 <p>There are a few changes to make in <code>adjustCapacity()</code>. First, when we allocate
 the new array, we calculate the size from the mask:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">adjustCapacity</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">int</span> <span class="n">capacity</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="t">void</span> <span class="n">adjustCapacity</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="t">int</span> <span class="n">capacity</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="o">(</span><span class="n">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>       
-</pre><pre class="insert-after"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>                  
+<pre class="insert"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="t">ALLOCATE</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>       
+</pre><pre class="insert-after"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>                  
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
 
 <p>Then we iterate over the array to initialize the empty entries:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="o">(</span><span class="n">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="t">ALLOCATE</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>          
-</pre><pre class="insert-after"><span></span>    <span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="n">key</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>                       
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>          
+</pre><pre class="insert-after"><span></span>    <span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="n">key</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>                       
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
@@ -478,8 +478,8 @@ replace 1 line</div>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-</pre><pre class="insert-after"><span></span>    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</pre><pre class="insert-after"><span></span>    <span class="t">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
@@ -491,7 +491,7 @@ are released:</p>
 <br></pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="n">FREE_ARRAY</span><span class="o">(</span><span class="n">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="t">FREE_ARRAY</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="n">entries</span><span class="o">;</span>                              
 </pre></div>
 
@@ -503,12 +503,12 @@ don&rsquo;t get stung.</p>
 <p>Moving up the abstraction stack, we get to the main hash table operations that
 call <code>adjustCapacity()</code> and <code>findEntry()</code>. When we grow the array before
 inserting a new entry into it, we need to calculate the capacity:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">bool</span> <span class="n">tableSet</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">,</span> <span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>        
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">bool</span> <span class="n">tableSet</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="t">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">,</span> <span class="t">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>        
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">*</span> <span class="n">TABLE_MAX_LOAD</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">int</span> <span class="n">capacity</span> <span class="o">=</span> <span class="n">GROW_CAPACITY</span><span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>        
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">*</span> <span class="t">TABLE_MAX_LOAD</span><span class="o">)</span> <span class="o">{</span>
+    <span class="t">int</span> <span class="n">capacity</span> <span class="o">=</span> <span class="t">GROW_CAPACITY</span><span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>        
 </pre><pre class="insert-after"><span></span>    <span class="n">adjustCapacity</span><span class="o">(</span><span class="n">table</span><span class="o">,</span> <span class="n">capacity</span><span class="o">);</span>                              
 </pre></div>
 
@@ -520,7 +520,7 @@ replace 2 lines</div>
 in <em>initTable</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span> 
-</pre><pre class="insert-after"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>initTable</em>(), replace 1 line</div>
@@ -531,12 +531,12 @@ size is zero, so initializing <code>capacity</code> to -1 correctly yields zero 
 increment it.</p>
 <p>When copying all of the entries from one hash table to another, we iterate over
 the source table&rsquo;s array:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">tableAddAll</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">from</span><span class="o">,</span> <span class="n">Table</span><span class="o">*</span> <span class="n">to</span><span class="o">)</span> <span class="o">{</span>   
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="n">tableAddAll</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">from</span><span class="o">,</span> <span class="t">Table</span><span class="o">*</span> <span class="n">to</span><span class="o">)</span> <span class="o">{</span>   
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableAddAll</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">from</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-</pre><pre class="insert-after"><span></span>    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">from</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">from</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</pre><pre class="insert-after"><span></span>    <span class="t">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">from</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableAddAll</em>(), replace 1 line</div>
@@ -546,13 +546,13 @@ replace 1 line</div>
 a hash table lookup for interning strings. We need to make the same changes
 there that we made in <code>findEntry()</code>. We use <code>capacity</code> as a mask when wrapping
 the string&rsquo;s hash key:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="n">ObjString</span><span class="o">*</span> <span class="n">tableFindString</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">const</span> <span class="k">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="k">int</span> <span class="n">length</span><span class="o">,</span>
-                           <span class="k">uint32_t</span> <span class="n">hash</span><span class="o">)</span> <span class="o">{</span>                            
-  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="k">return</span> <span class="k">NULL</span><span class="o">;</span>                                  
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">ObjString</span><span class="o">*</span> <span class="n">tableFindString</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="t">int</span> <span class="n">length</span><span class="o">,</span>
+                           <span class="t">uint32_t</span> <span class="n">hash</span><span class="o">)</span> <span class="o">{</span>                            
+  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="k">return</span> <span class="t">NULL</span><span class="o">;</span>                                  
 <br></pre><div class="source-file"><em>table.c</em><br>
 in <em>tableFindString</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">hash</span> <span class="o">&amp;</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span>                             
+<pre class="insert"><span></span>  <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">hash</span> <span class="o">&amp;</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span>                             
 </pre><pre class="insert-after"><br><span></span>  <span class="k">for</span> <span class="o">(;;)</span> <span class="o">{</span>                                                           
 </pre></div>
 
@@ -577,34 +577,34 @@ created lots of strings might noticeably benefit from this change.</p>
 <p>There are a few places in the memory management code where we access a hash
 table&rsquo;s capacity. First, using a <code>&lt;=</code> in the loop when we mark all of the
 entries in a table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">markTable</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="n">markTable</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>markTable</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-</pre><pre class="insert-after"><span></span>    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</pre><pre class="insert-after"><span></span>    <span class="t">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>markTable</em>(), replace 1 line</div>
 
 <p>And another one in the loop to remove unmarked entries from the string table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">tableRemoveWhite</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>         
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="n">tableRemoveWhite</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>         
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableRemoveWhite</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
-</pre><pre class="insert-after"><span></span>    <span class="n">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
+<pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+</pre><pre class="insert-after"><span></span>    <span class="t">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>        
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>tableRemoveWhite</em>(), replace 1 line</div>
 
 <p>Finally, the garbage collector tracks the amount of memory it frees so needs an
 accurate count of the entry array size:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">freeTable</span><span class="o">(</span><span class="n">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                           
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="n">freeTable</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">)</span> <span class="o">{</span>                           
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>freeTable</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="n">FREE_ARRAY</span><span class="o">(</span><span class="n">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="t">FREE_ARRAY</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">initTable</span><span class="o">(</span><span class="n">table</span><span class="o">);</span>                                      
 </pre></div>
 
@@ -818,11 +818,11 @@ Values<span class="em">&mdash;</span>vary based on whether this flag is set. The
 continue along its merry way.</p>
 <p>Most of the work happens in the &ldquo;value&rdquo; module where we add a section for the
 new type:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="n">ObjString</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="t">ObjString</span><span class="o">;</span>
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                   </span>
 
-<span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>             
+<span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>             
 
 <span class="cp">#else                               </span>
 <br></pre><pre class="insert-after"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="o">{</span>                      
@@ -867,12 +867,12 @@ or literary criticism than an unequivocal answer.</p>
 <p>Regardless of what the Good Spec says, just about every compiler under the sun
 permits type punning through unions, so relying on it is, at worse, a minor sin.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="k">typedef</span> <span class="k">union</span> <span class="o">{</span>        
-  <span class="k">uint64_t</span> <span class="n">bits</span><span class="o">;</span>       
-  <span class="k">double</span> <span class="n">num</span><span class="o">;</span>          
-<span class="o">}</span> <span class="n">DoubleUnion</span><span class="o">;</span>         
+  <span class="t">uint64_t</span> <span class="n">bits</span><span class="o">;</span>       
+  <span class="t">double</span> <span class="n">num</span><span class="o">;</span>          
+<span class="o">}</span> <span class="t">DoubleUnion</span><span class="o">;</span>         
 </pre><pre class="insert-after"><br><span></span><span class="cp">#else                  </span>
 </pre></div>
 
@@ -883,7 +883,7 @@ out the other field. Voil&agrave;, the bits have been transmuted from the first 
 type to the second&rsquo;s. Alas, I don&rsquo;t know an elegant way to pack those operations
 into a single expression, so the conversion macros will call out to helper
 functions. Here&rsquo;s the first macro:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">union</span> <span class="o">{</span>                        
@@ -892,11 +892,11 @@ functions. Here&rsquo;s the first macro:</p>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>It hands off the double to:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="n">DoubleUnion</span><span class="o">;</span>                              
+<div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="t">DoubleUnion</span><span class="o">;</span>                              
 </pre><div class="source-file"><em>value.h</em><br>
 add after union <em>DoubleUnion</em></div>
-<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="n">Value</span> <span class="n">numToValue</span><span class="o">(</span><span class="k">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">DoubleUnion</span> <span class="n">data</span><span class="o">;</span>                         
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="t">Value</span> <span class="n">numToValue</span><span class="o">(</span><span class="t">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>
+  <span class="t">DoubleUnion</span> <span class="n">data</span><span class="o">;</span>                         
   <span class="n">data</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="n">num</span><span class="o">;</span>                           
   <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">bits</span><span class="o">;</span>                         
 <span class="o">}</span>                                           
@@ -910,7 +910,7 @@ uint64_t whose bits overlap that in memory. This code appears slow: a function
 call, a local variable, an assignment, and a read. Fortunately, compilers are
 smart enough to optimize it all away.</p>
 <p>&ldquo;Unwrapping&rdquo; a Lox number is the mirror image:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)  </span>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)</span>
@@ -919,15 +919,15 @@ smart enough to optimize it all away.</p>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>That macro calls this function:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="n">DoubleUnion</span><span class="o">;</span>                                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="o">}</span> <span class="t">DoubleUnion</span><span class="o">;</span>                                
 </pre><div class="source-file"><em>value.h</em><br>
 add after union <em>DoubleUnion</em></div>
-<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="k">double</span> <span class="n">valueToNum</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">DoubleUnion</span> <span class="n">data</span><span class="o">;</span>                           
+<pre class="insert"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="t">double</span> <span class="n">valueToNum</span><span class="o">(</span><span class="t">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>
+  <span class="t">DoubleUnion</span> <span class="n">data</span><span class="o">;</span>                           
   <span class="n">data</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="n">value</span><span class="o">;</span>                          
   <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">num</span><span class="o">;</span>                            
 <span class="o">}</span>                                             
-</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="n">Value</span> <span class="n">numToValue</span><span class="o">(</span><span class="k">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>  
+</pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="k">inline</span> <span class="t">Value</span> <span class="n">numToValue</span><span class="o">(</span><span class="t">double</span> <span class="n">num</span><span class="o">)</span> <span class="o">{</span>  
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
@@ -938,7 +938,7 @@ Again, the compiler will eliminate all of it.</p>
 Doing a runtime type <em>test</em> on a Lox number is a little more interesting. If all
 we have are exactly the bits for a double, how do we tell that it <em>is</em> a double?</p>
 <p>It&rsquo;s time to get bit twiddling:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                       
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                       
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
 </pre><pre class="insert-after"><br><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)         </span>
@@ -965,7 +965,7 @@ across a number of architectures, I haven&rsquo;t seen it happen.</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                              </span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><br><span></span><span class="cp">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
-</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                        
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                        
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -989,7 +989,7 @@ like so:</p>
 <pre class="insert"><br><span></span><span class="cp">#define TAG_NIL   1 </span><span class="c">// 01.                     </span>
 <span class="cp">#define TAG_FALSE 2 </span><span class="c">// 10.                     </span>
 <span class="cp">#define TAG_TRUE  3 </span><span class="c">// 11.                     </span>
-</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                        
+</pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                        
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1011,7 +1011,7 @@ cast dance to teach the C compiler what we want those bits to mean.</p>
 <p>Since <code>nil</code> has only a single bit representation, we can use equality on
 uint64_t to see if a Value is <code>nil</code>:</p>
 <p><span name="equal"></span></p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                       
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                       
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define IS_NIL(v)       ((v) == NIL_VAL)      </span>
 </pre><pre class="insert-after"><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
@@ -1056,7 +1056,7 @@ simpler:</p>
 in C where any non-zero value can be considered &ldquo;true&rdquo;<span class="em">&mdash;</span>if it ain&rsquo;t <code>true</code>, it
 must be <code>false</code>. This macro does assume you only call it on a Value that you
 know <em>is</em> a Lox Boolean. To check that, there&rsquo;s one more macro:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">uint64_t</span> <span class="n">Value</span><span class="o">;</span>                                 
+<div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                                 
 <br></pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define IS_BOOL(v)      (((v) &amp; FALSE_VAL) == FALSE_VAL)</span>
 </pre><pre class="insert-after"><span></span><span class="cp">#define IS_NIL(v)       ((v) == NIL_VAL)                </span>
@@ -1110,7 +1110,7 @@ of the quiet NaN bits and the sign bit:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)                  </span>
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert"><span></span><span class="cp">#define OBJ_VAL(obj) \                                   </span>
-    <span class="o">(</span><span class="n">Value</span><span class="o">)(</span><span class="n">SIGN_BIT</span> <span class="o">|</span> <span class="n">QNAN</span> <span class="o">|</span> <span class="o">(</span><span class="k">uint64_t</span><span class="o">)(</span><span class="k">uintptr_t</span><span class="o">)(</span><span class="n">obj</span><span class="o">))</span>
+    <span class="o">(</span><span class="t">Value</span><span class="o">)(</span><span class="t">SIGN_BIT</span> <span class="o">|</span> <span class="t">QNAN</span> <span class="o">|</span> <span class="o">(</span><span class="t">uint64_t</span><span class="o">)(</span><span class="t">uintptr_t</span><span class="o">)(</span><span class="n">obj</span><span class="o">))</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">union</span> <span class="o">{</span>                                          
 </pre></div>
 
@@ -1174,17 +1174,17 @@ encoding directly. We need to fix those too.</p>
 <p>The first is <code>printValue()</code>. It has separate code for each value type. We no
 longer have an explicit type enum we can switch on so instead we use a series
 of type tests to handle each kind of value:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">void</span> <span class="n">printValue</span><span class="o">(</span><span class="n">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>                
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="n">printValue</span><span class="o">(</span><span class="t">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
 <pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                             </span>
-  <span class="k">if</span> <span class="o">(</span><span class="n">IS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                       
-    <span class="n">printf</span><span class="o">(</span><span class="n">AS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="o">?</span> <span class="s">&quot;true&quot;</span> <span class="o">:</span> <span class="s">&quot;false&quot;</span><span class="o">);</span>
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">IS_NIL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
+  <span class="k">if</span> <span class="o">(</span><span class="t">IS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                       
+    <span class="n">printf</span><span class="o">(</span><span class="t">AS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="o">?</span> <span class="s">&quot;true&quot;</span> <span class="o">:</span> <span class="s">&quot;false&quot;</span><span class="o">);</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="t">IS_NIL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
     <span class="n">printf</span><span class="o">(</span><span class="s">&quot;nil&quot;</span><span class="o">);</span>                            
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>              
-    <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%g&quot;</span><span class="o">,</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">));</span>           
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">IS_OBJ</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="t">IS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>              
+    <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%g&quot;</span><span class="o">,</span> <span class="t">AS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">));</span>           
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="t">IS_OBJ</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
     <span class="n">printObject</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>                       
   <span class="o">}</span>                                           
 <span class="cp">#else                                         </span>
@@ -1207,7 +1207,7 @@ in <em>printValue</em>()</div>
 <div class="source-file-narrow"><em>value.c</em>, in <em>printValue</em>()</div>
 
 <p>The other operation is testing two values for equality:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="k">bool</span> <span class="n">valuesEqual</span><span class="o">(</span><span class="n">Value</span> <span class="n">a</span><span class="o">,</span> <span class="n">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span> 
+<div class="codehilite"><pre class="insert-before"><span></span><span class="t">bool</span> <span class="n">valuesEqual</span><span class="o">(</span><span class="t">Value</span> <span class="n">a</span><span class="o">,</span> <span class="t">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span> 
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
 <pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                    </span>
@@ -1246,7 +1246,7 @@ want to be <em>fully</em> compliant with IEEE 754, we need to handle this case:<
 <div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                                                       </span>
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">))</span> <span class="k">return</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="t">IS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="t">IS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">))</span> <span class="k">return</span> <span class="t">AS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="t">AS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="o">;</span>                                                        
 </pre></div>
 

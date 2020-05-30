@@ -96,15 +96,6 @@ class IdentifierRule extends Rule {
   void applyRule(Highlighter highlighter) {
     var identifier = highlighter.scanner.lastMatch[0];
     var type = highlighter.language.words[identifier] ?? "n";
-
-    // Capitalized identifiers are treated specially in Lox.
-    // TODO: Do something less hacky.
-    if (highlighter.language == grammar.lox &&
-        identifier.codeUnitAt(0) >= $A &&
-        identifier.codeUnitAt(0) <= $Z) {
-      type = "nc";
-    }
-
     highlighter.writeToken(type);
   }
 }

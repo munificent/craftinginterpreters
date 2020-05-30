@@ -16,30 +16,27 @@ final languages = {
 };
 
 final c = Language(
-  // TODO: Make NULL a constant instead of a keyword?
-  keywords: "$_cKeywords false NULL true",
+  keywords: _cKeywords,
+  types: "bool char double FILE int size_t uint16_t uint32_t uint64_t uint8_t "
+      "uintptr_t va_list void",
   rules: _cRules,
 );
 
 final cpp = Language(
-  // TODO: Make NULL a constant instead of a keyword?
-  keywords: "$_cKeywords false NULL true",
+  keywords: _cKeywords,
   types: "vector string",
   rules: _cRules,
 );
 
 final java = Language(
-  keywords: "abstract assert boolean break byte case catch char class const "
-      "continue default do double else enum extends final finally float for "
-      "goto if implements import instanceof int interface long native new "
-      "package private protected public return short static strictfp super "
-      "switch synchronized this throw throws transient try void volatile while",
+  keywords: "abstract assert break case catch class const continue default do "
+      "else enum extends final finally for goto if implements import "
+      "instanceof interface native new package private protected public return "
+      "static strictfp super switch synchronized this throw throws transient "
+      "try volatile while",
   constants: "false null true",
+  types: "boolean byte char double float int long short void",
   rules: [
-    // Type declaration.
-    // TODO: Should match enum here too. Or just use identifier capitalization
-    // for "nc" and remove this rule.
-    Rule.capture(r"(class|interface)(\s+)(\w+)", ["k", "", "nc"]),
     // Import.
     Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
     // Static import.
@@ -111,11 +108,10 @@ final ruby = Language(
   ],
 );
 
+// TODO: Make NULL a constant instead of a keyword?
 final _cKeywords =
-    "bool break case char const continue default do double else enum "
-    "extern FILE for goto if inline int return size_t sizeof static struct "
-    "switch typedef uint16_t uint32_t uint64_t uint8_t uintptr_t union "
-    "va_list void while";
+    "break case const continue default do else enum extern false for goto if "
+    "inline NULL return sizeof static struct switch true typedef union while";
 
 final _cRules = [
   // Include.
@@ -153,6 +149,7 @@ final _commonRules = [
 
   Rule(r"//.*", "c"), // Line comment.
 
+  Rule(r"[A-Z][A-Za-z0-9_]*", "t"), // Capitalized type name.
   IdentifierRule(),
 
   // TODO: Pygments doesn't handle backslashes in multi-line defines, so
