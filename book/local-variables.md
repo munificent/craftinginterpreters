@@ -1,6 +1,3 @@
-^title Local Variables
-^part A Bytecode Virtual Machine
-
 > And as imagination bodies forth<br>
 > The forms of things unknown, the poet's pen<br>
 > Turns them to shapes and gives to airy nothing<br>

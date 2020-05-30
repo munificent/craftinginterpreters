@@ -1,6 +1,3 @@
-^title Control Flow
-^part A Tree-Walk Interpreter
-
 > Logic, like whiskey, loses its beneficial effect when taken in too large
 > quantities.
 >

@@ -1,6 +1,3 @@
-^title Methods and Initializers
-^part A Bytecode Virtual Machine
-
 > When you are on the dancefloor, there is nothing to do but dance.
 >
 > <cite>Umberto Eco, <em>The Mysterious Flame of Queen Loana</em></cite>

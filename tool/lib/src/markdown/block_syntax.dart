@@ -2,22 +2,6 @@ import 'package:markdown/markdown.dart';
 
 import '../page.dart';
 
-/// Skips `^` metadata lines.
-// TODO: Delete this when metadata is removed from Markdown files.
-class IgnoreTagBlockSyntax extends BlockSyntax {
-  static final _startPattern = RegExp(r'\^code ([a-z0-9-]+)');
-
-  RegExp get pattern => _startPattern;
-
-  bool canParse(BlockParser parser) => parser.current.startsWith("^");
-
-  Node parse(BlockParser parser) {
-    // Just discard the line.
-    parser.advance();
-    return Text("");
-  }
-}
-
 /// Parses atx-style headers like `## Header` and gives them the book's special
 /// handling:
 ///

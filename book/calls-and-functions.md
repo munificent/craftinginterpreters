@@ -1,6 +1,3 @@
-^title Calls and Functions
-^part A Bytecode Virtual Machine
-
 > Any problem in computer science can be solved with another level of
 > indirection. Except for the problem of too many layers of indirection.
 >

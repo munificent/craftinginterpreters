@@ -1,6 +1,3 @@
-^title Representing Code
-^part A Tree-Walk Interpreter
-
 > To dwellers in a wood, almost every species of tree has its voice as well as
 > its feature.
 > <cite>Thomas Hardy, <em>Under the Greenwood Tree</em></cite>

@@ -65,7 +65,11 @@ class Page {
 
   List<String> get lines => _ensureFile().lines;
 
-  String get template => _ensureFile().template;
+  String get template {
+    if (title == "Crafting Interpreters") return "index";
+    if (title == "Table of Contents") return "contents";
+    return "page";
+  }
 
   Map<String, Header> get headers => _ensureFile().headers;
 
@@ -95,7 +99,6 @@ class Page {
 /// The data for a page parsed from the Markdown source.
 class PageFile {
   final List<String> lines;
-  final String template;
   final Map<String, Header> headers;
   final bool hasChallenges;
 
@@ -104,8 +107,8 @@ class PageFile {
 
   final Map<String, CodeTag> codeTags;
 
-  PageFile(this.lines, this.template, this.headers, this.hasChallenges,
-      this.designNote, this.codeTags);
+  PageFile(this.lines, this.headers, this.hasChallenges, this.designNote,
+      this.codeTags);
 }
 
 /// A section header in a page.

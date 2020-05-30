@@ -1,6 +1,3 @@
-^title The Lox Language
-^part Welcome
-
 > What nicer thing can you do for somebody than make them breakfast?
 >
 > <cite>Anthony Bourdain</cite>

@@ -1,6 +1,3 @@
-^title Types of Values
-^part A Bytecode Virtual Machine
-
 > When you are a Bear of Very Little Brain, and you Think of Things, you find
 > sometimes that a Thing which seemed very Thingish inside you is quite
 > different when it gets out into the open and has other people looking at it.

@@ -1,6 +1,3 @@
-^title Parsing Expressions
-^part A Tree-Walk Interpreter
-
 > Grammar, which knows how to control even kings.
 > <cite>Molière</cite>
 

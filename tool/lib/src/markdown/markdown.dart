@@ -31,7 +31,6 @@ String renderMarkdown(Book book, Page page, List<String> lines) {
       blockSyntaxes: [
         BookHeaderSyntax(page),
         CodeTagBlockSyntax(book, page),
-        IgnoreTagBlockSyntax(),
         HighlightedCodeBlockSyntax(),
         TripleColonCodeBlockSyntax(),
       ],

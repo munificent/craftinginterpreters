@@ -4,14 +4,14 @@ import 'code_tag.dart';
 import 'page.dart';
 import 'text.dart';
 
-final _codeOptionsPattern = RegExp(r"([-a-z0-9]+) \(([^)]+)\)");
+final _codePattern = RegExp(r"^\^code ([-a-z0-9]+)( \(([^)]+)\))?$");
+final _headerPattern = RegExp(r"^(#{1,3}) ");
 final _beforePattern = RegExp(r"(\d+) before");
 final _afterPattern = RegExp(r"(\d+) after");
 
 /// Parses the contents of the Markdown file for [page] to extract its metadata,
 /// code tags, section headers, etc.
 PageFile parsePage(Page page) {
-  var template = 'page';
   var headers = <String, Header>{};
   var codeTagsByName = <String, CodeTag>{};
   String designNote;
@@ -23,44 +23,31 @@ PageFile parsePage(Page page) {
   var lines = File(page.markdownPath).readAsLinesSync();
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i];
-    if (line.startsWith("^")) {
-      var commandLine = line.substring(1).trim();
-      var space = commandLine.indexOf(" ");
-      var command = commandLine.substring(0, space);
-      var argument = commandLine.substring(space + 1).trim();
 
-      switch (command) {
-        case "code":
-          var codeTag = _createCodeTag(page, codeTagsByName.length, argument);
-          codeTagsByName[codeTag.name] = codeTag;
-          break;
-        case "template":
-          template = argument;
-          break;
-        case "part":
-        case "title":
-          // TODO: No longer used. Remove from Markdown files.
-          break;
-        default:
-          throw "Unknown command '$command'.";
-      }
-    } else if (line.startsWith("# ") ||
-        line.startsWith("## ") ||
-        line.startsWith("### ")) {
+    var match = _codePattern.firstMatch(line);
+    if (match != null) {
+      var codeTag =
+          _createCodeTag(page, codeTagsByName.length, match[1], match[3]);
+      codeTagsByName[codeTag.name] = codeTag;
+      continue;
+    }
+
+    match = _headerPattern.firstMatch(line);
+    if (match != null) {
       // Keep track of the headers so we can add section navigation for them.
-      var level = line.indexOf(" ");
-      var headerType = line.substring(0, level);
+      var headerType = match[1];
+      var level = headerType.length;
       var name = pretty(line.substring(level).trim());
 
-      if (headerType.length == 2) {
+      if (level == 2) {
         headerIndex += 1;
         subheaderIndex = 0;
-      } else if (headerType.length == 3) {
+      } else if (level == 3) {
         subheaderIndex += 1;
       }
 
-      var header = Header(headerType.length, headerIndex,
-          headerType.length == 3 ? subheaderIndex : null, name);
+      var header =
+          Header(level, headerIndex, level == 3 ? subheaderIndex : null, name);
 
       if (header.isChallenges) hasChallenges = true;
       if (header.isDesignNote) {
@@ -83,31 +70,35 @@ PageFile parsePage(Page page) {
 //      error_markdown += "**Error: {}**\n\n".format(error)
 //    contents = error_markdown + contents
 //
-  return PageFile(
-      lines, template, headers, hasChallenges, designNote, codeTagsByName);
+  return PageFile(lines, headers, hasChallenges, designNote, codeTagsByName);
 }
 
-CodeTag _createCodeTag(Page page, int index, String argument) {
-  var name = argument;
-
+CodeTag _createCodeTag(Page page, int index, String name, String options) {
   // Parse the location annotations after the name, if present.
   var showLocation = true;
   var beforeCount = 0;
   var afterCount = 0;
 
-  var match = _codeOptionsPattern.firstMatch(argument);
-  if (match != null) {
-    name = match.group(1);
-    var options = match.group(2).split(", ");
-
-    for (var option in options) {
+  if (options != null) {
+    for (var option in options.split(", ")) {
       if (option == "no location") {
         showLocation = false;
-      } else if ((match = _beforePattern.firstMatch(option)) != null) {
-        beforeCount = int.parse(match.group(1));
-      } else if ((match = _afterPattern.firstMatch(option)) != null) {
-        afterCount = int.parse(match.group(1));
+        continue;
       }
+
+      var match = _beforePattern.firstMatch(option);
+      if (match != null) {
+        beforeCount = int.parse(match.group(1));
+        continue;
+      }
+
+      match = _afterPattern.firstMatch(option);
+      if (match != null) {
+        afterCount = int.parse(match.group(1));
+        continue;
+      }
+
+      throw "Unknown code option '$option'";
     }
   }
 

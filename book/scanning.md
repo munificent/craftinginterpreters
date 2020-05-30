@@ -1,6 +1,3 @@
-^title Scanning
-^part A Tree-Walk Interpreter
-
 > Take big bites. Anything worth doing is worth overdoing.
 >
 > <cite>Robert A. Heinlein, <em>Time Enough for Love</em></cite>

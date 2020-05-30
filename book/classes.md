@@ -1,6 +1,3 @@
-^title Classes
-^part A Tree-Walk Interpreter
-
 > One has no right to love or hate anything if one has not acquired a thorough
 > knowledge of its nature. Great love springs from great knowledge of the
 > beloved object, and if you know it but little you will be able to love it only

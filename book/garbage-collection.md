@@ -1,6 +1,3 @@
-^title Garbage Collection
-^part A Bytecode Virtual Machine
-
 > I wanna, I wanna,<br>
 > I wanna, I wanna,<br>
 > I wanna be trash.<br>

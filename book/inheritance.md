@@ -1,6 +1,3 @@
-^title Inheritance
-^part A Tree-Walk Interpreter
-
 > Once we were blobs in the sea, and then fishes, and then lizards and rats and
 > then monkeys, and hundreds of things in between. This hand was once a fin,
 > this hand once had claws! In my human mouth I have the pointy teeth of a wolf

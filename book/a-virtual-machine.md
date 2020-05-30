@@ -1,6 +1,3 @@
-^title A Virtual Machine
-^part A Bytecode Virtual Machine
-
 > Magicians protect their secrets not because the secrets are large and
 > important, but because they are so small and trivial. The wonderful effects
 > created on stage are often the result of a secret so absurd that the magician

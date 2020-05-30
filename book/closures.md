@@ -1,6 +1,3 @@
-^title Closures
-^part A Bytecode Virtual Machine
-
 > As the man said, for every complex problem there's a simple solution, and it's
 > wrong.
 >

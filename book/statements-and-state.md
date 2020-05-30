@@ -1,6 +1,3 @@
-^title Statements and State
-^part A Tree-Walk Interpreter
-
 > All my life, my heart has yearned for a thing I cannot name.
 > <cite>Andre Breton, <em>Mad Love</em></cite>
 
