@@ -74,7 +74,7 @@ class StringRule extends Rule {
           highlighter.writeToken(
               "s", scanner.substring(start, scanner.position - 2));
         }
-        highlighter.writeToken("se");
+        highlighter.writeToken("e");
         start = scanner.position;
       } else if (scanner.scanChar($double_quote)) {
         highlighter.writeToken("s", scanner.substring(start, scanner.position));
