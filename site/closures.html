@@ -159,10 +159,8 @@ an inner function, <code>closure()</code> that captures that variable. Then <cod
 returns a reference to that function. Since the closure <span
 name="flying">escapes</span> while holding onto the local variable, <code>local</code> must
 outlive the function call where it was created.</p>
-<aside name="flying">
-<p><img src="image/closures/flying.png" class="above" alt="A local variable flying away from the stack."/>
-
-Oh no, it's escaping!</p>
+<aside name="flying"><p><img src="image/closures/flying.png" class="above" alt="A local variable flying away from the stack."/></p>
+<p>Oh no, it&rsquo;s escaping!</p>
 </aside>
 <p>We could solve this problem by dynamically allocating memory for all local
 variables. That&rsquo;s what jlox does by putting everything in those Environment
@@ -388,7 +386,7 @@ in <em>disassembleInstruction</em>()</div>
       <span class="k">uint8_t</span> <span class="n">constant</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span><span class="o">[</span><span class="n">offset</span><span class="o">++];</span>            
       <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%-16s %4d &quot;</span><span class="o">,</span> <span class="s">&quot;OP_CLOSURE&quot;</span><span class="o">,</span> <span class="n">constant</span><span class="o">);</span>        
       <span class="n">printValue</span><span class="o">(</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">constants</span><span class="o">.</span><span class="n">values</span><span class="o">[</span><span class="n">constant</span><span class="o">]);</span>       
-      <span class="n">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">);</span>
+      <span class="n">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">);</span>                                        
 
       <span class="k">return</span> <span class="n">offset</span><span class="o">;</span>                                       
     <span class="o">}</span>                                                      
@@ -430,8 +428,7 @@ in <em>callValue</em>()<br>
 replace 2 lines</div>
 <pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OBJ_CLOSURE</span><span class="o">:</span>                           
         <span class="k">return</span> <span class="n">call</span><span class="o">(</span><span class="n">AS_CLOSURE</span><span class="o">(</span><span class="n">callee</span><span class="o">),</span> <span class="n">argCount</span><span class="o">);</span>
-</pre><pre class="insert-after"><br><span></span>
-</pre></div>
+</pre><pre class="insert-after"><br><span></span></pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>(), replace 2 lines</div>
 
@@ -676,7 +673,7 @@ identifier:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>resolveLocal</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">int</span> <span class="n">resolveUpvalue</span><span class="o">(</span><span class="n">Compiler</span><span class="o">*</span> <span class="n">compiler</span><span class="o">,</span> <span class="n">Token</span><span class="o">*</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">if</span> <span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span>               
 
   <span class="k">int</span> <span class="n">local</span> <span class="o">=</span> <span class="n">resolveLocal</span><span class="o">(</span><span class="n">compiler</span><span class="o">-&gt;</span><span class="n">enclosing</span><span class="o">,</span> <span class="n">name</span><span class="o">);</span>      
   <span class="k">if</span> <span class="o">(</span><span class="n">local</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>                                        
@@ -1690,7 +1687,7 @@ for an existing one in the list:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>captureUpvalue</em>()</div>
 <pre class="insert"><span></span>  <span class="n">ObjUpvalue</span><span class="o">*</span> <span class="n">prevUpvalue</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>                                   
-  <span class="n">ObjUpvalue</span><span class="o">*</span> <span class="n">upvalue</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">openUpvalues</span><span class="o">;</span>
+  <span class="n">ObjUpvalue</span><span class="o">*</span> <span class="n">upvalue</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">openUpvalues</span><span class="o">;</span>                            
 
   <span class="k">while</span> <span class="o">(</span><span class="n">upvalue</span> <span class="o">!=</span> <span class="nb">NULL</span> <span class="o">&amp;&amp;</span> <span class="n">upvalue</span><span class="o">-&gt;</span><span class="n">location</span> <span class="o">&gt;</span> <span class="n">local</span><span class="o">)</span> <span class="o">{</span>            
     <span class="n">prevUpvalue</span> <span class="o">=</span> <span class="n">upvalue</span><span class="o">;</span>                                          
@@ -1737,7 +1734,7 @@ location:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">ObjUpvalue</span><span class="o">*</span> <span class="n">createdUpvalue</span> <span class="o">=</span> <span class="n">newUpvalue</span><span class="o">(</span><span class="n">local</span><span class="o">);</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>captureUpvalue</em>()</div>
-<pre class="insert"><span></span>  <span class="n">createdUpvalue</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">upvalue</span><span class="o">;</span>
+<pre class="insert"><span></span>  <span class="n">createdUpvalue</span><span class="o">-&gt;</span><span class="n">next</span> <span class="o">=</span> <span class="n">upvalue</span><span class="o">;</span>                
 
   <span class="k">if</span> <span class="o">(</span><span class="n">prevUpvalue</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="o">{</span>                     
     <span class="n">vm</span><span class="o">.</span><span class="n">openUpvalues</span> <span class="o">=</span> <span class="n">createdUpvalue</span><span class="o">;</span>            
@@ -1911,7 +1908,6 @@ stringing them together. The <a href="garbage-collection.html">next step</a> is 
 memory so that we can free some of those objects when they&rsquo;re no longer needed.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>Wrapping every ObjFunction in an ObjClosure introduces a level of
@@ -1932,13 +1928,13 @@ iteration.</p>
 </li>
 <li>
 <p>A <a href="http://wiki.c2.com/?ClosuresAndObjectsAreEquivalent">famous koan</a> teaches us that &ldquo;objects are a poor man&rsquo;s closure&rdquo;
-    (and vice versa). Our VM doesn&rsquo;t support objects yet, but now that we have
+(and vice versa). Our VM doesn&rsquo;t support objects yet, but now that we have
 closures we can approximate them. Using closures, write a Lox program that
 expresses two-dimensional vector &ldquo;objects&rdquo;. It should:</p>
 <ul>
 <li>
 <p>Define a &ldquo;constructor&rdquo; function to create a new vector with the given
-    <em>x</em> and <em>y</em> coordinates.</p>
+<em>x</em> and <em>y</em> coordinates.</p>
 </li>
 <li>
 <p>Provide &ldquo;methods&rdquo; to access the <em>x</em> and <em>y</em> coordinates of values
@@ -1950,10 +1946,8 @@ returned from that constructor.</p>
 </ul>
 </li>
 </ol>
-</div>
-<div class="design-note">
+</div><div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Closing Over the Loop Variable</a></h2>
-
 <p>Closures capture variables. When two closures capture the same variable, they
 share a reference to the same underlying storage location. This fact is visible
 when new values are assigned to the variable. Obviously, if two closures capture

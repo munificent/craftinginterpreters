@@ -171,7 +171,6 @@ type, we define an enum for each kind of value the VM supports:</p>
 <br></pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
-
 <aside name="user-types">
 <p>The cases here cover each kind of value that has <em>built-in support in the VM</em>.
 When we get to adding classes to the language, each class the user defines
@@ -286,7 +285,6 @@ add after struct <em>Value</em></div>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
-
 <aside name="as-null">
 <p>There&rsquo;s no <code>AS_NULL</code> macro because there is only one <code>nil</code> value, so a Value
 with type <code>VAL_NIL</code> doesn&rsquo;t carry any extra data.</p>
@@ -319,7 +317,7 @@ type. Any time we call one of the <code>AS_</code> macros, we need to guard it b
 call to one of these first. With these eight macros, we can now safely shuttle
 data between Lox&rsquo;s dynamic world and C&rsquo;s static one.</p>
 <aside name="universe">
-<p><img alt="The earthly C firmament with the Lox heavens above." src="image/types-of-values/universe.png" /></p>
+<p><img src="image/types-of-values/universe.png" alt="The earthly C firmament with the Lox heavens above." /></p>
 <p>The <code>_VAL</code> macros lift a C value into the heavens. The <code>AS_</code> macros bring it
 back down.</p>
 </aside>
@@ -376,7 +374,7 @@ replace 1 line</div>
         <span class="k">if</span> <span class="o">(!</span><span class="n">IS_NUMBER</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">)))</span> <span class="o">{</span>                  
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Operand must be a number.&quot;</span><span class="o">);</span>
           <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>           
-        <span class="o">}</span>
+        <span class="o">}</span>                                           
 
         <span class="n">push</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">(-</span><span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">pop</span><span class="o">())));</span>        
         <span class="k">break</span><span class="o">;</span>                                      
@@ -423,7 +421,7 @@ add after <em>resetStack</em>()</div>
   <span class="n">va_start</span><span class="o">(</span><span class="n">args</span><span class="o">,</span> <span class="n">format</span><span class="o">);</span>                          
   <span class="n">vfprintf</span><span class="o">(</span><span class="n">stderr</span><span class="o">,</span> <span class="n">format</span><span class="o">,</span> <span class="n">args</span><span class="o">);</span>                  
   <span class="n">va_end</span><span class="o">(</span><span class="n">args</span><span class="o">);</span>                                    
-  <span class="n">fputs</span><span class="o">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">,</span> <span class="n">stderr</span><span class="o">);</span>
+  <span class="n">fputs</span><span class="o">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">,</span> <span class="n">stderr</span><span class="o">);</span>                             
 
   <span class="k">size_t</span> <span class="n">instruction</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">ip</span> <span class="o">-</span> <span class="n">vm</span><span class="o">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">code</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span> 
   <span class="k">int</span> <span class="n">line</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">chunk</span><span class="o">-&gt;</span><span class="n">lines</span><span class="o">[</span><span class="n">instruction</span><span class="o">];</span>         
@@ -556,7 +554,7 @@ about with these new types, it&rsquo;s gratuitous<span class="em">&mdash;</span>
 name="small">slow!</span><span class="em">&mdash;</span>to waste a two-byte instruction and a constant
 table entry on them. Instead, we&rsquo;ll define three dedicated instructions to push
 each of these literals on the stack:</p>
-<aside class="bottom" name="small">
+<aside name="small" class="bottom">
 <p>I&rsquo;m not kidding about dedicated operations for certain constant values being
 faster. A bytecode VM spends much of its execution time reading and decoding
 instructions. The fewer, simpler instructions you need for a given piece of
@@ -819,9 +817,8 @@ user-visible behavior.</p>
 <p>The expression <code>a != b</code> has the same semantics as <code>!(a == b)</code>, so the compiler
 is free to compile the former as if it were the latter. Instead of a dedicated
 <code>OP_NOT_EQUAL</code> instruction, it can output an <code>OP_EQUAL</code> followed by an <code>OP_NOT</code>.
-Likewise, <code>a &lt;= b</code> is the <span name="same">same</span> as <code>!(a &gt; b)</code> and <code>a &gt;=
-b</code> is <code>!(a &lt; b)</code>. Thus, we only need three new instructions.</p>
-<aside class="bottom" name="same">
+Likewise, <code>a &lt;= b</code> is the <span name="same">same</span> as <code>!(a &gt; b)</code> and <code>a &gt;= b</code> is <code>!(a &lt; b)</code>. Thus, we only need three new instructions.</p>
+<aside name="same" class="bottom">
 <p><em>Is</em> <code>a &lt;= b</code> always the same as <code>!(a &gt; b)</code>? According to <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, all
 comparison operators return false when an operand is NaN. That means <code>NaN &lt;= 1</code>
 is false and <code>NaN &gt; 1</code> is also false. But our desugaring assumes the latter is
@@ -908,7 +905,7 @@ add after struct <em>ValueArray</em></div>
 <div class="codehilite"><div class="source-file"><em>value.c</em><br>
 add after <em>printValue</em>()</div>
 <pre><span></span><span class="k">bool</span> <span class="n">valuesEqual</span><span class="o">(</span><span class="n">Value</span> <span class="n">a</span><span class="o">,</span> <span class="n">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>                     
-  <span class="k">if</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>
+  <span class="k">if</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                    
 
   <span class="k">switch</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="o">{</span>                                      
     <span class="k">case</span> <span class="nl">VAL_BOOL</span><span class="o">:</span>   <span class="k">return</span> <span class="n">AS_BOOL</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="n">AS_BOOL</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>    
@@ -992,7 +989,6 @@ difference turns out to have implications so large that we give strings <a href=
 very own chapter</a>.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>We could reduce our binary operators even further than we did here. Which

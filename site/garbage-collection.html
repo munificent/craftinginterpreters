@@ -766,7 +766,7 @@ publication.</p>
 <ul>
 <li>
 <p><strong>White</strong> <img src="image/garbage-collection/white.png" class="dot" />
-    &ndash; At the beginning of a garbage collection, every object is white.
+&ndash; At the beginning of a garbage collection, every object is white.
 This color means we have not reached or processed the object at all.</p>
 </li>
 <li>
@@ -779,7 +779,7 @@ but haven&rsquo;t processed yet.</p>
 </li>
 <li>
 <p><strong>Black</strong> <img src="image/garbage-collection/black.png" class="dot" />
-    &ndash; When we take a gray object and mark all of the objects it
+&ndash; When we take a gray object and mark all of the objects it
 references, we then turn it black. This color means the mark phase is done
 with that object.</p>
 </li>
@@ -837,7 +837,7 @@ in <em>markObject</em>()</div>
     <span class="n">vm</span><span class="o">.</span><span class="n">grayCapacity</span> <span class="o">=</span> <span class="n">GROW_CAPACITY</span><span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">grayCapacity</span><span class="o">);</span>      
     <span class="n">vm</span><span class="o">.</span><span class="n">grayStack</span> <span class="o">=</span> <span class="n">realloc</span><span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">grayStack</span><span class="o">,</span>                   
                            <span class="k">sizeof</span><span class="o">(</span><span class="n">Obj</span><span class="o">*)</span> <span class="o">*</span> <span class="n">vm</span><span class="o">.</span><span class="n">grayCapacity</span><span class="o">);</span>
-  <span class="o">}</span>
+  <span class="o">}</span>                                                        
 
   <span class="n">vm</span><span class="o">.</span><span class="n">grayStack</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">grayCount</span><span class="o">++]</span> <span class="o">=</span> <span class="n">object</span><span class="o">;</span>                   
 </pre><pre class="insert-after"><span></span><span class="o">}</span>                                                          
@@ -1077,7 +1077,7 @@ add after <em>traceReferences</em>()</div>
       <span class="n">previous</span> <span class="o">=</span> <span class="n">object</span><span class="o">;</span>        
       <span class="n">object</span> <span class="o">=</span> <span class="n">object</span><span class="o">-&gt;</span><span class="n">next</span><span class="o">;</span>    
     <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                    
-      <span class="n">Obj</span><span class="o">*</span> <span class="n">unreached</span> <span class="o">=</span> <span class="n">object</span><span class="o">;</span>
+      <span class="n">Obj</span><span class="o">*</span> <span class="n">unreached</span> <span class="o">=</span> <span class="n">object</span><span class="o">;</span>  
 
       <span class="n">object</span> <span class="o">=</span> <span class="n">object</span><span class="o">-&gt;</span><span class="n">next</span><span class="o">;</span>    
       <span class="k">if</span> <span class="o">(</span><span class="n">previous</span> <span class="o">!=</span> <span class="nb">NULL</span><span class="o">)</span> <span class="o">{</span>   
@@ -1623,11 +1623,10 @@ the collection bugs in clox and now we have a working, robust, self-tuning
 mark-sweep garbage collector.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>The Obj header struct at the top of each object now has three fields:
-    <code>type</code>, <code>isMarked</code>, and <code>next</code>. How much memory do those take up (on your
+<code>type</code>, <code>isMarked</code>, and <code>next</code>. How much memory do those take up (on your
 machine)? Can you come up with something more compact? Is there a runtime
 cost to doing so?</p>
 </li>
@@ -1643,10 +1642,8 @@ another one. Good candidates to consider are reference counting, Cheney&rsquo;s
 algorithm, or the Lisp 2 mark-compact algorithm.</p>
 </li>
 </ol>
-</div>
-<div class="design-note">
+</div><div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Generational Collectors</a></h2>
-
 <p>A collector loses throughput if it spends a long time re-visiting objects that
 are still alive. But it can increase latency if it avoids collecting and
 accumulates a large pile of garbage to wade through. If only there were some way

@@ -201,7 +201,6 @@ add after <em>expressionStatement</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
-
 <aside name="paren">
 <p>Have you ever noticed that the <code>(</code> after the <code>if</code> keyword doesn&rsquo;t actually do
 anything useful? The language would be just as unambiguous and easy to parse
@@ -268,7 +267,7 @@ compiling the then branch, we take that offset and pass it to:</p>
 add after <em>emitConstant</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">patchJump</span><span class="o">(</span><span class="k">int</span> <span class="n">offset</span><span class="o">)</span> <span class="o">{</span>                           
   <span class="c1">// -2 to adjust for the bytecode for the jump offset itself.</span>
-  <span class="k">int</span> <span class="n">jump</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="o">;</span>
+  <span class="k">int</span> <span class="n">jump</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="mi">2</span><span class="o">;</span>              
 
   <span class="k">if</span> <span class="o">(</span><span class="n">jump</span> <span class="o">&gt;</span> <span class="n">UINT16_MAX</span><span class="o">)</span> <span class="o">{</span>                                    
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Too much code to jump over.&quot;</span><span class="o">);</span>                     
@@ -576,7 +575,7 @@ replace 1 line</div>
 add after <em>number</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">or_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>           
   <span class="k">int</span> <span class="n">elseJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="o">(</span><span class="n">OP_JUMP_IF_FALSE</span><span class="o">);</span>
-  <span class="k">int</span> <span class="n">endJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="o">(</span><span class="n">OP_JUMP</span><span class="o">);</span>
+  <span class="k">int</span> <span class="n">endJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="o">(</span><span class="n">OP_JUMP</span><span class="o">);</span>          
 
   <span class="n">patchJump</span><span class="o">(</span><span class="n">elseJump</span><span class="o">);</span>                      
   <span class="n">emitByte</span><span class="o">(</span><span class="n">OP_POP</span><span class="o">);</span>                         
@@ -684,7 +683,7 @@ Then we pass that into this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">emitLoop</span><span class="o">(</span><span class="k">int</span> <span class="n">loopStart</span><span class="o">)</span> <span class="o">{</span>                    
-  <span class="n">emitByte</span><span class="o">(</span><span class="n">OP_LOOP</span><span class="o">);</span>
+  <span class="n">emitByte</span><span class="o">(</span><span class="n">OP_LOOP</span><span class="o">);</span>                                     
 
   <span class="k">int</span> <span class="n">offset</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span> <span class="o">-</span> <span class="n">loopStart</span> <span class="o">+</span> <span class="mi">2</span><span class="o">;</span>    
   <span class="k">if</span> <span class="o">(</span><span class="n">offset</span> <span class="o">&gt;</span> <span class="n">UINT16_MAX</span><span class="o">)</span> <span class="n">error</span><span class="o">(</span><span class="s">&quot;Loop body too large.&quot;</span><span class="o">);</span>
@@ -792,7 +791,7 @@ like <code>for (;;)</code>, then we could implement it like this:</p>
 add after <em>expressionStatement</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">forStatement</span><span class="o">()</span> <span class="o">{</span>                                  
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span><span class="o">);</span>       
-  <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="o">);</span>
+  <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="o">);</span>                    
 
   <span class="k">int</span> <span class="n">loopStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>                      
 
@@ -919,7 +918,7 @@ C, right? Here&rsquo;s the code:</p>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(!</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                              
-    <span class="k">int</span> <span class="n">bodyJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="o">(</span><span class="n">OP_JUMP</span><span class="o">);</span>
+    <span class="k">int</span> <span class="n">bodyJump</span> <span class="o">=</span> <span class="n">emitJump</span><span class="o">(</span><span class="n">OP_JUMP</span><span class="o">);</span>                           
 
     <span class="k">int</span> <span class="n">incrementStart</span> <span class="o">=</span> <span class="n">currentChunk</span><span class="o">()-&gt;</span><span class="n">count</span><span class="o">;</span>                 
     <span class="n">expression</span><span class="o">();</span>                                               
@@ -965,11 +964,10 @@ That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM
 </aside>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>In addition to if statements, most C-family languages have a multi-way
-    <code>switch</code> statement. Add one to clox. The grammar is:</p>
+<code>switch</code> statement. Add one to clox. The grammar is:</p>
 <div class="codehilite"><pre><span></span><span class="n">switchStmt</span>  <span class="err">→</span> <span class="s">&quot;switch&quot;</span> <span class="s">&quot;(&quot;</span> <span class="n">expression</span> <span class="s">&quot;)&quot;</span>
               <span class="s">&quot;{&quot;</span> <span class="n">switchCase</span><span class="o">*</span> <span class="n">defaultCase</span><span class="err">?</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
 <span class="n">switchCase</span>  <span class="err">→</span> <span class="s">&quot;case&quot;</span> <span class="n">expression</span> <span class="s">&quot;:&quot;</span> <span class="n">statement</span><span class="o">*</span> <span class="o">;</span>
@@ -1013,10 +1011,8 @@ level to outweigh the cost of forcing a user to learn an unfamiliar notation
 and behavior, but it&rsquo;s a good chance to practice your design skills.</p>
 </li>
 </ol>
-</div>
-<div class="design-note">
+</div><div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Considering Goto Harmful</a></h2>
-
 <p>Discovering that all of our beautiful structured control flow in Lox is actually
 compiled to raw unstructured jumps is like the moment in Scooby Doo when the
 monster rips the mask off their face. It was goto all along! Except in this
@@ -1145,10 +1141,8 @@ constructs is a net win for all of our productivity.</p>
 absence of goto, we often resort to more complex structured patterns. The
 &ldquo;switch inside a loop&rdquo; is a classic one. Another is using a guard variable to
 exit out of a series of nested loops:</p>
-<p><span name="break">
-</span>
-</p>
-<div class="codehilite"><pre><span></span><span class="c1">// See if the matrix contains a zero.</span>
+<span name="break">
+</span><div class="codehilite"><pre><span></span><span class="c1">// See if the matrix contains a zero.</span>
 <span class="k">bool</span> <span class="n">found</span> <span class="o">=</span> <span class="nb">false</span><span class="o">;</span>
 <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">xSize</span><span class="o">;</span> <span class="n">x</span><span class="o">++)</span> <span class="o">{</span>
   <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">ySize</span><span class="o">;</span> <span class="n">y</span><span class="o">++)</span> <span class="o">{</span>

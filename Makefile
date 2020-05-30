@@ -5,64 +5,60 @@ TEST_SNAPSHOT := $(BUILD_DIR)/test.dart.snapshot
 
 default: book clox jlox
 
-# Create the Python environment and install packages into it.
-setup:
-	@ python3 -m venv util/env
-	@ ./util/env/bin/pip install -r util/requirements.txt
-
-# Build the site.
-book:
-	@ ./util/build.py
-
-# Build the site using the Dart build script.
-book_dart: $(BUILD_SNAPSHOT)
-	@ dart $(BUILD_SNAPSHOT)
-
-$(BUILD_SNAPSHOT): $(TOOL_SOURCES)
-	@ echo "Generating Dart snapshot..."
-	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/build.dart >/dev/null
-
-# Compile a debug build of clox.
-debug:
-	@ $(MAKE) -f util/c.make NAME=cloxd MODE=debug SOURCE_DIR=c
-
-# Run a local development server for the site that rebuilds automatically.
-serve:
-	@ ./util/build.py --serve
-
-# Run the tests for the final versions of clox and jlox.
-test: $(TEST_SNAPSHOT) debug jlox
-	@- dart $(TEST_SNAPSHOT) clox
-	@ dart $(TEST_SNAPSHOT) jlox
-
-# Run the tests for the final version of clox.
-test_clox: $(TEST_SNAPSHOT) debug
-	@ dart $(TEST_SNAPSHOT) clox
-
-# Run the tests for final version of jlox.
-test_jlox: $(TEST_SNAPSHOT) jlox
-	@ dart $(TEST_SNAPSHOT) jlox
-
-# Run the tests for every chapter's version of clox.
-test_c: $(TEST_SNAPSHOT) debug c_chapters
-	@ dart $(TEST_SNAPSHOT) c
-
-# Run the tests for every chapter's version of jlox.
-test_java: $(TEST_SNAPSHOT) jlox java_chapters
-	@ dart $(TEST_SNAPSHOT) java
-
-# Run the tests for every chapter's version of clox and jlox.
-test_all: $(TEST_SNAPSHOT) debug jlox c_chapters java_chapters compile_snippets
-	@ dart $(TEST_SNAPSHOT) all
-
-$(TEST_SNAPSHOT): $(TOOL_SOURCES)
-	@ echo "Generating Dart snapshot..."
-	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/test.dart clox >/dev/null
-
 # Remove all build outputs and intermediate files.
 clean:
 	@ rm -rf $(BUILD_DIR)
 	@ rm -rf gen
+
+old:
+	@ ./util/build.py
+
+# Build the site.
+book: $(BUILD_SNAPSHOT)
+	@ dart $(BUILD_SNAPSHOT)
+
+# Run a local development server for the site that rebuilds automatically.
+serve: $(BUILD_SNAPSHOT)
+	@ dart $(BUILD_SNAPSHOT) --serve
+
+$(BUILD_SNAPSHOT): $(TOOL_SOURCES)
+	@ mkdir -p build
+	@ echo "Compiling Dart snapshot..."
+	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/build.dart >/dev/null
+
+# Run the tests for the final versions of clox and jlox.
+test: debug jlox $(TEST_SNAPSHOT)
+	@- dart $(TEST_SNAPSHOT) clox
+	@ dart $(TEST_SNAPSHOT) jlox
+
+# Run the tests for the final version of clox.
+test_clox: debug $(TEST_SNAPSHOT)
+	@ dart $(TEST_SNAPSHOT) clox
+
+# Run the tests for the final version of jlox.
+test_jlox: jlox $(TEST_SNAPSHOT)
+	@ dart $(TEST_SNAPSHOT) jlox
+
+# Run the tests for every chapter's version of clox.
+test_c: debug c_chapters $(TEST_SNAPSHOT)
+	@ dart $(TEST_SNAPSHOT) c
+
+# Run the tests for every chapter's version of jlox.
+test_java: jlox java_chapters $(TEST_SNAPSHOT)
+	@ dart $(TEST_SNAPSHOT) java
+
+# Run the tests for every chapter's version of clox and jlox.
+test_all: debug jlox c_chapters java_chapters compile_snippets $(TEST_SNAPSHOT)
+	@ dart $(TEST_SNAPSHOT) all
+
+$(TEST_SNAPSHOT): $(TOOL_SOURCES)
+	@ mkdir -p build
+	@ echo "Compiling Dart snapshot..."
+	@ dart --snapshot=$@ --snapshot-kind=app-jit tool/bin/test.dart clox >/dev/null
+
+# Compile a debug build of clox.
+debug:
+	@ $(MAKE) -f util/c.make NAME=cloxd MODE=debug SOURCE_DIR=c
 
 # Compile the C interpreter.
 clox:

@@ -41,25 +41,20 @@ little extra effort, you should be able to get this working on Windows as well,
 though I can't help you out much.
 
 Most of the work is orchestrated by make. The build scripts, test runner, and
-other utilities are all written in Python 3. The makefile assumes `python3` is
-on your PATH, but it only uses that to set up a Python venv environement which
-it then uses for everything else:
+other utilities are all written in [Dart][]. Instructions to install Dart are
+[here][install]. Once you have Dart installed and on your path, run:
 
 ```sh
-$ make setup
+$ pub get
 ```
 
-This creates the Python environment at `util/env` and installs the required
-packages into it. All other Python scripts in the repo invoke Python from this
-environment.
+[dart]: https://dart.dev/
+[install]: https://dart.dev/get-dart
 
-You also need [Sass][] installed and on your PATH. Follow the instructions there
-to install it for your OS.
+This downloads all of the packages used by the build and test scripts.
 
-[sass]: https://sass-lang.com/
-
-In order to compile the two interpreters, you need some C compiler on your path
-as well as `javac`.
+In order to compile the two interpreters, you also need a C compiler on your
+path as well as `javac`.
 
 ### Building
 
@@ -80,15 +75,21 @@ $ ./jlox
 
 ### Hacking on the book
 
-The Markdown and snippets of source code are woven together into the final
-HTML using a hand-written little static site generator, `util/build.py`. It's
-a fairly simple static site generator. The generated HTML is committed in
-the repo under `site/`. It is built from a combination of Markdown for prose,
-which lives in `book/`, and snippets of code that are weaved in from the Java
-and C implementations in `java/` and `c/`. (All of those funny looking comments
-in the source code are how it knows which snippet goes where.)
+The Markdown and snippets of source code are woven together into the final HTML
+using a hand-written static site generator that started out as a [single tiny
+Python script][py] for [my first book][gpp] and somehow grew into something
+approximating a real program.
 
-The script that does all the magic is `util/build.py`. You can run that
+[py]: https://github.com/munificent/game-programming-patterns/blob/master/script/format.py
+[gpp]: http://gameprogrammingpatterns.com/
+
+The generated HTML is committed in the repo under `site/`. It is built from a
+combination of Markdown for prose, which lives in `book/`, and snippets of code
+that are weaved in from the Java and C implementations in `java/` and `c/`. (All
+of those funny looking comments in the source code are how it knows which
+snippet goes where.)
+
+The script that does all the magic is `tool/bin/build.dart`. You can run that
 directly, or run:
 
 ```sh
@@ -120,14 +121,14 @@ $ make jlox
 This builds the final version of each interpreter as it appears at the end of
 its part in the book.
 
-You can also see what the interpreters look like at the end of each chapter.
-(I use this to make sure they are working even in the middle of the book.) This
-is driven by a script, `util/split_chapters.py` that uses the same comment
+You can also see what the interpreters look like at the end of each chapter. (I
+use this to make sure they are working even in the middle of the book.) This is
+driven by a script, `tool/bin/split_chapters.dart` that uses the same comment
 markers for the code snippets to determine which chunks of code are present in
 each chapter. It takes only the snippets that have been seen by the end of each
-chapter and produces a new copy of the source in `gen/`, one directory for
-each chapter's code. (These are also an easier way to view the source code
-since they have all of the distracting marker comments stripped out.)
+chapter and produces a new copy of the source in `gen/`, one directory for each
+chapter's code. (These are also an easier way to view the source code since they
+have all of the distracting marker comments stripped out.)
 
 Then, each of those can be built separately. Run:
 
@@ -144,6 +145,28 @@ $ make java_chapters
 
 This compiles the Java code to classfiles in `build/gen/` in a subdirectory for
 each chapter.
+
+## Testing
+
+I have a full Lox test suite that I use to ensure the interpreters in the book
+do what they're supposed to do. The test cases live in `test/`. The Dart
+program `tool/bin/test.dart` is a test runner that runs each of those test
+files on a Lox interpreter, parses the result, and validates that that the test
+does what it's expected to do.
+
+There are various interpreters you can run the tests against:
+
+```sh
+$ make test       # The final versions of clox and jlox.
+$ make test_clox  # The final version of clox.
+$ make test_jlox  # The final version of jlox.
+$ make test_c     # Every chapter's version of clox.
+$ make test_java  # Every chapter's version of jlox.
+$ make test_all   # All of the above.
+```
+
+You are more than welcome to use the test suite and the test runner to test
+your own Lox implementation.
 
 ## Repository Layout
 
@@ -163,5 +186,4 @@ each chapter.
     but fonts, images, and JS only live here. Everything is committed, even the
     generated content.
 *   `test/` – Test cases for the Lox implementations.
-*   `util/` – Tools and build scripts. The test runner and build system that
-    generate the site from the Markdown and source files live here.
+*   `tool/` – Dart package containing the build, test, and other scripts.
