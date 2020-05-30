@@ -167,10 +167,10 @@ AST<span class="em">&mdash;</span>is fundamentally the wrong design. We can&rsqu
 performance we want any more than you can polish an AMC Gremlin into an SR-71
 Blackbird.</p>
 <p>We need to rethink the core model. This chapter introduces that model, bytecode, and begins our new interpreter, clox.</p>
-<h2><a href="#bytecode" name="bytecode"><small>14&#8202;.&#8202;1</small> Bytecode?</a></h2>
+<h2><a href="#bytecode" name="bytecode"><small>14&#8202;.&#8202;1</small>Bytecode?</a></h2>
 <p>In engineering, few choices are without trade-offs. To best understand why we&rsquo;re
 going with bytecode, let&rsquo;s stack it up against a couple of alternatives.</p>
-<h3><a href="#why-not-walk-the-ast" name="why-not-walk-the-ast"><small>14&#8202;.&#8202;1&#8202;.&#8202;1</small> Why not walk the AST?</a></h3>
+<h3><a href="#why-not-walk-the-ast" name="why-not-walk-the-ast"><small>14&#8202;.&#8202;1&#8202;.&#8202;1</small>Why not walk the AST?</a></h3>
 <p>Our existing interpreter has a couple of things going for it:</p>
 <ul>
 <li>
@@ -229,7 +229,7 @@ parser first produced them, after a couple of rounds of garbage collection<span 
 <p>Our AST walker has other overhead too around interface dispatch and the visitor
 pattern, but the locality issues alone are enough to justify a better code
 representation.</p>
-<h3><a href="#why-not-compile-to-native-code" name="why-not-compile-to-native-code"><small>14&#8202;.&#8202;1&#8202;.&#8202;2</small> Why not compile to native code?</a></h3>
+<h3><a href="#why-not-compile-to-native-code" name="why-not-compile-to-native-code"><small>14&#8202;.&#8202;1&#8202;.&#8202;2</small>Why not compile to native code?</a></h3>
 <p>If you want to go <em>real</em> fast, you want to get all of those layers of
 indirection out of the way. Right down to the metal. Machine code. It even
 <em>sounds</em> fast. <em>&ldquo;Machine code.&rdquo;</em></p>
@@ -271,7 +271,7 @@ time.</p>
 outputs LLVM&rsquo;s own special intermediate language, it in turn compiles that to
 native code for a plethora of architectures.</p>
 </aside>
-<h3><a href="#what-is-bytecode" name="what-is-bytecode"><small>14&#8202;.&#8202;1&#8202;.&#8202;3</small> What is bytecode?</a></h3>
+<h3><a href="#what-is-bytecode" name="what-is-bytecode"><small>14&#8202;.&#8202;1&#8202;.&#8202;3</small>What is bytecode?</a></h3>
 <p>Fix those two points in your mind. On one end, a tree-walk interpreter is
 simple, portable, and slow. On the other, native code is complex and
 platform-specific but fast. Bytecode sits in the middle. It retains the
@@ -314,7 +314,7 @@ to Bytecode to Virtual Machine." /></p>
 interpreter, we&rsquo;ll bounce around, building up the implementation one language
 feature at a time. In this chapter, we&rsquo;ll get the skeleton of the application in
 place and the data structures needed to store and represent a chunk of bytecode.</p>
-<h2><a href="#getting-started" name="getting-started"><small>14&#8202;.&#8202;2</small> Getting Started</a></h2>
+<h2><a href="#getting-started" name="getting-started"><small>14&#8202;.&#8202;2</small>Getting Started</a></h2>
 <p>Where else to begin, but at <code>main()</code>? <span name="ready">Fire</span> up your
 trusty text editor and C compiler and start typing:</p>
 <aside name="ready">
@@ -352,7 +352,7 @@ create new file</div>
 <p>There are a handful of types and constants we&rsquo;ll use throughout the interpreter,
 and this is a convenient place to put them. For now, it&rsquo;s the venerable <code>NULL</code>
 and <code>size_t</code> along with the nice C99 Boolean and explicit-sized integer types<span class="em">&mdash;</span><code>bool</code>, <code>uint8_t</code>, and friends.</p>
-<h2><a href="#chunks-of-instructions" name="chunks-of-instructions"><small>14&#8202;.&#8202;3</small> Chunks of Instructions</a></h2>
+<h2><a href="#chunks-of-instructions" name="chunks-of-instructions"><small>14&#8202;.&#8202;3</small>Chunks of Instructions</a></h2>
 <p>Next, we need a module to define our code representation. I&rsquo;ve been using
 &ldquo;chunk&rdquo; to refer to blobs of bytecode, so let&rsquo;s make that the official name for
 that module:</p>
@@ -390,7 +390,7 @@ define those here:</p>
 this one will mean &ldquo;return from the current function&rdquo;. I admit this isn&rsquo;t
 exactly useful yet, but we have to start somewhere, and this is a particularly
 simple instruction, for reasons we&rsquo;ll get to later.</p>
-<h3><a href="#a-dynamic-array-of-instructions" name="a-dynamic-array-of-instructions"><small>14&#8202;.&#8202;3&#8202;.&#8202;1</small> A dynamic array of instructions</a></h3>
+<h3><a href="#a-dynamic-array-of-instructions" name="a-dynamic-array-of-instructions"><small>14&#8202;.&#8202;3&#8202;.&#8202;1</small>A dynamic array of instructions</a></h3>
 <p>Bytecode is a series of instructions. Eventually, we&rsquo;ll store some other data
 along with the instructions, so let&rsquo;s go ahead and create a struct to hold it
 all:</p>
@@ -725,7 +725,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize);
 
 <p>Like <code>GROW_ARRAY()</code>, this is a wrapper around a call to <code>reallocate()</code>. This one
 frees the memory by passing in zero for the new size.</p>
-<h2><a href="#disassembling-chunks" name="disassembling-chunks"><small>14&#8202;.&#8202;4</small> Disassembling Chunks</a></h2>
+<h2><a href="#disassembling-chunks" name="disassembling-chunks"><small>14&#8202;.&#8202;4</small>Disassembling Chunks</a></h2>
 <p>Great, now we have a little module for creating chunks of bytecode. Let&rsquo;s try
 it out by hand-building a sample chunk:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -897,7 +897,7 @@ instructions will have more going on.</p>
 can create a chunk, write an instruction to it, and then extract that
 instruction back out. Our encoding and decoding of the binary bytecode is
 working.</p>
-<h2><a href="#constants" name="constants"><small>14&#8202;.&#8202;5</small> Constants</a></h2>
+<h2><a href="#constants" name="constants"><small>14&#8202;.&#8202;5</small>Constants</a></h2>
 <p>Now that we have a rudimentary chunk structure working, let&rsquo;s start making it
 more useful. We can store <em>code</em> in chunks, but what about <em>data</em>? Many values
 the interpreter works with are created at runtime as the result of operations.
@@ -910,7 +910,7 @@ To compile that statement to bytecode, we need some sort of instruction that
 means &ldquo;produce a constant&rdquo; and those literal values need to get stored in the
 chunk somewhere. In jlox, the Expr.Literal AST node held the value. We need a
 different solution now that we don&rsquo;t have a syntax tree.</p>
-<h3><a href="#representing-values" name="representing-values"><small>14&#8202;.&#8202;5&#8202;.&#8202;1</small> Representing values</a></h3>
+<h3><a href="#representing-values" name="representing-values"><small>14&#8202;.&#8202;5&#8202;.&#8202;1</small>Representing values</a></h3>
 <p>We won&rsquo;t be <em>running</em> any code in this chapter, but since constants have a foot
 in both the static and dynamic worlds of our interpreter, they force us to start
 thinking at least a little bit about how our VM should represent values.</p>
@@ -955,7 +955,7 @@ values and one for constants in the constant table<span class="em">&mdash;</span
 to worry about alignment, padding, and endianness. Some architectures aren&rsquo;t
 happy if you try to say, stuff a 4-byte integer at an odd address.</p>
 </aside>
-<h3><a href="#value-arrays" name="value-arrays"><small>14&#8202;.&#8202;5&#8202;.&#8202;2</small> Value arrays</a></h3>
+<h3><a href="#value-arrays" name="value-arrays"><small>14&#8202;.&#8202;5&#8202;.&#8202;2</small>Value arrays</a></h3>
 <p>The constant pool is an array of values. The instruction to load a constant
 looks up the value by index in that array. As with our bytecode array, the
 compiler doesn&rsquo;t know how big the array needs to be ahead of time. So, <span
@@ -1137,7 +1137,7 @@ add after <em>writeChunk</em>()</div>
 
 <p>After it adds the constant, it returns the index where it was appended so that
 we can locate that same constant later.</p>
-<h3><a href="#constant-instructions" name="constant-instructions"><small>14&#8202;.&#8202;5&#8202;.&#8202;3</small> Constant instructions</a></h3>
+<h3><a href="#constant-instructions" name="constant-instructions"><small>14&#8202;.&#8202;5&#8202;.&#8202;3</small>Constant instructions</a></h3>
 <p>We can <em>store</em> constants in chunks, but we also need to <em>execute</em> them. In a
 piece of code like:</p>
 <div class="codehilite"><pre>
@@ -1295,7 +1295,7 @@ in <em>constantInstruction</em>()</div>
 <p>Remember that <code>disassembleInstruction()</code> also returns a number to tell the
 caller how many bytes to advance to reach the beginning of the <em>next</em>
 instruction. Where <code>OP_RETURN</code> was only a single byte, <code>OP_CONSTANT</code> is two<span class="em">&mdash;</span>one for the opcode and one for the operand.</p>
-<h2><a href="#line-information" name="line-information"><small>14&#8202;.&#8202;6</small> Line Information</a></h2>
+<h2><a href="#line-information" name="line-information"><small>14&#8202;.&#8202;6</small>Line Information</a></h2>
 <p>Chunks contain almost everything we need to preserve from the user&rsquo;s source
 code. It&rsquo;s kind of crazy to think that we can reduce all of the different AST
 classes that we created in jlox down to an array of bytes and an array of
@@ -1411,7 +1411,7 @@ in <em>writeChunk</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>chunk.c</em>, in <em>writeChunk</em>()</div>
 
-<h3><a href="#disassembling-line-information" name="disassembling-line-information"><small>14&#8202;.&#8202;6&#8202;.&#8202;1</small> Disassembling line information</a></h3>
+<h3><a href="#disassembling-line-information" name="disassembling-line-information"><small>14&#8202;.&#8202;6&#8202;.&#8202;1</small>Disassembling line information</a></h3>
 <p>Alright, let&rsquo;s try this out with our little, uh, artisanal chunk. First, since
 we added a new parameter to <code>writeChunk()</code>, we need to fix those calls to pass
 in some<span class="em">&mdash;</span>arbitrary at this point<span class="em">&mdash;</span>line number:</p>

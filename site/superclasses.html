@@ -132,7 +132,7 @@ are &ldquo;optimization&rdquo;.</p>
 super calls is pretty much the same, though viewed through clox&rsquo;s more complex
 mechanism for storing state on the stack. But we have an entirely different,
 much faster, way of handling inherited method calls this time around.</p>
-<h2><a href="#inheriting-methods" name="inheriting-methods"><small>29&#8202;.&#8202;1</small> Inheriting Methods</a></h2>
+<h2><a href="#inheriting-methods" name="inheriting-methods"><small>29&#8202;.&#8202;1</small>Inheriting Methods</a></h2>
 <p>We&rsquo;ll kick things off with method inheritance since it&rsquo;s the simpler piece. To
 refresh your memory, Lox inheritance syntax looks like this:</p>
 <div class="codehilite"><pre>
@@ -210,7 +210,7 @@ cannot inherit from yourself.</p>
 allowing cycles would actually cause any problems in clox. It wouldn&rsquo;t do
 anything <em>useful</em>, but I don&rsquo;t think it would cause a crash or infinite loop.</p>
 </aside>
-<h3><a href="#executing-inheritance" name="executing-inheritance"><small>29&#8202;.&#8202;1&#8202;.&#8202;1</small> Executing inheritance</a></h3>
+<h3><a href="#executing-inheritance" name="executing-inheritance"><small>29&#8202;.&#8202;1&#8202;.&#8202;1</small>Executing inheritance</a></h3>
 <p>Now onto the new instruction:</p>
 <div class="codehilite"><pre class="insert-before">
   OP_CLASS,  
@@ -307,7 +307,7 @@ subclass but before any method declarations and <code>OP_METHOD</code> instructi
 been compiled. At the point that we copy the superclass&rsquo;s methods down, the
 subclass&rsquo;s method table is empty. Any methods the subclass overrides will
 overwrite those inherited entries in the table.</p>
-<h3><a href="#invalid-superclasses" name="invalid-superclasses"><small>29&#8202;.&#8202;1&#8202;.&#8202;2</small> Invalid superclasses</a></h3>
+<h3><a href="#invalid-superclasses" name="invalid-superclasses"><small>29&#8202;.&#8202;1&#8202;.&#8202;2</small>Invalid superclasses</a></h3>
 <p>Our implementation is simple and fast, which is just the way I like my VM code.
 But it&rsquo;s not robust. Nothing prevents a user from inheriting from an object that
 isn&rsquo;t a class at all:</p>
@@ -337,7 +337,7 @@ in <em>run</em>()</div>
 <p>If the value we loaded from the identifier in the superclass clause isn&rsquo;t an
 ObjClass, we report a runtime error to let the user know what we think of them
 and their code.</p>
-<h2><a href="#storing-superclasses" name="storing-superclasses"><small>29&#8202;.&#8202;2</small> Storing Superclasses</a></h2>
+<h2><a href="#storing-superclasses" name="storing-superclasses"><small>29&#8202;.&#8202;2</small>Storing Superclasses</a></h2>
 <p>Did you notice that when we added method inheritance we didn&rsquo;t actually add any
 reference from a subclass to its superclass? After we copy the inherited methods
 over, we forget the superclass entirely. We don&rsquo;t need to keep a handle on the
@@ -416,7 +416,7 @@ variable and tell the runtime to start looking for methods there.</p>
 heap-allocated Environment class, we have the bytecode VM&rsquo;s value stack and
 upvalue system. The machinery is a little different, but the overall effect is
 the same.</p>
-<h3><a href="#a-superclass-local-variable" name="a-superclass-local-variable"><small>29&#8202;.&#8202;2&#8202;.&#8202;1</small> A superclass local variable</a></h3>
+<h3><a href="#a-superclass-local-variable" name="a-superclass-local-variable"><small>29&#8202;.&#8202;2&#8202;.&#8202;1</small>A superclass local variable</a></h3>
 <p>Over in the front end, compiling the superclass clause emits bytecode that loads
 the superclass onto the stack. Instead of leaving that slot as a temporary, we
 create a new scope and make it a local variable:</p>
@@ -535,7 +535,7 @@ emit code to load the variable named &ldquo;super&rdquo;. That variable is a loc
 of the method body, but our existing upvalue support enables the VM to capture
 that local inside the body of the method or even in functions nested inside that
 method.</p>
-<h2><a href="#super-calls" name="super-calls"><small>29&#8202;.&#8202;3</small> Super Calls</a></h2>
+<h2><a href="#super-calls" name="super-calls"><small>29&#8202;.&#8202;3</small>Super Calls</a></h2>
 <p>With that runtime support in place, we are ready to implement super calls. As
 usual, we go front to back, starting with the new syntax. A super call <span
 name="last">begins</span>, naturally enough, with the <code>super</code> keyword:</p>
@@ -675,7 +675,7 @@ in <em>super_</em>()</div>
 nested inside a method), and only inside the method of a class that has a
 superclass. We detect both of these cases using the value of <code>currentClass</code>. If
 that&rsquo;s <code>NULL</code> or points to a class with no superclass, we report those errors.</p>
-<h3><a href="#executing-super-accesses" name="executing-super-accesses"><small>29&#8202;.&#8202;3&#8202;.&#8202;1</small> Executing super accesses</a></h3>
+<h3><a href="#executing-super-accesses" name="executing-super-accesses"><small>29&#8202;.&#8202;3&#8202;.&#8202;1</small>Executing super accesses</a></h3>
 <p>Assuming the user didn&rsquo;t put a super expression where it&rsquo;s not allowed, their
 code passes from the compiler over to the runtime. We&rsquo;ve got ourselves a new
 instruction:</p>
@@ -752,7 +752,7 @@ always resolve to methods.</p>
 instances would inherit from (&ldquo;delegate to&rdquo;) other instances. In that case,
 fields <em>can</em> be inherited and we would need to check for them here.</p>
 </aside>
-<h3><a href="#faster-super-calls" name="faster-super-calls"><small>29&#8202;.&#8202;3&#8202;.&#8202;2</small> Faster super calls</a></h3>
+<h3><a href="#faster-super-calls" name="faster-super-calls"><small>29&#8202;.&#8202;3&#8202;.&#8202;2</small>Faster super calls</a></h3>
 <p>We have superclass method accesses working now. And since the returned object is
 an ObjBoundMethod that you can then invoke, we&rsquo;ve got super <em>calls</em> working too.
 Just like last chapter, we&rsquo;ve reached a point where our VM has the complete
@@ -874,7 +874,7 @@ method could not be found, it returns <code>false</code> and we bail out of the
 interpreter. Otherwise, <code>invokeFromClass()</code> pushes a new CallFrame onto the call
 stack for the method&rsquo;s closure. That invalidates the interpreter&rsquo;s cached
 CallFrame pointer, so we refresh <code>frame</code>.</p>
-<h2><a href="#a-complete-virtual-machine" name="a-complete-virtual-machine"><small>29&#8202;.&#8202;4</small> A Complete Virtual Machine</a></h2>
+<h2><a href="#a-complete-virtual-machine" name="a-complete-virtual-machine"><small>29&#8202;.&#8202;4</small>A Complete Virtual Machine</a></h2>
 <p>Take a look back at what we&rsquo;ve created. By my count, we wrote around 2,500 lines
 of fairly clean, straightforward C. That little program contains a complete
 implementation of the<span class="em">&mdash;</span>quite high-level!<span class="em">&mdash;</span>Lox language with a whole

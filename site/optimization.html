@@ -122,7 +122,7 @@ on clox<span class="em">&mdash;</span>this time purely for performance. We&rsquo
 optimizations to our virtual machine.  In the process, you&rsquo;ll get a feel for
 measuring and improving the performance of a language implementation or any
 program, really.</p>
-<h2><a href="#measuring-performance" name="measuring-performance"><small>30&#8202;.&#8202;1</small> Measuring Performance</a></h2>
+<h2><a href="#measuring-performance" name="measuring-performance"><small>30&#8202;.&#8202;1</small>Measuring Performance</a></h2>
 <p><strong>Optimization</strong> means taking a working application and improving its
 performance along any number of axes. In contrast with other programming, it
 doesn&rsquo;t aim to change <em>what</em> the program does, instead, it reduces the number of
@@ -148,7 +148,7 @@ write optimizations for our virtual machine, we also can&rsquo;t assume that we 
 make <em>all</em> Lox programs run faster on <em>all</em> hardware. Different Lox programs
 stress different areas of the VM, and different architectures have their own
 strengths and weaknesses.</p>
-<h3><a href="#benchmarks" name="benchmarks"><small>30&#8202;.&#8202;1&#8202;.&#8202;1</small> Benchmarks</a></h3>
+<h3><a href="#benchmarks" name="benchmarks"><small>30&#8202;.&#8202;1&#8202;.&#8202;1</small>Benchmarks</a></h3>
 <p>When we add new functionality, we validate correctness by writing tests<span class="em">&mdash;</span>Lox
 programs that use a feature and validate the VM&rsquo;s behavior. Tests pin down
 semantics and ensure we don&rsquo;t break existing features when we add new ones. We
@@ -211,7 +211,7 @@ code paths that you care about. When you measure performance, you need to
 compensate for variance caused by CPU throttling, caching, and other weird
 hardware and operating system quirks. I won&rsquo;t give you a whole sermon here,
 but treat benchmarking as its own skill that improves with practice.</p>
-<h3><a href="#profiling" name="profiling"><small>30&#8202;.&#8202;1&#8202;.&#8202;2</small> Profiling</a></h3>
+<h3><a href="#profiling" name="profiling"><small>30&#8202;.&#8202;1&#8202;.&#8202;2</small>Profiling</a></h3>
 <p>OK, so you&rsquo;ve got a few benchmarks now. You want to make them go faster. Now
 what? First of all, let&rsquo;s assume you&rsquo;ve done all the obvious easy work. You are
 using the right algorithms and data structures<span class="em">&mdash;</span>or, at least, you aren&rsquo;t using
@@ -239,7 +239,7 @@ On whatever platform you program, it is worth getting familiar with a decent
 profiler. You don&rsquo;t need to be a master. I have learned things within minutes of
 throwing a program at a profiler that would have taken me <em>days</em> to discover on
 my own through trial and error. Profilers are wonderful, magical tools.</p>
-<h2><a href="#faster-hash-table-probing" name="faster-hash-table-probing"><small>30&#8202;.&#8202;2</small> Faster Hash Table Probing</a></h2>
+<h2><a href="#faster-hash-table-probing" name="faster-hash-table-probing"><small>30&#8202;.&#8202;2</small>Faster Hash Table Probing</a></h2>
 <p>Enough pontificating, let&rsquo;s get some performance charts going up and to the
 right. The first optimization we&rsquo;ll do, it turns out, is about the <em>tiniest</em>
 possible change we could make to our VM. There&rsquo;s a lot of scaffolding around the
@@ -328,7 +328,7 @@ function: <code>tableGet()</code>. That function claims a whole 72% of the execu
 (again, inclusive). Now, in a dynamically-typed language, we expect to spend a
 fair bit of time looking stuff up in hash tables<span class="em">&mdash;</span>it&rsquo;s sort of the price of
 dynamism. But, still, <em>wow.</em></p>
-<h3><a href="#slow-key-wrapping" name="slow-key-wrapping"><small>30&#8202;.&#8202;2&#8202;.&#8202;1</small> Slow key wrapping</a></h3>
+<h3><a href="#slow-key-wrapping" name="slow-key-wrapping"><small>30&#8202;.&#8202;2&#8202;.&#8202;1</small>Slow key wrapping</a></h3>
 <p>If you take a look at <code>tableGet()</code>, you&rsquo;ll see it&rsquo;s mostly a wrapper around a
 call to <code>findEntry()</code> where the actual hash table lookup happens. To refresh
 your memory, here it is in full:</p>
@@ -449,7 +449,7 @@ replace 1 line</div>
 we can try out these changes and see how they affect the performance, we have to
 fix every piece of code that uses the <code>capacity</code> field and update it to work
 with the new value it represents. This is going to be kind of a chore. Sorry.</p>
-<h3><a href="#hash-table-changes" name="hash-table-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small> Hash table changes</a></h3>
+<h3><a href="#hash-table-changes" name="hash-table-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;2</small>Hash table changes</a></h3>
 <p>There are a few changes to make in <code>adjustCapacity()</code>. First, when we allocate
 the new array, we calculate the size from the mask:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -595,7 +595,7 @@ replace 1 line</div>
 <p>These are actual optimizations. This function is only called when interning
 strings, which wasn&rsquo;t heavily stressed by our benchmark. But a Lox program that
 created lots of strings might noticeably benefit from this change.</p>
-<h3><a href="#memory-manager-changes" name="memory-manager-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;3</small> Memory manager changes</a></h3>
+<h3><a href="#memory-manager-changes" name="memory-manager-changes"><small>30&#8202;.&#8202;2&#8202;.&#8202;3</small>Memory manager changes</a></h3>
 <p>There are a few places in the memory management code where we access a hash
 table&rsquo;s capacity. First, using a <code>&lt;=</code> in the loop when we mark all of the
 entries in a table:</p>
@@ -677,7 +677,7 @@ time down to 35%. That&rsquo;s much more inline with what we&rsquo;d like to see
 that our optimization didn&rsquo;t just make the program faster, but made it faster
 <em>in the way we expected</em>. Profilers are useful for verifying solutions just as
 they are for discovering problems.</p>
-<h2><a href="#nan-boxing" name="nan-boxing"><small>30&#8202;.&#8202;3</small> NaN Boxing</a></h2>
+<h2><a href="#nan-boxing" name="nan-boxing"><small>30&#8202;.&#8202;3</small>NaN Boxing</a></h2>
 <p>This next optimization has a very different feel. Thankfully, despite the odd
 name, it does not involve punching your grandmother. It&rsquo;s different, but not,
 like, <em>that</em> different. With our previous optimization, the profiler told us
@@ -726,7 +726,7 @@ with a number of very clever ways to pack type information and a payload into a
 small number of bits. NaN boxing is one of those. It&rsquo;s a particularly good fit
 for languages like JavaScript and Lua where all numbers are double-precision
 floating point. Lox is in that same boat.</p>
-<h3><a href="#what-is-(and-is-not)-a-number" name="what-is-(and-is-not)-a-number"><small>30&#8202;.&#8202;3&#8202;.&#8202;1</small> What is (and is not) a number?</a></h3>
+<h3><a href="#what-is-(and-is-not)-a-number" name="what-is-(and-is-not)-a-number"><small>30&#8202;.&#8202;3&#8202;.&#8202;1</small>What is (and is not) a number?</a></h3>
 <p>Before we start optimizing, we need to really understand how our friend the CPU
 represents floating-point numbers. Almost all machines today use the same
 scheme, encoded in the venerable scroll <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a>, known to mortals as the
@@ -814,7 +814,7 @@ pointer indirection to go from &ldquo;value&rdquo; to &ldquo;number&rdquo;.</p>
 fortunately, our VM hides all of the mechanism to go from values to raw types
 behind a handful of macros. Rewrite those to implement NaN boxing and the rest
 of the VM should just work.</p>
-<h3><a href="#conditional-support" name="conditional-support"><small>30&#8202;.&#8202;3&#8202;.&#8202;2</small> Conditional support</a></h3>
+<h3><a href="#conditional-support" name="conditional-support"><small>30&#8202;.&#8202;3&#8202;.&#8202;2</small>Conditional support</a></h3>
 <p>I know the details of this new representation aren&rsquo;t clear in your head yet.
 Don&rsquo;t worry, they will crystallize as we work through the implementation. Before
 we get to that, we&rsquo;re going to put some compile-time scaffolding in place.</p>
@@ -883,7 +883,7 @@ typedef struct {
 <p>Our remaining task is simply to fill in that first <code>#ifdef</code> section with new
 implementations of all the stuff already in the <code>#else</code> side. We&rsquo;ll work through
 it one value type at a time, from easiest to hardest.</p>
-<h3><a href="#numbers" name="numbers"><small>30&#8202;.&#8202;3&#8202;.&#8202;3</small> Numbers</a></h3>
+<h3><a href="#numbers" name="numbers"><small>30&#8202;.&#8202;3&#8202;.&#8202;3</small>Numbers</a></h3>
 <p>We&rsquo;ll start with numbers since they have the most direct representation under
 NaN boxing. To &ldquo;convert&rdquo; a C double to a NaN-boxed clox Value, we don&rsquo;t need to
 touch a single bit<span class="em">&mdash;</span>the representation is exactly the same. But we do need to
@@ -1037,7 +1037,7 @@ typedef uint64_t Value;
 you&rsquo;ll see that value is the same as:</p><img src="image/optimization/qnan.png" alt="The quiet NaN bits." />
 <p>This is exactly all of the exponent bits, plus the quiet NaN bit, plus one extra
 to dodge that Intel value.</p>
-<h3><a href="#nil-true-and-false" name="nil-true-and-false"><small>30&#8202;.&#8202;3&#8202;.&#8202;4</small> Nil, true, and false</a></h3>
+<h3><a href="#nil-true-and-false" name="nil-true-and-false"><small>30&#8202;.&#8202;3&#8202;.&#8202;4</small>Nil, true, and false</a></h3>
 <p>The next type to handle is <code>nil</code>. That&rsquo;s pretty simple since there&rsquo;s only one
 <code>nil</code> value and thus we only need a single bit pattern to represent it. There
 are two other singleton values, the two Booleans <code>true</code> and <code>false</code>. This calls
@@ -1161,7 +1161,7 @@ bit is set, we know it&rsquo;s not <code>nil</code>. It must be <code>true</code
 <code>FALSE_VAL</code> is just the right bit pattern to check both the quiet NaN bits and
 that second tag bit, so we just test against that.</p><img src="image/optimization/bool-mask.png" alt="TRUE_VAL & FALSE_VAL is the same as FALSE_VAL & FALSE_VAL." />
 <p>This is more subtle than I like to be with my bit hackery, but here we are.</p>
-<h3><a href="#objects" name="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small> Objects</a></h3>
+<h3><a href="#objects" name="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small>Objects</a></h3>
 <p>The last value type is the hardest. Unlike the singleton values, there are
 billions of different pointer values we need to box inside a NaN. This means we
 need both some kind of tag to indicate that these particular NaNs <em>are</em> Obj
@@ -1258,7 +1258,7 @@ number. To tell if a Value is an Obj pointer, we need to check that both the
 sign bit and all of the quiet NaN bits are set. This is similar to how we detect
 the type of the singleton values except this time we use the sign bit as the
 tag.</p>
-<h3><a href="#value-functions" name="value-functions"><small>30&#8202;.&#8202;3&#8202;.&#8202;6</small> Value functions</a></h3>
+<h3><a href="#value-functions" name="value-functions"><small>30&#8202;.&#8202;3&#8202;.&#8202;6</small>Value functions</a></h3>
 <p>The rest of the VM usually goes through the macros when working with Values, so
 we are almost done. However, there are a couple of functions in the &ldquo;value&rdquo;
 module that peek inside the otherwise black box of Value and work with its
@@ -1369,7 +1369,7 @@ in <em>valuesEqual</em>()</div>
 
 <p>And that&rsquo;s it. This optimization is complete, as is our clox virtual machine.
 That was the last line of new code in the book.</p>
-<h3><a href="#evaluating-performance" name="evaluating-performance"><small>30&#8202;.&#8202;3&#8202;.&#8202;7</small> Evaluating performance</a></h3>
+<h3><a href="#evaluating-performance" name="evaluating-performance"><small>30&#8202;.&#8202;3&#8202;.&#8202;7</small>Evaluating performance</a></h3>
 <p>The code is done, but we still need to figure out if we actually made anything
 better with these changes. Evaluating an optimization like this is very
 different from the previous one. There, we had a clear hotspot visible in the
@@ -1417,7 +1417,7 @@ clox faster. There is probably other lower-hanging fruit.</p>
 been taken, then at some point you may want to think about tuning your value
 representation. This chapter has hopefully shined a light on some of the options
 you have in that area.</p>
-<h2><a href="#where-to-next" name="where-to-next"><small>30&#8202;.&#8202;4</small> Where to Next</a></h2>
+<h2><a href="#where-to-next" name="where-to-next"><small>30&#8202;.&#8202;4</small>Where to Next</a></h2>
 <p>We&rsquo;ll stop here with the Lox language and our two interpreters. We could tinker
 on it forever, adding new language features and clever speed improvements. But,
 for this book, I think we&rsquo;ve reached a natural place to call our work complete.
