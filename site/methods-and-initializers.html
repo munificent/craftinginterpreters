@@ -297,7 +297,7 @@ necessary to load the class back on top of the stack:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">defineVariable</span><span class="o">(</span><span class="n">nameConstant</span><span class="o">);</span>                              
 <br></pre><div class="source-file"><em>compiler.c</em><br>
 in <em>classDeclaration</em>()</div>
-<pre class="insert"><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="nb">false</span><span class="o">);</span>                           
+<pre class="insert"><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>                           
 </pre><pre class="insert-after"><span></span>  <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_LEFT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;{&#39; before class body.&quot;</span><span class="o">);</span>
 </pre></div>
 
@@ -433,7 +433,7 @@ that when you access a method, <code>this</code> gets bound to the instance the 
 accessed from. Here&rsquo;s the example from <a href="classes.html#methods-on-classes">when we added methods to jlox</a>:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Person</span> <span class="o">{</span>
   <span class="n">sayName</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="nb">this</span><span class="o">.</span><span class="n">name</span><span class="o">;</span>
+    <span class="k">print</span> <span class="k">this</span><span class="o">.</span><span class="n">name</span><span class="o">;</span>
   <span class="o">}</span>
 <span class="o">}</span>
 
@@ -637,13 +637,13 @@ add after <em>callValue</em>()</div>
   <span class="n">Value</span> <span class="n">method</span><span class="o">;</span>                                                       
   <span class="k">if</span> <span class="o">(!</span><span class="n">tableGet</span><span class="o">(&amp;</span><span class="n">klass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">method</span><span class="o">))</span> <span class="o">{</span>                    
     <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Undefined property &#39;%s&#39;.&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="o">);</span>            
-    <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                                                     
+    <span class="k">return</span> <span class="k">false</span><span class="o">;</span>                                                     
   <span class="o">}</span>                                                                   
 
   <span class="n">ObjBoundMethod</span><span class="o">*</span> <span class="n">bound</span> <span class="o">=</span> <span class="n">newBoundMethod</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="n">AS_CLOSURE</span><span class="o">(</span><span class="n">method</span><span class="o">));</span>
   <span class="n">pop</span><span class="o">();</span>                                                              
   <span class="n">push</span><span class="o">(</span><span class="n">OBJ_VAL</span><span class="o">(</span><span class="n">bound</span><span class="o">));</span>                                               
-  <span class="k">return</span> <span class="nb">true</span><span class="o">;</span>                                                        
+  <span class="k">return</span> <span class="k">true</span><span class="o">;</span>                                                        
 <span class="o">}</span>                                                                     
 </pre></div>
 
@@ -716,11 +716,11 @@ use that receiver at all.</p>
 accessed inside the body of the method. Lox exposes a method&rsquo;s receiver through
 <code>this</code> expressions. The lexer already treats <code>this</code> as a special token type, so
 the first step is wiring that token up in the parse table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_SUPER</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_SUPER</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">this_</span><span class="o">,</span>    <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_THIS </span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_TRUE </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">this_</span><span class="o">,</span>    <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_THIS </span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_TRUE </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
@@ -732,7 +732,7 @@ is a reserved word in C++ and we support compiling clox as C++.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>variable</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">this_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">variable</span><span class="o">(</span><span class="nb">false</span><span class="o">);</span>                 
+  <span class="n">variable</span><span class="o">(</span><span class="k">false</span><span class="o">);</span>                 
 <span class="o">}</span><span name="this"> </span>
 </pre></div>
 
@@ -765,7 +765,7 @@ this is going. For <em>method</em> calls, we can repurpose that slot to store th
 receiver. Slot zero will store the instance that <code>this</code> is bound to. In order to
 compile <code>this</code> expressions, the compiler simply needs to give the right name to
 that local variable:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">isCaptured</span> <span class="o">=</span> <span class="nb">false</span><span class="o">;</span>   
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">local</span><span class="o">-&gt;</span><span class="n">isCaptured</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span>   
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()<br>
 replace 2 lines</div>
@@ -788,7 +788,7 @@ method, the <code>this</code> correctly resolves to the outer method&rsquo;s rec
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Nested</span> <span class="o">{</span>
   <span class="n">method</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">fun</span> <span class="n">function</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="nb">this</span><span class="o">;</span>
+      <span class="k">print</span> <span class="k">this</span><span class="o">;</span>
     <span class="o">}</span>
 
     <span class="n">function</span><span class="o">();</span>
@@ -851,10 +851,10 @@ that slot. For example, given a method call like <code>scone.topping("berries", 
 to make sure it properly handles users <em>mis</em>-using <code>this</code>. Lox says it is a
 compile error for a <code>this</code> expression to appear outside of the body of a method.
 These two wrong uses should be caught by the compiler:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="nb">this</span><span class="o">;</span> <span class="c">// At top level.</span>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="k">this</span><span class="o">;</span> <span class="c">// At top level.</span>
 
 <span class="k">fun</span> <span class="n">notMethod</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">print</span> <span class="nb">this</span><span class="o">;</span> <span class="c">// In a function.</span>
+  <span class="k">print</span> <span class="k">this</span><span class="o">;</span> <span class="c">// In a function.</span>
 <span class="o">}</span>
 </pre></div>
 
@@ -872,10 +872,10 @@ implicitly considers it a global access if no declaration is found.</p>
 If we had that, we could use it here to determine if we are inside a method. So
 we may as well make our future self&rsquo;s life a little easier and put that
 machinery in place now:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Compiler</span><span class="o">*</span> <span class="n">current</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>          
+<div class="codehilite"><pre class="insert-before"><span></span><span class="n">Compiler</span><span class="o">*</span> <span class="n">current</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>          
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
-<pre class="insert"><br><span></span><span class="n">ClassCompiler</span><span class="o">*</span> <span class="n">currentClass</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>
+<pre class="insert"><br><span></span><span class="n">ClassCompiler</span><span class="o">*</span> <span class="n">currentClass</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">static</span> <span class="n">Chunk</span><span class="o">*</span> <span class="n">currentChunk</span><span class="o">()</span> <span class="o">{</span>     
 </pre></div>
 
@@ -911,7 +911,7 @@ in <em>classDeclaration</em>()</div>
   <span class="n">classCompiler</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">;</span>  
   <span class="n">classCompiler</span><span class="o">.</span><span class="n">enclosing</span> <span class="o">=</span> <span class="n">currentClass</span><span class="o">;</span>
   <span class="n">currentClass</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">classCompiler</span><span class="o">;</span>         
-<br></pre><pre class="insert-after"><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="nb">false</span><span class="o">);</span>       
+<br></pre><pre class="insert-after"><span></span>  <span class="n">namedVariable</span><span class="o">(</span><span class="n">className</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>       
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>classDeclaration</em>()</div>
@@ -935,11 +935,11 @@ inside a method<span class="em">&mdash;</span>we simply check that module variab
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">this_</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>this_</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="nb">NULL</span><span class="o">)</span> <span class="o">{</span>                      
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">currentClass</span> <span class="o">==</span> <span class="k">NULL</span><span class="o">)</span> <span class="o">{</span>                      
     <span class="n">error</span><span class="o">(</span><span class="s">&quot;Cannot use &#39;this&#39; outside of a class.&quot;</span><span class="o">);</span>
     <span class="k">return</span><span class="o">;</span>                                        
   <span class="o">}</span>                                                
-</pre><pre class="insert-after"><span></span>  <span class="n">variable</span><span class="o">(</span><span class="nb">false</span><span class="o">);</span>                                 
+</pre><pre class="insert-after"><span></span>  <span class="n">variable</span><span class="o">(</span><span class="k">false</span><span class="o">);</span>                                 
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>this_</em>()</div>
@@ -1004,7 +1004,7 @@ in <em>callValue</em>()</div>
         <span class="k">if</span> <span class="o">(</span><span class="n">tableGet</span><span class="o">(&amp;</span><span class="n">klass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="n">vm</span><span class="o">.</span><span class="n">initString</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">initializer</span><span class="o">))</span> <span class="o">{</span>
           <span class="k">return</span> <span class="n">call</span><span class="o">(</span><span class="n">AS_CLOSURE</span><span class="o">(</span><span class="n">initializer</span><span class="o">),</span> <span class="n">argCount</span><span class="o">);</span>            
         <span class="o">}</span>                                                            
-<br></pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="nb">true</span><span class="o">;</span>                                                 
+<br></pre><pre class="insert-after"><span></span>        <span class="k">return</span> <span class="k">true</span><span class="o">;</span>                                                 
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
@@ -1035,7 +1035,7 @@ creating the instance. We make that an error:</p>
 in <em>callValue</em>()</div>
 <pre class="insert"><span></span>        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">argCount</span> <span class="o">!=</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>                                  
           <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Expected 0 arguments but got %d.&quot;</span><span class="o">,</span> <span class="n">argCount</span><span class="o">);</span>
-          <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                                              
+          <span class="k">return</span> <span class="k">false</span><span class="o">;</span>                                              
 </pre><pre class="insert-after"><span></span>        <span class="o">}</span>                                                            
 </pre></div>
 
@@ -1092,7 +1092,7 @@ field out:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">initTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>               
 <br></pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
-<pre class="insert"><span></span>  <span class="n">vm</span><span class="o">.</span><span class="n">initString</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>                 
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="o">.</span><span class="n">initString</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>                 
 </pre><pre class="insert-after"><span></span>  <span class="n">vm</span><span class="o">.</span><span class="n">initString</span> <span class="o">=</span> <span class="n">copyString</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">,</span> <span class="mi">4</span><span class="o">);</span>
 <br></pre></div>
 
@@ -1103,7 +1103,7 @@ free it:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="n">freeTable</span><span class="o">(&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">strings</span><span class="o">);</span>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
-<pre class="insert"><span></span>  <span class="n">vm</span><span class="o">.</span><span class="n">initString</span> <span class="o">=</span> <span class="nb">NULL</span><span class="o">;</span>  
+<pre class="insert"><span></span>  <span class="n">vm</span><span class="o">.</span><span class="n">initString</span> <span class="o">=</span> <span class="k">NULL</span><span class="o">;</span>  
 </pre><pre class="insert-after"><span></span>  <span class="n">freeObjects</span><span class="o">();</span>         
 </pre></div>
 
@@ -1194,14 +1194,14 @@ confused by the trailing expression and report a bunch of cascaded errors.</p>
 fairly full-featured class system working in clox:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">CoffeeMaker</span> <span class="o">{</span>
   <span class="n">init</span><span class="o">(</span><span class="n">coffee</span><span class="o">)</span> <span class="o">{</span>
-    <span class="nb">this</span><span class="o">.</span><span class="n">coffee</span> <span class="o">=</span> <span class="n">coffee</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">coffee</span> <span class="o">=</span> <span class="n">coffee</span><span class="o">;</span>
   <span class="o">}</span>
 
   <span class="n">brew</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="s">&quot;Enjoy your cup of &quot;</span> <span class="o">+</span> <span class="nb">this</span><span class="o">.</span><span class="n">coffee</span><span class="o">;</span>
+    <span class="k">print</span> <span class="s">&quot;Enjoy your cup of &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="n">coffee</span><span class="o">;</span>
 
     <span class="c">// No reusing the grounds!</span>
-    <span class="nb">this</span><span class="o">.</span><span class="n">coffee</span> <span class="o">=</span> <span class="nb">nil</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">coffee</span> <span class="o">=</span> <span class="k">nil</span><span class="o">;</span>
   <span class="o">}</span>
 <span class="o">}</span>
 
@@ -1370,7 +1370,7 @@ call a method on a value of the wrong type:</p>
 in <em>invoke</em>()</div>
 <pre class="insert"><br><span></span>  <span class="k">if</span> <span class="o">(!</span><span class="n">IS_INSTANCE</span><span class="o">(</span><span class="n">receiver</span><span class="o">))</span> <span class="o">{</span>                  
     <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Only instances have methods.&quot;</span><span class="o">);</span>
-    <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                                
+    <span class="k">return</span> <span class="k">false</span><span class="o">;</span>                                
   <span class="o">}</span>                                              
 <br></pre><pre class="insert-after"><span></span>  <span class="n">ObjInstance</span><span class="o">*</span> <span class="n">instance</span> <span class="o">=</span> <span class="n">AS_INSTANCE</span><span class="o">(</span><span class="n">receiver</span><span class="o">);</span> 
 </pre></div>
@@ -1391,7 +1391,7 @@ add after <em>callValue</em>()</div>
   <span class="n">Value</span> <span class="n">method</span><span class="o">;</span>                                              
   <span class="k">if</span> <span class="o">(!</span><span class="n">tableGet</span><span class="o">(&amp;</span><span class="n">klass</span><span class="o">-&gt;</span><span class="n">methods</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">method</span><span class="o">))</span> <span class="o">{</span>           
     <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Undefined property &#39;%s&#39;.&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="o">);</span>   
-    <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                                            
+    <span class="k">return</span> <span class="k">false</span><span class="o">;</span>                                            
   <span class="o">}</span>                                                          
 
   <span class="k">return</span> <span class="n">call</span><span class="o">(</span><span class="n">AS_CLOSURE</span><span class="o">(</span><span class="n">method</span><span class="o">),</span> <span class="n">argCount</span><span class="o">);</span>                 
@@ -1440,7 +1440,7 @@ implementation of faster method invocations fails to uphold that tenet:</p>
       <span class="k">print</span> <span class="s">&quot;not a method&quot;</span><span class="o">;</span>
     <span class="o">}</span>
 
-    <span class="nb">this</span><span class="o">.</span><span class="n">field</span> <span class="o">=</span> <span class="n">f</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="n">field</span> <span class="o">=</span> <span class="n">f</span><span class="o">;</span>
   <span class="o">}</span>
 <span class="o">}</span>
 

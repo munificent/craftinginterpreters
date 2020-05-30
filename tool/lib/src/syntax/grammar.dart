@@ -5,47 +5,25 @@ final languages = {
   "c": c,
   "c++": cpp,
   "java": java,
-  "js": Language(
-      keywords: "break case catch class const continue debugger default delete "
-          "do else export extends finally for function if import in instanceof "
-          "let new return super switch this throw try typeof var void while "
-          "with yield",
-      rules: [..._commonRules, _cOperatorRule]),
-  "lisp": Language(rules: [
-    // TODO: Other punctuation characters.
-    Rule(r"[a-zA-Z0-9_-]+", "n"),
-    Rule(r"[()[\]{}]+", "o"),
-  ]),
+  "js": js,
+  "lisp": lisp,
   "lox": lox,
-  // TODO: This is just enough for the one line in "scanning". To more if
+  // TODO: This is just enough for the one line in "scanning". Do more if
   // needed.
   "lua": Language(rules: [..._commonRules, _cOperatorRule]),
-  "python": Language(
-      keywords: "and as assert break class continue def del elif else except "
-          "exec finally for from global if import is lambda not or pass print "
-          "raise return try while with yield",
-      names: "range",
-      other: {
-        // TODO: Get rid of this and just make it a keyword.
-        // TODO: "ow"?
-        "in": "ow",
-      },
-      rules: [
-        ..._commonRules,
-        _cOperatorRule,
-      ]),
+  "python": python,
   "ruby": ruby,
 };
 
 final c = Language(
-  keywords: _cKeywords,
-  names: "false NULL true",
+  // TODO: Make NULL a constant instead of a keyword?
+  keywords: "$_cKeywords false NULL true",
   rules: _cRules,
 );
 
 final cpp = Language(
-  keywords: _cKeywords,
-  names: "false NULL true",
+  // TODO: Make NULL a constant instead of a keyword?
+  keywords: "$_cKeywords false NULL true",
   types: "vector string",
   rules: _cRules,
 );
@@ -78,10 +56,24 @@ final java = Language(
   ],
 );
 
+final js = Language(
+  keywords: "break case catch class const continue debugger default delete do "
+      "else export extends finally for function if import in instanceof let "
+      "new return super switch this throw try typeof var void while with yield",
+  rules: [..._commonRules, _cOperatorRule],
+);
+
+final lisp = Language(
+  rules: [
+    // TODO: Other punctuation characters.
+    Rule(r"[a-zA-Z0-9_-]+", "n"),
+    Rule(r"[()[\]{}]+", "o"),
+  ],
+);
+
 final lox = Language(
-  keywords: "and class else fun for if or print return super var while",
-  // TODO: Make `this` a keyword? It is in Java.
-  names: "false nil this true",
+  keywords: "and class else false fun for if nil or print return super this "
+      "true var while",
   rules: [
     ..._commonRules,
     // Lox has fewer operator characters.
@@ -98,18 +90,21 @@ final lox = Language(
   ],
 );
 
+final python = Language(
+  keywords: "and as assert break class continue def del elif else except "
+      "exec finally for from global if import in is lambda not or pass "
+      "print raise range return try while with yield",
+  rules: [
+    ..._commonRules,
+    _cOperatorRule,
+  ],
+);
+
 final ruby = Language(
   keywords: "__LINE__ _ENCODING__ __FILE__ BEGIN END alias and begin break "
-      "case class def defined? do else elsif end ensure for if in module next "
-      "nil not or redo rescue retry return self super then undef unless until "
-      "when while yield",
-  names: "lambda puts",
-  other: {
-    // TODO: Remove these and use an existing type when not trying to match
-    // old output.
-    "false": "kp",
-    "true": "kp",
-  },
+      "case class def defined? do else elsif end ensure false for if in lambda "
+      "module next nil not or redo rescue retry return self super then true "
+      "undef unless until when while yield",
   rules: [
     ..._commonRules,
     _cOperatorRule,
