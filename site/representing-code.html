@@ -602,7 +602,7 @@ We are merely automating how that file gets authored.</p>
 <p>To generate the classes, it needs to have some description of each type and its
 fields:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="t">String</span> <span class="i">outputDir</span> <span class="o">=</span> <span class="i">args</span><span class="o">[</span><span class="n">0</span><span class="o">];</span>                          
+    String outputDir = args[0];                          
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
@@ -613,7 +613,7 @@ in <em>main</em>()</div>
       <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span>            
     <span class="o">));</span>                                                  
 </pre><pre class="insert-after">
-  <span class="o">}</span>                                                      
+  }                                                      
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
 
@@ -647,8 +647,8 @@ the name of the file it outputs. We pass this in instead of hardcoding it
 because we&rsquo;ll add a separate family of classes later for statements.</p>
 <p>Inside Expr, we define each subclass:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;abstract class &quot;</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>    
-
+    writer.println(&quot;abstract class &quot; + baseName + &quot; {&quot;);    
+                                                            
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>defineAst</em>()</div>
 <pre class="insert">
@@ -659,7 +659,7 @@ in <em>defineAst</em>()</div>
       <span class="i">defineType</span><span class="o">(</span><span class="i">writer</span><span class="o">,</span> <span class="i">baseName</span><span class="o">,</span> <span class="i">className</span><span class="o">,</span> <span class="i">fields</span><span class="o">);</span>      
     <span class="o">}</span>                                                       
 </pre><pre class="insert-after">
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;}&quot;</span><span class="o">);</span>                                    
+    writer.println(&quot;}&quot;);                                    
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>defineAst</em>()</div>
 
@@ -862,35 +862,35 @@ together in one class.</p>
 <p>Given some pastry, how do we route it to the correct method on the visitor based
 on its type? Polymorphism to the rescue! We add this method to Pastry:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">abstract</span> <span class="k">class</span> <span class="t">Pastry</span> <span class="o">{</span>                       
+  abstract class Pastry {                       
 </pre><pre class="insert">
     <span class="k">abstract</span> <span class="t">void</span> <span class="i">accept</span><span class="o">(</span><span class="t">PastryVisitor</span> <span class="i">visitor</span><span class="o">);</span>
 </pre><pre class="insert-after">
-  <span class="o">}</span>                                             
+  }                                             
 </pre></div>
 
 <p>Each subclass implements it:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">class</span> <span class="t">Beignet</span> <span class="k">extends</span> <span class="t">Pastry</span> <span class="o">{</span>        
+  class Beignet extends Pastry {        
 </pre><pre class="insert">
     <span class="a">@Override</span>                           
     <span class="t">void</span> <span class="i">accept</span><span class="o">(</span><span class="t">PastryVisitor</span> <span class="i">visitor</span><span class="o">)</span> <span class="o">{</span>
       <span class="i">visitor</span><span class="o">.</span><span class="i">visitBeignet</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>       
     <span class="o">}</span>                                   
 </pre><pre class="insert-after">
-  <span class="o">}</span>                                     
+  }                                     
 </pre></div>
 
 <p>And:</p>
 <div class="codehilite"><pre class="insert-before">
-  <span class="k">class</span> <span class="t">Cruller</span> <span class="k">extends</span> <span class="t">Pastry</span> <span class="o">{</span>        
+  class Cruller extends Pastry {        
 </pre><pre class="insert">
     <span class="a">@Override</span>                           
     <span class="t">void</span> <span class="i">accept</span><span class="o">(</span><span class="t">PastryVisitor</span> <span class="i">visitor</span><span class="o">)</span> <span class="o">{</span>
       <span class="i">visitor</span><span class="o">.</span><span class="i">visitCruller</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>       
     <span class="o">}</span>                                   
 </pre><pre class="insert-after">
-  <span class="o">}</span>                                     
+  }                                     
 </pre></div>
 
 <p>To perform an operation on a pastry, we call its <code>accept()</code> method and pass in
@@ -920,15 +920,15 @@ book don&rsquo;t need that, so I omitted it.</p>
 <p>First, we define the visitor interface. Again, we nest it inside the Expr class
 so that we can keep everything in one file:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;abstract class &quot;</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>
-
+    writer.println(&quot;abstract class &quot; + baseName + &quot; {&quot;);
+                                                        
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>defineAst</em>()</div>
 <pre class="insert">
     <span class="i">defineVisitor</span><span class="o">(</span><span class="i">writer</span><span class="o">,</span> <span class="i">baseName</span><span class="o">,</span> <span class="i">types</span><span class="o">);</span>             
 
 </pre><pre class="insert-after">
-    <span class="c">// The AST classes.                                 </span>
+    // The AST classes.                                 
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>defineAst</em>()</div>
 
@@ -956,8 +956,8 @@ one. When we define new expression types later, this will automatically include
 them.</p>
 <p>Inside the base class, we define the abstract <code>accept()</code> method:</p>
 <div class="codehilite"><pre class="insert-before">
-      <span class="i">defineType</span><span class="o">(</span><span class="i">writer</span><span class="o">,</span> <span class="i">baseName</span><span class="o">,</span> <span class="i">className</span><span class="o">,</span> <span class="i">fields</span><span class="o">);</span>             
-    <span class="o">}</span>                                                              
+      defineType(writer, baseName, className, fields);             
+    }                                                              
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>defineAst</em>()</div>
 <pre class="insert">
@@ -967,14 +967,14 @@ in <em>defineAst</em>()</div>
     <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;  abstract &lt;R&gt; R accept(Visitor&lt;R&gt; visitor);&quot;</span><span class="o">);</span>
 
 </pre><pre class="insert-after">
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;}&quot;</span><span class="o">);</span>                                           
+    writer.println(&quot;}&quot;);                                           
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>defineAst</em>()</div>
 
 <p>Finally, each subclass implements that and calls the right visit method for its
 own type:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>                                 
+    writer.println(&quot;    }&quot;);                                 
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>defineType</em>()</div>
 <pre class="insert">
@@ -987,8 +987,8 @@ in <em>defineType</em>()</div>
         <span class="i">className</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot;(this);&quot;</span><span class="o">);</span>                   
     <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>                                 
 </pre><pre class="insert-after">
-
-    <span class="c">// Fields.                                               </span>
+                                                             
+    // Fields.                                               
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>defineType</em>()</div>
 
@@ -1033,8 +1033,8 @@ create new file</div>
 <p>As you can see, it implements the visitor interface. That means we need visit
 methods for each of the expression types we have so far:</p>
 <div class="codehilite"><pre class="insert-before">
-    <span class="k">return</span> <span class="i">expr</span><span class="o">.</span><span class="i">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>                                        
-  <span class="o">}</span>                                                                  
+    return expr.accept(this);                                        
+  }                                                                  
 </pre><div class="source-file"><em>lox/AstPrinter.java</em><br>
 add after <em>print</em>()</div>
 <pre class="insert">
@@ -1060,7 +1060,7 @@ add after <em>print</em>()</div>
     <span class="k">return</span> <span class="i">parenthesize</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">operator</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">right</span><span class="o">);</span>           
   <span class="o">}</span>                                                                  
 </pre><pre class="insert-after">
-<span class="o">}</span>                                                                    
+}                                                                    
 </pre></div>
 <div class="source-file-narrow"><em>lox/AstPrinter.java</em>, add after <em>print</em>()</div>
 
