@@ -21,6 +21,6 @@ class Language {
 
     keywordType(keywords, "k");
     keywordType(constants, "kc");
-    keywordType(types, "nc");
+    keywordType(types, "t");
   }
 }
