@@ -159,7 +159,6 @@ add after struct <em>ObjClosure</em></div>
 
 <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">newClosure</span><span class="o">(</span><span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span><span class="o">);</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClosure</em></div>
 
 <p>After the Obj header, we store the class&rsquo;s name. This isn&rsquo;t strictly needed for
@@ -175,7 +174,6 @@ in enum <em>ObjType</em></div>
 </pre><pre class="insert-after">
   <span class="a">OBJ_CLOSURE</span><span class="o">,</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And that type gets a corresponding pair of macros. First, for testing an
@@ -189,7 +187,6 @@ object&rsquo;s type:</p>
 </pre><pre class="insert-after">
 <span class="a">#define IS_CLOSURE(value)       isObjType(value, OBJ_CLOSURE)</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And then for casting a Value to an ObjClass pointer:</p>
@@ -202,7 +199,6 @@ object&rsquo;s type:</p>
 </pre><pre class="insert-after">
 <span class="a">#define AS_CLOSURE(value)       ((ObjClosure*)AS_OBJ(value))</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>The VM creates new class objects using this function:</p>
@@ -216,7 +212,6 @@ add after struct <em>ObjClass</em></div>
 </pre><pre class="insert-after">
 <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">newClosure</span><span class="o">(</span><span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span><span class="o">);</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClass</em></div>
 
 <p>The implementation lives over here:</p>
@@ -229,7 +224,6 @@ add after <em>allocateObject</em>()</div>
   <span class="k">return</span> <span class="i">klass</span><span class="o">;</span>                                       
 <span class="o">}</span>                                                     
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
 
 <p>Pretty much all boilerplate. It takes in the class&rsquo;s name as a string and stores
@@ -254,7 +248,6 @@ in <em>freeObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span> <span class="o">{</span>      
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <aside name="braces">
@@ -277,7 +270,6 @@ in <em>blackenObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                   
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
 <p>When the GC reaches a class object, we mark its name to keep that string alive
@@ -294,7 +286,6 @@ in <em>printObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span>                            
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
 <p>A class simply prints its own name.</p>
@@ -313,7 +304,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
     <span class="i">funDeclaration</span><span class="o">();</span>           
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declaration</em>(), replace 1 line</div>
 
 <p>Class declarations are statements and the parser recognizes one by the leading
@@ -333,7 +323,6 @@ add after <em>function</em>()</div>
   <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after class body.&quot;</span><span class="o">);</span> 
 <span class="o">}</span>                                                             
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>function</em>()</div>
 
 <p>Immediately after the <code>class</code> keyword is the class&rsquo;s name. We take that
@@ -376,7 +365,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
 <span class="o">}</span> <span class="t">OpCode</span><span class="o">;</span>   
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add it to the disassembler:</p>
@@ -391,7 +379,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">default</span><span class="o">:</span>                                                
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>For such a large-seeming feature, the interpreter support is easy:</p>
@@ -409,7 +396,6 @@ in <em>run</em>()</div>
 </pre><pre class="insert-after">
     <span class="o">}</span>                                          
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>We load the string for the class&rsquo;s name from the constant table and pass that to
@@ -464,7 +450,6 @@ add after struct <em>ObjClass</em></div>
 
 <span class="t">ObjClass</span><span class="o">*</span> <span class="i">newClass</span><span class="o">(</span><span class="t">ObjString</span><span class="o">*</span> <span class="i">name</span><span class="o">);</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClass</em></div>
 
 <p>Each instance has a pointer to the class that it is an instance of. Instances
@@ -496,7 +481,6 @@ accessing a field is as fast as offsetting a pointer by an integer constant.</p>
 </pre><pre class="insert-after">
 <span class="a">#include &quot;value.h&quot;</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>This new struct gets a new object type:</p>
@@ -509,7 +493,6 @@ in enum <em>ObjType</em></div>
 </pre><pre class="insert-after">
   <span class="a">OBJ_NATIVE</span><span class="o">,</span>  
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>I want to slow down a bit here because Lox&rsquo;s notion of &ldquo;type&rdquo; and the VM&rsquo;s
@@ -532,7 +515,6 @@ instances of all classes. The two worlds map to each other something like this:<
 </pre><pre class="insert-after">
 <span class="a">#define IS_NATIVE(value)        isObjType(value, OBJ_NATIVE)  </span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And:</p>
@@ -544,7 +526,6 @@ instances of all classes. The two worlds map to each other something like this:<
 </pre><pre class="insert-after">
 <span class="a">#define AS_NATIVE(value)        (((ObjNative*)AS_OBJ(value))-&gt;function)</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Since fields are added after the instance is created, the &ldquo;constructor&rdquo; function
@@ -558,7 +539,6 @@ add after <em>newFunction</em>()</div>
 </pre><pre class="insert-after">
 <span class="t">ObjNative</span><span class="o">*</span> <span class="i">newNative</span><span class="o">(</span><span class="t">NativeFn</span> <span class="i">function</span><span class="o">);</span>  
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after <em>newFunction</em>()</div>
 
 <p>We implement that function here:</p>
@@ -572,7 +552,6 @@ add after <em>newFunction</em>()</div>
   <span class="k">return</span> <span class="i">instance</span><span class="o">;</span>                                                
 <span class="o">}</span>                                                                 
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, add after <em>newFunction</em>()</div>
 
 <p>We store a reference to the instance&rsquo;s class. Then we initialize the field
@@ -596,7 +575,6 @@ in <em>freeObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_NATIVE</span><span class="o">:</span>                               
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>The instance owns its field table so when freeing the instance, we also free the
@@ -621,7 +599,6 @@ in <em>blackenObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_UPVALUE</span><span class="o">:</span>                              
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>blackenObject</em>()</div>
 
 <p>If the instance is alive, we need to keep its class around. Also, we need to
@@ -643,7 +620,6 @@ in <em>printObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_NATIVE</span><span class="o">:</span>                                                
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
 <p><span name="print">An</span> instance prints its name followed by &ldquo;instance&rdquo;.
@@ -674,7 +650,6 @@ in <em>callValue</em>()</div>
 </pre><pre class="insert-after">
       <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span>                                          
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>()</div>
 
 <p>If the value being called<span class="em">&mdash;</span>the object that results when evaluating the
@@ -720,7 +695,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
   <span class="o">{</span> <span class="i">unary</span><span class="o">,</span>    <span class="i">binary</span><span class="o">,</span>  <span class="a">PREC_TERM</span> <span class="o">},</span>       <span class="c">// TOKEN_MINUS</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>As in other languages, the <code>.</code> operator binds tightly, with precedence as high
@@ -741,7 +715,6 @@ add after <em>call</em>()</div>
   <span class="o">}</span>                                                            
 <span class="o">}</span>                                                              
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>call</em>()</div>
 
 <p>The parser expects to find a <span name="prop">property</span> name immediately
@@ -797,7 +770,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
   <span class="a">OP_EQUAL</span><span class="o">,</span>       
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add support for disassembling them:</p>
@@ -813,7 +785,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span>                                                 
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <h3><a href="#interpreting-getter-and-setter-expressions" name="interpreting-getter-and-setter-expressions"><small>27&#8202;.&#8202;4&#8202;.&#8202;1</small> Interpreting getter and setter expressions</a></h3>
@@ -842,7 +813,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                      
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>When the interpreter reaches this instruction, the expression to the left of the
@@ -867,7 +837,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p><span name="field">There</span> is another failure mode to handle which you&rsquo;ve
@@ -907,7 +876,6 @@ in <em>run</em>()</div>
 </pre><pre class="insert-after">
         <span class="t">ObjInstance</span><span class="o">*</span> <span class="i">instance</span> <span class="o">=</span> <span class="a">AS_INSTANCE</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">));</span>     
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>If the value on the stack isn&rsquo;t an instance, we report a runtime error and
@@ -935,7 +903,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>This is a little more complex than <code>OP_GET_PROPERTY</code>. On top of the stack, we
@@ -973,7 +940,6 @@ in <em>run</em>()</div>
 </pre><pre class="insert-after">
         <span class="t">ObjInstance</span><span class="o">*</span> <span class="i">instance</span> <span class="o">=</span> <span class="a">AS_INSTANCE</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">1</span><span class="o">));</span> 
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>Exactly like with get expressions, we check the value&rsquo;s type and report a

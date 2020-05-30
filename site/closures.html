@@ -247,7 +247,6 @@ add after struct <em>sObjString</em></div>
   <span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span><span class="o">;</span>
 <span class="o">}</span> <span class="t">ObjClosure</span><span class="o">;</span>           
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
 <p>Right now, it simply points to an ObjFunction and adds the necessary object
@@ -263,7 +262,6 @@ add after struct <em>ObjClosure</em></div>
 </pre><pre class="insert-after">
 <span class="t">ObjFunction</span><span class="o">*</span> <span class="i">newFunction</span><span class="o">();</span>                   
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>ObjClosure</em></div>
 
 <p>Then implement it:</p>
@@ -276,7 +274,6 @@ add after <em>allocateObject</em>()</div>
   <span class="k">return</span> <span class="i">closure</span><span class="o">;</span>                                             
 <span class="o">}</span>                                                             
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
 
 <p>It takes a pointer to the ObjFunction it wraps. It also initializes the type
@@ -290,7 +287,6 @@ in enum <em>ObjType</em></div>
 </pre><pre class="insert-after">
   <span class="a">OBJ_FUNCTION</span><span class="o">,</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And when we&rsquo;re done with a closure, we release its memory:</p>
@@ -307,7 +303,6 @@ in <em>freeObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_FUNCTION</span><span class="o">:</span> <span class="o">{</span>       
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>We only free the ObjClosure itself, not the ObjFunction. That&rsquo;s because the
@@ -330,7 +325,6 @@ macros. Maybe that would be a little too meta.</p>
 </pre><pre class="insert-after">
 <span class="a">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>And to cast a value:</p>
@@ -343,7 +337,6 @@ macros. Maybe that would be a little too meta.</p>
 </pre><pre class="insert-after">
 <span class="a">#define AS_FUNCTION(value)      ((ObjFunction*)AS_OBJ(value))</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em></div>
 
 <p>Closures are first-class objects, so you can print them:</p>
@@ -358,7 +351,6 @@ in <em>printObject</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OBJ_FUNCTION</span><span class="o">:</span>                           
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
 <p>They display exactly as ObjFunction does. From the user&rsquo;s perspective, the
@@ -380,7 +372,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
 <span class="o">}</span>                                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>function</em>(), replace 1 line</div>
 
 <p>Before, the final bytecode for a declaration was a single <code>OP_CONSTANT</code>
@@ -395,7 +386,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
   <span class="a">OP_RETURN</span><span class="o">,</span> 
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>Like <code>OP_CONSTANT</code>, it takes a single operand that represents a constant table
@@ -421,7 +411,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OP_RETURN</span><span class="o">:</span>                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>There&rsquo;s more going on here than we usually have in the disassembler. By the end
@@ -449,7 +438,6 @@ in <em>run</em>()</div>
 </pre><pre class="insert-after">
       <span class="k">case</span> <span class="a">OP_RETURN</span><span class="o">:</span> <span class="o">{</span>                                      
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>Like the <code>OP_CONSTANT</code> instruction we used before, first we load the compiled
@@ -467,7 +455,6 @@ replace 2 lines</div>
 </pre><pre class="insert-after">
 
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>callValue</em>(), replace 2 lines</div>
 
 <p>We remove the code for calling objects whose type is <code>OBJ_FUNCTION</code>. Since we
@@ -490,7 +477,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
   <span class="k">if</span> <span class="o">(</span><span class="i">argCount</span> <span class="o">!=</span> <span class="i">function</span><span class="o">-&gt;</span><span class="i">arity</span><span class="o">)</span> <span class="o">{</span>                 
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, function <em>call</em>(), replace 1 line</div>
 
 <p>Then, in the body, we need to fix everything that referenced the function to
@@ -508,7 +494,6 @@ replace 3 lines</div>
 </pre><pre class="insert-after">
     <span class="k">return</span> <span class="k">false</span><span class="o">;</span>                                    
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>(), replace 3 lines</div>
 
 <p>The only change is that we unwrap the closure to get to the underlying function.
@@ -527,7 +512,6 @@ replace 2 lines</div>
 
   <span class="i">frame</span><span class="o">-&gt;</span><span class="i">slots</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span> <span class="o">-</span> <span class="i">argCount</span> <span class="o">-</span> <span class="n">1</span><span class="o">;</span>     
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>call</em>(), replace 2 lines</div>
 
 <p>This necessitates changing the declaration of CallFrame too:</p>
@@ -541,7 +525,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
   <span class="t">uint8_t</span><span class="o">*</span> <span class="i">ip</span><span class="o">;</span>        
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>CallFrame</em>, replace 1 line</div>
 
 <p>That change triggers a few other cascading changes. Every place in the VM that
@@ -558,7 +541,6 @@ replace 2 lines</div>
 </pre><pre class="insert-after">
 <span class="a">#define READ_STRING() AS_STRING(READ_CONSTANT())                      </span>
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>When <code>DEBUG_TRACE_EXECUTION</code> is enabled, it needs to get to the chunk from the
@@ -574,7 +556,6 @@ replace 2 lines</div>
 </pre><pre class="insert-after">
 <span class="a">#endif                                                           </span>
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>(), replace 2 lines</div>
 
 <p>Likewise, when reporting a runtime error:</p>
@@ -588,7 +569,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
     <span class="c">// -1 because the IP is sitting on the next instruction to be</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>runtimeError</em>(), replace 1 line</div>
 
 <p>Almost there. The last piece is the blob of code that sets up the very first
@@ -610,7 +590,6 @@ replace 1 line</div>
 
   <span class="k">return</span> <span class="i">run</span><span class="o">();</span>                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 1 line</div>
 
 <p><span name="pop">The</span> compiler still returns a raw ObjFunction when
@@ -712,7 +691,6 @@ in <em>namedVariable</em>()</div>
 </pre><pre class="insert-after">
   <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                                  
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>()</div>
 
 <p>This new <code>resolveUpvalue()</code> function looks for a local variable declared in any
@@ -730,7 +708,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
   <span class="a">OP_EQUAL</span><span class="o">,</span>      
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>We&rsquo;re implementing this sort of top-down, so I&rsquo;ll show you how these work at
@@ -750,7 +727,6 @@ add after <em>resolveLocal</em>()</div>
   <span class="k">return</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>                                                
 <span class="o">}</span>                                                           
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>resolveLocal</em>()</div>
 
 <p>We call this after failing to resolve a local variable in the current function&rsquo;s
@@ -792,7 +768,6 @@ add after <em>resolveLocal</em>()</div>
   <span class="k">return</span> <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">++;</span>                            
 <span class="o">}</span>                                                                       
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>resolveLocal</em>()</div>
 
 <p>The compiler keeps an array of upvalue structures to track the closed-over
@@ -837,7 +812,6 @@ in <em>addUpvalue</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">upvalueCount</span><span class="o">].</span><span class="i">isLocal</span> <span class="o">=</span> <span class="i">isLocal</span><span class="o">;</span>            
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addUpvalue</em>()</div>
 
 <p>If we find an upvalue in the array whose slot index matches the one we&rsquo;re
@@ -854,7 +828,6 @@ in struct <em>ObjFunction</em></div>
 </pre><pre class="insert-after">
   <span class="t">Chunk</span> <span class="i">chunk</span><span class="o">;</span>     
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjFunction</em></div>
 
 <p>We&rsquo;re conscientious C programmers, so we zero-initialize that when an
@@ -868,7 +841,6 @@ in <em>newFunction</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">function</span><span class="o">-&gt;</span><span class="i">name</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>     
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>newFunction</em>()</div>
 
 <p>In the compiler, we add a field for the upvalue array:</p>
@@ -881,7 +853,6 @@ in struct <em>Compiler</em></div>
 </pre><pre class="insert-after">
   <span class="t">int</span> <span class="i">scopeDepth</span><span class="o">;</span>               
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
 
 <p>For simplicity, I gave it a fixed size. The <code>OP_GET_UPVALUE</code> and
@@ -906,7 +877,6 @@ in <em>addUpvalue</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">upvalueCount</span><span class="o">].</span><span class="i">isLocal</span> <span class="o">=</span> <span class="i">isLocal</span><span class="o">;</span>            
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addUpvalue</em>()</div>
 
 <p>Finally, the Upvalue struct type itself:</p>
@@ -918,7 +888,6 @@ add after struct <em>Local</em></div>
   <span class="t">bool</span> <span class="i">isLocal</span><span class="o">;</span> 
 <span class="o">}</span> <span class="t">Upvalue</span><span class="o">;</span>      
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Local</em></div>
 
 <p>The <code>index</code> field stores which local slot the upvalue is capturing. The
@@ -1016,7 +985,6 @@ in <em>resolveUpvalue</em>()</div>
 
   <span class="k">return</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>                                              
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
 
 <p>It&rsquo;s only another three lines of code, but I found this function really
@@ -1077,7 +1045,6 @@ in <em>function</em>()</div>
 </pre><pre class="insert-after">
 <span class="o">}</span>                                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>function</em>()</div>
 
 <p>The <code>OP_CLOSURE</code> instruction is unique in that it has a variably-sized encoding.
@@ -1108,7 +1075,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
       <span class="k">return</span> <span class="i">offset</span><span class="o">;</span>                                             
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>For example, take this script:</p>
@@ -1147,7 +1113,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span>                                               
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>These both have a single byte operand, so there&rsquo;s nothing exciting going on. We
@@ -1160,7 +1125,6 @@ do need to add an include so the debug module can get to <code>AS_FUNCTION()</co
 </pre><pre class="insert-after">
 <span class="a">#include &quot;value.h&quot; </span>
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em></div>
 
 <p>With that, our compiler is where we want it. For each function declaration, it
@@ -1179,7 +1143,6 @@ add after struct <em>sObjString</em></div>
   <span class="t">Value</span><span class="o">*</span> <span class="i">location</span><span class="o">;</span>       
 <span class="o">}</span> <span class="t">ObjUpvalue</span><span class="o">;</span>            
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
 <p>We know upvalues must manage closed-over variables that no longer live on the
@@ -1216,7 +1179,6 @@ add after <em>copyString</em>()</div>
 </pre><pre class="insert-after">
 <span class="t">void</span> <span class="i">printObject</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">);</span>                       
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, add after <em>copyString</em>()</div>
 
 <p>It takes the address of the slot where the closed-over variable lives. Here is
@@ -1230,7 +1192,6 @@ add after <em>copyString</em>()</div>
   <span class="k">return</span> <span class="i">upvalue</span><span class="o">;</span>                                             
 <span class="o">}</span>                                                             
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
 
 <p>We simply initialize the object and store the pointer. That requires a new
@@ -1244,7 +1205,6 @@ in enum <em>ObjType</em></div>
 </pre><pre class="insert-after">
 <span class="o">}</span> <span class="t">ObjType</span><span class="o">;</span>   
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in enum <em>ObjType</em></div>
 
 <p>And on the back side, a destructor-like function:</p>
@@ -1262,7 +1222,6 @@ in <em>freeObject</em>()</div>
 </pre><pre class="insert-after">
   <span class="o">}</span>                            
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>Multiple closures can close over the same variable, so ObjUpvalue does not own
@@ -1282,7 +1241,6 @@ in <em>printObject</em>()</div>
 </pre><pre class="insert-after">
   <span class="o">}</span>                                   
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>printObject</em>()</div>
 
 <p>Printing isn&rsquo;t useful to end users. Upvalues are only objects so that we can
@@ -1303,7 +1261,6 @@ in struct <em>ObjClosure</em></div>
 </pre><pre class="insert-after">
 <span class="o">}</span> <span class="t">ObjClosure</span><span class="o">;</span>           
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjClosure</em></div>
 
 <p><span name="count">Different</span> closures may have a different number of
@@ -1332,7 +1289,6 @@ in <em>newClosure</em>()</div>
 </pre><pre class="insert-after">
   <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span> <span class="o">=</span> <span class="a">ALLOCATE_OBJ</span><span class="o">(</span><span class="t">ObjClosure</span><span class="o">,</span> <span class="a">OBJ_CLOSURE</span><span class="o">);</span>          
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClosure</em>()</div>
 
 <p>Before creating the closure object itself, we allocate the array of upvalues and
@@ -1351,7 +1307,6 @@ in <em>newClosure</em>()</div>
 </pre><pre class="insert-after">
   <span class="k">return</span> <span class="i">closure</span><span class="o">;</span>                                
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>newClosure</em>()</div>
 
 <p>When an ObjClosure is freed, we also free the upvalue array:</p>
@@ -1365,7 +1320,6 @@ in <em>freeObject</em>()</div>
 </pre><pre class="insert-after">
       <span class="a">FREE</span><span class="o">(</span><span class="t">ObjClosure</span><span class="o">,</span> <span class="i">object</span><span class="o">);</span>                                         
 </pre></div>
-
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
 
 <p>ObjClosure does not own the ObjUpvalue objects itself, but it does own its
@@ -1390,7 +1344,6 @@ in <em>run</em>()</div>
 </pre><pre class="insert-after">
         <span class="k">break</span><span class="o">;</span>                                                          
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>This code is the magic moment when a closure comes to life and captures
@@ -1417,7 +1370,6 @@ add after <em>callValue</em>()</div>
   <span class="k">return</span> <span class="i">createdUpvalue</span><span class="o">;</span>                         
 <span class="o">}</span>                                                
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>callValue</em>()</div>
 
 <p>This seems a little silly. All it does is create a new ObjUpvalue that captures
@@ -1444,7 +1396,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                  
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>The operand is the index into the current function&rsquo;s upvalue array. So we simply
@@ -1465,7 +1416,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                      
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>We <span name="assign">take</span> the value on top of the stack and store it
@@ -1623,7 +1573,6 @@ in struct <em>Local</em></div>
 </pre><pre class="insert-after">
 <span class="o">}</span> <span class="t">Local</span><span class="o">;</span>          
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Local</em></div>
 
 <p>This field is <code>true</code> if the local is captured by any later nested function
@@ -1637,7 +1586,6 @@ in <em>addLocal</em>()</div>
 </pre><pre class="insert-after">
 <span class="o">}</span>                           
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>()</div>
 
 <p><span name="zero">Likewise</span>, the special &ldquo;slot zero local&rdquo; that the
@@ -1655,7 +1603,6 @@ in <em>initCompiler</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">local</span><span class="o">-&gt;</span><span class="i">name</span><span class="o">.</span><span class="i">start</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">;</span>   
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>initCompiler</em>()</div>
 
 <p>When resolving an identifier, if we end up creating an upvalue for a local
@@ -1669,7 +1616,6 @@ in <em>resolveUpvalue</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">return</span> <span class="i">addUpvalue</span><span class="o">(</span><span class="i">compiler</span><span class="o">,</span> <span class="o">(</span><span class="t">uint8_t</span><span class="o">)</span><span class="i">local</span><span class="o">,</span> <span class="k">true</span><span class="o">);</span>   
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveUpvalue</em>()</div>
 
 <p>Now, at the end of a block scope when the compiler emits code to free the stack
@@ -1692,7 +1638,6 @@ replace 1 line</div>
     <span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span><span class="o">--;</span>                                    
   <span class="o">}</span>                                                           
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endScope</em>(), replace 1 line</div>
 
 <p>The instruction requires no operand. We know that the variable will always be
@@ -1707,7 +1652,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
   <span class="a">OP_RETURN</span><span class="o">,</span>       
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And add trivial disassembler support for it:</p>
@@ -1721,7 +1665,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OP_RETURN</span><span class="o">:</span>                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>Excellent. Now the generated bytecode tells the runtime exactly when each
@@ -1783,7 +1726,6 @@ in struct <em>ObjUpvalue</em></div>
 </pre><pre class="insert-after">
 <span class="o">}</span> <span class="t">ObjUpvalue</span><span class="o">;</span>           
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjUpvalue</em></div>
 
 <p>When we allocate an upvalue, it is not attached to any list yet so the link is
@@ -1797,7 +1739,6 @@ in <em>newUpvalue</em>()</div>
 </pre><pre class="insert-after">
   <span class="k">return</span> <span class="i">upvalue</span><span class="o">;</span>          
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>newUpvalue</em>()</div>
 
 <p>The VM owns the list, so the head pointer goes right inside the main VM struct:</p>
@@ -1812,7 +1753,6 @@ in struct <em>VM</em></div>
   <span class="t">Obj</span><span class="o">*</span> <span class="i">objects</span><span class="o">;</span>            
 <span class="o">}</span> <span class="a">VM</span><span class="o">;</span>                      
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.h</em>, in struct <em>VM</em></div>
 
 <p>The list starts out empty:</p>
@@ -1825,7 +1765,6 @@ in <em>resetStack</em>()</div>
 </pre><pre class="insert-after">
 <span class="o">}</span>                        
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>resetStack</em>()</div>
 
 <p>Starting with the first upvalue pointed to by the VM, each open upvalue points
@@ -1868,7 +1807,6 @@ in <em>captureUpvalue</em>()</div>
 </pre><pre class="insert-after">
   <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">createdUpvalue</span> <span class="o">=</span> <span class="i">newUpvalue</span><span class="o">(</span><span class="i">local</span><span class="o">);</span>                   
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>captureUpvalue</em>()</div>
 
 <p>We start at the <span name="head">head</span> of the list, which is the upvalue
@@ -1918,7 +1856,6 @@ in <em>captureUpvalue</em>()</div>
 </pre><pre class="insert-after">
   <span class="k">return</span> <span class="i">createdUpvalue</span><span class="o">;</span>                         
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>captureUpvalue</em>()</div>
 
 <p>The current incarnation of this function already creates the upvalue, so we only
@@ -1962,7 +1899,6 @@ in <em>run</em>()</div>
 </pre><pre class="insert-after">
       <span class="k">case</span> <span class="a">OP_RETURN</span><span class="o">:</span> <span class="o">{</span>                
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>When we reach that instruction, the variable we are hoisting is right on top of
@@ -1984,7 +1920,6 @@ add after <em>captureUpvalue</em>()</div>
   <span class="o">}</span>                                          
 <span class="o">}</span>                                            
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>captureUpvalue</em>()</div>
 
 <p>This function takes a pointer to a stack slot. It closes every open upvalue it
@@ -2020,7 +1955,6 @@ in struct <em>ObjUpvalue</em></div>
 </pre><pre class="insert-after">
   <span class="k">struct</span> <span class="i">sUpvalue</span><span class="o">*</span> <span class="i">next</span><span class="o">;</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>object.h</em>, in struct <em>ObjUpvalue</em></div>
 
 <p>And we should zero it out when we create an ObjUpvalue so there&rsquo;s no
@@ -2034,7 +1968,6 @@ in <em>newUpvalue</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">location</span> <span class="o">=</span> <span class="i">slot</span><span class="o">;</span>                                   
 </pre></div>
-
 <div class="source-file-narrow"><em>object.c</em>, in <em>newUpvalue</em>()</div>
 
 <p>Whenever the compiler reaches the end of a block, it discards all local
@@ -2063,7 +1996,6 @@ in <em>run</em>()</div>
 
         <span class="i">vm</span><span class="o">.</span><span class="i">frameCount</span><span class="o">--;</span>            
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>By passing the first slot in the function&rsquo;s stack window, we close every

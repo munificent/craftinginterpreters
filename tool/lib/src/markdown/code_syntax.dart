@@ -221,11 +221,6 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
     buffer.writeln('<div class="source-file">$lines</div>');
   }
 
-//  if snippet.removed and not snippet.added:
-//    removed = format_code(snippet.file.language(), length, snippet.removed)
-//    removed = removed.replace('<pre>', '<pre class="delete">')
-//    contents += removed
-
   if (snippet.added != null) {
     var added = formatCode(snippet.file.language, length, snippet.added,
         tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
@@ -243,9 +238,6 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   buffer.writeln('</div>');
 
   if (tag.showLocation) {
-    // TODO: Just to match the old output. Delete when not needed.
-    buffer.writeln();
-
     var lines = location.join(", ");
     buffer.writeln('<div class="source-file-narrow">$lines</div>');
   }
