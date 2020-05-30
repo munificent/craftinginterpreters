@@ -15,9 +15,9 @@ import 'package:tool/src/term.dart' as term;
 import 'package:tool/src/text.dart';
 
 final _asideCommentPattern =
-    RegExp(r' ?<span class="c1">// \[([-a-z0-9]+)\] *</span>');
+    RegExp(r' ?<span class="c">// \[([-a-z0-9]+)\] *</span>');
 final _asideWithCommentPattern =
-    RegExp(r' ?<span class="c1">// (.+) \[([-a-z0-9]+)\] *</span>');
+    RegExp(r' ?<span class="c">// (.+) \[([-a-z0-9]+)\] *</span>');
 
 Future<void> main(List<String> arguments) async {
   _buildSass();
@@ -80,12 +80,12 @@ int _buildPage(Book book, Mustache mustache, Page page,
   // Turn aside markers in code into spans. In the empty span case, insert a
   // zero-width space because Chrome seems to lose the span's position if it has
   // no content.
-  // <span class="c1">// [repl]</span>
+  // <span class="c">// [repl]</span>
   // TODO: Do this directly in the syntax highlighter instead of after the fact.
   output = output.replaceAllMapped(
       _asideCommentPattern, (match) => '<span name="${match[1]}"> </span>');
   output = output.replaceAllMapped(_asideWithCommentPattern,
-      (match) => '<span class="c1" name="${match[2]}">// ${match[1]}</span>');
+      (match) => '<span class="c" name="${match[2]}">// ${match[1]}</span>');
 
   // TODO: Temp hack. Insert some whitespace to match the old Markdown.
   output = output.replaceAll("</p><", "</p>\n<");

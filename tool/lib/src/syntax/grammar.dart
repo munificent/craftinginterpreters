@@ -127,7 +127,7 @@ final _cRules = [
   Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]),
 
   // Preprocessor with comment.
-  Rule.capture(r"(#.*?)(//.*)", ["cp", "c1"]),
+  Rule.capture(r"(#.*?)(//.*)", ["cp", "c"]),
 
   // Preprocessor.
   Rule(r"#.*", "cp"),
@@ -156,7 +156,7 @@ final _commonRules = [
   Rule(r"0x[0-9a-fA-F]+", "mh"), // Hex integer.
   Rule(r"[0-9]+[Lu]?", "mi"), // Integer.
 
-  Rule(r"//.*", "c1"), // Line comment.
+  Rule(r"//.*", "c"), // Line comment.
 
   IdentifierRule(),
 
