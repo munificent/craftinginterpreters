@@ -446,7 +446,7 @@ user experience.
 
 We have single-character lexemes covered, but that doesn't cover all of Lox's
 operators. What about `!`? It's a single character, right? Sometimes, yes, but
-not when it's followed by a `=`. In that case, it should be a `!=` lexeme.
+not when it's followed by an `=`. In that case, it should be a `!=` lexeme.
 Likewise, `<`, `>`, and `=` can all be followed by `=`.
 
 For those, we need to look at the second character:
