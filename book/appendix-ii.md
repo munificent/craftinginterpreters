@@ -1,6 +1,3 @@
-^title Appendix II
-^part Backmatter
-
 For your edification, here is the code produced by [the little script
 we built][generator] to automate generating the syntax tree classes for jlox.
 

@@ -1,6 +1,3 @@
-^title Evaluating Expressions
-^part A Tree-Walk Interpreter
-
 > You are my creator, but I am your master; Obey!
 >
 > <cite>Mary Shelley, <em>Frankenstein</em></cite>

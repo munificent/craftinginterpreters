@@ -1,6 +1,3 @@
-^title Jumping Back and Forth
-^part A Bytecode Virtual Machine
-
 > The order that our mind imagines is like a net, or like a ladder, built to
 > attain something. But afterward you must throw the ladder away, because you
 > discover that, even if it was useful, it was meaningless.

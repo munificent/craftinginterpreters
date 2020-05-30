@@ -1,6 +1,3 @@
-^title Appendix I
-^part Backmatter
-
 Here is a complete grammar for Lox. The chapters that introduce each part of the
 language include the grammar rules there, but this collects them all into one
 place.

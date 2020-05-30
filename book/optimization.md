@@ -1,6 +1,3 @@
-^title Optimization
-^part A Bytecode Virtual Machine
-
 > The evening's the best part of the day. You've done your day's work. Now you
 > can put your feet up and enjoy it.
 >

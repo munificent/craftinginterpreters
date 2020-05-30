@@ -1,6 +1,3 @@
-^title Global Variables
-^part A Bytecode Virtual Machine
-
 > If only there could be an invention that bottled up a memory, like scent. And
 > it never faded, and it never got stale. And then, when one wanted it, the
 > bottle could be uncorked, and it would be like living the moment all over

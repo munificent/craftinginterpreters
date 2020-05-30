@@ -1,5 +1,3 @@
-^title Backmatter
-
 You've reached the end of the book! There are two pieces of supplementary
 material you may find helpful:
 

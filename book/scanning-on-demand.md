@@ -1,6 +1,3 @@
-^title Scanning on Demand
-^part A Bytecode Virtual Machine
-
 > Literature is idiosyncratic arrangements in horizontal lines in only
 > twenty-six phonetic symbols, ten Arabic numbers, and about eight punctuation
 > marks.

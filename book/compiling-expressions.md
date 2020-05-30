@@ -1,6 +1,3 @@
-^title Compiling Expressions
-^part A Bytecode Virtual Machine
-
 > In the middle of the journey of our life I found myself within a dark woods
 > where the straight way was lost.
 >

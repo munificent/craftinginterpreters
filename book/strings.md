@@ -1,6 +1,3 @@
-^title Strings
-^part A Bytecode Virtual Machine
-
 > "Ah? A small aversion to menial labor?" The doctor cocked an eyebrow.
 > "Understandable, but misplaced. One should treasure those hum-drum
 > tasks that keep the body occupied but leave the mind and heart unfettered."

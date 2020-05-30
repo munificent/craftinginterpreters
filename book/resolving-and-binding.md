@@ -1,6 +1,3 @@
-^title Resolving and Binding
-^part A Tree-Walk Interpreter
-
 > Once in a while you find yourself in an odd situation. You get into it by
 > degrees and in the most natural way but, when you are right in the midst of
 > it, you are suddenly astonished and ask yourself how in the world it all came

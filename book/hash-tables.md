@@ -1,6 +1,3 @@
-^title Hash Tables
-^part A Bytecode Virtual Machine
-
 > Hash, x. There is no definition for this word -- nobody knows what hash is.
 >
 > <cite>Ambrose Bierce, <em>The Unabridged Devil's Dictionary</em></cite>

@@ -1,6 +1,3 @@
-^title Superclasses
-^part A Bytecode Virtual Machine
-
 > You can choose your friends but you sho' can't choose your family, an' they're
 > still kin to you no matter whether you acknowledge 'em or not, and it makes
 > you look right silly when you don't.

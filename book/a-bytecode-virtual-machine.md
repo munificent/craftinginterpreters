@@ -1,5 +1,3 @@
-^title A Bytecode Virtual Machine
-
 Our Java interpreter, jlox, covers a lot of territory, but it's not perfect.
 First, if you run any interesting Lox programs on it, you'll discover it's
 achingly slow. The style of interpretation it uses -- walking the AST directly

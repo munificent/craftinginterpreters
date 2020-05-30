@@ -1,6 +1,3 @@
-^title Functions
-^part A Tree-Walk Interpreter
-
 > And that is also the way the human mind works -- by the compounding of old
 > ideas into new structures that become new ideas that can themselves be used in
 > compounds, and round and round endlessly, growing ever more remote from the
