@@ -172,7 +172,7 @@ Future<void> _runServer() async {
 
   var handler = const shelf.Pipeline().addHandler(handleRequest);
 
-  var server = await io.serve(handler, "localhost", 8080);
+  var server = await io.serve(handler, "localhost", 8000);
   print("Serving at http://${server.address.host}:${server.port}");
 }
 

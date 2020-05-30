@@ -127,9 +127,7 @@ add useful functionality in their own right, but each also supplies a piece of a
 statements, variables, control flow, and lexical scope<span class="em">&mdash;</span>add a couple more, and
 assemble them all into support for real user-defined functions and function
 calls.</p>
-<aside name="lambda">
-<p><img src="image/functions/lambda.png" alt="A lambda puzzle." /></p>
-</aside>
+<aside name="lambda"><p><img src="image/functions/lambda.png" alt="A lambda puzzle." /></p></aside>
 <h2><a href="#function-calls" name="function-calls"><small>10&#8202;.&#8202;1</small> Function Calls</a></h2>
 <p>You&rsquo;re certainly familiar with C-style function call syntax, but the grammar is
 more subtle than you may realize. Calls are typically to named functions like:</p>
@@ -200,7 +198,6 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
-
 <aside name="call-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#call-expression">Appendix II</a>.</p>
 </aside>
@@ -224,7 +221,7 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>unary</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="n">Expr</span> <span class="n">call</span><span class="o">()</span> <span class="o">{</span>         
-    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">primary</span><span class="o">();</span>
+    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">primary</span><span class="o">();</span>      
 
     <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>              
       <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>  
@@ -259,7 +256,7 @@ add after <em>unary</em>()</div>
       <span class="k">do</span> <span class="o">{</span>                                                            
         <span class="n">arguments</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">expression</span><span class="o">());</span>                                  
       <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">COMMA</span><span class="o">));</span>                                         
-    <span class="o">}</span>
+    <span class="o">}</span>                                                                 
 
     <span class="n">Token</span> <span class="n">paren</span> <span class="o">=</span> <span class="n">consume</span><span class="o">(</span><span class="n">RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span><span class="o">);</span>
 
@@ -328,7 +325,7 @@ expression node:</p>
 add after <em>visitBinaryExpr</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>                                             
   <span class="k">public</span> <span class="n">Object</span> <span class="n">visitCallExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="n">Call</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>         
-    <span class="n">Object</span> <span class="n">callee</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">callee</span><span class="o">);</span>
+    <span class="n">Object</span> <span class="n">callee</span> <span class="o">=</span> <span class="n">evaluate</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">callee</span><span class="o">);</span>              
 
     <span class="n">List</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">arguments</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>         
     <span class="k">for</span> <span class="o">(</span><span class="n">Expr</span> <span class="n">argument</span> <span class="o">:</span> <span class="n">expr</span><span class="o">.</span><span class="n">arguments</span><span class="o">)</span> <span class="o">{</span><span name="in-order"> </span>
@@ -367,7 +364,7 @@ own Callable interface. Alas, all the good simple names are already taken.</p>
 <p>There isn&rsquo;t too much to it:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxCallable.java</em><br>
 create new file</div>
-<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>                          
 
 <span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>                                         
 
@@ -554,7 +551,7 @@ in class <em>Interpreter</em></div>
 <pre><br><span></span>  <span class="n">Interpreter</span><span class="o">()</span> <span class="o">{</span>                                          
     <span class="n">globals</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="s">&quot;clock&quot;</span><span class="o">,</span> <span class="k">new</span> <span class="n">LoxCallable</span><span class="o">()</span> <span class="o">{</span>            
       <span class="nd">@Override</span>                                            
-      <span class="k">public</span> <span class="k">int</span> <span class="n">arity</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="mi">0</span><span class="o">;</span> <span class="o">}</span>
+      <span class="k">public</span> <span class="k">int</span> <span class="n">arity</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="mi">0</span><span class="o">;</span> <span class="o">}</span>                     
 
       <span class="nd">@Override</span>                                            
       <span class="k">public</span> <span class="n">Object</span> <span class="n">call</span><span class="o">(</span><span class="n">Interpreter</span> <span class="n">interpreter</span><span class="o">,</span>          
@@ -648,7 +645,6 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
-
 <aside name="fun-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#function-statement">Appendix II</a>.</p>
 </aside>
@@ -692,7 +688,7 @@ in <em>function</em>()</div>
       <span class="k">do</span> <span class="o">{</span>                                                            
         <span class="k">if</span> <span class="o">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">size</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="mi">255</span><span class="o">)</span> <span class="o">{</span>                               
           <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="s">&quot;Cannot have more than 255 parameters.&quot;</span><span class="o">);</span>     
-        <span class="o">}</span>
+        <span class="o">}</span>                                                             
 
         <span class="n">parameters</span><span class="o">.</span><span class="n">add</span><span class="o">(</span><span class="n">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect parameter name.&quot;</span><span class="o">));</span>
       <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">COMMA</span><span class="o">));</span>                                         
@@ -740,7 +736,7 @@ the front-end&rsquo;s syntax classes so we don&rsquo;t want Stmt.Function itself
 implement that. Instead, we wrap it in a new class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
 create new file</div>
-<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>     
 
 <span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>                    
 
@@ -763,7 +759,7 @@ add after <em>LoxFunction</em>()</div>
     <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">declaration</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">size</span><span class="o">();</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>              
       <span class="n">environment</span><span class="o">.</span><span class="n">define</span><span class="o">(</span><span class="n">declaration</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">i</span><span class="o">).</span><span class="n">lexeme</span><span class="o">,</span>             
           <span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">i</span><span class="o">));</span>                                           
-    <span class="o">}</span>
+    <span class="o">}</span>                                                                  
 
     <span class="n">interpreter</span><span class="o">.</span><span class="n">executeBlock</span><span class="o">(</span><span class="n">declaration</span><span class="o">.</span><span class="n">body</span><span class="o">,</span> <span class="n">environment</span><span class="o">);</span>           
     <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                                       
@@ -961,7 +957,6 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
-
 <aside name="return-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#return-statement">Appendix II</a>.</p>
 </aside>
@@ -985,7 +980,7 @@ add after <em>printStatement</em>()</div>
     <span class="n">Expr</span> <span class="n">value</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>                                   
     <span class="k">if</span> <span class="o">(!</span><span class="n">check</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">))</span> <span class="o">{</span>                             
       <span class="n">value</span> <span class="o">=</span> <span class="n">expression</span><span class="o">();</span>                              
-    <span class="o">}</span>
+    <span class="o">}</span>                                                    
 
     <span class="n">consume</span><span class="o">(</span><span class="n">SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span><span class="o">);</span>
     <span class="k">return</span> <span class="k">new</span> <span class="n">Stmt</span><span class="o">.</span><span class="n">Return</span><span class="o">(</span><span class="n">keyword</span><span class="o">,</span> <span class="n">value</span><span class="o">);</span>              
@@ -1054,7 +1049,7 @@ add after <em>visitPrintStmt</em>()</div>
 that value and wrap it in a custom exception class and throw it. That class is:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Return.java</em><br>
 create new file</div>
-<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>  
 
 <span class="k">class</span> <span class="nc">Return</span> <span class="k">extends</span> <span class="n">RuntimeException</span> <span class="o">{</span>
   <span class="k">final</span> <span class="n">Object</span> <span class="n">value</span><span class="o">;</span>                  
@@ -1252,7 +1247,6 @@ the interpreter. In the next chapter, we will explore more deeply into lexical
 scope and close that hole.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>Our interpreter carefully checks that the number of arguments passed to a
@@ -1289,10 +1283,7 @@ this works:</p>
 <p>How do you handle the tricky case of an anonymous function expression
 occurring in an expression statement:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="o">()</span> <span class="o">{};</span>
-</pre></div>
-
-
-</li>
+</pre></div></li>
 <li>
 <p>Is this program valid?</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="n">scope</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">{</span>

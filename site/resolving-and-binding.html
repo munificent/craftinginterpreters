@@ -183,7 +183,6 @@ precede the usage in <em>time</em>. But that&rsquo;s not <em>always</em> true. A
 functions may defer a chunk of code such that its <em>dynamic temporal</em>
 execution no longer mirrors the <em>static textual</em> ordering.</p>
 <aside name="hoisting">
-
 <p>In JavaScript, variables declared using <code>var</code> are implicitly &ldquo;hoisted&rdquo; to
 the beginning of the block. Any use of that name in the block will refer to
 that variable, even if the use appears before the declaration. When you
@@ -208,7 +207,6 @@ write this in JavaScript:</p>
 has run<span class="em">&mdash;</span>an annoying source of bugs. The alternate <code>let</code> syntax for
 declaring variables was added later to address this problem.</p>
 </aside>
-
 </li>
 <li>
 <p>&ldquo;Innermost&rdquo; is there because of our good friend shadowing. There may be more
@@ -443,7 +441,7 @@ the user&rsquo;s program grows.</p>
 <p>Like everything in Java, our variable resolution pass lives nestled in a class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 create new file</div>
-<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>                             
 
 <span class="k">import</span> <span class="n">java.util.HashMap</span><span class="o">;</span>                                         
 <span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>                                            
@@ -611,14 +609,11 @@ the same name as what&rsquo;s being declared? We have a few options:</p>
 <li>
 <p><strong>Run the initializer, then put the new variable in scope.</strong> That means here
 the new local <code>a</code> would be initialized with &ldquo;outer&rdquo;, the value of the
-    <em>global</em> one. In other words, the previous declaration desugars to:</p>
+<em>global</em> one. In other words, the previous declaration desugars to:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">a</span><span class="o">;</span> <span class="c1">// Run the initializer.</span>
 <span class="k">var</span> <span class="n">a</span><span class="o">;</span>        <span class="c1">// Declare the variable.</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">temp</span><span class="o">;</span>     <span class="c1">// Initialize it.</span>
-</pre></div>
-
-
-</li>
+</pre></div></li>
 <li>
 <p><strong>Put the new variable in scope, then run the initializer.</strong> This means you
 can observe a variable before it&rsquo;s initialized, so we need to figure out
@@ -627,10 +622,7 @@ would be re-initialized to its own implicitly initialized value, <code>nil</code
 the desugaring looks like:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="n">a</span><span class="o">;</span> <span class="c1">// Define the variable.</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">;</span> <span class="c1">// Run the initializer.</span>
-</pre></div>
-
-
-</li>
+</pre></div></li>
 <li>
 <p><strong>Make it an error to reference a variable in its initializer.</strong> Have the
 interpreter fail either at compile time or runtime if an initializer
@@ -652,7 +644,7 @@ steps. The first is <em>declaring</em> it:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>endScope</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="k">void</span> <span class="n">declare</span><span class="o">(</span><span class="n">Token</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>           
-    <span class="k">if</span> <span class="o">(</span><span class="n">scopes</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">())</span> <span class="k">return</span><span class="o">;</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">scopes</span><span class="o">.</span><span class="n">isEmpty</span><span class="o">())</span> <span class="k">return</span><span class="o">;</span>              
 
     <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Boolean</span><span class="o">&gt;</span> <span class="n">scope</span> <span class="o">=</span> <span class="n">scopes</span><span class="o">.</span><span class="n">peek</span><span class="o">();</span>
     <span class="n">scope</span><span class="o">.</span><span class="n">put</span><span class="o">(</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">,</span> <span class="kc">false</span><span class="o">);</span>             
@@ -691,7 +683,7 @@ add after <em>visitVarStmt</em>()</div>
         <span class="n">scopes</span><span class="o">.</span><span class="n">peek</span><span class="o">().</span><span class="n">get</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lexeme</span><span class="o">)</span> <span class="o">==</span> <span class="n">Boolean</span><span class="o">.</span><span class="n">FALSE</span><span class="o">)</span> <span class="o">{</span> 
       <span class="n">Lox</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">name</span><span class="o">,</span>                                      
           <span class="s">&quot;Cannot read local variable in its own initializer.&quot;</span><span class="o">);</span>
-    <span class="o">}</span>
+    <span class="o">}</span>                                                           
 
     <span class="n">resolveLocal</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>                              
     <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                                
@@ -713,7 +705,7 @@ add after <em>define</em>()</div>
         <span class="n">interpreter</span><span class="o">.</span><span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">,</span> <span class="n">scopes</span><span class="o">.</span><span class="n">size</span><span class="o">()</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="o">);</span>
         <span class="k">return</span><span class="o">;</span>                                          
       <span class="o">}</span>                                                  
-    <span class="o">}</span>
+    <span class="o">}</span>                                                    
 
     <span class="c1">// Not found. Assume it is global.                   </span>
   <span class="o">}</span>                                                      
@@ -758,7 +750,7 @@ add after <em>visitBlockStmt</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>                                          
   <span class="k">public</span> <span class="n">Void</span> <span class="n">visitFunctionStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="n">Function</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">declare</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>                              
-    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>
+    <span class="n">define</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">name</span><span class="o">);</span>                               
 
     <span class="n">resolveFunction</span><span class="o">(</span><span class="n">stmt</span><span class="o">);</span>                           
     <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                     
@@ -855,7 +847,7 @@ add after <em>visitPrintStmt</em>()</div>
   <span class="k">public</span> <span class="n">Void</span> <span class="n">visitReturnStmt</span><span class="o">(</span><span class="n">Stmt</span><span class="o">.</span><span class="n">Return</span> <span class="n">stmt</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">if</span> <span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>                    
       <span class="n">resolve</span><span class="o">(</span><span class="n">stmt</span><span class="o">.</span><span class="n">value</span><span class="o">);</span>                       
-    <span class="o">}</span>
+    <span class="o">}</span>                                            
 
     <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>                                 
   <span class="o">}</span>                                              
@@ -897,7 +889,7 @@ operands.</p>
 add after <em>visitBinaryExpr</em>()</div>
 <pre><span></span>  <span class="nd">@Override</span>                                  
   <span class="k">public</span> <span class="n">Void</span> <span class="n">visitCallExpr</span><span class="o">(</span><span class="n">Expr</span><span class="o">.</span><span class="n">Call</span> <span class="n">expr</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">callee</span><span class="o">);</span>
+    <span class="n">resolve</span><span class="o">(</span><span class="n">expr</span><span class="o">.</span><span class="n">callee</span><span class="o">);</span>                    
 
     <span class="k">for</span> <span class="o">(</span><span class="n">Expr</span> <span class="n">argument</span> <span class="o">:</span> <span class="n">expr</span><span class="o">.</span><span class="n">arguments</span><span class="o">)</span> <span class="o">{</span>   
       <span class="n">resolve</span><span class="o">(</span><span class="n">argument</span><span class="o">);</span>                     
@@ -1091,7 +1083,7 @@ add after <em>define</em>()</div>
     <span class="n">Environment</span> <span class="n">environment</span> <span class="o">=</span> <span class="k">this</span><span class="o">;</span>                    
     <span class="k">for</span> <span class="o">(</span><span class="k">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">distance</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>               
       <span class="n">environment</span> <span class="o">=</span> <span class="n">environment</span><span class="o">.</span><span class="n">enclosing</span><span class="o">;</span><span name="coupled"> </span>
-    <span class="o">}</span>
+    <span class="o">}</span>                                                  
 
     <span class="k">return</span> <span class="n">environment</span><span class="o">;</span>                                
   <span class="o">}</span>                                                    
@@ -1332,7 +1324,6 @@ part is that we fixed that one weird annoying edge case bug, though it might be
 surprising that it took this much work to do it.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>Why is it safe to eagerly define the variable bound to a function&rsquo;s name

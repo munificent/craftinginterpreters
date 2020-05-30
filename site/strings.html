@@ -337,8 +337,7 @@ are declared. A pointer to a structure object, suitably converted, points to
 its initial member (or if that member is a bit-field, then to the unit in
 which it resides), and vice versa. There may be unnamed padding within a
 structure object, but not at its beginning.</p>
-</blockquote>
-</aside>
+</blockquote></aside>
 <p>Given an <code>ObjString*</code>, you can safely cast it to <code>Obj*</code> and then access the
 <code>type</code> field from it. Every ObjString &ldquo;is&rdquo; an Obj in the OOP sense of &ldquo;is&rdquo;. When
 we later add other object types, each struct will have an Obj as its first
@@ -487,7 +486,7 @@ count:</p>
 
 <p>Once we have the array, we copy over the characters from the lexeme and
 terminate it.</p>
-<aside class="bottom" name="terminator">
+<aside name="terminator" class="bottom">
 <p>We need to terminate it explicitly ourselves because the lexeme points at a
 range of characters inside the monolithic source string and isn&rsquo;t terminated.</p>
 <p>Since ObjString stores the length explicitly, we <em>could</em> leave the character
@@ -510,7 +509,7 @@ This way, every ObjString reliably owns its character array and can free it.</p>
 <pre class="insert"><span></span><span class="k">static</span> <span class="n">ObjString</span><span class="o">*</span> <span class="n">allocateString</span><span class="o">(</span><span class="k">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="k">int</span> <span class="n">length</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">ObjString</span><span class="o">*</span> <span class="n">string</span> <span class="o">=</span> <span class="n">ALLOCATE_OBJ</span><span class="o">(</span><span class="n">ObjString</span><span class="o">,</span> <span class="n">OBJ_STRING</span><span class="o">);</span> 
   <span class="n">string</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span><span class="o">;</span>                                 
-  <span class="n">string</span><span class="o">-&gt;</span><span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="o">;</span>
+  <span class="n">string</span><span class="o">-&gt;</span><span class="n">chars</span> <span class="o">=</span> <span class="n">chars</span><span class="o">;</span>                                   
 
   <span class="k">return</span> <span class="n">string</span><span class="o">;</span>                                           
 <span class="o">}</span>                                                          
@@ -559,10 +558,8 @@ type being created.</p>
 function returns to <code>allocateString()</code> which finishes initializing the ObjString
 fields. <span name="viola"><em>Voil&agrave;</em></span>, we can compile and execute string
 literals.</p>
-<aside name="viola">
-<p><img src="image/strings/viola.png" class="above" alt="A viola.">
-
-Don't get "voil&agrave;" confused with "viola". One means "there it is" and the other
+<aside name="viola"><p><img src="image/strings/viola.png" class="above" alt="A viola."></p>
+<p>Don&rsquo;t get &ldquo;voil&agrave;&rdquo; confused with &ldquo;viola&rdquo;. One means &ldquo;there it is&rdquo; and the other
 is a string instrument, the middle child between a violin and a cello. Yes, I
 did spend two hours drawing a viola just to mention that.</p>
 </aside>
@@ -690,7 +687,7 @@ replace 1 line</div>
 <p>If both operands are strings, it concatenates. If they&rsquo;re both numbers, it adds
 them. Any other <span name="convert">combination</span> of operand types is a
 runtime error.</p>
-<aside class="bottom" name="convert">
+<aside name="convert" class="bottom">
 <p>This is more conservative than most languages. In other languages, if one
 operand is a string, the other can be any type and it will be implicitly
 converted to a string before concatenating the two.</p>
@@ -702,7 +699,7 @@ string&rdquo; code for each type, so I left it out of Lox.</p>
 add after <em>isFalsey</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">concatenate</span><span class="o">()</span> <span class="o">{</span>                      
   <span class="n">ObjString</span><span class="o">*</span> <span class="n">b</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>               
-  <span class="n">ObjString</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>
+  <span class="n">ObjString</span><span class="o">*</span> <span class="n">a</span> <span class="o">=</span> <span class="n">AS_STRING</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span>               
 
   <span class="k">int</span> <span class="n">length</span> <span class="o">=</span> <span class="n">a</span><span class="o">-&gt;</span><span class="n">length</span> <span class="o">+</span> <span class="n">b</span><span class="o">-&gt;</span><span class="n">length</span><span class="o">;</span>            
   <span class="k">char</span><span class="o">*</span> <span class="n">chars</span> <span class="o">=</span> <span class="n">ALLOCATE</span><span class="o">(</span><span class="k">char</span><span class="o">,</span> <span class="n">length</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>      
@@ -1004,7 +1001,6 @@ enable us to build another fundamental data type, especially in dynamic
 languages: the venerable <a href="hash-tables.html">hash table</a>. But that&rsquo;s for the next chapter&hellip;</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>Each string requires two separate dynamic allocations<span class="em">&mdash;</span>one for the
@@ -1027,14 +1023,12 @@ location. Add support for this.</p>
 </li>
 <li>
 <p>If Lox was your language, what would you have it do when a user tries to use
-    <code>+</code> with one string operand and the other some other type? Justify your
+<code>+</code> with one string operand and the other some other type? Justify your
 choice. What do other languages do?</p>
 </li>
 </ol>
-</div>
-<div class="design-note">
+</div><div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: String Encoding</a></h2>
-
 <p>In this book, I try not to shy away from the gnarly problems you&rsquo;ll run into in
 a real language implementation. We might not always use the most <em>sophisticated</em>
 solution<span class="em">&mdash;</span>it&rsquo;s an intro book after all<span class="em">&mdash;</span>but I don&rsquo;t think it&rsquo;s honest to
@@ -1052,11 +1046,9 @@ separator&rdquo; and &ldquo;synchronous idle&rdquo;, it doesn&rsquo;t have a sin
 or grave. It can&rsquo;t represent &ldquo;jalapeño&rdquo;, &ldquo;na&iuml;ve&rdquo;, <span
 name="gruyere">&ldquo;Gruyère&rdquo;</span>, or &ldquo;Mötley Crüe&rdquo;.</p>
 <aside name="gruyere">
-
 <p>It goes without saying that a language that does not let one discuss Gruyère
 or Mötley Crüe is a language not worth using.</p>
 </aside>
-
 <p>Next came <a href="https://en.wikipedia.org/wiki/Unicode">Unicode</a>. Initially, it supported 16,384 different characters
 <em>(code points)</em>, which fit nicely in 16 bits with a couple of bits to spare.
 Later that grew and grew and now there are well over 100,000 different code

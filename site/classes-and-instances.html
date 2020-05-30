@@ -214,11 +214,9 @@ add after <em>allocateObject</em>()</div>
 <p>Pretty much all boilerplate. It takes in the class&rsquo;s name as a string and stores
 it. Every time the user declares a new class, the VM will create a new one of
 these ObjClass structs to represent it.</p>
-<aside name="klass">
-<p><img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/>
-
-I named the variable "klass" not just to give the VM a zany preschool "kidz
-korner" feel. While "class" is not a reserved word in C, it is in C++, and you
+<aside name="klass"><p><img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/></p>
+<p>I named the variable &ldquo;klass&rdquo; not just to give the VM a zany preschool &ldquo;kidz
+korner&rdquo; feel. While &ldquo;class&rdquo; is not a reserved word in C, it is in C++, and you
 can compile clox as either.</p>
 </aside>
 <p>When the VM no longer needs a class, it frees it like so:</p>
@@ -233,7 +231,6 @@ in <em>freeObject</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
-
 <aside name="braces">
 <p>The braces here are pointless now, but will be useful in the next chapter when
 we add some more code to the switch case.</p>
@@ -290,7 +287,7 @@ add after <em>function</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">classDeclaration</span><span class="o">()</span> <span class="o">{</span>                              
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect class name.&quot;</span><span class="o">);</span>            
   <span class="k">uint8_t</span> <span class="n">nameConstant</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>
-  <span class="n">declareVariable</span><span class="o">();</span>
+  <span class="n">declareVariable</span><span class="o">();</span>                                          
 
   <span class="n">emitBytes</span><span class="o">(</span><span class="n">OP_CLASS</span><span class="o">,</span> <span class="n">nameConstant</span><span class="o">);</span>                          
   <span class="n">defineVariable</span><span class="o">(</span><span class="n">nameConstant</span><span class="o">);</span>                               
@@ -651,7 +648,7 @@ it dispatches to:</p>
 add after <em>call</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">void</span> <span class="n">dot</span><span class="o">(</span><span class="k">bool</span> <span class="n">canAssign</span><span class="o">)</span> <span class="o">{</span>                              
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect property name after &#39;.&#39;.&quot;</span><span class="o">);</span>
-  <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>
+  <span class="k">uint8_t</span> <span class="n">name</span> <span class="o">=</span> <span class="n">identifierConstant</span><span class="o">(&amp;</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">);</span>         
 
   <span class="k">if</span> <span class="o">(</span><span class="n">canAssign</span> <span class="o">&amp;&amp;</span> <span class="n">match</span><span class="o">(</span><span class="n">TOKEN_EQUAL</span><span class="o">))</span> <span class="o">{</span>                       
     <span class="n">expression</span><span class="o">();</span>                                              
@@ -742,7 +739,7 @@ little simpler:</p>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_GET_PROPERTY</span><span class="o">:</span> <span class="o">{</span>                               
         <span class="n">ObjInstance</span><span class="o">*</span> <span class="n">instance</span> <span class="o">=</span> <span class="n">AS_INSTANCE</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>       
-        <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>
+        <span class="n">ObjString</span><span class="o">*</span> <span class="n">name</span> <span class="o">=</span> <span class="n">READ_STRING</span><span class="o">();</span>                    
 
         <span class="n">Value</span> <span class="n">value</span><span class="o">;</span>                                        
         <span class="k">if</span> <span class="o">(</span><span class="n">tableGet</span><span class="o">(&amp;</span><span class="n">instance</span><span class="o">-&gt;</span><span class="n">fields</span><span class="o">,</span> <span class="n">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>    
@@ -770,7 +767,7 @@ error. So we add a check for that and abort if it happens:</p>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>        <span class="n">runtimeError</span><span class="o">(</span><span class="s">&quot;Undefined property &#39;%s&#39;.&quot;</span><span class="o">,</span> <span class="n">name</span><span class="o">-&gt;</span><span class="n">chars</span><span class="o">);</span>
         <span class="k">return</span> <span class="n">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                       
-</pre><pre class="insert-after"><span></span>      <span class="o">}</span>
+</pre><pre class="insert-after"><span></span>      <span class="o">}</span>                                                       
 
       <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                        
 </pre></div>
@@ -825,7 +822,7 @@ fields. For that we need setters:</p>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_SET_PROPERTY</span><span class="o">:</span> <span class="o">{</span>                                 
         <span class="n">ObjInstance</span><span class="o">*</span> <span class="n">instance</span> <span class="o">=</span> <span class="n">AS_INSTANCE</span><span class="o">(</span><span class="n">peek</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>         
-        <span class="n">tableSet</span><span class="o">(&amp;</span><span class="n">instance</span><span class="o">-&gt;</span><span class="n">fields</span><span class="o">,</span> <span class="n">READ_STRING</span><span class="o">(),</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>
+        <span class="n">tableSet</span><span class="o">(&amp;</span><span class="n">instance</span><span class="o">-&gt;</span><span class="n">fields</span><span class="o">,</span> <span class="n">READ_STRING</span><span class="o">(),</span> <span class="n">peek</span><span class="o">(</span><span class="mi">0</span><span class="o">));</span>  
 
         <span class="n">Value</span> <span class="n">value</span> <span class="o">=</span> <span class="n">pop</span><span class="o">();</span>                                  
         <span class="n">pop</span><span class="o">();</span>                                                
@@ -892,7 +889,6 @@ Our Lox implementation now lets users freely aggregate data into bigger units.
 In the next chapter, we will breathe life into those inert blobs.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>Trying to access a non-existent field on an object immediately aborts the

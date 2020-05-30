@@ -789,7 +789,7 @@ need to be updated to do so relative to the current CallFrame&rsquo;s <code>slot
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 4 lines</div>
-<pre class="insert"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>
+<pre class="insert"><span></span>  <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">];</span>                   
 
 <span class="cp">#define READ_BYTE() (*frame-&gt;ip++)                                    </span>
 <span class="cp">#define READ_SHORT() \                                                </span>
@@ -1049,7 +1049,6 @@ add after <em>block</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>block</em>()</div>
-
 <aside name="no-end-scope">
 <p>This <code>beginScope()</code> doesn&rsquo;t have a corresponding <code>endScope()</code> call. Because we
 end Compiler completely when we reach the end of the function body, there&rsquo;s no
@@ -1139,7 +1138,7 @@ in <em>function</em>()</div>
       <span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span><span class="o">++;</span>                                     
       <span class="k">if</span> <span class="o">(</span><span class="n">current</span><span class="o">-&gt;</span><span class="n">function</span><span class="o">-&gt;</span><span class="n">arity</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="o">)</span> <span class="o">{</span>                           
         <span class="n">errorAtCurrent</span><span class="o">(</span><span class="s">&quot;Cannot have more than 255 parameters.&quot;</span><span class="o">);</span>      
-      <span class="o">}</span>
+      <span class="o">}</span>                                                               
 
       <span class="k">uint8_t</span> <span class="n">paramConstant</span> <span class="o">=</span> <span class="n">parseVariable</span><span class="o">(</span><span class="s">&quot;Expect parameter name.&quot;</span><span class="o">);</span>
       <span class="n">defineVariable</span><span class="o">(</span><span class="n">paramConstant</span><span class="o">);</span>                                  
@@ -1237,7 +1236,7 @@ add after <em>defineVariable</em>()</div>
       <span class="n">expression</span><span class="o">();</span>                                         
       <span class="n">argCount</span><span class="o">++;</span>                                           
     <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">TOKEN_COMMA</span><span class="o">));</span>                           
-  <span class="o">}</span>
+  <span class="o">}</span>                                                         
 
   <span class="n">consume</span><span class="o">(</span><span class="n">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span><span class="o">);</span>
   <span class="k">return</span> <span class="n">argCount</span><span class="o">;</span>                                          
@@ -1369,7 +1368,7 @@ add after <em>peek</em>()</div>
   <span class="k">if</span> <span class="o">(</span><span class="n">IS_OBJ</span><span class="o">(</span><span class="n">callee</span><span class="o">))</span> <span class="o">{</span>                                
     <span class="k">switch</span> <span class="o">(</span><span class="n">OBJ_TYPE</span><span class="o">(</span><span class="n">callee</span><span class="o">))</span> <span class="o">{</span>                        
       <span class="k">case</span> <span class="nl">OBJ_FUNCTION</span><span class="o">:</span><span name="switch"> </span>
-        <span class="k">return</span> <span class="n">call</span><span class="o">(</span><span class="n">AS_FUNCTION</span><span class="o">(</span><span class="n">callee</span><span class="o">),</span> <span class="n">argCount</span><span class="o">);</span>
+        <span class="k">return</span> <span class="n">call</span><span class="o">(</span><span class="n">AS_FUNCTION</span><span class="o">(</span><span class="n">callee</span><span class="o">),</span> <span class="n">argCount</span><span class="o">);</span>    
 
       <span class="k">default</span><span class="o">:</span>                                         
         <span class="c1">// Non-callable object type.                   </span>
@@ -1383,7 +1382,6 @@ add after <em>peek</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
-
 <aside name="switch">
 <p>Using a switch statement to check a single type is overkill right now, but will
 make more sense later as we add more cases to handle other callable types.</p>
@@ -1404,7 +1402,7 @@ add after <em>peek</em>()</div>
 <pre><span></span><span class="k">static</span> <span class="k">bool</span> <span class="n">call</span><span class="o">(</span><span class="n">ObjFunction</span><span class="o">*</span> <span class="n">function</span><span class="o">,</span> <span class="k">int</span> <span class="n">argCount</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">CallFrame</span><span class="o">*</span> <span class="n">frame</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">vm</span><span class="o">.</span><span class="n">frames</span><span class="o">[</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">++];</span>      
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span><span class="o">;</span>                          
-  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">;</span>
+  <span class="n">frame</span><span class="o">-&gt;</span><span class="n">ip</span> <span class="o">=</span> <span class="n">function</span><span class="o">-&gt;</span><span class="n">chunk</span><span class="o">.</span><span class="n">code</span><span class="o">;</span>                    
 
   <span class="n">frame</span><span class="o">-&gt;</span><span class="n">slots</span> <span class="o">=</span> <span class="n">vm</span><span class="o">.</span><span class="n">stackTop</span> <span class="o">-</span> <span class="n">argCount</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>           
   <span class="k">return</span> <span class="nb">true</span><span class="o">;</span>                                         
@@ -1568,7 +1566,7 @@ implementation:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><span></span>        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">pop</span><span class="o">();</span>
+<pre class="insert"><span></span>        <span class="n">Value</span> <span class="n">result</span> <span class="o">=</span> <span class="n">pop</span><span class="o">();</span>                 
 
         <span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span><span class="o">--;</span>                      
         <span class="k">if</span> <span class="o">(</span><span class="n">vm</span><span class="o">.</span><span class="n">frameCount</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>             
@@ -1949,7 +1947,6 @@ optimizations we can do in our VM.</p>
 </aside>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>Reading and writing the <code>ip</code> field is one of the most frequent operations
@@ -1972,7 +1969,7 @@ affects the performance. Do you think the extra code complexity is worth it?</p>
 In a real implementation, this is something we&rsquo;d need to support because
 native functions live in the statically-typed world of C but are called
 from dynamically-typed Lox land. If a user, say, tries to pass a string to
-    <code>sin()</code>, that native function needs to report a runtime error.</p>
+<code>sin()</code>, that native function needs to report a runtime error.</p>
 <p>Extend the native function system to support that. How does this capability
 affect performance of native calls?</p>
 </li>

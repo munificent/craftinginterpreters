@@ -204,8 +204,7 @@ Here&rsquo;s the Lox expression grammar we put together in the last chapter:</p>
 </ol>
 <p>Those produce the same <em>strings</em>, but not the same <em>syntax trees</em>:</p>
 <p><img src="image/parsing-expressions/syntax-trees.png" alt="Two valid syntax trees: (6 / 3) - 1 and 6 / (3 - 1)" /></p>
-<p>In other words, the grammar allows seeing the expression as <code>(6 / 3) - 1</code> or <code>6
-/ (3 - 1)</code>. That in turn affects the result of evaluating it. The way
+<p>In other words, the grammar allows seeing the expression as <code>(6 / 3) - 1</code> or <code>6 / (3 - 1)</code>. That in turn affects the result of evaluating it. The way
 mathematicians have solved this ambiguity since blackboards were first invented
 is by defining rules for precedence and associativity.</p>
 <ul>
@@ -220,7 +219,7 @@ operators are said to &ldquo;bind tighter&rdquo;.</p>
 <li>
 <p><strong>Associativity</strong> determines which operator is evaluated first in a series
 of the <em>same</em> operator. When an operator is <strong>left-associative</strong> (think
-    &ldquo;left-to-right&rdquo;), operators on the left evaluate before those on the right.
+&ldquo;left-to-right&rdquo;), operators on the left evaluate before those on the right.
 Since <code>-</code> is left-associative, this expression:</p>
 <div class="codehilite"><pre><span></span><span class="mi">5</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span>
 </pre></div>
@@ -238,10 +237,7 @@ Since <code>-</code> is left-associative, this expression:</p>
 
 <p>is equivalent to:</p>
 <div class="codehilite"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="o">(</span><span class="n">b</span> <span class="o">=</span> <span class="n">c</span><span class="o">)</span>
-</pre></div>
-
-
-</li>
+</pre></div></li>
 </ul>
 <aside name="nonassociative">
 <p>While not common these days, some languages specify that certain pairs of
@@ -416,7 +412,7 @@ Confusingly, we also use direction metaphorically when talking about &ldquo;high
 &ldquo;low&rdquo; precedence, but the orientation is reversed. In a top-down parser, you
 reach the lowest-precedence expressions first because they may in turn contain
 subexpressions of higher precedence.</p>
-<p><img alt="Top-down grammar rules in order of increasing precedence." src="image/parsing-expressions/direction.png" /></p>
+<p><img src="image/parsing-expressions/direction.png" alt="Top-down grammar rules in order of increasing precedence." /></p>
 <p>CS people really need to get together and straighten out their metaphors. Don&rsquo;t
 even get me started on which direction the stack is supposed to grow.</p>
 </aside>
@@ -444,7 +440,7 @@ rule translates to code roughly like:</p>
 <p>Each grammar rule becomes a method inside this new class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 create new file</div>
-<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre><span></span><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>                  
 
 <span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>                                 
 
@@ -495,7 +491,7 @@ and so on, until the parser hits a stack overflow and dies.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expression</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="n">Expr</span> <span class="n">equality</span><span class="o">()</span> <span class="o">{</span>                         
-    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">();</span>
+    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">comparison</span><span class="o">();</span>                       
 
     <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">BANG_EQUAL</span><span class="o">,</span> <span class="n">EQUAL_EQUAL</span><span class="o">))</span> <span class="o">{</span>        
       <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                  
@@ -525,7 +521,7 @@ add after <em>equality</em>()</div>
         <span class="n">advance</span><span class="o">();</span>                           
         <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>                         
       <span class="o">}</span>                                      
-    <span class="o">}</span>
+    <span class="o">}</span>                                        
 
     <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>                            
   <span class="o">}</span>                                          
@@ -566,7 +562,7 @@ add after <em>check</em>()</div>
 add after <em>advance</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="k">boolean</span> <span class="n">isAtEnd</span><span class="o">()</span> <span class="o">{</span>      
     <span class="k">return</span> <span class="n">peek</span><span class="o">().</span><span class="n">type</span> <span class="o">==</span> <span class="n">EOF</span><span class="o">;</span>     
-  <span class="o">}</span>
+  <span class="o">}</span>                                
 
   <span class="k">private</span> <span class="n">Token</span> <span class="n">peek</span><span class="o">()</span> <span class="o">{</span>           
     <span class="k">return</span> <span class="n">tokens</span><span class="o">.</span><span class="n">get</span><span class="o">(</span><span class="n">current</span><span class="o">);</span>    
@@ -613,7 +609,7 @@ this method matches an equality operator <em>or anything of higher precedence</e
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>equality</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="n">Expr</span> <span class="n">comparison</span><span class="o">()</span> <span class="o">{</span>                                
-    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">addition</span><span class="o">();</span>
+    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">addition</span><span class="o">();</span>                                  
 
     <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">GREATER</span><span class="o">,</span> <span class="n">GREATER_EQUAL</span><span class="o">,</span> <span class="n">LESS</span><span class="o">,</span> <span class="n">LESS_EQUAL</span><span class="o">))</span> <span class="o">{</span>
       <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                           
@@ -640,7 +636,7 @@ types and an operand method handle and unify some of this redundant code.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>comparison</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="n">Expr</span> <span class="n">addition</span><span class="o">()</span> <span class="o">{</span>                         
-    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">multiplication</span><span class="o">();</span>
+    <span class="n">Expr</span> <span class="n">expr</span> <span class="o">=</span> <span class="n">multiplication</span><span class="o">();</span>                   
 
     <span class="k">while</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">MINUS</span><span class="o">,</span> <span class="n">PLUS</span><span class="o">))</span> <span class="o">{</span>                    
       <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>                  
@@ -682,7 +678,7 @@ add after <em>multiplication</em>()</div>
       <span class="n">Token</span> <span class="n">operator</span> <span class="o">=</span> <span class="n">previous</span><span class="o">();</span>           
       <span class="n">Expr</span> <span class="n">right</span> <span class="o">=</span> <span class="n">unary</span><span class="o">();</span>                  
       <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="n">Unary</span><span class="o">(</span><span class="n">operator</span><span class="o">,</span> <span class="n">right</span><span class="o">);</span>
-    <span class="o">}</span>
+    <span class="o">}</span>                                        
 
     <span class="k">return</span> <span class="n">primary</span><span class="o">();</span>                        
   <span class="o">}</span>                                          
@@ -712,7 +708,7 @@ add after <em>unary</em>()</div>
 <pre><br><span></span>  <span class="k">private</span> <span class="n">Expr</span> <span class="n">primary</span><span class="o">()</span> <span class="o">{</span>                                 
     <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">FALSE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>      
     <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">TRUE</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>        
-    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">NIL</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">NIL</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>         
 
     <span class="k">if</span> <span class="o">(</span><span class="n">match</span><span class="o">(</span><span class="n">NUMBER</span><span class="o">,</span> <span class="n">STRING</span><span class="o">))</span> <span class="o">{</span>                           
       <span class="k">return</span> <span class="k">new</span> <span class="n">Expr</span><span class="o">.</span><span class="n">Literal</span><span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="n">literal</span><span class="o">);</span>         
@@ -764,11 +760,9 @@ error:</p>
 name="error">error</span> and passes the resulting malformed syntax tree on
 to the interpreter, all manner of horrors may be summoned.</p>
 <aside name="error">
-
 <p>Philosophically speaking, if an error isn&rsquo;t detected and the interpreter
 runs the code, is it <em>really</em> an error?</p>
 </aside>
-
 </li>
 <li>
 <p><strong>It must not crash or hang.</strong> Syntax errors are a fact of life and language
@@ -818,7 +812,7 @@ issue. Simple, fast error recovery is fine.</p>
 <h3><a href="#panic-mode-error-recovery" name="panic-mode-error-recovery"><small>6&#8202;.&#8202;3&#8202;.&#8202;1</small> Panic mode error recovery</a></h3>
 <aside name="panic">
 <p>You know you want to push it.</p>
-<p><img alt="A big shiny &quot;PANIC&quot; button." src="image/parsing-expressions/panic.png" /></p>
+<p><img src="image/parsing-expressions/panic.png" alt="A big shiny &ldquo;PANIC&rdquo; button." /></p>
 </aside>
 <p>Of all the recovery techniques devised in yesteryear, the one that best stood
 the test of time is called<span class="em">&mdash;</span>somewhat alarmingly<span class="em">&mdash;</span><span name="panic">&ldquo;panic
@@ -847,7 +841,7 @@ looks for the closing <code>)</code> by calling <code>consume()</code>. Here, fi
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>match</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="n">Token</span> <span class="n">consume</span><span class="o">(</span><span class="n">TokenType</span> <span class="n">type</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">if</span> <span class="o">(</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="k">return</span> <span class="n">advance</span><span class="o">();</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">check</span><span class="o">(</span><span class="n">type</span><span class="o">))</span> <span class="k">return</span> <span class="n">advance</span><span class="o">();</span>                   
 
     <span class="k">throw</span> <span class="n">error</span><span class="o">(</span><span class="n">peek</span><span class="o">(),</span> <span class="n">message</span><span class="o">);</span>                        
   <span class="o">}</span>                                                      
@@ -956,7 +950,7 @@ the first error precisely, so everything after that is kind of &ldquo;best effor
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>error</em>()</div>
 <pre><span></span>  <span class="k">private</span> <span class="k">void</span> <span class="n">synchronize</span><span class="o">()</span> <span class="o">{</span>                 
-    <span class="n">advance</span><span class="o">();</span>
+    <span class="n">advance</span><span class="o">();</span>                                 
 
     <span class="k">while</span> <span class="o">(!</span><span class="n">isAtEnd</span><span class="o">())</span> <span class="o">{</span>                       
       <span class="k">if</span> <span class="o">(</span><span class="n">previous</span><span class="o">().</span><span class="n">type</span> <span class="o">==</span> <span class="n">SEMICOLON</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>
@@ -1041,7 +1035,7 @@ display it.</p>
 in <em>run</em>()<br>
 replace 5 lines</div>
 <pre class="insert"><span></span>    <span class="n">Parser</span> <span class="n">parser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Parser</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>                    
-    <span class="n">Expr</span> <span class="n">expression</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="o">();</span>
+    <span class="n">Expr</span> <span class="n">expression</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="o">();</span>                      
 
     <span class="c1">// Stop if there was a syntax error.                   </span>
     <span class="k">if</span> <span class="o">(</span><span class="n">hadError</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>                                  
@@ -1068,7 +1062,6 @@ C++ using recursive descent, you can parse anything.</p>
 precedence and associativity correctly? Not bad for less than 200 lines of code.</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
-
 <ol>
 <li>
 <p>In C, a block is a statement form that allows you to pack a series of
@@ -1084,7 +1077,7 @@ parsing code.</p>
 </li>
 <li>
 <p>Likewise, add support for the C-style conditional or &ldquo;ternary&rdquo; operator
-    <code>?:</code>. What precedence level is allowed between the <code>?</code> and <code>:</code>? Is the whole
+<code>?:</code>. What precedence level is allowed between the <code>?</code> and <code>:</code>? Is the whole
 operator left-associative or right-associative?</p>
 </li>
 <li>
@@ -1094,10 +1087,8 @@ beginning of an expression. Report that as an error, but also parse and
 discard a right-hand operand with the appropriate precedence.</p>
 </li>
 </ol>
-</div>
-<div class="design-note">
+</div><div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Logic Versus History</a></h2>
-
 <p>Let&rsquo;s say we decide to add bitwise <code>&amp;</code> and <code>|</code> operators to Lox. Where should we
 put them in the precedence hierarchy? C<span class="em">&mdash;</span>and most languages that follow in C&rsquo;s
 footsteps<span class="em">&mdash;</span>place them below <code>==</code>. This is widely considered a mistake because
