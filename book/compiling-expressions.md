@@ -505,7 +505,7 @@ this:
 ^code parse-precedence
 
 This function, once we implement it, starts at the current token and parses any
-expression at the given precence level or higher. We have some other setup to
+expression at the given precedence level or higher. We have some other setup to
 get through before we can write the body of this function, but you can probably
 guess that it will use that table of parsing function pointers I've been talking
 about. For now, don't worry too much about how it works. In order to take the
