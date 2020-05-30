@@ -244,17 +244,17 @@ temporary code that gets replaced in later snippets.
 
 A snippet with all the bells and whistles looks like this:
 
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">default</span><span class="o">:</span>
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">default</span><span class="o">:</span>                                     
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(</span><span class="n">isDigit</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="o">{</span>
-          <span class="n">number</span><span class="o">();</span>
-        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-          <span class="n">Lox</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">line</span><span class="o">,</span> <span class="s">&quot;Unexpected character.&quot;</span><span class="o">);</span>
-        <span class="o">}</span>
-</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="o">;</span>
-</pre></div>
+<pre class="insert"><span></span>        <span class="k">if</span> <span class="o">(</span><span class="n">isDigit</span><span class="o">(</span><span class="n">c</span><span class="o">))</span> <span class="o">{</span>                          
+          <span class="n">number</span><span class="o">();</span>                                
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                   
+          <span class="n">Lox</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">line</span><span class="o">,</span> <span class="s">&quot;Unexpected character.&quot;</span><span class="o">);</span>
+        <span class="o">}</span>                                          
+</pre><pre class="insert-after"><span></span>        <span class="k">break</span><span class="o">;</span></pre></div>
+<div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>(), replace 1 line</div>
 
 In the center, you have the new code being added in this snippet. It may have a
 few faded out lines above or below to show you where to insert it in the
