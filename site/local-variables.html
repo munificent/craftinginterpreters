@@ -219,7 +219,6 @@ add after struct <em>ParseRule</em></div>
 
 <span class="t">Parser</span> <span class="i">parser</span><span class="o">;</span>              
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>ParseRule</em></div>
 
 <p>We have a simple flat array of all locals that are in scope during each point in
@@ -242,7 +241,6 @@ options for how to order them in the array.</p>
 
 <span class="a">#endif                             </span>
 </pre></div>
-
 <div class="source-file-narrow"><em>common.h</em></div>
 
 <p>Back in the Compiler struct, the <code>localCount</code> field tracks how many locals are
@@ -270,7 +268,6 @@ add after struct <em>ParseRule</em></div>
 
 <span class="k">typedef</span> <span class="k">struct</span> <span class="t">Compiler</span> <span class="o">{</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>ParseRule</em></div>
 
 <p>We store the name of the variable. When we&rsquo;re resolving an identifier, we
@@ -302,7 +299,6 @@ add after variable <em>Parser</em></div>
 
 <span class="t">Chunk</span><span class="o">*</span> <span class="i">compilingChunk</span><span class="o">;</span>   
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
 <p>Here&rsquo;s a little function to initialize the compiler:</p>
@@ -315,7 +311,6 @@ add after <em>emitConstant</em>()</div>
   <span class="i">current</span> <span class="o">=</span> <span class="i">compiler</span><span class="o">;</span>                         
 <span class="o">}</span>                                             
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
 
 <p>When we first start up the VM, we call it to get everything into a clean state:</p>
@@ -329,7 +324,6 @@ in <em>compile</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">compilingChunk</span> <span class="o">=</span> <span class="i">chunk</span><span class="o">;</span> 
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
 <p>Our compiler has the data it needs, but not the operations on that data. There&rsquo;s
@@ -371,7 +365,6 @@ in <em>statement</em>()</div>
 </pre><pre class="insert-after">
   <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                             
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
 
 <p>After <span name="helper">parsing</span> the initial <code>{</code>, we use this helper
@@ -390,7 +383,6 @@ add after <em>expression</em>()</div>
   <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span><span class="o">);</span>  
 <span class="o">}</span>                                                         
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expression</em>()</div>
 
 <p>It keeps parsing declarations and statements until it hits the closing brace. As
@@ -408,7 +400,6 @@ add after <em>endCompiler</em>()</div>
   <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">++;</span>  
 <span class="o">}</span>                         
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
 <p>In order to &ldquo;create&rdquo; a scope, all we do is increment the current depth. This is
@@ -421,7 +412,6 @@ add after <em>beginScope</em>()</div>
   <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">--;</span>
 <span class="o">}</span>                       
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>beginScope</em>()</div>
 
 <p>That&rsquo;s it for blocks and scopes<span class="em">&mdash;</span>more or less<span class="em">&mdash;</span>so we&rsquo;re ready to stuff some
@@ -452,7 +442,6 @@ in <em>parseVariable</em>()</div>
 </pre><pre class="insert-after">
   <span class="k">return</span> <span class="i">identifierConstant</span><span class="o">(&amp;</span><span class="i">parser</span><span class="o">.</span><span class="i">previous</span><span class="o">);</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parseVariable</em>()</div>
 
 <p>First, we &ldquo;declare&rdquo; the variable. I&rsquo;ll get to what that means in a second. After
@@ -474,7 +463,6 @@ in <em>defineVariable</em>()</div>
 </pre><pre class="insert-after">
   <span class="i">emitBytes</span><span class="o">(</span><span class="a">OP_DEFINE_GLOBAL</span><span class="o">,</span> <span class="i">global</span><span class="o">);</span>      
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>defineVariable</em>()</div>
 
 <p>Wait, what? Yup. That&rsquo;s it. There is no code to create a local variable at
@@ -501,7 +489,6 @@ add after <em>identifierConstant</em>()</div>
   <span class="i">addLocal</span><span class="o">(*</span><span class="i">name</span><span class="o">);</span>                            
 <span class="o">}</span>                                             
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
 <p>This is the point where the compiler records the existence of the variable. We
@@ -520,7 +507,6 @@ add after <em>identifierConstant</em>()</div>
   <span class="i">local</span><span class="o">-&gt;</span><span class="i">depth</span> <span class="o">=</span> <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">;</span>                    
 <span class="o">}</span>                                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
 <p>This creates a new Local and appends it to the compiler&rsquo;s array of variables. It
@@ -557,7 +543,6 @@ in <em>addLocal</em>()</div>
   <span class="t">Local</span><span class="o">*</span> <span class="i">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span><span class="o">++];</span>
   <span class="i">local</span><span class="o">-&gt;</span><span class="i">name</span> <span class="o">=</span> <span class="i">name</span><span class="o">;</span>                                    
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>()</div>
 
 <p>The next case is trickier. Consider:</p>
@@ -610,7 +595,6 @@ in <em>declareVariable</em>()</div>
   <span class="i">addLocal</span><span class="o">(*</span><span class="i">name</span><span class="o">);</span>                                                     
 <span class="o">}</span>                                                                      
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declareVariable</em>()</div>
 
 <aside name="negative">
@@ -632,7 +616,6 @@ add after <em>identifierConstant</em>()</div>
   <span class="k">return</span> <span class="i">memcmp</span><span class="o">(</span><span class="i">a</span><span class="o">-&gt;</span><span class="i">start</span><span class="o">,</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">start</span><span class="o">,</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">)</span> <span class="o">==</span> <span class="n">0</span><span class="o">;</span>
 <span class="o">}</span>                                                   
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
 <p>Since we know the lengths of both lexemes, we check that first. That will fail
@@ -652,7 +635,6 @@ tokens aren&rsquo;t full LoxStrings, so we haven&rsquo;t calculated their hashes
 
 <span class="a">#include &quot;common.h&quot;</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em></div>
 
 <p>With this, we&rsquo;re able to bring variables into being. But, like ghosts, they
@@ -673,7 +655,6 @@ in <em>endScope</em>()</div>
 </pre><pre class="insert-after">
 <span class="o">}</span>                                                        
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endScope</em>()</div>
 
 <p>When we pop a scope, we walk backwards through the local array looking for any
@@ -717,7 +698,6 @@ replace 1 line</div>
 
   <span class="k">if</span> <span class="o">(</span><span class="i">canAssign</span> <span class="o">&amp;&amp;</span> <span class="i">match</span><span class="o">(</span><span class="a">TOKEN_EQUAL</span><span class="o">))</span> <span class="o">{</span>               
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
 
 <p>Instead of hardcoding the bytecode instructions emitted for variable access and
@@ -738,7 +718,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
   <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                              
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
 
 <p>And for access:</p>
@@ -753,7 +732,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
   <span class="o">}</span>                                
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>namedVariable</em>(), replace 1 line</div>
 
 <p>The real heart of this chapter, the part where we resolve a local variable, is
@@ -772,7 +750,6 @@ add after <em>identifiersEqual</em>()</div>
   <span class="k">return</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>                                              
 <span class="o">}</span>                                                         
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifiersEqual</em>()</div>
 
 <p>For all that, it&rsquo;s straightforward. We walk the list of locals that are
@@ -802,7 +779,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
   <span class="a">OP_GET_GLOBAL</span><span class="o">,</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And its implementation:</p>
@@ -821,7 +797,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span><span class="o">:</span> <span class="o">{</span>            
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>It takes a single byte operand for the stack slot where the local lives. It
@@ -846,7 +821,6 @@ in enum <em>OpCode</em></div>
 </pre><pre class="insert-after">
   <span class="a">OP_GET_GLOBAL</span><span class="o">,</span>
 </pre></div>
-
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>You can probably predict the implementation:</p>
@@ -865,7 +839,6 @@ in <em>run</em>()</div>
 
       <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span><span class="o">:</span> <span class="o">{</span>        
 </pre></div>
-
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>It takes the assigned value from the top of the stack and stores it in the stack
@@ -886,7 +859,6 @@ in <em>disassembleInstruction</em>()</div>
 </pre><pre class="insert-after">
     <span class="k">case</span> <span class="a">OP_GET_GLOBAL</span><span class="o">:</span>                                     
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>The compiler compiles local variables to direct slot access. The local
@@ -910,7 +882,6 @@ add after <em>simpleInstruction</em>()</div>
   <span class="k">return</span> <span class="i">offset</span> <span class="o">+</span> <span class="n">2</span><span class="o">;</span><span name="debug"> </span>
 <span class="o">}</span>                                                                       
 </pre></div>
-
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>simpleInstruction</em>()</div>
 
 <h2><a href="#another-scope-edge-case" name="another-scope-edge-case"><small>22&#8202;.&#8202;5</small> Another Scope Edge Case</a></h2>
@@ -955,7 +926,6 @@ replace 1 line</div>
 </pre><pre class="insert-after">
 <span class="o">}</span>                    
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>addLocal</em>(), replace 1 line</div>
 
 <p>Later, once the variable&rsquo;s initializer has been compiled, we mark it
@@ -970,7 +940,6 @@ in <em>defineVariable</em>()</div>
     <span class="k">return</span><span class="o">;</span>                     
   <span class="o">}</span>                             
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>defineVariable</em>()</div>
 
 <p>That calls:</p>
@@ -982,7 +951,6 @@ add after <em>parseVariable</em>()</div>
       <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">;</span>                        
 <span class="o">}</span>                                                 
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>parseVariable</em>()</div>
 
 <p>So this is <em>really</em> what &ldquo;declaring&rdquo; and &ldquo;defining&rdquo; a variable means in the
@@ -1001,7 +969,6 @@ in <em>resolveLocal</em>()</div>
 </pre><pre class="insert-after">
       <span class="k">return</span> <span class="i">i</span><span class="o">;</span>                                                     
 </pre></div>
-
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>resolveLocal</em>()</div>
 
 <p>If the variable has the sentinel depth, it must be a reference to a variable in
