@@ -77,16 +77,3 @@ class EmDashSyntax extends InlineSyntax {
     return true;
   }
 }
-
-/// Replaces a single Unicode code point with its HTML escape sequence.
-class UnicodeEscapeSyntax extends InlineSyntax {
-  final String _escape;
-
-  UnicodeEscapeSyntax(int character, this._escape)
-      : super(String.fromCharCode(character), startCharacter: character);
-
-  bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text("&$_escape;"));
-    return true;
-  }
-}
