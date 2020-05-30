@@ -121,8 +121,7 @@ machine. A data structure joins each pair of phases. Tokens flow from scanner to
 compiler, and chunks of bytecode from compiler to VM. We began our
 implementation near the end with <a href="chunks-of-bytecode.html">chunks</a> and the <a href="a-virtual-machine.html">VM</a>. Now, we&rsquo;re going to
 hop back to the beginning and build a scanner that makes tokens. In the
-<a href="compiling-expressions.html">next chapter</a>, we&rsquo;ll tie the two ends together with our bytecode compiler.</p>
-<p><img src="image/scanning-on-demand/pipeline.png" alt="Source code &rarr; scanner &rarr; tokens &rarr; compiler &rarr; bytecode chunk &rarr; VM." /></p>
+<a href="compiling-expressions.html">next chapter</a>, we&rsquo;ll tie the two ends together with our bytecode compiler.</p><img src="image/scanning-on-demand/pipeline.png" alt="Source code &rarr; scanner &rarr; tokens &rarr; compiler &rarr; bytecode chunk &rarr; VM." />
 <p>I&rsquo;ll admit, this is not the most exciting chapter in the book. With two
 implementations of the same language, there&rsquo;s bound to be some redundancy. I did
 sneak in a few interesting differences compared to jlox&rsquo;s scanner. Read on to
@@ -428,8 +427,7 @@ all of the various functions.</p>
 <p>There are surprisingly few fields. The <code>start</code> pointer marks the beginning of
 the current lexeme being scanned, and <code>current</code> points to the current character
 being looked at.</p>
-<p><span name="fields"></span></p>
-<p><img src="image/scanning-on-demand/fields.png" alt="The start and current fields pointing at 'print bacon;'. Start points at 'b' and current points at 'o'." /></p>
+<p><span name="fields"></span></p><img src="image/scanning-on-demand/fields.png" alt="The start and current fields pointing at 'print bacon;'. Start points at 'b' and current points at 'o'." />
 <aside name="fields">
 <p>Here, we are in the middle of scanning the identifier <code>bacon</code>. The current
 character is <code>o</code> and the character we most recently consumed is <code>c</code>.</p>
@@ -486,6 +484,7 @@ in <em>compile</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
+
 <aside name="format">
 <p>That <code>%.*s</code> in the format string is a neat feature. Usually, you set the output
 precision<span class="em">&mdash;</span>the number of characters to show<span class="em">&mdash;</span>by placing a number inside the
@@ -499,8 +498,6 @@ prints it. When it reaches a special &ldquo;end of file&rdquo; token, it stops. 
 if we run the interpreter on this program:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="n">1</span> <span class="o">+</span> <span class="n">2</span><span class="o">;</span>
 </pre></div>
-
-
 <p>It prints out:</p>
 <div class="codehilite"><pre><span></span>   1 31 'print'
    | 21 '1'
@@ -509,8 +506,6 @@ if we run the interpreter on this program:</p>
    |  8 ';'
    2 39 ''
 </pre></div>
-
-
 <p>The first column is the line number, the second is the numeric value of the
 token <span name="token">type</span>, and then finally the lexeme. That last
 empty lexeme on line 2 is the EOF token.</p>
@@ -680,8 +675,7 @@ add after <em>makeToken</em>()</div>
 
 <p><span name="axolotl"></span></p>
 <aside name="axolotl">
-<p>This part of the chapter is pretty dry, so here&rsquo;s a picture of an axolotl.</p>
-<p><img src="image/scanning-on-demand/axolotl.png" alt="A drawing of an axolotl." /></p>
+<p>This part of the chapter is pretty dry, so here&rsquo;s a picture of an axolotl.</p><img src="image/scanning-on-demand/axolotl.png" alt="A drawing of an axolotl." />
 </aside>
 <p>The only difference is that the &ldquo;lexeme&rdquo; points to the error message string
 instead of pointing into the user&rsquo;s source code. Again, we need to ensure that
@@ -1058,8 +1052,7 @@ we can establish that we don&rsquo;t have a reserved word. But, in most cases, o
 character or two is enough to tell we&rsquo;ve got a user-defined name in our hands.
 We should be able to recognize that and fail fast.</p>
 <p>Here&rsquo;s a visual representation of that branching character-inspection logic:</p>
-<p><span name="down"></span></p>
-<p><img src="image/scanning-on-demand/keywords.png" alt="A trie that contains all of Lox's keywords." /></p>
+<p><span name="down"></span></p><img src="image/scanning-on-demand/keywords.png" alt="A trie that contains all of Lox's keywords." />
 <aside name="down">
 <p>Read down each chain of nodes and you&rsquo;ll see Lox&rsquo;s keywords emerge.</p>
 </aside>
@@ -1102,8 +1095,7 @@ respresents a set of allowed characters.</p>
 more powerful than simple trees because they can be arbitrary <em>graphs</em>.
 Transitions can form cycles between states. That lets you recognize arbitrarily
 long strings. For example, here&rsquo;s a DFA that recognizes number literals:</p>
-<p><span name="railroad"></span></p>
-<p><img src="image/scanning-on-demand/numbers.png" alt="A syntax diagram that recognizes integer and floating point literals." /></p>
+<p><span name="railroad"></span></p><img src="image/scanning-on-demand/numbers.png" alt="A syntax diagram that recognizes integer and floating point literals." />
 <aside name="railroad">
 <p>This style of diagram is called a <a href="https://en.wikipedia.org/wiki/Syntax_diagram"><strong>&ldquo;syntax diagram&rdquo;</strong></a> or the
 more charming <strong>&ldquo;railroad diagram&rdquo;</strong>. The latter name is because it looks
@@ -1258,21 +1250,15 @@ surrounding string literal.</p>
 <span class="k">var</span> <span class="i">cool</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>
 <span class="k">print</span> <span class="s">&quot;${drink} will be ready in ${steep + cool} minutes.&quot;</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Would print:</p>
 <div class="codehilite"><pre><span></span>Tea will be ready in 6 minutes.
 </pre></div>
-
-
 <p>What token types would you define to implement a scanner for string
 interpolation? What sequence of tokens would you emit for the above string
 literal?</p>
 <p>What tokens would you emit for:</p>
 <div class="codehilite"><pre><span></span>&quot;Nested ${&quot;interpolation?! Are you ${&quot;mad?!&quot;}&quot;}&quot;
 </pre></div>
-
-
 <p>Consider looking at other language implementations that support
 interpolation to see how they handle it.</p>
 </li>
@@ -1281,8 +1267,6 @@ interpolation to see how they handle it.</p>
 shift operator. This led to a classic problem in early versions of C++:</p>
 <div class="codehilite"><pre><span></span><span class="t">vector</span><span class="o">&lt;</span><span class="t">vector</span><span class="o">&lt;</span><span class="t">string</span><span class="o">&gt;&gt;</span> <span class="i">nestedVectors</span><span class="o">;</span>
 </pre></div>
-
-
 <p>This would produce a compile error because the <code>&gt;&gt;</code> was lexed to a single
 right shift token, not two <code>&gt;</code> tokens. Users were forced to avoid this by
 putting a space between the closing angle brackets.</p>

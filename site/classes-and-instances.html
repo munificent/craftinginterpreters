@@ -214,7 +214,7 @@ add after <em>allocateObject</em>()</div>
 <p>Pretty much all boilerplate. It takes in the class&rsquo;s name as a string and stores
 it. Every time the user declares a new class, the VM will create a new one of
 these ObjClass structs to represent it.</p>
-<aside name="klass"><p><img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/></p>
+<aside name="klass"><img src="image/classes-and-instances/klass.png" alt="'Klass' in a zany kidz font."/>
 <p>I named the variable &ldquo;klass&rdquo; not just to give the VM a zany preschool &ldquo;kidz
 korner&rdquo; feel. While &ldquo;class&rdquo; is not a reserved word in C, it is in C++, and you
 can compile clox as either.</p>
@@ -231,6 +231,7 @@ in <em>freeObject</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>memory.c</em>, in <em>freeObject</em>()</div>
+
 <aside name="braces">
 <p>The braces here are pointless now, but will be useful in the next chapter when
 we add some more code to the switch case.</p>
@@ -313,8 +314,6 @@ Then users would have to explicitly bind the class to a variable themselves
 like:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="t">Pie</span> <span class="o">=</span> <span class="k">class</span> <span class="t">Pie</span> <span class="o">{}</span>
 </pre></div>
-
-
 <p>Sort of like lambda functions but for classes. But since we generally want
 classes to be named anyway, it makes sense to treat them as declarations.</p>
 </aside>
@@ -384,8 +383,6 @@ can declare classes in there too.</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Brioche</span> <span class="o">{}</span>
 <span class="k">print</span> <span class="t">Brioche</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Unfortunately, printing is about <em>all</em> you can do with classes, so next is
 making them more useful.</p>
 <h2><a href="#instances-of-classes" name="instances-of-classes"><small>27&#8202;.&#8202;3</small> Instances of Classes</a></h2>
@@ -466,8 +463,7 @@ instance of Cake is a different &ldquo;type&rdquo; of object than an instance of
 from the VM&rsquo;s perspective every class the user defines is simply another value
 of type ObjClass. Likewise, each instance in the user&rsquo;s program, no matter what
 class it is an instance of, is an ObjInstance. That one VM object type covers
-instances of all classes. The two worlds map to each other something like this:</p>
-<p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/></p>
+instances of all classes. The two worlds map to each other something like this:</p><img src="image/classes-and-instances/lox-clox.png" alt="A set of class declarations and instances, and the runtime representations each maps to."/>
 <p>Got it? OK, back to the implementation. We also get our usual macros:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define IS_FUNCTION(value)      isObjType(value, OBJ_FUNCTION)</span>
 </pre><div class="source-file"><em>object.h</em></div>
@@ -608,8 +604,6 @@ the called class and store the result in the stack.</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Brioche</span> <span class="o">{}</span>
 <span class="k">print</span> <span class="t">Brioche</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Note the parentheses after <code>Brioche</code> on the second line now. This prints
 &ldquo;Brioche instance&rdquo;.</p>
 <h2><a href="#get-and-set-expressions" name="get-and-set-expressions"><small>27&#8202;.&#8202;4</small> Get and Set Expressions</a></h2>
@@ -620,8 +614,6 @@ uses the classic &ldquo;dot&rdquo; syntax:</p>
 <div class="codehilite"><pre><span></span><span class="i">eclair</span><span class="o">.</span><span class="i">filling</span> <span class="o">=</span> <span class="s">&quot;pastry creme&quot;</span><span class="o">;</span>
 <span class="k">print</span> <span class="i">eclair</span><span class="o">.</span><span class="i">filling</span><span class="o">;</span>
 </pre></div>
-
-
 <p>The period<span class="em">&mdash;</span>full stop for my English friends<span class="em">&mdash;</span>works <span
 name="sort">sort</span> of like an infix operator. There is an expression to the
 left that is evaluated first and produces an instance. After that is the <code>.</code>
@@ -676,16 +668,12 @@ set expression that is assigning to a field. But we don&rsquo;t <em>always</em> 
 equals sign after the field to be compiled. Consider:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">+</span> <span class="i">b</span><span class="o">.</span><span class="i">c</span> <span class="o">=</span> <span class="n">3</span>
 </pre></div>
-
-
 <p>This is syntactically invalid according to Lox&rsquo;s grammar, which means our Lox
 implementation is obligated to detect and report the error. If <code>dot()</code> silently
 parsed the <code>= 3</code> part, we would incorrectly interpret the code as if the user
 had written:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">+</span> <span class="o">(</span><span class="i">b</span><span class="o">.</span><span class="i">c</span> <span class="o">=</span> <span class="n">3</span><span class="o">)</span>
 </pre></div>
-
-
 <p>The problem is that the <code>=</code> side of a set expression has much lower precedence
 than the <code>.</code> part. The parser may call <code>dot()</code> in a context that is too high
 precedence to permit a setter to appear. To avoid incorrectly allowing that, we
@@ -781,8 +769,6 @@ writing:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">obj</span> <span class="o">=</span> <span class="s">&quot;not an instance&quot;</span><span class="o">;</span>
 <span class="k">print</span> <span class="i">obj</span><span class="o">.</span><span class="i">field</span><span class="o">;</span>
 </pre></div>
-
-
 <p>The user&rsquo;s program is wrong, but the VM still has to handle it with some grace.
 Right now, it will misinterpret the bits of the ObjString as an ObjInstance and,
 I don&rsquo;t know, catch on fire or something definitely not graceful.</p>
@@ -845,15 +831,12 @@ other words, we remove the <em>second</em> element from the stack while leaving 
 alone. A setter is itself an expression whose result is the assigned value, so
 we need to leave that value on the stack. Here&rsquo;s what I mean:</p>
 <aside name="stack">
-<p>The stack operations go like this:</p>
-<p><img src="image/classes-and-instances/stack.png" alt="Popping two values and then pushing the first value back on the stack."/></p>
+<p>The stack operations go like this:</p><img src="image/classes-and-instances/stack.png" alt="Popping two values and then pushing the first value back on the stack."/>
 </aside>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Toast</span> <span class="o">{}</span>
 <span class="k">var</span> <span class="i">toast</span> <span class="o">=</span> <span class="t">Toast</span><span class="o">();</span>
 <span class="k">print</span> <span class="i">toast</span><span class="o">.</span><span class="i">jam</span> <span class="o">=</span> <span class="s">&quot;grape&quot;</span><span class="o">;</span> <span class="c">// Prints &quot;grape&quot;.</span>
 </pre></div>
-
-
 <p>Unlike when reading a field, we don&rsquo;t need to worry about the hash table not
 containing the field. A setter implicitly creates the field if needed. We do
 need to handle the user incorrectly trying to store a field on a value that
@@ -880,8 +863,6 @@ support for object-oriented programming is in place. Give it a try:</p>
 <span class="i">pair</span><span class="o">.</span><span class="i">second</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>
 <span class="k">print</span> <span class="i">pair</span><span class="o">.</span><span class="i">first</span> <span class="o">+</span> <span class="i">pair</span><span class="o">.</span><span class="i">second</span><span class="o">;</span> <span class="c">// 3.</span>
 </pre></div>
-
-
 <p>This doesn&rsquo;t really feel very <em>object</em>-oriented. It&rsquo;s more like a strange
 dynamically-typed variant of C where objects are loose struct-like bags of data.
 Sort of a dynamic procedural language. But this is a big step in expressiveness.

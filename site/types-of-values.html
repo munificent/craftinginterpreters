@@ -171,6 +171,7 @@ type, we define an enum for each kind of value the VM supports:</p>
 <br></pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
+
 <aside name="user-types">
 <p>The cases here cover each kind of value that has <em>built-in support in the VM</em>.
 When we get to adding classes to the language, each class the user defines
@@ -181,8 +182,7 @@ instance of a class is the same type: &ldquo;instance&rdquo;.</p>
 <p>For now, we only have a couple of cases, but this will grow as we add strings,
 functions, and classes to clox. In addition to the type, we also need to store
 the data for the value<span class="em">&mdash;</span>the <code>double</code> for a number, <code>true</code> or <code>false</code> for a
-Boolean. We could define a struct with fields for each possible type:</p>
-<p><img src="image/types-of-values/struct.png" alt="A struct with two fields laid next to each other in memory." /></p>
+Boolean. We could define a struct with fields for each possible type:</p><img src="image/types-of-values/struct.png" alt="A struct with two fields laid next to each other in memory." />
 <p>But this is a waste of memory. A value can&rsquo;t simultaneously be both a number and
 a Boolean. So at any point in time, only one of those fields will be used. C
 lets you optimize this by defining a <span name="sum">union</span>. A union
@@ -191,8 +191,7 @@ looks like a struct except that all of its fields overlap in memory:</p>
 <p>If you&rsquo;re familiar with a language in the ML family, structs and unions in C
 roughly mirror the difference between product and sum types, between tuples
 and algebraic data types.</p>
-</aside>
-<p><img src="image/types-of-values/union.png" alt="A union with two fields overlapping in memory." /></p>
+</aside><img src="image/types-of-values/union.png" alt="A union with two fields overlapping in memory." />
 <p>The size of a union is the size of its largest field. Since the fields all reuse
 the same bits, you have to be very careful when working with them. If you store
 data using one field and then access it using <span
@@ -228,8 +227,7 @@ the layout looks like this:</p>
 <aside name="as">
 <p>A smart language hacker gave me the idea to use &ldquo;as&rdquo; for the name of this field
 because it reads nicely, almost like a cast, when you pull the value out.</p>
-</aside>
-<p><img src="image/types-of-values/value.png" alt="The full value struct, with the type and as fields next to each other in memory." /></p>
+</aside><img src="image/types-of-values/value.png" alt="The full value struct, with the type and as fields next to each other in memory." />
 <p>The four-byte type tag comes first, then the union. Most architectures prefer
 values be aligned to their size. Since the union field contains an eight-byte
 double, the compiler adds four bytes of <span name="pad">padding</span> after
@@ -285,6 +283,7 @@ add after struct <em>Value</em></div>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after struct <em>Value</em></div>
+
 <aside name="as-null">
 <p>There&rsquo;s no <code>AS_NULL</code> macro because there is only one <code>nil</code> value, so a Value
 with type <code>VAL_NIL</code> doesn&rsquo;t carry any extra data.</p>
@@ -296,8 +295,6 @@ union fields. If we were to do something like:</p>
 <div class="codehilite"><pre><span></span><span class="t">Value</span> <span class="i">value</span> <span class="o">=</span> <span class="a">BOOL_VAL</span><span class="o">(</span><span class="k">true</span><span class="o">);</span>
 <span class="t">double</span> <span class="i">number</span> <span class="o">=</span> <span class="a">AS_NUMBER</span><span class="o">(</span><span class="i">value</span><span class="o">);</span>
 </pre></div>
-
-
 <p>Then we may open a smoldering portal to the Shadow Realm. It&rsquo;s not safe to use
 any of the <code>AS_</code> macros unless we know the value contains the appropriate type.
 To that end, we define a last few macros to check a value&rsquo;s type:</p>
@@ -360,8 +357,6 @@ negates it, and pushes the result. Now that we have other types of values, we
 can&rsquo;t assume the operand is a number anymore. The user could just as well do:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span><span class="k">false</span><span class="o">;</span> <span class="c">// Uh...</span>
 </pre></div>
-
-
 <p>We need to handle that gracefully, which means it&rsquo;s time for <strong>runtime errors</strong>.
 Before performing an operation that requires a certain type, we need to make
 sure the value <em>is</em> that type.</p>
@@ -671,8 +666,6 @@ in <em>disassembleInstruction</em>()</div>
 <p>With this in place, we can run this Earth-shattering program:</p>
 <div class="codehilite"><pre><span></span><span class="k">true</span>
 </pre></div>
-
-
 <p>&hellip;Except that when the interpreter tries to print the result, it blows up. We
 need to extend <code>printValue()</code> to handle the new types too:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="i">printValue</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">)</span> <span class="o">{</span>                                        
@@ -696,8 +689,6 @@ before <code>nil</code> comes into play, but we can start putting Booleans to wo
 <p>The simplest logical operator is our old exclamatory friend unary not:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="k">true</span><span class="o">;</span> <span class="c">// &quot;false&quot;</span>
 </pre></div>
-
-
 <p>This new operation gets a new instruction:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="a">OP_DIVIDE</span><span class="o">,</span>
 </pre><div class="source-file"><em>chunk.h</em><br>
@@ -753,8 +744,6 @@ dynamic typing. Taking the logical not of <code>true</code> is easy, but there&r
 preventing an unruly programmer from writing something like:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="k">nil</span><span class="o">;</span>
 </pre></div>
-
-
 <p>For unary minus, we made it an error to negate anything that isn&rsquo;t a <span
 name="negate">number</span>. But Lox, like most scripting languages, is more
 permissive when it comes to <code>!</code> and other contexts where a Boolean is expected.
@@ -939,8 +928,7 @@ itself. Given how similar the cases are, you might wonder why we can&rsquo;t sim
 <code>memcmp()</code> the two Value structs and be done with it. The problem is that
 because of padding and different-sized union fields, a value contains unused
 bits. C gives no guarantee about what is in those, so it&rsquo;s possible that two
-equal Values actually differ in memory that isn&rsquo;t used.</p>
-<p><img src="image/types-of-values/memcmp.png" alt="The memory respresentations of two equal values that differ in unused bytes." /></p>
+equal Values actually differ in memory that isn&rsquo;t used.</p><img src="image/types-of-values/memcmp.png" alt="The memory respresentations of two equal values that differ in unused bytes." />
 <p>(You wouldn&rsquo;t believe how much pain I went through before learning this fact.)</p>
 <p>Anyway, as we add more types to clox, this function will grow new cases. For
 now, these three are sufficient. The other comparison operators are easier since
@@ -980,8 +968,6 @@ in <em>disassembleInstruction</em>()</div>
 expression evaluator. Fire up clox and type in:</p>
 <div class="codehilite"><pre><span></span><span class="o">!(</span><span class="n">5</span> <span class="o">-</span> <span class="n">4</span> <span class="o">&gt;</span> <span class="n">3</span> <span class="o">*</span> <span class="n">2</span> <span class="o">==</span> <span class="o">!</span><span class="k">nil</span><span class="o">)</span>
 </pre></div>
-
-
 <p>OK, I&rsquo;ll admit that&rsquo;s maybe not the most <em>useful</em> expression, but we&rsquo;re making
 progress. We have one missing built-in type with its own literal form: strings.
 Those are much more complex because strings can vary in size. That tiny

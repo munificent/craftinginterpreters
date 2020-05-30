@@ -133,8 +133,7 @@ on every single value.</p>
 <p>UCSD Pascal, one of the first implementations of Pascal, had this exact limit.
 Instead of using a terminating null byte to indicate the end of the string like
 C, Pascal strings start with a length value. Since UCSD used only a single byte
-to store the length, strings couldn&rsquo;t be any longer than 255 characters.</p>
-<p><img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it."></p>
+to store the length, strings couldn&rsquo;t be any longer than 255 characters.</p><img src="image/strings/pstring.png" alt="The Pascal string 'hello' with a length byte of 5 preceding it.">
 </aside>
 <p>We need a way to support values whose size varies, sometimes greatly. This is
 exactly what dynamic allocation on the heap is designed for. We can allocate as
@@ -150,8 +149,7 @@ struct itself.</p>
 a <em>pointer</em> to that blob of memory. We&rsquo;ll eventually have a handful of
 heap-allocated types in clox: strings, instances, functions, you get the idea.
 Each type has its own unique data, but there is also state they all share that
-<a href="garbage-collection.html">our future garbage collector</a> will use to manage their memory.</p>
-<p><img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values."></p>
+<a href="garbage-collection.html">our future garbage collector</a> will use to manage their memory.</p><img src="image/strings/value.png" class="wide" alt="Field layout of number and obj values.">
 <p>We&rsquo;ll call this common representation <span name="short">&ldquo;Obj&rdquo;</span>. Each Lox
 value whose state lives on the heap is an Obj. We can thus use a single new
 ValueType case to refer to all heap-allocated types:</p>
@@ -321,8 +319,7 @@ walking the character array to find the null terminator.</p>
 accomplishes that by having its first field be an Obj. C specifies that struct
 fields are arranged in memory in the order that they are declared. Also, when
 you nest structs, the inner struct&rsquo;s fields are expanded right in place. So the
-memory for Obj and for ObjString looks like this:</p>
-<p><img src="image/strings/obj.png" alt="The memory layout for the fields in Obj and ObjString." /></p>
+memory for Obj and for ObjString looks like this:</p><img src="image/strings/obj.png" alt="The memory layout for the fields in Obj and ObjString." />
 <p>Note how the first bytes of ObjString exactly line up with Obj. This is not a
 coincidence<span class="em">&mdash;</span>C <span name="spec">mandates</span> it. This is designed to
 enable a clever pattern: You can take a pointer to a struct and safely convert
@@ -337,7 +334,8 @@ are declared. A pointer to a structure object, suitably converted, points to
 its initial member (or if that member is a bit-field, then to the unit in
 which it resides), and vice versa. There may be unnamed padding within a
 structure object, but not at its beginning.</p>
-</blockquote></aside>
+</blockquote>
+</aside>
 <p>Given an <code>ObjString*</code>, you can safely cast it to <code>Obj*</code> and then access the
 <code>type</code> field from it. Every ObjString &ldquo;is&rdquo; an Obj in the OOP sense of &ldquo;is&rdquo;. When
 we later add other object types, each struct will have an Obj as its first
@@ -378,8 +376,6 @@ more than once, that expression gets evaluated multiple times.</p>
 <code>isObjType()</code> into the macro definition and then you did, say:</p>
 <div class="codehilite"><pre><span></span><span class="a">IS_STRING</span><span class="o">(</span><span class="a">POP</span><span class="o">())</span>
 </pre></div>
-
-
 <p>Then it would pop two values off the stack! Using a function fixes that.</p>
 <p>As long as we ensure that we set the type tag correctly whenever we create an
 Obj of some type, this macro will tell us when it&rsquo;s safe to cast a value to a
@@ -558,7 +554,7 @@ type being created.</p>
 function returns to <code>allocateString()</code> which finishes initializing the ObjString
 fields. <span name="viola"><em>Voil&agrave;</em></span>, we can compile and execute string
 literals.</p>
-<aside name="viola"><p><img src="image/strings/viola.png" class="above" alt="A viola."></p>
+<aside name="viola"><img src="image/strings/viola.png" class="above" alt="A viola.">
 <p>Don&rsquo;t get &ldquo;voil&agrave;&rdquo; confused with &ldquo;viola&rdquo;. One means &ldquo;there it is&rdquo; and the other
 is a string instrument, the middle child between a violin and a cello. Yes, I
 did spend two hours drawing a viola just to mention that.</p>
@@ -607,8 +603,6 @@ name="term-2">prints</span> the character array as a C string.</p>
 <p>The equality operators also need to gracefully handle strings. Consider:</p>
 <div class="codehilite"><pre><span></span><span class="s">&quot;string&quot;</span> <span class="o">==</span> <span class="s">&quot;string&quot;</span>
 </pre></div>
-
-
 <p>These are two separate string literals. The compiler will make two separate
 calls to <code>copyString()</code>, create two distinct ObjString objects and store them as
 two constants in the chunk. They are different objects in the heap. But our
@@ -773,14 +767,11 @@ includes:</p>
 <p>Behold this innocuous-seeming expression:</p>
 <div class="codehilite"><pre><span></span><span class="s">&quot;st&quot;</span> <span class="o">+</span> <span class="s">&quot;ri&quot;</span> <span class="o">+</span> <span class="s">&quot;ng&quot;</span>
 </pre></div>
-
-
 <p>When the compiler chews through this, it allocates an ObjString for each of
 those three string literals and stores them in the chunk&rsquo;s constant table and
 generates this <span name="stack">bytecode</span>:</p>
 <aside name="stack">
-<p>Here&rsquo;s what the stack looks like after each instruction:</p>
-<p><img src="image/strings/stack.png" alt="The state of the stack at each instruction."></p>
+<p>Here&rsquo;s what the stack looks like after each instruction:</p><img src="image/strings/stack.png" alt="The state of the stack at each instruction.">
 </aside>
 <div class="codehilite"><pre><span></span>0000    OP_CONSTANT         0 &quot;st&quot;
 0002    OP_CONSTANT         1 &quot;ri&quot;
@@ -789,8 +780,6 @@ generates this <span name="stack">bytecode</span>:</p>
 0007    OP_ADD
 0008    OP_RETURN
 </pre></div>
-
-
 <p>The first two instructions push <code>"st"</code> and <code>"ri"</code> onto the stack. Then the
 <code>OP_ADD</code> pops those and concatenates them. That dynamically allocates a new
 <code>"stri"</code> string on the heap. The VM pushes that and then pushes the <code>"ng"</code>
@@ -1027,7 +1016,8 @@ location. Add support for this.</p>
 choice. What do other languages do?</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: String Encoding</a></h2>
 <p>In this book, I try not to shy away from the gnarly problems you&rsquo;ll run into in
 a real language implementation. We might not always use the most <em>sophisticated</em>

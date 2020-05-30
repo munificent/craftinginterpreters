@@ -173,6 +173,7 @@ create new file</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Lox.java</em>, create new file</div>
+
 <aside name="64">
 <p>For exit codes, I&rsquo;m using the conventions defined in the UNIX
 <a href="https://www.freebsd.org/cgi/man.cgi?query=sysexits&apropos=0&sektion=0&manpath=FreeBSD+4.3-RELEASE&format=html">&ldquo;sysexits.h&rdquo;</a> header. It&rsquo;s the closest thing to a standard I could
@@ -202,8 +203,6 @@ a &ldquo;p&rdquo;). The name comes from Lisp where implementing one is as simple
 wrapping a loop around a few built-in functions:</p>
 <div class="codehilite"><pre><span></span><span class="o">(</span><span class="n">print</span> <span class="o">(</span><span class="n">eval</span> <span class="o">(</span><span class="n">read</span><span class="o">)))</span>
 </pre></div>
-
-
 <p>Working outwards from the most nested call, you <strong>R</strong>ead a line of input,
 <strong>E</strong>valuate it, <strong>P</strong>rint the result, then <strong>L</strong>oop and do it all over again.</p>
 </aside>
@@ -282,8 +281,6 @@ accidentally left a dangling comma in some function call and the interpreter
 printed out:</p>
 <div class="codehilite"><pre><span></span>Error: Unexpected &quot;,&quot; *somewhere* in your program. Good luck finding it!
 </pre></div>
-
-
 <p>That&rsquo;s not very helpful. We need to at least point them to the right line. Even
 better would be the beginning and end column so they know <em>where</em> in the line.
 Even better than <em>that</em> is to <em>show</em> the user the offending line, like:</p>
@@ -292,8 +289,6 @@ Even better than <em>that</em> is to <em>show</em> the user the offending line, 
     15 | function(first, second,);
                                ^-- Here.
 </pre></div>
-
-
 <p>I&rsquo;d love to implement something like that in this book but the honest truth is
 that it&rsquo;s a lot of grungy string munging code. Very useful for users, but not
 super fun to read in a book and not very technically interesting. So we&rsquo;ll stick
@@ -358,16 +353,13 @@ let&rsquo;s talk about these mysterious &ldquo;tokens&rdquo;.</p>
 <p>Here&rsquo;s a line of Lox code:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">language</span> <span class="o">=</span> <span class="s">&quot;lox&quot;</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Here, <code>var</code> is the keyword for declaring a variable. That three-character
 sequence &lsquo;v&rsquo; &lsquo;a&rsquo; &lsquo;r&rsquo; <em>means</em> something. If we yank three letters out of the
 middle of <code>language</code>, like <code>gua</code>, those don&rsquo;t mean anything on their own.</p>
 <p>That&rsquo;s what lexical analysis is about. Our job is to scan through the list of
 characters and group them together into the smallest sequences that still
 represent something. Each of these blobs of characters is called a <strong>lexeme</strong>.
-In that example line of code, the lexemes are:</p>
-<p><img src="image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" /></p>
+In that example line of code, the lexemes are:</p><img src="image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" />
 <p>The lexemes are only the raw substrings of the source code. However, in the
 process of recognizing them, we also stumble upon some other useful information.
 Things like:</p>
@@ -472,8 +464,7 @@ it emits a token.</p>
 <p>Then it loops back and does it again, starting from the very next character in
 the source code. It keeps doing that, eating characters and occasionally, uh,
 excreting tokens, until it runs out of characters.</p>
-<p><span name="alligator"></span></p>
-<p><img src="image/scanning/lexigator.png" alt="An alligator eating characters and, well, you don't want to know." /></p>
+<p><span name="alligator"></span></p><img src="image/scanning/lexigator.png" alt="An alligator eating characters and, well, you don't want to know." />
 <aside name="alligator">
 <p>Lexical analygator.</p>
 </aside>
@@ -484,8 +475,6 @@ those to match characters. For example, Lox has the same rules as C for
 identifiers (variable names and the like). This regex matches one:</p>
 <div class="codehilite"><pre><span></span>[a-zA-Z_][a-zA-Z_0-9]*
 </pre></div>
-
-
 <p>If you did think of regular expressions, your intuition is a deep one. The rules
 that determine how characters are grouped into lexemes for some language are
 called its <span name="theory"><strong>lexical grammar</strong></span>. In Lox, as in most
@@ -536,6 +525,7 @@ create new file</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, create new file</div>
+
 <aside name="static-import">
 <p>I know static imports are considered bad style by some, but they save me from
 having to sprinkle <code>TokenType.</code> all over the scanner and parser. Forgive me, but
@@ -617,6 +607,7 @@ add after <em>scanTokens</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>scanTokens</em>()</div>
+
 <aside name="slash">
 <p>Wondering why <code>/</code> isn&rsquo;t in here? Don&rsquo;t worry, we&rsquo;ll get to it.</p>
 </aside>
@@ -795,8 +786,6 @@ code like:</p>
 <span class="o">((</span> <span class="o">)){}</span> <span class="c">// grouping stuff</span>
 <span class="o">!*+-/=&lt;&gt;</span> <span class="o">&lt;=</span> <span class="o">==</span> <span class="c">// operators</span>
 </pre></div>
-
-
 <h3><a href="#string-literals" name="string-literals"><small>4&#8202;.&#8202;6&#8202;.&#8202;1</small> String literals</a></h3>
 <p>Now that we&rsquo;re comfortable with longer lexemes, we&rsquo;re ready to tackle literals.
 We&rsquo;ll do strings first, since they always begin with a specific character, <code>"</code>:</p>
@@ -857,29 +846,21 @@ number literal <code>123</code>. In practice, the result is the same, though it 
 interesting edge case if we were to add method calls on numbers. Consider:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span><span class="n">123</span><span class="o">.</span><span class="i">abs</span><span class="o">();</span>
 </pre></div>
-
-
 <p>This prints <code>-123</code> because <code>-</code> has lower precedence than <code>.</code>. We could fix that
 by making <code>-</code> part of the number literal. But then consider:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">n</span> <span class="o">=</span> <span class="n">123</span><span class="o">;</span>
 <span class="k">print</span> <span class="o">-</span><span class="i">n</span><span class="o">.</span><span class="i">abs</span><span class="o">();</span>
 </pre></div>
-
-
 <p>This still produces <code>-123</code>, so now the language seems inconsistent. No matter
 what you do, some case ends up weird.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="n">1234</span>
 <span class="n">12.34</span>
 </pre></div>
-
-
 <p>We don&rsquo;t allow a leading or trailing decimal point, so these are both invalid:</p>
 <div class="codehilite"><pre><span></span><span class="o">.</span><span class="n">1234</span>
 <span class="n">1234</span><span class="o">.</span>
 </pre></div>
-
-
 <p>We could easily support the former, but I left it out to keep things simple. The
 latter gets weird if we ever want to allow methods on numbers like <code>123.sqrt()</code>.</p>
 <p>To recognize the beginning of a number lexeme, we look for any digit. It&rsquo;s kind
@@ -908,6 +889,7 @@ add after <em>peek</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>peek</em>()</div>
+
 <aside name="is-digit">
 <p>The Java standard library provides <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Character.html#isDigit(char)"><code>Character.isDigit()</code></a> which seems
 like a good fit. Alas, that method allows things like Devanagari digits,
@@ -949,6 +931,7 @@ add after <em>peek</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, add after <em>peek</em>()</div>
+
 <aside name="peek-next">
 <p>I could have made <code>peek()</code> take a parameter for the number of characters ahead
 to look instead of defining two functions, but that would allow <em>arbitrarily</em>
@@ -975,8 +958,6 @@ multiple-character operators like <code>&lt;=</code>:</p>
   <span class="o">}</span>
   <span class="k">break</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Consider what would happen if a user named a variable <code>orchid</code>. The scanner
 would see the first two letters, <code>or</code>, and immediately emit an <code>or</code> keyword
 token. This gets us to an important principle called <span
@@ -990,21 +971,15 @@ that <code>&lt;=</code> should be scanned as a single <code>&lt;=</code> token a
 <p>Consider this nasty bit of C code:</p>
 <div class="codehilite"><pre><span></span><span class="o">---</span><span class="i">a</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Is it valid? That depends on how the scanner splits the lexemes. If the scanner
 sees it like:</p>
 <div class="codehilite"><pre><span></span><span class="o">-</span> <span class="o">--</span><span class="i">a</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Then it could be parsed. But that would require the scanner to know about the
 grammatical structure of the surrounding code, which entangles things more than
 we want. Instead, the maximal munch rule says that it is <em>always</em> scanned like:</p>
 <div class="codehilite"><pre><span></span><span class="o">--</span> <span class="o">-</span><span class="i">a</span><span class="o">;</span>
 </pre></div>
-
-
 <p>It scans it that way even though doing so leads to a syntax error later in the
 parser.</p>
 </aside>
@@ -1133,7 +1108,8 @@ sure to handle newlines in them. Consider allowing them to nest. Is adding
 support for nesting more work than you expected? Why?</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Implicit Semicolons</a></h2>
 <p>Programmers today are spoiled for choice in languages and have gotten picky
 about syntax. They want their language to look clean and modern. One bit of
@@ -1152,8 +1128,6 @@ detect, but there are a handful of nasty ones:</p>
 <div class="codehilite"><pre><span></span><span class="k">return</span>
 <span class="s">&quot;value&quot;</span>
 </pre></div>
-
-
 <p>Is &ldquo;value&rdquo; the value being returned, or do we have a return statement with
   no value followed by an expression statement containing a string literal?</p>
 </li>
@@ -1162,8 +1136,6 @@ detect, but there are a handful of nasty ones:</p>
 <div class="codehilite"><pre><span></span><span class="i">func</span>
 <span class="o">(</span><span class="i">parenthesized</span><span class="o">)</span>
 </pre></div>
-
-
 <p>Is this a call to <code>func(parenthesized)</code>, or two expression statements, one
   for <code>func</code> and one for a parenthesized expression?</p>
 </li>
@@ -1172,8 +1144,6 @@ detect, but there are a handful of nasty ones:</p>
 <div class="codehilite"><pre><span></span><span class="i">first</span>
 <span class="o">-</span><span class="i">second</span>
 </pre></div>
-
-
 <p>Is this <code>first - second</code><span class="em">&mdash;</span>an infix subtraction<span class="em">&mdash;</span>or two expression
   statements, one for <code>first</code> and one to negate <code>second</code>?</p>
 </li>
@@ -1189,8 +1159,6 @@ that no separator between statements is needed at all in most cases. This is
 perfectly legit:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">=</span> <span class="n">1</span> <span class="i">b</span> <span class="o">=</span> <span class="n">2</span>
 </pre></div>
-
-
 <p>Lua avoids the <code>return</code> problem by requiring a <code>return</code> statement to be the
 very last statement in a block. If there is a value after <code>return</code> before
 the keyword <code>end</code>, it <em>must</em> be for the return. For the other two cases,
@@ -1220,8 +1188,6 @@ inside an expression. C does the same, but many other languages which have a
   <span class="i">statement</span><span class="o">();</span>
 <span class="o">});</span>
 </pre></div>
-
-
 <p>Here, the <code>console.log()</code> <em>expression</em> contains a function literal which
 in turn contains the <em>statement</em> <code>statement();</code>.</p>
 <p>Python would need a different set of rules for implicitly joining lines if

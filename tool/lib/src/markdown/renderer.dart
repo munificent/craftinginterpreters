@@ -4,6 +4,7 @@ import 'package:markdown/markdown.dart';
 class Renderer implements NodeVisitor {
   static const _blockTags = {
     "blockquote",
+    "div",
     "h1",
     "h2",
     "h3",
@@ -35,6 +36,15 @@ class Renderer implements NodeVisitor {
 
   void visitText(Text text) {
     var content = text.text;
+
+    // Put a newline before inline HTML markup for block-level tags.
+    if (content.startsWith("<aside") ||
+        content.startsWith("</aside") ||
+        content.startsWith("<div") ||
+        content.startsWith("</div")) {
+      buffer.writeln();
+    }
+
     if (const ['p', 'li'].contains(_lastVisitedTag)) {
       content = content.trimLeft();
     }

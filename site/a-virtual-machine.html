@@ -427,6 +427,7 @@ in <em>run</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
+
 <aside name="macro">
 <p>Undefining these macros explicitly might seem needlessly fastidious, but C tends
 to punish sloppy users, and the C preprocessor doubly so.</p>
@@ -490,8 +491,6 @@ values around between the different instructions that need them. For example,
 in:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="n">3</span> <span class="o">-</span> <span class="n">2</span><span class="o">;</span>
 </pre></div>
-
-
 <p>We obviously need instructions for the constants 3 and 2, the print statement,
 and the subtraction. But how does the subtraction instruction know that 3 is
 the <span name="word">minuend</span> and 2 is the subtrahend? How does the print
@@ -509,8 +508,6 @@ and &ldquo;subtrahend&rdquo; might be some sort of underground Paleolithic monum
 
 <span class="k">print</span> <span class="i">echo</span><span class="o">(</span><span class="i">echo</span><span class="o">(</span><span class="n">1</span><span class="o">)</span> <span class="o">+</span> <span class="i">echo</span><span class="o">(</span><span class="n">2</span><span class="o">))</span> <span class="o">+</span> <span class="i">echo</span><span class="o">(</span><span class="i">echo</span><span class="o">(</span><span class="n">4</span><span class="o">)</span> <span class="o">+</span> <span class="i">echo</span><span class="o">(</span><span class="n">5</span><span class="o">));</span>
 </pre></div>
-
-
 <p>I wrapped each subexpression in a call to <code>echo()</code> that prints and returns its
 argument. That side effect means we can see the exact order of operations.</p>
 <p>Don&rsquo;t worry about the VM for a minute. Think about just the semantics of Lox
@@ -543,8 +540,6 @@ correct Lox implementation <em>must</em> print these numbers in this order:</p>
 9  // from echo(4 + 5)
 12 // from print 3 + 9
 </pre></div>
-
-
 <p>Our old jlox interpreter accomplishes this by recursively traversing the AST. It
 does a post-order traversal. First it recurses down the left operand branch,
 then the right operand, then finally it evaluates the node itself.</p>
@@ -588,8 +583,7 @@ another, then it will live at least as long as that second one. The first number
 to appear is the last to be consumed. Hmm&hellip; last-in, first-out&hellip; Why, that&rsquo;s a
 <span name="pancakes">stack</span>!</p>
 <aside name="pancakes">
-<p>This is also a stack:</p>
-<p><img src="image/a-virtual-machine/pancakes.png" alt="A stack... of pancakes." /></p>
+<p>This is also a stack:</p><img src="image/a-virtual-machine/pancakes.png" alt="A stack... of pancakes." />
 </aside>
 <p>In the second diagram, each time we introduce a number, we push it onto the
 stack from the right. When numbers are consumed, they are always popped off from
@@ -823,8 +817,6 @@ interpreter to do arithmetic.</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">1.2</span><span class="o">;</span>
 <span class="k">print</span> <span class="o">-</span><span class="i">a</span><span class="o">;</span> <span class="c">// -1.2.</span>
 </pre></div>
-
-
 <p>The prefix <code>-</code> operator takes one operand, the value to negate. It produces a
 single result. We aren&rsquo;t fussing with a parser yet, but we can add the
 bytecode instruction that the above syntax will compile to:</p>
@@ -876,8 +868,6 @@ instruction. That replaces the constant on the stack with its negation. Then the
 return instruction prints that out:</p>
 <div class="codehilite"><pre><span></span>-1.2
 </pre></div>
-
-
 <p>Magical!</p>
 <h3><a href="#binary-operators" name="binary-operators"><small>15&#8202;.&#8202;3&#8202;.&#8202;1</small> Binary operators</a></h3>
 <p>OK, unary operators aren&rsquo;t <em>that</em> impressive. We still only ever have a single
@@ -949,33 +939,23 @@ careful macro authors, we want to ensure those statements all end up in the same
 scope when the macro is expanded. Imagine if you defined:</p>
 <div class="codehilite"><pre><span></span><span class="a">#define WAKE_UP() makeCoffee(); drinkCoffee();</span>
 </pre></div>
-
-
 <p>And then used it like:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="i">morning</span><span class="o">)</span> <span class="a">WAKE_UP</span><span class="o">();</span>
 </pre></div>
-
-
 <p>The intent is to execute both statements of the macro body only if <code>morning</code> is
 true. But it expands to:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="i">morning</span><span class="o">)</span> <span class="i">makeCoffee</span><span class="o">();</span> <span class="i">drinkCoffee</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Oops. The <code>if</code> only attaches to the <em>first</em> statement. You might think you could
 fix this using a block:</p>
 <div class="codehilite"><pre><span></span><span class="a">#define WAKE_UP() { makeCoffee(); drinkCoffee(); }</span>
 </pre></div>
-
-
 <p>That&rsquo;s better, but you still risk:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="i">morning</span><span class="o">)</span>
   <span class="a">WAKE_UP</span><span class="o">();</span>
 <span class="k">else</span>
   <span class="i">sleepIn</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Now you get a compile error on the <code>else</code> because of that trailing <code>;</code> after the
 macro&rsquo;s block. Using a do-while loop in the macro looks funny, but it gives you
 a way to contain multiple statements inside a block that <em>also</em> permits a
@@ -1083,8 +1063,6 @@ expressions:</p>
 <span class="n">3</span> <span class="o">-</span> <span class="n">2</span> <span class="o">-</span> <span class="n">1</span>
 <span class="n">1</span> <span class="o">+</span> <span class="n">2</span> <span class="o">*</span> <span class="n">3</span> <span class="o">-</span> <span class="n">4</span> <span class="o">/</span> <span class="o">-</span><span class="n">5</span>
 </pre></div>
-
-
 <p>(Remember that Lox does not have a syntax for negative number literals, so
 the <code>-5</code> is negating the number 5.)</p>
 </li>
@@ -1094,8 +1072,6 @@ the <code>-5</code> is negating the number 5.)</p>
 would generate for:</p>
 <div class="codehilite"><pre><span></span><span class="n">4</span> <span class="o">-</span> <span class="n">3</span> <span class="o">*</span> <span class="o">-</span><span class="n">2</span>
 </pre></div>
-
-
 <p>First, without using <code>OP_NEGATE</code>. Then, without using <code>OP_SUBTRACT</code>.</p>
 <p>Given the above, do you think it makes sense to have both instructions? Why
 or why not? Are there any other redundant instructions you would consider
@@ -1109,7 +1085,8 @@ dynamically growing the stack as needed.</p>
 <p>What are the costs and benefits of doing so?</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Register-Based Bytecode</a></h2>
 <p>For the remainder of this book, we&rsquo;ll meticulously implement an interpreter
 around a stack-based bytecode instruction set. There&rsquo;s another family of
@@ -1132,16 +1109,12 @@ their outputs into specific stack slots.</p>
 <span class="k">var</span> <span class="i">b</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>
 <span class="k">var</span> <span class="i">c</span> <span class="o">=</span> <span class="i">a</span> <span class="o">+</span> <span class="i">b</span><span class="o">;</span>
 </pre></div>
-
-
 <p>In our stack-based VM, the last statement will get compiled to something like:</p>
 <div class="codehilite"><pre><span></span><span class="i">load</span> <span class="o">&lt;</span><span class="i">a</span><span class="o">&gt;</span>  <span class="c">// Read local variable a and push onto stack.</span>
 <span class="i">load</span> <span class="o">&lt;</span><span class="i">b</span><span class="o">&gt;</span>  <span class="c">// Read local variable b and push onto stack.</span>
 <span class="i">add</span>       <span class="c">// Pop two values, add, push result.</span>
 <span class="i">store</span> <span class="o">&lt;</span><span class="i">c</span><span class="o">&gt;</span> <span class="c">// Pop value and store in local variable c.</span>
 </pre></div>
-
-
 <p>(Don&rsquo;t worry if you don&rsquo;t fully understand the load and store instructions yet.
 We&rsquo;ll go over them in much greater detail <a href="global-variables.html">when we implement
 variables</a>.) We have four separate instructions. That means four
@@ -1154,8 +1127,6 @@ directly into local variables. The bytecode for the last statement above looks
 like:</p>
 <div class="codehilite"><pre><span></span><span class="i">add</span> <span class="o">&lt;</span><span class="i">a</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="i">b</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="i">c</span><span class="o">&gt;</span> <span class="c">// Read values from a and b, add, store in c.</span>
 </pre></div>
-
-
 <p>The add instruction is bigger<span class="em">&mdash;</span>it has three instruction operands that define
 where in the stack it reads its inputs from and writes the result to. But since
 local variables live on the stack, it can read directly from <code>a</code> and <code>b</code> and

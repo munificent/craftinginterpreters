@@ -230,8 +230,7 @@ fit an array of any size. We can thus control the number of buckets
 independently of the key range. That solves our waste problem, but introduces a
 new one. Any two variables whose key number has the same remainder when divided
 by the array size will end up in the same bucket. Keys can <strong>collide</strong>. For
-example, if we try to add &ldquo;jam&rdquo;, it also ends up in bucket 2:</p>
-<p><img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." /></p>
+example, if we try to add &ldquo;jam&rdquo;, it also ends up in bucket 2:</p><img src="image/hash-tables/collision.png" alt="'Bagel' and 'jam' both end up in bucket index 2." />
 <p>We do have some control of this by tuning the array size. The bigger the array,
 the fewer the indexes that get mapped to the same bucket and the fewer the
 collisions that are likely to occur. Hash table implementers track this
@@ -266,16 +265,14 @@ like it when their programming language can look up variables correctly only
 <p>Put these two funny-named mathematical rules together and you get this
 observation: Take a birdhouse containing 365 pigeonholes, and use each pigeon&rsquo;s
 birthday to assign it to a pigeonhole. You&rsquo;ll need only about 26 randomly-chosen
-pigeons before you get a greater than 50% chance of two pigeons in the same box.</p>
-<p><img src="image/hash-tables/pigeons.png" alt="Two pigeons in the same hole." /></p>
+pigeons before you get a greater than 50% chance of two pigeons in the same box.</p><img src="image/hash-tables/pigeons.png" alt="Two pigeons in the same hole." />
 </aside>
 <h3><a href="#separate-chaining" name="separate-chaining"><small>20&#8202;.&#8202;2&#8202;.&#8202;1</small> Separate chaining</a></h3>
 <p>Techniques for resolving collisions fall into two broad categories. The first is
 <strong>separate chaining</strong>. Instead of each bucket containing a single entry, we let
 it contain a collection of them. In the classic implementation, each bucket
 points to a linked list of entries. To look up an entry, you find its bucket and
-then walk the list until you find an entry with the matching key.</p>
-<p><img src="image/hash-tables/chaining.png" alt="An array with eight buckets. Bucket 2 links to a chain of two nodes. Bucket 5 links to a single node." /></p>
+then walk the list until you find an entry with the matching key.</p><img src="image/hash-tables/chaining.png" alt="An array with eight buckets. Bucket 2 links to a chain of two nodes. Bucket 5 links to a single node." />
 <p>In catastrophically bad cases where every entry collides in the same bucket, the
 data structure degrades into a single unsorted linked list with <em>O(n)</em> lookup.
 In practice, it&rsquo;s easy to avoid that by controlling the load factor and how
@@ -337,29 +334,22 @@ implicitly by the order that you look through the buckets.</p>
 <p>The tricky part is that more than one of these implicit lists may be interleaved
 together. Let&rsquo;s walk through an example that covers all the interesting cases.
 We&rsquo;ll ignore values for now and just worry about a set of keys. We start with an
-empty array of 8 buckets:</p>
-<p><img src="image/hash-tables/insert-1.png" alt="An array with eight empty buckets." class="wide" /></p>
+empty array of 8 buckets:</p><img src="image/hash-tables/insert-1.png" alt="An array with eight empty buckets." class="wide" />
 <p>We decide to insert &ldquo;bagel&rdquo;. The first letter, &ldquo;b&rdquo; (ASCII value 98), modulo the
-array size (8) puts it in bucket 2:</p>
-<p><img src="image/hash-tables/insert-2.png" alt="Bagel goes into bucket 2." class="wide" /></p>
+array size (8) puts it in bucket 2:</p><img src="image/hash-tables/insert-2.png" alt="Bagel goes into bucket 2." class="wide" />
 <p>Next, we insert &ldquo;jam&rdquo;. That also wants to go in bucket 2 (106 mod 8 = 2), but
 that bucket&rsquo;s taken. We keeping probing to the next bucket. It&rsquo;s empty, so we
-put it there:</p>
-<p><img src="image/hash-tables/insert-3.png" alt="Jam goes into bucket 3, since 2 is full." class="wide" /></p>
-<p>We insert &ldquo;fruit&rdquo;, which happily lands in bucket 6:</p>
-<p><img src="image/hash-tables/insert-4.png" alt="Fruit goes into bucket 6." class="wide" /></p>
-<p>Likewise, &ldquo;migas&rdquo; can go in its preferred bucket 5:</p>
-<p><img src="image/hash-tables/insert-5.png" alt="Migas goes into bucket 5." class="wide" /></p>
+put it there:</p><img src="image/hash-tables/insert-3.png" alt="Jam goes into bucket 3, since 2 is full." class="wide" />
+<p>We insert &ldquo;fruit&rdquo;, which happily lands in bucket 6:</p><img src="image/hash-tables/insert-4.png" alt="Fruit goes into bucket 6." class="wide" />
+<p>Likewise, &ldquo;migas&rdquo; can go in its preferred bucket 5:</p><img src="image/hash-tables/insert-5.png" alt="Migas goes into bucket 5." class="wide" />
 <p>When we try to insert &ldquo;eggs&rdquo;, it also wants to be in bucket 5. That&rsquo;s full so we
 skip to 6. Bucket 6 is also full. Note that the entry in there is <em>not</em> part of
 the same probe sequence. &ldquo;Fruit&rdquo; is in its preferred bucket, 6. So the 5 and 6
 sequences have collided and are interleaved. We skip over that and finally put
-&ldquo;eggs&rdquo; in bucket 7:</p>
-<p><img src="image/hash-tables/insert-6.png" alt="Eggs goes into bucket 7 because 5 and 6 are full." class="wide" /></p>
+&ldquo;eggs&rdquo; in bucket 7:</p><img src="image/hash-tables/insert-6.png" alt="Eggs goes into bucket 7 because 5 and 6 are full." class="wide" />
 <p>We run into a similar problem with &ldquo;nuts&rdquo;. It can&rsquo;t land in 6 like it wants to.
 Nor can it go into 7. So we keep going. But we&rsquo;ve reached the end of the array,
-so we wrap back around to 0 and put it there:</p>
-<p><img src="image/hash-tables/insert-7.png" alt="Nuts wraps around to bucket 0 because 6 and 7 are full." class="wide" /></p>
+so we wrap back around to 0 and put it there:</p><img src="image/hash-tables/insert-7.png" alt="Nuts wraps around to bucket 0 because 6 and 7 are full." class="wide" />
 <p>In practice, the interleaving turns out to not be much of a problem. Even in
 separate chaining, we need to walk the list to check each entry&rsquo;s key because
 multiple keys can reduce to the same bucket. With open addressing, we need to do
@@ -957,8 +947,7 @@ entry&rsquo;s bucket. Then clear out the bucket. Done!</p>
 <p>In cases where there are no collisions, that works fine. But if a collision has
 occurred, then the bucket where the entry lives may be part of one or more
 implicit probe sequences. For example, here&rsquo;s a hash table containing three keys
-all with the same preferred bucket, 2:</p>
-<p><img src="image/hash-tables/delete-1.png" alt="A hash table containing 'bagel' in bucket 2, 'biscuit' in bucket 3, and 'jam' in bucket 4." /></p>
+all with the same preferred bucket, 2:</p><img src="image/hash-tables/delete-1.png" alt="A hash table containing 'bagel' in bucket 2, 'biscuit' in bucket 3, and 'jam' in bucket 4." />
 <p>Remember that when we&rsquo;re walking a probe sequence to find an entry, we know
 we&rsquo;ve reached the end of a sequence and the entry isn&rsquo;t present when we hit an
 empty bucket. It&rsquo;s like the probe sequence is a list of entries and an empty
@@ -968,16 +957,14 @@ sequence in the middle, leaving the trailing entries orphaned and unreachable.
 Sort of like removing a node from a linked list without relinking the pointer
 from the previous node to the next one.</p>
 <p>If we later try to look for &ldquo;jam&rdquo;, we&rsquo;ll start at &ldquo;bagel&rdquo;, stop at the next
-empty entry, and never find it:</p>
-<p><img src="image/hash-tables/delete-2.png" alt="The 'biscuit' entry has been deleted from the hash table, breaking the chain." /></p>
+empty entry, and never find it:</p><img src="image/hash-tables/delete-2.png" alt="The 'biscuit' entry has been deleted from the hash table, breaking the chain." />
 <p>To solve this, most implementations use a trick called <span
 name="tombstone"><strong>&ldquo;tombstones&rdquo;</strong></span>. Instead of clearing the entry on
 deletion, we replace it with a special sentinel entry called a &ldquo;tombstone&rdquo;. When
 we are following a probe sequence during a lookup, and we hit a tombstone, we
 <em>don&rsquo;t</em> treat it like an empty slot and stop iterating. Instead, we keep going
 so that deleting an entry doesn&rsquo;t break any implicit collision chains and we can
-still find entries after it:</p>
-<p><img src="image/hash-tables/delete-3.png" alt="Instead of deleting 'biscuit', it's replaced with a tombstone." /></p>
+still find entries after it:</p><img src="image/hash-tables/delete-3.png" alt="Instead of deleting 'biscuit', it's replaced with a tombstone." />
 <p>The code looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>table.c</em><br>
 add after <em>tableSet</em>()</div>
@@ -1003,7 +990,8 @@ find it, there&rsquo;s nothing to delete, so we bail out.) We replace the entry 
 tombstone. In clox, we use a <code>NULL</code> key and a <code>true</code> value to represent that,
 but any representation that can&rsquo;t be confused with an empty bucket or a valid
 entry works.</p>
-<aside name="tombstone"><p><img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry bagel &rarr; 3.75, gone but not deleted'." /></p></aside>
+<aside name="tombstone"><img src="image/hash-tables/tombstone.png" alt="A tombstone enscribed 'Here lies entry bagel &rarr; 3.75, gone but not deleted'." />
+</aside>
 <p>That&rsquo;s all we need to do to delete an entry. Simple and fast. But all of the
 other operations need to correctly handle tombstones too. A tombstone is a sort
 of &ldquo;half&rdquo; entry. It has some of the characteristics of a present entry, and some
@@ -1387,8 +1375,7 @@ things that way.</p>
 <aside name="publish">
 <p>Well, at least that wasn&rsquo;t the <em>only</em> reason they were created. Whether that
 was the <em>main</em> reason is up for debate.</p>
-</aside>
-</li>
+</aside></li>
 <li>
 <p>Benchmarking a hash table is notoriously difficult. A hash table
 implementation may perform well with some keysets and poorly with others. It

@@ -282,8 +282,6 @@ something like this:</p>
 <span class="k">print</span> <span class="i">clock</span><span class="o">()</span> <span class="o">-</span> <span class="i">start</span><span class="o">;</span>
 <span class="k">print</span> <span class="i">sum</span><span class="o">;</span>
 </pre></div>
-
-
 <aside name="sum" class="bottom">
 <p>Another thing this benchmark is careful to do is <em>use</em> the result of the code it
 executes. By calculating a rolling sum and printing the result, we ensure the VM
@@ -358,15 +356,11 @@ your memory, here it is in full:</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>When running that previous benchmark<span class="em">&mdash;</span>on my machine, at least<span class="em">&mdash;</span>the VM spends
 70% of the total execution time on <em>one line</em> in this function. Any guesses as
 to which one? No? It&rsquo;s this:</p>
 <div class="codehilite"><pre><span></span>  <span class="t">uint32_t</span> <span class="i">index</span> <span class="o">=</span> <span class="i">key</span><span class="o">-&gt;</span><span class="i">hash</span> <span class="o">%</span> <span class="i">capacity</span><span class="o">;</span>
 </pre></div>
-
-
 <p>That pointer dereference isn&rsquo;t the problem. It&rsquo;s the little <code>%</code>. It turns out
 the modulo operator is <em>really</em> slow. Much slower than other <span
 name="division">arithmetic</span> operators. Can we do something better?</p>
@@ -386,8 +380,7 @@ CPU and C compiler do not<span class="em">&mdash;</span>that out our table&rsquo
 <p>Because we&rsquo;re clever bit twiddlers, we know a faster way to calculate the
 remainder of a number modulo a power of two: <em>masking</em>. Let&rsquo;s say we want to
 calculate 229 modulo 64. The answer is 37, which is not particularly apparent in
-decimal, but is clearer when you view those numbers in binary:</p>
-<p><img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." /></p>
+decimal, but is clearer when you view those numbers in binary:</p><img src="image/optimization/mask.png" alt="The bit patterns resulting from 229 % 64 = 37 and 229 & 63 = 37." />
 <p>On the left side of the illustration, notice how the result (37) is simply the
 dividend (229) with the highest two bits shaved off? Those two highest bits are
 the bits at or to the left of the divisor&rsquo;s single 1 bit.</p>
@@ -402,8 +395,6 @@ sense. We can replace that slow modulo operator with a fast subtraction followed
 by a very fast bitwise and. We simply change the offending line of code to:</p>
 <div class="codehilite"><pre><span></span>  <span class="t">uint32_t</span> <span class="i">index</span> <span class="o">=</span> <span class="i">key</span><span class="o">-&gt;</span><span class="i">hash</span> <span class="o">&amp;</span> <span class="o">(</span><span class="i">capacity</span> <span class="o">-</span> <span class="n">1</span><span class="o">);</span>
 </pre></div>
-
-
 <p>We can go farther. The result of <code>(capacity - 1)</code> changes infrequently, only
 when the table grows or shrinks. Instead of performing the subtraction on each
 hash table lookup, we can cache the result and reuse it. In fact, if we cache
@@ -616,8 +607,7 @@ operators into a <code>&amp;</code>.</p>
 many <span name="batch">batches</span> of 10,000 calls it can run in ten
 seconds. More batches equals faster performance. On my machine using the
 unoptimized code, the benchmark gets through 3,192 batches. With this
-optimization, that jumps to 6,249.</p>
-<p><img src="image/optimization/hash-chart.png" alt="Bar chart comparing the performance before and after the optimization." /></p>
+optimization, that jumps to 6,249.</p><img src="image/optimization/hash-chart.png" alt="Bar chart comparing the performance before and after the optimization." />
 <p>That&rsquo;s almost exactly twice as much work in the same amount of time. We made the
 VM twice as fast (usual caveat: on this benchmark). That is a massive win when
 it comes to optimization. Usually you feel good if you can claw a few percentage
@@ -677,8 +667,7 @@ widely-used term. This technique changes how we represent values in the VM.</p>
 <p>On a 64-bit machine, our Value type takes up 16 bytes. The struct has two
 fields, a type tag and a union for the payload. The largest fields in the union
 are an Obj pointer and a double, which are both 8 bytes. To keep the union field
-aligned to an 8-byte boundary, the compiler adds padding after the tag too:</p>
-<p><img src="image/optimization/union.png" alt="Byte layout of the 16-byte tagged union Value." /></p>
+aligned to an 8-byte boundary, the compiler adds padding after the tag too:</p><img src="image/optimization/union.png" alt="Byte layout of the 16-byte tagged union Value." />
 <p>That&rsquo;s pretty big. If we could cut that down, then the VM could pack more values
 into the same amount of memory. Most computers have plenty of RAM these days, so
 the direct memory savings aren&rsquo;t a huge deal. But a smaller representation means
@@ -709,8 +698,7 @@ scheme, encoded in the venerable scroll <a href="https://en.wikipedia.org/wiki/I
 double-precision IEEE floating-point number looks like this:</p>
 <aside name="hyphen">
 <p>That&rsquo;s a lot of hyphens for one sentence.</p>
-</aside>
-<p><img src="image/optimization/double.png" alt="Bit representation of an IEEE 754 double." /></p>
+</aside><img src="image/optimization/double.png" alt="Bit representation of an IEEE 754 double." />
 <ul>
 <li>
 <p>Starting from the right, the first 52 bits are the <strong>fraction</strong>,
@@ -758,8 +746,7 @@ values, but they should at least not set your hand on fire if you touch them.</p
 is a quiet NaN. That leaves 52 bits unaccounted for. We&rsquo;ll avoid one of those so
 that we don&rsquo;t step on Intel&rsquo;s &ldquo;QNan Floating-Point Indefinite&rdquo; value, leaving us
 51 bits. Those remaining bits can be anything. We&rsquo;re talking
-2,251,799,813,685,248 unique quiet NaN bit patterns.</p>
-<p><img src="image/optimization/nan.png" alt="The bits in a double that make it a quiet NaN." /></p>
+2,251,799,813,685,248 unique quiet NaN bit patterns.</p><img src="image/optimization/nan.png" alt="The bits in a double that make it a quiet NaN." />
 <p>This means a 64-bit double has enough room to store all of the various different
 numeric floating-point values and <em>also</em> has room for another 51 bits of data
 that we can use however we want. That&rsquo;s plenty of room to set aside a couple of
@@ -971,8 +958,7 @@ across a number of architectures, I haven&rsquo;t seen it happen.</p>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>It would be nice if C supported binary literals. But if you do the conversion,
-you&rsquo;ll see that value is the same as:</p>
-<p><img src="image/optimization/qnan.png" alt="The quiet NaN bits." /></p>
+you&rsquo;ll see that value is the same as:</p><img src="image/optimization/qnan.png" alt="The quiet NaN bits." />
 <p>This is exactly all of the exponent bits, plus the quiet NaN bit, plus one extra
 to dodge that Intel value.</p>
 <h3><a href="#nil-true-and-false" name="nil-true-and-false"><small>30&#8202;.&#8202;3&#8202;.&#8202;4</small> Nil, true, and false</a></h3>
@@ -995,8 +981,7 @@ like so:</p>
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>Our representation of <code>nil</code> is thus all of the bits required to define our
-quiet NaN representation along with the <code>nil</code> type tag bits:</p>
-<p><img src="image/optimization/nil.png" alt="The bit representation of the nil value." /></p>
+quiet NaN representation along with the <code>nil</code> type tag bits:</p><img src="image/optimization/nil.png" alt="The bit representation of the nil value." />
 <p>In code, that&rsquo;s:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)                      </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
@@ -1029,8 +1014,7 @@ uint64_t to see if a Value is <code>nil</code>:</p>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>The bits look like this:</p>
-<p><img src="image/optimization/bools.png" alt="The bit representation of the true and false values." /></p>
+<p>The bits look like this:</p><img src="image/optimization/bools.png" alt="The bit representation of the true and false values." />
 <p>To convert a C bool into a Lox Boolean, we rely on these two singleton values
 and the good old conditional operator:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)                        </span>
@@ -1068,8 +1052,6 @@ know <em>is</em> a Lox Boolean. To check that, there&rsquo;s one more macro:</p>
 but what about <code>true</code>? A more obvious macro would look like:</p>
 <div class="codehilite"><pre><span></span><span class="a">#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)</span>
 </pre></div>
-
-
 <p>Unfortunately, that&rsquo;s not safe. The expansion mentions <code>v</code> twice which means if
 that expression has any side effects, they will be executed twice. We could have
 the macro call out to a separate function, but, ugh, what a chore.</p>
@@ -1078,8 +1060,7 @@ both <code>true</code> and <code>false</code> have the second bit set and <code>
 has all of its quiet NaN bits set, we know it&rsquo;s not a number. And if the second
 bit is set, we know it&rsquo;s not <code>nil</code>. It must be <code>true</code> or <code>false</code>. Conveniently,
 <code>FALSE_VAL</code> is just the right bit pattern to check both the quiet NaN bits and
-that second tag bit, so we just test against that.</p>
-<p><img src="image/optimization/bool-mask.png" alt="TRUE_VAL & FALSE_VAL is the same as FALSE_VAL & FALSE_VAL." /></p>
+that second tag bit, so we just test against that.</p><img src="image/optimization/bool-mask.png" alt="TRUE_VAL & FALSE_VAL is the same as FALSE_VAL & FALSE_VAL." />
 <p>This is more subtle than I like to be with my bit hackery, but here we are.</p>
 <h3><a href="#objects" name="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small> Objects</a></h3>
 <p>The last value type is the hardest. Unlike the singleton values, there are
@@ -1103,8 +1084,7 @@ we wanted in there and just mask it off before dereferencing the pointer.</p>
 <p>This is another value representation optimization called &ldquo;pointer tagging&rdquo;.</p>
 </aside>
 <p>If the sign bit is set, then the remaining low bits store the pointer to the
-Obj:</p>
-<p><img src="image/optimization/obj.png" alt="Bit representation of an Obj* stored in a Value." /></p>
+Obj:</p><img src="image/optimization/obj.png" alt="Bit representation of an Obj* stored in a Value." />
 <p>To convert a raw Obj pointer to a Value, we simply take the pointer and set all
 of the quiet NaN bits and the sign bit:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define NUMBER_VAL(num) numToValue(num)                  </span>
@@ -1235,8 +1215,6 @@ be equal to itself. More concretely:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">nan</span> <span class="o">=</span> <span class="n">0</span><span class="o">/</span><span class="n">0</span><span class="o">;</span>
 <span class="k">print</span> <span class="i">nan</span> <span class="o">==</span> <span class="i">nan</span><span class="o">;</span>
 </pre></div>
-
-
 <p>IEEE 754 says this program is supposed to print &ldquo;false&rdquo;. It does the right thing
 with our old tagged union representation because the <code>VAL_NUMBER</code> case applies
 <code>==</code> to two values that the C compiler knows are doubles. Thus the compiler
@@ -1363,8 +1341,7 @@ end a lot more to chew on.</p>
 <aside name="cooper">
 <p>I like Cooper and Torczon&rsquo;s &ldquo;Engineering a Compiler&rdquo; for this. Appel&rsquo;s
 &ldquo;Modern Compiler Implementation&rdquo; is also well regarded.</p>
-</aside>
-</li>
+</aside></li>
 <li>
 <p>In this book, I aim to be correct, but not particularly rigorous. My goal is
 mostly to give you an <em>intuition</em> and a feel for doing language work. If you

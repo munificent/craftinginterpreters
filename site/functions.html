@@ -127,14 +127,13 @@ add useful functionality in their own right, but each also supplies a piece of a
 statements, variables, control flow, and lexical scope<span class="em">&mdash;</span>add a couple more, and
 assemble them all into support for real user-defined functions and function
 calls.</p>
-<aside name="lambda"><p><img src="image/functions/lambda.png" alt="A lambda puzzle." /></p></aside>
+<aside name="lambda"><img src="image/functions/lambda.png" alt="A lambda puzzle." />
+</aside>
 <h2><a href="#function-calls" name="function-calls"><small>10&#8202;.&#8202;1</small> Function Calls</a></h2>
 <p>You&rsquo;re certainly familiar with C-style function call syntax, but the grammar is
 more subtle than you may realize. Calls are typically to named functions like:</p>
 <div class="codehilite"><pre><span></span><span class="i">average</span><span class="o">(</span><span class="n">1</span><span class="o">,</span> <span class="n">2</span><span class="o">);</span>
 </pre></div>
-
-
 <p>But the <span name="pascal">name</span> of the function being called isn&rsquo;t
 actually part of the call syntax. The thing being called<span class="em">&mdash;</span>the <strong>callee</strong><span class="em">&mdash;</span>can be any expression that evaluates to a function. (Well, it does have to be a
 pretty <em>high precedence</em> expression, but parentheses take care of that.) For
@@ -145,8 +144,6 @@ functions or functions stored directly in variables.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="i">getCallback</span><span class="o">()();</span>
 </pre></div>
-
-
 <p>There are two call expressions here. The first pair of parentheses has
 <code>getCallback</code> as its callee. But the second call has the entire <code>getCallback()</code>
 expression as its callee. It is the parentheses following an expression that
@@ -159,8 +156,6 @@ new <code>call</code> rule:</p>
 <div class="codehilite"><pre><span></span><span class="i">unary</span> <span class="err">→</span> <span class="o">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="o">)</span> <span class="i">unary</span> <span class="err">|</span> <span class="i">call</span> <span class="o">;</span>
 <span class="i">call</span>  <span class="err">→</span> <span class="i">primary</span> <span class="o">(</span> <span class="s">&quot;(&quot;</span> <span class="i">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>This rule matches a primary expression followed by zero or more function calls.
 If there are no parentheses, this parses a bare primary expression. Otherwise,
 each call is recognized by a pair of parentheses with an optional list of
@@ -179,8 +174,6 @@ the language syntax so it&rsquo;s not as cumbersome as it would be here.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="i">arguments</span> <span class="err">→</span> <span class="i">expression</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="i">expression</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>This rule requires at least one argument expression, followed by zero or more
 other expressions, each preceded by a comma. To handle zero-argument calls, the
 <code>call</code> rule itself considers the entire <code>arguments</code> production optional.</p>
@@ -198,6 +191,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="call-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#call-expression">Appendix II</a>.</p>
 </aside>
@@ -385,8 +379,6 @@ pretend won&rsquo;t occur. First, what happens if the callee isn&rsquo;t actuall
 you can call? What if you try to do this:</p>
 <div class="codehilite"><pre><span></span><span class="s">&quot;totally not a function&quot;</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Strings aren&rsquo;t callable in Lox. The runtime representation of a Lox string is a
 Java string, so when we cast that to LoxCallable, the JVM will throw a
 ClassCastException. We don&rsquo;t want our interpreter to vomit out some nasty Java
@@ -414,15 +406,11 @@ determined by the number of parameters it declares:</p>
   <span class="k">print</span> <span class="i">a</span> <span class="o">+</span> <span class="i">b</span> <span class="o">+</span> <span class="i">c</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>This function defines three parameters, <code>a</code>, <code>b</code>, and <code>c</code>, so its arity is
 three and it expects three arguments. So what if you try to call it like this:</p>
 <div class="codehilite"><pre><span></span><span class="i">add</span><span class="o">(</span><span class="n">1</span><span class="o">,</span> <span class="n">2</span><span class="o">,</span> <span class="n">3</span><span class="o">,</span> <span class="n">4</span><span class="o">);</span> <span class="c">// Too many.</span>
 <span class="i">add</span><span class="o">(</span><span class="n">1</span><span class="o">,</span> <span class="n">2</span><span class="o">);</span>       <span class="c">// Too few.</span>
 </pre></div>
-
-
 <p>Different languages take different approaches to this problem. Of course, most
 statically-typed languages check this at compile time and refuse to compile the
 code if the argument count doesn&rsquo;t match the function&rsquo;s arity. JavaScript
@@ -483,8 +471,7 @@ mindset of a <em>user</em> of your language, then the runtime is implemented in 
 other &ldquo;foreign&rdquo; language.</p>
 <p>Or it may be that &ldquo;native&rdquo; refers to the machine code language of the underlying
 hardware. In Java, &ldquo;native&rdquo; methods are ones implemented in C or C++ and
-compiled to native machine code.</p>
-<p><img src="image/functions/foreign.png" class="above" alt="All a matter of perspective." /></p>
+compiled to native machine code.</p><img src="image/functions/foreign.png" class="above" alt="All a matter of perspective." />
 </aside>
 <p>But when it comes to making your language actually good at doing useful stuff,
 the native functions your implementation provides are key. They provide access
@@ -602,8 +589,6 @@ wouldn&rsquo;t need function declaration statements. You could just do:</p>
   <span class="k">print</span> <span class="i">a</span> <span class="o">+</span> <span class="i">b</span><span class="o">;</span>
 <span class="o">};</span>
 </pre></div>
-
-
 <p>However, since named functions are the common case, I went ahead and gave Lox
 nice syntax for them.</p>
 </aside>
@@ -611,14 +596,10 @@ nice syntax for them.</p>
             <span class="err">|</span> <span class="i">varDecl</span>
             <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>That references this new rule:</p>
 <div class="codehilite"><pre><span></span><span class="i">funDecl</span>  <span class="err">→</span> <span class="s">&quot;fun&quot;</span> <span class="i">function</span> <span class="o">;</span>
 <span class="i">function</span> <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="i">block</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>The main <code>funDecl</code> rule uses a separate helper rule <code>function</code>. A function
 <em>declaration statement</em> is the <code>fun</code> keyword followed by the actual function-y
 stuff. When we get to classes, we&rsquo;ll reuse that <code>function</code> rule for declaring
@@ -632,8 +613,6 @@ the body. The body is always a braced block, using the same grammar rule that
 block statements use. The parameter list uses this rule:</p>
 <div class="codehilite"><pre><span></span><span class="i">parameters</span> <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>It&rsquo;s like the earlier <code>arguments</code> rule, except that each parameter is an
 identifier, not an expression. That&rsquo;s a lot of new syntax for the parser to chew
 through, but the resulting AST <span name="fun-ast">node</span> isn&rsquo;t too bad:</p>
@@ -645,6 +624,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="fun-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#function-statement">Appendix II</a>.</p>
 </aside>
@@ -790,14 +770,11 @@ environment, even though they are all calls to the same function.</p>
 
 <span class="i">count</span><span class="o">(</span><span class="n">3</span><span class="o">);</span>
 </pre></div>
-
-
 <p>Imagine we pause the interpreter right at the point where it&rsquo;s about to print 1
 in the innermost nested call. The outer calls to print 2 and 3 haven&rsquo;t printed
 their values yet, so there must be environments somewhere in memory that still
 store the fact that <code>n</code> is bound to 3 in one context, 2 in another, and 1 in the
-innermost, like:</p>
-<p><img src="image/functions/recursion.png" alt="A separate environment for each recursive call." /></p>
+innermost, like:</p><img src="image/functions/recursion.png" alt="A separate environment for each recursive call." />
 <p>That&rsquo;s why we create a new environment at each <em>call</em>, not at the function
 <em>declaration</em>. The <code>call()</code> method we saw earlier does that. At the beginning of
 the call, it creates a new environment. Then it walks the parameter and argument
@@ -810,10 +787,7 @@ name and binds it to the argument&rsquo;s value.</p>
 
 <span class="i">add</span><span class="o">(</span><span class="n">1</span><span class="o">,</span> <span class="n">2</span><span class="o">,</span> <span class="n">3</span><span class="o">);</span>
 </pre></div>
-
-
-<p>The interpreter creates something like this:</p>
-<p><img src="image/functions/binding.png" alt="Binding arguments to their parameters." /></p>
+<p>The interpreter creates something like this:</p><img src="image/functions/binding.png" alt="Binding arguments to their parameters." />
 <p>Then <code>call()</code> tells the interpreter to execute the body of the function in this
 new function-local environment. Up until now, the current environment was the
 environment where the function was being called. Now, we teleport from there
@@ -862,8 +836,6 @@ add after <em>LoxFunction</em>()</div>
 
 <span class="k">print</span> <span class="i">add</span><span class="o">;</span> <span class="c">// &quot;&lt;fn add&gt;&quot;.</span>
 </pre></div>
-
-
 <h3><a href="#interpreting-function-declarations" name="interpreting-function-declarations"><small>10&#8202;.&#8202;4&#8202;.&#8202;1</small> Interpreting function declarations</a></h3>
 <p>We&rsquo;ll come back and refine LoxFunction soon, but that&rsquo;s enough to get started.
 Now we can visit a function declaration:</p>
@@ -895,8 +867,6 @@ try:</p>
 
 <span class="i">sayHi</span><span class="o">(</span><span class="s">&quot;Dear&quot;</span><span class="o">,</span> <span class="s">&quot;Reader&quot;</span><span class="o">);</span>
 </pre></div>
-
-
 <p>I don&rsquo;t know about you, but that looks like an honest-to-God programming
 language to me.</p>
 <h2><a href="#return-statements" name="return-statements"><small>10&#8202;.&#8202;5</small> Return Statements</a></h2>
@@ -920,8 +890,6 @@ sure you can guess the grammar already:</p>
 
 <span class="i">returnStmt</span> <span class="err">→</span> <span class="s">&quot;return&quot;</span> <span class="i">expression</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>We&rsquo;ve got one more<span class="em">&mdash;</span>the final, in fact<span class="em">&mdash;</span>production under the venerable
 <code>statement</code> rule. A return statement is the <code>return</code> keyword followed by an
 optional expression and terminated with a semicolon.</p>
@@ -938,16 +906,12 @@ statement:</p>
 <span class="k">var</span> <span class="i">result</span> <span class="o">=</span> <span class="i">procedure</span><span class="o">();</span>
 <span class="k">print</span> <span class="i">result</span><span class="o">;</span> <span class="c">// ?</span>
 </pre></div>
-
-
 <p>This means every Lox function must return <em>something</em>, even if it contains no
 return statements at all. We use <code>nil</code> for this, which is why LoxFunction&rsquo;s
 implementation of <code>call()</code> returns <code>null</code> at the end. In that same vein, if you
 omit the value in a return statement, we simply treat it as:</p>
 <div class="codehilite"><pre><span></span><span class="k">return</span> <span class="k">nil</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Over in our AST generator, add a <span name="return-ast">new node</span>:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>      <span class="s">&quot;Print      : Expr expression&quot;</span><span class="o">,</span>             
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
@@ -957,6 +921,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="return-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#return-statement">Appendix II</a>.</p>
 </aside>
@@ -1012,8 +977,6 @@ return statement:</p>
 
 <span class="i">count</span><span class="o">(</span><span class="n">1</span><span class="o">);</span>
 </pre></div>
-
-
 <p>The Java call stack currently looks roughly like this:</p>
 <div class="codehilite"><pre><span></span>Interpreter.visitReturnStmt()
 Interpreter.visitIfStmt()
@@ -1024,8 +987,6 @@ Interpreter.executeBlock()
 LoxFunction.call()
 Interpreter.visitCallExpr()
 </pre></div>
-
-
 <p>We need to get from the top of the stack all the way back to <code>call()</code>. I don&rsquo;t
 know about you, but to me that sounds like exceptions. When we execute a return
 statement, we&rsquo;ll use an exception to unwind the interpreter past the visit
@@ -1109,8 +1070,6 @@ example<span class="em">&mdash;</span>a recursive function to calculate Fibonacc
   <span class="k">print</span> <span class="i">fibonacci</span><span class="o">(</span><span class="i">i</span><span class="o">);</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>This tiny program exercises almost every language feature we have spent the past
 several chapters implementing<span class="em">&mdash;</span>expressions, arithmetic, branching, looping,
 variables, functions, function calls, parameter binding, and returns.</p>
@@ -1152,8 +1111,6 @@ inside another function, or nested inside a block.</p>
 <span class="i">counter</span><span class="o">();</span> <span class="c">// &quot;1&quot;.</span>
 <span class="i">counter</span><span class="o">();</span> <span class="c">// &quot;2&quot;.</span>
 </pre></div>
-
-
 <p>Here, <code>count()</code> uses <code>i</code>, which is declared outside of itself in the containing
 function <code>makeCounter()</code>. <code>makeCounter()</code> returns a reference to the <code>count()</code>
 function and then its own body finishes executing completely.</p>
@@ -1164,15 +1121,13 @@ function where <code>i</code> was defined has already exited.</p>
 seem crazy, but users do expect it to work. Alas, if you run it now, you get an
 undefined variable error in the call to <code>counter()</code> when the body of <code>count()</code>
 tries to look up <code>i</code>. That&rsquo;s because the environment chain in effect looks like
-this:</p>
-<p><img src="image/functions/global.png" alt="The environment chain from count()'s body to the global scope." /></p>
+this:</p><img src="image/functions/global.png" alt="The environment chain from count()'s body to the global scope." />
 <p>When we call <code>count()</code> (through the reference to it stored in <code>counter</code>), we
 create a new empty environment for the function body. The parent of that is the
 global environment. We lost the environment for <code>makeCounter()</code> where <code>i</code> is
 bound.</p>
 <p>Let&rsquo;s go back in time a bit. Here&rsquo;s what the environment chain looks like right
-when we declare <code>count()</code> inside the body of <code>makeCounter()</code>:</p>
-<p><img src="image/functions/body.png" alt="The environment chain inside the body of makeCounter()." /></p>
+when we declare <code>count()</code> inside the body of <code>makeCounter()</code>:</p><img src="image/functions/body.png" alt="The environment chain inside the body of makeCounter()." />
 <p>So at the point where the function is declared, we can see <code>i</code>. But when we
 return from <code>makeCounter()</code> and exit its body, the interpreter discards that
 environment. Since the interpreter isn&rsquo;t keeping the environment surrounding
@@ -1235,8 +1190,7 @@ replace 1 line</div>
 <p>This creates an environment chain that goes from the function&rsquo;s body out through
 the environments where the function is declared all the way out to the global
 scope. The runtime environment chain matches the textual nesting of the source
-code like we want. The end result looks like this:</p>
-<p><img src="image/functions/closure.png" alt="The environment chain with the closure." /></p>
+code like we want. The end result looks like this:</p><img src="image/functions/closure.png" alt="The environment chain with the closure." />
 <p>Now, as you can see, the interpreter can still find <code>i</code> when it needs to because
 it&rsquo;s in the middle of the environment chain. Try running that <code>makeCounter()</code>
 example now. It works!</p>
@@ -1278,20 +1232,17 @@ this works:</p>
 <span class="c">// &quot;2&quot;.</span>
 <span class="c">// &quot;3&quot;.</span>
 </pre></div>
-
-
 <p>How do you handle the tricky case of an anonymous function expression
 occurring in an expression statement:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="o">()</span> <span class="o">{};</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p>Is this program valid?</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="i">scope</span><span class="o">(</span><span class="i">a</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;local&quot;</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>In other words, are a function&rsquo;s parameters in the <em>same</em> scope as its local
 variables, or in an outer scope? What does Lox do? What about other
 languages you are familiar with? What do you think a language <em>should</em> do?</p>
