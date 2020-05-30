@@ -45,9 +45,6 @@ class Highlighter {
       trailingNewlines++;
     }
 
-    // TODO: Temp hack. Munge it some to match the old build output.
-    _buffer.write("<span></span>");
-
     for (var i = leadingNewlines; i < lines.length - trailingNewlines; i++) {
       _scanLine(lines[i]);
     }

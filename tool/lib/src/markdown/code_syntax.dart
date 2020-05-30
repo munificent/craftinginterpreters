@@ -125,11 +125,7 @@ Element _formatCodeLines(String language, List<String> childLines) {
   String code;
   if (language == "text") {
     // Don't syntax highlight text.
-    code = escapeHtml(childLines.join("\n"));
-
-    // TODO: The Markdown/Pygments puts a pointless empty span at the
-    // beginning. Remove this when not trying to match that.
-    code = "<pre><span></span>$code</pre>";
+    code = "<pre>${escapeHtml(childLines.join("\n"))}</pre>";
   } else {
     // TODO: Find a cleaner way to handle this. Maybe move the trailing
     // newline code into `insertSnippet()`?
