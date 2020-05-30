@@ -95,7 +95,7 @@ class IdentifierRule extends Rule {
 
   void applyRule(Highlighter highlighter) {
     var identifier = highlighter.scanner.lastMatch[0];
-    var type = highlighter.language.words[identifier] ?? "n";
+    var type = highlighter.language.words[identifier] ?? "i";
     highlighter.writeToken(type);
   }
 }

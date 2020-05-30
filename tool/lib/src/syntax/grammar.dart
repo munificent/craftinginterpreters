@@ -143,9 +143,9 @@ final _characterRule = Rule(r"'\\?.'", "s");
 final _commonRules = [
   StringRule(),
 
-  Rule(r"[0-9]+\.[0-9]+f?", "mf"), // Float.
-  Rule(r"0x[0-9a-fA-F]+", "mh"), // Hex integer.
-  Rule(r"[0-9]+[Lu]?", "mi"), // Integer.
+  Rule(r"[0-9]+\.[0-9]+f?", "n"), // Float.
+  Rule(r"0x[0-9a-fA-F]+", "n"), // Hex integer.
+  Rule(r"[0-9]+[Lu]?", "n"), // Integer.
 
   Rule(r"//.*", "c"), // Line comment.
 
