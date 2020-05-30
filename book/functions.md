@@ -1029,32 +1029,35 @@ scope and close that hole.
     without binding it to a name. Add anonymous function syntax to Lox so that
     this works:
 
-        :::lox
-        fun thrice(fn) {
-          for (var i = 1; i <= 3; i = i + 1) {
-            fn(i);
-          }
-        }
+    ```lox
+    fun thrice(fn) {
+      for (var i = 1; i <= 3; i = i + 1) {
+        fn(i);
+      }
+    }
 
-        thrice(fun (a) {
-          print a;
-        });
-        // "1".
-        // "2".
-        // "3".
+    thrice(fun (a) {
+      print a;
+    });
+    // "1".
+    // "2".
+    // "3".
+    ```
 
     How do you handle the tricky case of an anonymous function expression
     occurring in an expression statement:
 
-        :::lox
-        fun () {};
+    ```lox
+    fun () {};
+    ```
 
 1.  Is this program valid?
 
-        :::lox
-        fun scope(a) {
-          var a = "local";
-        }
+    ```lox
+    fun scope(a) {
+      var a = "local";
+    }
+    ```
 
     In other words, are a function's parameters in the *same* scope as its local
     variables, or in an outer scope? What does Lox do? What about other

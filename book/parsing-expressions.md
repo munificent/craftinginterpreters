@@ -132,23 +132,27 @@ is by defining rules for precedence and associativity.
     "left-to-right"), operators on the left evaluate before those on the right.
     Since `-` is left-associative, this expression:
 
-        :::lox
-        5 - 3 - 1
+    ```lox
+    5 - 3 - 1
+    ```
 
     is equivalent to:
 
-        :::lox
-        (5 - 3) - 1
+    ```lox
+    (5 - 3) - 1
+    ```
 
     Assignment, on the other hand, is **right-associative**. This:
 
-        :::lox
-        a = b = c
+    ```lox
+    a = b = c
+    ```
 
     is equivalent to:
 
-        :::lox
-        a = (b = c)
+    ```lox
+    a = (b = c)
+    ```
 
 <aside name="nonassociative">
 

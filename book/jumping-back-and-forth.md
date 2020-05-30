@@ -629,11 +629,12 @@ I couldn't resist the pun. I regret nothing.
 1.  In addition to if statements, most C-family languages have a multi-way
     `switch` statement. Add one to clox. The grammar is:
 
-        :::lox
-        switchStmt  → "switch" "(" expression ")"
-                      "{" switchCase* defaultCase? "}" ;
-        switchCase  → "case" expression ":" statement* ;
-        defaultCase → "default" ":" statement* ;
+    ```lox
+    switchStmt  → "switch" "(" expression ")"
+                  "{" switchCase* defaultCase? "}" ;
+    switchCase  → "case" expression ":" statement* ;
+    defaultCase → "default" ":" statement* ;
+    ```
 
     To execute a switch statement, first evaluate the parenthesized switch value
     expression. Then walk the cases. For each case, evaluate its value
@@ -649,8 +650,9 @@ I couldn't resist the pun. I regret nothing.
 1.  In jlox, we had a challenge to add support for break statements. This time,
     let's do continue:
 
-        :::lox
-        continueStmt → "continue" ";" ;
+    ```lox
+    continueStmt → "continue" ";" ;
+    ```
 
     A continue statement jumps directly to the top of the nearest enclosing
     loop, skipping the rest of the loop body. Inside a for loop, a continue

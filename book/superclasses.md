@@ -709,29 +709,31 @@ squeeze even more perf out. If that sounds fun, [keep reading][opt]...
 
     For example:
 
-        :::lox
-        class Doughnut {
-          cook() {
-            print "Fry until golden brown.";
-            inner();
-            print "Place in a nice box.";
-          }
-        }
+    ```lox
+    class Doughnut {
+      cook() {
+        print "Fry until golden brown.";
+        inner();
+        print "Place in a nice box.";
+      }
+    }
 
-        class BostonCream < Doughnut {
-          cook() {
-            print "Pipe full of custard and coat with chocolate.";
-          }
-        }
+    class BostonCream < Doughnut {
+      cook() {
+        print "Pipe full of custard and coat with chocolate.";
+      }
+    }
 
-        BostonCream().cook();
+    BostonCream().cook();
+    ```
 
     This should print:
 
-        :::text
-        Fry until golden brown.
-        Pipe full of custard and coat with chocolate.
-        Place in a nice box.
+    ```text
+    Fry until golden brown.
+    Pipe full of custard and coat with chocolate.
+    Place in a nice box.
+    ```
 
     Since clox is about not just implementing Lox, but doing so with good
     performance, this time around try to solve the challenge with an eye towards

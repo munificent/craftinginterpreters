@@ -15,18 +15,19 @@
 
 2.  Replace the Token.PLUS case with:
 
-        :::java
-        case PLUS:
-          if (left instanceof String || right instanceof String) {
-            return stringify(left) + stringify(right);
-          }
+    ```java
+    case PLUS:
+      if (left instanceof String || right instanceof String) {
+        return stringify(left) + stringify(right);
+      }
 
-          if (left instanceof Double && right instanceof Double) {
-            return (double)left + (double)right;
-          }
+      if (left instanceof Double && right instanceof Double) {
+        return (double)left + (double)right;
+      }
 
-          throw new RuntimeError(expr.operator,
-              "Operands must be two numbers or two strings.");
+      throw new RuntimeError(expr.operator,
+          "Operands must be two numbers or two strings.");
+      ```
 
 3.  It returns Infinity, -Infinity, or NaN based on sign of the dividend. Given
     that Lox is a high level scripting language, I think it would be better to

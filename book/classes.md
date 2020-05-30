@@ -1207,14 +1207,15 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
     them. Use a `class` keyword preceding the method to indicate a static method
     that hangs off the class object:
 
-        :::lox
-        class Math {
-          class square(n) {
-            return n * n;
-          }
-        }
+    ```lox
+    class Math {
+      class square(n) {
+        return n * n;
+      }
+    }
 
-        print Math.square(3); // Prints "9".
+    print Math.square(3); // Prints "9".
+    ```
 
     You can solve this however you like, but the "[metaclasses][]" used by
     Smalltalk and Ruby are a particularly elegant approach. *Hint: Make LoxClass
@@ -1226,19 +1227,20 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
     parameter list. The body of the getter is executed when a property with that
     name is accessed:
 
-        :::lox
-        class Circle {
-          init(radius) {
-            this.radius = radius;
-          }
+    ```lox
+    class Circle {
+      init(radius) {
+        this.radius = radius;
+      }
 
-          area {
-            return 3.141592653 * this.radius * this.radius;
-          }
-        }
+      area {
+        return 3.141592653 * this.radius * this.radius;
+      }
+    }
 
-        var circle = Circle(4);
-        print circle.area; // Prints roughly "50.2655".
+    var circle = Circle(4);
+    print circle.area; // Prints roughly "50.2655".
+    ```
 
 3.  Python and JavaScript allow you to freely access an object's fields from
     outside of its own methods. Ruby and Smalltalk encapsulate instance state.
@@ -1304,8 +1306,9 @@ them better? We language nerds have a tendency to fetishize minimalism.
 Personally, I think simplicity is only part of the equation. What we really want
 to give the user is *power*, which I define as:
 
-    :::text
-    power = breadth × ease ÷ complexity
+```text
+power = breadth × ease ÷ complexity
+```
 
 None of these are precise numeric measures. I'm using math as analogy here, not
 actual quantification.

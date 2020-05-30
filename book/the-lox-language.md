@@ -182,9 +182,10 @@ data types. There are only a few:
 
     There are two Boolean values, obviously, and a literal for each one:
 
-        :::lox
-        true;  // Not false.
-        false; // Not *not* false.
+    ```lox
+    true;  // Not false.
+    false; // Not *not* false.
+    ```
 
 *   **Numbers –** Lox only has one kind of number: double-precision floating
     point. Since floating point numbers can also represent a wide range of
@@ -194,17 +195,19 @@ data types. There are only a few:
     scientific notation, octal, all sorts of fun stuff. We'll settle for basic
     integer and decimal literals:
 
-        :::lox
-        1234;  // An integer.
-        12.34; // A decimal number.
+    ```lox
+    1234;  // An integer.
+    12.34; // A decimal number.
+    ```
 
 *   **Strings –** We've already seen one string literal in the first example.
     Like most languages, they are enclosed in double quotes:
 
-        :::lox
-        "I am a string";
-        "";    // The empty string.
-        "123"; // This is a string, not a number.
+    ```lox
+    "I am a string";
+    "";    // The empty string.
+    "123"; // This is a string, not a number.
+    ```
 
     As we'll see when we get to implementing them, there is quite a lot of
     complexity hiding in that innocuous sequence of <span

@@ -48,56 +48,7 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
   }
 }
 
-/// Custom code block formatter that uses our syntax highlighter.
-///
-/// Recognizes Python Markdown's ":::language" syntax.
-// TODO: Remove this when those code blocks have been migrated to use fences.
-class TripleColonCodeBlockSyntax extends BlockSyntax {
-  static final _startPattern = RegExp(r'^( *):::(.*)$');
-  static final _indentationPattern = RegExp(r'^( *)(.+)$');
-
-  RegExp get pattern => _startPattern;
-
-  bool canParse(BlockParser parser) =>
-      pattern.firstMatch(parser.current) != null;
-
-  List<String> parseChildLines(BlockParser parser, [String indentation]) {
-    var childLines = <String>[];
-    parser.advance();
-
-    while (!parser.isDone) {
-      var line = parser.current;
-
-      // Stop when we hit a non-empty line whose indentation is less than the
-      // ":::" line.
-      var match = _indentationPattern.firstMatch(line);
-      if (match != null && match[1].length < indentation.length) break;
-
-      if (line.length > indentation.length) {
-        line = line.substring(indentation.length);
-      }
-      childLines.add(line);
-      parser.advance();
-    }
-
-    return childLines;
-  }
-
-  Node parse(BlockParser parser) {
-    // Get the syntax identifier, if there is one.
-    var match = pattern.firstMatch(parser.current);
-    var indentation = match[1];
-    var language = match[2];
-
-    var childLines = parseChildLines(parser, indentation);
-    return _formatCodeLines(language, childLines);
-  }
-}
-
 /// Recognizes `^code` tags and inserts the relevant snippet.
-///
-/// Recognizes Python Markdown's ":::language" syntax.
-// TODO: Remove this when those code blocks have been migrated to use fences.
 class CodeTagBlockSyntax extends BlockSyntax {
   static final _startPattern = RegExp(r'\^code ([a-z0-9-]+)');
 
