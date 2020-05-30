@@ -30,11 +30,10 @@ final cpp = Language(
 
 final java = Language(
   keywords: "abstract assert break case catch class const continue default do "
-      "else enum extends final finally for goto if implements import "
-      "instanceof interface native new package private protected public return "
-      "static strictfp super switch synchronized this throw throws transient "
-      "try volatile while",
-  constants: "false null true",
+      "else enum extends false final finally for goto if implements import "
+      "instanceof interface native new null package private protected public "
+      "return static strictfp super switch synchronized this throw throws "
+      "transient true try volatile while",
   types: "boolean byte char double float int long short void",
   rules: [
     // Import.
@@ -45,7 +44,12 @@ final java = Language(
     // Package.
     Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
     // Annotation.
-    Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "nd"),
+    Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "a"),
+
+    // ALL_CAPS constant names are colored like normal identifiers. We give
+    // them their own rule so that it matches before the capitalized type name
+    // rule.
+    Rule(r"[A-Z][A-Z0-9_]+", "n"),
 
     ..._commonRules,
     _characterRule,
@@ -114,16 +118,14 @@ final _cKeywords =
     "inline NULL return sizeof static struct switch true typedef union while";
 
 final _cRules = [
-  // Include.
-  Rule.capture(r"(#include)(\s+)(.*)", ["cp", "", "cpf"]),
-
   // Preprocessor with comment.
-  Rule.capture(r"(#.*?)(//.*)", ["cp", "c"]),
+  Rule.capture(r"(#.*?)(//.*)", ["a", "c"]),
 
   // Preprocessor.
-  Rule(r"#.*", "cp"),
+  Rule(r"#.*", "a"),
 
-  LabelRule(),
+  // ALL_CAPS preprocessor macro use.
+  Rule(r"[A-Z][A-Z0-9_]+", "a"),
 
   ..._commonRules,
   _characterRule,
@@ -139,8 +141,6 @@ final _cOperatorRule = Rule(r"[(){}[\]!+\-/*:;.,|?=<>&^%]+", "o");
 final _characterRule = Rule(r"'\\?.'", "s");
 
 final _commonRules = [
-  Rule.capture(r"(\.)([a-zA-Z_][a-zA-Z0-9_]*)", ["o", "n"]), // Attribute.
-
   StringRule(),
 
   Rule(r"[0-9]+\.[0-9]+f?", "mf"), // Float.
@@ -149,7 +149,10 @@ final _commonRules = [
 
   Rule(r"//.*", "c"), // Line comment.
 
-  Rule(r"[A-Z][A-Za-z0-9_]*", "t"), // Capitalized type name.
+  // Capitalized type name.
+  Rule(r"[A-Z][A-Za-z0-9_]*", "t"),
+
+  // Other identifiers or keywords.
   IdentifierRule(),
 
   // TODO: Pygments doesn't handle backslashes in multi-line defines, so

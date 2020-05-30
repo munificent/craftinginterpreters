@@ -7,7 +7,6 @@ class Language {
 
   Language(
       {String keywords,
-      String constants,
       String types,
       List<Rule> rules})
       // TODO: Allow omitting rules for languages that aren't supported yet.
@@ -20,7 +19,6 @@ class Language {
     }
 
     keywordType(keywords, "k");
-    keywordType(constants, "kc");
     keywordType(types, "t");
   }
 }

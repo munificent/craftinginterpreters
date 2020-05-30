@@ -336,18 +336,18 @@ your memory, here it is in full:</p>
 <div class="codehilite"><pre><span></span><span class="k">static</span> <span class="t">Entry</span><span class="o">*</span> <span class="n">findEntry</span><span class="o">(</span><span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span><span class="o">,</span> <span class="t">int</span> <span class="n">capacity</span><span class="o">,</span>
                         <span class="t">ObjString</span><span class="o">*</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
   <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">%</span> <span class="n">capacity</span><span class="o">;</span>
-  <span class="t">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>
+  <span class="t">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>
 
   <span class="k">for</span> <span class="o">(;;)</span> <span class="o">{</span>
     <span class="t">Entry</span><span class="o">*</span> <span class="n">entry</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">entries</span><span class="o">[</span><span class="n">index</span><span class="o">];</span>
 
-    <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="t">NULL</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">if</span> <span class="o">(</span><span class="t">IS_NIL</span><span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="a">IS_NIL</span><span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>
         <span class="c">// Empty entry.</span>
-        <span class="k">return</span> <span class="n">tombstone</span> <span class="o">!=</span> <span class="t">NULL</span> <span class="o">?</span> <span class="nl">tombstone</span> <span class="o">:</span> <span class="n">entry</span><span class="o">;</span>
+        <span class="k">return</span> <span class="n">tombstone</span> <span class="o">!=</span> <span class="a">NULL</span> <span class="o">?</span> <span class="n">tombstone</span> <span class="o">:</span> <span class="n">entry</span><span class="o">;</span>
       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
         <span class="c">// We found a tombstone.</span>
-        <span class="k">if</span> <span class="o">(</span><span class="n">tombstone</span> <span class="o">==</span> <span class="t">NULL</span><span class="o">)</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="n">entry</span><span class="o">;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">tombstone</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="n">entry</span><span class="o">;</span>
       <span class="o">}</span>
     <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">entry</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">==</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
       <span class="c">// We found the key.</span>
@@ -425,7 +425,7 @@ in the interest of expedience, I left the name alone.</p>
 in <em>findEntry</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="t">uint32_t</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="o">-&gt;</span><span class="n">hash</span> <span class="o">&amp;</span> <span class="n">capacity</span><span class="o">;</span> 
-</pre><pre class="insert-after"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>               
+</pre><pre class="insert-after"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">tombstone</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>               
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>findEntry</em>(), replace 1 line</div>
@@ -456,19 +456,19 @@ the new array, we calculate the size from the mask:</p>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="t">ALLOCATE</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>       
+<pre class="insert"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="a">ALLOCATE</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>       
 </pre><pre class="insert-after"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>                  
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
 
 <p>Then we iterate over the array to initialize the empty entries:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="t">ALLOCATE</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="t">Entry</span><span class="o">*</span> <span class="n">entries</span> <span class="o">=</span> <span class="a">ALLOCATE</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">capacity</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>          
-</pre><pre class="insert-after"><span></span>    <span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="n">key</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>                       
+</pre><pre class="insert-after"><span></span>    <span class="n">entries</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="n">key</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>                       
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>adjustCapacity</em>(), replace 1 line</div>
@@ -491,7 +491,7 @@ are released:</p>
 <br></pre><div class="source-file"><em>table.c</em><br>
 in <em>adjustCapacity</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="t">FREE_ARRAY</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="a">FREE_ARRAY</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="n">entries</span><span class="o">;</span>                              
 </pre></div>
 
@@ -507,8 +507,8 @@ inserting a new entry into it, we need to calculate the capacity:</p>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>tableSet</em>()<br>
 replace 2 lines</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">*</span> <span class="t">TABLE_MAX_LOAD</span><span class="o">)</span> <span class="o">{</span>
-    <span class="t">int</span> <span class="n">capacity</span> <span class="o">=</span> <span class="t">GROW_CAPACITY</span><span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>        
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">*</span> <span class="a">TABLE_MAX_LOAD</span><span class="o">)</span> <span class="o">{</span>
+    <span class="t">int</span> <span class="n">capacity</span> <span class="o">=</span> <span class="a">GROW_CAPACITY</span><span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">)</span> <span class="o">-</span> <span class="mi">1</span><span class="o">;</span>        
 </pre><pre class="insert-after"><span></span>    <span class="n">adjustCapacity</span><span class="o">(</span><span class="n">table</span><span class="o">,</span> <span class="n">capacity</span><span class="o">);</span>                              
 </pre></div>
 
@@ -520,7 +520,7 @@ replace 2 lines</div>
 in <em>initTable</em>()<br>
 replace 1 line</div>
 <pre class="insert"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span> 
-</pre><pre class="insert-after"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="t">NULL</span><span class="o">;</span>
+</pre><pre class="insert-after"><span></span>  <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>table.c</em>, in <em>initTable</em>(), replace 1 line</div>
@@ -548,7 +548,7 @@ there that we made in <code>findEntry()</code>. We use <code>capacity</code> as 
 the string&rsquo;s hash key:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="t">ObjString</span><span class="o">*</span> <span class="n">tableFindString</span><span class="o">(</span><span class="t">Table</span><span class="o">*</span> <span class="n">table</span><span class="o">,</span> <span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="n">chars</span><span class="o">,</span> <span class="t">int</span> <span class="n">length</span><span class="o">,</span>
                            <span class="t">uint32_t</span> <span class="n">hash</span><span class="o">)</span> <span class="o">{</span>                            
-  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="k">return</span> <span class="t">NULL</span><span class="o">;</span>                                  
+  <span class="k">if</span> <span class="o">(</span><span class="n">table</span><span class="o">-&gt;</span><span class="n">count</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="k">return</span> <span class="a">NULL</span><span class="o">;</span>                                  
 <br></pre><div class="source-file"><em>table.c</em><br>
 in <em>tableFindString</em>()<br>
 replace 1 line</div>
@@ -604,7 +604,7 @@ accurate count of the entry array size:</p>
 </pre><div class="source-file"><em>table.c</em><br>
 in <em>freeTable</em>()<br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="t">FREE_ARRAY</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="a">FREE_ARRAY</span><span class="o">(</span><span class="t">Entry</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">entries</span><span class="o">,</span> <span class="n">table</span><span class="o">-&gt;</span><span class="n">capacity</span> <span class="o">+</span> <span class="mi">1</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="n">initTable</span><span class="o">(</span><span class="n">table</span><span class="o">);</span>                                      
 </pre></div>
 
@@ -803,10 +803,10 @@ totally sure.</p>
 of its value representation. To avoid that, we&rsquo;ll maintain support for <em>both</em>
 the old tagged union implementation of Value and the new NaN-boxed form. We
 select which representation we want at compile time using this flag:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdint.h&gt;     </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#include &lt;stdint.h&gt;     </span>
 <br></pre><div class="source-file"><em>common.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define NAN_BOXING      </span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define DEBUG_PRINT_CODE</span>
+<pre class="insert"><span></span><span class="a">#define NAN_BOXING      </span>
+</pre><pre class="insert-after"><span></span><span class="a">#define DEBUG_PRINT_CODE</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>common.h</em></div>
@@ -820,11 +820,11 @@ continue along its merry way.</p>
 new type:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="n">sObjString</span> <span class="t">ObjString</span><span class="o">;</span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                   </span>
+<pre class="insert"><span></span><span class="a">#ifdef NAN_BOXING                   </span>
 
 <span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>             
 
-<span class="cp">#else                               </span>
+<span class="a">#else                               </span>
 <br></pre><pre class="insert-after"><span></span><span class="k">typedef</span> <span class="k">enum</span> <span class="o">{</span>                      
 </pre></div>
 
@@ -837,9 +837,9 @@ bitwise operations and uint64_t is a much friendlier type for that. Outside of
 this module, the rest of the VM doesn&rsquo;t really care one way or the other.</p>
 <p>Before we start re-implementing those macros, we close the <code>#else</code> branch of the
 <code>#ifdef</code> at the end of the definitions for the old representation:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define OBJ_VAL(object)   ((Value){ VAL_OBJ, { .obj = (Obj*)object } })</span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><br><span></span><span class="cp">#endif                                                                 </span>
+<pre class="insert"><br><span></span><span class="a">#endif                                                                 </span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>                                                       
 </pre></div>
 
@@ -873,7 +873,7 @@ permits type punning through unions, so relying on it is, at worse, a minor sin.
   <span class="t">uint64_t</span> <span class="n">bits</span><span class="o">;</span>       
   <span class="t">double</span> <span class="n">num</span><span class="o">;</span>          
 <span class="o">}</span> <span class="t">DoubleUnion</span><span class="o">;</span>         
-</pre><pre class="insert-after"><br><span></span><span class="cp">#else                  </span>
+</pre><pre class="insert-after"><br><span></span><span class="a">#else                  </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -885,7 +885,7 @@ into a single expression, so the conversion macros will call out to helper
 functions. Here&rsquo;s the first macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><br><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)</span>
+<pre class="insert"><br><span></span><span class="a">#define NUMBER_VAL(num) numToValue(num)</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">union</span> <span class="o">{</span>                        
 </pre></div>
 
@@ -900,7 +900,7 @@ add after union <em>DoubleUnion</em></div>
   <span class="n">data</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="n">num</span><span class="o">;</span>                           
   <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">bits</span><span class="o">;</span>                         
 <span class="o">}</span>                                           
-</pre><pre class="insert-after"><br><span></span><span class="cp">#else                                       </span>
+</pre><pre class="insert-after"><br><span></span><span class="a">#else                                       </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
@@ -912,8 +912,8 @@ smart enough to optimize it all away.</p>
 <p>&ldquo;Unwrapping&rdquo; a Lox number is the mirror image:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><br><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)  </span>
-</pre><pre class="insert-after"><br><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)</span>
+<pre class="insert"><br><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)  </span>
+</pre><pre class="insert-after"><br><span></span><span class="a">#define NUMBER_VAL(num) numToValue(num)</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -940,8 +940,8 @@ we have are exactly the bits for a double, how do we tell that it <em>is</em> a 
 <p>It&rsquo;s time to get bit twiddling:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                       
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><br><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
-</pre><pre class="insert-after"><br><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)         </span>
+<pre class="insert"><br><span></span><span class="a">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
+</pre><pre class="insert-after"><br><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)         </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -962,9 +962,9 @@ whose bit representation collides with ones we have claimed. But in my tests
 across a number of architectures, I haven&rsquo;t seen it happen.</p>
 </aside>
 <p>The set of quiet NaN bits are declared like this:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                              </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#ifdef NAN_BOXING                              </span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><br><span></span><span class="cp">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
+<pre class="insert"><br><span></span><span class="a">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                        
 </pre></div>
 
@@ -984,11 +984,11 @@ for three unique bit patterns.</p>
 lowest bits of our unused mantissa space as a &ldquo;type tag&rdquo; to determine which of
 these three singleton values we&rsquo;re looking at. The three type tags are defined
 like so:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><br><span></span><span class="cp">#define TAG_NIL   1 </span><span class="c">// 01.                     </span>
-<span class="cp">#define TAG_FALSE 2 </span><span class="c">// 10.                     </span>
-<span class="cp">#define TAG_TRUE  3 </span><span class="c">// 11.                     </span>
+<pre class="insert"><br><span></span><span class="a">#define TAG_NIL   1 </span><span class="c">// 01.                     </span>
+<span class="a">#define TAG_FALSE 2 </span><span class="c">// 10.                     </span>
+<span class="a">#define TAG_TRUE  3 </span><span class="c">// 11.                     </span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                        
 </pre></div>
 
@@ -998,10 +998,10 @@ like so:</p>
 quiet NaN representation along with the <code>nil</code> type tag bits:</p>
 <p><img src="image/optimization/nil.png" alt="The bit representation of the nil value." /></p>
 <p>In code, that&rsquo;s:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                      </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)                      </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))</span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)                    </span>
+<pre class="insert"><span></span><span class="a">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))</span>
+</pre><pre class="insert-after"><span></span><span class="a">#define NUMBER_VAL(num) numToValue(num)                    </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1013,18 +1013,18 @@ uint64_t to see if a Value is <code>nil</code>:</p>
 <p><span name="equal"></span></p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                       
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define IS_NIL(v)       ((v) == NIL_VAL)      </span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
+<pre class="insert"><span></span><span class="a">#define IS_NIL(v)       ((v) == NIL_VAL)      </span>
+</pre><pre class="insert-after"><span></span><span class="a">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>You can guess how we define the <code>true</code> and <code>false</code> values:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                        </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)                        </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
-<span class="cp">#define TRUE_VAL        ((Value)(uint64_t)(QNAN | TAG_TRUE)) </span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))  </span>
+<pre class="insert"><span></span><span class="a">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
+<span class="a">#define TRUE_VAL        ((Value)(uint64_t)(QNAN | TAG_TRUE)) </span>
+</pre><pre class="insert-after"><span></span><span class="a">#define NIL_VAL         ((Value)(uint64_t)(QNAN | TAG_NIL))  </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1033,10 +1033,10 @@ uint64_t to see if a Value is <code>nil</code>:</p>
 <p><img src="image/optimization/bools.png" alt="The bit representation of the true and false values." /></p>
 <p>To convert a C bool into a Lox Boolean, we rely on these two singleton values
 and the good old conditional operator:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                        </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)                        </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)         </span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
+<pre class="insert"><span></span><span class="a">#define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)         </span>
+</pre><pre class="insert-after"><span></span><span class="a">#define FALSE_VAL       ((Value)(uint64_t)(QNAN | TAG_FALSE))</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1044,10 +1044,10 @@ and the good old conditional operator:</p>
 <p>There&rsquo;s probably a more clever bitwise way to do this, but my hunch is that the
 compiler can figure one out faster than I can. Going the other direction is
 simpler:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)</span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define AS_BOOL(v)      ((v) == TRUE_VAL)     </span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)         </span>
+<pre class="insert"><span></span><span class="a">#define AS_BOOL(v)      ((v) == TRUE_VAL)     </span>
+</pre><pre class="insert-after"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)         </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1058,15 +1058,15 @@ must be <code>false</code>. This macro does assume you only call it on a Value t
 know <em>is</em> a Lox Boolean. To check that, there&rsquo;s one more macro:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="k">typedef</span> <span class="t">uint64_t</span> <span class="t">Value</span><span class="o">;</span>                                 
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define IS_BOOL(v)      (((v) &amp; FALSE_VAL) == FALSE_VAL)</span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define IS_NIL(v)       ((v) == NIL_VAL)                </span>
+<pre class="insert"><span></span><span class="a">#define IS_BOOL(v)      (((v) &amp; FALSE_VAL) == FALSE_VAL)</span>
+</pre><pre class="insert-after"><span></span><span class="a">#define IS_NIL(v)       ((v) == NIL_VAL)                </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>That looks a little weird. It <em>kind</em> of looks like it only checks for <code>false</code>
 but what about <code>true</code>? A more obvious macro would look like:</p>
-<div class="codehilite"><pre><span></span><span class="cp">#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)</span>
+<div class="codehilite"><pre><span></span><span class="a">#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)</span>
 </pre></div>
 
 
@@ -1107,10 +1107,10 @@ Obj:</p>
 <p><img src="image/optimization/obj.png" alt="Bit representation of an Obj* stored in a Value." /></p>
 <p>To convert a raw Obj pointer to a Value, we simply take the pointer and set all
 of the quiet NaN bits and the sign bit:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define NUMBER_VAL(num) numToValue(num)                  </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define NUMBER_VAL(num) numToValue(num)                  </span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define OBJ_VAL(obj) \                                   </span>
-    <span class="o">(</span><span class="t">Value</span><span class="o">)(</span><span class="t">SIGN_BIT</span> <span class="o">|</span> <span class="t">QNAN</span> <span class="o">|</span> <span class="o">(</span><span class="t">uint64_t</span><span class="o">)(</span><span class="t">uintptr_t</span><span class="o">)(</span><span class="n">obj</span><span class="o">))</span>
+<pre class="insert"><span></span><span class="a">#define OBJ_VAL(obj) \                                   </span>
+    <span class="o">(</span><span class="t">Value</span><span class="o">)(</span><span class="a">SIGN_BIT</span> <span class="o">|</span> <span class="a">QNAN</span> <span class="o">|</span> <span class="o">(</span><span class="t">uint64_t</span><span class="o">)(</span><span class="t">uintptr_t</span><span class="o">)(</span><span class="n">obj</span><span class="o">))</span>
 </pre><pre class="insert-after"><br><span></span><span class="k">typedef</span> <span class="k">union</span> <span class="o">{</span>                                          
 </pre></div>
 
@@ -1131,19 +1131,19 @@ compiler and chip let you get away with.</p>
 lawless territory too. It&rsquo;s up to you to decide if the gains are worth it.</p>
 </aside>
 <p>We define the sign bit like so:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                              </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#ifdef NAN_BOXING                              </span>
 <br></pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define SIGN_BIT ((uint64_t)0x8000000000000000)</span>
-</pre><pre class="insert-after"><span></span><span class="cp">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
+<pre class="insert"><span></span><span class="a">#define SIGN_BIT ((uint64_t)0x8000000000000000)</span>
+</pre><pre class="insert-after"><span></span><span class="a">#define QNAN     ((uint64_t)0x7ffc000000000000)</span>
 <br></pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
 
 <p>To get the Obj pointer back out, we simply mask off all of those extra bits:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define AS_NUMBER(v)    valueToNum(v)                                </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define AS_NUMBER(v)    valueToNum(v)                                </span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define AS_OBJ(v)       ((Obj*)(uintptr_t)((v) &amp; ~(SIGN_BIT | QNAN)))</span>
-</pre><pre class="insert-after"><br><span></span><span class="cp">#define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)                 </span>
+<pre class="insert"><span></span><span class="a">#define AS_OBJ(v)       ((Obj*)(uintptr_t)((v) &amp; ~(SIGN_BIT | QNAN)))</span>
+</pre><pre class="insert-after"><br><span></span><span class="a">#define BOOL_VAL(b)     ((b) ? TRUE_VAL : FALSE_VAL)                 </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1153,10 +1153,10 @@ is bitwise not. It toggles all ones and zeroes in its operand. By masking the
 value with the bitwise negation of the quiet NaN and sign bits, we <em>clear</em> those
 bits and let the pointer bits remain.</p>
 <p>One last macro:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)                          </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#define IS_NUMBER(v)    (((v) &amp; QNAN) != QNAN)                          </span>
 </pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert"><span></span><span class="cp">#define IS_OBJ(v)       (((v) &amp; (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))</span>
-</pre><pre class="insert-after"><br><span></span><span class="cp">#define AS_BOOL(v)      ((v) == TRUE_VAL)                               </span>
+<pre class="insert"><span></span><span class="a">#define IS_OBJ(v)       (((v) &amp; (QNAN | SIGN_BIT)) == (QNAN | SIGN_BIT))</span>
+</pre><pre class="insert-after"><br><span></span><span class="a">#define AS_BOOL(v)      ((v) == TRUE_VAL)                               </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>value.h</em></div>
@@ -1177,17 +1177,17 @@ of type tests to handle each kind of value:</p>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="t">void</span> <span class="n">printValue</span><span class="o">(</span><span class="t">Value</span> <span class="n">value</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
-<pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                             </span>
-  <span class="k">if</span> <span class="o">(</span><span class="t">IS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                       
-    <span class="n">printf</span><span class="o">(</span><span class="t">AS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="o">?</span> <span class="s">&quot;true&quot;</span> <span class="o">:</span> <span class="s">&quot;false&quot;</span><span class="o">);</span>
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="t">IS_NIL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
+<pre class="insert"><span></span><span class="a">#ifdef NAN_BOXING                             </span>
+  <span class="k">if</span> <span class="o">(</span><span class="a">IS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                       
+    <span class="n">printf</span><span class="o">(</span><span class="a">AS_BOOL</span><span class="o">(</span><span class="n">value</span><span class="o">)</span> <span class="o">?</span> <span class="s">&quot;true&quot;</span> <span class="o">:</span> <span class="s">&quot;false&quot;</span><span class="o">);</span>
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="a">IS_NIL</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
     <span class="n">printf</span><span class="o">(</span><span class="s">&quot;nil&quot;</span><span class="o">);</span>                            
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="t">IS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>              
-    <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%g&quot;</span><span class="o">,</span> <span class="t">AS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">));</span>           
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="t">IS_OBJ</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="a">IS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>              
+    <span class="n">printf</span><span class="o">(</span><span class="s">&quot;%g&quot;</span><span class="o">,</span> <span class="a">AS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">));</span>           
+  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="a">IS_OBJ</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>                 
     <span class="n">printObject</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>                       
   <span class="o">}</span>                                           
-<span class="cp">#else                                         </span>
+<span class="a">#else                                         </span>
 </pre><pre class="insert-after"><span></span>  <span class="k">switch</span> <span class="o">(</span><span class="n">value</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="o">{</span>                       
 </pre></div>
 
@@ -1200,7 +1200,7 @@ code and enclose it in the <code>#else</code> conditional section:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">}</span>   
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
-<pre class="insert"><span></span><span class="cp">#endif</span>
+<pre class="insert"><span></span><span class="a">#endif</span>
 </pre><pre class="insert-after"><span></span><span class="o">}</span>     
 </pre></div>
 
@@ -1210,9 +1210,9 @@ in <em>printValue</em>()</div>
 <div class="codehilite"><pre class="insert-before"><span></span><span class="t">bool</span> <span class="n">valuesEqual</span><span class="o">(</span><span class="t">Value</span> <span class="n">a</span><span class="o">,</span> <span class="t">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span> 
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert"><span></span><span class="cp">#ifdef NAN_BOXING                    </span>
+<pre class="insert"><span></span><span class="a">#ifdef NAN_BOXING                    </span>
   <span class="k">return</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="o">;</span>                     
-<span class="cp">#else                                </span>
+<span class="a">#else                                </span>
 </pre><pre class="insert-after"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="k">return</span> <span class="k">false</span><span class="o">;</span>
 </pre></div>
 
@@ -1243,10 +1243,10 @@ with our old tagged union representation because the <code>VAL_NUMBER</code> cas
 generates the right CPU instruction to perform an IEEE floating-point equality.</p>
 <p>Our new representation breaks that by defining Value to be a uint64_t. If we
 want to be <em>fully</em> compliant with IEEE 754, we need to handle this case:</p>
-<div class="codehilite"><pre class="insert-before"><span></span><span class="cp">#ifdef NAN_BOXING                                                       </span>
+<div class="codehilite"><pre class="insert-before"><span></span><span class="a">#ifdef NAN_BOXING                                                       </span>
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="t">IS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="t">IS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">))</span> <span class="k">return</span> <span class="t">AS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="t">AS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
+<pre class="insert"><span></span>  <span class="k">if</span> <span class="o">(</span><span class="a">IS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="a">IS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">))</span> <span class="k">return</span> <span class="a">AS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="a">AS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
 </pre><pre class="insert-after"><span></span>  <span class="k">return</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="o">;</span>                                                        
 </pre></div>
 
@@ -1260,7 +1260,7 @@ to be.</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">}</span>   
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
-<pre class="insert"><span></span><span class="cp">#endif</span>
+<pre class="insert"><span></span><span class="a">#endif</span>
 </pre><pre class="insert-after"><span></span><span class="o">}</span>     
 </pre></div>
 
