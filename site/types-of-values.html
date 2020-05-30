@@ -293,7 +293,7 @@ with type <code>VAL_NIL</code> doesn&rsquo;t carry any extra data.</p>
 Value of the right type, they unwrap it and return the corresponding raw C
 value. The &ldquo;right type&rdquo; part is important! These macros directly access the
 union fields. If we were to do something like:</p>
-<div class="codehilite"><pre><span></span><span class="n">Value</span> <span class="n">value</span> <span class="o">=</span> <span class="n">BOOL_VAL</span><span class="o">(</span><span class="nb">true</span><span class="o">);</span>
+<div class="codehilite"><pre><span></span><span class="n">Value</span> <span class="n">value</span> <span class="o">=</span> <span class="n">BOOL_VAL</span><span class="o">(</span><span class="k">true</span><span class="o">);</span>
 <span class="k">double</span> <span class="n">number</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">value</span><span class="o">);</span>
 </pre></div>
 
@@ -330,7 +330,7 @@ single line of code, so here we are.</p>
 <p>The first values we create are the constants generated when we compile number
 literals. After we convert the lexeme to a C double, we simply wrap it in a
 Value before storing it in the constant table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">double</span> <span class="n">value</span> <span class="o">=</span> <span class="n">strtod</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">start</span><span class="o">,</span> <span class="nb">NULL</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="k">double</span> <span class="n">value</span> <span class="o">=</span> <span class="n">strtod</span><span class="o">(</span><span class="n">parser</span><span class="o">.</span><span class="n">previous</span><span class="o">.</span><span class="n">start</span><span class="o">,</span> <span class="k">NULL</span><span class="o">);</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>number</em>()<br>
 replace 1 line</div>
@@ -358,7 +358,7 @@ let&rsquo;s get our existing code working first.</p>
 <p>The next simplest operation is unary negation. It pops a value off the stack,
 negates it, and pushes the result. Now that we have other types of values, we
 can&rsquo;t assume the operand is a number anymore. The user could just as well do:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span><span class="nb">false</span><span class="o">;</span> <span class="c">// Uh...</span>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span><span class="k">false</span><span class="o">;</span> <span class="c">// Uh...</span>
 </pre></div>
 
 
@@ -502,7 +502,7 @@ replace 6 lines</div>
       <span class="k">double</span> <span class="n">b</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span> <span class="err">\</span>                             
       <span class="k">double</span> <span class="n">a</span> <span class="o">=</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">pop</span><span class="o">());</span> <span class="err">\</span>                             
       <span class="n">push</span><span class="o">(</span><span class="n">valueType</span><span class="o">(</span><span class="n">a</span> <span class="n">op</span> <span class="n">b</span><span class="o">));</span> <span class="err">\</span>                                 
-    <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="nb">false</span><span class="o">)</span>                                              
+    <span class="o">}</span> <span class="k">while</span> <span class="o">(</span><span class="k">false</span><span class="o">)</span>                                              
 </pre><pre class="insert-after"><br><span></span>  <span class="k">for</span> <span class="o">(;;)</span> <span class="o">{</span>                                                     
 </pre></div>
 
@@ -580,31 +580,31 @@ in enum <em>OpCode</em></div>
 skip right to the parser. With our table-based Pratt parser, we just need to
 slot parser functions into the rows associated with those keyword token types.
 We&rsquo;ll use the same function in all three slots:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_ELSE </span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_ELSE </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_FALSE</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_FOR  </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_FALSE</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_FOR  </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_THIS</span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_THIS</span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_TRUE</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_VAR </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_TRUE</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_VAR </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And finally:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_IF </span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_IF </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_NIL</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_OR </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">literal</span><span class="o">,</span>  <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_NIL</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_OR </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
@@ -644,8 +644,8 @@ matter of taste.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><span></span>      <span class="k">case</span> <span class="nl">OP_NIL</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">NIL_VAL</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>                
-      <span class="k">case</span> <span class="nl">OP_TRUE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="nb">true</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>        
-      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="nb">false</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>      
+      <span class="k">case</span> <span class="nl">OP_TRUE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="k">true</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>        
+      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="k">false</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>      
 </pre><pre class="insert-after"><span></span>      <span class="k">case</span> <span class="nl">OP_ADD</span><span class="o">:</span>      <span class="n">BINARY_OP</span><span class="o">(</span><span class="n">NUMBER_VAL</span><span class="o">,</span> <span class="o">+);</span> <span class="k">break</span><span class="o">;</span>
 </pre></div>
 
@@ -669,7 +669,7 @@ in <em>disassembleInstruction</em>()</div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
 <p>With this in place, we can run this Earth-shattering program:</p>
-<div class="codehilite"><pre><span></span><span class="nb">true</span>
+<div class="codehilite"><pre><span></span><span class="k">true</span>
 </pre></div>
 
 
@@ -694,7 +694,7 @@ from the literals, you can&rsquo;t really <em>do</em> anything with them. It wil
 before <code>nil</code> comes into play, but we can start putting Booleans to work.</p>
 <h3><a href="#logical-not-and-falsiness" name="logical-not-and-falsiness"><small>18&#8202;.&#8202;4&#8202;.&#8202;1</small> Logical not and falsiness</a></h3>
 <p>The simplest logical operator is our old exclamatory friend unary not:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="nb">true</span><span class="o">;</span> <span class="c">// &quot;false&quot;</span>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="k">true</span><span class="o">;</span> <span class="c">// &quot;false&quot;</span>
 </pre></div>
 
 
@@ -710,11 +710,11 @@ in enum <em>OpCode</em></div>
 
 <p>We can reuse the <code>unary()</code> parser function we wrote for unary <code>-</code> to compile a
 prefix <code>!</code> expression. We just need to slot it into the parsing table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_FACTOR</span> <span class="o">},</span>     <span class="c">// TOKEN_STAR      </span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_FACTOR</span> <span class="o">},</span>     <span class="c">// TOKEN_STAR      </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">unary</span><span class="o">,</span>    <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_BANG      </span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_BANG_EQUAL</span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="n">unary</span><span class="o">,</span>    <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_BANG      </span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_BANG_EQUAL</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
@@ -751,7 +751,7 @@ in <em>run</em>()</div>
 operation, and pushes the result. And, as we did there, we have to worry about
 dynamic typing. Taking the logical not of <code>true</code> is easy, but there&rsquo;s nothing
 preventing an unruly programmer from writing something like:</p>
-<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="nb">nil</span><span class="o">;</span>
+<div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">!</span><span class="k">nil</span><span class="o">;</span>
 </pre></div>
 
 
@@ -829,25 +829,25 @@ matter in your real language implementations.</p>
 <p>Over in the parser, though, we do have six new operators to slot into the parse
 table. We use the same <code>binary()</code> parser function from before. Here&rsquo;s the row
 for <code>!=</code>:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="n">unary</span><span class="o">,</span>    <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_BANG      </span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="n">unary</span><span class="o">,</span>    <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_BANG      </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_EQUALITY</span> <span class="o">},</span>   <span class="c">// TOKEN_BANG_EQUAL</span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_EQUAL     </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_EQUALITY</span> <span class="o">},</span>   <span class="c">// TOKEN_BANG_EQUAL</span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_EQUAL     </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And the remaining five operators are a little farther down in the table:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_EQUAL        </span>
+<div class="codehilite"><pre class="insert-before"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_EQUAL        </span>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 5 lines</div>
-<pre class="insert"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_EQUALITY</span> <span class="o">},</span>   <span class="c">// TOKEN_EQUAL_EQUAL  </span>
-  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_GREATER      </span>
-  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_GREATER_EQUAL</span>
-  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_LESS         </span>
-  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_LESS_EQUAL   </span>
-</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="nb">NULL</span><span class="o">,</span>     <span class="nb">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_IDENTIFIER   </span>
+<pre class="insert"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_EQUALITY</span> <span class="o">},</span>   <span class="c">// TOKEN_EQUAL_EQUAL  </span>
+  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_GREATER      </span>
+  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_GREATER_EQUAL</span>
+  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_LESS         </span>
+  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="n">binary</span><span class="o">,</span>  <span class="n">PREC_COMPARISON</span> <span class="o">},</span> <span class="c">// TOKEN_LESS_EQUAL   </span>
+</pre><pre class="insert-after"><span></span>  <span class="o">{</span> <span class="k">NULL</span><span class="o">,</span>     <span class="k">NULL</span><span class="o">,</span>    <span class="n">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_IDENTIFIER   </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 5 lines</div>
@@ -873,7 +873,7 @@ a pair of instructions, one to evalute the inverse operation, and then an
 <code>OP_NOT</code> to flip the result. Six operators for the price of three instructions!</p>
 <p>That means over in the VM, our job is simpler. Equality is the most general
 operation:</p>
-<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="nb">false</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>      
+<div class="codehilite"><pre class="insert-before"><span></span>      <span class="k">case</span> <span class="nl">OP_FALSE</span><span class="o">:</span> <span class="n">push</span><span class="o">(</span><span class="n">BOOL_VAL</span><span class="o">(</span><span class="k">false</span><span class="o">));</span> <span class="k">break</span><span class="o">;</span>      
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert"><br><span></span>      <span class="k">case</span> <span class="nl">OP_EQUAL</span><span class="o">:</span> <span class="o">{</span>                                  
@@ -905,11 +905,11 @@ add after struct <em>ValueArray</em></div>
 <div class="codehilite"><div class="source-file"><em>value.c</em><br>
 add after <em>printValue</em>()</div>
 <pre><span></span><span class="k">bool</span> <span class="n">valuesEqual</span><span class="o">(</span><span class="n">Value</span> <span class="n">a</span><span class="o">,</span> <span class="n">Value</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>                     
-  <span class="k">if</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="k">return</span> <span class="nb">false</span><span class="o">;</span>                    
+  <span class="k">if</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="k">return</span> <span class="k">false</span><span class="o">;</span>                    
 
   <span class="k">switch</span> <span class="o">(</span><span class="n">a</span><span class="o">.</span><span class="n">type</span><span class="o">)</span> <span class="o">{</span>                                      
     <span class="k">case</span> <span class="nl">VAL_BOOL</span><span class="o">:</span>   <span class="k">return</span> <span class="n">AS_BOOL</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="n">AS_BOOL</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>    
-    <span class="k">case</span> <span class="nl">VAL_NIL</span><span class="o">:</span>    <span class="k">return</span> <span class="nb">true</span><span class="o">;</span>                        
+    <span class="k">case</span> <span class="nl">VAL_NIL</span><span class="o">:</span>    <span class="k">return</span> <span class="k">true</span><span class="o">;</span>                        
     <span class="k">case</span> <span class="nl">VAL_NUMBER</span><span class="o">:</span> <span class="k">return</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">a</span><span class="o">)</span> <span class="o">==</span> <span class="n">AS_NUMBER</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
   <span class="o">}</span>                                                      
 <span class="o">}</span>                                                        
@@ -978,7 +978,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>With that, our numeric calculator has become something closer to a general
 expression evaluator. Fire up clox and type in:</p>
-<div class="codehilite"><pre><span></span><span class="o">!(</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">==</span> <span class="o">!</span><span class="nb">nil</span><span class="o">)</span>
+<div class="codehilite"><pre><span></span><span class="o">!(</span><span class="mi">5</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">==</span> <span class="o">!</span><span class="k">nil</span><span class="o">)</span>
 </pre></div>
 
 
