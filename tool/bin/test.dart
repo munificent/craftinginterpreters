@@ -46,7 +46,6 @@ void main(List<String> arguments) {
     exit(1);
   }
 
-  // TODO: Test.
   if (arguments.length == 2) _filterPath = arguments[1];
 
   if (arguments[0] == "all") {

@@ -148,8 +148,7 @@ name="recycle">collector</span></strong>.</p>
 <p>Recycling would really be a better metaphor for this. The GC doesn&rsquo;t <em>throw
 away</em> the memory, it reclaims it to be reused for new data. But managed
 languages are older than Earth Day, so the inventors went with the analogy they
-knew.</p>
-<p><img src="image/garbage-collection/recycle.png" class="above" alt="A recycle bin full of bits." /></p>
+knew.</p><img src="image/garbage-collection/recycle.png" class="above" alt="A recycle bin full of bits." />
 </aside>
 <h3><a href="#reachability" name="reachability"><small>26&#8202;.&#8202;0&#8202;.&#8202;1</small> Reachability</a></h3>
 <p>This raises a surprisingly difficult question: how does a VM tell what memory is
@@ -179,8 +178,6 @@ example:</p>
 <span class="c">// GC here.</span>
 <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Say we run the GC after the assignment has completed on the second line. The
 string &ldquo;first value&rdquo; is still sitting in memory, but there is no way for the
 user&rsquo;s program to ever get to it. Once <code>a</code> got reassigned, the program lost any
@@ -193,8 +190,6 @@ there is some way for a user program to reference it.</p>
   <span class="k">print</span> <span class="i">global</span> <span class="o">+</span> <span class="i">local</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Pause the program right after the two strings have been concatenated but before
 the print statement has executed. The VM can reach <code>"string"</code> by looking through
 the global variable table and finding the entry for <code>global</code>. It can find
@@ -224,19 +219,15 @@ references. Consider:</p>
 <span class="c">// GC here.</span>
 <span class="i">closure</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Say we pause the program on the marked line and run the garbage collector. When
 the collector is done and the program resumes, it will call the closure, which
 will in turn print <code>"data"</code>. So the collector needs to <em>not</em> free that string.
-But here&rsquo;s what the stack looks like when we pause the program:</p>
-<p><img src="image/garbage-collection/stack.png" alt="The stack, containing only the script and closure." /></p>
+But here&rsquo;s what the stack looks like when we pause the program:</p><img src="image/garbage-collection/stack.png" alt="The stack, containing only the script and closure." />
 <p>The <code>"data"</code> string is nowhere on it. It has already been hoisted off the stack
 and moved into the closed upvalue that the closure uses. The closure itself is
 on the stack. But to get to the string, we need to trace through the closure and
 its upvalue array. Since it <em>is</em> possible for the user&rsquo;s program to do that, all
-of these indirectly accessible objects are also considered reachable.</p>
-<p><img src="image/garbage-collection/reachable.png" class="wide" alt="All of the referenced objects from the closure and the path to the 'data' string from the stack." /></p>
+of these indirectly accessible objects are also considered reachable.</p><img src="image/garbage-collection/reachable.png" class="wide" alt="All of the referenced objects from the closure and the path to the 'data' string from the stack." />
 <p>This gives us an inductive definition of reachability:</p>
 <ul>
 <li>
@@ -302,8 +293,7 @@ heap is marked. That means any unmarked object is unreachable and ripe for
 reclamation. We go through all the unmarked objects and free each one.</p>
 </li>
 </ul>
-<p>It looks something like this:</p>
-<p><img src="image/garbage-collection/mark-sweep.png" class="wide" alt="Starting from a graph of objects, first the reachable ones are marked, the remaining are swept and then only the reachable remain." /></p>
+<p>It looks something like this:</p><img src="image/garbage-collection/mark-sweep.png" class="wide" alt="Starting from a graph of objects, first the reachable ones are marked, the remaining are swept and then only the reachable remain." />
 <aside name="trace">
 <p>A <strong>tracing garbage collector</strong> is any algorithm that traces through the graph
 of object references. This is in contrast with reference counting which has a
@@ -811,8 +801,7 @@ some incoming edges from the VM that point to the roots. Those roots turn gray.
 Then each gray object&rsquo;s siblings turn gray while the object itself turns black.
 The full effect is a gray wavefront that passes through the graph, leaving a
 field of reachable black objects behind it. Unreachable objects are not touched
-by the wavefront and stay white.</p>
-<p><img src="image/garbage-collection/tricolor-trace.png" class="wide" alt="A gray wavefront working through a graph of nodes." /></p>
+by the wavefront and stay white.</p><img src="image/garbage-collection/tricolor-trace.png" class="wide" alt="A gray wavefront working through a graph of nodes." />
 <p>At the <span name="invariant">end</span>, you&rsquo;re left with a sea of reached
 black objects sprinkled with islands of white objects that can be swept up and
 freed. Once the unreachable objects are freed, the remaining objects<span class="em">&mdash;</span>all
@@ -1102,8 +1091,7 @@ function we already wrote.</p>
 <p>Most of the other code in here deals with the fact that removing a node from a
 singly-linked list is cumbersome. We have to continuously remember the previous
 node so we can unlink its next pointer, and we have to handle the edge case
-where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple<span class="em">&mdash;</span>delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p>
-<p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." /></p>
+where we are freeing the first node. But, otherwise, it&rsquo;s pretty simple<span class="em">&mdash;</span>delete every node in a linked list that doesn&rsquo;t have a bit set in it.</p><img src="image/garbage-collection/unlink.png" alt="A recycle bin full of bits." />
 <p>There&rsquo;s one little addition:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="k">if</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">isMarked</span><span class="o">)</span> <span class="o">{</span>    
 </pre><div class="source-file"><em>memory.c</em><br>
@@ -1262,8 +1250,7 @@ run, the latency is only 1/5th of a second, five times less than in the
 first.</p>
 </li>
 </ul>
-<p><span name="latency"></span></p>
-<p><img src="image/garbage-collection/latency-throughput.png" alt="A bar representing execution time with slices for running user code and running the GC. The largest GC slice is latency. The size of all of the user code slices is throughput." /></p>
+<p><span name="latency"></span></p><img src="image/garbage-collection/latency-throughput.png" alt="A bar representing execution time with slices for running user code and running the GC. The largest GC slice is latency. The size of all of the user code slices is throughput." />
 <aside name="latency">
 <p>The bar represents the execution of a program, divided into time spent running
 user code and time spent in the GC. The size of the largest single slice of time
@@ -1286,8 +1273,7 @@ collector</strong>. In other words, hire some dishwashers to clean while others 
 This is how very sophisticated GCs work because it does let the bakers<span class="em">&mdash;</span>the worker threads<span class="em">&mdash;</span>keep running user code with little interruption.</p>
 <p>However, coordination is required. You don&rsquo;t want a dishwasher grabbing a bowl
 out of a baker&rsquo;s hands! This coordination adds overhead and a lot of complexity.
-Concurrent collectors are fast, but challenging to implement correctly.</p>
-<p><img src="image/garbage-collection/baguette.png" class="above" alt="Un baguette." /></p>
+Concurrent collectors are fast, but challenging to implement correctly.</p><img src="image/garbage-collection/baguette.png" class="above" alt="Un baguette." />
 </aside>
 <p>Selling fewer loaves of bread a day is bad, and making any particular customer
 sit and wait while you clean all the dishes is too. The goal is to maximize
@@ -1642,7 +1628,8 @@ another one. Good candidates to consider are reference counting, Cheney&rsquo;s
 algorithm, or the Lisp 2 mark-compact algorithm.</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Generational Collectors</a></h2>
 <p>A collector loses throughput if it spends a long time re-visiting objects that
 are still alive. But it can increase latency if it avoids collecting and

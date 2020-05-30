@@ -335,11 +335,8 @@ compiler:</p>
   <span class="i">bacon</span><span class="o">()</span> <span class="o">{}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>It generates the following bytecode instructions and at runtime this is what we
-want the stack to do:</p>
-<p><img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." /></p>
+want the stack to do:</p><img src="image/methods-and-initializers/method-instructions.png" alt="The series of bytecode instructions for a class declaration with two methods." />
 <p>All that remains is for us to implement the runtime half of that illustration.</p>
 <h3><a href="#executing-method-declarations" name="executing-method-declarations"><small>28&#8202;.&#8202;1&#8202;.&#8202;3</small> Executing method declarations</a></h3>
 <p>First we define the opcode:</p>
@@ -414,15 +411,11 @@ Next is pulling those methods back out.</p>
 familiar syntax:</p>
 <div class="codehilite"><pre><span></span><span class="i">instance</span><span class="o">.</span><span class="i">method</span><span class="o">(</span><span class="i">argument</span><span class="o">);</span>
 </pre></div>
-
-
 <p>But remember in Lox and some other languages those two steps are distinct and
 can be separated:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">closure</span> <span class="o">=</span> <span class="i">instance</span><span class="o">.</span><span class="i">method</span><span class="o">;</span>
 <span class="i">closure</span><span class="o">(</span><span class="i">argument</span><span class="o">);</span>
 </pre></div>
-
-
 <p>Since users <em>can</em> separate the operations, we have to implement them separately.
 The first step is using our existing dotted property syntax to access a method
 defined on the instance&rsquo;s class. That should return some kind of object that the
@@ -443,8 +436,6 @@ accessed from. Here&rsquo;s the example from <a href="classes.html#methods-on-cl
 <span class="k">var</span> <span class="i">method</span> <span class="o">=</span> <span class="i">jane</span><span class="o">.</span><span class="i">sayName</span><span class="o">;</span>
 <span class="i">method</span><span class="o">();</span> <span class="c">// ?</span>
 </pre></div>
-
-
 <p>This should print &ldquo;Jane&rdquo;, so the object returned by <code>.sayName</code> somehow needs to
 remember the instance when it later gets called. In jlox, we implemented that
 &ldquo;memory&rdquo; using the interpreter&rsquo;s existing heap-allocated Environment class,
@@ -590,7 +581,8 @@ in <em>printObject</em>()</div>
 <p>A bound method prints exactly the same way as a function. From the user&rsquo;s
 perspective, a bound method <em>is</em> a function. It&rsquo;s an object they can call. We
 don&rsquo;t expose that the VM implements bound methods using a different object type.</p>
-<aside name="party"><p><img src="image/methods-and-initializers/party-hat.png" alt="A party hat." /></p></aside>
+<aside name="party"><img src="image/methods-and-initializers/party-hat.png" alt="A party hat." />
+</aside>
 <p>Put on your <span name="party">party</span> hat because we just reached a little
 milestone. ObjBoundMethod is the very last runtime type to add to clox. You&rsquo;ve
 written your last <code>IS_</code> and <code>AS_</code> macros. We&rsquo;re only a few chapters from the end
@@ -664,12 +656,9 @@ the stack with the bound method.</p>
 <span class="k">var</span> <span class="i">brunch</span> <span class="o">=</span> <span class="t">Brunch</span><span class="o">();</span>
 <span class="k">var</span> <span class="i">eggs</span> <span class="o">=</span> <span class="i">brunch</span><span class="o">.</span><span class="i">eggs</span><span class="o">;</span>
 </pre></div>
-
-
 <p>The illustration shows what happens when the VM executes the <code>bindMethod()</code> call
 for this <code>brunch.eggs</code> expression.</p>
-</aside>
-<p><img src="image/methods-and-initializers/bind-method.png" alt="The stack changes caused by bindMethod()." /></p>
+</aside><img src="image/methods-and-initializers/bind-method.png" alt="The stack changes caused by bindMethod()." />
 <h3><a href="#calling-methods" name="calling-methods"><small>28&#8202;.&#8202;2&#8202;.&#8202;3</small> Calling methods</a></h3>
 <p>The user can declare methods on classes, access them on instances, and get bound
 methods onto the stack. They just can&rsquo;t <span name="do"><em>do</em></span> anything
@@ -705,8 +694,6 @@ program:</p>
 <span class="k">var</span> <span class="i">scone</span> <span class="o">=</span> <span class="t">Scone</span><span class="o">();</span>
 <span class="i">scone</span><span class="o">.</span><span class="i">topping</span><span class="o">(</span><span class="s">&quot;berries&quot;</span><span class="o">,</span> <span class="s">&quot;cream&quot;</span><span class="o">);</span>
 </pre></div>
-
-
 <p>That&rsquo;s three big steps. We can declare, access, and invoke methods. But
 something is missing. We went to all that trouble to wrap the method closure in
 an object that binds the receiver, but when we invoke the method here, we don&rsquo;t
@@ -724,6 +711,7 @@ replace 1 line</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
+
 <aside name="this">
 <p>The underscore at the end of the name of the parser function is because <code>this</code>
 is a reserved word in C++ and we support compiling clox as C++.</p>
@@ -797,8 +785,6 @@ method, the <code>this</code> correctly resolves to the outer method&rsquo;s rec
 
 <span class="t">Nested</span><span class="o">().</span><span class="i">method</span><span class="o">();</span>
 </pre></div>
-
-
 <p>This program should print &ldquo;Nested instance&rdquo;. To decide what name to give to
 local slot zero, the compiler needs to know whether it&rsquo;s compiling a function or
 method declaration, so we add a new case to our FunctionType enum to distinguish
@@ -842,8 +828,7 @@ in <em>callValue</em>()</div>
 <p>When a method is called, the top of the stack contains all of the arguments and
 then just under those is the closure of the called method. That&rsquo;s where slot
 zero in the new CallFrame will be. This line of code inserts the receiver into
-that slot. For example, given a method call like <code>scone.topping("berries", "cream")</code>, we calculate the slot to store the receiver like so:</p>
-<p><img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." /></p>
+that slot. For example, given a method call like <code>scone.topping("berries", "cream")</code>, we calculate the slot to store the receiver like so:</p><img src="image/methods-and-initializers/closure-slot.png" alt="Skipping over the argument stack slots to find the slot containing the closure." />
 <p>The <code>-argCount</code> skips past the arguments and the <code>- 1</code> adjusts for the fact that
 <code>stackTop</code> points just <em>past</em> the last used stack slot.</p>
 <h3><a href="#misusing-this" name="misusing-this"><small>28&#8202;.&#8202;3&#8202;.&#8202;1</small> Misusing this</a></h3>
@@ -857,8 +842,6 @@ These two wrong uses should be caught by the compiler:</p>
   <span class="k">print</span> <span class="k">this</span><span class="o">;</span> <span class="c">// In a function.</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>So how does the compiler know if it&rsquo;s inside a method? The obvious answer is to
 look at the FunctionType of the current Compiler. We did just add an enum case
 there to treat methods specially. However, that wouldn&rsquo;t correctly handle code
@@ -989,8 +972,6 @@ since the value would never be seen anyway.</p>
   <span class="k">return</span> <span class="i">obj</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Note how the value returned by <code>init()</code> is discarded.</p>
 </aside>
 <p>Now that we support methods, to add initializers, we merely need to implement
@@ -1018,10 +999,7 @@ for the initializer&rsquo;s closure. Say we run this program:</p>
 
 <span class="t">Brunch</span><span class="o">(</span><span class="s">&quot;eggs&quot;</span><span class="o">,</span> <span class="s">&quot;coffee&quot;</span><span class="o">);</span>
 </pre></div>
-
-
-<p>When the VM executes the call to <code>Brunch()</code>, it goes like this:</p>
-<p><img src="image/methods-and-initializers/init-call-frame.png" alt="The aligned stack windows for the Brunch() call and the corresponding init() method it forwards to." /></p>
+<p>When the VM executes the call to <code>Brunch()</code>, it goes like this:</p><img src="image/methods-and-initializers/init-call-frame.png" alt="The aligned stack windows for the Brunch() call and the corresponding init() method it forwards to." />
 <p>Any arguments passed to the class when we called it are still sitting on the
 stack above the instance. The new CallFrame for the <code>init()</code> method shares that
 stack window so those arguments implictly get forwarded to the initializer.</p>
@@ -1044,8 +1022,6 @@ in <em>callValue</em>()</div>
 <p>It&rsquo;s as if a class without an initializer gets a default one like:</p>
 <div class="codehilite"><pre><span></span><span class="i">init</span><span class="o">()</span> <span class="o">{}</span>
 </pre></div>
-
-
 <p>When the class <em>does</em> provide an initializer, we also need to ensure that the
 expected number of arguments passed match the initializer&rsquo;s arity. Fortunately,
 the <code>call()</code> helper does that for us already.</p>
@@ -1208,8 +1184,6 @@ fairly full-featured class system working in clox:</p>
 <span class="k">var</span> <span class="i">maker</span> <span class="o">=</span> <span class="t">CoffeeMaker</span><span class="o">(</span><span class="s">&quot;coffee and chicory&quot;</span><span class="o">);</span>
 <span class="i">maker</span><span class="o">.</span><span class="i">brew</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Pretty fancy for a C program that would fit on an old <span
 name="floppy">floppy</span> disk.</p>
 <aside name="floppy">
@@ -1427,8 +1401,7 @@ huge improvement when it comes to programming language optimization.</p>
 improvement is relative to our own unoptimized method call implementation which
 was quite slow. Doing a heap allocation for every single method call isn&rsquo;t going
 to win any races.</p>
-</aside>
-<p><img src="image/methods-and-initializers/benchmark.png" alt="Bar chart comparing the two benchmark results." /></p>
+</aside><img src="image/methods-and-initializers/benchmark.png" alt="Bar chart comparing the two benchmark results." />
 <h3><a href="#invoking-fields" name="invoking-fields"><small>28&#8202;.&#8202;5&#8202;.&#8202;1</small> Invoking fields</a></h3>
 <p>The fundamental creed of optimization is: &ldquo;Thou shalt not break correctness.&rdquo;
 <span name="monte">Users</span> like it when a language implementation gives
@@ -1447,8 +1420,6 @@ implementation of faster method invocations fails to uphold that tenet:</p>
 <span class="k">var</span> <span class="i">oops</span> <span class="o">=</span> <span class="t">Oops</span><span class="o">();</span>
 <span class="i">oops</span><span class="o">.</span><span class="i">field</span><span class="o">();</span>
 </pre></div>
-
-
 <p>The last line looks like a method call. The compiler thinks that it is and
 dutifully emits an <code>OP_INVOKE</code> instruction for it. However, it&rsquo;s not. What is
 actually happening is a <em>field</em> access that returns a function which then gets
@@ -1551,7 +1522,8 @@ implementation. Was it the right choice? If Lox were your language, what
 would you do?</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Novelty Budget</a></h2>
 <p>I still remember the first time I wrote a tiny BASIC program on a TRS-80 and
 made a computer do something it hadn&rsquo;t done before. It felt like a superpower.

@@ -182,10 +182,7 @@ Here&rsquo;s the Lox expression grammar we put together in the last chapter:</p>
 <span class="i">operator</span>   <span class="err">→</span> <span class="s">&quot;==&quot;</span> <span class="err">|</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span>
            <span class="err">|</span> <span class="s">&quot;+&quot;</span>  <span class="err">|</span> <span class="s">&quot;-&quot;</span>  <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="err">|</span> <span class="s">&quot;/&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
-<p>This is a valid string in that grammar:</p>
-<p><img src="image/parsing-expressions/tokens.png" alt="6 / 3 - 1" /></p>
+<p>This is a valid string in that grammar:</p><img src="image/parsing-expressions/tokens.png" alt="6 / 3 - 1" />
 <p>But there are two ways we could have generated it. One way is:</p>
 <ol>
 <li>Starting at <code>expression</code>, pick <code>binary</code>.</li>
@@ -202,8 +199,7 @@ Here&rsquo;s the Lox expression grammar we put together in the last chapter:</p>
 <li>Back at the outer <code>binary</code>, for the operator, pick <code>"-"</code>.</li>
 <li>For the right-hand <code>expression</code>, pick <code>NUMBER</code>, and use <code>1</code>.</li>
 </ol>
-<p>Those produce the same <em>strings</em>, but not the same <em>syntax trees</em>:</p>
-<p><img src="image/parsing-expressions/syntax-trees.png" alt="Two valid syntax trees: (6 / 3) - 1 and 6 / (3 - 1)" /></p>
+<p>Those produce the same <em>strings</em>, but not the same <em>syntax trees</em>:</p><img src="image/parsing-expressions/syntax-trees.png" alt="Two valid syntax trees: (6 / 3) - 1 and 6 / (3 - 1)" />
 <p>In other words, the grammar allows seeing the expression as <code>(6 / 3) - 1</code> or <code>6 / (3 - 1)</code>. That in turn affects the result of evaluating it. The way
 mathematicians have solved this ambiguity since blackboards were first invented
 is by defining rules for precedence and associativity.</p>
@@ -223,21 +219,16 @@ of the <em>same</em> operator. When an operator is <strong>left-associative</str
 Since <code>-</code> is left-associative, this expression:</p>
 <div class="codehilite"><pre><span></span><span class="n">5</span> <span class="o">-</span> <span class="n">3</span> <span class="o">-</span> <span class="n">1</span>
 </pre></div>
-
-
 <p>is equivalent to:</p>
 <div class="codehilite"><pre><span></span><span class="o">(</span><span class="n">5</span> <span class="o">-</span> <span class="n">3</span><span class="o">)</span> <span class="o">-</span> <span class="n">1</span>
 </pre></div>
-
-
 <p>Assignment, on the other hand, is <strong>right-associative</strong>. This:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">=</span> <span class="i">b</span> <span class="o">=</span> <span class="i">c</span>
 </pre></div>
-
-
 <p>is equivalent to:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">=</span> <span class="o">(</span><span class="i">b</span> <span class="o">=</span> <span class="i">c</span><span class="o">)</span>
-</pre></div></li>
+</pre></div>
+</li>
 </ul>
 <aside name="nonassociative">
 <p>While not common these days, some languages specify that certain pairs of
@@ -250,8 +241,7 @@ operator isn&rsquo;t associative, so <code>a .. b</code> is OK, but <code>a .. b
 <p>Without well-defined precedence and associativity, an expression that uses
 multiple operators is ambiguous<span class="em">&mdash;</span>it can be parsed into different syntax trees,
 which could in turn evaluate to different results. For Lox, we follow the same
-precedence rules as C, going from highest to lowest:</p>
-<table>
+precedence rules as C, going from highest to lowest:</p><table>
 <thead>
 <tr>
   <td>Name</td>
@@ -288,7 +278,6 @@ precedence rules as C, going from highest to lowest:</p>
 </tr>
 </tbody>
 </table>
-
 <p>How do we <span name="massage">stuff these restrictions</span> into our
 context-free grammar? Right now, when we have an expression that contains
 subexpressions, like a binary operator, we allow <em>any</em> expression in there:</p>
@@ -300,8 +289,6 @@ disambiguate.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="i">binary</span> <span class="err">→</span> <span class="i">expression</span> <span class="i">operator</span> <span class="i">expression</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>The <code>expression</code> nonterminal allows us to pick any kind of expression as an
 operand, regardless of the operator we picked. The rules of precedence limit
 that. For example, an operand of a <code>*</code> expression cannot be a <code>+</code> <span
@@ -314,14 +301,10 @@ the parentheses themselves are treated as having the highest precedence.</p>
 expression of higher precedence than <code>*</code>&rdquo;. Something like:</p>
 <div class="codehilite"><pre><span></span><span class="i">multiplication</span> <span class="err">→</span> <span class="i">higherThanMultiply</span> <span class="s">&quot;*&quot;</span> <span class="i">higherThanMultiply</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Since <code>*</code> and <code>/</code> have the same precedence and the level above them is unary
 operators, a better approximation is:</p>
 <div class="codehilite"><pre><span></span><span class="i">multiplication</span> <span class="err">→</span> <span class="i">unary</span> <span class="o">(</span> <span class="s">&quot;*&quot;</span> <span class="err">|</span> <span class="s">&quot;/&quot;</span> <span class="o">)</span> <span class="i">unary</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Except that&rsquo;s not <em>quite</em> right. We broke associativity. This <code>multiplication</code>
 rule doesn&rsquo;t allow <code>1 * 2 * 3</code>. To support associativity, we make one side
 permit expressions at the <em>same</em> level. Which side we choose determines if the
@@ -335,8 +318,6 @@ the result of a sequence of multiplications. Consider:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="n">0.1</span> <span class="o">*</span> <span class="o">(</span><span class="n">0.2</span> <span class="o">*</span> <span class="n">0.3</span><span class="o">);</span>
 <span class="k">print</span> <span class="o">(</span><span class="n">0.1</span> <span class="o">*</span> <span class="n">0.2</span><span class="o">)</span> <span class="o">*</span> <span class="n">0.3</span><span class="o">;</span>
 </pre></div>
-
-
 <p>In languages like Lox that use <a href="https://en.wikipedia.org/wiki/Double-precision_floating-point_format">IEEE 754</a> double-precision floating-point
 numbers, the first evaluates to <code>0.006</code>, while the second yields
 <code>0.006000000000000001</code>. Sometimes that tiny difference matters.
@@ -344,16 +325,12 @@ numbers, the first evaluates to <code>0.006</code>, while the second yields
 </aside>
 <div class="codehilite"><pre><span></span><span class="i">multiplication</span> <span class="err">→</span> <span class="i">multiplication</span> <span class="o">(</span> <span class="s">&quot;*&quot;</span> <span class="err">|</span> <span class="s">&quot;/&quot;</span> <span class="o">)</span> <span class="i">unary</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>This is correct, but the fact that the first nonterminal in the body of the rule
 is the same as the head of the rule means this production is <strong>left-recursive</strong>.
 Some parsing techniques, including the one we&rsquo;re going to use, have trouble with
 left recursion. Instead, we&rsquo;ll use this other style:</p>
 <div class="codehilite"><pre><span></span><span class="i">multiplication</span> <span class="err">→</span> <span class="i">unary</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;/&quot;</span> <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="o">)</span> <span class="i">unary</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>At the grammar level, this sidesteps left recursion by saying a multiplication
 expression is a flat <em>sequence</em> of multiplications and divisions. This mirrors
 the code we&rsquo;ll use to parse a sequence of multiplications.</p>
@@ -368,8 +345,6 @@ the code we&rsquo;ll use to parse a sequence of multiplications.</p>
 <span class="i">primary</span>        <span class="err">→</span> <span class="t">NUMBER</span> <span class="err">|</span> <span class="t">STRING</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span>
                <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Instead of a single <code>binary</code> rule, there are now four separate rules for each binary operator precedence level. The main <code>expression</code> rule is no longer a flat series of <code>|</code> branches for each kind of expression. Instead, it is simply an alias for the lowest-precedence expression form, <span name="equality"><code>equality</code></span>, because that includes all higher-precedence expressions too.</p>
 <aside name="equality">
 <p>In later chapters, when we expand the grammar to include assignment and logical
@@ -418,8 +393,7 @@ even get me started on which direction the stack is supposed to grow.</p>
 </aside>
 <p>A recursive descent parser is a literal translation of the grammar&rsquo;s rules
 straight into imperative code. Each rule becomes a function. The body of the
-rule translates to code roughly like:</p>
-<table>
+rule translates to code roughly like:</p><table>
 <thead>
 <tr>
   <td>Grammar notation</td>
@@ -434,7 +408,6 @@ rule translates to code roughly like:</p>
   <tr><td><code>?</code></td><td>If statement</td></tr>
 </tbody>
 </table>
-
 <p>It&rsquo;s called &ldquo;<em>recursive</em> descent&rdquo; because when a grammar rule refers to itself<span class="em">&mdash;</span>directly or indirectly<span class="em">&mdash;</span>that translates to recursive method calls.</p>
 <h3><a href="#the-parser-class" name="the-parser-class"><small>6&#8202;.&#8202;2&#8202;.&#8202;1</small> The parser class</a></h3>
 <p>Each grammar rule becomes a method inside this new class:</p>
@@ -485,8 +458,6 @@ and so on, until the parser hits a stack overflow and dies.</p>
 <p>The rule for equality is a little more complex:</p>
 <div class="codehilite"><pre><span></span><span class="i">equality</span> <span class="err">→</span> <span class="i">comparison</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;==&quot;</span> <span class="o">)</span> <span class="i">comparison</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>In Java, that becomes:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>expression</em>()</div>
@@ -589,8 +560,7 @@ right-hand operand. It combines the operator and the two operands into a new
 expression back in the same <code>expr</code> local variable. As it zips through a sequence
 of equality expressions, that creates a left-associative nested tree of binary
 operator nodes.</p>
-<p><span name="sequence"></span></p>
-<p><img src="image/parsing-expressions/sequence.png" alt="The syntax tree created by parsing 'a == b == c == d == e'" /></p>
+<p><span name="sequence"></span></p><img src="image/parsing-expressions/sequence.png" alt="The syntax tree created by parsing 'a == b == c == d == e'" />
 <aside name="sequence">
 <p>Parsing <code>a == b == c == d == e</code>. Each iteration, we create a new binary
 expression using the previous one as the left operand.</p>
@@ -603,8 +573,6 @@ this method matches an equality operator <em>or anything of higher precedence</e
 <p>Moving on to the next rule&hellip;</p>
 <div class="codehilite"><pre><span></span><span class="i">comparison</span> <span class="err">→</span> <span class="i">addition</span> <span class="o">(</span> <span class="o">(</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="o">)</span> <span class="i">addition</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Translated to Java:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>equality</em>()</div>
@@ -668,8 +636,6 @@ the unary operators:</p>
 <div class="codehilite"><pre><span></span><span class="i">unary</span> <span class="err">→</span> <span class="o">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="o">)</span> <span class="i">unary</span>
       <span class="err">|</span> <span class="i">primary</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>The code for this is a little different:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>multiplication</em>()</div>
@@ -699,8 +665,6 @@ expressions.</p>
 <div class="codehilite"><pre><span></span><span class="i">primary</span> <span class="err">→</span> <span class="t">NUMBER</span> <span class="err">|</span> <span class="t">STRING</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span>
         <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Most of the cases for the rule are single terminals, so it&rsquo;s pretty
 straightforward:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
@@ -762,8 +726,7 @@ to the interpreter, all manner of horrors may be summoned.</p>
 <aside name="error">
 <p>Philosophically speaking, if an error isn&rsquo;t detected and the interpreter
 runs the code, is it <em>really</em> an error?</p>
-</aside>
-</li>
+</aside></li>
 <li>
 <p><strong>It must not crash or hang.</strong> Syntax errors are a fact of life and language
 tools have to be robust in the face of them. Segfaulting or getting stuck in
@@ -911,8 +874,6 @@ beginning of an expression, we could extend the unary rule to allow it:</p>
 <div class="codehilite"><pre><span></span><span class="i">unary</span> <span class="err">→</span> <span class="o">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="err">|</span> <span class="s">&quot;+&quot;</span> <span class="o">)</span> <span class="i">unary</span>
         <span class="err">|</span> <span class="i">primary</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>This lets the parser consume <code>+</code> without going into panic mode or leaving the
 parser in a weird state.</p>
 <p>Error productions work well because you, the parser author, know <em>how</em> the code
@@ -1087,7 +1048,8 @@ beginning of an expression. Report that as an error, but also parse and
 discard a right-hand operand with the appropriate precedence.</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Logic Versus History</a></h2>
 <p>Let&rsquo;s say we decide to add bitwise <code>&amp;</code> and <code>|</code> operators to Lox. Where should we
 put them in the precedence hierarchy? C<span class="em">&mdash;</span>and most languages that follow in C&rsquo;s
@@ -1096,8 +1058,6 @@ it means common operations like testing a flag require parentheses:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="i">flags</span> <span class="o">&amp;</span> <span class="a">FLAG_MASK</span> <span class="o">==</span> <span class="a">SOME_FLAG</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span> <span class="c">// Wrong.</span>
 <span class="k">if</span> <span class="o">((</span><span class="i">flags</span> <span class="o">&amp;</span> <span class="a">FLAG_MASK</span><span class="o">)</span> <span class="o">==</span> <span class="a">SOME_FLAG</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span> <span class="c">// Right.</span>
 </pre></div>
-
-
 <p>Should we fix this for Lox and put bitwise operators higher up the precedence
 table than C does? There are two strategies we can take.</p>
 <p>You almost never want to use the result of an <code>==</code> expression as the operand to

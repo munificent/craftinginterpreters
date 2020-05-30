@@ -87,24 +87,6 @@ int _buildPage(Book book, Mustache mustache, Page page,
   output = output.replaceAllMapped(_asideWithCommentPattern,
       (match) => '<span class="c" name="${match[2]}">// ${match[1]}</span>');
 
-  // TODO: Temp hack. Insert some whitespace to match the old Markdown.
-  output = output.replaceAll("</p><", "</p>\n<");
-  output = output.replaceAll("><aside", ">\n<aside");
-  output = output.replaceAll("</aside><", "</aside>\n<");
-  output = output.replaceAll("</ol><", "</ol>\n<");
-  output = output.replaceAll("</table>\n<", "</table>\n\n<");
-
-  // Python Markdown wraps images in paragraphs.
-  output = output.replaceAllMapped(
-      RegExp(r'\n(<img [^>]*>)\n'), (match) => '\n<p>${match[1]}</p>\n');
-  output = output.replaceAllMapped(
-      RegExp(r'\n(<img [^>]*>)<'), (match) => '\n<p>${match[1]}</p>\n<');
-  output = output.replaceAllMapped(RegExp(r'<aside name="(\w+)">(<img [^>]*>)'),
-      (match) => '<aside name="${match[1]}"><p>${match[2]}</p>');
-
-  // Python Markdown puts some extra blank lines after the pre tags.
-  output = output.replaceAll('</pre></div>\n<', '</pre></div>\n\n\n<');
-
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
 

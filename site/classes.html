@@ -192,15 +192,11 @@ name, so it lives in the <code>declaration</code> grammar rule:</p>
 
 <span class="i">classDecl</span>   <span class="err">→</span> <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;{&quot;</span> <span class="i">function</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>The new <code>classDecl</code> rule relies on the <code>function</code> rule we defined
 <a href="functions.html#function-declarations">earlier</a>. To refresh your memory:</p>
 <div class="codehilite"><pre><span></span><span class="i">function</span>    <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="i">block</span> <span class="o">;</span>
 <span class="i">parameters</span>  <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>In plain English, a class declaration is the <code>class</code> keyword, followed by the
 class&rsquo;s name, then a curly brace body. Inside that body is a list of method
 declarations. Unlike function declarations, methods don&rsquo;t have a leading <span
@@ -219,8 +215,6 @@ body. Here&rsquo;s an example:</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Like most dynamically-typed languages, fields are not explicitly listed in the
 class declaration. Instances are loose bags of data and you can freely add
 fields to them as you see fit in the middle of normal imperative code.</p>
@@ -234,6 +228,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="class-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#class-statement">Appendix II</a>.</p>
 </aside>
@@ -357,8 +352,6 @@ script and test that class objects are actually being parsed and executed:</p>
 
 <span class="k">print</span> <span class="t">DevonshireCream</span><span class="o">;</span> <span class="c">// Prints &quot;DevonshireCream&quot;.</span>
 </pre></div>
-
-
 <h2><a href="#creating-instances" name="creating-instances"><small>12&#8202;.&#8202;2</small> Creating Instances</a></h2>
 <p>We have classes, but they don&rsquo;t <em>do</em> anything yet. Lox doesn&rsquo;t have &ldquo;static&rdquo;
 methods that you can call right on the class itself, so without actual
@@ -386,8 +379,6 @@ into the runtime.</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Bagel</span> <span class="o">{}</span>
 <span class="t">Bagel</span><span class="o">();</span>
 </pre></div>
-
-
 <p>You get a runtime error. <code>visitCallExpr()</code> checks to see if the called object
 implements <code>LoxCallable</code> and reports an error since LoxClass doesn&rsquo;t. Not <em>yet</em>,
 that is:</p>
@@ -453,8 +444,6 @@ want to give it a try, here&rsquo;s a script to run:</p>
 <span class="k">var</span> <span class="i">bagel</span> <span class="o">=</span> <span class="t">Bagel</span><span class="o">();</span>
 <span class="k">print</span> <span class="i">bagel</span><span class="o">;</span> <span class="c">// Prints &quot;Bagel instance&quot;.</span>
 </pre></div>
-
-
 <p>It doesn&rsquo;t do much, but it&rsquo;s starting to do <em>something</em>.</p>
 <h2><a href="#properties-on-instances" name="properties-on-instances"><small>12&#8202;.&#8202;3</small> Properties on Instances</a></h2>
 <p>We have instances, so we should make them useful. We&rsquo;re at a fork in the road.
@@ -477,16 +466,12 @@ on the current object.</p>
 </aside>
 <div class="codehilite"><pre><span></span><span class="i">someObject</span><span class="o">.</span><span class="i">someProperty</span>
 </pre></div>
-
-
 <p>An expression followed by a <code>.</code> and an identifier reads the property with that
 name from the object the expression evaluates to. That <code>.</code> is as high precedence
 as the parentheses in a function call expression, so we slot it into the grammar
 by replacing the existing <code>call</code> rule with:</p>
 <div class="codehilite"><pre><span></span><span class="i">call</span> <span class="err">→</span> <span class="i">primary</span> <span class="o">(</span> <span class="s">&quot;(&quot;</span> <span class="i">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="err">|</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>After a primary expression, we allow a series of any mixture of parenthesized
 calls and dotted property accesses. &ldquo;Property access&rdquo; is a mouthful, so from
 here on out, we&rsquo;ll call these &ldquo;get expressions&rdquo;.</p>
@@ -500,6 +485,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="get-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#get-expression">Appendix II</a>.</p>
 </aside>
@@ -524,8 +510,7 @@ in <em>call</em>()</div>
 
 <p>The outer while loop there corresponds to the <code>*</code> in the grammar rule. We zip
 along the tokens building up a chain of calls and gets as we find parentheses
-and dots, like so:</p>
-<p><img src="image/classes/zip.png" alt="Parsing a series of '.' and '()' expressions to an AST." /></p>
+and dots, like so:</p><img src="image/classes/zip.png" alt="Parsing a series of '.' and '()' expressions to an AST." />
 <p>Instances of the new Expr.Get node feed into the resolver:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitCallExpr</em>()</div>
@@ -591,6 +576,7 @@ add after <em>LoxInstance</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxInstance.java</em>, add after <em>LoxInstance</em>()</div>
+
 <aside name="hidden">
 <p>Doing a hash table lookup for every field access is fast enough for many
 language implementations, but not ideal. High performance VMs for languages like
@@ -623,19 +609,14 @@ we can test out reading, we must support writing.</p>
 an assignment:</p>
 <div class="codehilite"><pre><span></span><span class="i">someObject</span><span class="o">.</span><span class="i">someProperty</span> <span class="o">=</span> <span class="i">value</span><span class="o">;</span>
 </pre></div>
-
-
 <p>In grammar land, we extend the rule for assignment to allow dotted identifiers
 on the left-hand side:</p>
 <div class="codehilite"><pre><span></span><span class="i">assignment</span> <span class="err">→</span> <span class="o">(</span> <span class="i">call</span> <span class="s">&quot;.&quot;</span> <span class="o">)</span><span class="err">?</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
            <span class="err">|</span> <span class="i">logic_or</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Unlike getters, setters don&rsquo;t chain. The reference to <code>call</code> allows any high
 precedence expression before the last <code>.</code>, including a series of property
-accesses, as in:</p>
-<p><img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" /></p>
+accesses, as in:</p><img src="image/classes/setter.png" alt="breakfast.omelette.filling.meat = ham" />
 <p>Note here that only the <em>last</em> part, the <code>.meat</code> is the <em>setter</em>. The
 <code>.omelette</code> and <code>.filling</code> parts are both <em>get</em> expressions.</p>
 <p>Like we have two separate AST nodes for variable access and variable assignment,
@@ -649,6 +630,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="set-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#set-expression">Appendix II</a>.</p>
 </aside>
@@ -750,16 +732,13 @@ need behavior<span class="em">&mdash;</span>methods.</p>
 <p>Our helpful parser already parses method declarations, so we&rsquo;re good there. We
 also don&rsquo;t need to add any new parser support for method <em>calls</em>. We already
 have <code>.</code> (getters) and <code>()</code> (function calls). A &ldquo;method call&rdquo; simply chains
-those together:</p>
-<p><img src="image/classes/method.png" alt="The syntax tree for 'object.method(argument)" /></p>
+those together:</p><img src="image/classes/method.png" alt="The syntax tree for 'object.method(argument)" />
 <p>That raises an interesting question. What happens when those two expressions are
 pulled apart? Assuming <code>method</code> is a method on the class of <code>object</code> and not a
 field on the instance, what should this do:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">m</span> <span class="o">=</span> <span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">;</span>
 <span class="i">m</span><span class="o">(</span><span class="i">argument</span><span class="o">);</span>
 </pre></div>
-
-
 <p>This program &ldquo;looks up&rdquo; the method and stores the result<span class="em">&mdash;</span>whatever that is<span class="em">&mdash;</span>in a variable and then calls that object later. Is this allowed? Can you treat a
 method like it&rsquo;s a function on the instance?</p>
 <p>What about the other direction?</p>
@@ -773,8 +752,6 @@ method like it&rsquo;s a function on the instance?</p>
 <span class="i">box</span><span class="o">.</span><span class="i">function</span> <span class="o">=</span> <span class="i">notMethod</span><span class="o">;</span>
 <span class="i">box</span><span class="o">.</span><span class="i">function</span><span class="o">(</span><span class="s">&quot;argument&quot;</span><span class="o">);</span>
 </pre></div>
-
-
 <p>This program creates an instance and then stores a function in a field on it.
 Then it calls that function using the same syntax as a method call. Does that
 work?</p>
@@ -789,14 +766,10 @@ to be able to hoist a subexpression out into a local variable without changing
 the meaning of the program. You can take this:</p>
 <div class="codehilite"><pre><span></span><span class="i">breakfast</span><span class="o">(</span><span class="i">omelette</span><span class="o">.</span><span class="i">filledWith</span><span class="o">(</span><span class="i">cheese</span><span class="o">),</span> <span class="i">sausage</span><span class="o">);</span>
 </pre></div>
-
-
 <p>And turn it into this:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">eggs</span> <span class="o">=</span> <span class="i">omelette</span><span class="o">.</span><span class="i">filledWith</span><span class="o">(</span><span class="i">cheese</span><span class="o">);</span>
 <span class="i">breakfast</span><span class="o">(</span><span class="i">eggs</span><span class="o">,</span> <span class="i">sausage</span><span class="o">);</span>
 </pre></div>
-
-
 <p>And it does the same thing. Likewise, since the <code>.</code> and the <code>()</code> in a method
 call <em>are</em> two separate expressions, it seems you should be able to hoist the
 <em>lookup</em> part into a variable and then call it <span
@@ -814,11 +787,10 @@ it. Compare this:</p>
 
 <span class="i">takeCallback</span><span class="o">(</span><span class="i">callback</span><span class="o">);</span>
 </pre></div>
-
-
 <p>Versus this:</p>
 <div class="codehilite"><pre><span></span><span class="i">takeCallback</span><span class="o">(</span><span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">);</span>
-</pre></div></aside>
+</pre></div>
+</aside>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Person</span> <span class="o">{</span>
   <span class="i">sayName</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="k">this</span><span class="o">.</span><span class="i">name</span><span class="o">;</span>
@@ -831,8 +803,6 @@ it. Compare this:</p>
 <span class="k">var</span> <span class="i">method</span> <span class="o">=</span> <span class="i">jane</span><span class="o">.</span><span class="i">sayName</span><span class="o">;</span>
 <span class="i">method</span><span class="o">();</span> <span class="c">// ?</span>
 </pre></div>
-
-
 <p>If you grab a handle to a method on some instance and call it later, does it
 &ldquo;remember&rdquo; the instance it was pulled off from? Does <code>this</code> inside the method
 still refer to that original object?</p>
@@ -852,8 +822,6 @@ still refer to that original object?</p>
 <span class="i">bill</span><span class="o">.</span><span class="i">sayName</span> <span class="o">=</span> <span class="i">jane</span><span class="o">.</span><span class="i">sayName</span><span class="o">;</span>
 <span class="i">bill</span><span class="o">.</span><span class="i">sayName</span><span class="o">();</span> <span class="c">// ?</span>
 </pre></div>
-
-
 <p>Does that last line print &ldquo;Bill&rdquo; because that&rsquo;s the instance that we <em>called</em>
 the method through, or &ldquo;Jane&rdquo; because it&rsquo;s the instance where we first grabbed
 the method?</p>
@@ -886,6 +854,7 @@ in <em>visitClassStmt</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
+
 <aside name="local">
 <p>Storing the function type in a local variable is pointless right now, but we&rsquo;ll
 expand this code before too long and it will make more sense.</p>
@@ -997,8 +966,6 @@ started. Give it a try:</p>
 
 <span class="t">Bacon</span><span class="o">().</span><span class="i">eat</span><span class="o">();</span> <span class="c">// Prints &quot;Crunch crunch crunch!&quot;.</span>
 </pre></div>
-
-
 <aside name="crunch">
 <p>Apologies if you prefer chewy bacon over crunchy. Feel free to adjust the script
 to your taste.</p>
@@ -1030,8 +997,6 @@ two steps, it will refer to the object that the method was <em>accessed</em> fro
 <span class="k">var</span> <span class="i">method</span> <span class="o">=</span> <span class="t">Egotist</span><span class="o">().</span><span class="i">speak</span><span class="o">;</span>
 <span class="i">method</span><span class="o">();</span>
 </pre></div>
-
-
 <p>On the second-to-last line, we grab a reference to the <code>speak()</code> method off an
 instance of the class. That returns a function, and that function needs to
 remember the instance it was pulled off of so that <em>later</em>, on the last line, it
@@ -1056,22 +1021,17 @@ hold onto a surrounding environment, so we have the machinery we need.</p>
 <span class="i">cake</span><span class="o">.</span><span class="i">flavor</span> <span class="o">=</span> <span class="s">&quot;German chocolate&quot;</span><span class="o">;</span>
 <span class="i">cake</span><span class="o">.</span><span class="i">taste</span><span class="o">();</span> <span class="c">// Prints &quot;The German chocolate cake is delicious!&quot;.</span>
 </pre></div>
-
-
 <p>When we first evaluate the class definition, we create a LoxFunction for
 <code>taste()</code>. Its closure is the environment surrounding the class, in this case
 the global one. So the LoxFunction we store in the class&rsquo;s method map looks
-like so:</p>
-<p><img src="image/classes/closure.png" alt="The initial closure for the method." /></p>
+like so:</p><img src="image/classes/closure.png" alt="The initial closure for the method." />
 <p>When we evaluate the <code>.</code> expression in <code>cake.taste</code>, we create a new environment
 that binds <code>this</code> to the object the method is accessed from (here, <code>cake</code>). Then
 we make a <em>new</em> LoxFunction with the same code as the original one but using
-that new environment as its closure:</p>
-<p><img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." /></p>
+that new environment as its closure:</p><img src="image/classes/bound-method.png" alt="The new closure that binds 'this'." />
 <p>This is the LoxFunction that gets returned when evaluating the get expression
 for the method name. When that function is later called by a <code>()</code> expression,
-we create an environment for the method body as usual:</p>
-<p><img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." /></p>
+we create an environment for the method body as usual:</p><img src="image/classes/call.png" alt="Calling the bound method and creating a new environment for the method body." />
 <p>The parent of the body environment is the environment we created earlier to bind
 <code>this</code> to the current object. Thus any use of <code>this</code> inside the body
 successfully resolves to that instance.</p>
@@ -1090,8 +1050,6 @@ interesting cases where methods and functions interact, like:</p>
 <span class="k">var</span> <span class="i">callback</span> <span class="o">=</span> <span class="t">Thing</span><span class="o">().</span><span class="i">getCallback</span><span class="o">();</span>
 <span class="i">callback</span><span class="o">();</span>
 </pre></div>
-
-
 <p>In, say, JavaScript, it&rsquo;s common to return a callback from inside a method. That
 callback may want to hang onto and retain access to the original object<span class="em">&mdash;</span>the
 <code>this</code> value<span class="em">&mdash;</span>that the method was associated with. Our existing support for
@@ -1106,6 +1064,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="this-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#this-expression">Appendix II</a>.</p>
 </aside>
@@ -1219,15 +1178,11 @@ handles to methods, etc.</p>
 about:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="k">this</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Or:</p>
 <div class="codehilite"><pre><span></span><span class="k">fun</span> <span class="i">notAMethod</span><span class="o">()</span> <span class="o">{</span>
   <span class="k">print</span> <span class="k">this</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>There is no instance for <code>this</code> to point to if you&rsquo;re not in a method. We could
 give it some default value like <code>nil</code> or make it a runtime error, but the user
 has clearly made a mistake. The sooner they find and fix that mistake, the
@@ -1322,8 +1277,7 @@ level beneath what user code is able to access.</p>
 <aside name="allocate">
 <p>C++&rsquo;s &ldquo;<a href="https://en.wikipedia.org/wiki/Placement_syntax">placement new</a>&rdquo; is a rare example where the bowels of allocation
 are laid bare for the programmer to prod.</p>
-</aside>
-</li>
+</aside></li>
 <li>
 <p>Then a user-provided chunk of code is called which <em>initializes</em> the
 unformed object.</p>
@@ -1387,8 +1341,6 @@ creatures. Consider:</p>
 <span class="k">var</span> <span class="i">foo</span> <span class="o">=</span> <span class="t">Foo</span><span class="o">();</span>
 <span class="k">print</span> <span class="i">foo</span><span class="o">.</span><span class="i">init</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Can you &ldquo;re-initialize&rdquo; an object by directly calling its <code>init()</code> method? If
 you do, what does it return? A <span name="compromise">reasonable</span> answer
 would be <code>nil</code> since that&rsquo;s what it appears the body returns.</p>
@@ -1482,8 +1434,6 @@ What should happen if a user tries:</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>It&rsquo;s definitely not going to do what they want, so we may as well make it a
 static error. Back in the resolver, we add another case to FunctionType:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>    <span class="n">FUNCTION</span><span class="o">,</span>   
@@ -1530,8 +1480,6 @@ initializer, but you can still use an empty early return:</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>That is actually kind of useful sometimes, so we don&rsquo;t want to disallow it
 entirely. Instead, it should return <code>this</code> instead of <code>nil</code>. That&rsquo;s an easy fix
 over in LoxFunction:</p>
@@ -1565,8 +1513,6 @@ that hangs off the class object:</p>
 
 <span class="k">print</span> <span class="t">Math</span><span class="o">.</span><span class="i">square</span><span class="o">(</span><span class="n">3</span><span class="o">);</span> <span class="c">// Prints &quot;9&quot;.</span>
 </pre></div>
-
-
 <p>You can solve this however you like, but the &ldquo;<a href="https://en.wikipedia.org/wiki/Metaclass">metaclasses</a>&rdquo; used by
 Smalltalk and Ruby are a particularly elegant approach. <em>Hint: Make LoxClass
 extend LoxInstance and go from there.</em></p>
@@ -1589,7 +1535,8 @@ name is accessed:</p>
 
 <span class="k">var</span> <span class="i">circle</span> <span class="o">=</span> <span class="t">Circle</span><span class="o">(</span><span class="n">4</span><span class="o">);</span>
 <span class="k">print</span> <span class="i">circle</span><span class="o">.</span><span class="i">area</span><span class="o">;</span> <span class="c">// Prints roughly &quot;50.2655&quot;.</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p>Python and JavaScript allow you to freely access an object&rsquo;s fields from
 outside of its own methods. Ruby and Smalltalk encapsulate instance state.
@@ -1601,7 +1548,8 @@ class are externally accessible on a per-member basis.</p>
 prefer one or the other?</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Prototypes and Power</a></h2>
 <p>In this chapter, we introduced two new runtime entities, LoxClass and
 LoxInstance. The former is where behavior for objects lives and the latter is
@@ -1641,8 +1589,6 @@ Personally, I think simplicity is only part of the equation. What we really want
 to give the user is <em>power</em>, which I define as:</p>
 <div class="codehilite"><pre><span></span>power = breadth × ease ÷ complexity
 </pre></div>
-
-
 <p>None of these are precise numeric measures. I&rsquo;m using math as analogy here, not
 actual quantification.</p>
 <ul>

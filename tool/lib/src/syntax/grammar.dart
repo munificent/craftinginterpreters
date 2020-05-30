@@ -112,10 +112,9 @@ final ruby = Language(
   ],
 );
 
-// TODO: Make NULL a constant instead of a keyword?
 final _cKeywords =
     "break case const continue default do else enum extern false for goto if "
-    "inline NULL return sizeof static struct switch true typedef union while";
+    "inline return sizeof static struct switch true typedef union while";
 
 final _cRules = [
   // Preprocessor with comment.

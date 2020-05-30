@@ -154,8 +154,6 @@ can refer to later variables inside the body of functions:</p>
 <span class="k">var</span> <span class="i">global</span> <span class="o">=</span> <span class="s">&quot;after&quot;</span><span class="o">;</span>
 <span class="i">showVariable</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Code like this might seem odd, but it&rsquo;s handy for defining mutually recursive
 functions. It also plays nicer with the REPL. You can write a little function in
 one line, then define the variable it uses in the next.</p>
@@ -173,8 +171,6 @@ print, etc.<span class="em">&mdash;</span>are just called &ldquo;statements&rdqu
 inside control flow statements, like this:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="i">monday</span><span class="o">)</span> <span class="k">var</span> <span class="i">croissant</span> <span class="o">=</span> <span class="s">&quot;yes&quot;</span><span class="o">;</span> <span class="c">// Error.</span>
 </pre></div>
-
-
 <p>Allowing it would raise confusing questions around the scope of the variable.
 So, like other languages, we prohibit it syntactically by having a separate
 grammar rule for the subset of statements that <em>are</em> allowed inside a control
@@ -187,16 +183,12 @@ flow body:</p>
                <span class="err">|</span> <span class="i">whileStmt</span>
                <span class="err">|</span> <span class="i">block</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Then we use a separate rule for the top level of a script and inside a block:</p>
 <div class="codehilite"><pre><span></span><span class="i">declaration</span>    <span class="err">→</span> <span class="i">classDecl</span>
                <span class="err">|</span> <span class="i">funDecl</span>
                <span class="err">|</span> <span class="i">varDecl</span>
                <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>The <code>declaration</code> rule contains the statements that declare names, and also
 includes <code>statement</code> so that all statements types are allowed. Since <code>block</code>
 itself is in <code>statement</code>, you can put declarations <span
@@ -215,8 +207,6 @@ declaration:</p>
 <span class="i">declaration</span>    <span class="err">→</span> <span class="i">varDecl</span>
                <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Up to now, our VM considered a &ldquo;program&rdquo; to be a single expression since that&rsquo;s
 all we could parse and compile. In a real Lox program, a script is a sequence of
 declarations. We&rsquo;re ready to support that now:</p>
@@ -357,8 +347,7 @@ between expressions and statements in the VM. Every bytecode instruction has a
 modifies the stack. For example, <code>OP_ADD</code> pops two values and pushes one,
 leaving the stack one element smaller than before.</p>
 <aside name="effect">
-<p>The stack is one element shorter after an <code>OP_ADD</code>, so its effect is -1:</p>
-<p><img src="image/global-variables/stack-effect.png" alt="The stack effect of an OP_ADD instruction." /></p>
+<p>The stack is one element shorter after an <code>OP_ADD</code>, so its effect is -1:</p><img src="image/global-variables/stack-effect.png" alt="The stack effect of an OP_ADD instruction." />
 </aside>
 <p>You can also sum the stack effects of a series of instructions. When you add the
 stack effects of any series of instructions compiled from an expression, it will
@@ -403,8 +392,6 @@ in <em>disassembleInstruction</em>()</div>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="n">1</span> <span class="o">+</span> <span class="n">2</span><span class="o">;</span>
 <span class="k">print</span> <span class="n">3</span> <span class="o">*</span> <span class="n">4</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Exciting!</p>
 <h3><a href="#expression-statements" name="expression-statements"><small>21&#8202;.&#8202;1&#8202;.&#8202;2</small> Expression statements</a></h3>
 <p>Wait until you see the next statement. If we <em>don&rsquo;t</em> see a <code>print</code> keyword, then
@@ -438,8 +425,6 @@ side effect, like:</p>
 <div class="codehilite"><pre><span></span><span class="i">brunch</span> <span class="o">=</span> <span class="s">&quot;quiche&quot;</span><span class="o">;</span>
 <span class="i">eat</span><span class="o">(</span><span class="i">brunch</span><span class="o">);</span>
 </pre></div>
-
-
 <p>Semantically, an expression statement evaluates the expression and discards the
 result. The compiler directly encodes that behavior. It emits the code for the
 expression, and then an <code>OP_POP</code> instruction:</p>
@@ -596,13 +581,9 @@ expect the statement to be terminated with a semicolon.</p>
 <p>Essentially, the compiler desugars a variable declaration like:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">a</span><span class="o">;</span>
 </pre></div>
-
-
 <p>into:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="k">nil</span><span class="o">;</span>
 </pre></div>
-
-
 <p>The code it generates for the former is identical to what it produces for the
 latter.</p>
 </aside>
@@ -866,8 +847,6 @@ code like this:</p>
 <span class="k">var</span> <span class="i">breakfast</span> <span class="o">=</span> <span class="s">&quot;beignets with &quot;</span> <span class="o">+</span> <span class="i">beverage</span><span class="o">;</span>
 <span class="k">print</span> <span class="i">breakfast</span><span class="o">;</span>
 </pre></div>
-
-
 <p>There&rsquo;s only one operation left&hellip;</p>
 <h2><a href="#assignment" name="assignment"><small>21&#8202;.&#8202;4</small> Assignment</a></h2>
 <p>Throughout this book, I&rsquo;ve tried to keep you on a fairly safe and easy path. I
@@ -882,14 +861,11 @@ on the fly without any intermediate AST. As soon as it recognizes a piece of
 syntax, it emits code for it. Assignment doesn&rsquo;t naturally fit that. Consider:</p>
 <div class="codehilite"><pre><span></span><span class="i">menu</span><span class="o">.</span><span class="i">brunch</span><span class="o">(</span><span class="i">sunday</span><span class="o">).</span><span class="i">beverage</span> <span class="o">=</span> <span class="s">&quot;mimosa&quot;</span><span class="o">;</span>
 </pre></div>
-
-
 <p>In this code, the parser doesn&rsquo;t realize <code>menu.brunch(sunday).beverage</code> is the
 target of an assignment and not a normal expression until it reaches <code>=</code>, many
 tokens after the first <code>menu</code>. By then, the compiler has already emitted
 bytecode for the whole thing.</p>
-<p>The problem is not as dire as it might seem, though. Look at how the parser sees that example:</p>
-<p><img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = &quot;mimosa&quot;' statement, showing that 'menu.brunch(sunday)' is an expression." /></p>
+<p>The problem is not as dire as it might seem, though. Look at how the parser sees that example:</p><img src="image/global-variables/setter.png" alt="The 'menu.brunch(sunday).beverage = &quot;mimosa&quot;' statement, showing that 'menu.brunch(sunday)' is an expression." />
 <p>Even though the <code>.beverage</code> part must not be compiled as a get expression,
 everything to the left of the <code>.</code> is an expression, with the normal expression
 semantics. The <code>menu.brunch(sunday)</code> part can be compiled and executed as usual.</p>
@@ -979,11 +955,8 @@ in <em>disassembleInstruction</em>()</div>
 <p>So we&rsquo;re done, right? Well&hellip; not quite. We&rsquo;ve made a mistake! Take a gander at:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">*</span> <span class="i">b</span> <span class="o">=</span> <span class="i">c</span> <span class="o">+</span> <span class="i">d</span><span class="o">;</span>
 </pre></div>
-
-
 <p>According to Lox&rsquo;s grammar, <code>=</code> has the lowest precedence, so this should be
-parsed roughly like:</p>
-<p><img src="image/global-variables/ast-good.png" alt="The expected parse, like '(a * b) = (c + d)'." /></p>
+parsed roughly like:</p><img src="image/global-variables/ast-good.png" alt="The expected parse, like '(a * b) = (c + d)'." />
 <p>Obviously, <code>a * b</code> isn&rsquo;t a <span name="do">valid</span> assignment target, so
 this should be a syntax error. But here&rsquo;s what our parser does:</p>
 <aside name="do">
@@ -1001,8 +974,7 @@ a terrible idea.</p>
 <li>Inside that call to <code>variable()</code>, it looks for a trailing <code>=</code>. It sees one
 and thus parses the rest of the line as an assignment.</li>
 </ol>
-<p>In other words, the parser sees the above code like:</p>
-<p><img src="image/global-variables/ast-bad.png" alt="The actual parse, like 'a * (b = c + d)'." /></p>
+<p>In other words, the parser sees the above code like:</p><img src="image/global-variables/ast-bad.png" alt="The actual parse, like 'a * (b = c + d)'." />
 <p>We&rsquo;ve messed up the precedence handling because <code>variable()</code> doesn&rsquo;t take into
 account the precedence of the surrounding expression that contains the variable.
 If the variable happens to be the right-hand side of an infix operator, or the
@@ -1191,8 +1163,6 @@ replace 1 line</div>
 
 <span class="k">print</span> <span class="i">breakfast</span><span class="o">;</span>
 </pre></div>
-
-
 <p>It&rsquo;s starting to look like real code for an actual language!</p>
 <div class="challenges">
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
@@ -1227,8 +1197,6 @@ text of the entire program before any code is run. Consider this program:</p>
 
 <span class="k">var</span> <span class="i">ooops</span> <span class="o">=</span> <span class="s">&quot;too many o&#39;s!&quot;</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Here, we can tell statically that <code>oops</code> will not be defined because there
 is <em>no</em> declaration of that global anywhere in the program. Note that
 <code>useVar()</code> is never called either, so even though the variable isn&rsquo;t

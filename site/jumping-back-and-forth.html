@@ -141,8 +141,6 @@ necessary is to change the <code>ip</code> in more interesting ways. The simples
 flow construct is an if statement with no else clause:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="o">(</span><span class="i">condition</span><span class="o">)</span> <span class="k">print</span><span class="o">(</span><span class="s">&quot;condition was truthy&quot;</span><span class="o">);</span>
 </pre></div>
-
-
 <p>The VM evaluates the bytecode for the condition expression. If the result is
 truthy, then it continues along and executes the print statement in the body.
 The interesting case is when the condition is falsey. When that happens,
@@ -201,14 +199,13 @@ add after <em>expressionStatement</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
+
 <aside name="paren">
 <p>Have you ever noticed that the <code>(</code> after the <code>if</code> keyword doesn&rsquo;t actually do
 anything useful? The language would be just as unambiguous and easy to parse
 without it, like:</p>
 <div class="codehilite"><pre><span></span><span class="k">if</span> <span class="i">condition</span><span class="o">)</span> <span class="k">print</span><span class="o">(</span><span class="s">&quot;looks weird&quot;</span><span class="o">);</span>
 </pre></div>
-
-
 <p>The closing <code>)</code> is useful because it separates the condition expression from the
 body. Some languages use a <code>then</code> keyword instead. But the opening <code>(</code> doesn&rsquo;t
 do anything. It&rsquo;s just there because unmatched parentheses look bad to us
@@ -226,8 +223,7 @@ compiling some sub-clause of a control flow construct. So the &ldquo;condition
 expression&rdquo; box is all of the instructions emitted when we compiled that
 expression.</p>
 </aside>
-<p><span name="legend"></span></p>
-<p><img src="image/jumping-back-and-forth/if-without-else.png" alt="Flowchart of the compiled bytecode of an if statement." /></p>
+<p><span name="legend"></span></p><img src="image/jumping-back-and-forth/if-without-else.png" alt="Flowchart of the compiled bytecode of an if statement." />
 <p>But we have a problem. When we&rsquo;re writing the <code>OP_JUMP_IF_FALSE</code> instruction&rsquo;s
 operand, how do we know how far to jump? We haven&rsquo;t compiled the then branch
 yet, so we don&rsquo;t know how much bytecode it contains.</p>
@@ -237,8 +233,7 @@ placeholder offset. We keep track of where that temporary instruction is. Next,
 we compile the then body. Once that&rsquo;s done, we know how far to jump. So we go
 back and replace that placeholder offset with the real one now that we can
 calculate it. Sort of like sewing a patch onto the existing fabric of the
-compiled code.</p>
-<p><img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." /></p>
+compiled code.</p><img src="image/jumping-back-and-forth/patch.png" alt="A patch containing a number being sewn onto a sheet of bytecode." />
 <p>We encode this trick into two helper functions:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
@@ -354,8 +349,6 @@ could implement the jump instruction like:</p>
   <span class="k">break</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>The <code>falsey()</code> function would probably use some control flow to handle the
 different value types, but that&rsquo;s an implementation detail of that function and
 doesn&rsquo;t affect how our VM does its own control flow.</p>
@@ -380,13 +373,11 @@ in <em>ifStatement</em>()</div>
 
 <p>When the condition is falsey, we&rsquo;ll jump over the then branch. If there&rsquo;s an
 else branch, the <code>ip</code> will land right at the beginning of its code. But that&rsquo;s
-not enough, though. Here&rsquo;s the flow that leads to:</p>
-<p><img src="image/jumping-back-and-forth/bad-else.png" alt="Flowchart of the compiled bytecode with the then branch incorrectly falling through to the else branch." /></p>
+not enough, though. Here&rsquo;s the flow that leads to:</p><img src="image/jumping-back-and-forth/bad-else.png" alt="Flowchart of the compiled bytecode with the then branch incorrectly falling through to the else branch." />
 <p>If the condition is truthy, we execute the then branch like we want. But after
 that, execution rolls right on through into the else branch. Oops! When the
 condition is true, after we run the then branch, we need to jump over the else
-branch. That way, in either case, we only execute a single branch, like this:</p>
-<p><img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." /></p>
+branch. That way, in either case, we only execute a single branch, like this:</p><img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." />
 <p>To implement that, we need another jump from the end of the then branch:</p>
 <div class="codehilite"><pre class="insert-before"><span></span>  <span class="i">statement</span><span class="o">();</span>                     
 <br></pre><div class="source-file"><em>compiler.c</em><br>
@@ -468,8 +459,7 @@ in <em>ifStatement</em>()</div>
 <p>This little instruction here also means that every if statement has an implicit
 else branch even if the user didn&rsquo;t write an else clause. In the case where they
 left it off, all it does is discard the condition value.</p>
-<p>The full correct flow looks like this:</p>
-<p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." /></p>
+<p>The full correct flow looks like this:</p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." />
 <p>If you trace through you can see that it always executes a single branch and
 ensures the condition is popped first. All that remains it a little disassembler
 support:</p>
@@ -547,8 +537,7 @@ right operand and leave the left-hand side value as the result of the entire
 expression. Otherwise, we discard the left-hand value and the result of the
 <code>and</code> expression is the result of evaluating the right operand.</p>
 <p>Those four lines of code right there produce exactly that. The flow looks like
-this:</p>
-<p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an 'and' expression." /></p>
+this:</p><img src="image/jumping-back-and-forth/and.png" alt="Flowchart of the compiled bytecode of an 'and' expression." />
 <p>Now you can see why <code>OP_JUMP_IF_FALSE</code> <span name="instr">leaves</span> the
 value on top of the stack. When the left-hand side of the <code>and</code> is falsey, that
 value sticks around to become the result of the entire expression.</p>
@@ -595,8 +584,7 @@ in terms of the jump instructions we already have.</p>
 <p>When the left-hand side is falsey, it does a tiny jump over the next statement.
 That statement is an unconditional jump over the code for the right operand.
 This little dance effectively does a jump when the value is truthy. The flow
-looks like this:</p>
-<p><img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of a logical or expression." /></p>
+looks like this:</p><img src="image/jumping-back-and-forth/or.png" alt="Flowchart of the compiled bytecode of a logical or expression." />
 <p>If I&rsquo;m honest with you, this isn&rsquo;t the best way to do this. There are more
 instructions to dispatch and more overhead. There&rsquo;s no good reason why <code>or</code>
 should be slower than <code>and</code>. But it is kind of fun to see that it&rsquo;s possible to
@@ -745,8 +733,7 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>That&rsquo;s our while statement. It contains two jumps<span class="em">&mdash;</span>a conditional forward one
 to escape the loop when the condition isn&rsquo;t met, and an unconditional loop
-backwards after we have executed the body. The flow looks like this:</p>
-<p><img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." /></p>
+backwards after we have executed the body. The flow looks like this:</p><img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
 <h2><a href="#for-statements" name="for-statements"><small>23&#8202;.&#8202;4</small> For Statements</a></h2>
 <p>The other looping statement in Lox is the venerable for loop, inherited from C.
 It&rsquo;s got a lot more going on with it compared to a while loop. It has three
@@ -952,8 +939,7 @@ will cause it to jump up to the <em>increment</em> expression instead of the top
 loop like it does when there is no increment. This is how we stitch the
 increment in to run after the body.</p>
 <p>It&rsquo;s a little convoluted, but it all works out. A complete loop with all the
-clauses compiles to a flow like this:</p>
-<p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." /></p>
+clauses compiles to a flow like this:</p><img src="image/jumping-back-and-forth/for.png" alt="Flowchart of the compiled bytecode of a for statement." />
 <p>Again, we didn&rsquo;t need to touch the runtime. It&rsquo;s all in the compiler. We&rsquo;ve
 taken a big <span name="leap">leap</span> forward in our VM<span class="em">&mdash;</span>clox is now
 Turing complete. We&rsquo;ve also covered quite a bit of new syntax: three statements
@@ -973,8 +959,6 @@ That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM
 <span class="i">switchCase</span>  <span class="err">→</span> <span class="s">&quot;case&quot;</span> <span class="i">expression</span> <span class="s">&quot;:&quot;</span> <span class="i">statement</span><span class="o">*</span> <span class="o">;</span>
 <span class="i">defaultCase</span> <span class="err">→</span> <span class="s">&quot;default&quot;</span> <span class="s">&quot;:&quot;</span> <span class="i">statement</span><span class="o">*</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>To execute a switch statement, first evaluate the parenthesized switch value
 expression. Then walk the cases. For each case, evaluate its value
 expression. If the case value is equal to the switch value, execute the
@@ -990,8 +974,6 @@ statements are done.</p>
 let&rsquo;s do continue:</p>
 <div class="codehilite"><pre><span></span><span class="i">continueStmt</span> <span class="err">→</span> <span class="s">&quot;continue&quot;</span> <span class="s">&quot;;&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>A continue statement jumps directly to the top of the nearest enclosing
 loop, skipping the rest of the loop body. Inside a for loop, a continue
 jumps to the increment clause, if there is one. It&rsquo;s a compile-time error to
@@ -1011,7 +993,8 @@ level to outweigh the cost of forcing a user to learn an unfamiliar notation
 and behavior, but it&rsquo;s a good chance to practice your design skills.</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: Considering Goto Harmful</a></h2>
 <p>Discovering that all of our beautiful structured control flow in Lox is actually
 compiled to raw unstructured jumps is like the moment in Scooby Doo when the
@@ -1140,9 +1123,9 @@ constructs is a net win for all of our productivity.</p>
 <p>But I do wonder sometimes if we threw out the baby with the bathwater. In the
 absence of goto, we often resort to more complex structured patterns. The
 &ldquo;switch inside a loop&rdquo; is a classic one. Another is using a guard variable to
-exit out of a series of nested loops:</p>
-<span name="break">
-</span><div class="codehilite"><pre><span></span><span class="c">// See if the matrix contains a zero.</span>
+exit out of a series of nested loops:</p><span name="break">
+</span>
+<div class="codehilite"><pre><span></span><span class="c">// See if the matrix contains a zero.</span>
 <span class="t">bool</span> <span class="i">found</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span>
 <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">x</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">x</span> <span class="o">&lt;</span> <span class="i">xSize</span><span class="o">;</span> <span class="i">x</span><span class="o">++)</span> <span class="o">{</span>
   <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">y</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">y</span> <span class="o">&lt;</span> <span class="i">ySize</span><span class="o">;</span> <span class="i">y</span><span class="o">++)</span> <span class="o">{</span>
@@ -1158,8 +1141,6 @@ exit out of a series of nested loops:</p>
   <span class="k">if</span> <span class="o">(</span><span class="i">found</span><span class="o">)</span> <span class="k">break</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Is that really better than:</p>
 <div class="codehilite"><pre><span></span><span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">x</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">x</span> <span class="o">&lt;</span> <span class="i">xSize</span><span class="o">;</span> <span class="i">x</span><span class="o">++)</span> <span class="o">{</span>
   <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">y</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">y</span> <span class="o">&lt;</span> <span class="i">ySize</span><span class="o">;</span> <span class="i">y</span><span class="o">++)</span> <span class="o">{</span>
@@ -1173,8 +1154,6 @@ exit out of a series of nested loops:</p>
 <span class="o">}</span>
 <span class="i">done</span><span class="o">:</span>
 </pre></div>
-
-
 <aside name="break">
 <p>You could do this without <code>break</code> statements<span class="em">&mdash;</span>themselves a limited goto-ish
 construct<span class="em">&mdash;</span>by inserting <code>!found and</code> at the beginning of the condition clause

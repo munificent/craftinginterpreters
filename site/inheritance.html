@@ -179,15 +179,11 @@ lexer. We don&rsquo;t have <code>extends</code> or even <code>:</code>, so we&rs
   <span class="c">// Boston Cream-specific stuff...</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>To work this into the grammar, we add a new optional clause in our existing
 <code>classDecl</code> rule:</p>
 <div class="codehilite"><pre><span></span><span class="i">classDecl</span> <span class="err">→</span> <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;&lt;&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)</span><span class="err">?</span>
             <span class="s">&quot;{&quot;</span> <span class="i">function</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>After the class name, you can have a <code>&lt;</code> followed by the superclass&rsquo;s name. The
 superclass clause is optional because you don&rsquo;t <em>have</em> to have a superclass.
 Unlike some other object-oriented languages like Java, Lox has no root &ldquo;Object&rdquo;
@@ -259,8 +255,6 @@ In that case, we need to make sure it&rsquo;s resolved.</p>
 silly edge case we need to worry about while we&rsquo;re in here. Take a look at:</p>
 <div class="codehilite"><pre><span></span><span class="k">class</span> <span class="t">Oops</span> <span class="o">&lt;</span> <span class="t">Oops</span> <span class="o">{}</span>
 </pre></div>
-
-
 <p>There&rsquo;s no way this will do anything useful and if we let it go until the
 runtime, it will break the expectation the interpreter has about there not being
 cycles in the inheritance chain. The safest thing is to detect it statically and
@@ -303,8 +297,6 @@ would happen if we allowed code like:</p>
 
 <span class="k">class</span> <span class="t">Subclass</span> <span class="o">&lt;</span> <span class="t">NotAClass</span> <span class="o">{}</span> <span class="c">// ?!</span>
 </pre></div>
-
-
 <p>Assuming that check passes, we continue on. Executing a class declaration turns
 the syntactic representation of a class<span class="em">&mdash;</span>its AST node<span class="em">&mdash;</span>into its runtime
 representation, a LoxClass object. We need to plumb the superclass through to
@@ -390,8 +382,6 @@ superclass chain and look there. Give it a try:</p>
 
 <span class="t">BostonCream</span><span class="o">().</span><span class="i">cook</span><span class="o">();</span>
 </pre></div>
-
-
 <p>There we go, half of our inheritance features are complete with only three lines
 of Java code.</p>
 <h2><a href="#calling-superclass-methods" name="calling-superclass-methods"><small>13&#8202;.&#8202;3</small> Calling Superclass Methods</a></h2>
@@ -426,8 +416,6 @@ but look for it directly on my superclass and ignore my override&rdquo;. Java us
 <span class="c">// Fry until golden brown.</span>
 <span class="c">// Pipe full of custard and coat with chocolate.</span>
 </pre></div>
-
-
 <p>The <code>super</code> keyword, followed by a dot and an identifier looks for a method with
 that name. Unlike calls on <code>this</code>, the search starts at the superclass.</p>
 <h3><a href="#syntax" name="syntax"><small>13&#8202;.&#8202;3&#8202;.&#8202;1</small> Syntax</a></h3>
@@ -437,16 +425,12 @@ are inseparable parts of the super expression. You can&rsquo;t have a bare <code
 token all by itself:</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="k">super</span><span class="o">;</span> <span class="c">// Syntax error.</span>
 </pre></div>
-
-
 <p>So the new clause we add to the <code>primary</code> rule in our grammar includes the
 property access as well:</p>
 <div class="codehilite"><pre><span></span><span class="i">primary</span> <span class="err">→</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span> <span class="err">|</span> <span class="s">&quot;this&quot;</span>
         <span class="err">|</span> <span class="t">NUMBER</span> <span class="err">|</span> <span class="t">STRING</span> <span class="err">|</span> <span class="t">IDENTIFIER</span> <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
         <span class="err">|</span> <span class="s">&quot;super&quot;</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Typically, a super expression is used for a method call, but, as with regular
 methods, the argument list is <em>not</em> part of the expression. Instead, a super
 <em>call</em> is a super <em>access</em> followed by a function call. Like other method calls,
@@ -454,8 +438,6 @@ you can get a handle to a superclass method and invoke it separately:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">method</span> <span class="o">=</span> <span class="k">super</span><span class="o">.</span><span class="i">cook</span><span class="o">;</span>
 <span class="i">method</span><span class="o">();</span>
 </pre></div>
-
-
 <p>So the super expression itself contains only the token for the <code>super</code> keyword
 and the name of the method being looked up. The corresponding <span
 name="super-ast">syntax tree node</span> is thus:</p>
@@ -467,6 +449,7 @@ in <em>main</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
+
 <aside name="super-ast">
 <p>The generated code for the new node is in <a href="appendix-ii.html#super-expression">Appendix II</a>.</p>
 </aside>
@@ -516,8 +499,6 @@ not actually correct. Gaze upon:</p>
 
 <span class="t">C</span><span class="o">().</span><span class="i">test</span><span class="o">();</span>
 </pre></div>
-
-
 <p>Translate this program to Java, C#, or C++ and it would print &ldquo;A method&rdquo;, which
 is what we want Lox to do too. When this program runs, inside the body of
 <code>test()</code>, <code>this</code> is an instance of C. The superclass of C is B, but that is
@@ -525,8 +506,7 @@ is what we want Lox to do too. When this program runs, inside the body of
 <p>Instead, lookup should start on the superclass of <em>the class containing the
 super expression</em>. In this case, since <code>test()</code> is defined inside B, the super
 expression inside it should start the lookup on <em>B</em>&rsquo;s superclass<span class="em">&mdash;</span>A.</p>
-<p><span name="flow"></span></p>
-<p><img src="image/inheritance/classes.png" alt="The call chain flowing through the classes." /></p>
+<p><span name="flow"></span></p><img src="image/inheritance/classes.png" alt="The call chain flowing through the classes." />
 <aside name="flow">
 <p>The execution flow looks something like this</p>
 <ol>
@@ -568,13 +548,11 @@ declaration itself</em>. Every time you evaluate some super expression, the
 superclass is always the same.</p>
 <p>That means we can create the environment for the superclass once, when the class
 definition is executed. Immediately before we define the methods, we make a new
-environment to bind the class&rsquo;s superclass to the name <code>super</code>:</p>
-<p><img src="image/inheritance/superclass.png" alt="The superclass environment." /></p>
+environment to bind the class&rsquo;s superclass to the name <code>super</code>:</p><img src="image/inheritance/superclass.png" alt="The superclass environment." />
 <p>When we create the LoxFunction runtime representation for each method, that is
 the environment they will capture in their closure. Later, when a method is
 invoked and <code>this</code> is bound, the superclass environment becomes the parent for
-the method&rsquo;s environment, like so:</p>
-<p><img src="image/inheritance/environments.png" alt="The environment chain including the superclass environment." /></p>
+the method&rsquo;s environment, like so:</p><img src="image/inheritance/environments.png" alt="The environment chain including the superclass environment." />
 <p>That&rsquo;s a lot of machinery, but we&rsquo;ll get through it a step at a time. Before we
 can get to creating the environment at runtime, we need to handle the
 corresponding scope chain in the resolver:</p>
@@ -748,8 +726,6 @@ against bad code. In particular, consider:</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>This class has a super expression, but no superclass. At runtime, the code for
 evaluating super expressions assumes that &ldquo;super&rdquo; was successfully resolved and
 will be found in the environment. That&rsquo;s going to fail here because there is no
@@ -758,8 +734,6 @@ will throw an exception and bring our interpreter to its knees.</p>
 <p>Heck, there are even simpler broken uses of super:</p>
 <div class="codehilite"><pre><span></span><span class="k">super</span><span class="o">.</span><span class="i">notEvenInAClass</span><span class="o">();</span>
 </pre></div>
-
-
 <p>We could handle errors like these at runtime by checking to see if the look-up
 of &ldquo;super&rdquo; succeeded. But we can tell statically<span class="em">&mdash;</span>just by looking at the
 source code<span class="em">&mdash;</span>that Eclair has no superclass and thus no super expression will
@@ -905,12 +879,11 @@ there is no matching method, the <code>inner</code> call does nothing.</p>
 
 <span class="t">BostonCream</span><span class="o">().</span><span class="i">cook</span><span class="o">();</span>
 </pre></div>
-
-
 <p>This should print:</p>
 <div class="codehilite"><pre><span></span>Fry until golden brown.
 Pipe full of custard and coat with chocolate.
-Place in a nice box.</pre></div></li>
+Place in a nice box.</pre></div>
+</li>
 <li>
 <p>In the chapter where I introduced Lox, <a href="the-lox-language.html#challenges">I challenged you</a> to
 come up with a couple of features you think the language is missing. Now

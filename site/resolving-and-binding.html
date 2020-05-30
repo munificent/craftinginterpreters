@@ -140,8 +140,6 @@ by reading the text of the program. For example:</p>
   <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Here, we know that the <code>a</code> being printed is the variable declared on the
 previous line, and not the global one. Running the program doesn&rsquo;t<span class="em">&mdash;</span><em>can&rsquo;t</em><span class="em">&mdash;</span>affect this. The scope rules are part of the <em>static</em> semantics of the language,
 which is why they&rsquo;re also called <strong>&ldquo;static scope&rdquo;</strong>.</p>
@@ -174,8 +172,6 @@ variable is used&rdquo;.</p>
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;inner&quot;</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Here, the <code>a</code> being printed is the outer one since it appears <span
 name="hoisting">before</span> the print statement that uses it. In most
 cases, in straight line code, the declaration preceding in <em>text</em> will also
@@ -192,8 +188,6 @@ write this in JavaScript:</p>
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>It behaves like:</p>
 <div class="codehilite"><pre><span></span><span class="o">{</span>
   <span class="k">var</span> <span class="i">a</span><span class="o">;</span> <span class="c">// Hoist.</span>
@@ -201,13 +195,10 @@ write this in JavaScript:</p>
   <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>That means that in some cases you can read a variable before its initializer
 has run<span class="em">&mdash;</span>an annoying source of bugs. The alternate <code>let</code> syntax for
 declaring variables was added later to address this problem.</p>
-</aside>
-</li>
+</aside></li>
 <li>
 <p>&ldquo;Innermost&rdquo; is there because of our good friend shadowing. There may be more
 than one variable with the given name in enclosing scopes, as in:</p>
@@ -217,8 +208,6 @@ than one variable with the given name in enclosing scopes, as in:</p>
   <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Our rule disambiguates this case by saying the innermost scope wins.</p>
 </li>
 </ul>
@@ -237,8 +226,6 @@ correctly. But when we added closures, an error snuck in:</p>
   <span class="i">showA</span><span class="o">();</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p><span name="tricky">Before</span> you type this in and run it, decide what you
 think it <em>should</em> print.</p>
 <aside name="tricky">
@@ -256,8 +243,6 @@ that implies the second call to <code>showA()</code> should print the same thing
 <div class="codehilite"><pre><span></span>global
 block
 </pre></div>
-
-
 <p>Let me stress that this program never reassigns any variable and only contains a
 single print statement. Yet, somehow, that print statement for a never-assigned
 variable prints two different values at different points in time. We definitely
@@ -269,18 +254,15 @@ we enter a new scope, and discard it when we leave the scope. There is one other
 operation we perform on environments: binding a variable in one. This is where
 our bug lies.</p>
 <p>Let&rsquo;s walk through that problematic example and see what the environments look
-like at each step. First, we declare <code>a</code> in the global scope:</p>
-<p><img src="image/resolving-and-binding/environment-1.png" alt="The global environment with 'a' defined in it." /></p>
+like at each step. First, we declare <code>a</code> in the global scope:</p><img src="image/resolving-and-binding/environment-1.png" alt="The global environment with 'a' defined in it." />
 <p>That gives us a single environment with a single variable in it. Then we enter
-the block and execute the declaration of <code>showA()</code>:</p>
-<p><img src="image/resolving-and-binding/environment-2.png" alt="A block environment linking to the global one." /></p>
+the block and execute the declaration of <code>showA()</code>:</p><img src="image/resolving-and-binding/environment-2.png" alt="A block environment linking to the global one." />
 <p>We get a new environment for the block. In that, we declare one name <code>showA</code>,
 which is bound to the LoxFunction object we create to represent the function.
 That object has a <code>closure</code> field that captures the environment where the
 function was declared, so it has a reference back to the environment for the
 block.</p>
-<p>Now we call <code>showA()</code>:</p>
-<p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." /></p>
+<p>Now we call <code>showA()</code>:</p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." />
 <p>The interpreter dynamically creates a new environment for the function body of
 <code>showA()</code>. It&rsquo;s empty since that function doesn&rsquo;t declare any variables. The
 parent of that environment is the function&rsquo;s closure<span class="em">&mdash;</span>the outer block
@@ -289,12 +271,10 @@ environment.</p>
 up <code>a</code>&rsquo;s value by walking the chain of environments. It gets all the way
 to the global environment before finding it there and printing <code>"global"</code>.
 Great.</p>
-<p>Next, we declare the second <code>a</code>, this time inside the block:</p>
-<p><img src="image/resolving-and-binding/environment-4.png" alt="The block environment has both 'a' and 'showA' now." /></p>
+<p>Next, we declare the second <code>a</code>, this time inside the block:</p><img src="image/resolving-and-binding/environment-4.png" alt="The block environment has both 'a' and 'showA' now." />
 <p>It&rsquo;s in the same block as <code>showA()</code>, so it goes into the same environment, which
 is also the same environment <code>showA()</code>&rsquo;s closure refers to. This is where
-it gets interesting. We call <code>showA()</code> again:</p>
-<p><img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." /></p>
+it gets interesting. We call <code>showA()</code> again:</p><img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." />
 <p>We create a new empty environment for the body of <code>showA()</code> again, wire it up to
 that closure, and run the body. When the interpreter walks the chain of
 environments to find <code>a</code>, it now discovers the <em>new</em> <code>a</code> in the block
@@ -314,8 +294,6 @@ actually the same scope. Consider:</p>
   <span class="c">// 2.</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>At the first marked line, only <code>a</code> is in scope. At the second line, both <code>a</code> and
 <code>b</code> are. If you define a &ldquo;scope&rdquo; to be a set of declarations, then those are
 clearly not the same scope<span class="em">&mdash;</span>they don&rsquo;t contain the same declarations. It&rsquo;s
@@ -351,8 +329,7 @@ between the different &ldquo;copies&rdquo;.</p>
 a variable it would return a <em>new</em> environment that contained all of the
 previously-declared variables along with the one new name. Declaring a variable
 would do the implicit &ldquo;split&rdquo; where you have an environment before the variable
-is declared and one after:</p>
-<p><img src="image/resolving-and-binding/split.png" alt="Separate environments before and after the variable is declared." /></p>
+is declared and one after:</p><img src="image/resolving-and-binding/split.png" alt="Separate environments before and after the variable is declared." />
 <p>A closure retains a reference to the Environment instance in play when the
 function was declared. Since any later declarations in that block would produce
 new Environment objects, the closure wouldn&rsquo;t see the new variables and our bug
@@ -387,12 +364,10 @@ minimize the collateral damage we inflict on our existing codebase. I&rsquo;d ha
 throw out a bunch of mostly-fine code.</p>
 <p>Instead, we&rsquo;ll store the resolution in a way that makes the most out of our
 existing Environment class. Recall how the accesses of <code>a</code> are interpreted in
-the problematic example:</p>
-<p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." /></p>
+the problematic example:</p><img src="image/resolving-and-binding/environment-3.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the global environment." />
 <p>In the first (correct) evaluation, we seek through three environments in the
 chain before finding the global declaration of <code>a</code>. Then, when the inner <code>a</code> is
-later declared in a block scope, it shadows the global one:</p>
-<p><img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." /></p>
+later declared in a block scope, it shadows the global one:</p><img src="image/resolving-and-binding/environment-5.png" alt="An empty environment for showA()'s body linking to the previous two. 'a' is resolved in the block environment." />
 <p>The next look up walks the chain, finds <code>a</code> in the <em>second</em> environment and
 stops there. Each environment corresponds to a single lexical scope where
 variables are declared. If we could ensure a variable lookup always walked the
@@ -601,8 +576,6 @@ defining<span class="em">&mdash;</span>in order to handle this funny edge case:<
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>What happens when the initializer for a local variable refers to a variable with
 the same name as what&rsquo;s being declared? We have a few options:</p>
 <ul>
@@ -613,7 +586,8 @@ the new local <code>a</code> would be initialized with &ldquo;outer&rdquo;, the 
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">temp</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span> <span class="c">// Run the initializer.</span>
 <span class="k">var</span> <span class="i">a</span><span class="o">;</span>        <span class="c">// Declare the variable.</span>
 <span class="i">a</span> <span class="o">=</span> <span class="i">temp</span><span class="o">;</span>     <span class="c">// Initialize it.</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p><strong>Put the new variable in scope, then run the initializer.</strong> This means you
 can observe a variable before it&rsquo;s initialized, so we need to figure out
@@ -622,7 +596,8 @@ would be re-initialized to its own implicitly initialized value, <code>nil</code
 the desugaring looks like:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">a</span><span class="o">;</span> <span class="c">// Define the variable.</span>
 <span class="i">a</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span> <span class="c">// Run the initializer.</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p><strong>Make it an error to reference a variable in its initializer.</strong> Have the
 interpreter fail either at compile time or runtime if an initializer
@@ -1175,8 +1150,6 @@ their code. Take a look at this bad boy:</p>
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;second&quot;</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>We do allow declaring multiple variables with the same name in the <em>global</em>
 scope, but doing so in a local scope is probably a mistake. If they knew the
 variable already existed, they would assign to it instead of using <code>var</code>. And if
@@ -1202,8 +1175,6 @@ report an error.</p>
 <p>Here&rsquo;s another nasty little script:</p>
 <div class="codehilite"><pre><span></span><span class="k">return</span> <span class="s">&quot;at top level&quot;</span><span class="o">;</span>
 </pre></div>
-
-
 <p>This executes a return statement but it&rsquo;s not even inside a function at all.
 It&rsquo;s top level code. I don&rsquo;t know what the user <em>thinks</em> is going to happen, but
 I don&rsquo;t think we want Lox to allow this.</p>
@@ -1338,8 +1309,6 @@ same name in their initializer, like:</p>
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>Is it a runtime error? Compile error? Allowed? Do they treat global
 variables differently? Do you agree with their choices? Justify your answer.</p>
 </li>

@@ -125,8 +125,7 @@ where the straight way was lost.</p>
 </blockquote>
 <p>This chapter is exciting for not one, not two, but <em>three</em> reasons. First, it
 provides the final segment of our VM&rsquo;s execution pipeline. Once in place, we can
-plumb the user&rsquo;s source code from scanning all the way through to executing it.</p>
-<p><img src="image/compiling-expressions/pipeline.png" alt="Lowering the 'compiler' section of pipe between 'scanner' and 'VM'."/></p>
+plumb the user&rsquo;s source code from scanning all the way through to executing it.</p><img src="image/compiling-expressions/pipeline.png" alt="Lowering the 'compiler' section of pipe between 'scanner' and 'VM'."/>
 <p>Second, we get to write an actual, honest-to-God <em>compiler</em>. It parses source
 code and outputs a low-level series of binary instructions. Sure, it&rsquo;s <span
 name="wirth">bytecode</span> and not some chip&rsquo;s native instruction set, but
@@ -275,8 +274,7 @@ much surrounding context to understand a piece of syntax. Fortunately, tiny,
 dynamically-typed Lox is <span name="lox">well-suited</span> to that.</p>
 <aside name="lox">
 <p>Not that this should come as much of a surprise. I did design the language
-specifically for this book after all.</p>
-<p><img src="image/compiling-expressions/keyhole.png" alt="Peering through a keyhole at 'var x;'"/></p>
+specifically for this book after all.</p><img src="image/compiling-expressions/keyhole.png" alt="Peering through a keyhole at 'var x;'"/>
 </aside>
 <p>What this means in practical terms is that our &ldquo;compiler&rdquo; C module has
 functionality you&rsquo;ll recognize from jlox for parsing<span class="em">&mdash;</span>consuming tokens,
@@ -585,8 +583,7 @@ add after <em>emitByte</em>()</div>
 a one-byte operand that it&rsquo;s worth defining this convenience function.</p>
 <h2><a href="#parsing-prefix-expressions" name="parsing-prefix-expressions"><small>17&#8202;.&#8202;4</small> Parsing Prefix Expressions</a></h2>
 <p>We&rsquo;ve assembled our parsing and code generation functions. The missing piece is
-the code in the middle that connects those together.</p>
-<p><img src="image/compiling-expressions/mystery.png" alt="Parsing functions on the left, bytecode emitting functions on the right. What goes in the middle?"/></p>
+the code in the middle that connects those together.</p><img src="image/compiling-expressions/mystery.png" alt="Parsing functions on the left, bytecode emitting functions on the right. What goes in the middle?"/>
 <p>The only step in <code>compile()</code> that we have left to implement is this function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
@@ -757,8 +754,6 @@ with that instruction.</p>
 <div class="codehilite"><pre><span></span><span class="k">print</span> <span class="o">-</span>
   <span class="k">true</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Then the runtime error will be reported on the wrong line. Here, it would show
 the error on line 2, even though the <code>-</code> is on line 1. A more robust approach
 would be to store the token&rsquo;s line before compiling the operand and then pass
@@ -770,8 +765,6 @@ we add binary operators and other syntax, that will do the wrong thing.
 Consider:</p>
 <div class="codehilite"><pre><span></span><span class="o">-</span><span class="i">a</span><span class="o">.</span><span class="i">b</span> <span class="o">+</span> <span class="i">c</span><span class="o">;</span>
 </pre></div>
-
-
 <p>Here, the operand to <code>-</code> should be just the <code>a.b</code> expression, not the entire
 <code>a.b + c</code>. But if <code>unary()</code> calls <code>expression()</code>, the latter will happily chew
 through all of the remaining code including the <code>+</code>. It will erronously treat
@@ -828,8 +821,6 @@ C implicitly gives successively larger numbers for enums, this means that
 compiler is sitting on a chunk of code like:</p>
 <div class="codehilite"><pre><span></span><span class="o">-</span><span class="i">a</span><span class="o">.</span><span class="i">b</span> <span class="o">+</span> <span class="i">c</span>
 </pre></div>
-
-
 <p>If we call <code>parsePrecedence(PREC_ASSIGNMENT)</code>, then it will parse the entire
 expression because <code>+</code> has higher precedence than assignment. If instead we
 call <code>parsePrecedence(PREC_UNARY)</code>, it will compile the <code>-a.b</code> and stop there.
@@ -877,8 +868,6 @@ onto the operator token in the middle.</p>
 <p>Here&rsquo;s an example:</p>
 <div class="codehilite"><pre><span></span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span>
 </pre></div>
-
-
 <p>Let&rsquo;s walk through trying to compile it with what we know so far:</p>
 <ol>
 <li>
@@ -950,8 +939,6 @@ parse the right-hand operand, we again need to worry about precedence. Take an
 expression like:</p>
 <div class="codehilite"><pre><span></span><span class="n">2</span> <span class="o">*</span> <span class="n">3</span> <span class="o">+</span> <span class="n">4</span>
 </pre></div>
-
-
 <p>When we parse the right operand of the <code>*</code> expression, we need to just capture
 <code>3</code>, and not <code>3 + 4</code>, because <code>+</code> is lower precedence than <code>*</code>. We could define
 a separate function for each binary operator. Each would call
@@ -965,25 +952,17 @@ dynamically with this <code>getRule()</code> thing we&rsquo;ll get to soon. Usin
 operators are left-associative. Given a series of the <em>same</em> operator, like:</p>
 <div class="codehilite"><pre><span></span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span> <span class="o">+</span> <span class="n">3</span> <span class="o">+</span> <span class="n">4</span>
 </pre></div>
-
-
 <p>We want to parse it like:</p>
 <div class="codehilite"><pre><span></span><span class="o">((</span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span><span class="o">)</span> <span class="o">+</span> <span class="n">3</span><span class="o">)</span> <span class="o">+</span> <span class="n">4</span>
 </pre></div>
-
-
 <p>Thus, when parsing the right-hand operand to the first <code>+</code>, we want to consume
 the <code>2</code>, but not the rest, so we use one level above <code>+</code>&rsquo;s precedence. But
 if our operator was <em>right</em>-associative, this would be wrong. Given:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">=</span> <span class="i">b</span> <span class="o">=</span> <span class="i">c</span> <span class="o">=</span> <span class="i">d</span>
 </pre></div>
-
-
 <p>Since assignment is right-associative, we want to parse it as:</p>
 <div class="codehilite"><pre><span></span><span class="i">a</span> <span class="o">=</span> <span class="o">(</span><span class="i">b</span> <span class="o">=</span> <span class="o">(</span><span class="i">c</span> <span class="o">=</span> <span class="i">d</span><span class="o">))</span>
 </pre></div>
-
-
 <p>To enable that, we would call <code>parsePrecedence()</code> with the <em>same</em> precedence as
 the current operator.</p>
 </aside>
@@ -1092,6 +1071,7 @@ add after <em>unary</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>()</div>
+
 <aside name="big">
 <p>See what I mean about not wanting to revisit the table each time we needed a new
 column? It&rsquo;s a beast.</p>
@@ -1213,8 +1193,7 @@ infix parsers often calls back into <code>parsePrecedence()</code> for its opera
 and fully understand the algorithm, step through the parser in your debugger as
 it works through some expressions. Maybe a picture will help. There&rsquo;s only a
 handful of functions, but they are marvelously intertwined:</p>
-<p><span name="connections"></span></p>
-<p><img src="image/compiling-expressions/connections.png" alt="The various parsing functions and how they call each other."/></p>
+<p><span name="connections"></span></p><img src="image/compiling-expressions/connections.png" alt="The various parsing functions and how they call each other."/>
 <aside name="connections">
 <p>The <img src="image/compiling-expressions/calls.png" class="arrow" /> arrow
 connects a function to another function it directly calls. The <img
@@ -1286,8 +1265,6 @@ through the interesting parsing functions<span class="em">&mdash;</span><code>pa
 parser functions stored in the table. Take this (strange) expression:</p>
 <div class="codehilite"><pre><span></span><span class="o">(-</span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span><span class="o">)</span> <span class="o">*</span> <span class="n">3</span> <span class="o">-</span> <span class="o">-</span><span class="n">4</span>
 </pre></div>
-
-
 <p>Write a trace of how those functions are called. Show the order they are
 called, which calls which, and the arguments passed to them.</p>
 </li>
@@ -1307,7 +1284,8 @@ any bytecode, just show how you would hook it up to the parser and handle
 the operands.</p>
 </li>
 </ol>
-</div><div class="design-note">
+</div>
+<div class="design-note">
 <h2><a href="#design-note" name="design-note">Design Note: It&rsquo;s Just Parsing</a></h2>
 <p>I&rsquo;m going to make a claim here that will be unpopular with some compiler and
 language people. It&rsquo;s OK if you don&rsquo;t agree. Personally, I learn more from

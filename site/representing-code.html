@@ -135,8 +135,6 @@ What is your brain doing when you play the part of a <em>human</em> interpreter?
 you manually evaluate an arithmetic expression like this:</p>
 <div class="codehilite"><pre><span></span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span> <span class="o">*</span> <span class="n">3</span> <span class="o">-</span> <span class="n">4</span>
 </pre></div>
-
-
 <p>Because you understand the order of operations<span class="em">&mdash;</span>the old &ldquo;<a href="https://en.wikipedia.org/wiki/Order_of_operations#Mnemonics">Please Excuse My
 Dear Aunt Sally</a>&rdquo; stuff<span class="em">&mdash;</span>you know that the <code>*</code> is evaluated before the
 <code>+</code> or <code>-</code>. One way to visualize that precedence is using a tree. Leaf nodes are
@@ -145,8 +143,7 @@ operands.</p>
 <p>In order to evaluate an arithmetic node, you need to know the numeric values of
 its subtrees, so you have to evaluate those first. That means working your way
 from the leaves up to the root<span class="em">&mdash;</span>a <em>post-order</em> traversal:</p>
-<p><span name="tree-steps"></span></p>
-<p><img src="image/representing-code/tree-evaluate.png" alt="Evaluating the tree from the bottom up." /></p>
+<p><span name="tree-steps"></span></p><img src="image/representing-code/tree-evaluate.png" alt="Evaluating the tree from the bottom up." />
 <aside name="tree-steps">
 <p>A. Starting with the full tree, evaluate the bottom-most operation, <code>2 * 3</code>.</p>
 <p>B. Now we can evaluate the <code>+</code>.</p>
@@ -183,8 +180,7 @@ consists of individual characters and the strings are the valid lexemes, roughly
 &ldquo;words&rdquo;. In the syntactic grammar we&rsquo;re talking about now, we&rsquo;re at a different
 level of granularity. Now each &ldquo;letter&rdquo; in the alphabet is an entire token and a
 &ldquo;string&rdquo; is a sequence of <em>tokens</em><span class="em">&mdash;</span>an entire expression.</p>
-<p>Oof. Maybe a table will help:</p>
-<table>
+<p>Oof. Maybe a table will help:</p><table>
 <thead>
 <tr>
   <td>Context-free grammar</td>
@@ -214,7 +210,6 @@ level of granularity. Now each &ldquo;letter&rdquo; in the alphabet is an entire
 </tr>
 </tbody>
 </table>
-
 <p>A formal grammar&rsquo;s job is to specify which strings are valid and which aren&rsquo;t.
 If we were defining a grammar for English sentences, &ldquo;eggs are tasty for
 breakfast&rdquo; would be in the grammar, but &ldquo;tasty breakfast for are eggs&rdquo; would
@@ -298,28 +293,20 @@ book. Sorry.</p>
 <span class="i">bread</span>      <span class="err">→</span> <span class="s">&quot;biscuits&quot;</span> <span class="o">;</span>
 <span class="i">bread</span>      <span class="err">→</span> <span class="s">&quot;English muffin&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>We can use that grammar to generate random breakfasts. Let&rsquo;s play a round and
 see how it works. By age-old convention, the game starts with the first rule in
 the grammar, here <code>breakfast</code>. There are three productions for that, and we
 randomly pick the first one. Our resulting string looks like:</p>
 <div class="codehilite"><pre><span></span>protein &quot;with&quot; breakfast &quot;on the side&quot;
 </pre></div>
-
-
 <p>We need to expand that first nonterminal, <code>protein</code>, so we pick a production for
 that. Let&rsquo;s pick:</p>
 <div class="codehilite"><pre><span></span><span class="i">protein</span> <span class="err">→</span> <span class="i">cooked</span> <span class="s">&quot;eggs&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Next, we need a production for <code>cooked</code>, and so we pick <code>"poached"</code>. That&rsquo;s a
 terminal, so we add that. Now our string looks like:</p>
 <div class="codehilite"><pre><span></span>&quot;poached&quot; &quot;eggs&quot; &quot;with&quot; breakfast &quot;on the side&quot;
 </pre></div>
-
-
 <p>The next non-terminal is <code>breakfast</code> again. The first <code>breakfast</code> production we
 chose recursively refers back to the <code>breakfast</code> rule. Recursion like this
 usually indicates that the language is context-free instead of regular. In
@@ -339,8 +326,7 @@ with bacon &hellip;&rdquo;. We won&rsquo;t though. This time we&rsquo;ll pick <c
 rules for that, each of which contains only a terminal. We&rsquo;ll pick &ldquo;English
 muffin&rdquo;.</p>
 <p>With that, every nonterminal in the string has been expanded until it finally
-contains only terminals and we&rsquo;re left with:</p>
-<p><img src="image/representing-code/breakfast.png" alt='"Playing" the grammar to generate a string.' /></p>
+contains only terminals and we&rsquo;re left with:</p><img src="image/representing-code/breakfast.png" alt='"Playing" the grammar to generate a string.' />
 <p>Throw in some ham and Hollandaise, and you&rsquo;ve got eggs Benedict.</p>
 <p>Any time we hit a rule that had multiple productions, we just picked one
 arbitrarily. It is this flexibility that allows a short number of grammar rules
@@ -358,12 +344,14 @@ expressions in the body of a rule:</p>
 <p>Instead of repeating the rule name each time we want to add another
 production for it, we&rsquo;ll allow a series of productions separated by <code>|</code>:</p>
 <div class="codehilite"><pre><span></span><span class="i">bread</span> <span class="err">→</span> <span class="s">&quot;toast&quot;</span> <span class="err">|</span> <span class="s">&quot;biscuits&quot;</span> <span class="err">|</span> <span class="s">&quot;English muffin&quot;</span> <span class="o">;</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p>Further, we&rsquo;ll allow <code>(</code> and <code>)</code> for grouping and then allow <code>|</code> within that
 to select one from a series of options within the middle of a production:</p>
 <div class="codehilite"><pre><span></span><span class="i">protein</span> <span class="err">→</span> <span class="o">(</span> <span class="s">&quot;scrambled&quot;</span> <span class="err">|</span> <span class="s">&quot;poached&quot;</span> <span class="err">|</span> <span class="s">&quot;fried&quot;</span> <span class="o">)</span> <span class="s">&quot;eggs&quot;</span> <span class="o">;</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p>Using <span name="recursion">recursion</span> to support repeated sequences
 of symbols has a certain appealing <span name="purity">purity</span>, but
@@ -371,7 +359,8 @@ it&rsquo;s kind of a chore to make a separate named sub-rule each time we want t
 loop. Instead, we allow a postfix <code>*</code> to mean the previous symbol or group
 may be repeated zero or more times.</p>
 <div class="codehilite"><pre><span></span><span class="i">crispiness</span> <span class="err">→</span> <span class="s">&quot;really&quot;</span> <span class="s">&quot;really&quot;</span><span class="o">*</span> <span class="o">;</span>
-</pre></div></li>
+</pre></div>
+</li>
 </ul>
 <aside name="purity">
 <p>This is how the Scheme programming language works. It has no built-in looping
@@ -383,12 +372,14 @@ recursion.</p>
 <p>A postfix <code>+</code> is similar, but requires the preceding production to appear
 at least once.</p>
 <div class="codehilite"><pre><span></span><span class="i">crispiness</span> <span class="err">→</span> <span class="s">&quot;really&quot;</span><span class="o">+</span> <span class="o">;</span>
-</pre></div></li>
+</pre></div>
+</li>
 <li>
 <p>A postfix <code>?</code> is for an optional production. The thing before it can appear
 zero or one time, but not more.</p>
 <div class="codehilite"><pre><span></span><span class="i">breakfast</span> <span class="err">→</span> <span class="i">protein</span> <span class="o">(</span> <span class="s">&quot;with&quot;</span> <span class="i">breakfast</span> <span class="s">&quot;on the side&quot;</span> <span class="o">)</span><span class="err">?</span> <span class="o">;</span>
-</pre></div></li>
+</pre></div>
+</li>
 </ul>
 <p>With all of that sugar, our breakfast grammar condenses down to:</p>
 <div class="codehilite"><pre><span></span><span class="i">breakfast</span> <span class="err">→</span> <span class="i">protein</span> <span class="o">(</span> <span class="s">&quot;with&quot;</span> <span class="i">breakfast</span> <span class="s">&quot;on the side&quot;</span> <span class="o">)</span><span class="err">?</span>
@@ -400,8 +391,6 @@ zero or one time, but not more.</p>
 
 <span class="i">bread</span>     <span class="err">→</span> <span class="s">&quot;toast&quot;</span> <span class="err">|</span> <span class="s">&quot;biscuits&quot;</span> <span class="err">|</span> <span class="s">&quot;English muffin&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>Not too bad, I hope. If you&rsquo;re used to grep or using <a href="https://en.wikipedia.org/wiki/Regular_expression#Standards">regular
 expressions</a> in your text editor, most of the punctuation should be
 familiar. The main difference is that symbols here represent entire words, not
@@ -443,8 +432,6 @@ to negate a number.</p>
 <p>That gives us enough syntax for expressions like:</p>
 <div class="codehilite"><pre><span></span><span class="n">1</span> <span class="o">-</span> <span class="o">(</span><span class="n">2</span> <span class="o">*</span> <span class="n">3</span><span class="o">)</span> <span class="o">&lt;</span> <span class="n">4</span> <span class="o">==</span> <span class="k">false</span>
 </pre></div>
-
-
 <p>Using our handy dandy new notation, here&rsquo;s a grammar for those:</p>
 <div class="codehilite"><pre><span></span><span class="i">expression</span> <span class="err">→</span> <span class="i">literal</span>
            <span class="err">|</span> <span class="i">unary</span>
@@ -458,8 +445,6 @@ to negate a number.</p>
 <span class="i">operator</span>   <span class="err">→</span> <span class="s">&quot;==&quot;</span> <span class="err">|</span> <span class="s">&quot;!=&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&lt;=&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;&quot;</span> <span class="err">|</span> <span class="s">&quot;&gt;=&quot;</span>
            <span class="err">|</span> <span class="s">&quot;+&quot;</span>  <span class="err">|</span> <span class="s">&quot;-&quot;</span>  <span class="err">|</span> <span class="s">&quot;*&quot;</span> <span class="err">|</span> <span class="s">&quot;/&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <p>There&rsquo;s one bit of extra <span name="play">metasyntax</span> here. In addition
 to quoted strings for terminals that match exact lexemes, we <code>CAPITALIZE</code>
 terminals that are a single lexeme whose text representation may vary. <code>NUMBER</code>
@@ -520,8 +505,6 @@ access the second operand of a unary expression.</p>
   <span class="c">// Other expressions...</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <aside name="expr">
 <p>I avoid abbreviations in my code because they trip up a reader who doesn&rsquo;t know
 what they stand for. But in compilers I&rsquo;ve looked at, &ldquo;Expr&rdquo; and &ldquo;Stmt&rdquo; are so
@@ -662,6 +645,7 @@ in <em>defineAst</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>defineAst</em>()</div>
+
 <aside name="robust">
 <p>This isn&rsquo;t the world&rsquo;s most elegant string munging code, but that&rsquo;s fine. It
 only runs on the exact set of class definitions we give it. Robustness ain&rsquo;t a
@@ -722,8 +706,6 @@ trees, just a separate Java class for each one.</p>
   <span class="c">// ...</span>
 <span class="o">}</span> <span class="k">else</span> <span class="c">// ...</span>
 </pre></div>
-
-
 <p>But all of those sequential type tests are slow. Expression types whose names
 are alphabetically later would take longer to execute because they&rsquo;d fall
 through more if cases before finding the right type. That&rsquo;s not my idea of an
@@ -748,8 +730,7 @@ violates <a href="https://en.wikipedia.org/wiki/Separation_of_concerns">separati
 <h3><a href="#the-expression-problem" name="the-expression-problem"><small>5&#8202;.&#8202;3&#8202;.&#8202;1</small> The Expression Problem</a></h3>
 <p>This problem is more fundamental than it may seem at first. We have a handful of
 types, and a handful of high level operations like &ldquo;interpret&rdquo;. For each pair of
-type and operation, we need a specific implementation. Picture a table:</p>
-<p><img src="image/representing-code/table.png" alt="A table where rows are labeled with expression classes and columns are function names." /></p>
+type and operation, we need a specific implementation. Picture a table:</p><img src="image/representing-code/table.png" alt="A table where rows are labeled with expression classes and columns are function names." />
 <p>Rows are types, and columns are operations. Each cell represents the
 implementation of that operation for that type.</p>
 <p>An object-oriented language like Java assumes that all of the code in one row
@@ -757,8 +738,7 @@ naturally hangs together. It figures all the things you do with a type are
 likely related to each other, and the language makes it easy to define them
 together as methods inside the same class.</p>
 <p>This makes it easy to extend the table by adding new rows. Simply define a new
-class. No existing code has to be touched.</p>
-<p><img src="image/representing-code/rows.png" alt="The table split into rows for each class." /></p>
+class. No existing code has to be touched.</p><img src="image/representing-code/rows.png" alt="The table split into rows for each class." />
 <p>But imagine if you want to add a new <em>operation</em><span class="em">&mdash;</span>a new column. In Java, that
 means cracking open each of those existing classes and adding a method to it.</p>
 <p>Functional paradigm languages in the <span name="ml">ML</span> family flip that
@@ -776,8 +756,7 @@ strong resemblance.</p>
 language designers today are still rediscovering them over forty years later.</p>
 </aside>
 <p>This makes it trivial to add new operations<span class="em">&mdash;</span>simply define another function
-that pattern matches on all of the types.</p>
-<p><img src="image/representing-code/columns.png" alt="The table split into columns for each function." /></p>
+that pattern matches on all of the types.</p><img src="image/representing-code/columns.png" alt="The table split into columns for each function." />
 <p>But, conversely, adding a new type is hard. You have to go back and add a new
 case to all of the pattern matches in all of the existing functions.</p>
 <p>Each style has a certain &ldquo;grain&rdquo; to it. That&rsquo;s what the paradigm literally means<span class="em">&mdash;</span>an object-oriented language wants you to <em>orient</em> your code along the rows of
@@ -847,7 +826,6 @@ every time. Here&rsquo;s how we do it. First, we define a separate interface:</p
   <span class="o">}</span>                                                  
 </pre></div>
 
-
 <aside name="overload">
 <p>In Design Patterns, both of these methods are confusingly named <code>visit()</code>, and
 they rely on overloading to distinguish them. This leads some readers to think
@@ -893,8 +871,7 @@ appropriate visit method on the visitor and passes <em>itself</em> to it.</p>
 <p>That&rsquo;s the heart of the trick right there. It lets us use polymorphic dispatch
 on the <em>pastry</em> classes to select the appropriate method on the <em>visitor</em> class.
 In the table, each pastry class is a row, but if you look at all of the methods
-for a single visitor, they form a <em>column</em>.</p>
-<p><img src="image/representing-code/visitor.png" alt="Now all of the cells for one operation are part of the same class, the visitor." /></p>
+for a single visitor, they form a <em>column</em>.</p><img src="image/representing-code/visitor.png" alt="Now all of the cells for one operation are part of the same class, the visitor." />
 <p>We added one <code>accept()</code> method to each class, and we can use it for as many
 visitors as we want without ever having to touch the pastry classes again. It&rsquo;s
 a clever pattern.</p>
@@ -992,13 +969,10 @@ correctly. We want to know if the <code>+</code> or <code>*</code> is at the top
 <p>To that end, the string representation we produce isn&rsquo;t going to be Lox syntax.
 Instead, it will look a lot like, well, Lisp. Each expression is explicitly
 parenthesized, and all of its subexpressions and tokens are contained in that.</p>
-<p>Given a syntax tree like:</p>
-<p><img src="image/representing-code/expression.png" alt="An example syntax tree." /></p>
+<p>Given a syntax tree like:</p><img src="image/representing-code/expression.png" alt="An example syntax tree." />
 <p>It produces:</p>
 <div class="codehilite"><pre><span></span>(* (- 123) (group 45.67))
 </pre></div>
-
-
 <p>Not exactly &ldquo;pretty&rdquo;, but it does show the nesting and grouping explicitly. To
 implement this, we define a new class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/AstPrinter.java</em><br>
@@ -1071,8 +1045,6 @@ add after <em>visitUnaryExpr</em>()</div>
 parentheses, yielding a string like:</p>
 <div class="codehilite"><pre><span></span>(+ 1 2)
 </pre></div>
-
-
 <p>Note that it calls <code>accept()</code> on each subexpression and passes in itself. This
 is the <span name="tree">recursive</span> step that lets us print an entire
 tree.</p>
@@ -1103,8 +1075,6 @@ add after <em>parenthesize</em>()</div>
 <p>If we did everything right, it prints:</p>
 <div class="codehilite"><pre><span></span>(* (- 123) (group 45.67))
 </pre></div>
-
-
 <p>You can go ahead and delete this method. We won&rsquo;t need it. Also, as we add new
 syntax tree types, I won&rsquo;t bother showing the necessary visit methods for them
 in AstPrinter. If you want to (and you want the Java compiler to not yell at
@@ -1120,8 +1090,6 @@ metasyntax were just syntactic sugar. Given this grammar:</p>
      <span class="err">|</span> <span class="t">IDENTIFIER</span>
      <span class="err">|</span> <span class="t">NUMBER</span>
 </pre></div>
-
-
 <p>Produce a grammar that matches the same language but does not use any of
 that notational sugar.</p>
 <p>Bonus: What kind of expression does this bit of grammar encode?</p>
@@ -1142,13 +1110,9 @@ stack. An arithmetic operator pops the top two numbers, performs the
 operation, and pushes the result. Thus, this:</p>
 <div class="codehilite"><pre><span></span><span class="o">(</span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">4</span> <span class="o">-</span> <span class="n">3</span><span class="o">)</span>
 </pre></div>
-
-
 <p>in RPN becomes:</p>
 <div class="codehilite"><pre><span></span><span class="n">1</span> <span class="n">2</span> <span class="o">+</span> <span class="n">4</span> <span class="n">3</span> <span class="o">-</span> <span class="o">*</span>
 </pre></div>
-
-
 <p>Define a visitor class for our syntax tree classes that takes an expression,
 converts it to RPN, and returns the resulting string.</p>
 </li>

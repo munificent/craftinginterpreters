@@ -180,8 +180,7 @@ our intuition of what&rsquo;s &ldquo;normal&rdquo; in a language is informed eve
 hardware limitations of yesteryear.</p>
 </aside>
 <p>Step through this example program and watch how the local variables come in and
-go out of scope:</p>
-<p><img src="image/local-variables/scopes.png" alt="A series of local variables come into and out of scope in a stack-like fashion." /></p>
+go out of scope:</p><img src="image/local-variables/scopes.png" alt="A series of local variables come into and out of scope in a stack-like fashion." />
 <p>See how they fit a stack perfectly? It seems that the stack will work for
 storing locals at runtime. But we can go further than that. Not only do we know
 <em>that</em> they will be on the stack, but we can even pin down precisely <em>where</em>
@@ -324,15 +323,12 @@ new grammar we&rsquo;ll introduce is:</p>
 
 <span class="i">block</span>          <span class="err">→</span> <span class="s">&quot;{&quot;</span> <span class="i">declaration</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
 </pre></div>
-
-
 <aside name="block">
 <p>When you think about it, &ldquo;block&rdquo; is a weird name. Used metaphorically, &ldquo;block&rdquo;
 usually means a small indivisible unit, but for some reason, the Algol 60
 committee decided to use it to refer to a <em>compound</em> structure<span class="em">&mdash;</span>a series of
 statements. It could be worse, I suppose. Algol 58 called <code>begin</code> and <code>end</code>
-&ldquo;statement parentheses&rdquo;.</p>
-<p><img src="image/local-variables/block.png" alt="A cinder block." class="above" /></p>
+&ldquo;statement parentheses&rdquo;.</p><img src="image/local-variables/block.png" alt="A cinder block." class="above" />
 </aside>
 <p>Blocks are a kind of statement, so the rule for them goes in the <code>statement</code>
 production. The corresponding code to compile one looks like this:</p>
@@ -404,8 +400,7 @@ variables into them.</p>
 and compiling variable declarations. We&rsquo;ve got <code>var</code> statements, identifier
 expressions and assignment in there now. It&rsquo;s just that the compiler assumes
 all variables are global. So we don&rsquo;t need any new parsing support, we just need
-to hook up the new scoping semantics to the existing code.</p>
-<p><img src="image/local-variables/declaration.png" alt="The code flow within varDeclaration()." /></p>
+to hook up the new scoping semantics to the existing code.</p><img src="image/local-variables/declaration.png" alt="The code flow within varDeclaration()." />
 <p>Variable declaration parsing begins in <code>varDeclaration()</code> and relies on a couple
 of other functions. First, <code>parseVariable()</code> consumes the identifier token for
 the variable name, adds its lexeme to the chunk&rsquo;s constant table as a string,
@@ -450,8 +445,7 @@ remaining temporary. We also know that new locals are allocated at the top of
 the stack&hellip; right where that value already is. Thus, there&rsquo;s nothing to do. The
 temporary simply <em>becomes</em> the local variable. It doesn&rsquo;t get much more
 efficient than that.</p>
-<p><span name="locals"></span></p>
-<p><img src="image/local-variables/local-slots.png" alt="Walking through the bytecode execution showing that each initializer's result ends up in the local's slot." /></p>
+<p><span name="locals"></span></p><img src="image/local-variables/local-slots.png" alt="Walking through the bytecode execution showing that each initializer's result ends up in the local's slot." />
 <aside name="locals">
 <p>The code on the left compiles to the sequence of instructions on the right.</p>
 </aside>
@@ -526,8 +520,6 @@ in <em>addLocal</em>()</div>
   <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;second&quot;</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>At the top level, Lox allows redeclaring a variable with the same name as a
 previous declaration because that&rsquo;s useful for the REPL. But inside a local
 scope, that&rsquo;s a pretty <span name="rust">weird</span> thing to do. It&rsquo;s likely
@@ -545,8 +537,6 @@ code relies on it.</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>It&rsquo;s OK to have two variables with the same name in <em>different</em> scopes, even
 when the scopes overlap such that both are visible at the same time. That&rsquo;s
 shadowing, and Lox does allow that. It&rsquo;s only an error to have two variables
@@ -570,6 +560,7 @@ in <em>declareVariable</em>()</div>
 </pre></div>
 
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>declareVariable</em>()</div>
+
 <aside name="negative">
 <p>Don&rsquo;t worry about that odd <code>depth != -1</code> part yet. We&rsquo;ll get to what that&rsquo;s
 about later.</p>
@@ -848,11 +839,8 @@ name="elegant">elegant</span>.</p>
   <span class="o">}</span>
 <span class="o">}</span>
 </pre></div>
-
-
 <p>We slayed it then by splitting a variable&rsquo;s declaration into two phases, and
-we&rsquo;ll do that again here:</p>
-<p><img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." /></p>
+we&rsquo;ll do that again here:</p><img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." />
 <p>As soon as the variable declaration begins<span class="em">&mdash;</span>in other words, before its
 initializer<span class="em">&mdash;</span>the name is declared in the current scope. The variable exists,
 but in a special &ldquo;uninitialized&rdquo; state. Then we compile the initializer. If at
@@ -950,8 +938,6 @@ complexity is worth it?</p>
 <p>How do other languages handle code like:</p>
 <div class="codehilite"><pre><span></span><span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span>
 </pre></div>
-
-
 <p>What would you do? Why?</p>
 </li>
 <li>
