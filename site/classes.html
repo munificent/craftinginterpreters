@@ -185,7 +185,8 @@ stamina.</p>
 <h2><a href="#class-declarations" name="class-declarations"><small>12&#8202;.&#8202;1</small> Class Declarations</a></h2>
 <p>Like we do, we&rsquo;re gonna start with syntax. A class statement introduces a new
 name, so it lives in the <code>declaration</code> grammar rule:</p>
-<div class="codehilite"><pre><span class="i">declaration</span> <span class="err">→</span> <span class="i">classDecl</span>
+<div class="codehilite"><pre>
+<span class="i">declaration</span> <span class="err">→</span> <span class="i">classDecl</span>
             <span class="err">|</span> <span class="i">funDecl</span>
             <span class="err">|</span> <span class="i">varDecl</span>
             <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
@@ -194,7 +195,8 @@ name, so it lives in the <code>declaration</code> grammar rule:</p>
 </pre></div>
 <p>The new <code>classDecl</code> rule relies on the <code>function</code> rule we defined
 <a href="functions.html#function-declarations">earlier</a>. To refresh your memory:</p>
-<div class="codehilite"><pre><span class="i">function</span>    <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="i">block</span> <span class="o">;</span>
+<div class="codehilite"><pre>
+<span class="i">function</span>    <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="i">block</span> <span class="o">;</span>
 <span class="i">parameters</span>  <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
 <p>In plain English, a class declaration is the <code>class</code> keyword, followed by the
@@ -205,7 +207,8 @@ body. Here&rsquo;s an example:</p>
 <aside name="fun">
 <p>Not that I&rsquo;m trying to say methods aren&rsquo;t fun or anything.</p>
 </aside>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Breakfast</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Breakfast</span> <span class="o">{</span>
   <span class="i">cook</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="s">&quot;Eggs a-fryin&#39;!&quot;</span><span class="o">;</span>
   <span class="o">}</span>
@@ -220,11 +223,14 @@ class declaration. Instances are loose bags of data and you can freely add
 fields to them as you see fit in the middle of normal imperative code.</p>
 <p>Over in our AST generator, the <code>classDecl</code> grammar rule gets its own statement
 <span name="class-ast">node</span>:</p>
-<div class="codehilite"><pre class="insert-before">      <span class="s">&quot;Block      : List&lt;Stmt&gt; statements&quot;</span><span class="o">,</span>                  
+<div class="codehilite"><pre class="insert-before">
+      <span class="s">&quot;Block      : List&lt;Stmt&gt; statements&quot;</span><span class="o">,</span>                  
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">      <span class="s">&quot;Class      : Token name, List&lt;Stmt.Function&gt; methods&quot;</span><span class="o">,</span>
-</pre><pre class="insert-after">      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>                        
+<pre class="insert">
+      <span class="s">&quot;Class      : Token name, List&lt;Stmt.Function&gt; methods&quot;</span><span class="o">,</span>
+</pre><pre class="insert-after">
+      <span class="s">&quot;Expression : Expr expression&quot;</span><span class="o">,</span>                        
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
@@ -238,11 +244,14 @@ It has all the bits of state that we need for a method: name, parameter list,
 and body.</p>
 <p>A class can appear anywhere a named declaration is allowed, triggered by the
 leading <code>class</code> keyword:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="k">try</span> <span class="o">{</span>                                         
+<div class="codehilite"><pre class="insert-before">
+    <span class="k">try</span> <span class="o">{</span>                                         
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>declaration</em>()</div>
-<pre class="insert">      <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">CLASS</span><span class="o">))</span> <span class="k">return</span> <span class="i">classDeclaration</span><span class="o">();</span>
-</pre><pre class="insert-after">      <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">FUN</span><span class="o">))</span> <span class="k">return</span> <span class="i">function</span><span class="o">(</span><span class="s">&quot;function&quot;</span><span class="o">);</span>
+<pre class="insert">
+      <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">CLASS</span><span class="o">))</span> <span class="k">return</span> <span class="i">classDeclaration</span><span class="o">();</span>
+</pre><pre class="insert-after">
+      <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">FUN</span><span class="o">))</span> <span class="k">return</span> <span class="i">function</span><span class="o">(</span><span class="s">&quot;function&quot;</span><span class="o">);</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>declaration</em>()</div>
@@ -250,7 +259,9 @@ in <em>declaration</em>()</div>
 <p>That calls out to:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>declaration</em>()</div>
-<pre><br>  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">classDeclaration</span><span class="o">()</span> <span class="o">{</span>                        
+<pre>
+
+  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">classDeclaration</span><span class="o">()</span> <span class="o">{</span>                        
     <span class="t">Token</span> <span class="i">name</span> <span class="o">=</span> <span class="i">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span> <span class="s">&quot;Expect class name.&quot;</span><span class="o">);</span>
     <span class="i">consume</span><span class="o">(</span><span class="n">LEFT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;{&#39; before class body.&quot;</span><span class="o">);</span>  
 
@@ -283,13 +294,15 @@ Usually, this would feed into the interpreter, but now we need to plumb it
 through the resolver first:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
-<pre>  <span class="a">@Override</span>                                    
+<pre>
+  <span class="a">@Override</span>                                    
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitClassStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Class</span> <span class="i">stmt</span><span class="o">)</span> <span class="o">{</span>
     <span class="i">declare</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                        
     <span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                         
     <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                               
   <span class="o">}</span>                                            
-<br></pre></div>
+
+</pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitBlockStmt</em>()</div>
 
@@ -300,7 +313,8 @@ correctly.</p>
 <p><em>Now</em> we interpret it:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitBlockStmt</em>()</div>
-<pre>  <span class="a">@Override</span>                                         
+<pre>
+  <span class="a">@Override</span>                                         
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitClassStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Class</span> <span class="i">stmt</span><span class="o">)</span> <span class="o">{</span>     
     <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="k">null</span><span class="o">);</span>     
     <span class="t">LoxClass</span> <span class="i">klass</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxClass</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>
@@ -320,7 +334,8 @@ variable binding process allows references to the class inside its own methods.<
 like:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxClass.java</em><br>
 create new file</div>
-<pre><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre>
+<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
 
 <span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>               
 <span class="k">import</span> <span class="n">java.util.Map</span><span class="o">;</span>                
@@ -344,7 +359,8 @@ create new file</div>
 <p>Literally a wrapper around a name. We don&rsquo;t even store the methods yet. Not
 super useful, but it does have a <code>toString()</code> method so we can write a trivial
 script and test that class objects are actually being parsed and executed:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">DevonshireCream</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">DevonshireCream</span> <span class="o">{</span>
   <span class="i">serveOn</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">return</span> <span class="s">&quot;Scones&quot;</span><span class="o">;</span>
   <span class="o">}</span>
@@ -376,17 +392,22 @@ instances of itself. This feels elegant to me, and also spares us the need to
 introduce syntax like <code>new</code>. Therefore, we can skip past the front end straight
 into the runtime.</p>
 <p>Right now, if you try this:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Bagel</span> <span class="o">{}</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Bagel</span> <span class="o">{}</span>
 <span class="t">Bagel</span><span class="o">();</span>
 </pre></div>
 <p>You get a runtime error. <code>visitCallExpr()</code> checks to see if the called object
 implements <code>LoxCallable</code> and reports an error since LoxClass doesn&rsquo;t. Not <em>yet</em>,
 that is:</p>
-<div class="codehilite"><pre class="insert-before"><span class="k">import</span> <span class="n">java.util.Map</span><span class="o">;</span>                  
-<br></pre><div class="source-file"><em>lox/LoxClass.java</em><br>
+<div class="codehilite"><pre class="insert-before">
+<span class="k">import</span> <span class="n">java.util.Map</span><span class="o">;</span>                  
+
+</pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 replace 1 line</div>
-<pre class="insert"><span class="k">class</span> <span class="t">LoxClass</span> <span class="k">implements</span> <span class="t">LoxCallable</span> <span class="o">{</span>
-</pre><pre class="insert-after">  <span class="k">final</span> <span class="t">String</span> <span class="i">name</span><span class="o">;</span>                   
+<pre class="insert">
+<span class="k">class</span> <span class="t">LoxClass</span> <span class="k">implements</span> <span class="t">LoxCallable</span> <span class="o">{</span>
+</pre><pre class="insert-after">
+  <span class="k">final</span> <span class="t">String</span> <span class="i">name</span><span class="o">;</span>                   
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, replace 1 line</div>
@@ -394,7 +415,8 @@ replace 1 line</div>
 <p>That interface requires two methods:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxClass.java</em><br>
 add after <em>toString</em>()</div>
-<pre>  <span class="a">@Override</span>                                                            
+<pre>
+  <span class="a">@Override</span>                                                            
   <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span><span class="o">(</span><span class="t">Interpreter</span> <span class="i">interpreter</span><span class="o">,</span> <span class="t">List</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;</span> <span class="i">arguments</span><span class="o">)</span> <span class="o">{</span>
     <span class="t">LoxInstance</span> <span class="i">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxInstance</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>                      
     <span class="k">return</span> <span class="i">instance</span><span class="o">;</span>                                                   
@@ -417,7 +439,8 @@ constructors, we&rsquo;ll revisit this.</p>
 class. Again, our first iteration starts small:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxInstance.java</em><br>
 create new file</div>
-<pre><span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<pre>
+<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
 
 <span class="k">import</span> <span class="n">java.util.HashMap</span><span class="o">;</span>            
 <span class="k">import</span> <span class="n">java.util.Map</span><span class="o">;</span>                
@@ -440,7 +463,8 @@ create new file</div>
 
 <p>Like LoxClass, it&rsquo;s pretty bare bones, but we&rsquo;re only getting started. If you
 want to give it a try, here&rsquo;s a script to run:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Bagel</span> <span class="o">{}</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Bagel</span> <span class="o">{}</span>
 <span class="k">var</span> <span class="i">bagel</span> <span class="o">=</span> <span class="t">Bagel</span><span class="o">();</span>
 <span class="k">print</span> <span class="i">bagel</span><span class="o">;</span> <span class="c">// Prints &quot;Bagel instance&quot;.</span>
 </pre></div>
@@ -464,24 +488,29 @@ object. That syntax is only meaningful inside a method and always accesses state
 on the current object.</p>
 <p>Lox, for better or worse, isn&rsquo;t quite so pious about its OOP faith.</p>
 </aside>
-<div class="codehilite"><pre><span class="i">someObject</span><span class="o">.</span><span class="i">someProperty</span>
+<div class="codehilite"><pre>
+<span class="i">someObject</span><span class="o">.</span><span class="i">someProperty</span>
 </pre></div>
 <p>An expression followed by a <code>.</code> and an identifier reads the property with that
 name from the object the expression evaluates to. That <code>.</code> is as high precedence
 as the parentheses in a function call expression, so we slot it into the grammar
 by replacing the existing <code>call</code> rule with:</p>
-<div class="codehilite"><pre><span class="i">call</span> <span class="err">→</span> <span class="i">primary</span> <span class="o">(</span> <span class="s">&quot;(&quot;</span> <span class="i">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="err">|</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
+<div class="codehilite"><pre>
+<span class="i">call</span> <span class="err">→</span> <span class="i">primary</span> <span class="o">(</span> <span class="s">&quot;(&quot;</span> <span class="i">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="err">|</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
 </pre></div>
 <p>After a primary expression, we allow a series of any mixture of parenthesized
 calls and dotted property accesses. &ldquo;Property access&rdquo; is a mouthful, so from
 here on out, we&rsquo;ll call these &ldquo;get expressions&rdquo;.</p>
 <h3><a href="#get-expressions" name="get-expressions"><small>12&#8202;.&#8202;3&#8202;.&#8202;1</small> Get expressions</a></h3>
 <p>The <span name="get-ast">syntax tree node</span> is:</p>
-<div class="codehilite"><pre class="insert-before">      <span class="s">&quot;Call     : Expr callee, Token paren, List&lt;Expr&gt; arguments&quot;</span><span class="o">,</span>
+<div class="codehilite"><pre class="insert-before">
+      <span class="s">&quot;Call     : Expr callee, Token paren, List&lt;Expr&gt; arguments&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">      <span class="s">&quot;Get      : Expr object, Token name&quot;</span><span class="o">,</span>                       
-</pre><pre class="insert-after">      <span class="s">&quot;Grouping : Expr expression&quot;</span><span class="o">,</span>                               
+<pre class="insert">
+      <span class="s">&quot;Get      : Expr object, Token name&quot;</span><span class="o">,</span>                       
+</pre><pre class="insert-after">
+      <span class="s">&quot;Grouping : Expr expression&quot;</span><span class="o">,</span>                               
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
@@ -491,16 +520,19 @@ in <em>main</em>()</div>
 </aside>
 <p>Following the grammar, the new parsing code goes in our existing <code>call()</code>
 method:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="k">while</span> <span class="o">(</span><span class="k">true</span><span class="o">)</span> <span class="o">{</span>                             
+<div class="codehilite"><pre class="insert-before">
+    <span class="k">while</span> <span class="o">(</span><span class="k">true</span><span class="o">)</span> <span class="o">{</span>                             
       <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">LEFT_PAREN</span><span class="o">))</span> <span class="o">{</span>                 
         <span class="i">expr</span> <span class="o">=</span> <span class="i">finishCall</span><span class="o">(</span><span class="i">expr</span><span class="o">);</span>               
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>call</em>()</div>
-<pre class="insert">      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">DOT</span><span class="o">))</span> <span class="o">{</span>                 
+<pre class="insert">
+      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">DOT</span><span class="o">))</span> <span class="o">{</span>                 
         <span class="t">Token</span> <span class="i">name</span> <span class="o">=</span> <span class="i">consume</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">,</span>       
             <span class="s">&quot;Expect property name after &#39;.&#39;.&quot;</span><span class="o">);</span>
         <span class="i">expr</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Get</span><span class="o">(</span><span class="i">expr</span><span class="o">,</span> <span class="i">name</span><span class="o">);</span>       
-</pre><pre class="insert-after">      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                 
+</pre><pre class="insert-after">
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                 
         <span class="k">break</span><span class="o">;</span>                                 
       <span class="o">}</span>                                        
     <span class="o">}</span>                                          
@@ -514,12 +546,14 @@ and dots, like so:</p><img src="image/classes/zip.png" alt="Parsing a series of 
 <p>Instances of the new Expr.Get node feed into the resolver:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitCallExpr</em>()</div>
-<pre>  <span class="a">@Override</span>                                
+<pre>
+  <span class="a">@Override</span>                                
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitGetExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Get</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="i">resolve</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">object</span><span class="o">);</span>                  
     <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                           
   <span class="o">}</span>                                        
-<br></pre></div>
+
+</pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitCallExpr</em>()</div>
 
@@ -533,7 +567,8 @@ process it during the static resolution pass.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitCallExpr</em>()</div>
-<pre>  <span class="a">@Override</span>                                        
+<pre>
+  <span class="a">@Override</span>                                        
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitGetExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Get</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>      
     <span class="t">Object</span> <span class="i">object</span> <span class="o">=</span> <span class="i">evaluate</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">object</span><span class="o">);</span>         
     <span class="k">if</span> <span class="o">(</span><span class="i">object</span> <span class="k">instanceof</span> <span class="t">LoxInstance</span><span class="o">)</span> <span class="o">{</span>           
@@ -552,11 +587,15 @@ instances of classes have properties. If the object is some other type like a
 number, invoking a getter on it is a runtime error.</p>
 <p>If the object is a LoxInstance, then we ask it to look up the property. Looks
 like it&rsquo;s time to give LoxInstance some actual state. A map will do fine:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">private</span> <span class="t">LoxClass</span> <span class="i">klass</span><span class="o">;</span>                                    
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">private</span> <span class="t">LoxClass</span> <span class="i">klass</span><span class="o">;</span>                                    
 </pre><div class="source-file"><em>lox/LoxInstance.java</em><br>
 in class <em>LoxInstance</em></div>
-<pre class="insert">  <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">Object</span><span class="o">&gt;</span> <span class="i">fields</span> <span class="o">=</span> <span class="k">new</span> <span class="t">HashMap</span><span class="o">&lt;&gt;();</span>
-</pre><pre class="insert-after"><br>  <span class="t">LoxInstance</span><span class="o">(</span><span class="t">LoxClass</span> <span class="i">klass</span><span class="o">)</span> <span class="o">{</span>                              
+<pre class="insert">
+  <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">Object</span><span class="o">&gt;</span> <span class="i">fields</span> <span class="o">=</span> <span class="k">new</span> <span class="t">HashMap</span><span class="o">&lt;&gt;();</span>
+</pre><pre class="insert-after">
+
+  <span class="t">LoxInstance</span><span class="o">(</span><span class="t">LoxClass</span> <span class="i">klass</span><span class="o">)</span> <span class="o">{</span>                              
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxInstance.java</em>, in class <em>LoxInstance</em></div>
@@ -565,7 +604,8 @@ in class <em>LoxInstance</em></div>
 property&rsquo;s value. To look up a property on an instance:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxInstance.java</em><br>
 add after <em>LoxInstance</em>()</div>
-<pre>  <span class="t">Object</span> <span class="i">get</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>                           
+<pre>
+  <span class="t">Object</span> <span class="i">get</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>                           
     <span class="k">if</span> <span class="o">(</span><span class="i">fields</span><span class="o">.</span><span class="i">containsKey</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">))</span> <span class="o">{</span>           
       <span class="k">return</span> <span class="i">fields</span><span class="o">.</span><span class="i">get</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>                
     <span class="o">}</span>                                                
@@ -607,11 +647,13 @@ we can test out reading, we must support writing.</p>
 <h3><a href="#set-expressions" name="set-expressions"><small>12&#8202;.&#8202;3&#8202;.&#8202;2</small> Set expressions</a></h3>
 <p>Setters use the same syntax as getters, except they appear on the left side of
 an assignment:</p>
-<div class="codehilite"><pre><span class="i">someObject</span><span class="o">.</span><span class="i">someProperty</span> <span class="o">=</span> <span class="i">value</span><span class="o">;</span>
+<div class="codehilite"><pre>
+<span class="i">someObject</span><span class="o">.</span><span class="i">someProperty</span> <span class="o">=</span> <span class="i">value</span><span class="o">;</span>
 </pre></div>
 <p>In grammar land, we extend the rule for assignment to allow dotted identifiers
 on the left-hand side:</p>
-<div class="codehilite"><pre><span class="i">assignment</span> <span class="err">→</span> <span class="o">(</span> <span class="i">call</span> <span class="s">&quot;.&quot;</span> <span class="o">)</span><span class="err">?</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
+<div class="codehilite"><pre>
+<span class="i">assignment</span> <span class="err">→</span> <span class="o">(</span> <span class="i">call</span> <span class="s">&quot;.&quot;</span> <span class="o">)</span><span class="err">?</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
            <span class="err">|</span> <span class="i">logic_or</span><span class="o">;</span>
 </pre></div>
 <p>Unlike getters, setters don&rsquo;t chain. The reference to <code>call</code> allows any high
@@ -622,11 +664,14 @@ accesses, as in:</p><img src="image/classes/setter.png" alt="breakfast.omelette.
 <p>Like we have two separate AST nodes for variable access and variable assignment,
 we need a <span name="set-ast">second setter node</span> to complement our
 getter node:</p>
-<div class="codehilite"><pre class="insert-before">      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
+<div class="codehilite"><pre class="insert-before">
+      <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">      <span class="s">&quot;Set      : Expr object, Token name, Expr value&quot;</span><span class="o">,</span>  
-</pre><pre class="insert-after">      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>           
+<pre class="insert">
+      <span class="s">&quot;Set      : Expr object, Token name, Expr value&quot;</span><span class="o">,</span>  
+</pre><pre class="insert-after">
+      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>           
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
@@ -646,13 +691,16 @@ already parsed and transform it into the correct syntax tree node for the
 assignment.</p>
 <p>We add another clause to that transformation to handle turning an Expr.Get
 expression on the left into the corresponding Expr.Set:</p>
-<div class="codehilite"><pre class="insert-before">        <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Assign</span><span class="o">(</span><span class="i">name</span><span class="o">,</span> <span class="i">value</span><span class="o">);</span>             
+<div class="codehilite"><pre class="insert-before">
+        <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Assign</span><span class="o">(</span><span class="i">name</span><span class="o">,</span> <span class="i">value</span><span class="o">);</span>             
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>assignment</em>()</div>
-<pre class="insert">      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Get</span><span class="o">)</span> <span class="o">{</span>             
+<pre class="insert">
+      <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Get</span><span class="o">)</span> <span class="o">{</span>             
         <span class="t">Expr</span><span class="o">.</span><span class="t">Get</span> <span class="i">get</span> <span class="o">=</span> <span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Get</span><span class="o">)</span><span class="i">expr</span><span class="o">;</span>                   
         <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Set</span><span class="o">(</span><span class="i">get</span><span class="o">.</span><span class="i">object</span><span class="o">,</span> <span class="i">get</span><span class="o">.</span><span class="i">name</span><span class="o">,</span> <span class="i">value</span><span class="o">);</span>
-</pre><pre class="insert-after">      <span class="o">}</span>                                                  
+</pre><pre class="insert-after">
+      <span class="o">}</span>                                                  
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>assignment</em>()</div>
@@ -660,13 +708,15 @@ in <em>assignment</em>()</div>
 <p>That&rsquo;s our syntax. We push that through into the resolver:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitLogicalExpr</em>()</div>
-<pre>  <span class="a">@Override</span>                                
+<pre>
+  <span class="a">@Override</span>                                
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitSetExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Set</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="i">resolve</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">value</span><span class="o">);</span>                   
     <span class="i">resolve</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">object</span><span class="o">);</span>                  
     <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                           
   <span class="o">}</span>                                        
-<br></pre></div>
+
+</pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitLogicalExpr</em>()</div>
 
@@ -677,7 +727,8 @@ value it&rsquo;s being set to.</p>
 <p>That leads us to the interpreter:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitLogicalExpr</em>()</div>
-<pre>  <span class="a">@Override</span>                                                            
+<pre>
+  <span class="a">@Override</span>                                                            
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitSetExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Set</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>                          
     <span class="t">Object</span> <span class="i">object</span> <span class="o">=</span> <span class="i">evaluate</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">object</span><span class="o">);</span>                             
 
@@ -714,7 +765,8 @@ carefully specify it and ensure our implementations do these in the same order.<
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/LoxInstance.java</em><br>
 add after <em>get</em>()</div>
-<pre>  <span class="t">void</span> <span class="i">set</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">,</span> <span class="t">Object</span> <span class="i">value</span><span class="o">)</span> <span class="o">{</span>
+<pre>
+  <span class="t">void</span> <span class="i">set</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">,</span> <span class="t">Object</span> <span class="i">value</span><span class="o">)</span> <span class="o">{</span>
     <span class="i">fields</span><span class="o">.</span><span class="i">put</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">value</span><span class="o">);</span>   
   <span class="o">}</span>                                   
 </pre></div>
@@ -736,13 +788,15 @@ those together:</p><img src="image/classes/method.png" alt="The syntax tree for 
 <p>That raises an interesting question. What happens when those two expressions are
 pulled apart? Assuming <code>method</code> is a method on the class of <code>object</code> and not a
 field on the instance, what should this do:</p>
-<div class="codehilite"><pre><span class="k">var</span> <span class="i">m</span> <span class="o">=</span> <span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">;</span>
+<div class="codehilite"><pre>
+<span class="k">var</span> <span class="i">m</span> <span class="o">=</span> <span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">;</span>
 <span class="i">m</span><span class="o">(</span><span class="i">argument</span><span class="o">);</span>
 </pre></div>
 <p>This program &ldquo;looks up&rdquo; the method and stores the result<span class="em">&mdash;</span>whatever that is<span class="em">&mdash;</span>in a variable and then calls that object later. Is this allowed? Can you treat a
 method like it&rsquo;s a function on the instance?</p>
 <p>What about the other direction?</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Box</span> <span class="o">{}</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Box</span> <span class="o">{}</span>
 
 <span class="k">fun</span> <span class="i">notMethod</span><span class="o">(</span><span class="i">argument</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">print</span> <span class="s">&quot;called function with &quot;</span> <span class="o">+</span> <span class="i">argument</span><span class="o">;</span>
@@ -764,10 +818,12 @@ perfectly normal thing to do.</p>
 <p>The first example is more obscure. One motivation is that users generally expect
 to be able to hoist a subexpression out into a local variable without changing
 the meaning of the program. You can take this:</p>
-<div class="codehilite"><pre><span class="i">breakfast</span><span class="o">(</span><span class="i">omelette</span><span class="o">.</span><span class="i">filledWith</span><span class="o">(</span><span class="i">cheese</span><span class="o">),</span> <span class="i">sausage</span><span class="o">);</span>
+<div class="codehilite"><pre>
+<span class="i">breakfast</span><span class="o">(</span><span class="i">omelette</span><span class="o">.</span><span class="i">filledWith</span><span class="o">(</span><span class="i">cheese</span><span class="o">),</span> <span class="i">sausage</span><span class="o">);</span>
 </pre></div>
 <p>And turn it into this:</p>
-<div class="codehilite"><pre><span class="k">var</span> <span class="i">eggs</span> <span class="o">=</span> <span class="i">omelette</span><span class="o">.</span><span class="i">filledWith</span><span class="o">(</span><span class="i">cheese</span><span class="o">);</span>
+<div class="codehilite"><pre>
+<span class="k">var</span> <span class="i">eggs</span> <span class="o">=</span> <span class="i">omelette</span><span class="o">.</span><span class="i">filledWith</span><span class="o">(</span><span class="i">cheese</span><span class="o">);</span>
 <span class="i">breakfast</span><span class="o">(</span><span class="i">eggs</span><span class="o">,</span> <span class="i">sausage</span><span class="o">);</span>
 </pre></div>
 <p>And it does the same thing. Likewise, since the <code>.</code> and the <code>()</code> in a method
@@ -781,17 +837,20 @@ like:</p>
 body simply invokes a method on some object. Being able to lookup the method and
 pass it directly saves you the chore of manually declaring a function to wrap
 it. Compare this:</p>
-<div class="codehilite"><pre><span class="k">fun</span> <span class="i">callback</span><span class="o">(</span><span class="i">a</span><span class="o">,</span> <span class="i">b</span><span class="o">,</span> <span class="i">c</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">fun</span> <span class="i">callback</span><span class="o">(</span><span class="i">a</span><span class="o">,</span> <span class="i">b</span><span class="o">,</span> <span class="i">c</span><span class="o">)</span> <span class="o">{</span>
   <span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">(</span><span class="i">a</span><span class="o">,</span> <span class="i">b</span><span class="o">,</span> <span class="i">c</span><span class="o">);</span>
 <span class="o">}</span>
 
 <span class="i">takeCallback</span><span class="o">(</span><span class="i">callback</span><span class="o">);</span>
 </pre></div>
 <p>Versus this:</p>
-<div class="codehilite"><pre><span class="i">takeCallback</span><span class="o">(</span><span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">);</span>
+<div class="codehilite"><pre>
+<span class="i">takeCallback</span><span class="o">(</span><span class="i">object</span><span class="o">.</span><span class="i">method</span><span class="o">);</span>
 </pre></div>
 </aside>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Person</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Person</span> <span class="o">{</span>
   <span class="i">sayName</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="k">this</span><span class="o">.</span><span class="i">name</span><span class="o">;</span>
   <span class="o">}</span>
@@ -807,7 +866,8 @@ it. Compare this:</p>
 &ldquo;remember&rdquo; the instance it was pulled off from? Does <code>this</code> inside the method
 still refer to that original object?</p>
 <p>Here&rsquo;s a more pathological example to bend your brain:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Person</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Person</span> <span class="o">{</span>
   <span class="i">sayName</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="k">this</span><span class="o">.</span><span class="i">name</span><span class="o">;</span>
   <span class="o">}</span>
@@ -843,14 +903,19 @@ on some other object.</p>
 cases for a bit. We&rsquo;ll get back to those. For now, let&rsquo;s get basic method calls
 working. We&rsquo;re already parsing the method declarations inside the class body, so
 the next step is to resolve them:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                                
+<div class="codehilite"><pre class="insert-before">
+    <span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                                
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert"><br>    <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>       
+<pre class="insert">
+
+    <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>       
       <span class="t">FunctionType</span> <span class="i">declaration</span> <span class="o">=</span> <span class="t">FunctionType</span><span class="o">.</span><span class="n">METHOD</span><span class="o">;</span> 
       <span class="i">resolveFunction</span><span class="o">(</span><span class="i">method</span><span class="o">,</span> <span class="i">declaration</span><span class="o">);</span><span name="local"> </span>
     <span class="o">}</span>                                                 
-<br></pre><pre class="insert-after">    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                      
+
+</pre><pre class="insert-after">
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                      
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -862,31 +927,39 @@ expand this code before too long and it will make more sense.</p>
 <p>We iterate through the methods in the class body and call the
 <code>resolveFunction()</code> method we wrote for handling function declarations already.
 The only difference is that we pass in a new FunctionType enum value:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="n">NONE</span><span class="o">,</span>    
-</pre><pre class="insert-before">    <span class="n">FUNCTION</span><span class="o"><span class="insert-comma">,</span></span>
+<div class="codehilite"><pre class="insert-before">
+    <span class="n">NONE</span><span class="o">,</span>    
+</pre><pre class="insert-before">
+    <span class="n">FUNCTION</span><span class="o"><span class="insert-comma">,</span></span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in enum <em>FunctionType</em><br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
-<pre class="insert">    <span class="n">METHOD</span>   
-</pre><pre class="insert-after">  <span class="o">}</span>          
+<pre class="insert">
+    <span class="n">METHOD</span>   
+</pre><pre class="insert-after">
+  <span class="o">}</span>          
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in enum <em>FunctionType</em>, add <em>&ldquo;,&rdquo;</em> to previous line</div>
 
 <p>That&rsquo;s going to be important when we resolve <code>this</code> expressions. For now, don&rsquo;t
 worry about it. The interesting stuff is in the interpreter:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="k">null</span><span class="o">);</span>                   
+<div class="codehilite"><pre class="insert-before">
+    <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="k">null</span><span class="o">);</span>                   
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()<br>
 replace 1 line</div>
-<pre class="insert"><br>    <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">LoxFunction</span><span class="o">&gt;</span> <span class="i">methods</span> <span class="o">=</span> <span class="k">new</span> <span class="t">HashMap</span><span class="o">&lt;&gt;();</span>           
+<pre class="insert">
+
+    <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">LoxFunction</span><span class="o">&gt;</span> <span class="i">methods</span> <span class="o">=</span> <span class="k">new</span> <span class="t">HashMap</span><span class="o">&lt;&gt;();</span>           
     <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>                   
       <span class="t">LoxFunction</span> <span class="i">function</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">method</span><span class="o">,</span> <span class="i">environment</span><span class="o">);</span>
       <span class="i">methods</span><span class="o">.</span><span class="i">put</span><span class="o">(</span><span class="i">method</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">function</span><span class="o">);</span>                  
     <span class="o">}</span>                                                             
 
     <span class="t">LoxClass</span> <span class="i">klass</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxClass</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">methods</span><span class="o">);</span>     
-</pre><pre class="insert-after">    <span class="i">environment</span><span class="o">.</span><span class="i">assign</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">,</span> <span class="i">klass</span><span class="o">);</span>                         
+</pre><pre class="insert-after">
+    <span class="i">environment</span><span class="o">.</span><span class="i">assign</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">,</span> <span class="i">klass</span><span class="o">);</span>                         
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitClassStmt</em>(), replace 1 line</div>
@@ -897,17 +970,21 @@ Now, we need to do that for the methods contained in the class as well. Each
 method declaration blossoms into a LoxFunction object.</p>
 <p>We take all of those and wrap them up into a map, keyed by the method names.
 That gets stored in LoxClass:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">final</span> <span class="t">String</span> <span class="i">name</span><span class="o">;</span>                                       
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">final</span> <span class="t">String</span> <span class="i">name</span><span class="o">;</span>                                       
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in class <em>LoxClass</em><br>
 replace 4 lines</div>
-<pre class="insert">  <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">LoxFunction</span><span class="o">&gt;</span> <span class="i">methods</span><span class="o">;</span>          
+<pre class="insert">
+  <span class="k">private</span> <span class="k">final</span> <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">LoxFunction</span><span class="o">&gt;</span> <span class="i">methods</span><span class="o">;</span>          
 
   <span class="t">LoxClass</span><span class="o">(</span><span class="t">String</span> <span class="i">name</span><span class="o">,</span> <span class="t">Map</span><span class="o">&lt;</span><span class="t">String</span><span class="o">,</span> <span class="t">LoxFunction</span><span class="o">&gt;</span> <span class="i">methods</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">this</span><span class="o">.</span><span class="i">name</span> <span class="o">=</span> <span class="i">name</span><span class="o">;</span>                                      
     <span class="k">this</span><span class="o">.</span><span class="i">methods</span> <span class="o">=</span> <span class="i">methods</span><span class="o">;</span>                                
   <span class="o">}</span>                                                        
-</pre><pre class="insert-after"><br>  <span class="a">@Override</span>                                                
+</pre><pre class="insert-after">
+
+  <span class="a">@Override</span>                                                
   <span class="k">public</span> <span class="t">String</span> <span class="i">toString</span><span class="o">()</span> <span class="o">{</span>                               
 </pre></div>
 
@@ -916,15 +993,20 @@ replace 4 lines</div>
 <p>Where an instance stores state, the class stores behavior. LoxInstance has its
 map of fields, and LoxClass gets a map of methods. Even though methods are
 owned by the class, they are still accessed through instances of that class:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="t">Object</span> <span class="i">get</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>                             
+<div class="codehilite"><pre class="insert-before">
+  <span class="t">Object</span> <span class="i">get</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>                             
     <span class="k">if</span> <span class="o">(</span><span class="i">fields</span><span class="o">.</span><span class="i">containsKey</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">))</span> <span class="o">{</span>             
       <span class="k">return</span> <span class="i">fields</span><span class="o">.</span><span class="i">get</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>                  
     <span class="o">}</span>                                                  
-<br></pre><div class="source-file"><em>lox/LoxInstance.java</em><br>
+
+</pre><div class="source-file"><em>lox/LoxInstance.java</em><br>
 in <em>get</em>()</div>
-<pre class="insert">    <span class="t">LoxFunction</span> <span class="i">method</span> <span class="o">=</span> <span class="i">klass</span><span class="o">.</span><span class="i">findMethod</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>
+<pre class="insert">
+    <span class="t">LoxFunction</span> <span class="i">method</span> <span class="o">=</span> <span class="i">klass</span><span class="o">.</span><span class="i">findMethod</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>
     <span class="k">if</span> <span class="o">(</span><span class="i">method</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="k">return</span> <span class="i">method</span><span class="o">;</span>                 
-<br></pre><pre class="insert-after">    <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="i">name</span><span class="o">,</span><span name="hidden"> </span>
+
+</pre><pre class="insert-after">
+    <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="i">name</span><span class="o">,</span><span name="hidden"> </span>
         <span class="s">&quot;Undefined property &#39;&quot;</span> <span class="o">+</span> <span class="i">name</span><span class="o">.</span><span class="i">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="o">);</span>  
 </pre></div>
 
@@ -943,7 +1025,8 @@ important semantic point.</p>
 </aside>
 <div class="codehilite"><div class="source-file"><em>lox/LoxClass.java</em><br>
 add after <em>LoxClass</em>()</div>
-<pre>  <span class="t">LoxFunction</span> <span class="i">findMethod</span><span class="o">(</span><span class="t">String</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>
+<pre>
+  <span class="t">LoxFunction</span> <span class="i">findMethod</span><span class="o">(</span><span class="t">String</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">if</span> <span class="o">(</span><span class="i">methods</span><span class="o">.</span><span class="i">containsKey</span><span class="o">(</span><span class="i">name</span><span class="o">))</span> <span class="o">{</span>   
       <span class="k">return</span> <span class="i">methods</span><span class="o">.</span><span class="i">get</span><span class="o">(</span><span class="i">name</span><span class="o">);</span>        
     <span class="o">}</span>                                  
@@ -958,7 +1041,8 @@ add after <em>LoxClass</em>()</div>
 now, a simple map lookup on the class&rsquo;s method table is enough to get us
 started. Give it a try:</p>
 <p><span name="crunch"></span></p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Bacon</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Bacon</span> <span class="o">{</span>
   <span class="i">eat</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="s">&quot;Crunch crunch crunch!&quot;</span><span class="o">;</span>
   <span class="o">}</span>
@@ -988,7 +1072,8 @@ a method body, a <code>this</code> expression evaluates to the instance that the
 called on. Or, more specifically, since methods are accessed and then invoked as
 two steps, it will refer to the object that the method was <em>accessed</em> from.</p>
 <p>That makes our job harder. Peep at:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Egotist</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Egotist</span> <span class="o">{</span>
   <span class="i">speak</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="k">this</span><span class="o">;</span>
   <span class="o">}</span>
@@ -1010,7 +1095,8 @@ surrounds the function returned when looking up a method, then uses of <code>thi
 the body would be able to find it later. LoxFunction already has the ability to
 hold onto a surrounding environment, so we have the machinery we need.</p>
 <p>Let&rsquo;s walk through an example to see how it works:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Cake</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Cake</span> <span class="o">{</span>
   <span class="i">taste</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">var</span> <span class="i">adjective</span> <span class="o">=</span> <span class="s">&quot;delicious&quot;</span><span class="o">;</span>
     <span class="k">print</span> <span class="s">&quot;The &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="o">.</span><span class="i">flavor</span> <span class="o">+</span> <span class="s">&quot; cake is &quot;</span> <span class="o">+</span> <span class="i">adjective</span> <span class="o">+</span> <span class="s">&quot;!&quot;</span><span class="o">;</span>
@@ -1037,7 +1123,8 @@ we create an environment for the method body as usual:</p><img src="image/classe
 successfully resolves to that instance.</p>
 <p>Reusing our environment code for implementing <code>this</code> also takes care of
 interesting cases where methods and functions interact, like:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Thing</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Thing</span> <span class="o">{</span>
   <span class="i">getCallback</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">fun</span> <span class="i">localFunction</span><span class="o">()</span> <span class="o">{</span>
       <span class="k">print</span> <span class="k">this</span><span class="o">;</span>
@@ -1056,11 +1143,14 @@ callback may want to hang onto and retain access to the original object<span cla
 closures and environment chains should do all this correctly.</p>
 <p>Let&rsquo;s code it up. The first step is adding <span name="this-ast">new
 syntax</span> for <code>this</code>:</p>
-<div class="codehilite"><pre class="insert-before">      <span class="s">&quot;Set      : Expr object, Token name, Expr value&quot;</span><span class="o">,</span>
+<div class="codehilite"><pre class="insert-before">
+      <span class="s">&quot;Set      : Expr object, Token name, Expr value&quot;</span><span class="o">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
-<pre class="insert">      <span class="s">&quot;This     : Token keyword&quot;</span><span class="o">,</span>                      
-</pre><pre class="insert-after">      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>         
+<pre class="insert">
+      <span class="s">&quot;This     : Token keyword&quot;</span><span class="o">,</span>                      
+</pre><pre class="insert-after">
+      <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span><span class="o">,</span>         
 </pre></div>
 
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
@@ -1070,12 +1160,17 @@ in <em>main</em>()</div>
 </aside>
 <p>Parsing is simple since it&rsquo;s a single token (which our lexer already
 recognizes as a reserved word):</p>
-<div class="codehilite"><pre class="insert-before">      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span><span class="o">(</span><span class="i">previous</span><span class="o">().</span><span class="i">literal</span><span class="o">);</span>    
+<div class="codehilite"><pre class="insert-before">
+      <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span><span class="o">(</span><span class="i">previous</span><span class="o">().</span><span class="i">literal</span><span class="o">);</span>    
     <span class="o">}</span>                                                 
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>primary</em>()</div>
-<pre class="insert"><br>    <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">THIS</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">This</span><span class="o">(</span><span class="i">previous</span><span class="o">());</span>
-</pre><pre class="insert-after"><br>    <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">))</span> <span class="o">{</span>                          
+<pre class="insert">
+
+    <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">THIS</span><span class="o">))</span> <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">This</span><span class="o">(</span><span class="i">previous</span><span class="o">());</span>
+</pre><pre class="insert-after">
+
+    <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="n">IDENTIFIER</span><span class="o">))</span> <span class="o">{</span>                          
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>primary</em>()</div>
@@ -1084,24 +1179,31 @@ in <em>primary</em>()</div>
 resolver:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitSetExpr</em>()</div>
-<pre>  <span class="a">@Override</span>                                  
+<pre>
+  <span class="a">@Override</span>                                  
   <span class="k">public</span> <span class="t">Void</span> <span class="i">visitThisExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">This</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="i">resolveLocal</span><span class="o">(</span><span class="i">expr</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">keyword</span><span class="o">);</span>        
     <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                             
   <span class="o">}</span>                                          
-<br></pre></div>
+
+</pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitSetExpr</em>()</div>
 
 <p>We resolve it exactly like any other local variable using &ldquo;this&rdquo; as the name for
 the &ldquo;variable&rdquo;. Of course, that&rsquo;s not going to work right now, because &ldquo;this&rdquo;
 <em>isn&rsquo;t</em> declared in any scope. Let&rsquo;s fix that over in <code>visitClassStmt()</code>:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                         
-<br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><pre class="insert-before">
+    <span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                         
+
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">    <span class="i">beginScope</span><span class="o">();</span>                              
+<pre class="insert">
+    <span class="i">beginScope</span><span class="o">();</span>                              
     <span class="i">scopes</span><span class="o">.</span><span class="i">peek</span><span class="o">().</span><span class="i">put</span><span class="o">(</span><span class="s">&quot;this&quot;</span><span class="o">,</span> <span class="k">true</span><span class="o">);</span>           
-<br></pre><pre class="insert-after">    <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>
+
+</pre><pre class="insert-after">
+    <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -1109,11 +1211,16 @@ in <em>visitClassStmt</em>()</div>
 <p>Before we step in and start resolving the method bodies, we push a new scope and
 define &ldquo;this&rdquo; in it as if it were a variable. Then, when we&rsquo;re done, we discard
 it:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="o">}</span>           
-<br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><pre class="insert-before">
+    <span class="o">}</span>           
+
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">    <span class="i">endScope</span><span class="o">();</span> 
-<br></pre><pre class="insert-after">    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>
+<pre class="insert">
+    <span class="i">endScope</span><span class="o">();</span> 
+
+</pre><pre class="insert-after">
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -1127,12 +1234,16 @@ resolver&rsquo;s scope chains and the interpreter&rsquo;s linked environments in
 each other. At runtime, we create the environment after we find the method on
 the instance. We replace the previous line of code that simply returned the
 method&rsquo;s LoxFunction with this:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="t">LoxFunction</span> <span class="i">method</span> <span class="o">=</span> <span class="i">klass</span><span class="o">.</span><span class="i">findMethod</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>
+<div class="codehilite"><pre class="insert-before">
+    <span class="t">LoxFunction</span> <span class="i">method</span> <span class="o">=</span> <span class="i">klass</span><span class="o">.</span><span class="i">findMethod</span><span class="o">(</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">);</span>
 </pre><div class="source-file"><em>lox/LoxInstance.java</em><br>
 in <em>get</em>()<br>
 replace 1 line</div>
-<pre class="insert">    <span class="k">if</span> <span class="o">(</span><span class="i">method</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="k">return</span> <span class="i">method</span><span class="o">.</span><span class="i">bind</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>      
-</pre><pre class="insert-after"><br>    <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="i">name</span><span class="o">,</span><span name="hidden"> </span>
+<pre class="insert">
+    <span class="k">if</span> <span class="o">(</span><span class="i">method</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="k">return</span> <span class="i">method</span><span class="o">.</span><span class="i">bind</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>      
+</pre><pre class="insert-after">
+
+    <span class="k">throw</span> <span class="k">new</span> <span class="t">RuntimeError</span><span class="o">(</span><span class="i">name</span><span class="o">,</span><span name="hidden"> </span>
         <span class="s">&quot;Undefined property &#39;&quot;</span> <span class="o">+</span> <span class="i">name</span><span class="o">.</span><span class="i">lexeme</span> <span class="o">+</span> <span class="s">&quot;&#39;.&quot;</span><span class="o">);</span>  
 </pre></div>
 
@@ -1141,7 +1252,8 @@ replace 1 line</div>
 <p>Note the new call to <code>bind()</code>. That looks like so:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
 add after <em>LoxFunction</em>()</div>
-<pre>  <span class="t">LoxFunction</span> <span class="i">bind</span><span class="o">(</span><span class="t">LoxInstance</span> <span class="i">instance</span><span class="o">)</span> <span class="o">{</span>             
+<pre>
+  <span class="t">LoxFunction</span> <span class="i">bind</span><span class="o">(</span><span class="t">LoxInstance</span> <span class="i">instance</span><span class="o">)</span> <span class="o">{</span>             
     <span class="t">Environment</span> <span class="i">environment</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Environment</span><span class="o">(</span><span class="i">closure</span><span class="o">);</span>
     <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="s">&quot;this&quot;</span><span class="o">,</span> <span class="i">instance</span><span class="o">);</span>              
     <span class="k">return</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">declaration</span><span class="o">,</span> <span class="i">environment</span><span class="o">);</span>  
@@ -1161,7 +1273,8 @@ returned LoxFunction now carries around its own little persistent world where
 resolver, it is the same as interpreting a variable expression:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitSetExpr</em>()</div>
-<pre>  <span class="a">@Override</span>                                    
+<pre>
+  <span class="a">@Override</span>                                    
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitThisExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">This</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">return</span> <span class="i">lookUpVariable</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">keyword</span><span class="o">,</span> <span class="i">expr</span><span class="o">);</span> 
   <span class="o">}</span>                                            
@@ -1176,10 +1289,12 @@ handles to methods, etc.</p>
 <h3><a href="#invalid-uses-of-this" name="invalid-uses-of-this"><small>12&#8202;.&#8202;5&#8202;.&#8202;1</small> Invalid uses of this</a></h3>
 <p>Wait a minute. What happens if you try to use <code>this</code> <em>outside</em> of a method? What
 about:</p>
-<div class="codehilite"><pre><span class="k">print</span> <span class="k">this</span><span class="o">;</span>
+<div class="codehilite"><pre>
+<span class="k">print</span> <span class="k">this</span><span class="o">;</span>
 </pre></div>
 <p>Or:</p>
-<div class="codehilite"><pre><span class="k">fun</span> <span class="i">notAMethod</span><span class="o">()</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">fun</span> <span class="i">notAMethod</span><span class="o">()</span> <span class="o">{</span>
   <span class="k">print</span> <span class="k">this</span><span class="o">;</span>
 <span class="o">}</span>
 </pre></div>
@@ -1191,16 +1306,21 @@ happier they&rsquo;ll be.</p>
 detects return statements outside of functions. We&rsquo;ll do something similar for
 <code>this</code>. In the vein of our existing FunctionType enum, we define a new ClassType
 one:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="o">}</span>                                               
+<div class="codehilite"><pre class="insert-before">
+  <span class="o">}</span>                                               
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 add after enum <em>FunctionType</em></div>
-<pre class="insert"><br>  <span class="k">private</span> <span class="k">enum</span> <span class="t">ClassType</span> <span class="o">{</span>                        
+<pre class="insert">
+
+  <span class="k">private</span> <span class="k">enum</span> <span class="t">ClassType</span> <span class="o">{</span>                        
     <span class="n">NONE</span><span class="o">,</span>                                         
     <span class="n">CLASS</span>                                         
   <span class="o">}</span>                                               
 
   <span class="k">private</span> <span class="t">ClassType</span> <span class="i">currentClass</span> <span class="o">=</span> <span class="t">ClassType</span><span class="o">.</span><span class="n">NONE</span><span class="o">;</span>
-<br></pre><pre class="insert-after">  <span class="t">void</span> <span class="i">resolve</span><span class="o">(</span><span class="t">List</span><span class="o">&lt;</span><span class="t">Stmt</span><span class="o">&gt;</span> <span class="i">statements</span><span class="o">)</span> <span class="o">{</span>           
+
+</pre><pre class="insert-after">
+  <span class="t">void</span> <span class="i">resolve</span><span class="o">(</span><span class="t">List</span><span class="o">&lt;</span><span class="t">Stmt</span><span class="o">&gt;</span> <span class="i">statements</span><span class="o">)</span> <span class="o">{</span>           
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after enum <em>FunctionType</em></div>
@@ -1210,12 +1330,16 @@ value, hence the enum right now. We also add a corresponding field,
 <code>currentClass</code>. Its value tells us if we are currently inside a class while
 traversing the syntax tree. It starts out <code>NONE</code> which means we aren&rsquo;t in one.</p>
 <p>When we begin to resolve a class declaration, we change that:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitClassStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Class</span> <span class="i">stmt</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitClassStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Class</span> <span class="i">stmt</span><span class="o">)</span> <span class="o">{</span>
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">    <span class="t">ClassType</span> <span class="i">enclosingClass</span> <span class="o">=</span> <span class="i">currentClass</span><span class="o">;</span>   
+<pre class="insert">
+    <span class="t">ClassType</span> <span class="i">enclosingClass</span> <span class="o">=</span> <span class="i">currentClass</span><span class="o">;</span>   
     <span class="i">currentClass</span> <span class="o">=</span> <span class="t">ClassType</span><span class="o">.</span><span class="n">CLASS</span><span class="o">;</span>            
-<br></pre><pre class="insert-after">    <span class="i">declare</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                        
+
+</pre><pre class="insert-after">
+    <span class="i">declare</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">);</span>                        
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
@@ -1226,26 +1350,34 @@ values. That way we don&rsquo;t lose track of the previous value if one class ne
 inside another.</p>
 <p>Once the methods have been resolved, we &ldquo;pop&rdquo; that stack by restoring the old
 value:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="i">endScope</span><span class="o">();</span>                   
-<br></pre><div class="source-file"><em>lox/Resolver.java</em><br>
+<div class="codehilite"><pre class="insert-before">
+    <span class="i">endScope</span><span class="o">();</span>                   
+
+</pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">    <span class="i">currentClass</span> <span class="o">=</span> <span class="i">enclosingClass</span><span class="o">;</span>
-</pre><pre class="insert-after">    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                  
+<pre class="insert">
+    <span class="i">currentClass</span> <span class="o">=</span> <span class="i">enclosingClass</span><span class="o">;</span>
+</pre><pre class="insert-after">
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                  
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
 
 <p>When we resolve a <code>this</code> expression, that gives us the bit of data we need to
 report an error if the expression doesn&rsquo;t occur nestled inside a method body:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitThisExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">This</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>      
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitThisExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">This</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>      
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitThisExpr</em>()</div>
-<pre class="insert">    <span class="k">if</span> <span class="o">(</span><span class="i">currentClass</span> <span class="o">==</span> <span class="t">ClassType</span><span class="o">.</span><span class="n">NONE</span><span class="o">)</span> <span class="o">{</span>          
+<pre class="insert">
+    <span class="k">if</span> <span class="o">(</span><span class="i">currentClass</span> <span class="o">==</span> <span class="t">ClassType</span><span class="o">.</span><span class="n">NONE</span><span class="o">)</span> <span class="o">{</span>          
       <span class="t">Lox</span><span class="o">.</span><span class="i">error</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">keyword</span><span class="o">,</span>                      
           <span class="s">&quot;Cannot use &#39;this&#39; outside of a class.&quot;</span><span class="o">);</span>
       <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                 
     <span class="o">}</span>                                              
-<br></pre><pre class="insert-after">    <span class="i">resolveLocal</span><span class="o">(</span><span class="i">expr</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">keyword</span><span class="o">);</span>              
+
+</pre><pre class="insert-after">
+    <span class="i">resolveLocal</span><span class="o">(</span><span class="i">expr</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">keyword</span><span class="o">);</span>              
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitThisExpr</em>()</div>
@@ -1292,15 +1424,19 @@ have a variety of notations for the chunk of code that sets up a new object for
 a class. C++, Java, and C# use a method whose name matches the class name. Ruby
 and Python call it <code>init()</code>. The latter is nice and short, so we&rsquo;ll do that.</p>
 <p>In LoxClass&rsquo;s implementation of LoxCallable, we add a few more lines:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span><span class="o">(</span><span class="t">Interpreter</span> <span class="i">interpreter</span><span class="o">,</span> <span class="t">List</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;</span> <span class="i">arguments</span><span class="o">)</span> <span class="o">{</span>
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">public</span> <span class="t">Object</span> <span class="i">call</span><span class="o">(</span><span class="t">Interpreter</span> <span class="i">interpreter</span><span class="o">,</span> <span class="t">List</span><span class="o">&lt;</span><span class="t">Object</span><span class="o">&gt;</span> <span class="i">arguments</span><span class="o">)</span> <span class="o">{</span>
     <span class="t">LoxInstance</span> <span class="i">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxInstance</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>                      
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in <em>call</em>()</div>
-<pre class="insert">    <span class="t">LoxFunction</span> <span class="i">initializer</span> <span class="o">=</span> <span class="i">findMethod</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">);</span>                      
+<pre class="insert">
+    <span class="t">LoxFunction</span> <span class="i">initializer</span> <span class="o">=</span> <span class="i">findMethod</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">);</span>                      
     <span class="k">if</span> <span class="o">(</span><span class="i">initializer</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                                         
       <span class="i">initializer</span><span class="o">.</span><span class="i">bind</span><span class="o">(</span><span class="i">instance</span><span class="o">).</span><span class="i">call</span><span class="o">(</span><span class="i">interpreter</span><span class="o">,</span> <span class="i">arguments</span><span class="o">);</span>         
     <span class="o">}</span>                                                                  
-<br></pre><pre class="insert-after">    <span class="k">return</span> <span class="i">instance</span><span class="o">;</span>                                                   
+
+</pre><pre class="insert-after">
+    <span class="k">return</span> <span class="i">instance</span><span class="o">;</span>                                                   
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, in <em>call</em>()</div>
@@ -1309,14 +1445,17 @@ in <em>call</em>()</div>
 method. If we find one, we immediately bind and invoke it just like a normal
 method call. The argument list is forwarded along.</p>
 <p>That argument list means we also need to tweak how a class declares its arity:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">public</span> <span class="t">int</span> <span class="i">arity</span><span class="o">()</span> <span class="o">{</span>                           
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">public</span> <span class="t">int</span> <span class="i">arity</span><span class="o">()</span> <span class="o">{</span>                           
 </pre><div class="source-file"><em>lox/LoxClass.java</em><br>
 in <em>arity</em>()<br>
 replace 1 line</div>
-<pre class="insert">    <span class="t">LoxFunction</span> <span class="i">initializer</span> <span class="o">=</span> <span class="i">findMethod</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">);</span>
+<pre class="insert">
+    <span class="t">LoxFunction</span> <span class="i">initializer</span> <span class="o">=</span> <span class="i">findMethod</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">);</span>
     <span class="k">if</span> <span class="o">(</span><span class="i">initializer</span> <span class="o">==</span> <span class="k">null</span><span class="o">)</span> <span class="k">return</span> <span class="n">0</span><span class="o">;</span>           
     <span class="k">return</span> <span class="i">initializer</span><span class="o">.</span><span class="i">arity</span><span class="o">();</span>                  
-</pre><pre class="insert-after">  <span class="o">}</span>                                              
+</pre><pre class="insert-after">
+  <span class="o">}</span>                                              
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxClass.java</em>, in <em>arity</em>(), replace 1 line</div>
@@ -1332,7 +1471,8 @@ desire.</p>
 <h3><a href="#invoking-init()-directly" name="invoking-init()-directly"><small>12&#8202;.&#8202;6&#8202;.&#8202;1</small> Invoking init() directly</a></h3>
 <p>As usual, exploring this new semantic territory rustles up a few weird
 creatures. Consider:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Foo</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Foo</span> <span class="o">{</span>
   <span class="i">init</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">print</span> <span class="k">this</span><span class="o">;</span>
   <span class="o">}</span>
@@ -1357,28 +1497,35 @@ more features to users in less time, it may very well be a net win for their
 happiness and productivity. The trick is figuring out <em>which</em> corners to cut
 that won&rsquo;t cause your users and future self to curse your short-sightedness.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">      <span class="k">return</span> <span class="i">returnValue</span><span class="o">.</span><span class="i">value</span><span class="o">;</span>                        
+<div class="codehilite"><pre class="insert-before">
+      <span class="k">return</span> <span class="i">returnValue</span><span class="o">.</span><span class="i">value</span><span class="o">;</span>                        
     <span class="o">}</span>                                                  
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
 in <em>call</em>()</div>
-<pre class="insert"><br>    <span class="k">if</span> <span class="o">(</span><span class="i">isInitializer</span><span class="o">)</span> <span class="k">return</span> <span class="i">closure</span><span class="o">.</span><span class="i">getAt</span><span class="o">(</span><span class="n">0</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>
-</pre><pre class="insert-after">    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                       
+<pre class="insert">
+
+    <span class="k">if</span> <span class="o">(</span><span class="i">isInitializer</span><span class="o">)</span> <span class="k">return</span> <span class="i">closure</span><span class="o">.</span><span class="i">getAt</span><span class="o">(</span><span class="n">0</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>
+</pre><pre class="insert-after">
+    <span class="k">return</span> <span class="k">null</span><span class="o">;</span>                                       
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in <em>call</em>()</div>
 
 <p>If the function is an initializer, we override the actual return value and
 forcibly return <code>this</code>. That relies on a new <code>isInitializer</code> field:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">private</span> <span class="k">final</span> <span class="t">Environment</span> <span class="i">closure</span><span class="o">;</span>                         
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">private</span> <span class="k">final</span> <span class="t">Environment</span> <span class="i">closure</span><span class="o">;</span>                         
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
 in class <em>LoxFunction</em><br>
 replace 1 line</div>
-<pre class="insert">  <span class="k">private</span> <span class="k">final</span> <span class="t">boolean</span> <span class="i">isInitializer</span><span class="o">;</span>                       
+<pre class="insert">
+  <span class="k">private</span> <span class="k">final</span> <span class="t">boolean</span> <span class="i">isInitializer</span><span class="o">;</span>                       
 
   <span class="t">LoxFunction</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">declaration</span><span class="o">,</span> <span class="t">Environment</span> <span class="i">closure</span><span class="o">,</span>
               <span class="t">boolean</span> <span class="i">isInitializer</span><span class="o">)</span> <span class="o">{</span>                       
     <span class="k">this</span><span class="o">.</span><span class="i">isInitializer</span> <span class="o">=</span> <span class="i">isInitializer</span><span class="o">;</span>                      
-</pre><pre class="insert-after">    <span class="k">this</span><span class="o">.</span><span class="i">closure</span> <span class="o">=</span> <span class="i">closure</span><span class="o">;</span>                                  
+</pre><pre class="insert-after">
+    <span class="k">this</span><span class="o">.</span><span class="i">closure</span> <span class="o">=</span> <span class="i">closure</span><span class="o">;</span>                                  
     <span class="k">this</span><span class="o">.</span><span class="i">declaration</span> <span class="o">=</span> <span class="i">declaration</span><span class="o">;</span>                          
 </pre></div>
 
@@ -1389,37 +1536,46 @@ could have defined a <em>function</em> with that name. In that case, there <em>i
 <code>this</code> to return. To avoid <em>that</em> weird edge case, we&rsquo;ll directly store whether
 the LoxFunction represents an initializer method. That means we need to go back
 and fix the few places where we create LoxFunctions:</p>
-<div class="codehilite"><pre class="insert-before">  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitFunctionStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">stmt</span><span class="o">)</span> <span class="o">{</span>                
+<div class="codehilite"><pre class="insert-before">
+  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitFunctionStmt</span><span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">stmt</span><span class="o">)</span> <span class="o">{</span>                
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitFunctionStmt</em>()<br>
 replace 1 line</div>
-<pre class="insert">    <span class="t">LoxFunction</span> <span class="i">function</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">stmt</span><span class="o">,</span> <span class="i">environment</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>
-</pre><pre class="insert-after">    <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">function</span><span class="o">);</span>                  
+<pre class="insert">
+    <span class="t">LoxFunction</span> <span class="i">function</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">stmt</span><span class="o">,</span> <span class="i">environment</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span>
+</pre><pre class="insert-after">
+    <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">function</span><span class="o">);</span>                  
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitFunctionStmt</em>(), replace 1 line</div>
 
 <p>For actual function declarations, <code>isInitializer</code> is always false. For methods,
 we check the name:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>                  
+<div class="codehilite"><pre class="insert-before">
+    <span class="k">for</span> <span class="o">(</span><span class="t">Stmt</span><span class="o">.</span><span class="t">Function</span> <span class="i">method</span> <span class="o">:</span> <span class="i">stmt</span><span class="o">.</span><span class="i">methods</span><span class="o">)</span> <span class="o">{</span>                  
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in <em>visitClassStmt</em>()<br>
 replace 1 line</div>
-<pre class="insert">      <span class="t">LoxFunction</span> <span class="i">function</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">method</span><span class="o">,</span> <span class="i">environment</span><span class="o">,</span>
+<pre class="insert">
+      <span class="t">LoxFunction</span> <span class="i">function</span> <span class="o">=</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">method</span><span class="o">,</span> <span class="i">environment</span><span class="o">,</span>
           <span class="i">method</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">.</span><span class="i">equals</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">));</span>                    
-</pre><pre class="insert-after">      <span class="i">methods</span><span class="o">.</span><span class="i">put</span><span class="o">(</span><span class="i">method</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">function</span><span class="o">);</span>                 
+</pre><pre class="insert-after">
+      <span class="i">methods</span><span class="o">.</span><span class="i">put</span><span class="o">(</span><span class="i">method</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">function</span><span class="o">);</span>                 
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in <em>visitClassStmt</em>(), replace 1 line</div>
 
 <p>And then in <code>bind()</code> where we create the closure that binds <code>this</code> to a method,
 we pass along the original method&rsquo;s value:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="s">&quot;this&quot;</span><span class="o">,</span> <span class="i">instance</span><span class="o">);</span>                           
+<div class="codehilite"><pre class="insert-before">
+    <span class="i">environment</span><span class="o">.</span><span class="i">define</span><span class="o">(</span><span class="s">&quot;this&quot;</span><span class="o">,</span> <span class="i">instance</span><span class="o">);</span>                           
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
 in <em>bind</em>()<br>
 replace 1 line</div>
-<pre class="insert">    <span class="k">return</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">declaration</span><span class="o">,</span> <span class="i">environment</span><span class="o">,</span> <span class="i">isInitializer</span><span class="o">);</span>
-</pre><pre class="insert-after">  <span class="o">}</span>                                                                 
+<pre class="insert">
+    <span class="k">return</span> <span class="k">new</span> <span class="t">LoxFunction</span><span class="o">(</span><span class="i">declaration</span><span class="o">,</span> <span class="i">environment</span><span class="o">,</span> <span class="i">isInitializer</span><span class="o">);</span>
+</pre><pre class="insert-after">
+  <span class="o">}</span>                                                                 
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in <em>bind</em>(), replace 1 line</div>
@@ -1428,7 +1584,8 @@ replace 1 line</div>
 <p>We aren&rsquo;t out of the woods yet. We&rsquo;ve been assuming that a user-written
 initializer doesn&rsquo;t explicitly return a value because most constructors don&rsquo;t.
 What should happen if a user tries:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Foo</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Foo</span> <span class="o">{</span>
   <span class="i">init</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">return</span> <span class="s">&quot;something else&quot;</span><span class="o">;</span>
   <span class="o">}</span>
@@ -1436,45 +1593,57 @@ What should happen if a user tries:</p>
 </pre></div>
 <p>It&rsquo;s definitely not going to do what they want, so we may as well make it a
 static error. Back in the resolver, we add another case to FunctionType:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="n">FUNCTION</span><span class="o">,</span>   
+<div class="codehilite"><pre class="insert-before">
+    <span class="n">FUNCTION</span><span class="o">,</span>   
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in enum <em>FunctionType</em></div>
-<pre class="insert">    <span class="n">INITIALIZER</span><span class="o">,</span>
-</pre><pre class="insert-after">    <span class="n">METHOD</span>      
+<pre class="insert">
+    <span class="n">INITIALIZER</span><span class="o">,</span>
+</pre><pre class="insert-after">
+    <span class="n">METHOD</span>      
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in enum <em>FunctionType</em></div>
 
 <p>When visiting a method, we use its name to determine if we&rsquo;re resolving an
 initializer or not:</p>
-<div class="codehilite"><pre class="insert-before">      <span class="t">FunctionType</span> <span class="i">declaration</span> <span class="o">=</span> <span class="t">FunctionType</span><span class="o">.</span><span class="n">METHOD</span><span class="o">;</span> 
+<div class="codehilite"><pre class="insert-before">
+      <span class="t">FunctionType</span> <span class="i">declaration</span> <span class="o">=</span> <span class="t">FunctionType</span><span class="o">.</span><span class="n">METHOD</span><span class="o">;</span> 
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitClassStmt</em>()</div>
-<pre class="insert">      <span class="k">if</span> <span class="o">(</span><span class="i">method</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">.</span><span class="i">equals</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">))</span> <span class="o">{</span>        
+<pre class="insert">
+      <span class="k">if</span> <span class="o">(</span><span class="i">method</span><span class="o">.</span><span class="i">name</span><span class="o">.</span><span class="i">lexeme</span><span class="o">.</span><span class="i">equals</span><span class="o">(</span><span class="s">&quot;init&quot;</span><span class="o">))</span> <span class="o">{</span>        
         <span class="i">declaration</span> <span class="o">=</span> <span class="t">FunctionType</span><span class="o">.</span><span class="n">INITIALIZER</span><span class="o">;</span>       
       <span class="o">}</span>                                               
-<br></pre><pre class="insert-after">      <span class="i">resolveFunction</span><span class="o">(</span><span class="i">method</span><span class="o">,</span> <span class="i">declaration</span><span class="o">);</span><span name="local"> </span>
+
+</pre><pre class="insert-after">
+      <span class="i">resolveFunction</span><span class="o">(</span><span class="i">method</span><span class="o">,</span> <span class="i">declaration</span><span class="o">);</span><span name="local"> </span>
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitClassStmt</em>()</div>
 
 <p>When we later traverse into a return statement, we check that field and make it
 an error to return a value from inside an <code>init()</code> method:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="k">if</span> <span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">value</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                             
+<div class="codehilite"><pre class="insert-before">
+    <span class="k">if</span> <span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">value</span> <span class="o">!=</span> <span class="k">null</span><span class="o">)</span> <span class="o">{</span>                             
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
 in <em>visitReturnStmt</em>()</div>
-<pre class="insert">      <span class="k">if</span> <span class="o">(</span><span class="i">currentFunction</span> <span class="o">==</span> <span class="t">FunctionType</span><span class="o">.</span><span class="n">INITIALIZER</span><span class="o">)</span> <span class="o">{</span>  
+<pre class="insert">
+      <span class="k">if</span> <span class="o">(</span><span class="i">currentFunction</span> <span class="o">==</span> <span class="t">FunctionType</span><span class="o">.</span><span class="n">INITIALIZER</span><span class="o">)</span> <span class="o">{</span>  
         <span class="t">Lox</span><span class="o">.</span><span class="i">error</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">keyword</span><span class="o">,</span>                           
             <span class="s">&quot;Cannot return a value from an initializer.&quot;</span><span class="o">);</span>
       <span class="o">}</span>                                                   
-<br></pre><pre class="insert-after">      <span class="i">resolve</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">value</span><span class="o">);</span>                                
+
+</pre><pre class="insert-after">
+      <span class="i">resolve</span><span class="o">(</span><span class="i">stmt</span><span class="o">.</span><span class="i">value</span><span class="o">);</span>                                
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>visitReturnStmt</em>()</div>
 
 <p>We&rsquo;re <em>still</em> not done. We statically disallow returning a <em>value</em> from an
 initializer, but you can still use an empty early return:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Foo</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Foo</span> <span class="o">{</span>
   <span class="i">init</span><span class="o">()</span> <span class="o">{</span>
     <span class="k">return</span><span class="o">;</span>
   <span class="o">}</span>
@@ -1483,11 +1652,15 @@ initializer, but you can still use an empty early return:</p>
 <p>That is actually kind of useful sometimes, so we don&rsquo;t want to disallow it
 entirely. Instead, it should return <code>this</code> instead of <code>nil</code>. That&rsquo;s an easy fix
 over in LoxFunction:</p>
-<div class="codehilite"><pre class="insert-before">    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="t">Return</span> <span class="i">returnValue</span><span class="o">)</span> <span class="o">{</span>                       
+<div class="codehilite"><pre class="insert-before">
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="t">Return</span> <span class="i">returnValue</span><span class="o">)</span> <span class="o">{</span>                       
 </pre><div class="source-file"><em>lox/LoxFunction.java</em><br>
 in <em>call</em>()</div>
-<pre class="insert">      <span class="k">if</span> <span class="o">(</span><span class="i">isInitializer</span><span class="o">)</span> <span class="k">return</span> <span class="i">closure</span><span class="o">.</span><span class="i">getAt</span><span class="o">(</span><span class="n">0</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>
-<br></pre><pre class="insert-after">      <span class="k">return</span> <span class="i">returnValue</span><span class="o">.</span><span class="i">value</span><span class="o">;</span>                          
+<pre class="insert">
+      <span class="k">if</span> <span class="o">(</span><span class="i">isInitializer</span><span class="o">)</span> <span class="k">return</span> <span class="i">closure</span><span class="o">.</span><span class="i">getAt</span><span class="o">(</span><span class="n">0</span><span class="o">,</span> <span class="s">&quot;this&quot;</span><span class="o">);</span>
+
+</pre><pre class="insert-after">
+      <span class="k">return</span> <span class="i">returnValue</span><span class="o">.</span><span class="i">value</span><span class="o">;</span>                          
 </pre></div>
 
 <div class="source-file-narrow"><em>lox/LoxFunction.java</em>, in <em>call</em>()</div>
@@ -1505,7 +1678,8 @@ interpreter has grown an entire programming paradigm. Classes, methods, fields,
 that can be called directly on the class object itself. Add support for
 them. Use a <code>class</code> keyword preceding the method to indicate a static method
 that hangs off the class object:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Math</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Math</span> <span class="o">{</span>
   <span class="k">class</span> <span class="i">square</span><span class="o">(</span><span class="i">n</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">return</span> <span class="i">n</span> <span class="o">*</span> <span class="i">n</span><span class="o">;</span>
   <span class="o">}</span>
@@ -1523,7 +1697,8 @@ that look like field reads and writes but that actually execute user-defined
 code. Extend Lox to support getter methods. These are declared without a
 parameter list. The body of the getter is executed when a property with that
 name is accessed:</p>
-<div class="codehilite"><pre><span class="k">class</span> <span class="t">Circle</span> <span class="o">{</span>
+<div class="codehilite"><pre>
+<span class="k">class</span> <span class="t">Circle</span> <span class="o">{</span>
   <span class="i">init</span><span class="o">(</span><span class="i">radius</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">this</span><span class="o">.</span><span class="i">radius</span> <span class="o">=</span> <span class="i">radius</span><span class="o">;</span>
   <span class="o">}</span>

@@ -26,33 +26,8 @@ class Highlighter {
   String _highlight(List<String> lines, [String preClass]) {
     _buffer.write("<pre");
     if (preClass != null) _buffer.write(' class="$preClass"');
-    _buffer.write(">");
-
-    // TODO: Is this still needed now that this output doesn't go through the
-    // Python Markdown parser?
-    // Hack. Markdown seems to discard leading and trailing newlines, so we'll
-    // add them back ourselves.
-    var leadingNewlines = 0;
-    while (leadingNewlines < lines.length &&
-        lines[leadingNewlines].trim().isEmpty) {
-      leadingNewlines++;
-      _buffer.write("<br>");
-    }
-
-    var trailingNewlines = 0;
-    while (trailingNewlines < lines.length - leadingNewlines &&
-        lines[lines.length - trailingNewlines - 1].trim().isEmpty) {
-      trailingNewlines++;
-    }
-
-    for (var i = leadingNewlines; i < lines.length - trailingNewlines; i++) {
-      _scanLine(lines[i]);
-    }
-
-    for (var i = 0; i < trailingNewlines; i++) {
-      _buffer.write("<br>");
-    }
-
+    _buffer.writeln(">");
+    lines.forEach(_scanLine);
     _buffer.write("</pre>");
     return _buffer.toString();
   }
