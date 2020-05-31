@@ -122,16 +122,16 @@ machine with working functions. What it lacks is closures. Aside from global
 variables, which are their own breed of animal, a function has no way to
 reference a variable declared outside of its own body:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;global&quot;</span><span class="o">;</span>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="o">;</span>
+<span class="k">var</span> <span class="i">x</span> = <span class="s">&quot;global&quot;</span>;
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="s">&quot;outer&quot;</span>;
 
-  <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-  <span class="o">}</span>
+  <span class="k">fun</span> <span class="i">inner</span>() {
+    <span class="k">print</span> <span class="i">x</span>;
+  }
 
-  <span class="i">inner</span><span class="o">();</span>
-<span class="o">}</span>
+  <span class="i">inner</span>();
+}
 </pre></div>
 <p>Run this example now and it prints &ldquo;global&rdquo;. It&rsquo;s supposed to print &ldquo;outer&rdquo;. To
 fix this, we need to include the entire lexical scope of all surrounding
@@ -141,16 +141,16 @@ stores locals on a stack. We used a stack because I claimed locals have stack
 semantics<span class="em">&mdash;</span>variables are discarded in the reverse order that they are created.
 But with closures, that&rsquo;s only <em>mostly</em> true:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">makeClosure</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">local</span> <span class="o">=</span> <span class="s">&quot;local&quot;</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">closure</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">local</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="k">return</span> <span class="i">closure</span><span class="o">;</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">makeClosure</span>() {
+  <span class="k">var</span> <span class="i">local</span> = <span class="s">&quot;local&quot;</span>;
+  <span class="k">fun</span> <span class="i">closure</span>() {
+    <span class="k">print</span> <span class="i">local</span>;
+  }
+  <span class="k">return</span> <span class="i">closure</span>;
+}
 
-<span class="k">var</span> <span class="i">closure</span> <span class="o">=</span> <span class="i">makeClosure</span><span class="o">();</span>
-<span class="i">closure</span><span class="o">();</span>
+<span class="k">var</span> <span class="i">closure</span> = <span class="i">makeClosure</span>();
+<span class="i">closure</span>();
 </pre></div>
 <p>The outer function <code>makeClosure()</code> declares a variable, <code>local</code>. It also creates
 an inner function, <code>closure()</code> that captures that variable. Then <code>makeClosure()</code>
@@ -205,17 +205,17 @@ compile time: the chunk of bytecode compiled from the function&rsquo;s body, and
 constants. Once we introduce closures, though, that representation is no longer
 sufficient. Take a gander at:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">makeClosure</span><span class="o">(</span><span class="i">value</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">fun</span> <span class="i">closure</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">value</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="k">return</span> <span class="i">closure</span><span class="o">;</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">makeClosure</span>(<span class="i">value</span>) {
+  <span class="k">fun</span> <span class="i">closure</span>() {
+    <span class="k">print</span> <span class="i">value</span>;
+  }
+  <span class="k">return</span> <span class="i">closure</span>;
+}
 
-<span class="k">var</span> <span class="i">doughnut</span> <span class="o">=</span> <span class="i">makeClosure</span><span class="o">(</span><span class="s">&quot;doughnut&quot;</span><span class="o">);</span>
-<span class="k">var</span> <span class="i">bagel</span> <span class="o">=</span> <span class="i">makeClosure</span><span class="o">(</span><span class="s">&quot;bagel&quot;</span><span class="o">);</span>
-<span class="i">doughnut</span><span class="o">();</span>
-<span class="i">bagel</span><span class="o">();</span>
+<span class="k">var</span> <span class="i">doughnut</span> = <span class="i">makeClosure</span>(<span class="s">&quot;doughnut&quot;</span>);
+<span class="k">var</span> <span class="i">bagel</span> = <span class="i">makeClosure</span>(<span class="s">&quot;bagel&quot;</span>);
+<span class="i">doughnut</span>();
+<span class="i">bagel</span>();
 </pre></div>
 <p>The <code>makeClosure()</code> function defines and returns a function. We call it twice
 and get two closures back. They are created by the same nested function
@@ -242,10 +242,10 @@ function we&rsquo;re calling is an ObjClosure. That new struct starts out like t
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 add after struct <em>sObjString</em></div>
 <pre>
-<span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>        
-  <span class="t">Obj</span> <span class="i">obj</span><span class="o">;</span>              
-  <span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span><span class="o">;</span>
-<span class="o">}</span> <span class="t">ObjClosure</span><span class="o">;</span>           
+<span class="k">typedef</span> <span class="k">struct</span> {        
+  <span class="t">Obj</span> <span class="i">obj</span>;              
+  <span class="t">ObjFunction</span>* <span class="i">function</span>;
+} <span class="t">ObjClosure</span>;           
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
@@ -258,7 +258,7 @@ to clox, we declare a C function to create a new closure:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>ObjClosure</em></div>
 <pre class="insert">
-<span class="t">ObjClosure</span><span class="o">*</span> <span class="i">newClosure</span><span class="o">(</span><span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span><span class="o">);</span>
+<span class="t">ObjClosure</span>* <span class="i">newClosure</span>(<span class="t">ObjFunction</span>* <span class="i">function</span>);
 </pre><pre class="insert-after">
 ObjFunction* newFunction();                   
 </pre></div>
@@ -268,11 +268,11 @@ ObjFunction* newFunction();
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateObject</em>()</div>
 <pre>
-<span class="t">ObjClosure</span><span class="o">*</span> <span class="i">newClosure</span><span class="o">(</span><span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span><span class="o">)</span> <span class="o">{</span>               
-  <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span> <span class="o">=</span> <span class="a">ALLOCATE_OBJ</span><span class="o">(</span><span class="t">ObjClosure</span><span class="o">,</span> <span class="a">OBJ_CLOSURE</span><span class="o">);</span>
-  <span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span> <span class="o">=</span> <span class="i">function</span><span class="o">;</span>                               
-  <span class="k">return</span> <span class="i">closure</span><span class="o">;</span>                                             
-<span class="o">}</span>                                                             
+<span class="t">ObjClosure</span>* <span class="i">newClosure</span>(<span class="t">ObjFunction</span>* <span class="i">function</span>) {               
+  <span class="t">ObjClosure</span>* <span class="i">closure</span> = <span class="a">ALLOCATE_OBJ</span>(<span class="t">ObjClosure</span>, <span class="a">OBJ_CLOSURE</span>);
+  <span class="i">closure</span>-&gt;<span class="i">function</span> = <span class="i">function</span>;                               
+  <span class="k">return</span> <span class="i">closure</span>;                                             
+}                                                             
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateObject</em>()</div>
 
@@ -283,7 +283,7 @@ typedef enum {
 </pre><div class="source-file"><em>object.h</em><br>
 in enum <em>ObjType</em></div>
 <pre class="insert">
-  <span class="a">OBJ_CLOSURE</span><span class="o">,</span> 
+  <span class="a">OBJ_CLOSURE</span>, 
 </pre><pre class="insert-after">
   OBJ_FUNCTION,
 </pre></div>
@@ -295,10 +295,10 @@ in enum <em>ObjType</em></div>
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span> <span class="o">{</span>        
-      <span class="a">FREE</span><span class="o">(</span><span class="t">ObjClosure</span><span class="o">,</span> <span class="i">object</span><span class="o">);</span>
-      <span class="k">break</span><span class="o">;</span>                   
-    <span class="o">}</span>                          
+    <span class="k">case</span> <span class="a">OBJ_CLOSURE</span>: {        
+      <span class="a">FREE</span>(<span class="t">ObjClosure</span>, <span class="i">object</span>);
+      <span class="k">break</span>;                   
+    }                          
 
 </pre><pre class="insert-after">
     case OBJ_FUNCTION: {       
@@ -345,9 +345,9 @@ macros. Maybe that would be a little too meta.</p>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span>                            
-      <span class="i">printFunction</span><span class="o">(</span><span class="a">AS_CLOSURE</span><span class="o">(</span><span class="i">value</span><span class="o">)-&gt;</span><span class="i">function</span><span class="o">);</span>
-      <span class="k">break</span><span class="o">;</span>                                     
+    <span class="k">case</span> <span class="a">OBJ_CLOSURE</span>:                            
+      <span class="i">printFunction</span>(<span class="a">AS_CLOSURE</span>(<span class="i">value</span>)-&gt;<span class="i">function</span>);
+      <span class="k">break</span>;                                     
 </pre><pre class="insert-after">
     case OBJ_FUNCTION:                           
 </pre></div>
@@ -368,7 +368,7 @@ function declaration:</p>
 in <em>function</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="i">emitBytes</span><span class="o">(</span><span class="a">OP_CLOSURE</span><span class="o">,</span> <span class="i">makeConstant</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">function</span><span class="o">)));</span>
+  <span class="i">emitBytes</span>(<span class="a">OP_CLOSURE</span>, <span class="i">makeConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">function</span>)));
 </pre><pre class="insert-after">
 }                                                        
 </pre></div>
@@ -382,7 +382,7 @@ constant table and push it onto the stack. Now we have a new instruction:</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_CLOSURE</span><span class="o">,</span>
+  <span class="a">OP_CLOSURE</span>,
 </pre><pre class="insert-after">
   OP_RETURN, 
 </pre></div>
@@ -399,15 +399,15 @@ do something more interesting.</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                     
-      <span class="i">offset</span><span class="o">++;</span>                                            
-      <span class="t">uint8_t</span> <span class="i">constant</span> <span class="o">=</span> <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span><span class="o">++];</span>            
-      <span class="i">printf</span><span class="o">(</span><span class="s">&quot;%-16s %4d &quot;</span><span class="o">,</span> <span class="s">&quot;OP_CLOSURE&quot;</span><span class="o">,</span> <span class="i">constant</span><span class="o">);</span>        
-      <span class="i">printValue</span><span class="o">(</span><span class="i">chunk</span><span class="o">-&gt;</span><span class="i">constants</span><span class="o">.</span><span class="i">values</span><span class="o">[</span><span class="i">constant</span><span class="o">]);</span>       
-      <span class="i">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>                                        
+    <span class="k">case</span> <span class="a">OP_CLOSURE</span>: {                                     
+      <span class="i">offset</span>++;                                            
+      <span class="t">uint8_t</span> <span class="i">constant</span> = <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span>++];            
+      <span class="i">printf</span>(<span class="s">&quot;%-16s %4d &quot;</span>, <span class="s">&quot;OP_CLOSURE&quot;</span>, <span class="i">constant</span>);        
+      <span class="i">printValue</span>(<span class="i">chunk</span>-&gt;<span class="i">constants</span>.<span class="i">values</span>[<span class="i">constant</span>]);       
+      <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);                                        
 
-      <span class="k">return</span> <span class="i">offset</span><span class="o">;</span>                                       
-    <span class="o">}</span>                                                      
+      <span class="k">return</span> <span class="i">offset</span>;                                       
+    }                                                      
 </pre><pre class="insert-after">
     case OP_RETURN:                                        
 </pre></div>
@@ -428,12 +428,12 @@ calls, callframes, etc. We&rsquo;ll start with the instruction, though:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_CLOSURE</span><span class="o">:</span> <span class="o">{</span>                                     
-        <span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span> <span class="o">=</span> <span class="a">AS_FUNCTION</span><span class="o">(</span><span class="a">READ_CONSTANT</span><span class="o">());</span>
-        <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span> <span class="o">=</span> <span class="i">newClosure</span><span class="o">(</span><span class="i">function</span><span class="o">);</span>          
-        <span class="i">push</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">closure</span><span class="o">));</span>                              
-        <span class="k">break</span><span class="o">;</span>                                               
-      <span class="o">}</span>                                                      
+      <span class="k">case</span> <span class="a">OP_CLOSURE</span>: {                                     
+        <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="a">AS_FUNCTION</span>(<span class="a">READ_CONSTANT</span>());
+        <span class="t">ObjClosure</span>* <span class="i">closure</span> = <span class="i">newClosure</span>(<span class="i">function</span>);          
+        <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">closure</span>));                              
+        <span class="k">break</span>;                                               
+      }                                                      
 
 </pre><pre class="insert-after">
       case OP_RETURN: {                                      
@@ -450,8 +450,8 @@ function in a new ObjClosure and push the result onto the stack.</p>
 in <em>callValue</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OBJ_CLOSURE</span><span class="o">:</span>                           
-        <span class="k">return</span> <span class="i">call</span><span class="o">(</span><span class="a">AS_CLOSURE</span><span class="o">(</span><span class="i">callee</span><span class="o">),</span> <span class="i">argCount</span><span class="o">);</span>
+      <span class="k">case</span> <span class="a">OBJ_CLOSURE</span>:                           
+        <span class="k">return</span> <span class="i">call</span>(<span class="a">AS_CLOSURE</span>(<span class="i">callee</span>), <span class="i">argCount</span>);
 </pre><pre class="insert-after">
                                                   
 </pre></div>
@@ -473,7 +473,7 @@ are over in that function. First, we update its signature:</p>
 function <em>call</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-<span class="k">static</span> <span class="t">bool</span> <span class="i">call</span><span class="o">(</span><span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span><span class="o">,</span> <span class="t">int</span> <span class="i">argCount</span><span class="o">)</span> <span class="o">{</span>
+<span class="k">static</span> <span class="t">bool</span> <span class="i">call</span>(<span class="t">ObjClosure</span>* <span class="i">closure</span>, <span class="t">int</span> <span class="i">argCount</span>) {
 </pre><pre class="insert-after">
   if (argCount != function-&gt;arity) {                 
 </pre></div>
@@ -488,9 +488,9 @@ static bool call(ObjClosure* closure, int argCount) {
 in <em>call</em>()<br>
 replace 3 lines</div>
 <pre class="insert">
-  <span class="k">if</span> <span class="o">(</span><span class="i">argCount</span> <span class="o">!=</span> <span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">arity</span><span class="o">)</span> <span class="o">{</span>        
-    <span class="i">runtimeError</span><span class="o">(</span><span class="s">&quot;Expected %d arguments but got %d.&quot;</span><span class="o">,</span>
-        <span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">arity</span><span class="o">,</span> <span class="i">argCount</span><span class="o">);</span>         
+  <span class="k">if</span> (<span class="i">argCount</span> != <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span>) {        
+    <span class="i">runtimeError</span>(<span class="s">&quot;Expected %d arguments but got %d.&quot;</span>,
+        <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">arity</span>, <span class="i">argCount</span>);         
 </pre><pre class="insert-after">
     return false;                                    
 </pre></div>
@@ -506,8 +506,8 @@ function:</p>
 in <em>call</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
-  <span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span> <span class="o">=</span> <span class="i">closure</span><span class="o">;</span>                      
-  <span class="i">frame</span><span class="o">-&gt;</span><span class="i">ip</span> <span class="o">=</span> <span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">chunk</span><span class="o">.</span><span class="i">code</span><span class="o">;</span>     
+  <span class="i">frame</span>-&gt;<span class="i">closure</span> = <span class="i">closure</span>;                      
+  <span class="i">frame</span>-&gt;<span class="i">ip</span> = <span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>;     
 </pre><pre class="insert-after">
                                                  
   frame-&gt;slots = vm.stackTop - argCount - 1;     
@@ -521,7 +521,7 @@ typedef struct {
 in struct <em>CallFrame</em><br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span><span class="o">;</span>
+  <span class="t">ObjClosure</span>* <span class="i">closure</span>;
 </pre><pre class="insert-after">
   uint8_t* ip;        
 </pre></div>
@@ -551,8 +551,8 @@ closure:</p>
 in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
-    <span class="i">disassembleInstruction</span><span class="o">(&amp;</span><span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">chunk</span><span class="o">,</span>     
-        <span class="o">(</span><span class="t">int</span><span class="o">)(</span><span class="i">frame</span><span class="o">-&gt;</span><span class="i">ip</span> <span class="o">-</span> <span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">chunk</span><span class="o">.</span><span class="i">code</span><span class="o">));</span>
+    <span class="i">disassembleInstruction</span>(&amp;<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>,     
+        (<span class="t">int</span>)(<span class="i">frame</span>-&gt;<span class="i">ip</span> - <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>-&gt;<span class="i">chunk</span>.<span class="i">code</span>));
 </pre><pre class="insert-after">
 #endif                                                           
 </pre></div>
@@ -565,7 +565,7 @@ replace 2 lines</div>
 in <em>runtimeError</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span> <span class="o">=</span> <span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">;</span>            
+    <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">function</span>;            
 </pre><pre class="insert-after">
     // -1 because the IP is sitting on the next instruction to be
 </pre></div>
@@ -582,10 +582,10 @@ CallFrame to begin executing the top level code for a Lox script:</p>
 in <em>interpret</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span> <span class="o">=</span> <span class="i">newClosure</span><span class="o">(</span><span class="i">function</span><span class="o">);</span>          
-  <span class="i">pop</span><span class="o">();</span>                                               
-  <span class="i">push</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">closure</span><span class="o">));</span>                              
-  <span class="i">callValue</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">closure</span><span class="o">),</span> <span class="n">0</span><span class="o">);</span>                      
+  <span class="t">ObjClosure</span>* <span class="i">closure</span> = <span class="i">newClosure</span>(<span class="i">function</span>);          
+  <span class="i">pop</span>();                                               
+  <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">closure</span>));                              
+  <span class="i">callValue</span>(<span class="a">OBJ_VAL</span>(<span class="i">closure</span>), <span class="n">0</span>);                      
 </pre><pre class="insert-after">
                                                        
   return run();                                        
@@ -624,14 +624,14 @@ it dynamically. That way it can live as long as needed.</p>
 that restriction we chose in our implementation makes things harder. Take a look
 at this example:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span>    <span class="c">// (1)</span>
-  <span class="i">x</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>        <span class="c">// (2)</span>
-  <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span> <span class="c">// (3)</span>
-    <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="i">inner</span><span class="o">();</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="n">1</span>;    <span class="c">// (1)</span>
+  <span class="i">x</span> = <span class="n">2</span>;        <span class="c">// (2)</span>
+  <span class="k">fun</span> <span class="i">inner</span>() { <span class="c">// (3)</span>
+    <span class="k">print</span> <span class="i">x</span>;
+  }
+  <span class="i">inner</span>();
+}
 </pre></div>
 <p>Here, the compiler compiles the declaration of <code>x</code> at <code>(1)</code> and emits code for
 the assignment at <code>(2)</code>. It does that before reaching the declaration of
@@ -651,12 +651,12 @@ and we create a closure for it, the VM creates the array of upvalues and wires
 them up to &ldquo;capture&rdquo; the surrounding local variables that the closure needs.</p>
 <p>For example, if we throw this program at clox:</p>
 <div class="codehilite"><pre>
-<span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">3</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">f</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+{
+  <span class="k">var</span> <span class="i">a</span> = <span class="n">3</span>;
+  <span class="k">fun</span> <span class="i">f</span>() {
+    <span class="k">print</span> <span class="i">a</span>;
+  }
+}
 </pre></div>
 <p>The compiler and runtime will conspire together to build up a set of objects in
 memory like this:</p><img src="image/closures/open-upvalue.png" alt="The object graph of the stack, ObjClosure, ObjFunction, and upvalue array."/>
@@ -685,9 +685,9 @@ scopes:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>namedVariable</em>()</div>
 <pre class="insert">
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">((</span><span class="i">arg</span> <span class="o">=</span> <span class="i">resolveUpvalue</span><span class="o">(</span><span class="i">current</span><span class="o">,</span> <span class="o">&amp;</span><span class="i">name</span><span class="o">))</span> <span class="o">!=</span> <span class="o">-</span><span class="n">1</span><span class="o">)</span> <span class="o">{</span>
-    <span class="i">getOp</span> <span class="o">=</span> <span class="a">OP_GET_UPVALUE</span><span class="o">;</span>                                 
-    <span class="i">setOp</span> <span class="o">=</span> <span class="a">OP_SET_UPVALUE</span><span class="o">;</span>                                 
+  } <span class="k">else</span> <span class="k">if</span> ((<span class="i">arg</span> = <span class="i">resolveUpvalue</span>(<span class="i">current</span>, &amp;<span class="i">name</span>)) != -<span class="n">1</span>) {
+    <span class="i">getOp</span> = <span class="a">OP_GET_UPVALUE</span>;                                 
+    <span class="i">setOp</span> = <span class="a">OP_SET_UPVALUE</span>;                                 
 </pre><pre class="insert-after">
   } else {                                                  
 </pre></div>
@@ -703,8 +703,8 @@ instructions for reading or writing to the variable through its upvalue:</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_GET_UPVALUE</span><span class="o">,</span>
-  <span class="a">OP_SET_UPVALUE</span><span class="o">,</span>
+  <span class="a">OP_GET_UPVALUE</span>,
+  <span class="a">OP_SET_UPVALUE</span>,
 </pre><pre class="insert-after">
   OP_EQUAL,      
 </pre></div>
@@ -716,16 +716,16 @@ identifier:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>resolveLocal</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">resolveUpvalue</span><span class="o">(</span><span class="t">Compiler</span><span class="o">*</span> <span class="i">compiler</span><span class="o">,</span> <span class="t">Token</span><span class="o">*</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">if</span> <span class="o">(</span><span class="i">compiler</span><span class="o">-&gt;</span><span class="i">enclosing</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="k">return</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>               
+<span class="k">static</span> <span class="t">int</span> <span class="i">resolveUpvalue</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">Token</span>* <span class="i">name</span>) {
+  <span class="k">if</span> (<span class="i">compiler</span>-&gt;<span class="i">enclosing</span> == <span class="a">NULL</span>) <span class="k">return</span> -<span class="n">1</span>;               
 
-  <span class="t">int</span> <span class="i">local</span> <span class="o">=</span> <span class="i">resolveLocal</span><span class="o">(</span><span class="i">compiler</span><span class="o">-&gt;</span><span class="i">enclosing</span><span class="o">,</span> <span class="i">name</span><span class="o">);</span>      
-  <span class="k">if</span> <span class="o">(</span><span class="i">local</span> <span class="o">!=</span> <span class="o">-</span><span class="n">1</span><span class="o">)</span> <span class="o">{</span>                                        
-    <span class="k">return</span> <span class="i">addUpvalue</span><span class="o">(</span><span class="i">compiler</span><span class="o">,</span> <span class="o">(</span><span class="t">uint8_t</span><span class="o">)</span><span class="i">local</span><span class="o">,</span> <span class="k">true</span><span class="o">);</span>      
-  <span class="o">}</span>                                                         
+  <span class="t">int</span> <span class="i">local</span> = <span class="i">resolveLocal</span>(<span class="i">compiler</span>-&gt;<span class="i">enclosing</span>, <span class="i">name</span>);      
+  <span class="k">if</span> (<span class="i">local</span> != -<span class="n">1</span>) {                                        
+    <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">local</span>, <span class="k">true</span>);      
+  }                                                         
 
-  <span class="k">return</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>                                                
-<span class="o">}</span>                                                           
+  <span class="k">return</span> -<span class="n">1</span>;                                                
+}                                                           
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>resolveLocal</em>()</div>
 
@@ -745,13 +745,13 @@ perspective, it&rsquo;s &ldquo;hopefully global.&rdquo;</p>
 <em>enclosing</em> compiler. In other words, we look for it right outside the current
 function. For example:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">x</span><span class="o">;</span> <span class="c">// (1)</span>
-  <span class="o">}</span>
-  <span class="i">inner</span><span class="o">();</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="n">1</span>;
+  <span class="k">fun</span> <span class="i">inner</span>() {
+    <span class="k">print</span> <span class="i">x</span>; <span class="c">// (1)</span>
+  }
+  <span class="i">inner</span>();
+}
 </pre></div>
 <p>When compiling the identifier expression at <code>(1)</code>, <code>resolveUpvalue()</code> looks for
 a local variable <code>x</code> declared in <code>outer()</code>. If found<span class="em">&mdash;</span>like it is in this
@@ -761,12 +761,12 @@ created here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>resolveLocal</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">addUpvalue</span><span class="o">(</span><span class="t">Compiler</span><span class="o">*</span> <span class="i">compiler</span><span class="o">,</span> <span class="t">uint8_t</span> <span class="i">index</span><span class="o">,</span> <span class="t">bool</span> <span class="i">isLocal</span><span class="o">)</span> <span class="o">{</span>
-  <span class="t">int</span> <span class="i">upvalueCount</span> <span class="o">=</span> <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">;</span>                  
-  <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">upvalueCount</span><span class="o">].</span><span class="i">isLocal</span> <span class="o">=</span> <span class="i">isLocal</span><span class="o">;</span>                   
-  <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">upvalueCount</span><span class="o">].</span><span class="i">index</span> <span class="o">=</span> <span class="i">index</span><span class="o">;</span>                       
-  <span class="k">return</span> <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">++;</span>                            
-<span class="o">}</span>                                                                       
+<span class="k">static</span> <span class="t">int</span> <span class="i">addUpvalue</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">uint8_t</span> <span class="i">index</span>, <span class="t">bool</span> <span class="i">isLocal</span>) {
+  <span class="t">int</span> <span class="i">upvalueCount</span> = <span class="i">compiler</span>-&gt;<span class="i">function</span>-&gt;<span class="i">upvalueCount</span>;                  
+  <span class="i">compiler</span>-&gt;<span class="i">upvalues</span>[<span class="i">upvalueCount</span>].<span class="i">isLocal</span> = <span class="i">isLocal</span>;                   
+  <span class="i">compiler</span>-&gt;<span class="i">upvalues</span>[<span class="i">upvalueCount</span>].<span class="i">index</span> = <span class="i">index</span>;                       
+  <span class="k">return</span> <span class="i">compiler</span>-&gt;<span class="i">function</span>-&gt;<span class="i">upvalueCount</span>++;                            
+}                                                                       
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>resolveLocal</em>()</div>
 
@@ -802,12 +802,12 @@ closes over that variable:</p>
 in <em>addUpvalue</em>()</div>
 <pre class="insert">
 
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;</span> <span class="i">upvalueCount</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>                       
-    <span class="t">Upvalue</span><span class="o">*</span> <span class="i">upvalue</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">compiler</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">i</span><span class="o">];</span>                   
-    <span class="k">if</span> <span class="o">(</span><span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">index</span> <span class="o">==</span> <span class="i">index</span> <span class="o">&amp;&amp;</span> <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">isLocal</span> <span class="o">==</span> <span class="i">isLocal</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">return</span> <span class="i">i</span><span class="o">;</span>                                                  
-    <span class="o">}</span>                                                            
-  <span class="o">}</span>                                                              
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">upvalueCount</span>; <span class="i">i</span>++) {                       
+    <span class="t">Upvalue</span>* <span class="i">upvalue</span> = &amp;<span class="i">compiler</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>];                   
+    <span class="k">if</span> (<span class="i">upvalue</span>-&gt;<span class="i">index</span> == <span class="i">index</span> &amp;&amp; <span class="i">upvalue</span>-&gt;<span class="i">isLocal</span> == <span class="i">isLocal</span>) {
+      <span class="k">return</span> <span class="i">i</span>;                                                  
+    }                                                            
+  }                                                              
 
 </pre><pre class="insert-after">
   compiler-&gt;upvalues[upvalueCount].isLocal = isLocal;            
@@ -824,7 +824,7 @@ that. First, we add the upvalue count to ObjFunction:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjFunction</em></div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">upvalueCount</span><span class="o">;</span>
+  <span class="t">int</span> <span class="i">upvalueCount</span>;
 </pre><pre class="insert-after">
   Chunk chunk;     
 </pre></div>
@@ -837,7 +837,7 @@ ObjFunction is first allocated:</p>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newFunction</em>()</div>
 <pre class="insert">
-  <span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>
+  <span class="i">function</span>-&gt;<span class="i">upvalueCount</span> = <span class="n">0</span>;
 </pre><pre class="insert-after">
   function-&gt;name = NULL;     
 </pre></div>
@@ -849,7 +849,7 @@ in <em>newFunction</em>()</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Compiler</em></div>
 <pre class="insert">
-  <span class="t">Upvalue</span> <span class="i">upvalues</span><span class="o">[</span><span class="a">UINT8_COUNT</span><span class="o">];</span>
+  <span class="t">Upvalue</span> <span class="i">upvalues</span>[<span class="a">UINT8_COUNT</span>];
 </pre><pre class="insert-after">
   int scopeDepth;               
 </pre></div>
@@ -869,10 +869,10 @@ limit:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addUpvalue</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> <span class="o">(</span><span class="i">upvalueCount</span> <span class="o">==</span> <span class="a">UINT8_COUNT</span><span class="o">)</span> <span class="o">{</span>                             
-    <span class="i">error</span><span class="o">(</span><span class="s">&quot;Too many closure variables in function.&quot;</span><span class="o">);</span>            
-    <span class="k">return</span> <span class="n">0</span><span class="o">;</span>                                                    
-  <span class="o">}</span>                                                              
+  <span class="k">if</span> (<span class="i">upvalueCount</span> == <span class="a">UINT8_COUNT</span>) {                             
+    <span class="i">error</span>(<span class="s">&quot;Too many closure variables in function.&quot;</span>);            
+    <span class="k">return</span> <span class="n">0</span>;                                                    
+  }                                                              
 
 </pre><pre class="insert-after">
   compiler-&gt;upvalues[upvalueCount].isLocal = isLocal;            
@@ -883,10 +883,10 @@ in <em>addUpvalue</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>Local</em></div>
 <pre>
-<span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>
-  <span class="t">uint8_t</span> <span class="i">index</span><span class="o">;</span>
-  <span class="t">bool</span> <span class="i">isLocal</span><span class="o">;</span> 
-<span class="o">}</span> <span class="t">Upvalue</span><span class="o">;</span>      
+<span class="k">typedef</span> <span class="k">struct</span> {
+  <span class="t">uint8_t</span> <span class="i">index</span>;
+  <span class="t">bool</span> <span class="i">isLocal</span>; 
+} <span class="t">Upvalue</span>;      
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Local</em></div>
 
@@ -897,14 +897,14 @@ add after struct <em>Local</em></div>
 the immediately enclosing function. Lox also supports accessing local variables
 declared in <em>any</em> enclosing scope, as in:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">middle</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="n">1</span>;
+  <span class="k">fun</span> <span class="i">middle</span>() {
+    <span class="k">fun</span> <span class="i">inner</span>() {
+      <span class="k">print</span> <span class="i">x</span>;
+    }
+  }
+}
 </pre></div>
 <p>Here, we&rsquo;re accessing <code>x</code> in <code>inner()</code>. That variable is defined not in
 <code>middle()</code>, but all the way out in <code>outer()</code>. We need to handle cases like this
@@ -912,24 +912,24 @@ too. You <em>might</em> think that this isn&rsquo;t much harder since the variab
 simply be somewhere farther down on the stack. But consider this devious
 example:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;value&quot;</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">middle</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-    <span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="s">&quot;value&quot;</span>;
+  <span class="k">fun</span> <span class="i">middle</span>() {
+    <span class="k">fun</span> <span class="i">inner</span>() {
+      <span class="k">print</span> <span class="i">x</span>;
+    }
 
-    <span class="k">print</span> <span class="s">&quot;create inner closure&quot;</span><span class="o">;</span>
-    <span class="k">return</span> <span class="i">inner</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">print</span> <span class="s">&quot;create inner closure&quot;</span>;
+    <span class="k">return</span> <span class="i">inner</span>;
+  }
 
-  <span class="k">print</span> <span class="s">&quot;return from outer&quot;</span><span class="o">;</span>
-  <span class="k">return</span> <span class="i">middle</span><span class="o">;</span>
-<span class="o">}</span>
+  <span class="k">print</span> <span class="s">&quot;return from outer&quot;</span>;
+  <span class="k">return</span> <span class="i">middle</span>;
+}
 
-<span class="k">var</span> <span class="i">mid</span> <span class="o">=</span> <span class="i">outer</span><span class="o">();</span>
-<span class="k">var</span> <span class="i">in</span> <span class="o">=</span> <span class="i">mid</span><span class="o">();</span>
-<span class="i">in</span><span class="o">();</span>
+<span class="k">var</span> <span class="i">mid</span> = <span class="i">outer</span>();
+<span class="k">var</span> <span class="i">in</span> = <span class="i">mid</span>();
+<span class="i">in</span>();
 </pre></div>
 <p>When you run this, it should print:</p>
 <div class="codehilite"><pre>return from outer
@@ -977,10 +977,10 @@ still be around at the point that the inner function declaration executes.</p>
 in <em>resolveUpvalue</em>()</div>
 <pre class="insert">
 
-  <span class="t">int</span> <span class="i">upvalue</span> <span class="o">=</span> <span class="i">resolveUpvalue</span><span class="o">(</span><span class="i">compiler</span><span class="o">-&gt;</span><span class="i">enclosing</span><span class="o">,</span> <span class="i">name</span><span class="o">);</span>
-  <span class="k">if</span> <span class="o">(</span><span class="i">upvalue</span> <span class="o">!=</span> <span class="o">-</span><span class="n">1</span><span class="o">)</span> <span class="o">{</span>                                    
-    <span class="k">return</span> <span class="i">addUpvalue</span><span class="o">(</span><span class="i">compiler</span><span class="o">,</span> <span class="o">(</span><span class="t">uint8_t</span><span class="o">)</span><span class="i">upvalue</span><span class="o">,</span> <span class="k">false</span><span class="o">);</span> 
-  <span class="o">}</span>                                                       
+  <span class="t">int</span> <span class="i">upvalue</span> = <span class="i">resolveUpvalue</span>(<span class="i">compiler</span>-&gt;<span class="i">enclosing</span>, <span class="i">name</span>);
+  <span class="k">if</span> (<span class="i">upvalue</span> != -<span class="n">1</span>) {                                    
+    <span class="k">return</span> <span class="i">addUpvalue</span>(<span class="i">compiler</span>, (<span class="t">uint8_t</span>)<span class="i">upvalue</span>, <span class="k">false</span>); 
+  }                                                       
 </pre><pre class="insert-after">
                                                           
   return -1;                                              
@@ -1038,10 +1038,10 @@ correct variables:</p>
 in <em>function</em>()</div>
 <pre class="insert">
 
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;</span> <span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>     
-    <span class="i">emitByte</span><span class="o">(</span><span class="i">compiler</span><span class="o">.</span><span class="i">upvalues</span><span class="o">[</span><span class="i">i</span><span class="o">].</span><span class="i">isLocal</span> <span class="o">?</span> <span class="n">1</span> <span class="o">:</span> <span class="n">0</span><span class="o">);</span>      
-    <span class="i">emitByte</span><span class="o">(</span><span class="i">compiler</span><span class="o">.</span><span class="i">upvalues</span><span class="o">[</span><span class="i">i</span><span class="o">].</span><span class="i">index</span><span class="o">);</span>                
-  <span class="o">}</span>                                                      
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>; <span class="i">i</span>++) {     
+    <span class="i">emitByte</span>(<span class="i">compiler</span>.<span class="i">upvalues</span>[<span class="i">i</span>].<span class="i">isLocal</span> ? <span class="n">1</span> : <span class="n">0</span>);      
+    <span class="i">emitByte</span>(<span class="i">compiler</span>.<span class="i">upvalues</span>[<span class="i">i</span>].<span class="i">index</span>);                
+  }                                                      
 </pre><pre class="insert-after">
 }                                                        
 </pre></div>
@@ -1063,14 +1063,14 @@ for <code>OP_CLOSURE</code>:</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-      <span class="t">ObjFunction</span><span class="o">*</span> <span class="i">function</span> <span class="o">=</span> <span class="a">AS_FUNCTION</span><span class="o">(</span>                       
-          <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">constants</span><span class="o">.</span><span class="i">values</span><span class="o">[</span><span class="i">constant</span><span class="o">]);</span>                    
-      <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">j</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">j</span> <span class="o">&lt;</span> <span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">;</span> <span class="i">j</span><span class="o">++)</span> <span class="o">{</span>         
-        <span class="t">int</span> <span class="i">isLocal</span> <span class="o">=</span> <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span><span class="o">++];</span>                     
-        <span class="t">int</span> <span class="i">index</span> <span class="o">=</span> <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span><span class="o">++];</span>                       
-        <span class="i">printf</span><span class="o">(</span><span class="s">&quot;%04d      |                     %s %d</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">,</span>        
-               <span class="i">offset</span> <span class="o">-</span> <span class="n">2</span><span class="o">,</span> <span class="i">isLocal</span> <span class="o">?</span> <span class="s">&quot;local&quot;</span> <span class="o">:</span> <span class="s">&quot;upvalue&quot;</span><span class="o">,</span> <span class="i">index</span><span class="o">);</span>
-      <span class="o">}</span>                                                          
+      <span class="t">ObjFunction</span>* <span class="i">function</span> = <span class="a">AS_FUNCTION</span>(                       
+          <span class="i">chunk</span>-&gt;<span class="i">constants</span>.<span class="i">values</span>[<span class="i">constant</span>]);                    
+      <span class="k">for</span> (<span class="t">int</span> <span class="i">j</span> = <span class="n">0</span>; <span class="i">j</span> &lt; <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>; <span class="i">j</span>++) {         
+        <span class="t">int</span> <span class="i">isLocal</span> = <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span>++];                     
+        <span class="t">int</span> <span class="i">index</span> = <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span>++];                       
+        <span class="i">printf</span>(<span class="s">&quot;%04d      |                     %s %d</span><span class="e">\n</span><span class="s">&quot;</span>,        
+               <span class="i">offset</span> - <span class="n">2</span>, <span class="i">isLocal</span> ? <span class="s">&quot;local&quot;</span> : <span class="s">&quot;upvalue&quot;</span>, <span class="i">index</span>);
+      }                                                          
 
 </pre><pre class="insert-after">
       return offset;                                             
@@ -1079,17 +1079,17 @@ in <em>disassembleInstruction</em>()</div>
 
 <p>For example, take this script:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span>
-  <span class="k">var</span> <span class="i">b</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">middle</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">var</span> <span class="i">c</span> <span class="o">=</span> <span class="n">3</span><span class="o">;</span>
-    <span class="k">var</span> <span class="i">d</span> <span class="o">=</span> <span class="n">4</span><span class="o">;</span>
-    <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="i">a</span> <span class="o">+</span> <span class="i">c</span> <span class="o">+</span> <span class="i">b</span> <span class="o">+</span> <span class="i">d</span><span class="o">;</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">a</span> = <span class="n">1</span>;
+  <span class="k">var</span> <span class="i">b</span> = <span class="n">2</span>;
+  <span class="k">fun</span> <span class="i">middle</span>() {
+    <span class="k">var</span> <span class="i">c</span> = <span class="n">3</span>;
+    <span class="k">var</span> <span class="i">d</span> = <span class="n">4</span>;
+    <span class="k">fun</span> <span class="i">inner</span>() {
+      <span class="k">print</span> <span class="i">a</span> + <span class="i">c</span> + <span class="i">b</span> + <span class="i">d</span>;
+    }
+  }
+}
 </pre></div>
 <p>If we disassemble the instruction that creates the closure for <code>inner()</code> it
 prints:</p>
@@ -1106,10 +1106,10 @@ prints:</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_GET_UPVALUE</span><span class="o">:</span>                                         
-      <span class="k">return</span> <span class="i">byteInstruction</span><span class="o">(</span><span class="s">&quot;OP_GET_UPVALUE&quot;</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>   
-    <span class="k">case</span> <span class="a">OP_SET_UPVALUE</span><span class="o">:</span>                                         
-      <span class="k">return</span> <span class="i">byteInstruction</span><span class="o">(</span><span class="s">&quot;OP_SET_UPVALUE&quot;</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>   
+    <span class="k">case</span> <span class="a">OP_GET_UPVALUE</span>:                                         
+      <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_GET_UPVALUE&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);   
+    <span class="k">case</span> <span class="a">OP_SET_UPVALUE</span>:                                         
+      <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_SET_UPVALUE&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);   
 </pre><pre class="insert-after">
     case OP_EQUAL:                                               
 </pre></div>
@@ -1138,10 +1138,10 @@ operands, we need a runtime representation for upvalues:</p>
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 add after struct <em>sObjString</em></div>
 <pre>
-<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sUpvalue</span> <span class="o">{</span>
-  <span class="t">Obj</span> <span class="i">obj</span><span class="o">;</span>               
-  <span class="t">Value</span><span class="o">*</span> <span class="i">location</span><span class="o">;</span>       
-<span class="o">}</span> <span class="t">ObjUpvalue</span><span class="o">;</span>            
+<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sUpvalue</span> {
+  <span class="t">Obj</span> <span class="i">obj</span>;               
+  <span class="t">Value</span>* <span class="i">location</span>;       
+} <span class="t">ObjUpvalue</span>;            
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after struct <em>sObjString</em></div>
 
@@ -1157,14 +1157,14 @@ reference to a <em>variable</em>, not a <em>value</em>. This is important becaus
 that when we assign to the variable the upvalue captures, we&rsquo;re assigning to the
 actual variable, not a copy. For example:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;before&quot;</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-    <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;assigned&quot;</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="i">inner</span><span class="o">();</span>
-  <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="s">&quot;before&quot;</span>;
+  <span class="k">fun</span> <span class="i">inner</span>() {
+    <span class="i">x</span> = <span class="s">&quot;assigned&quot;</span>;
+  }
+  <span class="i">inner</span>();
+  <span class="k">print</span> <span class="i">x</span>;
+}
 </pre></div>
 <p>This program should print &ldquo;assigned&rdquo; even though the closure assigns to <code>x</code> and
 the surrounding function accesses it.</p>
@@ -1175,7 +1175,7 @@ ObjString* copyString(const char* chars, int length);
 </pre><div class="source-file"><em>object.h</em><br>
 add after <em>copyString</em>()</div>
 <pre class="insert">
-<span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">newUpvalue</span><span class="o">(</span><span class="t">Value</span><span class="o">*</span> <span class="i">slot</span><span class="o">);</span>                 
+<span class="t">ObjUpvalue</span>* <span class="i">newUpvalue</span>(<span class="t">Value</span>* <span class="i">slot</span>);                 
 </pre><pre class="insert-after">
 void printObject(Value value);                       
 </pre></div>
@@ -1186,11 +1186,11 @@ the implementation:</p>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>copyString</em>()</div>
 <pre>
-<span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">newUpvalue</span><span class="o">(</span><span class="t">Value</span><span class="o">*</span> <span class="i">slot</span><span class="o">)</span> <span class="o">{</span>                         
-  <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">upvalue</span> <span class="o">=</span> <span class="a">ALLOCATE_OBJ</span><span class="o">(</span><span class="t">ObjUpvalue</span><span class="o">,</span> <span class="a">OBJ_UPVALUE</span><span class="o">);</span>
-  <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">location</span> <span class="o">=</span> <span class="i">slot</span><span class="o">;</span>                                   
-  <span class="k">return</span> <span class="i">upvalue</span><span class="o">;</span>                                             
-<span class="o">}</span>                                                             
+<span class="t">ObjUpvalue</span>* <span class="i">newUpvalue</span>(<span class="t">Value</span>* <span class="i">slot</span>) {                         
+  <span class="t">ObjUpvalue</span>* <span class="i">upvalue</span> = <span class="a">ALLOCATE_OBJ</span>(<span class="t">ObjUpvalue</span>, <span class="a">OBJ_UPVALUE</span>);
+  <span class="i">upvalue</span>-&gt;<span class="i">location</span> = <span class="i">slot</span>;                                   
+  <span class="k">return</span> <span class="i">upvalue</span>;                                             
+}                                                             
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
 
@@ -1216,9 +1216,9 @@ in enum <em>ObjType</em></div>
 in <em>freeObject</em>()</div>
 <pre class="insert">
 
-    <span class="k">case</span> <span class="a">OBJ_UPVALUE</span><span class="o">:</span>          
-      <span class="a">FREE</span><span class="o">(</span><span class="t">ObjUpvalue</span><span class="o">,</span> <span class="i">object</span><span class="o">);</span>
-      <span class="k">break</span><span class="o">;</span>                   
+    <span class="k">case</span> <span class="a">OBJ_UPVALUE</span>:          
+      <span class="a">FREE</span>(<span class="t">ObjUpvalue</span>, <span class="i">object</span>);
+      <span class="k">break</span>;                   
 </pre><pre class="insert-after">
   }                            
 </pre></div>
@@ -1235,9 +1235,9 @@ itself.</p>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>printObject</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OBJ_UPVALUE</span><span class="o">:</span>                 
-      <span class="i">printf</span><span class="o">(</span><span class="s">&quot;upvalue&quot;</span><span class="o">);</span>              
-      <span class="k">break</span><span class="o">;</span>                          
+    <span class="k">case</span> <span class="a">OBJ_UPVALUE</span>:                 
+      <span class="i">printf</span>(<span class="s">&quot;upvalue&quot;</span>);              
+      <span class="k">break</span>;                          
 </pre><pre class="insert-after">
   }                                   
 </pre></div>
@@ -1256,8 +1256,8 @@ We&rsquo;ve finally worked our way back to implementing that:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjClosure</em></div>
 <pre class="insert">
-  <span class="t">ObjUpvalue</span><span class="o">**</span> <span class="i">upvalues</span><span class="o">;</span>
-  <span class="t">int</span> <span class="i">upvalueCount</span><span class="o">;</span>     
+  <span class="t">ObjUpvalue</span>** <span class="i">upvalues</span>;
+  <span class="t">int</span> <span class="i">upvalueCount</span>;     
 </pre><pre class="insert-after">
 } ObjClosure;           
 </pre></div>
@@ -1281,10 +1281,10 @@ ObjClosure* newClosure(ObjFunction* function) {
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClosure</em>()</div>
 <pre class="insert">
-  <span class="t">ObjUpvalue</span><span class="o">**</span> <span class="i">upvalues</span> <span class="o">=</span> <span class="a">ALLOCATE</span><span class="o">(</span><span class="t">ObjUpvalue</span><span class="o">*,</span> <span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">);</span>
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;</span> <span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>                    
-    <span class="i">upvalues</span><span class="o">[</span><span class="i">i</span><span class="o">]</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>                                                 
-  <span class="o">}</span>                                                                     
+  <span class="t">ObjUpvalue</span>** <span class="i">upvalues</span> = <span class="a">ALLOCATE</span>(<span class="t">ObjUpvalue</span>*, <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>);
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>; <span class="i">i</span>++) {                    
+    <span class="i">upvalues</span>[<span class="i">i</span>] = <span class="a">NULL</span>;                                                 
+  }                                                                     
 
 </pre><pre class="insert-after">
   ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);          
@@ -1302,8 +1302,8 @@ from the ObjFunction:</p>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newClosure</em>()</div>
 <pre class="insert">
-  <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span> <span class="o">=</span> <span class="i">upvalues</span><span class="o">;</span>                  
-  <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalueCount</span> <span class="o">=</span> <span class="i">function</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">;</span>
+  <span class="i">closure</span>-&gt;<span class="i">upvalues</span> = <span class="i">upvalues</span>;                  
+  <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span> = <span class="i">function</span>-&gt;<span class="i">upvalueCount</span>;
 </pre><pre class="insert-after">
   return closure;                                
 </pre></div>
@@ -1315,8 +1315,8 @@ in <em>newClosure</em>()</div>
 </pre><div class="source-file"><em>memory.c</em><br>
 in <em>freeObject</em>()</div>
 <pre class="insert">
-      <span class="t">ObjClosure</span><span class="o">*</span> <span class="i">closure</span> <span class="o">=</span> <span class="o">(</span><span class="t">ObjClosure</span><span class="o">*)</span><span class="i">object</span><span class="o">;</span>                        
-      <span class="a">FREE_ARRAY</span><span class="o">(</span><span class="t">ObjUpvalue</span><span class="o">*,</span> <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">,</span> <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">);</span>
+      <span class="t">ObjClosure</span>* <span class="i">closure</span> = (<span class="t">ObjClosure</span>*)<span class="i">object</span>;                        
+      <span class="a">FREE_ARRAY</span>(<span class="t">ObjUpvalue</span>*, <span class="i">closure</span>-&gt;<span class="i">upvalues</span>, <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span>);
 </pre><pre class="insert-after">
       FREE(ObjClosure, object);                                         
 </pre></div>
@@ -1332,15 +1332,15 @@ kind of upvalue each slot captures:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-        <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;</span> <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalueCount</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>               
-          <span class="t">uint8_t</span> <span class="i">isLocal</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>                                
-          <span class="t">uint8_t</span> <span class="i">index</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>                                  
-          <span class="k">if</span> <span class="o">(</span><span class="i">isLocal</span><span class="o">)</span> <span class="o">{</span>                                                
-            <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">i</span><span class="o">]</span> <span class="o">=</span> <span class="i">captureUpvalue</span><span class="o">(</span><span class="i">frame</span><span class="o">-&gt;</span><span class="i">slots</span> <span class="o">+</span> <span class="i">index</span><span class="o">);</span>
-          <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                                      
-            <span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">i</span><span class="o">]</span> <span class="o">=</span> <span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">index</span><span class="o">];</span>     
-          <span class="o">}</span>                                                             
-        <span class="o">}</span>                                                               
+        <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="n">0</span>; <span class="i">i</span> &lt; <span class="i">closure</span>-&gt;<span class="i">upvalueCount</span>; <span class="i">i</span>++) {               
+          <span class="t">uint8_t</span> <span class="i">isLocal</span> = <span class="a">READ_BYTE</span>();                                
+          <span class="t">uint8_t</span> <span class="i">index</span> = <span class="a">READ_BYTE</span>();                                  
+          <span class="k">if</span> (<span class="i">isLocal</span>) {                                                
+            <span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>] = <span class="i">captureUpvalue</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span> + <span class="i">index</span>);
+          } <span class="k">else</span> {                                                      
+            <span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">i</span>] = <span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">index</span>];     
+          }                                                             
+        }                                                               
 </pre><pre class="insert-after">
         break;                                                          
 </pre></div>
@@ -1365,10 +1365,10 @@ window. That window begins at <code>frame-&gt;slots</code>, which points to slot
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>callValue</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">captureUpvalue</span><span class="o">(</span><span class="t">Value</span><span class="o">*</span> <span class="i">local</span><span class="o">)</span> <span class="o">{</span>
-  <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">createdUpvalue</span> <span class="o">=</span> <span class="i">newUpvalue</span><span class="o">(</span><span class="i">local</span><span class="o">);</span>
-  <span class="k">return</span> <span class="i">createdUpvalue</span><span class="o">;</span>                         
-<span class="o">}</span>                                                
+<span class="k">static</span> <span class="t">ObjUpvalue</span>* <span class="i">captureUpvalue</span>(<span class="t">Value</span>* <span class="i">local</span>) {
+  <span class="t">ObjUpvalue</span>* <span class="i">createdUpvalue</span> = <span class="i">newUpvalue</span>(<span class="i">local</span>);
+  <span class="k">return</span> <span class="i">createdUpvalue</span>;                         
+}                                                
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>callValue</em>()</div>
 
@@ -1387,11 +1387,11 @@ an array full of upvalues pointing to variables.</p>
 in <em>run</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="a">OP_GET_UPVALUE</span><span class="o">:</span> <span class="o">{</span>                            
-        <span class="t">uint8_t</span> <span class="i">slot</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>                     
-        <span class="i">push</span><span class="o">(*</span><span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">slot</span><span class="o">]-&gt;</span><span class="i">location</span><span class="o">);</span>
-        <span class="k">break</span><span class="o">;</span>                                          
-      <span class="o">}</span>                                                 
+      <span class="k">case</span> <span class="a">OP_GET_UPVALUE</span>: {                            
+        <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="a">READ_BYTE</span>();                     
+        <span class="i">push</span>(*<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">slot</span>]-&gt;<span class="i">location</span>);
+        <span class="k">break</span>;                                          
+      }                                                 
 </pre><pre class="insert-after">
                                                         
       case OP_EQUAL: {                                  
@@ -1407,11 +1407,11 @@ the value in that slot. Setting a variable is similar:</p>
 in <em>run</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="a">OP_SET_UPVALUE</span><span class="o">:</span> <span class="o">{</span>                                
-        <span class="t">uint8_t</span> <span class="i">slot</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>                         
-        <span class="o">*</span><span class="i">frame</span><span class="o">-&gt;</span><span class="i">closure</span><span class="o">-&gt;</span><span class="i">upvalues</span><span class="o">[</span><span class="i">slot</span><span class="o">]-&gt;</span><span class="i">location</span> <span class="o">=</span> <span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">);</span>
-        <span class="k">break</span><span class="o">;</span>                                              
-      <span class="o">}</span>                                                     
+      <span class="k">case</span> <span class="a">OP_SET_UPVALUE</span>: {                                
+        <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="a">READ_BYTE</span>();                         
+        *<span class="i">frame</span>-&gt;<span class="i">closure</span>-&gt;<span class="i">upvalues</span>[<span class="i">slot</span>]-&gt;<span class="i">location</span> = <span class="i">peek</span>(<span class="n">0</span>);
+        <span class="k">break</span>;                                              
+      }                                                     
 </pre><pre class="insert-after">
                                                             
       case OP_EQUAL: {                                      
@@ -1433,13 +1433,13 @@ assigned value<span class="em">&mdash;</span>needs to remain on the stack for th
 <p>This is a milestone. As long as all of the variables remain on the stack, we
 have working closures:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;outside&quot;</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="i">inner</span><span class="o">();</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="s">&quot;outside&quot;</span>;
+  <span class="k">fun</span> <span class="i">inner</span>() {
+    <span class="k">print</span> <span class="i">x</span>;
+  }
+  <span class="i">inner</span>();
+}
 </pre></div>
 <p>Run this and it correctly prints &ldquo;outside&rdquo;.</p>
 <h2><a href="#closed-upvalues" name="closed-upvalues"><small>25&#8202;.&#8202;4</small>Closed Upvalues</a></h2>
@@ -1447,17 +1447,17 @@ have working closures:</p>
 as needed, even after the function that declares the variable has returned.
 Here&rsquo;s another example that <em>should</em> work:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">outer</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">x</span> <span class="o">=</span> <span class="s">&quot;outside&quot;</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">inner</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">x</span><span class="o">;</span>
-  <span class="o">}</span>
+<span class="k">fun</span> <span class="i">outer</span>() {
+  <span class="k">var</span> <span class="i">x</span> = <span class="s">&quot;outside&quot;</span>;
+  <span class="k">fun</span> <span class="i">inner</span>() {
+    <span class="k">print</span> <span class="i">x</span>;
+  }
 
-  <span class="k">return</span> <span class="i">inner</span><span class="o">;</span>
-<span class="o">}</span>
+  <span class="k">return</span> <span class="i">inner</span>;
+}
 
-<span class="k">var</span> <span class="i">closure</span> <span class="o">=</span> <span class="i">outer</span><span class="o">();</span>
-<span class="i">closure</span><span class="o">();</span>
+<span class="k">var</span> <span class="i">closure</span> = <span class="i">outer</span>();
+<span class="i">closure</span>();
 </pre></div>
 <p>But if you run it right now&hellip; who knows what it does? At runtime, it will end
 up reading from a stack slot that no longer contains the closed-over variable.
@@ -1474,22 +1474,22 @@ Consider:</p>
 <p>If Lox didn&rsquo;t allow assignment, it <em>would</em> be an academic question.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">globalSet</span><span class="o">;</span>
-<span class="k">var</span> <span class="i">globalGet</span><span class="o">;</span>
+<span class="k">var</span> <span class="i">globalSet</span>;
+<span class="k">var</span> <span class="i">globalGet</span>;
 
-<span class="k">fun</span> <span class="i">main</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;initial&quot;</span><span class="o">;</span>
+<span class="k">fun</span> <span class="i">main</span>() {
+  <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;initial&quot;</span>;
 
-  <span class="k">fun</span> <span class="i">set</span><span class="o">()</span> <span class="o">{</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;updated&quot;</span><span class="o">;</span> <span class="o">}</span>
-  <span class="k">fun</span> <span class="i">get</span><span class="o">()</span> <span class="o">{</span> <span class="k">print</span> <span class="i">a</span><span class="o">;</span> <span class="o">}</span>
+  <span class="k">fun</span> <span class="i">set</span>() { <span class="i">a</span> = <span class="s">&quot;updated&quot;</span>; }
+  <span class="k">fun</span> <span class="i">get</span>() { <span class="k">print</span> <span class="i">a</span>; }
 
-  <span class="i">globalSet</span> <span class="o">=</span> <span class="i">set</span><span class="o">;</span>
-  <span class="i">globalGet</span> <span class="o">=</span> <span class="i">get</span><span class="o">;</span>
-<span class="o">}</span>
+  <span class="i">globalSet</span> = <span class="i">set</span>;
+  <span class="i">globalGet</span> = <span class="i">get</span>;
+}
 
-<span class="i">main</span><span class="o">();</span>
-<span class="i">globalSet</span><span class="o">();</span>
-<span class="i">globalGet</span><span class="o">();</span>
+<span class="i">main</span>();
+<span class="i">globalSet</span>();
+<span class="i">globalGet</span>();
 </pre></div>
 <p>The outer <code>main()</code> function creates two closures and stores them in <span
 name="global">global</span> variables so that they outlive the execution of
@@ -1569,7 +1569,7 @@ is captured by a closure:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Local</em></div>
 <pre class="insert">
-  <span class="t">bool</span> <span class="i">isCaptured</span><span class="o">;</span>
+  <span class="t">bool</span> <span class="i">isCaptured</span>;
 </pre><pre class="insert-after">
 } Local;          
 </pre></div>
@@ -1582,7 +1582,7 @@ declaration. Initially, all locals are not captured:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addLocal</em>()</div>
 <pre class="insert">
-  <span class="i">local</span><span class="o">-&gt;</span><span class="i">isCaptured</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span>
+  <span class="i">local</span>-&gt;<span class="i">isCaptured</span> = <span class="k">false</span>;
 </pre><pre class="insert-after">
 }                           
 </pre></div>
@@ -1599,7 +1599,7 @@ variable. Just building some anticipation here.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>initCompiler</em>()</div>
 <pre class="insert">
-  <span class="i">local</span><span class="o">-&gt;</span><span class="i">isCaptured</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span>
+  <span class="i">local</span>-&gt;<span class="i">isCaptured</span> = <span class="k">false</span>;
 </pre><pre class="insert-after">
   local-&gt;name.start = &quot;&quot;;   
 </pre></div>
@@ -1612,7 +1612,7 @@ variable, we mark it as captured:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveUpvalue</em>()</div>
 <pre class="insert">
-    <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">enclosing</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">local</span><span class="o">].</span><span class="i">isCaptured</span> <span class="o">=</span> <span class="k">true</span><span class="o">;</span>
+    <span class="i">compiler</span>-&gt;<span class="i">enclosing</span>-&gt;<span class="i">locals</span>[<span class="i">local</span>].<span class="i">isCaptured</span> = <span class="k">true</span>;
 </pre><pre class="insert-after">
     return addUpvalue(compiler, (uint8_t)local, true);   
 </pre></div>
@@ -1629,11 +1629,11 @@ We&rsquo;ll use a new instruction for that:</p>
 in <em>endScope</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="k">if</span> <span class="o">(</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">-</span> <span class="n">1</span><span class="o">].</span><span class="i">isCaptured</span><span class="o">)</span> <span class="o">{</span>
-      <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_CLOSE_UPVALUE</span><span class="o">);</span>                             
-    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                                  
-      <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                                       
-    <span class="o">}</span>                                                         
+    <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">current</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>].<span class="i">isCaptured</span>) {
+      <span class="i">emitByte</span>(<span class="a">OP_CLOSE_UPVALUE</span>);                             
+    } <span class="k">else</span> {                                                  
+      <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                       
+    }                                                         
 </pre><pre class="insert-after">
     current-&gt;localCount--;                                    
   }                                                           
@@ -1648,7 +1648,7 @@ declare the instruction:</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_CLOSE_UPVALUE</span><span class="o">,</span>
+  <span class="a">OP_CLOSE_UPVALUE</span>,
 </pre><pre class="insert-after">
   OP_RETURN,       
 </pre></div>
@@ -1660,8 +1660,8 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_CLOSE_UPVALUE</span><span class="o">:</span>                                 
-      <span class="k">return</span> <span class="i">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_CLOSE_UPVALUE&quot;</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>
+    <span class="k">case</span> <span class="a">OP_CLOSE_UPVALUE</span>:                                 
+      <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_CLOSE_UPVALUE&quot;</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">
     case OP_RETURN:                                        
 </pre></div>
@@ -1722,7 +1722,7 @@ that puts the next pointer right inside the ObjUpvalue struct itself:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjUpvalue</em></div>
 <pre class="insert">
-  <span class="k">struct</span> <span class="i">sUpvalue</span><span class="o">*</span> <span class="i">next</span><span class="o">;</span>
+  <span class="k">struct</span> <span class="i">sUpvalue</span>* <span class="i">next</span>;
 </pre><pre class="insert-after">
 } ObjUpvalue;           
 </pre></div>
@@ -1735,7 +1735,7 @@ in struct <em>ObjUpvalue</em></div>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newUpvalue</em>()</div>
 <pre class="insert">
-  <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">next</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>    
+  <span class="i">upvalue</span>-&gt;<span class="i">next</span> = <span class="a">NULL</span>;    
 </pre><pre class="insert-after">
   return upvalue;          
 </pre></div>
@@ -1747,7 +1747,7 @@ in <em>newUpvalue</em>()</div>
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
 <pre class="insert">
-  <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">openUpvalues</span><span class="o">;</span>
+  <span class="t">ObjUpvalue</span>* <span class="i">openUpvalues</span>;
 </pre><pre class="insert-after">
                            
   Obj* objects;            
@@ -1761,7 +1761,7 @@ in struct <em>VM</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>resetStack</em>()</div>
 <pre class="insert">
-  <span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>
+  <span class="i">vm</span>.<span class="i">openUpvalues</span> = <span class="a">NULL</span>;
 </pre><pre class="insert-after">
 }                        
 </pre></div>
@@ -1771,20 +1771,20 @@ in <em>resetStack</em>()</div>
 to the next open upvalue that references a local variable farther down the
 stack. For example, this script:</p>
 <div class="codehilite"><pre>
-<span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">f</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="k">var</span> <span class="i">b</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">g</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">b</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="k">var</span> <span class="i">c</span> <span class="o">=</span> <span class="n">3</span><span class="o">;</span>
-  <span class="k">fun</span> <span class="i">h</span><span class="o">()</span> <span class="o">{</span>
-    <span class="k">print</span> <span class="i">c</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+{
+  <span class="k">var</span> <span class="i">a</span> = <span class="n">1</span>;
+  <span class="k">fun</span> <span class="i">f</span>() {
+    <span class="k">print</span> <span class="i">a</span>;
+  }
+  <span class="k">var</span> <span class="i">b</span> = <span class="n">2</span>;
+  <span class="k">fun</span> <span class="i">g</span>() {
+    <span class="k">print</span> <span class="i">b</span>;
+  }
+  <span class="k">var</span> <span class="i">c</span> = <span class="n">3</span>;
+  <span class="k">fun</span> <span class="i">h</span>() {
+    <span class="k">print</span> <span class="i">c</span>;
+  }
+}
 </pre></div>
 <p>Should produce a series of linked upvalues like so:</p><img src="image/closures/linked-list.png" alt="Three upvalues in a linked list."/>
 <p>Whenever we close over a local variable, before creating a new upvalue, we look
@@ -1794,15 +1794,15 @@ static ObjUpvalue* captureUpvalue(Value* local) {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>captureUpvalue</em>()</div>
 <pre class="insert">
-  <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">prevUpvalue</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>                                   
-  <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">upvalue</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span><span class="o">;</span>                            
+  <span class="t">ObjUpvalue</span>* <span class="i">prevUpvalue</span> = <span class="a">NULL</span>;                                   
+  <span class="t">ObjUpvalue</span>* <span class="i">upvalue</span> = <span class="i">vm</span>.<span class="i">openUpvalues</span>;                            
 
-  <span class="k">while</span> <span class="o">(</span><span class="i">upvalue</span> <span class="o">!=</span> <span class="a">NULL</span> <span class="o">&amp;&amp;</span> <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">location</span> <span class="o">&gt;</span> <span class="i">local</span><span class="o">)</span> <span class="o">{</span>            
-    <span class="i">prevUpvalue</span> <span class="o">=</span> <span class="i">upvalue</span><span class="o">;</span>                                          
-    <span class="i">upvalue</span> <span class="o">=</span> <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">next</span><span class="o">;</span>                                        
-  <span class="o">}</span>                                                                 
+  <span class="k">while</span> (<span class="i">upvalue</span> != <span class="a">NULL</span> &amp;&amp; <span class="i">upvalue</span>-&gt;<span class="i">location</span> &gt; <span class="i">local</span>) {            
+    <span class="i">prevUpvalue</span> = <span class="i">upvalue</span>;                                          
+    <span class="i">upvalue</span> = <span class="i">upvalue</span>-&gt;<span class="i">next</span>;                                        
+  }                                                                 
 
-  <span class="k">if</span> <span class="o">(</span><span class="i">upvalue</span> <span class="o">!=</span> <span class="a">NULL</span> <span class="o">&amp;&amp;</span> <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">location</span> <span class="o">==</span> <span class="i">local</span><span class="o">)</span> <span class="k">return</span> <span class="i">upvalue</span><span class="o">;</span>
+  <span class="k">if</span> (<span class="i">upvalue</span> != <span class="a">NULL</span> &amp;&amp; <span class="i">upvalue</span>-&gt;<span class="i">location</span> == <span class="i">local</span>) <span class="k">return</span> <span class="i">upvalue</span>;
 
 </pre><pre class="insert-after">
   ObjUpvalue* createdUpvalue = newUpvalue(local);                   
@@ -1845,13 +1845,13 @@ location:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>captureUpvalue</em>()</div>
 <pre class="insert">
-  <span class="i">createdUpvalue</span><span class="o">-&gt;</span><span class="i">next</span> <span class="o">=</span> <span class="i">upvalue</span><span class="o">;</span>                
+  <span class="i">createdUpvalue</span>-&gt;<span class="i">next</span> = <span class="i">upvalue</span>;                
 
-  <span class="k">if</span> <span class="o">(</span><span class="i">prevUpvalue</span> <span class="o">==</span> <span class="a">NULL</span><span class="o">)</span> <span class="o">{</span>                     
-    <span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span> <span class="o">=</span> <span class="i">createdUpvalue</span><span class="o">;</span>            
-  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                       
-    <span class="i">prevUpvalue</span><span class="o">-&gt;</span><span class="i">next</span> <span class="o">=</span> <span class="i">createdUpvalue</span><span class="o">;</span>          
-  <span class="o">}</span>                                              
+  <span class="k">if</span> (<span class="i">prevUpvalue</span> == <span class="a">NULL</span>) {                     
+    <span class="i">vm</span>.<span class="i">openUpvalues</span> = <span class="i">createdUpvalue</span>;            
+  } <span class="k">else</span> {                                       
+    <span class="i">prevUpvalue</span>-&gt;<span class="i">next</span> = <span class="i">createdUpvalue</span>;          
+  }                                              
 
 </pre><pre class="insert-after">
   return createdUpvalue;                         
@@ -1891,10 +1891,10 @@ interpreter&rsquo;s responsibility:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_CLOSE_UPVALUE</span><span class="o">:</span>           
-        <span class="i">closeUpvalues</span><span class="o">(</span><span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span> <span class="o">-</span> <span class="n">1</span><span class="o">);</span>
-        <span class="i">pop</span><span class="o">();</span>                         
-        <span class="k">break</span><span class="o">;</span>                         
+      <span class="k">case</span> <span class="a">OP_CLOSE_UPVALUE</span>:           
+        <span class="i">closeUpvalues</span>(<span class="i">vm</span>.<span class="i">stackTop</span> - <span class="n">1</span>);
+        <span class="i">pop</span>();                         
+        <span class="k">break</span>;                         
 
 </pre><pre class="insert-after">
       case OP_RETURN: {                
@@ -1910,15 +1910,15 @@ which it does by calling <code>pop()</code>.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>captureUpvalue</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">closeUpvalues</span><span class="o">(</span><span class="t">Value</span><span class="o">*</span> <span class="i">last</span><span class="o">)</span> <span class="o">{</span>     
-  <span class="k">while</span> <span class="o">(</span><span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span> <span class="o">!=</span> <span class="a">NULL</span> <span class="o">&amp;&amp;</span>          
-         <span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span><span class="o">-&gt;</span><span class="i">location</span> <span class="o">&gt;=</span> <span class="i">last</span><span class="o">)</span> <span class="o">{</span>
-    <span class="t">ObjUpvalue</span><span class="o">*</span> <span class="i">upvalue</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span><span class="o">;</span>   
-    <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">closed</span> <span class="o">=</span> <span class="o">*</span><span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">location</span><span class="o">;</span>    
-    <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">location</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">closed</span><span class="o">;</span>    
-    <span class="i">vm</span><span class="o">.</span><span class="i">openUpvalues</span> <span class="o">=</span> <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">next</span><span class="o">;</span>         
-  <span class="o">}</span>                                          
-<span class="o">}</span>                                            
+<span class="k">static</span> <span class="t">void</span> <span class="i">closeUpvalues</span>(<span class="t">Value</span>* <span class="i">last</span>) {     
+  <span class="k">while</span> (<span class="i">vm</span>.<span class="i">openUpvalues</span> != <span class="a">NULL</span> &amp;&amp;          
+         <span class="i">vm</span>.<span class="i">openUpvalues</span>-&gt;<span class="i">location</span> &gt;= <span class="i">last</span>) {
+    <span class="t">ObjUpvalue</span>* <span class="i">upvalue</span> = <span class="i">vm</span>.<span class="i">openUpvalues</span>;   
+    <span class="i">upvalue</span>-&gt;<span class="i">closed</span> = *<span class="i">upvalue</span>-&gt;<span class="i">location</span>;    
+    <span class="i">upvalue</span>-&gt;<span class="i">location</span> = &amp;<span class="i">upvalue</span>-&gt;<span class="i">closed</span>;    
+    <span class="i">vm</span>.<span class="i">openUpvalues</span> = <span class="i">upvalue</span>-&gt;<span class="i">next</span>;         
+  }                                          
+}                                            
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>captureUpvalue</em>()</div>
 
@@ -1951,7 +1951,7 @@ need to add the new field to ObjUpvalue, though:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>ObjUpvalue</em></div>
 <pre class="insert">
-  <span class="t">Value</span> <span class="i">closed</span><span class="o">;</span>         
+  <span class="t">Value</span> <span class="i">closed</span>;         
 </pre><pre class="insert-after">
   struct sUpvalue* next;
 </pre></div>
@@ -1964,7 +1964,7 @@ uninitialized memory floating around:</p>
 </pre><div class="source-file"><em>object.c</em><br>
 in <em>newUpvalue</em>()</div>
 <pre class="insert">
-  <span class="i">upvalue</span><span class="o">-&gt;</span><span class="i">closed</span> <span class="o">=</span> <span class="a">NIL_VAL</span><span class="o">;</span>                                  
+  <span class="i">upvalue</span>-&gt;<span class="i">closed</span> = <span class="a">NIL_VAL</span>;                                  
 </pre><pre class="insert-after">
   upvalue-&gt;location = slot;                                   
 </pre></div>
@@ -1991,7 +1991,7 @@ owned by the function:</p>
 in <em>run</em>()</div>
 <pre class="insert">
 
-        <span class="i">closeUpvalues</span><span class="o">(</span><span class="i">frame</span><span class="o">-&gt;</span><span class="i">slots</span><span class="o">);</span>
+        <span class="i">closeUpvalues</span>(<span class="i">frame</span>-&gt;<span class="i">slots</span>);
 </pre><pre class="insert-after">
                                     
         vm.frameCount--;            
@@ -2077,53 +2077,53 @@ share a reference to the same underlying storage location. This fact is visible
 when new values are assigned to the variable. Obviously, if two closures capture
 <em>different</em> variables, there is no sharing:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">globalOne</span><span class="o">;</span>
-<span class="k">var</span> <span class="i">globalTwo</span><span class="o">;</span>
+<span class="k">var</span> <span class="i">globalOne</span>;
+<span class="k">var</span> <span class="i">globalTwo</span>;
 
-<span class="k">fun</span> <span class="i">main</span><span class="o">()</span> <span class="o">{</span>
-  <span class="o">{</span>
-    <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;one&quot;</span><span class="o">;</span>
-    <span class="k">fun</span> <span class="i">one</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
-    <span class="o">}</span>
-    <span class="i">globalOne</span> <span class="o">=</span> <span class="i">one</span><span class="o">;</span>
-  <span class="o">}</span>
+<span class="k">fun</span> <span class="i">main</span>() {
+  {
+    <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;one&quot;</span>;
+    <span class="k">fun</span> <span class="i">one</span>() {
+      <span class="k">print</span> <span class="i">a</span>;
+    }
+    <span class="i">globalOne</span> = <span class="i">one</span>;
+  }
 
-  <span class="o">{</span>
-    <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;two&quot;</span><span class="o">;</span>
-    <span class="k">fun</span> <span class="i">two</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
-    <span class="o">}</span>
-    <span class="i">globalTwo</span> <span class="o">=</span> <span class="i">two</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+  {
+    <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;two&quot;</span>;
+    <span class="k">fun</span> <span class="i">two</span>() {
+      <span class="k">print</span> <span class="i">a</span>;
+    }
+    <span class="i">globalTwo</span> = <span class="i">two</span>;
+  }
+}
 
-<span class="i">main</span><span class="o">();</span>
-<span class="i">globalOne</span><span class="o">();</span>
-<span class="i">globalTwo</span><span class="o">();</span>
+<span class="i">main</span>();
+<span class="i">globalOne</span>();
+<span class="i">globalTwo</span>();
 </pre></div>
 <p>This prints &ldquo;one&rdquo; then &ldquo;two&rdquo;. In this example, it&rsquo;s pretty clear that the two
 <code>a</code> variables are different. But it&rsquo;s not always so obvious. Consider:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">globalOne</span><span class="o">;</span>
-<span class="k">var</span> <span class="i">globalTwo</span><span class="o">;</span>
+<span class="k">var</span> <span class="i">globalOne</span>;
+<span class="k">var</span> <span class="i">globalTwo</span>;
 
-<span class="k">fun</span> <span class="i">main</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">for</span> <span class="o">(</span><span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span> <span class="i">a</span> <span class="o">&lt;=</span> <span class="n">2</span><span class="o">;</span> <span class="i">a</span> <span class="o">=</span> <span class="i">a</span> <span class="o">+</span> <span class="n">1</span><span class="o">)</span> <span class="o">{</span>
-    <span class="k">fun</span> <span class="i">closure</span><span class="o">()</span> <span class="o">{</span>
-      <span class="k">print</span> <span class="i">a</span><span class="o">;</span>
-    <span class="o">}</span>
-    <span class="k">if</span> <span class="o">(</span><span class="i">globalOne</span> <span class="o">==</span> <span class="k">nil</span><span class="o">)</span> <span class="o">{</span>
-      <span class="i">globalOne</span> <span class="o">=</span> <span class="i">closure</span><span class="o">;</span>
-    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-      <span class="i">globalTwo</span> <span class="o">=</span> <span class="i">closure</span><span class="o">;</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">main</span>() {
+  <span class="k">for</span> (<span class="k">var</span> <span class="i">a</span> = <span class="n">1</span>; <span class="i">a</span> &lt;= <span class="n">2</span>; <span class="i">a</span> = <span class="i">a</span> + <span class="n">1</span>) {
+    <span class="k">fun</span> <span class="i">closure</span>() {
+      <span class="k">print</span> <span class="i">a</span>;
+    }
+    <span class="k">if</span> (<span class="i">globalOne</span> == <span class="k">nil</span>) {
+      <span class="i">globalOne</span> = <span class="i">closure</span>;
+    } <span class="k">else</span> {
+      <span class="i">globalTwo</span> = <span class="i">closure</span>;
+    }
+  }
+}
 
-<span class="i">main</span><span class="o">();</span>
-<span class="i">globalOne</span><span class="o">();</span>
-<span class="i">globalTwo</span><span class="o">();</span>
+<span class="i">main</span>();
+<span class="i">globalOne</span>();
+<span class="i">globalTwo</span>();
 </pre></div>
 <p>The code is convoluted because Lox has no collection types. The important part
 is that the <code>main()</code> function does two iterations of a for loop. Each time
@@ -2135,13 +2135,13 @@ each iteration get its own distinct <code>a</code> variable?</p>
 <p>The script here is strange and contrived, but this does show up in real code
 in languages that aren&rsquo;t as minimal as clox. Here&rsquo;s a JavaScript example:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">closures</span> <span class="o">=</span> <span class="o">[];</span>
-<span class="k">for</span> <span class="o">(</span><span class="k">var</span> <span class="i">i</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;=</span> <span class="n">2</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>
-  <span class="i">closures</span><span class="o">.</span><span class="i">push</span><span class="o">(</span><span class="k">function</span> <span class="o">()</span> <span class="o">{</span> <span class="i">console</span><span class="o">.</span><span class="i">log</span><span class="o">(</span><span class="i">i</span><span class="o">);</span> <span class="o">});</span>
-<span class="o">}</span>
+<span class="k">var</span> <span class="i">closures</span> = [];
+<span class="k">for</span> (<span class="k">var</span> <span class="i">i</span> = <span class="n">1</span>; <span class="i">i</span> &lt;= <span class="n">2</span>; <span class="i">i</span>++) {
+  <span class="i">closures</span>.<span class="i">push</span>(<span class="k">function</span> () { <span class="i">console</span>.<span class="i">log</span>(<span class="i">i</span>); });
+}
 
-<span class="i">closures</span><span class="o">[</span><span class="n">0</span><span class="o">]();</span>
-<span class="i">closures</span><span class="o">[</span><span class="n">1</span><span class="o">]();</span>
+<span class="i">closures</span>[<span class="n">0</span>]();
+<span class="i">closures</span>[<span class="n">1</span>]();
 </pre></div>
 <p>Does this print &ldquo;1&rdquo; then &ldquo;2&rdquo;, or does it print <span name="three">&ldquo;3&rdquo;</span>
 twice? You may be surprised to hear that it prints &ldquo;3&rdquo; twice. In this JavaScript
@@ -2157,25 +2157,25 @@ run forever.</p>
 using <code>var</code> are implicitly <em>hoisted</em> to the surrounding function or top level
 scope. It&rsquo;s as if you really wrote:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">closures</span> <span class="o">=</span> <span class="o">[];</span>
-<span class="k">var</span> <span class="i">i</span><span class="o">;</span>
-<span class="k">for</span> <span class="o">(</span><span class="i">i</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;=</span> <span class="n">2</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>
-  <span class="i">closures</span><span class="o">.</span><span class="i">push</span><span class="o">(</span><span class="k">function</span> <span class="o">()</span> <span class="o">{</span> <span class="i">console</span><span class="o">.</span><span class="i">log</span><span class="o">(</span><span class="i">i</span><span class="o">);</span> <span class="o">});</span>
-<span class="o">}</span>
+<span class="k">var</span> <span class="i">closures</span> = [];
+<span class="k">var</span> <span class="i">i</span>;
+<span class="k">for</span> (<span class="i">i</span> = <span class="n">1</span>; <span class="i">i</span> &lt;= <span class="n">2</span>; <span class="i">i</span>++) {
+  <span class="i">closures</span>.<span class="i">push</span>(<span class="k">function</span> () { <span class="i">console</span>.<span class="i">log</span>(<span class="i">i</span>); });
+}
 
-<span class="i">closures</span><span class="o">[</span><span class="n">0</span><span class="o">]();</span>
-<span class="i">closures</span><span class="o">[</span><span class="n">1</span><span class="o">]();</span>
+<span class="i">closures</span>[<span class="n">0</span>]();
+<span class="i">closures</span>[<span class="n">1</span>]();
 </pre></div>
 <p>At that point, it&rsquo;s clearer that there is only a single <code>i</code>. Now consider if
 you change the program to use the newer <code>let</code> keyword:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">closures</span> <span class="o">=</span> <span class="o">[];</span>
-<span class="k">for</span> <span class="o">(</span><span class="k">let</span> <span class="i">i</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span> <span class="i">i</span> <span class="o">&lt;=</span> <span class="n">2</span><span class="o">;</span> <span class="i">i</span><span class="o">++)</span> <span class="o">{</span>
-  <span class="i">closures</span><span class="o">.</span><span class="i">push</span><span class="o">(</span><span class="k">function</span> <span class="o">()</span> <span class="o">{</span> <span class="i">console</span><span class="o">.</span><span class="i">log</span><span class="o">(</span><span class="i">i</span><span class="o">);</span> <span class="o">});</span>
-<span class="o">}</span>
+<span class="k">var</span> <span class="i">closures</span> = [];
+<span class="k">for</span> (<span class="k">let</span> <span class="i">i</span> = <span class="n">1</span>; <span class="i">i</span> &lt;= <span class="n">2</span>; <span class="i">i</span>++) {
+  <span class="i">closures</span>.<span class="i">push</span>(<span class="k">function</span> () { <span class="i">console</span>.<span class="i">log</span>(<span class="i">i</span>); });
+}
 
-<span class="i">closures</span><span class="o">[</span><span class="n">0</span><span class="o">]();</span>
-<span class="i">closures</span><span class="o">[</span><span class="n">1</span><span class="o">]();</span>
+<span class="i">closures</span>[<span class="n">0</span>]();
+<span class="i">closures</span>[<span class="n">1</span>]();
 </pre></div>
 <p>Does this new program behave the same? Nope. In this case, it prints &ldquo;1&rdquo; then
 &ldquo;2&rdquo;. Each closure gets its own <code>i</code>. That&rsquo;s sort of strange when you think about
@@ -2183,12 +2183,12 @@ it. The increment clause is <code>i++</code>. That looks very much like it is as
 and mutating an existing variable, not creating a new one.</p>
 <p>Let&rsquo;s try some other languages. Here&rsquo;s Python:</p>
 <div class="codehilite"><pre>
-<span class="i">closures</span> <span class="o">=</span> <span class="o">[]</span>
-<span class="k">for</span> <span class="i">i</span> <span class="k">in</span> <span class="k">range</span><span class="o">(</span><span class="n">1</span><span class="o">,</span> <span class="n">3</span><span class="o">):</span>
-  <span class="i">closures</span><span class="o">.</span><span class="i">append</span><span class="o">(</span><span class="k">lambda</span><span class="o">:</span> <span class="k">print</span><span class="o">(</span><span class="i">i</span><span class="o">))</span>
+<span class="i">closures</span> = []
+<span class="k">for</span> <span class="i">i</span> <span class="k">in</span> <span class="k">range</span>(<span class="n">1</span>, <span class="n">3</span>):
+  <span class="i">closures</span>.<span class="i">append</span>(<span class="k">lambda</span>: <span class="k">print</span>(<span class="i">i</span>))
 
-<span class="i">closures</span><span class="o">[</span><span class="n">0</span><span class="o">]()</span>
-<span class="i">closures</span><span class="o">[</span><span class="n">1</span><span class="o">]()</span>
+<span class="i">closures</span>[<span class="n">0</span>]()
+<span class="i">closures</span>[<span class="n">1</span>]()
 </pre></div>
 <p>Python doesn&rsquo;t really have block scope. Variables are implicitly declared and
 are automatically scoped to the surrounding function. Kind of like hoisting in
@@ -2196,24 +2196,24 @@ JS, now that I think about it. So this prints &ldquo;3&rdquo; twice.</p>
 <p>What about Ruby? Ruby has two typical ways to iterate numerically. Here&rsquo;s the
 classic imperative style:</p>
 <div class="codehilite"><pre>
-<span class="i">closures</span> <span class="o">=</span> <span class="o">[]</span>
-<span class="k">for</span> <span class="i">i</span> <span class="k">in</span> <span class="n">1</span><span class="o">..</span><span class="n">2</span> <span class="k">do</span>
-  <span class="i">closures</span> <span class="o">&lt;&lt;</span> <span class="k">lambda</span> <span class="o">{</span> <span class="i">puts</span> <span class="i">i</span> <span class="o">}</span>
+<span class="i">closures</span> = []
+<span class="k">for</span> <span class="i">i</span> <span class="k">in</span> <span class="n">1</span>..<span class="n">2</span> <span class="k">do</span>
+  <span class="i">closures</span> &lt;&lt; <span class="k">lambda</span> { <span class="i">puts</span> <span class="i">i</span> }
 <span class="k">end</span>
 
-<span class="i">closures</span><span class="o">[</span><span class="n">0</span><span class="o">].</span><span class="i">call</span>
-<span class="i">closures</span><span class="o">[</span><span class="n">1</span><span class="o">].</span><span class="i">call</span>
+<span class="i">closures</span>[<span class="n">0</span>].<span class="i">call</span>
+<span class="i">closures</span>[<span class="n">1</span>].<span class="i">call</span>
 </pre></div>
 <p>This, like Python, prints &ldquo;3&rdquo; twice. But the more idiomatic Ruby style is using
 a higher-order <code>each()</code> method on range objects:</p>
 <div class="codehilite"><pre>
-<span class="i">closures</span> <span class="o">=</span> <span class="o">[]</span>
-<span class="o">(</span><span class="n">1</span><span class="o">..</span><span class="n">2</span><span class="o">).</span><span class="i">each</span> <span class="k">do</span> <span class="o">|</span><span class="i">i</span><span class="o">|</span>
-  <span class="i">closures</span> <span class="o">&lt;&lt;</span> <span class="k">lambda</span> <span class="o">{</span> <span class="i">puts</span> <span class="i">i</span> <span class="o">}</span>
+<span class="i">closures</span> = []
+(<span class="n">1</span>..<span class="n">2</span>).<span class="i">each</span> <span class="k">do</span> |<span class="i">i</span>|
+  <span class="i">closures</span> &lt;&lt; <span class="k">lambda</span> { <span class="i">puts</span> <span class="i">i</span> }
 <span class="k">end</span>
 
-<span class="i">closures</span><span class="o">[</span><span class="n">0</span><span class="o">].</span><span class="i">call</span>
-<span class="i">closures</span><span class="o">[</span><span class="n">1</span><span class="o">].</span><span class="i">call</span>
+<span class="i">closures</span>[<span class="n">0</span>].<span class="i">call</span>
+<span class="i">closures</span>[<span class="n">1</span>].<span class="i">call</span>
 </pre></div>
 <p>If you&rsquo;re not familiar with Ruby, the <code>do |i| ... end</code> part is basically a
 closure that gets created and passed to the <code>each()</code> method. The <code>|i|</code> is the

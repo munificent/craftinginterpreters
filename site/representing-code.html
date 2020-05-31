@@ -134,7 +134,7 @@ those requirements aren&rsquo;t exactly illuminating. Maybe your intuition can h
 What is your brain doing when you play the part of a <em>human</em> interpreter? How do
 you manually evaluate an arithmetic expression like this:</p>
 <div class="codehilite"><pre>
-<span class="n">1</span> <span class="o">+</span> <span class="n">2</span> <span class="o">*</span> <span class="n">3</span> <span class="o">-</span> <span class="n">4</span>
+<span class="n">1</span> + <span class="n">2</span> * <span class="n">3</span> - <span class="n">4</span>
 </pre></div>
 <p>Because you understand the order of operations<span class="em">&mdash;</span>the old &ldquo;<a href="https://en.wikipedia.org/wiki/Order_of_operations#Mnemonics">Please Excuse My
 Dear Aunt Sally</a>&rdquo; stuff<span class="em">&mdash;</span>you know that the <code>*</code> is evaluated before the
@@ -440,7 +440,7 @@ to negate a number.</p>
 </ul>
 <p>That gives us enough syntax for expressions like:</p>
 <div class="codehilite"><pre>
-<span class="n">1</span> <span class="o">-</span> <span class="o">(</span><span class="n">2</span> <span class="o">*</span> <span class="n">3</span><span class="o">)</span> <span class="o">&lt;</span> <span class="n">4</span> <span class="o">==</span> <span class="k">false</span>
+<span class="n">1</span> - (<span class="n">2</span> * <span class="n">3</span>) &lt; <span class="n">4</span> == <span class="k">false</span>
 </pre></div>
 <p>Using our handy dandy new notation, here&rsquo;s a grammar for those:</p>
 <div class="codehilite"><pre>
@@ -499,23 +499,23 @@ specific to that rule. This way, we get a compile error if we, say, try to
 access the second operand of a unary expression.</p>
 <p>Something like:</p>
 <div class="codehilite"><pre>
-<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>
+<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span>;
 
-<span class="k">abstract</span> <span class="k">class</span> <span class="t">Expr</span> <span class="o">{</span><span name="expr"> </span>
-  <span class="k">static</span> <span class="k">class</span> <span class="t">Binary</span> <span class="k">extends</span> <span class="t">Expr</span> <span class="o">{</span>
-    <span class="t">Binary</span><span class="o">(</span><span class="t">Expr</span> <span class="i">left</span><span class="o">,</span> <span class="t">Token</span> <span class="i">operator</span><span class="o">,</span> <span class="t">Expr</span> <span class="i">right</span><span class="o">)</span> <span class="o">{</span>
-      <span class="k">this</span><span class="o">.</span><span class="i">left</span> <span class="o">=</span> <span class="i">left</span><span class="o">;</span>
-      <span class="k">this</span><span class="o">.</span><span class="i">operator</span> <span class="o">=</span> <span class="i">operator</span><span class="o">;</span>
-      <span class="k">this</span><span class="o">.</span><span class="i">right</span> <span class="o">=</span> <span class="i">right</span><span class="o">;</span>
-    <span class="o">}</span>
+<span class="k">abstract</span> <span class="k">class</span> <span class="t">Expr</span> {<span name="expr"> </span>
+  <span class="k">static</span> <span class="k">class</span> <span class="t">Binary</span> <span class="k">extends</span> <span class="t">Expr</span> {
+    <span class="t">Binary</span>(<span class="t">Expr</span> <span class="i">left</span>, <span class="t">Token</span> <span class="i">operator</span>, <span class="t">Expr</span> <span class="i">right</span>) {
+      <span class="k">this</span>.<span class="i">left</span> = <span class="i">left</span>;
+      <span class="k">this</span>.<span class="i">operator</span> = <span class="i">operator</span>;
+      <span class="k">this</span>.<span class="i">right</span> = <span class="i">right</span>;
+    }
 
-    <span class="k">final</span> <span class="t">Expr</span> <span class="i">left</span><span class="o">;</span>
-    <span class="k">final</span> <span class="t">Token</span> <span class="i">operator</span><span class="o">;</span>
-    <span class="k">final</span> <span class="t">Expr</span> <span class="i">right</span><span class="o">;</span>
-  <span class="o">}</span>
+    <span class="k">final</span> <span class="t">Expr</span> <span class="i">left</span>;
+    <span class="k">final</span> <span class="t">Token</span> <span class="i">operator</span>;
+    <span class="k">final</span> <span class="t">Expr</span> <span class="i">right</span>;
+  }
 
   <span class="c">// Other expressions...</span>
-<span class="o">}</span>
+}
 </pre></div>
 <aside name="expr">
 <p>I avoid abbreviations in my code because they trip up a reader who doesn&rsquo;t know
@@ -575,22 +575,22 @@ trying not to throw too many languages at you.</p>
 <div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
 create new file</div>
 <pre>
-<span class="k">package</span> <span class="n">com.craftinginterpreters.tool</span><span class="o">;</span>                             
+<span class="k">package</span> <span class="n">com.craftinginterpreters.tool</span>;                             
 
-<span class="k">import</span> <span class="n">java.io.IOException</span><span class="o">;</span>                                        
-<span class="k">import</span> <span class="n">java.io.PrintWriter</span><span class="o">;</span>                                        
-<span class="k">import</span> <span class="n">java.util.Arrays</span><span class="o">;</span>                                           
-<span class="k">import</span> <span class="n">java.util.List</span><span class="o">;</span>                                             
+<span class="k">import</span> <span class="n">java.io.IOException</span>;                                        
+<span class="k">import</span> <span class="n">java.io.PrintWriter</span>;                                        
+<span class="k">import</span> <span class="n">java.util.Arrays</span>;                                           
+<span class="k">import</span> <span class="n">java.util.List</span>;                                             
 
-<span class="k">public</span> <span class="k">class</span> <span class="t">GenerateAst</span> <span class="o">{</span>                                         
-  <span class="k">public</span> <span class="k">static</span> <span class="t">void</span> <span class="i">main</span><span class="o">(</span><span class="t">String</span><span class="o">[]</span> <span class="i">args</span><span class="o">)</span> <span class="k">throws</span> <span class="n">IOE</span><span class="i">xception</span> <span class="o">{</span>      
-    <span class="k">if</span> <span class="o">(</span><span class="i">args</span><span class="o">.</span><span class="i">length</span> <span class="o">!=</span> <span class="n">1</span><span class="o">)</span> <span class="o">{</span>                                        
-      <span class="t">System</span><span class="o">.</span><span class="i">err</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;Usage: generate_ast &lt;output directory&gt;&quot;</span><span class="o">);</span>
-      <span class="t">System</span><span class="o">.</span><span class="i">exit</span><span class="o">(</span><span class="n">64</span><span class="o">);</span>                                             
-    <span class="o">}</span>                                                              
-    <span class="t">String</span> <span class="i">outputDir</span> <span class="o">=</span> <span class="i">args</span><span class="o">[</span><span class="n">0</span><span class="o">];</span>                                    
-  <span class="o">}</span>                                                                
-<span class="o">}</span>                                                                  
+<span class="k">public</span> <span class="k">class</span> <span class="t">GenerateAst</span> {                                         
+  <span class="k">public</span> <span class="k">static</span> <span class="t">void</span> <span class="i">main</span>(<span class="t">String</span>[] <span class="i">args</span>) <span class="k">throws</span> <span class="n">IOE</span><span class="i">xception</span> {      
+    <span class="k">if</span> (<span class="i">args</span>.<span class="i">length</span> != <span class="n">1</span>) {                                        
+      <span class="t">System</span>.<span class="i">err</span>.<span class="i">println</span>(<span class="s">&quot;Usage: generate_ast &lt;output directory&gt;&quot;</span>);
+      <span class="t">System</span>.<span class="i">exit</span>(<span class="n">64</span>);                                             
+    }                                                              
+    <span class="t">String</span> <span class="i">outputDir</span> = <span class="i">args</span>[<span class="n">0</span>];                                    
+  }                                                                
+}                                                                  
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, create new file</div>
 
@@ -606,12 +606,12 @@ fields:</p>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-    <span class="i">defineAst</span><span class="o">(</span><span class="i">outputDir</span><span class="o">,</span> <span class="s">&quot;Expr&quot;</span><span class="o">,</span> <span class="t">Arrays</span><span class="o">.</span><span class="i">asList</span><span class="o">(</span>          
-      <span class="s">&quot;Binary   : Expr left, Token operator, Expr right&quot;</span><span class="o">,</span>
-      <span class="s">&quot;Grouping : Expr expression&quot;</span><span class="o">,</span>                      
-      <span class="s">&quot;Literal  : Object value&quot;</span><span class="o">,</span>                         
+    <span class="i">defineAst</span>(<span class="i">outputDir</span>, <span class="s">&quot;Expr&quot;</span>, <span class="t">Arrays</span>.<span class="i">asList</span>(          
+      <span class="s">&quot;Binary   : Expr left, Token operator, Expr right&quot;</span>,
+      <span class="s">&quot;Grouping : Expr expression&quot;</span>,                      
+      <span class="s">&quot;Literal  : Object value&quot;</span>,                         
       <span class="s">&quot;Unary    : Token operator, Expr right&quot;</span>            
-    <span class="o">));</span>                                                  
+    ));                                                  
 </pre><pre class="insert-after">
   }                                                      
 </pre></div>
@@ -624,21 +624,21 @@ commas. Each field has a type and name.</p>
 <div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
 add after <em>main</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">defineAst</span><span class="o">(</span>                            
-      <span class="t">String</span> <span class="i">outputDir</span><span class="o">,</span> <span class="t">String</span> <span class="i">baseName</span><span class="o">,</span> <span class="t">List</span><span class="o">&lt;</span><span class="t">String</span><span class="o">&gt;</span> <span class="i">types</span><span class="o">)</span>
-      <span class="k">throws</span> <span class="n">IOE</span><span class="i">xception</span> <span class="o">{</span>                                  
-    <span class="t">String</span> <span class="i">path</span> <span class="o">=</span> <span class="i">outputDir</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot;.java&quot;</span><span class="o">;</span>     
-    <span class="t">PrintWriter</span> <span class="i">writer</span> <span class="o">=</span> <span class="k">new</span> <span class="t">PrintWriter</span><span class="o">(</span><span class="i">path</span><span class="o">,</span> <span class="s">&quot;UTF-8&quot;</span><span class="o">);</span>    
+  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">defineAst</span>(                            
+      <span class="t">String</span> <span class="i">outputDir</span>, <span class="t">String</span> <span class="i">baseName</span>, <span class="t">List</span>&lt;<span class="t">String</span>&gt; <span class="i">types</span>)
+      <span class="k">throws</span> <span class="n">IOE</span><span class="i">xception</span> {                                  
+    <span class="t">String</span> <span class="i">path</span> = <span class="i">outputDir</span> + <span class="s">&quot;/&quot;</span> + <span class="i">baseName</span> + <span class="s">&quot;.java&quot;</span>;     
+    <span class="t">PrintWriter</span> <span class="i">writer</span> = <span class="k">new</span> <span class="t">PrintWriter</span>(<span class="i">path</span>, <span class="s">&quot;UTF-8&quot;</span>);    
 
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;package com.craftinginterpreters.lox;&quot;</span><span class="o">);</span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">();</span>                                       
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;import java.util.List;&quot;</span><span class="o">);</span>               
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">();</span>                                       
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;abstract class &quot;</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>    
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;package com.craftinginterpreters.lox;&quot;</span>);
+    <span class="i">writer</span>.<span class="i">println</span>();                                       
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;import java.util.List;&quot;</span>);               
+    <span class="i">writer</span>.<span class="i">println</span>();                                       
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;abstract class &quot;</span> + <span class="i">baseName</span> + <span class="s">&quot; {&quot;</span>);    
 
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;}&quot;</span><span class="o">);</span>                                    
-    <span class="i">writer</span><span class="o">.</span><span class="i">close</span><span class="o">();</span>                                         
-  <span class="o">}</span>                                                         
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;}&quot;</span>);                                    
+    <span class="i">writer</span>.<span class="i">close</span>();                                         
+  }                                                         
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, add after <em>main</em>()</div>
 
@@ -653,11 +653,11 @@ because we&rsquo;ll add a separate family of classes later for statements.</p>
 in <em>defineAst</em>()</div>
 <pre class="insert">
     <span class="c">// The AST classes.                                     </span>
-    <span class="k">for</span> <span class="o">(</span><span class="t">String</span> <span class="i">type</span> <span class="o">:</span> <span class="i">types</span><span class="o">)</span> <span class="o">{</span>                             
-      <span class="t">String</span> <span class="i">className</span> <span class="o">=</span> <span class="i">type</span><span class="o">.</span><span class="i">split</span><span class="o">(</span><span class="s">&quot;:&quot;</span><span class="o">)[</span><span class="n">0</span><span class="o">].</span><span class="i">trim</span><span class="o">();</span>         
-      <span class="t">String</span> <span class="i">fields</span> <span class="o">=</span> <span class="i">type</span><span class="o">.</span><span class="i">split</span><span class="o">(</span><span class="s">&quot;:&quot;</span><span class="o">)[</span><span class="n">1</span><span class="o">].</span><span class="i">trim</span><span class="o">();</span><span name="robust"> </span>
-      <span class="i">defineType</span><span class="o">(</span><span class="i">writer</span><span class="o">,</span> <span class="i">baseName</span><span class="o">,</span> <span class="i">className</span><span class="o">,</span> <span class="i">fields</span><span class="o">);</span>      
-    <span class="o">}</span>                                                       
+    <span class="k">for</span> (<span class="t">String</span> <span class="i">type</span> : <span class="i">types</span>) {                             
+      <span class="t">String</span> <span class="i">className</span> = <span class="i">type</span>.<span class="i">split</span>(<span class="s">&quot;:&quot;</span>)[<span class="n">0</span>].<span class="i">trim</span>();         
+      <span class="t">String</span> <span class="i">fields</span> = <span class="i">type</span>.<span class="i">split</span>(<span class="s">&quot;:&quot;</span>)[<span class="n">1</span>].<span class="i">trim</span>();<span name="robust"> </span>
+      <span class="i">defineType</span>(<span class="i">writer</span>, <span class="i">baseName</span>, <span class="i">className</span>, <span class="i">fields</span>);      
+    }                                                       
 </pre><pre class="insert-after">
     writer.println(&quot;}&quot;);                                    
 </pre></div>
@@ -672,32 +672,32 @@ priority.</p>
 <div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
 add after <em>defineAst</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">defineType</span><span class="o">(</span>                                
-      <span class="t">PrintWriter</span> <span class="i">writer</span><span class="o">,</span> <span class="t">String</span> <span class="i">baseName</span><span class="o">,</span>                       
-      <span class="t">String</span> <span class="i">className</span><span class="o">,</span> <span class="t">String</span> <span class="i">fieldList</span><span class="o">)</span> <span class="o">{</span>                      
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;  static class &quot;</span> <span class="o">+</span> <span class="i">className</span> <span class="o">+</span> <span class="s">&quot; extends &quot;</span> <span class="o">+</span> 
-        <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot; {&quot;</span><span class="o">);</span>                                        
+  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">defineType</span>(                                
+      <span class="t">PrintWriter</span> <span class="i">writer</span>, <span class="t">String</span> <span class="i">baseName</span>,                       
+      <span class="t">String</span> <span class="i">className</span>, <span class="t">String</span> <span class="i">fieldList</span>) {                      
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;  static class &quot;</span> + <span class="i">className</span> + <span class="s">&quot; extends &quot;</span> + 
+        <span class="i">baseName</span> + <span class="s">&quot; {&quot;</span>);                                        
 
     <span class="c">// Constructor.                                              </span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    &quot;</span> <span class="o">+</span> <span class="i">className</span> <span class="o">+</span> <span class="s">&quot;(&quot;</span> <span class="o">+</span> <span class="i">fieldList</span> <span class="o">+</span> <span class="s">&quot;) {&quot;</span><span class="o">);</span>
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    &quot;</span> + <span class="i">className</span> + <span class="s">&quot;(&quot;</span> + <span class="i">fieldList</span> + <span class="s">&quot;) {&quot;</span>);
 
     <span class="c">// Store parameters in fields.                               </span>
-    <span class="t">String</span><span class="o">[]</span> <span class="i">fields</span> <span class="o">=</span> <span class="i">fieldList</span><span class="o">.</span><span class="i">split</span><span class="o">(</span><span class="s">&quot;, &quot;</span><span class="o">);</span>                     
-    <span class="k">for</span> <span class="o">(</span><span class="t">String</span> <span class="i">field</span> <span class="o">:</span> <span class="i">fields</span><span class="o">)</span> <span class="o">{</span>                                
-      <span class="t">String</span> <span class="i">name</span> <span class="o">=</span> <span class="i">field</span><span class="o">.</span><span class="i">split</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">)[</span><span class="n">1</span><span class="o">];</span>                         
-      <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;      this.&quot;</span> <span class="o">+</span> <span class="i">name</span> <span class="o">+</span> <span class="s">&quot; = &quot;</span> <span class="o">+</span> <span class="i">name</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span><span class="o">);</span> 
-    <span class="o">}</span>                                                            
+    <span class="t">String</span>[] <span class="i">fields</span> = <span class="i">fieldList</span>.<span class="i">split</span>(<span class="s">&quot;, &quot;</span>);                     
+    <span class="k">for</span> (<span class="t">String</span> <span class="i">field</span> : <span class="i">fields</span>) {                                
+      <span class="t">String</span> <span class="i">name</span> = <span class="i">field</span>.<span class="i">split</span>(<span class="s">&quot; &quot;</span>)[<span class="n">1</span>];                         
+      <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;      this.&quot;</span> + <span class="i">name</span> + <span class="s">&quot; = &quot;</span> + <span class="i">name</span> + <span class="s">&quot;;&quot;</span>); 
+    }                                                            
 
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>                                     
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    }&quot;</span>);                                     
 
     <span class="c">// Fields.                                                   </span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">();</span>                                            
-    <span class="k">for</span> <span class="o">(</span><span class="t">String</span> <span class="i">field</span> <span class="o">:</span> <span class="i">fields</span><span class="o">)</span> <span class="o">{</span>                                
-      <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    final &quot;</span> <span class="o">+</span> <span class="i">field</span> <span class="o">+</span> <span class="s">&quot;;&quot;</span><span class="o">);</span>                
-    <span class="o">}</span>                                                            
+    <span class="i">writer</span>.<span class="i">println</span>();                                            
+    <span class="k">for</span> (<span class="t">String</span> <span class="i">field</span> : <span class="i">fields</span>) {                                
+      <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    final &quot;</span> + <span class="i">field</span> + <span class="s">&quot;;&quot;</span>);                
+    }                                                            
 
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;  }&quot;</span><span class="o">);</span>                                       
-  <span class="o">}</span>                                                              
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;  }&quot;</span>);                                       
+  }                                                              
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, add after <em>defineAst</em>()</div>
 
@@ -718,11 +718,11 @@ simply switch on the TokenType. But we don&rsquo;t have a &ldquo;type&rdquo; enu
 trees, just a separate Java class for each one.</p>
 <p>We could write some long chain of type tests:</p>
 <div class="codehilite"><pre>
-<span class="k">if</span> <span class="o">(</span><span class="i">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Binary</span><span class="o">)</span> <span class="o">{</span>
+<span class="k">if</span> (<span class="i">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span>.<span class="t">Binary</span>) {
   <span class="c">// ...</span>
-<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Grouping</span><span class="o">)</span> <span class="o">{</span>
+} <span class="k">else</span> <span class="k">if</span> (<span class="i">expr</span> <span class="k">instanceof</span> <span class="t">Expr</span>.<span class="t">Grouping</span>) {
   <span class="c">// ...</span>
-<span class="o">}</span> <span class="k">else</span> <span class="c">// ...</span>
+} <span class="k">else</span> <span class="c">// ...</span>
 </pre></div>
 <p>But all of those sequential type tests are slow. Expression types whose names
 are alphabetically later would take longer to execute because they&rsquo;d fall
@@ -826,24 +826,24 @@ watch tourists staggering around trying to shake off their hangover from the
 previous night&rsquo;s revelry.</p>
 </aside>
 <div class="codehilite"><pre>
-  <span class="k">abstract</span> <span class="k">class</span> <span class="t">Pastry</span> <span class="o">{</span>       
-  <span class="o">}</span>                             
+  <span class="k">abstract</span> <span class="k">class</span> <span class="t">Pastry</span> {       
+  }                             
 
-  <span class="k">class</span> <span class="t">Beignet</span> <span class="k">extends</span> <span class="t">Pastry</span> <span class="o">{</span>
-  <span class="o">}</span>                             
+  <span class="k">class</span> <span class="t">Beignet</span> <span class="k">extends</span> <span class="t">Pastry</span> {
+  }                             
 
-  <span class="k">class</span> <span class="t">Cruller</span> <span class="k">extends</span> <span class="t">Pastry</span> <span class="o">{</span>
-  <span class="o">}</span>                             
+  <span class="k">class</span> <span class="t">Cruller</span> <span class="k">extends</span> <span class="t">Pastry</span> {
+  }                             
 </pre></div>
 
 <p>We want to be able to define new operations for them<span class="em">&mdash;</span>cooking them, eating
 them, decorating them, etc.<span class="em">&mdash;</span>without having to add a new method to each class
 every time. Here&rsquo;s how we do it. First, we define a separate interface:</p>
 <div class="codehilite"><pre>
-  <span class="k">interface</span> <span class="t">PastryVisitor</span> <span class="o">{</span>                          
-    <span class="t">void</span> <span class="i">visitBeignet</span><span class="o">(</span><span class="t">Beignet</span> <span class="i">beignet</span><span class="o">);</span><span name="overload"> </span>
-    <span class="t">void</span> <span class="i">visitCruller</span><span class="o">(</span><span class="t">Cruller</span> <span class="i">cruller</span><span class="o">);</span>              
-  <span class="o">}</span>                                                  
+  <span class="k">interface</span> <span class="t">PastryVisitor</span> {                          
+    <span class="t">void</span> <span class="i">visitBeignet</span>(<span class="t">Beignet</span> <span class="i">beignet</span>);<span name="overload"> </span>
+    <span class="t">void</span> <span class="i">visitCruller</span>(<span class="t">Cruller</span> <span class="i">cruller</span>);              
+  }                                                  
 </pre></div>
 
 <aside name="overload">
@@ -864,7 +864,7 @@ on its type? Polymorphism to the rescue! We add this method to Pastry:</p>
 <div class="codehilite"><pre class="insert-before">
   abstract class Pastry {                       
 </pre><pre class="insert">
-    <span class="k">abstract</span> <span class="t">void</span> <span class="i">accept</span><span class="o">(</span><span class="t">PastryVisitor</span> <span class="i">visitor</span><span class="o">);</span>
+    <span class="k">abstract</span> <span class="t">void</span> <span class="i">accept</span>(<span class="t">PastryVisitor</span> <span class="i">visitor</span>);
 </pre><pre class="insert-after">
   }                                             
 </pre></div>
@@ -874,9 +874,9 @@ on its type? Polymorphism to the rescue! We add this method to Pastry:</p>
   class Beignet extends Pastry {        
 </pre><pre class="insert">
     <span class="a">@Override</span>                           
-    <span class="t">void</span> <span class="i">accept</span><span class="o">(</span><span class="t">PastryVisitor</span> <span class="i">visitor</span><span class="o">)</span> <span class="o">{</span>
-      <span class="i">visitor</span><span class="o">.</span><span class="i">visitBeignet</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>       
-    <span class="o">}</span>                                   
+    <span class="t">void</span> <span class="i">accept</span>(<span class="t">PastryVisitor</span> <span class="i">visitor</span>) {
+      <span class="i">visitor</span>.<span class="i">visitBeignet</span>(<span class="k">this</span>);       
+    }                                   
 </pre><pre class="insert-after">
   }                                     
 </pre></div>
@@ -886,9 +886,9 @@ on its type? Polymorphism to the rescue! We add this method to Pastry:</p>
   class Cruller extends Pastry {        
 </pre><pre class="insert">
     <span class="a">@Override</span>                           
-    <span class="t">void</span> <span class="i">accept</span><span class="o">(</span><span class="t">PastryVisitor</span> <span class="i">visitor</span><span class="o">)</span> <span class="o">{</span>
-      <span class="i">visitor</span><span class="o">.</span><span class="i">visitCruller</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>       
-    <span class="o">}</span>                                   
+    <span class="t">void</span> <span class="i">accept</span>(<span class="t">PastryVisitor</span> <span class="i">visitor</span>) {
+      <span class="i">visitor</span>.<span class="i">visitCruller</span>(<span class="k">this</span>);       
+    }                                   
 </pre><pre class="insert-after">
   }                                     
 </pre></div>
@@ -925,7 +925,7 @@ so that we can keep everything in one file:</p>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>defineAst</em>()</div>
 <pre class="insert">
-    <span class="i">defineVisitor</span><span class="o">(</span><span class="i">writer</span><span class="o">,</span> <span class="i">baseName</span><span class="o">,</span> <span class="i">types</span><span class="o">);</span>             
+    <span class="i">defineVisitor</span>(<span class="i">writer</span>, <span class="i">baseName</span>, <span class="i">types</span>);             
 
 </pre><pre class="insert-after">
     // The AST classes.                                 
@@ -936,18 +936,18 @@ in <em>defineAst</em>()</div>
 <div class="codehilite"><div class="source-file"><em>tool/GenerateAst.java</em><br>
 add after <em>defineAst</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">defineVisitor</span><span class="o">(</span>                            
-      <span class="t">PrintWriter</span> <span class="i">writer</span><span class="o">,</span> <span class="t">String</span> <span class="i">baseName</span><span class="o">,</span> <span class="t">List</span><span class="o">&lt;</span><span class="t">String</span><span class="o">&gt;</span> <span class="i">types</span><span class="o">)</span> <span class="o">{</span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;  interface Visitor&lt;R&gt; {&quot;</span><span class="o">);</span>                 
+  <span class="k">private</span> <span class="k">static</span> <span class="t">void</span> <span class="i">defineVisitor</span>(                            
+      <span class="t">PrintWriter</span> <span class="i">writer</span>, <span class="t">String</span> <span class="i">baseName</span>, <span class="t">List</span>&lt;<span class="t">String</span>&gt; <span class="i">types</span>) {
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;  interface Visitor&lt;R&gt; {&quot;</span>);                 
 
-    <span class="k">for</span> <span class="o">(</span><span class="t">String</span> <span class="i">type</span> <span class="o">:</span> <span class="i">types</span><span class="o">)</span> <span class="o">{</span>                                 
-      <span class="t">String</span> <span class="i">typeName</span> <span class="o">=</span> <span class="i">type</span><span class="o">.</span><span class="i">split</span><span class="o">(</span><span class="s">&quot;:&quot;</span><span class="o">)[</span><span class="n">0</span><span class="o">].</span><span class="i">trim</span><span class="o">();</span>              
-      <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    R visit&quot;</span> <span class="o">+</span> <span class="i">typeName</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot;(&quot;</span> <span class="o">+</span>
-          <span class="i">typeName</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="i">baseName</span><span class="o">.</span><span class="i">toLowerCase</span><span class="o">()</span> <span class="o">+</span> <span class="s">&quot;);&quot;</span><span class="o">);</span>      
-    <span class="o">}</span>                                                           
+    <span class="k">for</span> (<span class="t">String</span> <span class="i">type</span> : <span class="i">types</span>) {                                 
+      <span class="t">String</span> <span class="i">typeName</span> = <span class="i">type</span>.<span class="i">split</span>(<span class="s">&quot;:&quot;</span>)[<span class="n">0</span>].<span class="i">trim</span>();              
+      <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    R visit&quot;</span> + <span class="i">typeName</span> + <span class="i">baseName</span> + <span class="s">&quot;(&quot;</span> +
+          <span class="i">typeName</span> + <span class="s">&quot; &quot;</span> + <span class="i">baseName</span>.<span class="i">toLowerCase</span>() + <span class="s">&quot;);&quot;</span>);      
+    }                                                           
 
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;  }&quot;</span><span class="o">);</span>                                      
-  <span class="o">}</span>                                                             
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;  }&quot;</span>);                                      
+  }                                                             
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, add after <em>defineAst</em>()</div>
 
@@ -963,8 +963,8 @@ in <em>defineAst</em>()</div>
 <pre class="insert">
 
     <span class="c">// The base accept() method.                                   </span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">();</span>                                              
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;  abstract &lt;R&gt; R accept(Visitor&lt;R&gt; visitor);&quot;</span><span class="o">);</span>
+    <span class="i">writer</span>.<span class="i">println</span>();                                              
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;  abstract &lt;R&gt; R accept(Visitor&lt;R&gt; visitor);&quot;</span>);
 
 </pre><pre class="insert-after">
     writer.println(&quot;}&quot;);                                           
@@ -980,12 +980,12 @@ in <em>defineType</em>()</div>
 <pre class="insert">
 
     <span class="c">// Visitor pattern.                                      </span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">();</span>                                        
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    @Override&quot;</span><span class="o">);</span>                         
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    &lt;R&gt; R accept(Visitor&lt;R&gt; visitor) {&quot;</span><span class="o">);</span>
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;      return visitor.visit&quot;</span> <span class="o">+</span>            
-        <span class="i">className</span> <span class="o">+</span> <span class="i">baseName</span> <span class="o">+</span> <span class="s">&quot;(this);&quot;</span><span class="o">);</span>                   
-    <span class="i">writer</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="s">&quot;    }&quot;</span><span class="o">);</span>                                 
+    <span class="i">writer</span>.<span class="i">println</span>();                                        
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    @Override&quot;</span>);                         
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    &lt;R&gt; R accept(Visitor&lt;R&gt; visitor) {&quot;</span>);
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;      return visitor.visit&quot;</span> +            
+        <span class="i">className</span> + <span class="i">baseName</span> + <span class="s">&quot;(this);&quot;</span>);                   
+    <span class="i">writer</span>.<span class="i">println</span>(<span class="s">&quot;    }&quot;</span>);                                 
 </pre><pre class="insert-after">
                                                              
     // Fields.                                               
@@ -1019,14 +1019,14 @@ implement this, we define a new class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/AstPrinter.java</em><br>
 create new file</div>
 <pre>
-<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span><span class="o">;</span>                                  
+<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span>;                                  
 
 <span class="c">// Creates an unambiguous, if ugly, string representation of AST nodes.</span>
-<span class="k">class</span> <span class="t">AstPrinter</span> <span class="k">implements</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Visitor</span><span class="o">&lt;</span><span class="t">String</span><span class="o">&gt;</span> <span class="o">{</span>                     
-  <span class="t">String</span> <span class="i">print</span><span class="o">(</span><span class="t">Expr</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>                                            
-    <span class="k">return</span> <span class="i">expr</span><span class="o">.</span><span class="i">accept</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>                                          
-  <span class="o">}</span>                                                                    
-<span class="o">}</span>                                                                      
+<span class="k">class</span> <span class="t">AstPrinter</span> <span class="k">implements</span> <span class="t">Expr</span>.<span class="t">Visitor</span>&lt;<span class="t">String</span>&gt; {                     
+  <span class="t">String</span> <span class="i">print</span>(<span class="t">Expr</span> <span class="i">expr</span>) {                                            
+    <span class="k">return</span> <span class="i">expr</span>.<span class="i">accept</span>(<span class="k">this</span>);                                          
+  }                                                                    
+}                                                                      
 </pre></div>
 <div class="source-file-narrow"><em>lox/AstPrinter.java</em>, create new file</div>
 
@@ -1040,25 +1040,25 @@ add after <em>print</em>()</div>
 <pre class="insert">
 
   <span class="a">@Override</span>                                                          
-  <span class="k">public</span> <span class="t">String</span> <span class="i">visitBinaryExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Binary</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>                  
-    <span class="k">return</span> <span class="i">parenthesize</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">operator</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">left</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">right</span><span class="o">);</span>
-  <span class="o">}</span>                                                                  
+  <span class="k">public</span> <span class="t">String</span> <span class="i">visitBinaryExpr</span>(<span class="t">Expr</span>.<span class="t">Binary</span> <span class="i">expr</span>) {                  
+    <span class="k">return</span> <span class="i">parenthesize</span>(<span class="i">expr</span>.<span class="i">operator</span>.<span class="i">lexeme</span>, <span class="i">expr</span>.<span class="i">left</span>, <span class="i">expr</span>.<span class="i">right</span>);
+  }                                                                  
 
   <span class="a">@Override</span>                                                          
-  <span class="k">public</span> <span class="t">String</span> <span class="i">visitGroupingExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Grouping</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>              
-    <span class="k">return</span> <span class="i">parenthesize</span><span class="o">(</span><span class="s">&quot;group&quot;</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">expression</span><span class="o">);</span>                   
-  <span class="o">}</span>                                                                  
+  <span class="k">public</span> <span class="t">String</span> <span class="i">visitGroupingExpr</span>(<span class="t">Expr</span>.<span class="t">Grouping</span> <span class="i">expr</span>) {              
+    <span class="k">return</span> <span class="i">parenthesize</span>(<span class="s">&quot;group&quot;</span>, <span class="i">expr</span>.<span class="i">expression</span>);                   
+  }                                                                  
 
   <span class="a">@Override</span>                                                          
-  <span class="k">public</span> <span class="t">String</span> <span class="i">visitLiteralExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>                
-    <span class="k">if</span> <span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">value</span> <span class="o">==</span> <span class="k">null</span><span class="o">)</span> <span class="k">return</span> <span class="s">&quot;nil&quot;</span><span class="o">;</span>                            
-    <span class="k">return</span> <span class="i">expr</span><span class="o">.</span><span class="i">value</span><span class="o">.</span><span class="i">toString</span><span class="o">();</span>                                    
-  <span class="o">}</span>                                                                  
+  <span class="k">public</span> <span class="t">String</span> <span class="i">visitLiteralExpr</span>(<span class="t">Expr</span>.<span class="t">Literal</span> <span class="i">expr</span>) {                
+    <span class="k">if</span> (<span class="i">expr</span>.<span class="i">value</span> == <span class="k">null</span>) <span class="k">return</span> <span class="s">&quot;nil&quot;</span>;                            
+    <span class="k">return</span> <span class="i">expr</span>.<span class="i">value</span>.<span class="i">toString</span>();                                    
+  }                                                                  
 
   <span class="a">@Override</span>                                                          
-  <span class="k">public</span> <span class="t">String</span> <span class="i">visitUnaryExpr</span><span class="o">(</span><span class="t">Expr</span><span class="o">.</span><span class="t">Unary</span> <span class="i">expr</span><span class="o">)</span> <span class="o">{</span>                    
-    <span class="k">return</span> <span class="i">parenthesize</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">operator</span><span class="o">.</span><span class="i">lexeme</span><span class="o">,</span> <span class="i">expr</span><span class="o">.</span><span class="i">right</span><span class="o">);</span>           
-  <span class="o">}</span>                                                                  
+  <span class="k">public</span> <span class="t">String</span> <span class="i">visitUnaryExpr</span>(<span class="t">Expr</span>.<span class="t">Unary</span> <span class="i">expr</span>) {                    
+    <span class="k">return</span> <span class="i">parenthesize</span>(<span class="i">expr</span>.<span class="i">operator</span>.<span class="i">lexeme</span>, <span class="i">expr</span>.<span class="i">right</span>);           
+  }                                                                  
 </pre><pre class="insert-after">
 }                                                                    
 </pre></div>
@@ -1070,18 +1070,18 @@ have subexpressions, so they use this <code>parenthesize()</code> helper method:
 <div class="codehilite"><div class="source-file"><em>lox/AstPrinter.java</em><br>
 add after <em>visitUnaryExpr</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="t">String</span> <span class="i">parenthesize</span><span class="o">(</span><span class="t">String</span> <span class="i">name</span><span class="o">,</span> <span class="t">Expr</span><span class="o">...</span> <span class="i">exprs</span><span class="o">)</span> <span class="o">{</span>
-    <span class="t">StringBuilder</span> <span class="i">builder</span> <span class="o">=</span> <span class="k">new</span> <span class="t">StringBuilder</span><span class="o">();</span>           
+  <span class="k">private</span> <span class="t">String</span> <span class="i">parenthesize</span>(<span class="t">String</span> <span class="i">name</span>, <span class="t">Expr</span>... <span class="i">exprs</span>) {
+    <span class="t">StringBuilder</span> <span class="i">builder</span> = <span class="k">new</span> <span class="t">StringBuilder</span>();           
 
-    <span class="i">builder</span><span class="o">.</span><span class="i">append</span><span class="o">(</span><span class="s">&quot;(&quot;</span><span class="o">).</span><span class="i">append</span><span class="o">(</span><span class="i">name</span><span class="o">);</span>                      
-    <span class="k">for</span> <span class="o">(</span><span class="t">Expr</span> <span class="i">expr</span> <span class="o">:</span> <span class="i">exprs</span><span class="o">)</span> <span class="o">{</span>                              
-      <span class="i">builder</span><span class="o">.</span><span class="i">append</span><span class="o">(</span><span class="s">&quot; &quot;</span><span class="o">);</span>                                 
-      <span class="i">builder</span><span class="o">.</span><span class="i">append</span><span class="o">(</span><span class="i">expr</span><span class="o">.</span><span class="i">accept</span><span class="o">(</span><span class="k">this</span><span class="o">));</span>                   
-    <span class="o">}</span>                                                      
-    <span class="i">builder</span><span class="o">.</span><span class="i">append</span><span class="o">(</span><span class="s">&quot;)&quot;</span><span class="o">);</span>                                   
+    <span class="i">builder</span>.<span class="i">append</span>(<span class="s">&quot;(&quot;</span>).<span class="i">append</span>(<span class="i">name</span>);                      
+    <span class="k">for</span> (<span class="t">Expr</span> <span class="i">expr</span> : <span class="i">exprs</span>) {                              
+      <span class="i">builder</span>.<span class="i">append</span>(<span class="s">&quot; &quot;</span>);                                 
+      <span class="i">builder</span>.<span class="i">append</span>(<span class="i">expr</span>.<span class="i">accept</span>(<span class="k">this</span>));                   
+    }                                                      
+    <span class="i">builder</span>.<span class="i">append</span>(<span class="s">&quot;)&quot;</span>);                                   
 
-    <span class="k">return</span> <span class="i">builder</span><span class="o">.</span><span class="i">toString</span><span class="o">();</span>                             
-  <span class="o">}</span>                                                        
+    <span class="k">return</span> <span class="i">builder</span>.<span class="i">toString</span>();                             
+  }                                                        
 </pre></div>
 <div class="source-file-narrow"><em>lox/AstPrinter.java</em>, add after <em>visitUnaryExpr</em>()</div>
 
@@ -1103,17 +1103,17 @@ prints it:</p>
 add after <em>parenthesize</em>()</div>
 <pre>
 
-  <span class="k">public</span> <span class="k">static</span> <span class="t">void</span> <span class="i">main</span><span class="o">(</span><span class="t">String</span><span class="o">[]</span> <span class="i">args</span><span class="o">)</span> <span class="o">{</span>                 
-    <span class="t">Expr</span> <span class="i">expression</span> <span class="o">=</span> <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Binary</span><span class="o">(</span>                     
-        <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Unary</span><span class="o">(</span>                                    
-            <span class="k">new</span> <span class="t">Token</span><span class="o">(</span><span class="t">TokenType</span><span class="o">.</span><span class="n">MINUS</span><span class="o">,</span> <span class="s">&quot;-&quot;</span><span class="o">,</span> <span class="k">null</span><span class="o">,</span> <span class="n">1</span><span class="o">),</span>      
-            <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span><span class="o">(</span><span class="n">123</span><span class="o">)),</span>                        
-        <span class="k">new</span> <span class="t">Token</span><span class="o">(</span><span class="t">TokenType</span><span class="o">.</span><span class="n">STAR</span><span class="o">,</span> <span class="s">&quot;*&quot;</span><span class="o">,</span> <span class="k">null</span><span class="o">,</span> <span class="n">1</span><span class="o">),</span>           
-        <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Grouping</span><span class="o">(</span>                                 
-            <span class="k">new</span> <span class="t">Expr</span><span class="o">.</span><span class="t">Literal</span><span class="o">(</span><span class="n">45.67</span><span class="o">)));</span>                     
+  <span class="k">public</span> <span class="k">static</span> <span class="t">void</span> <span class="i">main</span>(<span class="t">String</span>[] <span class="i">args</span>) {                 
+    <span class="t">Expr</span> <span class="i">expression</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Binary</span>(                     
+        <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Unary</span>(                                    
+            <span class="k">new</span> <span class="t">Token</span>(<span class="t">TokenType</span>.<span class="n">MINUS</span>, <span class="s">&quot;-&quot;</span>, <span class="k">null</span>, <span class="n">1</span>),      
+            <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="n">123</span>)),                        
+        <span class="k">new</span> <span class="t">Token</span>(<span class="t">TokenType</span>.<span class="n">STAR</span>, <span class="s">&quot;*&quot;</span>, <span class="k">null</span>, <span class="n">1</span>),           
+        <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Grouping</span>(                                 
+            <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="n">45.67</span>)));                     
 
-    <span class="t">System</span><span class="o">.</span><span class="i">out</span><span class="o">.</span><span class="i">println</span><span class="o">(</span><span class="k">new</span> <span class="t">AstPrinter</span><span class="o">().</span><span class="i">print</span><span class="o">(</span><span class="i">expression</span><span class="o">));</span>
-  <span class="o">}</span>                                                        
+    <span class="t">System</span>.<span class="i">out</span>.<span class="i">println</span>(<span class="k">new</span> <span class="t">AstPrinter</span>().<span class="i">print</span>(<span class="i">expression</span>));
+  }                                                        
 </pre></div>
 <div class="source-file-narrow"><em>lox/AstPrinter.java</em>, add after <em>parenthesize</em>()</div>
 
@@ -1155,11 +1155,11 @@ Evaluation proceeds from left to right. Numbers are pushed onto an implicit
 stack. An arithmetic operator pops the top two numbers, performs the
 operation, and pushes the result. Thus, this:</p>
 <div class="codehilite"><pre>
-<span class="o">(</span><span class="n">1</span> <span class="o">+</span> <span class="n">2</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="n">4</span> <span class="o">-</span> <span class="n">3</span><span class="o">)</span>
+(<span class="n">1</span> + <span class="n">2</span>) * (<span class="n">4</span> - <span class="n">3</span>)
 </pre></div>
 <p>in RPN becomes:</p>
 <div class="codehilite"><pre>
-<span class="n">1</span> <span class="n">2</span> <span class="o">+</span> <span class="n">4</span> <span class="n">3</span> <span class="o">-</span> <span class="o">*</span>
+<span class="n">1</span> <span class="n">2</span> + <span class="n">4</span> <span class="n">3</span> - *
 </pre></div>
 <p>Define a visitor class for our syntax tree classes that takes an expression,
 converts it to RPN, and returns the resulting string.</p>

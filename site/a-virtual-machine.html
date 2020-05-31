@@ -140,12 +140,12 @@ create new file</div>
 
 <span class="a">#include &quot;chunk.h&quot;</span>
 
-<span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>  
-  <span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">;</span>   
-<span class="o">}</span> <span class="a">VM</span><span class="o">;</span>             
+<span class="k">typedef</span> <span class="k">struct</span> {  
+  <span class="t">Chunk</span>* <span class="i">chunk</span>;   
+} <span class="a">VM</span>;             
 
-<span class="t">void</span> <span class="i">initVM</span><span class="o">();</span>    
-<span class="t">void</span> <span class="i">freeVM</span><span class="o">();</span>    
+<span class="t">void</span> <span class="i">initVM</span>();    
+<span class="t">void</span> <span class="i">freeVM</span>();    
 
 <span class="a">#endif            </span>
 </pre></div>
@@ -162,13 +162,13 @@ create new file</div>
 <span class="a">#include &quot;common.h&quot;</span>
 <span class="a">#include &quot;vm.h&quot;    </span>
 
-<span class="a">VM</span> <span class="i">vm</span><span class="o">;</span><span name="one"> </span>
+<span class="a">VM</span> <span class="i">vm</span>;<span name="one"> </span>
 
-<span class="t">void</span> <span class="i">initVM</span><span class="o">()</span> <span class="o">{</span>    
-<span class="o">}</span>                  
+<span class="t">void</span> <span class="i">initVM</span>() {    
+}                  
 
-<span class="t">void</span> <span class="i">freeVM</span><span class="o">()</span> <span class="o">{</span>    
-<span class="o">}</span>                  
+<span class="t">void</span> <span class="i">freeVM</span>() {    
+}                  
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, create new file</div>
 
@@ -199,7 +199,7 @@ int main(int argc, const char* argv[]) {
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-  <span class="i">initVM</span><span class="o">();</span>                             
+  <span class="i">initVM</span>();                             
 
 </pre><pre class="insert-after">
   Chunk chunk;                          
@@ -213,7 +213,7 @@ exit, we wind it down:</p>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-  <span class="i">freeVM</span><span class="o">();</span>                              
+  <span class="i">freeVM</span>();                              
 </pre><pre class="insert-after">
   freeChunk(&amp;chunk);                     
 </pre></div>
@@ -241,7 +241,7 @@ to do something.</p>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-  <span class="i">interpret</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">);</span>                     
+  <span class="i">interpret</span>(&amp;<span class="i">chunk</span>);                     
 </pre><pre class="insert-after">
   freeVM();                              
 </pre></div>
@@ -253,7 +253,7 @@ void freeVM();
 </pre><div class="source-file"><em>vm.h</em><br>
 add after <em>freeVM</em>()</div>
 <pre class="insert">
-<span class="t">InterpretResult</span> <span class="i">interpret</span><span class="o">(</span><span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">);</span>
+<span class="t">InterpretResult</span> <span class="i">interpret</span>(<span class="t">Chunk</span>* <span class="i">chunk</span>);
 </pre><pre class="insert-after">
                                         
 #endif                                  
@@ -267,11 +267,11 @@ add after <em>freeVM</em>()</div>
 </pre><div class="source-file"><em>vm.h</em><br>
 add after struct <em>VM</em></div>
 <pre class="insert">
-<span class="k">typedef</span> <span class="k">enum</span> <span class="o">{</span>            
-  <span class="a">INTERPRET_OK</span><span class="o">,</span>           
-  <span class="a">INTERPRET_COMPILE_ERROR</span><span class="o">,</span>
+<span class="k">typedef</span> <span class="k">enum</span> {            
+  <span class="a">INTERPRET_OK</span>,           
+  <span class="a">INTERPRET_COMPILE_ERROR</span>,
   <span class="a">INTERPRET_RUNTIME_ERROR</span> 
-<span class="o">}</span> <span class="t">InterpretResult</span><span class="o">;</span>        
+} <span class="t">InterpretResult</span>;        
 
 </pre><pre class="insert-after">
 void initVM();            
@@ -286,11 +286,11 @@ know how to set the exit code of the process.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>freeVM</em>()</div>
 <pre>
-<span class="t">InterpretResult</span> <span class="i">interpret</span><span class="o">(</span><span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">)</span> <span class="o">{</span>
-  <span class="i">vm</span><span class="o">.</span><span class="i">chunk</span> <span class="o">=</span> <span class="i">chunk</span><span class="o">;</span>                      
-  <span class="i">vm</span><span class="o">.</span><span class="i">ip</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">;</span>                
-  <span class="k">return</span> <span class="i">run</span><span class="o">();</span>                          
-<span class="o">}</span>                                        
+<span class="t">InterpretResult</span> <span class="i">interpret</span>(<span class="t">Chunk</span>* <span class="i">chunk</span>) {
+  <span class="i">vm</span>.<span class="i">chunk</span> = <span class="i">chunk</span>;                      
+  <span class="i">vm</span>.<span class="i">ip</span> = <span class="i">vm</span>.<span class="i">chunk</span>-&gt;<span class="i">code</span>;                
+  <span class="k">return</span> <span class="i">run</span>();                          
+}                                        
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>freeVM</em>()</div>
 
@@ -312,7 +312,7 @@ typedef struct {
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
 <pre class="insert">
-  <span class="t">uint8_t</span><span class="o">*</span> <span class="i">ip</span><span class="o">;</span>  
+  <span class="t">uint8_t</span>* <span class="i">ip</span>;  
 </pre><pre class="insert-after">
 } VM;           
 </pre></div>
@@ -338,20 +338,20 @@ IP always points to the next instruction, not the one currently being handled.</
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>freeVM</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">InterpretResult</span> <span class="i">run</span><span class="o">()</span> <span class="o">{</span>          
+<span class="k">static</span> <span class="t">InterpretResult</span> <span class="i">run</span>() {          
 <span class="a">#define READ_BYTE() (*vm.ip++)          </span>
 
-  <span class="k">for</span> <span class="o">(;;)</span> <span class="o">{</span>                            
-    <span class="t">uint8_t</span> <span class="i">instruction</span><span class="o">;</span>                
-    <span class="k">switch</span> <span class="o">(</span><span class="i">instruction</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">())</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="a">OP_RETURN</span><span class="o">:</span> <span class="o">{</span>                 
-        <span class="k">return</span> <span class="a">INTERPRET_OK</span><span class="o">;</span>            
-      <span class="o">}</span>                                 
-    <span class="o">}</span>                                   
-  <span class="o">}</span>                                     
+  <span class="k">for</span> (;;) {                            
+    <span class="t">uint8_t</span> <span class="i">instruction</span>;                
+    <span class="k">switch</span> (<span class="i">instruction</span> = <span class="a">READ_BYTE</span>()) {
+      <span class="k">case</span> <span class="a">OP_RETURN</span>: {                 
+        <span class="k">return</span> <span class="a">INTERPRET_OK</span>;            
+      }                                 
+    }                                   
+  }                                     
 
 <span class="a">#undef READ_BYTE                        </span>
-<span class="o">}</span>                                       
+}                                       
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>freeVM</em>()</div>
 
@@ -400,12 +400,12 @@ repurpose it temporarily to end the execution.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_CONSTANT</span><span class="o">:</span> <span class="o">{</span>                
-        <span class="t">Value</span> <span class="i">constant</span> <span class="o">=</span> <span class="a">READ_CONSTANT</span><span class="o">();</span>
-        <span class="i">printValue</span><span class="o">(</span><span class="i">constant</span><span class="o">);</span>            
-        <span class="i">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>                    
-        <span class="k">break</span><span class="o">;</span>                           
-      <span class="o">}</span>                                  
+      <span class="k">case</span> <span class="a">OP_CONSTANT</span>: {                
+        <span class="t">Value</span> <span class="i">constant</span> = <span class="a">READ_CONSTANT</span>();
+        <span class="i">printValue</span>(<span class="i">constant</span>);            
+        <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);                    
+        <span class="k">break</span>;                           
+      }                                  
 </pre><pre class="insert-after">
       case OP_RETURN: {                  
 </pre></div>
@@ -491,7 +491,7 @@ once, statically, this disassembles instructions dynamically, on the fly:</p>
 in <em>run</em>()</div>
 <pre class="insert">
 <span class="a">#ifdef DEBUG_TRACE_EXECUTION                                        </span>
-    <span class="i">disassembleInstruction</span><span class="o">(</span><span class="i">vm</span><span class="o">.</span><span class="i">chunk</span><span class="o">,</span> <span class="o">(</span><span class="t">int</span><span class="o">)(</span><span class="i">vm</span><span class="o">.</span><span class="i">ip</span> <span class="o">-</span> <span class="i">vm</span><span class="o">.</span><span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">));</span>
+    <span class="i">disassembleInstruction</span>(<span class="i">vm</span>.<span class="i">chunk</span>, (<span class="t">int</span>)(<span class="i">vm</span>.<span class="i">ip</span> - <span class="i">vm</span>.<span class="i">chunk</span>-&gt;<span class="i">code</span>));
 <span class="a">#endif                                                              </span>
 
 </pre><pre class="insert-after">
@@ -527,7 +527,7 @@ modify, and consume values. Thus, our compiled bytecode needs a way to shuttle
 values around between the different instructions that need them. For example,
 in:</p>
 <div class="codehilite"><pre>
-<span class="k">print</span> <span class="n">3</span> <span class="o">-</span> <span class="n">2</span><span class="o">;</span>
+<span class="k">print</span> <span class="n">3</span> - <span class="n">2</span>;
 </pre></div>
 <p>We obviously need instructions for the constants 3 and 2, the print statement,
 and the subtraction. But how does the subtraction instruction know that 3 is
@@ -540,12 +540,12 @@ and &ldquo;subtrahend&rdquo; might be some sort of underground Paleolithic monum
 </aside>
 <p>To put a finer point on it, look at this thing right here:</p>
 <div class="codehilite"><pre>
-<span class="k">fun</span> <span class="i">echo</span><span class="o">(</span><span class="i">n</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">print</span> <span class="i">n</span><span class="o">;</span>
-  <span class="k">return</span> <span class="i">n</span><span class="o">;</span>
-<span class="o">}</span>
+<span class="k">fun</span> <span class="i">echo</span>(<span class="i">n</span>) {
+  <span class="k">print</span> <span class="i">n</span>;
+  <span class="k">return</span> <span class="i">n</span>;
+}
 
-<span class="k">print</span> <span class="i">echo</span><span class="o">(</span><span class="i">echo</span><span class="o">(</span><span class="n">1</span><span class="o">)</span> <span class="o">+</span> <span class="i">echo</span><span class="o">(</span><span class="n">2</span><span class="o">))</span> <span class="o">+</span> <span class="i">echo</span><span class="o">(</span><span class="i">echo</span><span class="o">(</span><span class="n">4</span><span class="o">)</span> <span class="o">+</span> <span class="i">echo</span><span class="o">(</span><span class="n">5</span><span class="o">));</span>
+<span class="k">print</span> <span class="i">echo</span>(<span class="i">echo</span>(<span class="n">1</span>) + <span class="i">echo</span>(<span class="n">2</span>)) + <span class="i">echo</span>(<span class="i">echo</span>(<span class="n">4</span>) + <span class="i">echo</span>(<span class="n">5</span>));
 </pre></div>
 <p>I wrapped each subexpression in a call to <code>echo()</code> that prints and returns its
 argument. That side effect means we can see the exact order of operations.</p>
@@ -663,8 +663,8 @@ typedef struct {
 </pre><div class="source-file"><em>vm.h</em><br>
 in struct <em>VM</em></div>
 <pre class="insert">
-  <span class="t">Value</span> <span class="i">stack</span><span class="o">[</span><span class="a">STACK_MAX</span><span class="o">];</span>
-  <span class="t">Value</span><span class="o">*</span> <span class="i">stackTop</span><span class="o">;</span>       
+  <span class="t">Value</span> <span class="i">stack</span>[<span class="a">STACK_MAX</span>];
+  <span class="t">Value</span>* <span class="i">stackTop</span>;       
 </pre><pre class="insert-after">
 } VM;                    
 </pre></div>
@@ -739,7 +739,7 @@ void initVM() {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert">
-  <span class="i">resetStack</span><span class="o">();</span>
+  <span class="i">resetStack</span>();
 </pre><pre class="insert-after">
 }              
 </pre></div>
@@ -749,9 +749,9 @@ in <em>initVM</em>()</div>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after variable <em>VM</em></div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">resetStack</span><span class="o">()</span> <span class="o">{</span>
-  <span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">stack</span><span class="o">;</span> 
-<span class="o">}</span>                         
+<span class="k">static</span> <span class="t">void</span> <span class="i">resetStack</span>() {
+  <span class="i">vm</span>.<span class="i">stackTop</span> = <span class="i">vm</span>.<span class="i">stack</span>; 
+}                         
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after variable <em>VM</em></div>
 
@@ -766,8 +766,8 @@ InterpretResult interpret(Chunk* chunk);
 </pre><div class="source-file"><em>vm.h</em><br>
 add after <em>interpret</em>()</div>
 <pre class="insert">
-<span class="t">void</span> <span class="i">push</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">);</span>                 
-<span class="t">Value</span> <span class="i">pop</span><span class="o">();</span>                            
+<span class="t">void</span> <span class="i">push</span>(<span class="t">Value</span> <span class="i">value</span>);                 
+<span class="t">Value</span> <span class="i">pop</span>();                            
 </pre><pre class="insert-after">
                                         
 #endif                                  
@@ -779,10 +779,10 @@ recently pushed value back off. Here&rsquo;s the first function:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>freeVM</em>()</div>
 <pre>
-<span class="t">void</span> <span class="i">push</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">)</span> <span class="o">{</span>
-  <span class="o">*</span><span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span> <span class="o">=</span> <span class="i">value</span><span class="o">;</span> 
-  <span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span><span class="o">++;</span>        
-<span class="o">}</span>                       
+<span class="t">void</span> <span class="i">push</span>(<span class="t">Value</span> <span class="i">value</span>) {
+  *<span class="i">vm</span>.<span class="i">stackTop</span> = <span class="i">value</span>; 
+  <span class="i">vm</span>.<span class="i">stackTop</span>++;        
+}                       
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>freeVM</em>()</div>
 
@@ -795,10 +795,10 @@ array now that the previous slot is occupied. Popping is the mirror image:</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>push</em>()</div>
 <pre>
-<span class="t">Value</span> <span class="i">pop</span><span class="o">()</span> <span class="o">{</span>         
-  <span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span><span class="o">--;</span>      
-  <span class="k">return</span> <span class="o">*</span><span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span><span class="o">;</span>
-<span class="o">}</span>                     
+<span class="t">Value</span> <span class="i">pop</span>() {         
+  <span class="i">vm</span>.<span class="i">stackTop</span>--;      
+  <span class="k">return</span> *<span class="i">vm</span>.<span class="i">stackTop</span>;
+}                     
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>push</em>()</div>
 
@@ -817,13 +817,13 @@ contents of the stack before we interpret each instruction:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-    <span class="i">printf</span><span class="o">(</span><span class="s">&quot;          &quot;</span><span class="o">);</span>                                           
-    <span class="k">for</span> <span class="o">(</span><span class="t">Value</span><span class="o">*</span> <span class="i">slot</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">stack</span><span class="o">;</span> <span class="i">slot</span> <span class="o">&lt;</span> <span class="i">vm</span><span class="o">.</span><span class="i">stackTop</span><span class="o">;</span> <span class="i">slot</span><span class="o">++)</span> <span class="o">{</span>      
-      <span class="i">printf</span><span class="o">(</span><span class="s">&quot;[ &quot;</span><span class="o">);</span>                                                 
-      <span class="i">printValue</span><span class="o">(*</span><span class="i">slot</span><span class="o">);</span>                                            
-      <span class="i">printf</span><span class="o">(</span><span class="s">&quot; ]&quot;</span><span class="o">);</span>                                                 
-    <span class="o">}</span>                                                               
-    <span class="i">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>                                                   
+    <span class="i">printf</span>(<span class="s">&quot;          &quot;</span>);                                           
+    <span class="k">for</span> (<span class="t">Value</span>* <span class="i">slot</span> = <span class="i">vm</span>.<span class="i">stack</span>; <span class="i">slot</span> &lt; <span class="i">vm</span>.<span class="i">stackTop</span>; <span class="i">slot</span>++) {      
+      <span class="i">printf</span>(<span class="s">&quot;[ &quot;</span>);                                                 
+      <span class="i">printValue</span>(*<span class="i">slot</span>);                                            
+      <span class="i">printf</span>(<span class="s">&quot; ]&quot;</span>);                                                 
+    }                                                               
+    <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);                                                   
 </pre><pre class="insert-after">
     disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk-&gt;code));
 </pre></div>
@@ -841,7 +841,7 @@ we&rsquo;re surgically extracting a nasty bug from the bowels of the interpreter
 in <em>run</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
-        <span class="i">push</span><span class="o">(</span><span class="i">constant</span><span class="o">);</span>                  
+        <span class="i">push</span>(<span class="i">constant</span>);                  
 </pre><pre class="insert-after">
         break;                           
 </pre></div>
@@ -855,8 +855,8 @@ produce a value: it gets pushed onto the stack.</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-        <span class="i">printValue</span><span class="o">(</span><span class="i">pop</span><span class="o">());</span>  
-        <span class="i">printf</span><span class="o">(</span><span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">);</span>       
+        <span class="i">printValue</span>(<span class="i">pop</span>());  
+        <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);       
 </pre><pre class="insert-after">
         return INTERPRET_OK;
 </pre></div>
@@ -874,8 +874,8 @@ with only the two rudimentary instructions we have so far. So let&rsquo;s teach 
 interpreter to do arithmetic.</p>
 <p>We&rsquo;ll start with the simplest arithmetic operation, unary negation:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">1.2</span><span class="o">;</span>
-<span class="k">print</span> <span class="o">-</span><span class="i">a</span><span class="o">;</span> <span class="c">// -1.2.</span>
+<span class="k">var</span> <span class="i">a</span> = <span class="n">1.2</span>;
+<span class="k">print</span> -<span class="i">a</span>; <span class="c">// -1.2.</span>
 </pre></div>
 <p>The prefix <code>-</code> operator takes one operand, the value to negate. It produces a
 single result. We aren&rsquo;t fussing with a parser yet, but we can add the
@@ -885,7 +885,7 @@ bytecode instruction that the above syntax will compile to:</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_NEGATE</span><span class="o">,</span>  
+  <span class="a">OP_NEGATE</span>,  
 </pre><pre class="insert-after">
   OP_RETURN,  
 </pre></div>
@@ -897,7 +897,7 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_NEGATE</span><span class="o">:</span>   <span class="i">push</span><span class="o">(-</span><span class="i">pop</span><span class="o">());</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="a">OP_NEGATE</span>:   <span class="i">push</span>(-<span class="i">pop</span>()); <span class="k">break</span>;
 </pre><pre class="insert-after">
       case OP_RETURN: {                     
 </pre></div>
@@ -912,8 +912,8 @@ Doesn&rsquo;t get much easier than that. We can disassemble it too:</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_NEGATE</span><span class="o">:</span>                                            
-      <span class="k">return</span> <span class="i">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_NEGATE&quot;</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>           
+    <span class="k">case</span> <span class="a">OP_NEGATE</span>:                                            
+      <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_NEGATE&quot;</span>, <span class="i">offset</span>);           
 </pre><pre class="insert-after">
     case OP_RETURN:                                            
 </pre></div>
@@ -925,7 +925,7 @@ in <em>disassembleInstruction</em>()</div>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="a">OP_NEGATE</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="a">OP_NEGATE</span>, <span class="n">123</span>);
 </pre><pre class="insert-after">
                                      
   writeChunk(&amp;chunk, OP_RETURN, 123);
@@ -953,10 +953,10 @@ don&rsquo;t produce numbers as a result, so we aren&rsquo;t ready for them yet.<
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_ADD</span><span class="o">,</span>     
-  <span class="a">OP_SUBTRACT</span><span class="o">,</span>
-  <span class="a">OP_MULTIPLY</span><span class="o">,</span>
-  <span class="a">OP_DIVIDE</span><span class="o">,</span>  
+  <span class="a">OP_ADD</span>,     
+  <span class="a">OP_SUBTRACT</span>,
+  <span class="a">OP_MULTIPLY</span>,
+  <span class="a">OP_DIVIDE</span>,  
 </pre><pre class="insert-after">
   OP_NEGATE,  
 </pre></div>
@@ -968,10 +968,10 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_ADD</span><span class="o">:</span>      <span class="a">BINARY_OP</span><span class="o">(+);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="a">OP_SUBTRACT</span><span class="o">:</span> <span class="a">BINARY_OP</span><span class="o">(-);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="a">OP_MULTIPLY</span><span class="o">:</span> <span class="a">BINARY_OP</span><span class="o">(*);</span> <span class="k">break</span><span class="o">;</span>
-      <span class="k">case</span> <span class="a">OP_DIVIDE</span><span class="o">:</span>   <span class="a">BINARY_OP</span><span class="o">(/);</span> <span class="k">break</span><span class="o">;</span>
+      <span class="k">case</span> <span class="a">OP_ADD</span>:      <span class="a">BINARY_OP</span>(+); <span class="k">break</span>;
+      <span class="k">case</span> <span class="a">OP_SUBTRACT</span>: <span class="a">BINARY_OP</span>(-); <span class="k">break</span>;
+      <span class="k">case</span> <span class="a">OP_MULTIPLY</span>: <span class="a">BINARY_OP</span>(*); <span class="k">break</span>;
+      <span class="k">case</span> <span class="a">OP_DIVIDE</span>:   <span class="a">BINARY_OP</span>(/); <span class="k">break</span>;
 </pre><pre class="insert-after">
       case OP_NEGATE:   push(-pop()); break;
 </pre></div>
@@ -1019,12 +1019,12 @@ scope when the macro is expanded. Imagine if you defined:</p>
 </pre></div>
 <p>And then used it like:</p>
 <div class="codehilite"><pre>
-<span class="k">if</span> <span class="o">(</span><span class="i">morning</span><span class="o">)</span> <span class="a">WAKE_UP</span><span class="o">();</span>
+<span class="k">if</span> (<span class="i">morning</span>) <span class="a">WAKE_UP</span>();
 </pre></div>
 <p>The intent is to execute both statements of the macro body only if <code>morning</code> is
 true. But it expands to:</p>
 <div class="codehilite"><pre>
-<span class="k">if</span> <span class="o">(</span><span class="i">morning</span><span class="o">)</span> <span class="i">makeCoffee</span><span class="o">();</span> <span class="i">drinkCoffee</span><span class="o">();</span>
+<span class="k">if</span> (<span class="i">morning</span>) <span class="i">makeCoffee</span>(); <span class="i">drinkCoffee</span>();
 </pre></div>
 <p>Oops. The <code>if</code> only attaches to the <em>first</em> statement. You might think you could
 fix this using a block:</p>
@@ -1033,10 +1033,10 @@ fix this using a block:</p>
 </pre></div>
 <p>That&rsquo;s better, but you still risk:</p>
 <div class="codehilite"><pre>
-<span class="k">if</span> <span class="o">(</span><span class="i">morning</span><span class="o">)</span>
-  <span class="a">WAKE_UP</span><span class="o">();</span>
+<span class="k">if</span> (<span class="i">morning</span>)
+  <span class="a">WAKE_UP</span>();
 <span class="k">else</span>
-  <span class="i">sleepIn</span><span class="o">();</span>
+  <span class="i">sleepIn</span>();
 </pre></div>
 <p>Now you get a compile error on the <code>else</code> because of that trailing <code>;</code> after the
 macro&rsquo;s block. Using a do-while loop in the macro looks funny, but it gives you
@@ -1075,14 +1075,14 @@ in <em>run</em>()</div>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_ADD</span><span class="o">:</span>                                               
-      <span class="k">return</span> <span class="i">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_ADD&quot;</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>              
-    <span class="k">case</span> <span class="a">OP_SUBTRACT</span><span class="o">:</span>                                          
-      <span class="k">return</span> <span class="i">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_SUBTRACT&quot;</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>         
-    <span class="k">case</span> <span class="a">OP_MULTIPLY</span><span class="o">:</span>                                          
-      <span class="k">return</span> <span class="i">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_MULTIPLY&quot;</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>         
-    <span class="k">case</span> <span class="a">OP_DIVIDE</span><span class="o">:</span>                                            
-      <span class="k">return</span> <span class="i">simpleInstruction</span><span class="o">(</span><span class="s">&quot;OP_DIVIDE&quot;</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>           
+    <span class="k">case</span> <span class="a">OP_ADD</span>:                                               
+      <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_ADD&quot;</span>, <span class="i">offset</span>);              
+    <span class="k">case</span> <span class="a">OP_SUBTRACT</span>:                                          
+      <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_SUBTRACT&quot;</span>, <span class="i">offset</span>);         
+    <span class="k">case</span> <span class="a">OP_MULTIPLY</span>:                                          
+      <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_MULTIPLY&quot;</span>, <span class="i">offset</span>);         
+    <span class="k">case</span> <span class="a">OP_DIVIDE</span>:                                            
+      <span class="k">return</span> <span class="i">simpleInstruction</span>(<span class="s">&quot;OP_DIVIDE&quot;</span>, <span class="i">offset</span>);           
 </pre><pre class="insert-after">
     case OP_NEGATE:                                            
 </pre></div>
@@ -1105,17 +1105,17 @@ need:</p>
 in <em>main</em>()</div>
 <pre class="insert">
 
-  <span class="i">constant</span> <span class="o">=</span> <span class="i">addConstant</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="n">3.4</span><span class="o">);</span>    
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="a">OP_CONSTANT</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>   
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="i">constant</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>      
+  <span class="i">constant</span> = <span class="i">addConstant</span>(&amp;<span class="i">chunk</span>, <span class="n">3.4</span>);    
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="a">OP_CONSTANT</span>, <span class="n">123</span>);   
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="i">constant</span>, <span class="n">123</span>);      
 
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="a">OP_ADD</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>        
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="a">OP_ADD</span>, <span class="n">123</span>);        
 
-  <span class="i">constant</span> <span class="o">=</span> <span class="i">addConstant</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="n">5.6</span><span class="o">);</span>    
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="a">OP_CONSTANT</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>   
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="i">constant</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>      
+  <span class="i">constant</span> = <span class="i">addConstant</span>(&amp;<span class="i">chunk</span>, <span class="n">5.6</span>);    
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="a">OP_CONSTANT</span>, <span class="n">123</span>);   
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="i">constant</span>, <span class="n">123</span>);      
 
-  <span class="i">writeChunk</span><span class="o">(&amp;</span><span class="i">chunk</span><span class="o">,</span> <span class="a">OP_DIVIDE</span><span class="o">,</span> <span class="n">123</span><span class="o">);</span>     
+  <span class="i">writeChunk</span>(&amp;<span class="i">chunk</span>, <span class="a">OP_DIVIDE</span>, <span class="n">123</span>);     
 </pre><pre class="insert-after">
   writeChunk(&amp;chunk, OP_NEGATE, 123);     
                                           
@@ -1148,10 +1148,10 @@ generate it for us.</p>
 <p>What bytecode instruction sequences would you generate for the following
 expressions:</p>
 <div class="codehilite"><pre>
-<span class="n">1</span> <span class="o">*</span> <span class="n">2</span> <span class="o">+</span> <span class="n">3</span>
-<span class="n">1</span> <span class="o">+</span> <span class="n">2</span> <span class="o">*</span> <span class="n">3</span>
-<span class="n">3</span> <span class="o">-</span> <span class="n">2</span> <span class="o">-</span> <span class="n">1</span>
-<span class="n">1</span> <span class="o">+</span> <span class="n">2</span> <span class="o">*</span> <span class="n">3</span> <span class="o">-</span> <span class="n">4</span> <span class="o">/</span> <span class="o">-</span><span class="n">5</span>
+<span class="n">1</span> * <span class="n">2</span> + <span class="n">3</span>
+<span class="n">1</span> + <span class="n">2</span> * <span class="n">3</span>
+<span class="n">3</span> - <span class="n">2</span> - <span class="n">1</span>
+<span class="n">1</span> + <span class="n">2</span> * <span class="n">3</span> - <span class="n">4</span> / -<span class="n">5</span>
 </pre></div>
 <p>(Remember that Lox does not have a syntax for negative number literals, so
 the <code>-5</code> is negating the number 5.)</p>
@@ -1161,7 +1161,7 @@ the <code>-5</code> is negating the number 5.)</p>
 <code>OP_NEGATE</code> or <code>OP_SUBTRACT</code>. Show the bytecode instruction sequence you
 would generate for:</p>
 <div class="codehilite"><pre>
-<span class="n">4</span> <span class="o">-</span> <span class="n">3</span> <span class="o">*</span> <span class="o">-</span><span class="n">2</span>
+<span class="n">4</span> - <span class="n">3</span> * -<span class="n">2</span>
 </pre></div>
 <p>First, without using <code>OP_NEGATE</code>. Then, without using <code>OP_SUBTRACT</code>.</p>
 <p>Given the above, do you think it makes sense to have both instructions? Why
@@ -1197,16 +1197,16 @@ instructions can read their inputs from anywhere in the stack and can store
 their outputs into specific stack slots.</p>
 <p>Take this little Lox script:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="n">1</span><span class="o">;</span>
-<span class="k">var</span> <span class="i">b</span> <span class="o">=</span> <span class="n">2</span><span class="o">;</span>
-<span class="k">var</span> <span class="i">c</span> <span class="o">=</span> <span class="i">a</span> <span class="o">+</span> <span class="i">b</span><span class="o">;</span>
+<span class="k">var</span> <span class="i">a</span> = <span class="n">1</span>;
+<span class="k">var</span> <span class="i">b</span> = <span class="n">2</span>;
+<span class="k">var</span> <span class="i">c</span> = <span class="i">a</span> + <span class="i">b</span>;
 </pre></div>
 <p>In our stack-based VM, the last statement will get compiled to something like:</p>
 <div class="codehilite"><pre>
-<span class="i">load</span> <span class="o">&lt;</span><span class="i">a</span><span class="o">&gt;</span>  <span class="c">// Read local variable a and push onto stack.</span>
-<span class="i">load</span> <span class="o">&lt;</span><span class="i">b</span><span class="o">&gt;</span>  <span class="c">// Read local variable b and push onto stack.</span>
+<span class="i">load</span> &lt;<span class="i">a</span>&gt;  <span class="c">// Read local variable a and push onto stack.</span>
+<span class="i">load</span> &lt;<span class="i">b</span>&gt;  <span class="c">// Read local variable b and push onto stack.</span>
 <span class="i">add</span>       <span class="c">// Pop two values, add, push result.</span>
-<span class="i">store</span> <span class="o">&lt;</span><span class="i">c</span><span class="o">&gt;</span> <span class="c">// Pop value and store in local variable c.</span>
+<span class="i">store</span> &lt;<span class="i">c</span>&gt; <span class="c">// Pop value and store in local variable c.</span>
 </pre></div>
 <p>(Don&rsquo;t worry if you don&rsquo;t fully understand the load and store instructions yet.
 We&rsquo;ll go over them in much greater detail <a href="global-variables.html">when we implement
@@ -1219,7 +1219,7 @@ and three pops. A lot of work!</p>
 directly into local variables. The bytecode for the last statement above looks
 like:</p>
 <div class="codehilite"><pre>
-<span class="i">add</span> <span class="o">&lt;</span><span class="i">a</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="i">b</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="i">c</span><span class="o">&gt;</span> <span class="c">// Read values from a and b, add, store in c.</span>
+<span class="i">add</span> &lt;<span class="i">a</span>&gt; &lt;<span class="i">b</span>&gt; &lt;<span class="i">c</span>&gt; <span class="c">// Read values from a and b, add, store in c.</span>
 </pre></div>
 <p>The add instruction is bigger<span class="em">&mdash;</span>it has three instruction operands that define
 where in the stack it reads its inputs from and writes the result to. But since

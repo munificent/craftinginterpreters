@@ -210,11 +210,11 @@ struct:</p>
 add after struct <em>ParseRule</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">struct</span> <span class="t">Compiler</span> <span class="o">{</span>   
-  <span class="t">Local</span> <span class="i">locals</span><span class="o">[</span><span class="a">UINT8_COUNT</span><span class="o">];</span>
-  <span class="t">int</span> <span class="i">localCount</span><span class="o">;</span>           
-  <span class="t">int</span> <span class="i">scopeDepth</span><span class="o">;</span>           
-<span class="o">}</span> <span class="t">Compiler</span><span class="o">;</span>                 
+<span class="k">typedef</span> <span class="k">struct</span> <span class="t">Compiler</span> {   
+  <span class="t">Local</span> <span class="i">locals</span>[<span class="a">UINT8_COUNT</span>];
+  <span class="t">int</span> <span class="i">localCount</span>;           
+  <span class="t">int</span> <span class="i">scopeDepth</span>;           
+} <span class="t">Compiler</span>;                 
 </pre><pre class="insert-after">
                             
 Parser parser;              
@@ -260,10 +260,10 @@ block ends.</p>
 add after struct <em>ParseRule</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">struct</span> <span class="o">{</span>         
-  <span class="t">Token</span> <span class="i">name</span><span class="o">;</span>            
-  <span class="t">int</span> <span class="i">depth</span><span class="o">;</span>             
-<span class="o">}</span> <span class="t">Local</span><span class="o">;</span>                 
+<span class="k">typedef</span> <span class="k">struct</span> {         
+  <span class="t">Token</span> <span class="i">name</span>;            
+  <span class="t">int</span> <span class="i">depth</span>;             
+} <span class="t">Local</span>;                 
 </pre><pre class="insert-after">
                          
 typedef struct Compiler {
@@ -294,7 +294,7 @@ Parser parser;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
 <pre class="insert">
-<span class="t">Compiler</span><span class="o">*</span> <span class="i">current</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>
+<span class="t">Compiler</span>* <span class="i">current</span> = <span class="a">NULL</span>;
 </pre><pre class="insert-after">
                          
 Chunk* compilingChunk;   
@@ -305,11 +305,11 @@ Chunk* compilingChunk;
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitConstant</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">initCompiler</span><span class="o">(</span><span class="t">Compiler</span><span class="o">*</span> <span class="i">compiler</span><span class="o">)</span> <span class="o">{</span>
-  <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>                   
-  <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">scopeDepth</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span>                   
-  <span class="i">current</span> <span class="o">=</span> <span class="i">compiler</span><span class="o">;</span>                         
-<span class="o">}</span>                                             
+<span class="k">static</span> <span class="t">void</span> <span class="i">initCompiler</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>) {
+  <span class="i">compiler</span>-&gt;<span class="i">localCount</span> = <span class="n">0</span>;                   
+  <span class="i">compiler</span>-&gt;<span class="i">scopeDepth</span> = <span class="n">0</span>;                   
+  <span class="i">current</span> = <span class="i">compiler</span>;                         
+}                                             
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
 
@@ -319,8 +319,8 @@ add after <em>emitConstant</em>()</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
-  <span class="t">Compiler</span> <span class="i">compiler</span><span class="o">;</span>      
-  <span class="i">initCompiler</span><span class="o">(&amp;</span><span class="i">compiler</span><span class="o">);</span>
+  <span class="t">Compiler</span> <span class="i">compiler</span>;      
+  <span class="i">initCompiler</span>(&amp;<span class="i">compiler</span>);
 </pre><pre class="insert-after">
   compilingChunk = chunk; 
 </pre></div>
@@ -358,10 +358,10 @@ static void statement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_LEFT_BRACE</span><span class="o">))</span> <span class="o">{</span>
-    <span class="i">beginScope</span><span class="o">();</span>                      
-    <span class="i">block</span><span class="o">();</span>                           
-    <span class="i">endScope</span><span class="o">();</span>                        
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_LEFT_BRACE</span>)) {
+    <span class="i">beginScope</span>();                      
+    <span class="i">block</span>();                           
+    <span class="i">endScope</span>();                        
 </pre><pre class="insert-after">
   } else {                             
 </pre></div>
@@ -375,13 +375,13 @@ function to compile the rest of the block:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expression</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">block</span><span class="o">()</span> <span class="o">{</span>                                     
-  <span class="k">while</span> <span class="o">(!</span><span class="i">check</span><span class="o">(</span><span class="a">TOKEN_RIGHT_BRACE</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="i">check</span><span class="o">(</span><span class="a">TOKEN_EOF</span><span class="o">))</span> <span class="o">{</span>
-    <span class="i">declaration</span><span class="o">();</span>                                        
-  <span class="o">}</span>                                                       
+<span class="k">static</span> <span class="t">void</span> <span class="i">block</span>() {                                     
+  <span class="k">while</span> (!<span class="i">check</span>(<span class="a">TOKEN_RIGHT_BRACE</span>) &amp;&amp; !<span class="i">check</span>(<span class="a">TOKEN_EOF</span>)) {
+    <span class="i">declaration</span>();                                        
+  }                                                       
 
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_BRACE</span><span class="o">,</span> <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span><span class="o">);</span>  
-<span class="o">}</span>                                                         
+  <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_BRACE</span>, <span class="s">&quot;Expect &#39;}&#39; after block.&quot;</span>);  
+}                                                         
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expression</em>()</div>
 
@@ -396,9 +396,9 @@ function to enter a new local scope:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">beginScope</span><span class="o">()</span> <span class="o">{</span>
-  <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">++;</span>  
-<span class="o">}</span>                         
+<span class="k">static</span> <span class="t">void</span> <span class="i">beginScope</span>() {
+  <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>++;  
+}                         
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
@@ -408,9 +408,9 @@ each one. Given <code>beginScope()</code>, you can probably guess what <code>end
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>beginScope</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">endScope</span><span class="o">()</span> <span class="o">{</span>
-  <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">--;</span>
-<span class="o">}</span>                       
+<span class="k">static</span> <span class="t">void</span> <span class="i">endScope</span>() {
+  <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>--;
+}                       
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>beginScope</em>()</div>
 
@@ -436,8 +436,8 @@ the bytecode for storing the variable&rsquo;s value in the global variable hash 
 in <em>parseVariable</em>()</div>
 <pre class="insert">
 
-  <span class="i">declareVariable</span><span class="o">();</span>                          
-  <span class="k">if</span> <span class="o">(</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span> <span class="o">&gt;</span> <span class="n">0</span><span class="o">)</span> <span class="k">return</span> <span class="n">0</span><span class="o">;</span>      
+  <span class="i">declareVariable</span>();                          
+  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">scopeDepth</span> &gt; <span class="n">0</span>) <span class="k">return</span> <span class="n">0</span>;      
 
 </pre><pre class="insert-after">
   return identifierConstant(&amp;parser.previous);
@@ -456,9 +456,9 @@ static void defineVariable(uint8_t global) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>defineVariable</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> <span class="o">(</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span> <span class="o">&gt;</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>            
-    <span class="k">return</span><span class="o">;</span>                                 
-  <span class="o">}</span>                                         
+  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">scopeDepth</span> &gt; <span class="n">0</span>) {            
+    <span class="k">return</span>;                                 
+  }                                         
 
 </pre><pre class="insert-after">
   emitBytes(OP_DEFINE_GLOBAL, global);      
@@ -481,13 +481,13 @@ efficient than that.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">declareVariable</span><span class="o">()</span> <span class="o">{</span>               
+<span class="k">static</span> <span class="t">void</span> <span class="i">declareVariable</span>() {               
   <span class="c">// Global variables are implicitly declared.</span>
-  <span class="k">if</span> <span class="o">(</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span> <span class="o">==</span> <span class="n">0</span><span class="o">)</span> <span class="k">return</span><span class="o">;</span>       
+  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">scopeDepth</span> == <span class="n">0</span>) <span class="k">return</span>;       
 
-  <span class="t">Token</span><span class="o">*</span> <span class="i">name</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">parser</span><span class="o">.</span><span class="i">previous</span><span class="o">;</span>             
-  <span class="i">addLocal</span><span class="o">(*</span><span class="i">name</span><span class="o">);</span>                            
-<span class="o">}</span>                                             
+  <span class="t">Token</span>* <span class="i">name</span> = &amp;<span class="i">parser</span>.<span class="i">previous</span>;             
+  <span class="i">addLocal</span>(*<span class="i">name</span>);                            
+}                                             
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
@@ -501,11 +501,11 @@ variables in the current scope, using:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">addLocal</span><span class="o">(</span><span class="t">Token</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>                       
-  <span class="t">Local</span><span class="o">*</span> <span class="i">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span><span class="o">++];</span>
-  <span class="i">local</span><span class="o">-&gt;</span><span class="i">name</span> <span class="o">=</span> <span class="i">name</span><span class="o">;</span>                                    
-  <span class="i">local</span><span class="o">-&gt;</span><span class="i">depth</span> <span class="o">=</span> <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">;</span>                    
-<span class="o">}</span>                                                        
+<span class="k">static</span> <span class="t">void</span> <span class="i">addLocal</span>(<span class="t">Token</span> <span class="i">name</span>) {                       
+  <span class="t">Local</span>* <span class="i">local</span> = &amp;<span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">current</span>-&gt;<span class="i">localCount</span>++];
+  <span class="i">local</span>-&gt;<span class="i">name</span> = <span class="i">name</span>;                                    
+  <span class="i">local</span>-&gt;<span class="i">depth</span> = <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>;                    
+}                                                        
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
@@ -534,10 +534,10 @@ static void addLocal(Token name) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>addLocal</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> <span class="o">(</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">==</span> <span class="a">UINT8_COUNT</span><span class="o">)</span> <span class="o">{</span>              
-    <span class="i">error</span><span class="o">(</span><span class="s">&quot;Too many local variables in function.&quot;</span><span class="o">);</span>      
-    <span class="k">return</span><span class="o">;</span>                                              
-  <span class="o">}</span>                                                      
+  <span class="k">if</span> (<span class="i">current</span>-&gt;<span class="i">localCount</span> == <span class="a">UINT8_COUNT</span>) {              
+    <span class="i">error</span>(<span class="s">&quot;Too many local variables in function.&quot;</span>);      
+    <span class="k">return</span>;                                              
+  }                                                      
 
 </pre><pre class="insert-after">
   Local* local = &amp;current-&gt;locals[current-&gt;localCount++];
@@ -547,10 +547,10 @@ in <em>addLocal</em>()</div>
 
 <p>The next case is trickier. Consider:</p>
 <div class="codehilite"><pre>
-<span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;first&quot;</span><span class="o">;</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;second&quot;</span><span class="o">;</span>
-<span class="o">}</span>
+{
+  <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;first&quot;</span>;
+  <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;second&quot;</span>;
+}
 </pre></div>
 <p>At the top level, Lox allows redeclaring a variable with the same name as a
 previous declaration because that&rsquo;s useful for the REPL. But inside a local
@@ -563,12 +563,12 @@ code relies on it.</p>
 </aside>
 <p>Note that the above program is different from this one:</p>
 <div class="codehilite"><pre>
-<span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="o">;</span>
-  <span class="o">{</span>
-    <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;inner&quot;</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+{
+  <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;outer&quot;</span>;
+  {
+    <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;inner&quot;</span>;
+  }
+}
 </pre></div>
 <p>It&rsquo;s OK to have two variables with the same name in <em>different</em> scopes, even
 when the scopes overlap such that both are visible at the same time. That&rsquo;s
@@ -580,16 +580,16 @@ with the same name in the <em>same</em> local scope.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>declareVariable</em>()</div>
 <pre class="insert">
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">-</span> <span class="n">1</span><span class="o">;</span> <span class="i">i</span> <span class="o">&gt;=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span><span class="o">--)</span> <span class="o">{</span>                 
-    <span class="t">Local</span><span class="o">*</span> <span class="i">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">i</span><span class="o">];</span>                                
-    <span class="k">if</span> <span class="o">(</span><span class="i">local</span><span class="o">-&gt;</span><span class="i">depth</span> <span class="o">!=</span> <span class="o">-</span><span class="n">1</span> <span class="o">&amp;&amp;</span> <span class="i">local</span><span class="o">-&gt;</span><span class="i">depth</span> <span class="o">&lt;</span> <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">)</span> <span class="o">{</span>    
-      <span class="k">break</span><span class="o">;</span><span name="negative"> </span>
-    <span class="o">}</span>                                                                  
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="i">current</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>; <span class="i">i</span> &gt;= <span class="n">0</span>; <span class="i">i</span>--) {                 
+    <span class="t">Local</span>* <span class="i">local</span> = &amp;<span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">i</span>];                                
+    <span class="k">if</span> (<span class="i">local</span>-&gt;<span class="i">depth</span> != -<span class="n">1</span> &amp;&amp; <span class="i">local</span>-&gt;<span class="i">depth</span> &lt; <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>) {    
+      <span class="k">break</span>;<span name="negative"> </span>
+    }                                                                  
 
-    <span class="k">if</span> <span class="o">(</span><span class="i">identifiersEqual</span><span class="o">(</span><span class="i">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="i">local</span><span class="o">-&gt;</span><span class="i">name</span><span class="o">))</span> <span class="o">{</span>                        
-      <span class="i">error</span><span class="o">(</span><span class="s">&quot;Variable with this name already declared in this scope.&quot;</span><span class="o">);</span>
-    <span class="o">}</span>                                                                  
-  <span class="o">}</span>                                                                    
+    <span class="k">if</span> (<span class="i">identifiersEqual</span>(<span class="i">name</span>, &amp;<span class="i">local</span>-&gt;<span class="i">name</span>)) {                        
+      <span class="i">error</span>(<span class="s">&quot;Variable with this name already declared in this scope.&quot;</span>);
+    }                                                                  
+  }                                                                    
 
 </pre><pre class="insert-after">
   addLocal(*name);                                                     
@@ -611,10 +611,10 @@ we know we&rsquo;ve checked all of the existing variables in the scope.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifierConstant</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">identifiersEqual</span><span class="o">(</span><span class="t">Token</span><span class="o">*</span> <span class="i">a</span><span class="o">,</span> <span class="t">Token</span><span class="o">*</span> <span class="i">b</span><span class="o">)</span> <span class="o">{</span>  
-  <span class="k">if</span> <span class="o">(</span><span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">!=</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">)</span> <span class="k">return</span> <span class="k">false</span><span class="o">;</span>         
-  <span class="k">return</span> <span class="i">memcmp</span><span class="o">(</span><span class="i">a</span><span class="o">-&gt;</span><span class="i">start</span><span class="o">,</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">start</span><span class="o">,</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">)</span> <span class="o">==</span> <span class="n">0</span><span class="o">;</span>
-<span class="o">}</span>                                                   
+<span class="k">static</span> <span class="t">bool</span> <span class="i">identifiersEqual</span>(<span class="t">Token</span>* <span class="i">a</span>, <span class="t">Token</span>* <span class="i">b</span>) {  
+  <span class="k">if</span> (<span class="i">a</span>-&gt;<span class="i">length</span> != <span class="i">b</span>-&gt;<span class="i">length</span>) <span class="k">return</span> <span class="k">false</span>;         
+  <span class="k">return</span> <span class="i">memcmp</span>(<span class="i">a</span>-&gt;<span class="i">start</span>, <span class="i">b</span>-&gt;<span class="i">start</span>, <span class="i">a</span>-&gt;<span class="i">length</span>) == <span class="n">0</span>;
+}                                                   
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifierConstant</em>()</div>
 
@@ -646,12 +646,12 @@ to put them to rest:</p>
 in <em>endScope</em>()</div>
 <pre class="insert">
 
-  <span class="k">while</span> <span class="o">(</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">&gt;</span> <span class="n">0</span> <span class="o">&amp;&amp;</span>                      
-         <span class="i">current</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">-</span> <span class="n">1</span><span class="o">].</span><span class="i">depth</span> <span class="o">&gt;</span>
-            <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">)</span> <span class="o">{</span>                       
-    <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                                    
-    <span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span><span class="o">--;</span>                               
-  <span class="o">}</span>                                                      
+  <span class="k">while</span> (<span class="i">current</span>-&gt;<span class="i">localCount</span> &gt; <span class="n">0</span> &amp;&amp;                      
+         <span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">current</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>].<span class="i">depth</span> &gt;
+            <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>) {                       
+    <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                    
+    <span class="i">current</span>-&gt;<span class="i">localCount</span>--;                               
+  }                                                      
 </pre><pre class="insert-after">
 }                                                        
 </pre></div>
@@ -684,16 +684,16 @@ static void namedVariable(Token name, bool canAssign) {
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">uint8_t</span> <span class="i">getOp</span><span class="o">,</span> <span class="i">setOp</span><span class="o">;</span>                                
-  <span class="t">int</span> <span class="i">arg</span> <span class="o">=</span> <span class="i">resolveLocal</span><span class="o">(</span><span class="i">current</span><span class="o">,</span> <span class="o">&amp;</span><span class="i">name</span><span class="o">);</span>              
-  <span class="k">if</span> <span class="o">(</span><span class="i">arg</span> <span class="o">!=</span> <span class="o">-</span><span class="n">1</span><span class="o">)</span> <span class="o">{</span>                                     
-    <span class="i">getOp</span> <span class="o">=</span> <span class="a">OP_GET_LOCAL</span><span class="o">;</span>                              
-    <span class="i">setOp</span> <span class="o">=</span> <span class="a">OP_SET_LOCAL</span><span class="o">;</span>                              
-  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                             
-    <span class="i">arg</span> <span class="o">=</span> <span class="i">identifierConstant</span><span class="o">(&amp;</span><span class="i">name</span><span class="o">);</span>                   
-    <span class="i">getOp</span> <span class="o">=</span> <span class="a">OP_GET_GLOBAL</span><span class="o">;</span>                             
-    <span class="i">setOp</span> <span class="o">=</span> <span class="a">OP_SET_GLOBAL</span><span class="o">;</span>                             
-  <span class="o">}</span>                                                    
+  <span class="t">uint8_t</span> <span class="i">getOp</span>, <span class="i">setOp</span>;                                
+  <span class="t">int</span> <span class="i">arg</span> = <span class="i">resolveLocal</span>(<span class="i">current</span>, &amp;<span class="i">name</span>);              
+  <span class="k">if</span> (<span class="i">arg</span> != -<span class="n">1</span>) {                                     
+    <span class="i">getOp</span> = <span class="a">OP_GET_LOCAL</span>;                              
+    <span class="i">setOp</span> = <span class="a">OP_SET_LOCAL</span>;                              
+  } <span class="k">else</span> {                                             
+    <span class="i">arg</span> = <span class="i">identifierConstant</span>(&amp;<span class="i">name</span>);                   
+    <span class="i">getOp</span> = <span class="a">OP_GET_GLOBAL</span>;                             
+    <span class="i">setOp</span> = <span class="a">OP_SET_GLOBAL</span>;                             
+  }                                                    
 </pre><pre class="insert-after">
                                                        
   if (canAssign &amp;&amp; match(TOKEN_EQUAL)) {               
@@ -714,7 +714,7 @@ For assignment:</p>
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="i">emitBytes</span><span class="o">(</span><span class="i">setOp</span><span class="o">,</span> <span class="o">(</span><span class="t">uint8_t</span><span class="o">)</span><span class="i">arg</span><span class="o">);</span>     
+    <span class="i">emitBytes</span>(<span class="i">setOp</span>, (<span class="t">uint8_t</span>)<span class="i">arg</span>);     
 </pre><pre class="insert-after">
   } else {                              
 </pre></div>
@@ -728,7 +728,7 @@ replace 1 line</div>
 in <em>namedVariable</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="i">emitBytes</span><span class="o">(</span><span class="i">getOp</span><span class="o">,</span> <span class="o">(</span><span class="t">uint8_t</span><span class="o">)</span><span class="i">arg</span><span class="o">);</span>
+    <span class="i">emitBytes</span>(<span class="i">getOp</span>, (<span class="t">uint8_t</span>)<span class="i">arg</span>);
 </pre><pre class="insert-after">
   }                                
 </pre></div>
@@ -739,16 +739,16 @@ here:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>identifiersEqual</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">resolveLocal</span><span class="o">(</span><span class="t">Compiler</span><span class="o">*</span> <span class="i">compiler</span><span class="o">,</span> <span class="t">Token</span><span class="o">*</span> <span class="i">name</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">i</span> <span class="o">=</span> <span class="i">compiler</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">-</span> <span class="n">1</span><span class="o">;</span> <span class="i">i</span> <span class="o">&gt;=</span> <span class="n">0</span><span class="o">;</span> <span class="i">i</span><span class="o">--)</span> <span class="o">{</span>   
-    <span class="t">Local</span><span class="o">*</span> <span class="i">local</span> <span class="o">=</span> <span class="o">&amp;</span><span class="i">compiler</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">i</span><span class="o">];</span>                  
-    <span class="k">if</span> <span class="o">(</span><span class="i">identifiersEqual</span><span class="o">(</span><span class="i">name</span><span class="o">,</span> <span class="o">&amp;</span><span class="i">local</span><span class="o">-&gt;</span><span class="i">name</span><span class="o">))</span> <span class="o">{</span>           
-      <span class="k">return</span> <span class="i">i</span><span class="o">;</span>                                           
-    <span class="o">}</span>                                                     
-  <span class="o">}</span>                                                       
+<span class="k">static</span> <span class="t">int</span> <span class="i">resolveLocal</span>(<span class="t">Compiler</span>* <span class="i">compiler</span>, <span class="t">Token</span>* <span class="i">name</span>) {
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">i</span> = <span class="i">compiler</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>; <span class="i">i</span> &gt;= <span class="n">0</span>; <span class="i">i</span>--) {   
+    <span class="t">Local</span>* <span class="i">local</span> = &amp;<span class="i">compiler</span>-&gt;<span class="i">locals</span>[<span class="i">i</span>];                  
+    <span class="k">if</span> (<span class="i">identifiersEqual</span>(<span class="i">name</span>, &amp;<span class="i">local</span>-&gt;<span class="i">name</span>)) {           
+      <span class="k">return</span> <span class="i">i</span>;                                           
+    }                                                     
+  }                                                       
 
-  <span class="k">return</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>                                              
-<span class="o">}</span>                                                         
+  <span class="k">return</span> -<span class="n">1</span>;                                              
+}                                                         
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>identifiersEqual</em>()</div>
 
@@ -775,7 +775,7 @@ is loading a local variable:</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_GET_LOCAL</span><span class="o">,</span> 
+  <span class="a">OP_GET_LOCAL</span>, 
 </pre><pre class="insert-after">
   OP_GET_GLOBAL,
 </pre></div>
@@ -788,11 +788,11 @@ in enum <em>OpCode</em></div>
 in <em>run</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="a">OP_GET_LOCAL</span><span class="o">:</span> <span class="o">{</span>             
-        <span class="t">uint8_t</span> <span class="i">slot</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>    
-        <span class="i">push</span><span class="o">(</span><span class="i">vm</span><span class="o">.</span><span class="i">stack</span><span class="o">[</span><span class="i">slot</span><span class="o">]);</span><span name="slot"> </span>
-        <span class="k">break</span><span class="o">;</span>                         
-      <span class="o">}</span>                                
+      <span class="k">case</span> <span class="a">OP_GET_LOCAL</span>: {             
+        <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="a">READ_BYTE</span>();    
+        <span class="i">push</span>(<span class="i">vm</span>.<span class="i">stack</span>[<span class="i">slot</span>]);<span name="slot"> </span>
+        <span class="k">break</span>;                         
+      }                                
 </pre><pre class="insert-after">
                                        
       case OP_GET_GLOBAL: {            
@@ -817,7 +817,7 @@ operands.</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_SET_LOCAL</span><span class="o">,</span> 
+  <span class="a">OP_SET_LOCAL</span>, 
 </pre><pre class="insert-after">
   OP_GET_GLOBAL,
 </pre></div>
@@ -830,11 +830,11 @@ in enum <em>OpCode</em></div>
 in <em>run</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="a">OP_SET_LOCAL</span><span class="o">:</span> <span class="o">{</span>         
-        <span class="t">uint8_t</span> <span class="i">slot</span> <span class="o">=</span> <span class="a">READ_BYTE</span><span class="o">();</span>
-        <span class="i">vm</span><span class="o">.</span><span class="i">stack</span><span class="o">[</span><span class="i">slot</span><span class="o">]</span> <span class="o">=</span> <span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">);</span>  
-        <span class="k">break</span><span class="o">;</span>                     
-      <span class="o">}</span>                            
+      <span class="k">case</span> <span class="a">OP_SET_LOCAL</span>: {         
+        <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="a">READ_BYTE</span>();
+        <span class="i">vm</span>.<span class="i">stack</span>[<span class="i">slot</span>] = <span class="i">peek</span>(<span class="n">0</span>);  
+        <span class="k">break</span>;                     
+      }                            
 </pre><pre class="insert-after">
                                    
       case OP_GET_GLOBAL: {        
@@ -852,10 +852,10 @@ itself, so the VM just leaves the value on the stack.</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_GET_LOCAL</span><span class="o">:</span>                                      
-      <span class="k">return</span> <span class="i">byteInstruction</span><span class="o">(</span><span class="s">&quot;OP_GET_LOCAL&quot;</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>
-    <span class="k">case</span> <span class="a">OP_SET_LOCAL</span><span class="o">:</span>                                      
-      <span class="k">return</span> <span class="i">byteInstruction</span><span class="o">(</span><span class="s">&quot;OP_SET_LOCAL&quot;</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>
+    <span class="k">case</span> <span class="a">OP_GET_LOCAL</span>:                                      
+      <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_GET_LOCAL&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
+    <span class="k">case</span> <span class="a">OP_SET_LOCAL</span>:                                      
+      <span class="k">return</span> <span class="i">byteInstruction</span>(<span class="s">&quot;OP_SET_LOCAL&quot;</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">
     case OP_GET_GLOBAL:                                     
 </pre></div>
@@ -876,11 +876,11 @@ local variable at each stack slot.</p>
 <div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>simpleInstruction</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">byteInstruction</span><span class="o">(</span><span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">name</span><span class="o">,</span> <span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">,</span> <span class="t">int</span> <span class="i">offset</span><span class="o">)</span> <span class="o">{</span>
-  <span class="t">uint8_t</span> <span class="i">slot</span> <span class="o">=</span> <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span> <span class="o">+</span> <span class="n">1</span><span class="o">];</span>                               
-  <span class="i">printf</span><span class="o">(</span><span class="s">&quot;%-16s %4d</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">,</span> <span class="i">name</span><span class="o">,</span> <span class="i">slot</span><span class="o">);</span>                                    
-  <span class="k">return</span> <span class="i">offset</span> <span class="o">+</span> <span class="n">2</span><span class="o">;</span><span name="debug"> </span>
-<span class="o">}</span>                                                                       
+<span class="k">static</span> <span class="t">int</span> <span class="i">byteInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>, <span class="t">int</span> <span class="i">offset</span>) {
+  <span class="t">uint8_t</span> <span class="i">slot</span> = <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>];                               
+  <span class="i">printf</span>(<span class="s">&quot;%-16s %4d</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">name</span>, <span class="i">slot</span>);                                    
+  <span class="k">return</span> <span class="i">offset</span> + <span class="n">2</span>;<span name="debug"> </span>
+}                                                                       
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>simpleInstruction</em>()</div>
 
@@ -896,12 +896,12 @@ name="elegant">elegant</span>.</p>
 </aside>
 <p>We&rsquo;ve got one more edge case to deal with before we end this chapter. Recall this strange beastie we first met in <a href="resolving-and-binding.html#resolving-variable-declarations">jlox&rsquo;s implementation of variable resolution</a>:</p>
 <div class="codehilite"><pre>
-<span class="o">{</span>
-  <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="s">&quot;outer&quot;</span><span class="o">;</span>
-  <span class="o">{</span>
-    <span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span>
-  <span class="o">}</span>
-<span class="o">}</span>
+{
+  <span class="k">var</span> <span class="i">a</span> = <span class="s">&quot;outer&quot;</span>;
+  {
+    <span class="k">var</span> <span class="i">a</span> = <span class="i">a</span>;
+  }
+}
 </pre></div>
 <p>We slayed it then by splitting a variable&rsquo;s declaration into two phases, and
 we&rsquo;ll do that again here:</p><img src="image/local-variables/phases.png" alt="An example variable declaration marked 'declared uninitialized' before the variable name and 'ready for use' after the initializer." />
@@ -922,7 +922,7 @@ a special sentinel value, <code>-1</code>:</p>
 in <em>addLocal</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="i">local</span><span class="o">-&gt;</span><span class="i">depth</span> <span class="o">=</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span> 
+  <span class="i">local</span>-&gt;<span class="i">depth</span> = -<span class="n">1</span>; 
 </pre><pre class="insert-after">
 }                    
 </pre></div>
@@ -935,7 +935,7 @@ initialized:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>defineVariable</em>()</div>
 <pre class="insert">
-    <span class="i">markInitialized</span><span class="o">();</span>          
+    <span class="i">markInitialized</span>();          
 </pre><pre class="insert-after">
     return;                     
   }                             
@@ -946,10 +946,10 @@ in <em>defineVariable</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>parseVariable</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">markInitialized</span><span class="o">()</span> <span class="o">{</span>                   
-  <span class="i">current</span><span class="o">-&gt;</span><span class="i">locals</span><span class="o">[</span><span class="i">current</span><span class="o">-&gt;</span><span class="i">localCount</span> <span class="o">-</span> <span class="n">1</span><span class="o">].</span><span class="i">depth</span> <span class="o">=</span>
-      <span class="i">current</span><span class="o">-&gt;</span><span class="i">scopeDepth</span><span class="o">;</span>                        
-<span class="o">}</span>                                                 
+<span class="k">static</span> <span class="t">void</span> <span class="i">markInitialized</span>() {                   
+  <span class="i">current</span>-&gt;<span class="i">locals</span>[<span class="i">current</span>-&gt;<span class="i">localCount</span> - <span class="n">1</span>].<span class="i">depth</span> =
+      <span class="i">current</span>-&gt;<span class="i">scopeDepth</span>;                        
+}                                                 
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>parseVariable</em>()</div>
 
@@ -963,9 +963,9 @@ if it&rsquo;s fully defined:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>resolveLocal</em>()</div>
 <pre class="insert">
-      <span class="k">if</span> <span class="o">(</span><span class="i">local</span><span class="o">-&gt;</span><span class="i">depth</span> <span class="o">==</span> <span class="o">-</span><span class="n">1</span><span class="o">)</span> <span class="o">{</span>                                     
-        <span class="i">error</span><span class="o">(</span><span class="s">&quot;Cannot read local variable in its own initializer.&quot;</span><span class="o">);</span>
-      <span class="o">}</span>                                                             
+      <span class="k">if</span> (<span class="i">local</span>-&gt;<span class="i">depth</span> == -<span class="n">1</span>) {                                     
+        <span class="i">error</span>(<span class="s">&quot;Cannot read local variable in its own initializer.&quot;</span>);
+      }                                                             
 </pre><pre class="insert-after">
       return i;                                                     
 </pre></div>
@@ -1007,7 +1007,7 @@ complexity is worth it?</p>
 <li>
 <p>How do other languages handle code like:</p>
 <div class="codehilite"><pre>
-<span class="k">var</span> <span class="i">a</span> <span class="o">=</span> <span class="i">a</span><span class="o">;</span>
+<span class="k">var</span> <span class="i">a</span> = <span class="i">a</span>;
 </pre></div>
 <p>What would you do? Why?</p>
 </li>
