@@ -41,11 +41,25 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
 
     var childLines = parseChildLines(parser);
 
-    // The Markdown tests expect a trailing newline.
-    childLines.add("");
+    String code;
+    if (language == "text") {
+      // Don't syntax highlight text.
+      var buffer = StringBuffer();
+      buffer.write("<pre>");
+      for (var line in childLines) {
+        buffer.writeln(escapeHtml(line));
+      }
+      buffer.write("</pre>");
+      code = buffer.toString();
+    } else {
+      code = formatCode(language, 0, childLines);
+    }
 
-    return _formatCodeLines(language, childLines);
+    var element = Element.text("div", code);
+    element.attributes["class"] = "codehilite";
+    return element;
   }
+
 }
 
 /// Recognizes `^code` tags and inserts the relevant snippet.
@@ -70,28 +84,6 @@ class CodeTagBlockSyntax extends BlockSyntax {
     var codeTag = _page.findCodeTag(name);
     return Text(_buildSnippet(codeTag, _book.findSnippet(codeTag)));
   }
-}
-
-Element _formatCodeLines(String language, List<String> childLines) {
-  String code;
-  if (language == "text") {
-    // Don't syntax highlight text.
-    code = "<pre>${escapeHtml(childLines.join("\n"))}</pre>";
-  } else {
-    // TODO: Find a cleaner way to handle this. Maybe move the trailing
-    // newline code into `insertSnippet()`?
-    // Remove the trailing empty line so that `formatCode()` doesn't put a
-    // <br> at the end.
-    if (childLines.last.trim().isEmpty) childLines.removeLast();
-    code = formatCode(language, 0, childLines);
-  }
-
-  // TODO: Just return Text instead of Element?
-  // TODO: Remove this when no longer trying to match the existing output.
-  // Wrap in codehilite div.
-  var element = Element.text("div", code);
-  element.attributes["class"] = "codehilite";
-  return element;
 }
 
 String _buildSnippet(CodeTag tag, Snippet snippet) {
@@ -121,8 +113,6 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
 //    errors.append("No location or context for {}".format(name))
 //    contents += "**ERROR: No location or context for {}**\n".format(name)
 //    return contents
-//
-//  # TODO: Show indentation in snippets somehow.
 
   // Figure out the length of the longest line. We pad all of the snippets to
   // this length so that the background on the pre sections is as wide as the

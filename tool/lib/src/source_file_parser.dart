@@ -109,8 +109,6 @@ class SourceFileParser {
         !_keywords.contains(match.group(1))) {
       // Hack. Don't get caught by comments or string literals.
       if (!line.contains("//") && !line.contains('"')) {
-        // TODO: What about declarations with aside comments:
-        //   void foo(); // [wat]
         var isFunctionDeclaration = line.endsWith(";");
 
         // Hack: Handle multi-line declarations.
@@ -172,7 +170,6 @@ class SourceFileParser {
     }
 
     // Use "startsWith" to include lines like "} [aside-marker]".
-    // TODO: Hacky. Generalize?
     if (line.startsWith("}")) {
       _location = _location.popToDepth(0);
     } else if (line.startsWith("  }")) {
