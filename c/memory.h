@@ -11,8 +11,7 @@
     (type*)reallocate(NULL, 0, sizeof(type) * (count))
 //> free
 
-#define FREE(type, pointer) \
-    reallocate(pointer, sizeof(type), 0)
+#define FREE(type, pointer) reallocate(pointer, sizeof(type), 0)
 //< free
 
 //< Strings allocate

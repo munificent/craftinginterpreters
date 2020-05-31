@@ -531,7 +531,7 @@ count:</p>
 </pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert">
 <span class="a">#define ALLOCATE(type, count) \                       </span>
-    <span class="o">(</span><span class="i">type</span><span class="o">*)</span><span class="i">reallocate</span><span class="o">(</span><span class="a">NULL</span><span class="o">,</span> <span class="n">0</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="i">type</span><span class="o">)</span> <span class="o">*</span> <span class="o">(</span><span class="i">count</span><span class="o">))</span>
+<span class="a">    (type*)reallocate(NULL, 0, sizeof(type) * (count))</span>
 
 </pre><pre class="insert-after">
 #define GROW_CAPACITY(capacity) \                     
@@ -582,7 +582,7 @@ class&rdquo; constructor to initialize the Obj state, using this macro:</p>
 <pre class="insert">
 
 <span class="a">#define ALLOCATE_OBJ(type, objectType) \                   </span>
-    <span class="o">(</span><span class="i">type</span><span class="o">*)</span><span class="i">allocateObject</span><span class="o">(</span><span class="k">sizeof</span><span class="o">(</span><span class="i">type</span><span class="o">),</span> <span class="i">objectType</span><span class="o">)</span>        
+<span class="a">    (type*)allocateObject(sizeof(type), objectType)        </span>
 </pre><pre class="insert-after">
                                                            
 static ObjString* allocateString(char* chars, int length) {
@@ -1052,15 +1052,14 @@ other memory that they own, we also need a little type-specific code to handle
 each object type&rsquo;s special needs. Here, that means we free the character array
 and then free the ObjString. Those both use one last memory management macro:</p>
 <div class="codehilite"><pre class="insert-before">
-    (type*)reallocate(NULL, 0, sizeof(type) * (count))
+    (type*)reallocate(NULL, 0, sizeof(type) * (count))          
 </pre><div class="source-file"><em>memory.h</em></div>
 <pre class="insert">
 
-<span class="a">#define FREE(type, pointer) \                         </span>
-    <span class="i">reallocate</span><span class="o">(</span><span class="i">pointer</span><span class="o">,</span> <span class="k">sizeof</span><span class="o">(</span><span class="i">type</span><span class="o">),</span> <span class="n">0</span><span class="o">)</span>              
+<span class="a">#define FREE(type, pointer) reallocate(pointer, sizeof(type), 0)</span>
 </pre><pre class="insert-after">
-                                                      
-#define GROW_CAPACITY(capacity) \                     
+                                                                
+#define GROW_CAPACITY(capacity) \                               
 </pre></div>
 <div class="source-file-narrow"><em>memory.h</em></div>
 
