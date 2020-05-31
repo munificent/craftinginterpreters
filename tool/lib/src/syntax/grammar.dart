@@ -162,9 +162,4 @@ final _commonRules = [
 
   // Other identifiers or keywords.
   IdentifierRule(),
-
-  // TODO: Pygments doesn't handle backslashes in multi-line defines, so
-  // report the same error here. Remove this when not trying to match
-  // that.
-  Rule(r"\\", "err"),
 ];

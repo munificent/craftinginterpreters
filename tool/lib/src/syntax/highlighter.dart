@@ -19,6 +19,9 @@ class Highlighter {
   StringScanner scanner;
   final Language language;
 
+  /// Whether we are in a multi-line macro started on a previous line.
+  bool _inMacro = false;
+
   Highlighter(String language, this._lineLength)
       : language = grammar.languages[language] ??
             (throw "Unknown language '$language'.");
@@ -38,18 +41,29 @@ class Highlighter {
       return;
     }
 
-    scanner = StringScanner(line.padRight(_lineLength, " "));
-    while (!scanner.isDone) {
-      var found = false;
-      for (var rule in language.rules) {
-        if (rule.apply(this)) {
-          found = true;
-          break;
-        }
-      }
+    /// Hackish. If the line ends with `\`, then it is a multi-line macro
+    /// definition and we want to highlight subsequent lines like preprocessor
+    /// code too.
+    if (language == grammar.c && line.endsWith("\\")) _inMacro = true;
 
-      if (!found) _writeChar(scanner.readChar());
+    if (_inMacro) {
+      writeToken("a", line.padRight(_lineLength, " "));
+    } else {
+      scanner = StringScanner(line.padRight(_lineLength, " "));
+      while (!scanner.isDone) {
+        var found = false;
+        for (var rule in language.rules) {
+          if (rule.apply(this)) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) _writeChar(scanner.readChar());
+      }
     }
+
+    if (_inMacro && !line.endsWith("\\")) _inMacro = false;
 
     _buffer.writeln();
   }
