@@ -180,13 +180,13 @@ to parse an entire Lox script. Since Lox is an imperative, dynamically-typed
 language, the &ldquo;top level&rdquo; of a script is simply a list of statements. The new
 rules are:</p>
 <div class="codehilite"><pre>
-<span class="i">program</span>   <span class="err">→</span> <span class="i">statement</span><span class="o">*</span> <span class="t">EOF</span> <span class="o">;</span>
+<span class="i">program</span>   → <span class="i">statement</span>* <span class="t">EOF</span> ;
 
-<span class="i">statement</span> <span class="err">→</span> <span class="i">exprStmt</span>
-          <span class="err">|</span> <span class="i">printStmt</span> <span class="o">;</span>
+<span class="i">statement</span> → <span class="i">exprStmt</span>
+          | <span class="i">printStmt</span> ;
 
-<span class="i">exprStmt</span>  <span class="err">→</span> <span class="i">expression</span> <span class="s">&quot;;&quot;</span> <span class="o">;</span>
-<span class="i">printStmt</span> <span class="err">→</span> <span class="s">&quot;print&quot;</span> <span class="i">expression</span> <span class="s">&quot;;&quot;</span> <span class="o">;</span>
+<span class="i">exprStmt</span>  → <span class="i">expression</span> <span class="s">&quot;;&quot;</span> ;
+<span class="i">printStmt</span> → <span class="s">&quot;print&quot;</span> <span class="i">expression</span> <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>The first rule is now <code>program</code>, which is the starting point for the grammar and
 represents a complete Lox script or REPL entry. A program is a list of
@@ -541,13 +541,13 @@ statement grammar from a place where only some statements are allowed.</p>
 <p>To accommodate the distinction, we add another rule for kinds of statements that
 declare names:</p>
 <div class="codehilite"><pre>
-<span class="i">program</span>     <span class="err">→</span> <span class="i">declaration</span><span class="o">*</span> <span class="t">EOF</span> <span class="o">;</span>
+<span class="i">program</span>     → <span class="i">declaration</span>* <span class="t">EOF</span> ;
 
-<span class="i">declaration</span> <span class="err">→</span> <span class="i">varDecl</span>
-            <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
+<span class="i">declaration</span> → <span class="i">varDecl</span>
+            | <span class="i">statement</span> ;
 
-<span class="i">statement</span>   <span class="err">→</span> <span class="i">exprStmt</span>
-            <span class="err">|</span> <span class="i">printStmt</span> <span class="o">;</span>
+<span class="i">statement</span>   → <span class="i">exprStmt</span>
+            | <span class="i">printStmt</span> ;
 </pre></div>
 <p>Declaration statements go under the new <code>declaration</code> rule. Right now, it&rsquo;s only
 variables, but later it will include functions and classes. Any place where a
@@ -556,7 +556,7 @@ declaration is allowed also allows non-declaring statements, so the
 stuff at the top level of a script, so <code>program</code> routes to the new rule.</p>
 <p>The rule for declaring a variable looks like:</p>
 <div class="codehilite"><pre>
-<span class="i">varDecl</span> <span class="err">→</span> <span class="s">&quot;var&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;=&quot;</span> <span class="i">expression</span> <span class="o">)</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="o">;</span>
+<span class="i">varDecl</span> → <span class="s">&quot;var&quot;</span> <span class="t">IDENTIFIER</span> ( <span class="s">&quot;=&quot;</span> <span class="i">expression</span> )? <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>Like most statements, it starts with a leading keyword. In this case, <code>var</code>.
 Then an identifier token for the name of the variable being declared, followed
@@ -564,10 +564,10 @@ by an optional initializer expression. Finally, we put a bow on it with the
 semicolon.</p>
 <p>To access a variable, we define a new kind of primary expression:</p>
 <div class="codehilite"><pre>
-<span class="i">primary</span> <span class="err">→</span> <span class="s">&quot;true&quot;</span> <span class="err">|</span> <span class="s">&quot;false&quot;</span> <span class="err">|</span> <span class="s">&quot;nil&quot;</span>
-        <span class="err">|</span> <span class="t">NUMBER</span> <span class="err">|</span> <span class="t">STRING</span>
-        <span class="err">|</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
-        <span class="err">|</span> <span class="t">IDENTIFIER</span> <span class="o">;</span>
+<span class="i">primary</span> → <span class="s">&quot;true&quot;</span> | <span class="s">&quot;false&quot;</span> | <span class="s">&quot;nil&quot;</span>
+        | <span class="t">NUMBER</span> | <span class="t">STRING</span>
+        | <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
+        | <span class="t">IDENTIFIER</span> ;
 </pre></div>
 <p>That <code>IDENTIFIER</code> clause matches a single identifier token, which is understood
 to be the name of the variable being accessed.</p>
@@ -986,9 +986,9 @@ expression:</p>
 <p>In some other languages, like Pascal, Python, and Go, assignment is a statement.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">expression</span> <span class="err">→</span> <span class="i">assignment</span> <span class="o">;</span>
-<span class="i">assignment</span> <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
-           <span class="err">|</span> <span class="i">equality</span> <span class="o">;</span>
+<span class="i">expression</span> → <span class="i">assignment</span> ;
+<span class="i">assignment</span> → <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
+           | <span class="i">equality</span> ;
 </pre></div>
 <p>This says an <code>assignment</code> is either an identifier followed by an <code>=</code> and an
 expression for the value, or an <code>equality</code> (and thus any other) expression.
@@ -1424,11 +1424,11 @@ recursively.</p>
 <p>Now that Environments nest, we&rsquo;re ready to add blocks to the language. Behold
 the grammar:</p>
 <div class="codehilite"><pre>
-<span class="i">statement</span> <span class="err">→</span> <span class="i">exprStmt</span>
-          <span class="err">|</span> <span class="i">printStmt</span>
-          <span class="err">|</span> <span class="i">block</span> <span class="o">;</span>
+<span class="i">statement</span> → <span class="i">exprStmt</span>
+          | <span class="i">printStmt</span>
+          | <span class="i">block</span> ;
 
-<span class="i">block</span>     <span class="err">→</span> <span class="s">&quot;{&quot;</span> <span class="i">declaration</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
+<span class="i">block</span>     → <span class="s">&quot;{&quot;</span> <span class="i">declaration</span>* <span class="s">&quot;}&quot;</span> ;
 </pre></div>
 <p>A block is a (possibly empty) series of statements or declarations surrounded by
 curly braces. A block is itself a statement and can appear anywhere a statement

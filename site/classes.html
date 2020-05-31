@@ -186,18 +186,18 @@ stamina.</p>
 <p>Like we do, we&rsquo;re gonna start with syntax. A class statement introduces a new
 name, so it lives in the <code>declaration</code> grammar rule:</p>
 <div class="codehilite"><pre>
-<span class="i">declaration</span> <span class="err">→</span> <span class="i">classDecl</span>
-            <span class="err">|</span> <span class="i">funDecl</span>
-            <span class="err">|</span> <span class="i">varDecl</span>
-            <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
+<span class="i">declaration</span> → <span class="i">classDecl</span>
+            | <span class="i">funDecl</span>
+            | <span class="i">varDecl</span>
+            | <span class="i">statement</span> ;
 
-<span class="i">classDecl</span>   <span class="err">→</span> <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;{&quot;</span> <span class="i">function</span><span class="o">*</span> <span class="s">&quot;}&quot;</span> <span class="o">;</span>
+<span class="i">classDecl</span>   → <span class="s">&quot;class&quot;</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;{&quot;</span> <span class="i">function</span>* <span class="s">&quot;}&quot;</span> ;
 </pre></div>
 <p>The new <code>classDecl</code> rule relies on the <code>function</code> rule we defined
 <a href="functions.html#function-declarations">earlier</a>. To refresh your memory:</p>
 <div class="codehilite"><pre>
-<span class="i">function</span>    <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="i">block</span> <span class="o">;</span>
-<span class="i">parameters</span>  <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="i">function</span>    → <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span>? <span class="s">&quot;)&quot;</span> <span class="i">block</span> ;
+<span class="i">parameters</span>  → <span class="t">IDENTIFIER</span> ( <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
 <p>In plain English, a class declaration is the <code>class</code> keyword, followed by the
 class&rsquo;s name, then a curly brace body. Inside that body is a list of method
@@ -486,7 +486,7 @@ name from the object the expression evaluates to. That <code>.</code> is as high
 as the parentheses in a function call expression, so we slot it into the grammar
 by replacing the existing <code>call</code> rule with:</p>
 <div class="codehilite"><pre>
-<span class="i">call</span> <span class="err">→</span> <span class="i">primary</span> <span class="o">(</span> <span class="s">&quot;(&quot;</span> <span class="i">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="err">|</span> <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="i">call</span> → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> | <span class="s">&quot;.&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
 <p>After a primary expression, we allow a series of any mixture of parenthesized
 calls and dotted property accesses. &ldquo;Property access&rdquo; is a mouthful, so from
@@ -637,8 +637,8 @@ an assignment:</p>
 <p>In grammar land, we extend the rule for assignment to allow dotted identifiers
 on the left-hand side:</p>
 <div class="codehilite"><pre>
-<span class="i">assignment</span> <span class="err">→</span> <span class="o">(</span> <span class="i">call</span> <span class="s">&quot;.&quot;</span> <span class="o">)</span><span class="err">?</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
-           <span class="err">|</span> <span class="i">logic_or</span><span class="o">;</span>
+<span class="i">assignment</span> → ( <span class="i">call</span> <span class="s">&quot;.&quot;</span> )? <span class="t">IDENTIFIER</span> <span class="s">&quot;=&quot;</span> <span class="i">assignment</span>
+           | <span class="i">logic_or</span>;
 </pre></div>
 <p>Unlike getters, setters don&rsquo;t chain. The reference to <code>call</code> allows any high
 precedence expression before the last <code>.</code>, including a series of property

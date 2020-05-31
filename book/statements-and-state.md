@@ -78,7 +78,7 @@ to parse an entire Lox script. Since Lox is an imperative, dynamically-typed
 language, the "top level" of a script is simply a list of statements. The new
 rules are:
 
-```lox
+```ebnf
 program   → statement* EOF ;
 
 statement → exprStmt
@@ -369,7 +369,7 @@ statement grammar from a place where only some statements are allowed.
 To accommodate the distinction, we add another rule for kinds of statements that
 declare names:
 
-```lox
+```ebnf
 program     → declaration* EOF ;
 
 declaration → varDecl
@@ -387,7 +387,7 @@ stuff at the top level of a script, so `program` routes to the new rule.
 
 The rule for declaring a variable looks like:
 
-```lox
+```ebnf
 varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
 ```
 
@@ -398,7 +398,7 @@ semicolon.
 
 To access a variable, we define a new kind of primary expression:
 
-```lox
+```ebnf
 primary → "true" | "false" | "nil"
         | NUMBER | STRING
         | "(" expression ")"
@@ -758,7 +758,7 @@ In some other languages, like Pascal, Python, and Go, assignment is a statement.
 
 </aside>
 
-```lox
+```ebnf
 expression → assignment ;
 assignment → IDENTIFIER "=" assignment
            | equality ;
@@ -1194,7 +1194,7 @@ recursively.
 Now that Environments nest, we're ready to add blocks to the language. Behold
 the grammar:
 
-```lox
+```ebnf
 statement → exprStmt
           | printStmt
           | block ;

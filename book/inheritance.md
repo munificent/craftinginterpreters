@@ -93,7 +93,7 @@ class BostonCream < Doughnut {
 To work this into the grammar, we add a new optional clause in our existing
 `classDecl` rule:
 
-```lox
+```ebnf
 classDecl → "class" IDENTIFIER ( "<" IDENTIFIER )?
             "{" function* "}" ;
 ```
@@ -287,7 +287,7 @@ print super; // Syntax error.
 So the new clause we add to the `primary` rule in our grammar includes the
 property access as well:
 
-```lox
+```ebnf
 primary → "true" | "false" | "nil" | "this"
         | NUMBER | STRING | IDENTIFIER | "(" expression ")"
         | "super" "." IDENTIFIER ;

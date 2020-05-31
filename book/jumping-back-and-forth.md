@@ -629,7 +629,7 @@ I couldn't resist the pun. I regret nothing.
 1.  In addition to if statements, most C-family languages have a multi-way
     `switch` statement. Add one to clox. The grammar is:
 
-    ```lox
+    ```ebnf
     switchStmt  → "switch" "(" expression ")"
                   "{" switchCase* defaultCase? "}" ;
     switchCase  → "case" expression ":" statement* ;
@@ -650,7 +650,7 @@ I couldn't resist the pun. I regret nothing.
 1.  In jlox, we had a challenge to add support for break statements. This time,
     let's do continue:
 
-    ```lox
+    ```ebnf
     continueStmt → "continue" ";" ;
     ```
 

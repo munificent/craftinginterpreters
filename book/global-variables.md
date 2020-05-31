@@ -83,7 +83,7 @@ So, like other languages, we prohibit it syntactically by having a separate
 grammar rule for the subset of statements that *are* allowed inside a control
 flow body:
 
-```lox
+```ebnf
 statement      → exprStmt
                | forStmt
                | ifStmt
@@ -95,7 +95,7 @@ statement      → exprStmt
 
 Then we use a separate rule for the top level of a script and inside a block:
 
-```lox
+```ebnf
 declaration    → classDecl
                | funDecl
                | varDecl
@@ -119,7 +119,7 @@ precedence" non-declaring statement is allowed.
 In this chapter, we'll only cover a couple of statements and one
 declaration:
 
-```lox
+```ebnf
 statement      → exprStmt
                | printStmt ;
 

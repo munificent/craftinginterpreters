@@ -72,10 +72,6 @@ class Snippet {
 
   /// Calculate the surrounding context information for this snippet.
   void calculateContext() {
-    // TODO: Should only need to grab as many preceding lines as the tag
-    // requests and until we find a preceding location, but changing the `<= 5`
-    // causes some locations to become wrong. Figure out why.
-
     // Get the preceding lines.
     for (var i = _firstLine - 1;
         i >= 0 && contextBefore.length < tag.beforeCount;

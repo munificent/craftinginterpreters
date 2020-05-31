@@ -56,7 +56,7 @@ new `call` rule:
 
 <span name="curry"></span>
 
-```lox
+```ebnf
 unary → ( "!" | "-" ) unary | call ;
 call  → primary ( "(" arguments? ")" )* ;
 ```
@@ -82,7 +82,7 @@ the language syntax so it's not as cumbersome as it would be here.
 
 </aside>
 
-```lox
+```ebnf
 arguments → expression ( "," expression )* ;
 ```
 
@@ -450,7 +450,7 @@ nice syntax for them.
 
 </aside>
 
-```lox
+```ebnf
 declaration → funDecl
             | varDecl
             | statement ;
@@ -458,7 +458,7 @@ declaration → funDecl
 
 That references this new rule:
 
-```lox
+```ebnf
 funDecl  → "fun" function ;
 function → IDENTIFIER "(" parameters? ")" block ;
 ```
@@ -479,7 +479,7 @@ The function itself is a name followed by the parenthesized parameter list and
 the body. The body is always a braced block, using the same grammar rule that
 block statements use. The parameter list uses this rule:
 
-```lox
+```ebnf
 parameters → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
 
@@ -711,7 +711,7 @@ The Hotel California of data.
 
 </aside>
 
-```lox
+```ebnf
 statement  → exprStmt
            | forStmt
            | ifStmt

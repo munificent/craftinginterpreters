@@ -224,7 +224,7 @@ book. Sorry.
 
 </aside>
 
-```lox
+```ebnf
 breakfast  → protein "with" breakfast "on the side" ;
 breakfast  → protein ;
 breakfast  → bread ;
@@ -257,7 +257,7 @@ protein "with" breakfast "on the side"
 We need to expand that first nonterminal, `protein`, so we pick a production for
 that. Let's pick:
 
-```lox
+```ebnf
 protein → cooked "eggs" ;
 ```
 
@@ -315,14 +315,14 @@ expressions in the body of a rule:
 *   Instead of repeating the rule name each time we want to add another
     production for it, we'll allow a series of productions separated by `|`:
 
-    ```lox
+    ```ebnf
     bread → "toast" | "biscuits" | "English muffin" ;
     ```
 
 *   Further, we'll allow `(` and `)` for grouping and then allow `|` within that
     to select one from a series of options within the middle of a production:
 
-    ```lox
+    ```ebnf
     protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
     ```
 
@@ -332,7 +332,7 @@ expressions in the body of a rule:
     loop. Instead, we allow a postfix `*` to mean the previous symbol or group
     may be repeated zero or more times.
 
-    ```lox
+    ```ebnf
     crispiness → "really" "really"* ;
     ```
 
@@ -347,20 +347,20 @@ recursion.
 *   A postfix `+` is similar, but requires the preceding production to appear
     at least once.
 
-    ```lox
+    ```ebnf
     crispiness → "really"+ ;
     ```
 
 *   A postfix `?` is for an optional production. The thing before it can appear
     zero or one time, but not more.
 
-    ```lox
+    ```ebnf
     breakfast → protein ( "with" breakfast "on the side" )? ;
     ```
 
 With all of that sugar, our breakfast grammar condenses down to:
 
-```lox
+```ebnf
 breakfast → protein ( "with" breakfast "on the side" )?
           | bread ;
 
@@ -421,7 +421,7 @@ That gives us enough syntax for expressions like:
 
 Using our handy dandy new notation, here's a grammar for those:
 
-```lox
+```ebnf
 expression → literal
            | unary
            | binary
@@ -1004,7 +1004,7 @@ when we start parsing Lox code into syntax trees.
 1.  Earlier, I said that the `|`, `*`, and `+` forms we added to our grammar
     metasyntax were just syntactic sugar. Given this grammar:
 
-    ```lox
+    ```ebnf
     expr → expr ( "(" ( expr ( "," expr )* )? ")" | "." IDENTIFIER )*
          | IDENTIFIER
          | NUMBER

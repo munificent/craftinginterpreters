@@ -199,7 +199,7 @@ are a big chunk of work that we'll tackle in [a later chapter][functions], so
 for now we're only going to do blocks. As usual, we start with the syntax. The
 new grammar we'll introduce is:
 
-```lox
+```ebnf
 statement      → exprStmt
                | printStmt
                | block ;
