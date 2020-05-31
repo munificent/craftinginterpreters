@@ -88,15 +88,6 @@ final lox = Language(
     ..._commonRules,
     // Lox has fewer operator characters.
     Rule(r"[(){}[\]!+\-/*;.,=<>]+", "o"),
-
-    // TODO: Only used because we use "lox" for EBNF snippets. Remove this and
-    // create a separate grammar language.
-    _characterRule,
-
-    // Other operators are errors. (This shows up when using Lox for EBNF
-    // snippets.)
-    // TODO: Make a separate language for EBNF and stop using "err".
-    Rule(r"[|&?']+", "err"),
   ],
 );
 
