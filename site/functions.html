@@ -156,8 +156,8 @@ ones. So we slot it into the grammar by having the <code>unary</code> rule bubbl
 new <code>call</code> rule:</p>
 <p><span name="curry"></span></p>
 <div class="codehilite"><pre>
-<span class="i">unary</span> <span class="err">→</span> <span class="o">(</span> <span class="s">&quot;!&quot;</span> <span class="err">|</span> <span class="s">&quot;-&quot;</span> <span class="o">)</span> <span class="i">unary</span> <span class="err">|</span> <span class="i">call</span> <span class="o">;</span>
-<span class="i">call</span>  <span class="err">→</span> <span class="i">primary</span> <span class="o">(</span> <span class="s">&quot;(&quot;</span> <span class="i">arguments</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="i">unary</span> → ( <span class="s">&quot;!&quot;</span> | <span class="s">&quot;-&quot;</span> ) <span class="i">unary</span> | <span class="i">call</span> ;
+<span class="i">call</span>  → <span class="i">primary</span> ( <span class="s">&quot;(&quot;</span> <span class="i">arguments</span>? <span class="s">&quot;)&quot;</span> )* ;
 </pre></div>
 <p>This rule matches a primary expression followed by zero or more function calls.
 If there are no parentheses, this parses a bare primary expression. Otherwise,
@@ -176,7 +176,7 @@ name graces that <em>other</em> well-known functional language), is baked direct
 the language syntax so it&rsquo;s not as cumbersome as it would be here.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">arguments</span> <span class="err">→</span> <span class="i">expression</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="i">expression</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="i">arguments</span> → <span class="i">expression</span> ( <span class="s">&quot;,&quot;</span> <span class="i">expression</span> )* ;
 </pre></div>
 <p>This rule requires at least one argument expression, followed by zero or more
 other expressions, each preceded by a comma. To handle zero-argument calls, the
@@ -622,14 +622,14 @@ wouldn&rsquo;t need function declaration statements. You could just do:</p>
 nice syntax for them.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">declaration</span> <span class="err">→</span> <span class="i">funDecl</span>
-            <span class="err">|</span> <span class="i">varDecl</span>
-            <span class="err">|</span> <span class="i">statement</span> <span class="o">;</span>
+<span class="i">declaration</span> → <span class="i">funDecl</span>
+            | <span class="i">varDecl</span>
+            | <span class="i">statement</span> ;
 </pre></div>
 <p>That references this new rule:</p>
 <div class="codehilite"><pre>
-<span class="i">funDecl</span>  <span class="err">→</span> <span class="s">&quot;fun&quot;</span> <span class="i">function</span> <span class="o">;</span>
-<span class="i">function</span> <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span><span class="err">?</span> <span class="s">&quot;)&quot;</span> <span class="i">block</span> <span class="o">;</span>
+<span class="i">funDecl</span>  → <span class="s">&quot;fun&quot;</span> <span class="i">function</span> ;
+<span class="i">function</span> → <span class="t">IDENTIFIER</span> <span class="s">&quot;(&quot;</span> <span class="i">parameters</span>? <span class="s">&quot;)&quot;</span> <span class="i">block</span> ;
 </pre></div>
 <p>The main <code>funDecl</code> rule uses a separate helper rule <code>function</code>. A function
 <em>declaration statement</em> is the <code>fun</code> keyword followed by the actual function-y
@@ -643,7 +643,7 @@ methods. Those look similar to function declarations, but aren&rsquo;t preceded 
 the body. The body is always a braced block, using the same grammar rule that
 block statements use. The parameter list uses this rule:</p>
 <div class="codehilite"><pre>
-<span class="i">parameters</span> <span class="err">→</span> <span class="t">IDENTIFIER</span> <span class="o">(</span> <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> <span class="o">)*</span> <span class="o">;</span>
+<span class="i">parameters</span> → <span class="t">IDENTIFIER</span> ( <span class="s">&quot;,&quot;</span> <span class="t">IDENTIFIER</span> )* ;
 </pre></div>
 <p>It&rsquo;s like the earlier <code>arguments</code> rule, except that each parameter is an
 identifier, not an expression. That&rsquo;s a lot of new syntax for the parser to chew
@@ -926,15 +926,15 @@ sure you can guess the grammar already:</p>
 <p>The Hotel California of data.</p>
 </aside>
 <div class="codehilite"><pre>
-<span class="i">statement</span>  <span class="err">→</span> <span class="i">exprStmt</span>
-           <span class="err">|</span> <span class="i">forStmt</span>
-           <span class="err">|</span> <span class="i">ifStmt</span>
-           <span class="err">|</span> <span class="i">printStmt</span>
-           <span class="err">|</span> <span class="i">returnStmt</span>
-           <span class="err">|</span> <span class="i">whileStmt</span>
-           <span class="err">|</span> <span class="i">block</span> <span class="o">;</span>
+<span class="i">statement</span>  → <span class="i">exprStmt</span>
+           | <span class="i">forStmt</span>
+           | <span class="i">ifStmt</span>
+           | <span class="i">printStmt</span>
+           | <span class="i">returnStmt</span>
+           | <span class="i">whileStmt</span>
+           | <span class="i">block</span> ;
 
-<span class="i">returnStmt</span> <span class="err">→</span> <span class="s">&quot;return&quot;</span> <span class="i">expression</span><span class="err">?</span> <span class="s">&quot;;&quot;</span> <span class="o">;</span>
+<span class="i">returnStmt</span> → <span class="s">&quot;return&quot;</span> <span class="i">expression</span>? <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>We&rsquo;ve got one more<span class="em">&mdash;</span>the final, in fact<span class="em">&mdash;</span>production under the venerable
 <code>statement</code> rule. A return statement is the <code>return</code> keyword followed by an

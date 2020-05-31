@@ -129,7 +129,7 @@
 
 3.  As usual, we start with the AST:
 
-    ```lox
+    ```java
     defineAst(outputDir, "Stmt", Arrays.asList(
       "Block      : List<Stmt> statements",
       "Break      : ",  // <--
@@ -144,7 +144,7 @@
     Break doesn't have any fields, which actually breaks the little generator
     script, so you also need to change defineType() to:
 
-    ```lox
+    ```java
     // Store parameters in fields.
     String[] fields;
     if (fieldList.isEmpty()) {
@@ -157,26 +157,26 @@
     Run that to get the new now. Now we need to push the syntax through the
     front end, starting with the new keyword. In TokenType, add `BREAK`:
 
-    ```lox
+    ```java
     // Keywords.
     AND, BREAK, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
     ```
 
     And then define it in the lexer:
 
-    ```lox
+    ```java
     keywords.put("break",  BREAK);
     ```
 
     In the parser, we match the keyword in `statement()`:
 
-    ```lox
+    ```java
     if (match(BREAK)) return breakStatement();
     ```
 
     Which calls:
 
-    ```lox
+    ```java
     private Stmt breakStatement() {
       consume(SEMICOLON, "Expect ';' after 'break'.");
       return new Stmt.Break();
@@ -187,13 +187,13 @@
     "break" outside of a loop. We do that by adding a field in Parser to track
     how many enclosing loops there currently are:
 
-    ```lox
+    ```java
     private int loopDepth = 0;
     ```
 
     In `forStatement()`, we update that when parsing the loop body:
 
-    ```lox
+    ```java
     try {
       loopDepth++;
       Stmt body = statement();
@@ -219,7 +219,7 @@
 
     Likewise `whileStatement()`:
 
-    ```lox
+    ```java
     try {
       loopDepth++;
       Stmt body = statement();
@@ -232,7 +232,7 @@
 
     Now we can check that when parsing the break statement:
 
-    ```lox
+    ```java
     private Stmt breakStatement() {
       if (loopDepth == 0) {
         error(previous(), "Must be inside a loop to use 'break'.");
@@ -245,13 +245,13 @@
     To interpret this, we'll use exceptions to jump from the break out of the
     loop. In Interpreter, define a class:
 
-    ```lox
+    ```java
     private static class BreakException extends RuntimeException {}
     ```
 
     Executing a break simply throws that:
 
-    ```lox
+    ```java
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
       throw new BreakException();
@@ -260,7 +260,7 @@
 
     That gets caught by the while loop code and then proceeds from there.
 
-    ```lox
+    ```java
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
       try {

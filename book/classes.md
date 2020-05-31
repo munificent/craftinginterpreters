@@ -96,7 +96,7 @@ It's like the circle of life, *sans* Sir Elton John.
 Like we do, we're gonna start with syntax. A class statement introduces a new
 name, so it lives in the `declaration` grammar rule:
 
-```lox
+```ebnf
 declaration → classDecl
             | funDecl
             | varDecl
@@ -110,7 +110,7 @@ The new `classDecl` rule relies on the `function` rule we defined
 
 [function rule]: functions.html#function-declarations
 
-```lox
+```ebnf
 function    → IDENTIFIER "(" parameters? ")" block ;
 parameters  → IDENTIFIER ( "," IDENTIFIER )* ;
 ```
@@ -330,7 +330,7 @@ name from the object the expression evaluates to. That `.` is as high precedence
 as the parentheses in a function call expression, so we slot it into the grammar
 by replacing the existing `call` rule with:
 
-```lox
+```ebnf
 call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 ```
 
@@ -447,7 +447,7 @@ someObject.someProperty = value;
 In grammar land, we extend the rule for assignment to allow dotted identifiers
 on the left-hand side:
 
-```lox
+```ebnf
 assignment → ( call "." )? IDENTIFIER "=" assignment
            | logic_or;
 ```

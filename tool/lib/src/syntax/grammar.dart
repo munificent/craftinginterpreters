@@ -4,6 +4,7 @@ import 'rule.dart';
 final languages = {
   "c": c,
   "c++": cpp,
+  "ebnf": ebnf,
   "java": java,
   "js": js,
   "lisp": lisp,
@@ -26,6 +27,14 @@ final cpp = Language(
   keywords: _cKeywords,
   types: "vector string",
   rules: _cRules,
+);
+
+final ebnf = Language(
+  rules: [
+    // Color ALL_CAPS terminals like types to make them distinct.
+    Rule(r"[A-Z][A-Z0-9_]+", "t"),
+    ..._commonRules
+  ],
 );
 
 final java = Language(
@@ -158,7 +167,4 @@ final _commonRules = [
   // report the same error here. Remove this when not trying to match
   // that.
   Rule(r"\\", "err"),
-  // TODO: Just leave this as plain text once we aren't trying to match
-  // Pygments.
-  Rule(r"→", "err"),
 ];

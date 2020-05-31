@@ -146,7 +146,7 @@ if statement on. It gets a new production under the statement grammar rule:
 
 <span name="semicolon"></span>
 
-```lox
+```ebnf
 statement → exprStmt
           | ifStmt
           | printStmt
@@ -304,7 +304,7 @@ comparison or equality operators do.
 
 </aside>
 
-```lox
+```ebnf
 expression → assignment ;
 assignment → identifier "=" assignment
            | logic_or ;
@@ -393,7 +393,7 @@ reference to... oh, forget it.
 Lox features two looping control flow statements, while and for. While is the
 simpler one so we'll start there. Its grammar is the same as in C:
 
-```lox
+```ebnf
 statement → exprStmt
           | ifStmt
           | printStmt
@@ -454,7 +454,7 @@ for (var i = 0; i < 10; i = i + 1) print i;
 
 In grammarese, that's:
 
-```lox
+```ebnf
 statement → exprStmt
           | forStmt
           | ifStmt

@@ -1,7 +1,7 @@
 1.  The comma operator has the lowest precedence, so it goes between expression
     and equality:
 
-    ```lox
+    ```ebnf
     expression     → comma ;
     comma          → equality ( "," equality )* ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -77,7 +77,7 @@
 
 2.  We just need one new rule.
 
-    ```lox
+    ```ebnf
     expression  → conditional ;
     conditional → equality ( "?" expression ":" conditional )? ;
     // Other rules...
@@ -115,7 +115,7 @@
 3.  Here's an updated grammar. The grammar itself doesn't "know" that some of
     these productions are errors. The parser handles that.
 
-    ```lox
+    ```ebnf
     expression     → equality ;
     equality       → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;

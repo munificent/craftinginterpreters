@@ -77,7 +77,7 @@ much. Once you have the string, who cares how you got to it?
 When parsing, ambiguity means the parser may misunderstand the user's code.
 Here's the Lox expression grammar we put together in the last chapter:
 
-```lox
+```ebnf
 expression → literal
            | unary
            | binary
@@ -222,7 +222,7 @@ disambiguate.
 
 </aside>
 
-```lox
+```ebnf
 binary → expression operator expression ;
 ```
 
@@ -241,14 +241,14 @@ the parentheses themselves are treated as having the highest precedence.
 For the multiplication operands, we need a nonterminal that means "any kind of
 expression of higher precedence than `*`". Something like:
 
-```lox
+```ebnf
 multiplication → higherThanMultiply "*" higherThanMultiply ;
 ```
 
 Since `*` and `/` have the same precedence and the level above them is unary
 operators, a better approximation is:
 
-```lox
+```ebnf
 multiplication → unary ( "*" | "/" ) unary ;
 ```
 
@@ -280,7 +280,7 @@ numbers, the first evaluates to `0.006`, while the second yields
 
 </aside>
 
-```lox
+```ebnf
 multiplication → multiplication ( "*" | "/" ) unary ;
 ```
 
@@ -289,7 +289,7 @@ is the same as the head of the rule means this production is **left-recursive**.
 Some parsing techniques, including the one we're going to use, have trouble with
 left recursion. Instead, we'll use this other style:
 
-```lox
+```ebnf
 multiplication → unary ( ( "/" | "*" ) unary )* ;
 ```
 
@@ -299,7 +299,7 @@ the code we'll use to parse a sequence of multiplications.
 
 If we rejigger all of the binary operator rules in the same way, we get:
 
-```lox
+```ebnf
 expression     → equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
@@ -435,7 +435,7 @@ and so on, until the parser hits a stack overflow and dies.
 
 The rule for equality is a little more complex:
 
-```lox
+```ebnf
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
 ```
 
@@ -511,7 +511,7 @@ this method matches an equality operator *or anything of higher precedence*.
 
 Moving on to the next rule...
 
-```lox
+```ebnf
 comparison → addition ( ( ">" | ">=" | "<" | "<=" ) addition )* ;
 ```
 
@@ -539,7 +539,7 @@ That's all of the binary operators, parsed with the correct precedence and
 associativity. We're crawling up the precedence hierarchy and now we've reached
 the unary operators:
 
-```lox
+```ebnf
 unary → ( "!" | "-" ) unary
       | primary ;
 ```
@@ -563,7 +563,7 @@ puts recursive descent into the category of **predictive parsers**.
 Otherwise, we must have reached the highest level of precedence, primary
 expressions.
 
-```lox
+```ebnf
 primary → NUMBER | STRING | "false" | "true" | "nil"
         | "(" expression ")" ;
 ```
@@ -746,7 +746,7 @@ For example, some languages have a unary `+` operator, like `+123`, but Lox does
 not. Instead of getting confused when the parser stumbles onto a `+` at the
 beginning of an expression, we could extend the unary rule to allow it:
 
-```lox
+```ebnf
 unary → ( "!" | "-" | "+" ) unary
         | primary ;
 ```
