@@ -140,7 +140,7 @@ value however we want to. So in order to implement control flow, all that&rsquo;
 necessary is to change the <code>ip</code> in more interesting ways. The simplest control
 flow construct is an if statement with no else clause:</p>
 <div class="codehilite"><pre>
-<span class="k">if</span> <span class="o">(</span><span class="i">condition</span><span class="o">)</span> <span class="k">print</span><span class="o">(</span><span class="s">&quot;condition was truthy&quot;</span><span class="o">);</span>
+<span class="k">if</span> (<span class="i">condition</span>) <span class="k">print</span>(<span class="s">&quot;condition was truthy&quot;</span>);
 </pre></div>
 <p>The VM evaluates the bytecode for the condition expression. If the result is
 truthy, then it continues along and executes the print statement in the body.
@@ -179,8 +179,8 @@ statements, so that&rsquo;s where we hook them into the parser:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_IF</span><span class="o">))</span> <span class="o">{</span>        
-    <span class="i">ifStatement</span><span class="o">();</span>                     
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_IF</span>)) {        
+    <span class="i">ifStatement</span>();                     
 </pre><pre class="insert-after">
   } else if (match(TOKEN_LEFT_BRACE)) {
 </pre></div>
@@ -190,16 +190,16 @@ in <em>statement</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">ifStatement</span><span class="o">()</span> <span class="o">{</span>                                            
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span><span class="o">);</span>                 
-  <span class="i">expression</span><span class="o">();</span>                                                        
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span><span class="o">);</span><span name="paren"> </span>
+<span class="k">static</span> <span class="t">void</span> <span class="i">ifStatement</span>() {                                            
+  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);                 
+  <span class="i">expression</span>();                                                        
+  <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span>);<span name="paren"> </span>
 
-  <span class="t">int</span> <span class="i">thenJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP_IF_FALSE</span><span class="o">);</span>                           
-  <span class="i">statement</span><span class="o">();</span>                                                         
+  <span class="t">int</span> <span class="i">thenJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);                           
+  <span class="i">statement</span>();                                                         
 
-  <span class="i">patchJump</span><span class="o">(</span><span class="i">thenJump</span><span class="o">);</span>                                                 
-<span class="o">}</span>                                                                      
+  <span class="i">patchJump</span>(<span class="i">thenJump</span>);                                                 
+}                                                                      
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
 
@@ -208,7 +208,7 @@ add after <em>expressionStatement</em>()</div>
 anything useful? The language would be just as unambiguous and easy to parse
 without it, like:</p>
 <div class="codehilite"><pre>
-<span class="k">if</span> <span class="i">condition</span><span class="o">)</span> <span class="k">print</span><span class="o">(</span><span class="s">&quot;looks weird&quot;</span><span class="o">);</span>
+<span class="k">if</span> <span class="i">condition</span>) <span class="k">print</span>(<span class="s">&quot;looks weird&quot;</span>);
 </pre></div>
 <p>The closing <code>)</code> is useful because it separates the condition expression from the
 body. Some languages use a <code>then</code> keyword instead. But the opening <code>(</code> doesn&rsquo;t
@@ -242,12 +242,12 @@ compiled code.</p><img src="image/jumping-back-and-forth/patch.png" alt="A patch
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">emitJump</span><span class="o">(</span><span class="t">uint8_t</span> <span class="i">instruction</span><span class="o">)</span> <span class="o">{</span>
-  <span class="i">emitByte</span><span class="o">(</span><span class="i">instruction</span><span class="o">);</span>                  
-  <span class="i">emitByte</span><span class="o">(</span><span class="n">0xff</span><span class="o">);</span>                         
-  <span class="i">emitByte</span><span class="o">(</span><span class="n">0xff</span><span class="o">);</span>                         
-  <span class="k">return</span> <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">count</span> <span class="o">-</span> <span class="n">2</span><span class="o">;</span>       
-<span class="o">}</span>                                         
+<span class="k">static</span> <span class="t">int</span> <span class="i">emitJump</span>(<span class="t">uint8_t</span> <span class="i">instruction</span>) {
+  <span class="i">emitByte</span>(<span class="i">instruction</span>);                  
+  <span class="i">emitByte</span>(<span class="n">0xff</span>);                         
+  <span class="i">emitByte</span>(<span class="n">0xff</span>);                         
+  <span class="k">return</span> <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="n">2</span>;       
+}                                         
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
 
@@ -265,17 +265,17 @@ compiling the then branch, we take that offset and pass it to:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitConstant</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">patchJump</span><span class="o">(</span><span class="t">int</span> <span class="i">offset</span><span class="o">)</span> <span class="o">{</span>                           
+<span class="k">static</span> <span class="t">void</span> <span class="i">patchJump</span>(<span class="t">int</span> <span class="i">offset</span>) {                           
   <span class="c">// -2 to adjust for the bytecode for the jump offset itself.</span>
-  <span class="t">int</span> <span class="i">jump</span> <span class="o">=</span> <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">count</span> <span class="o">-</span> <span class="i">offset</span> <span class="o">-</span> <span class="n">2</span><span class="o">;</span>              
+  <span class="t">int</span> <span class="i">jump</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="i">offset</span> - <span class="n">2</span>;              
 
-  <span class="k">if</span> <span class="o">(</span><span class="i">jump</span> <span class="o">&gt;</span> <span class="a">UINT16_MAX</span><span class="o">)</span> <span class="o">{</span>                                    
-    <span class="i">error</span><span class="o">(</span><span class="s">&quot;Too much code to jump over.&quot;</span><span class="o">);</span>                     
-  <span class="o">}</span>                                                           
+  <span class="k">if</span> (<span class="i">jump</span> &gt; <span class="a">UINT16_MAX</span>) {                                    
+    <span class="i">error</span>(<span class="s">&quot;Too much code to jump over.&quot;</span>);                     
+  }                                                           
 
-  <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span><span class="o">]</span> <span class="o">=</span> <span class="o">(</span><span class="i">jump</span> <span class="o">&gt;&gt;</span> <span class="n">8</span><span class="o">)</span> <span class="o">&amp;</span> <span class="n">0xff</span><span class="o">;</span>          
-  <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span> <span class="o">+</span> <span class="n">1</span><span class="o">]</span> <span class="o">=</span> <span class="i">jump</span> <span class="o">&amp;</span> <span class="n">0xff</span><span class="o">;</span>             
-<span class="o">}</span>                                                             
+  <span class="i">currentChunk</span>()-&gt;<span class="i">code</span>[<span class="i">offset</span>] = (<span class="i">jump</span> &gt;&gt; <span class="n">8</span>) &amp; <span class="n">0xff</span>;          
+  <span class="i">currentChunk</span>()-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>] = <span class="i">jump</span> &amp; <span class="n">0xff</span>;             
+}                                                             
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
 
@@ -291,7 +291,7 @@ statement.</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_JUMP_IF_FALSE</span><span class="o">,</span>
+  <span class="a">OP_JUMP_IF_FALSE</span>,
 </pre><pre class="insert-after">
   OP_RETURN,       
 </pre></div>
@@ -304,11 +304,11 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span><span class="o">:</span> <span class="o">{</span>                 
-        <span class="t">uint16_t</span> <span class="i">offset</span> <span class="o">=</span> <span class="a">READ_SHORT</span><span class="o">();</span>        
-        <span class="k">if</span> <span class="o">(</span><span class="i">isFalsey</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">)))</span> <span class="i">vm</span><span class="o">.</span><span class="i">ip</span> <span class="o">+=</span> <span class="i">offset</span><span class="o">;</span>
-        <span class="k">break</span><span class="o">;</span>                                 
-      <span class="o">}</span>                                        
+      <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>: {                 
+        <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();        
+        <span class="k">if</span> (<span class="i">isFalsey</span>(<span class="i">peek</span>(<span class="n">0</span>))) <span class="i">vm</span>.<span class="i">ip</span> += <span class="i">offset</span>;
+        <span class="k">break</span>;                                 
+      }                                        
 </pre><pre class="insert-after">
       case OP_RETURN: {                        
 </pre></div>
@@ -357,11 +357,11 @@ the same thing purely arithmetically. Let&rsquo;s assume we have a function <cod
 that takes a Lox Value and returns 1 if it&rsquo;s falsey or 0 otherwise. Then we
 could implement the jump instruction like:</p>
 <div class="codehilite"><pre>
-<span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span><span class="o">:</span> <span class="o">{</span>
-  <span class="t">uint16_t</span> <span class="i">offset</span> <span class="o">=</span> <span class="a">READ_SHORT</span><span class="o">();</span>
-  <span class="i">vm</span><span class="o">.</span><span class="i">ip</span> <span class="o">+=</span> <span class="i">falsey</span><span class="o">()</span> <span class="o">*</span> <span class="i">offset</span><span class="o">;</span>
-  <span class="k">break</span><span class="o">;</span>
-<span class="o">}</span>
+<span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>: {
+  <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
+  <span class="i">vm</span>.<span class="i">ip</span> += <span class="i">falsey</span>() * <span class="i">offset</span>;
+  <span class="k">break</span>;
+}
 </pre></div>
 <p>The <code>falsey()</code> function would probably use some control flow to handle the
 different value types, but that&rsquo;s an implementation detail of that function and
@@ -382,7 +382,7 @@ we find one, we compile the else branch:</p>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
 
-  <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_ELSE</span><span class="o">))</span> <span class="i">statement</span><span class="o">();</span>
+  <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_ELSE</span>)) <span class="i">statement</span>();
 </pre><pre class="insert-after">
 }                                    
 </pre></div>
@@ -402,7 +402,7 @@ branch. That way, in either case, we only execute a single branch, like this:</p
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">elseJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP</span><span class="o">);</span>
+  <span class="t">int</span> <span class="i">elseJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);
 
 </pre><pre class="insert-after">
   patchJump(thenJump);             
@@ -415,7 +415,7 @@ in <em>ifStatement</em>()</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="i">patchJump</span><span class="o">(</span><span class="i">elseJump</span><span class="o">);</span>               
+  <span class="i">patchJump</span>(<span class="i">elseJump</span>);               
 </pre><pre class="insert-after">
 }                                    
 </pre></div>
@@ -429,7 +429,7 @@ another instruction that expresses that:</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_JUMP</span><span class="o">,</span>         
+  <span class="a">OP_JUMP</span>,         
 </pre><pre class="insert-after">
   OP_JUMP_IF_FALSE,
 </pre></div>
@@ -442,11 +442,11 @@ in enum <em>OpCode</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_JUMP</span><span class="o">:</span> <span class="o">{</span>                  
-        <span class="t">uint16_t</span> <span class="i">offset</span> <span class="o">=</span> <span class="a">READ_SHORT</span><span class="o">();</span>
-        <span class="i">vm</span><span class="o">.</span><span class="i">ip</span> <span class="o">+=</span> <span class="i">offset</span><span class="o">;</span>               
-        <span class="k">break</span><span class="o">;</span>                         
-      <span class="o">}</span>                                
+      <span class="k">case</span> <span class="a">OP_JUMP</span>: {                  
+        <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
+        <span class="i">vm</span>.<span class="i">ip</span> += <span class="i">offset</span>;               
+        <span class="k">break</span>;                         
+      }                                
 
 </pre><pre class="insert-after">
       case OP_JUMP_IF_FALSE: {         
@@ -471,7 +471,7 @@ branch:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                         
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                         
 </pre><pre class="insert-after">
   statement();                              
 </pre></div>
@@ -483,7 +483,7 @@ in <em>ifStatement</em>()</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                  
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                  
 </pre><pre class="insert-after">
                                      
   if (match(TOKEN_ELSE)) statement();
@@ -502,10 +502,10 @@ support:</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_JUMP</span><span class="o">:</span>                                                  
-      <span class="k">return</span> <span class="i">jumpInstruction</span><span class="o">(</span><span class="s">&quot;OP_JUMP&quot;</span><span class="o">,</span> <span class="n">1</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>         
-    <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span><span class="o">:</span>                                         
-      <span class="k">return</span> <span class="i">jumpInstruction</span><span class="o">(</span><span class="s">&quot;OP_JUMP_IF_FALSE&quot;</span><span class="o">,</span> <span class="n">1</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>
+    <span class="k">case</span> <span class="a">OP_JUMP</span>:                                                  
+      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_JUMP&quot;</span>, <span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);         
+    <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>:                                         
+      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_JUMP_IF_FALSE&quot;</span>, <span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">
     case OP_RETURN:                                                
 </pre></div>
@@ -516,13 +516,13 @@ utility function to disassemble them:</p>
 <div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>byteInstruction</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">jumpInstruction</span><span class="o">(</span><span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">name</span><span class="o">,</span> <span class="t">int</span> <span class="i">sign</span><span class="o">,</span> <span class="t">Chunk</span><span class="o">*</span> <span class="i">chunk</span><span class="o">,</span>  
-                           <span class="t">int</span> <span class="i">offset</span><span class="o">)</span> <span class="o">{</span>                              
-  <span class="t">uint16_t</span> <span class="i">jump</span> <span class="o">=</span> <span class="o">(</span><span class="t">uint16_t</span><span class="o">)(</span><span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span> <span class="o">+</span> <span class="n">1</span><span class="o">]</span> <span class="o">&lt;&lt;</span> <span class="n">8</span><span class="o">);</span>           
-  <span class="i">jump</span> <span class="o">|=</span> <span class="i">chunk</span><span class="o">-&gt;</span><span class="i">code</span><span class="o">[</span><span class="i">offset</span> <span class="o">+</span> <span class="n">2</span><span class="o">];</span>                                    
-  <span class="i">printf</span><span class="o">(</span><span class="s">&quot;%-16s %4d -&gt; %d</span><span class="e">\n</span><span class="s">&quot;</span><span class="o">,</span> <span class="i">name</span><span class="o">,</span> <span class="i">offset</span><span class="o">,</span> <span class="i">offset</span> <span class="o">+</span> <span class="n">3</span> <span class="o">+</span> <span class="i">sign</span> <span class="o">*</span> <span class="i">jump</span><span class="o">);</span>
-  <span class="k">return</span> <span class="i">offset</span> <span class="o">+</span> <span class="n">3</span><span class="o">;</span>                                                  
-<span class="o">}</span>                                                                     
+<span class="k">static</span> <span class="t">int</span> <span class="i">jumpInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">int</span> <span class="i">sign</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>,  
+                           <span class="t">int</span> <span class="i">offset</span>) {                              
+  <span class="t">uint16_t</span> <span class="i">jump</span> = (<span class="t">uint16_t</span>)(<span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>] &lt;&lt; <span class="n">8</span>);           
+  <span class="i">jump</span> |= <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">2</span>];                                    
+  <span class="i">printf</span>(<span class="s">&quot;%-16s %4d -&gt; %d</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">name</span>, <span class="i">offset</span>, <span class="i">offset</span> + <span class="n">3</span> + <span class="i">sign</span> * <span class="i">jump</span>);
+  <span class="k">return</span> <span class="i">offset</span> + <span class="n">3</span>;                                                  
+}                                                                     
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>byteInstruction</em>()</div>
 
@@ -547,7 +547,7 @@ it into the expression parsing table here:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="o">{</span> <span class="a">NULL</span><span class="o">,</span>     <span class="i">and_</span><span class="o">,</span>    <span class="a">PREC_AND</span> <span class="o">},</span>        <span class="c">// TOKEN_AND   </span>
+  { <span class="a">NULL</span>,     <span class="i">and_</span>,    <span class="a">PREC_AND</span> },        <span class="c">// TOKEN_AND   </span>
 </pre><pre class="insert-after">
   { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS 
 </pre></div>
@@ -557,14 +557,14 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>defineVariable</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">and_</span><span class="o">(</span><span class="t">bool</span> <span class="i">canAssign</span><span class="o">)</span> <span class="o">{</span>         
-  <span class="t">int</span> <span class="i">endJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP_IF_FALSE</span><span class="o">);</span>
+<span class="k">static</span> <span class="t">void</span> <span class="i">and_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {         
+  <span class="t">int</span> <span class="i">endJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
 
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                        
-  <span class="i">parsePrecedence</span><span class="o">(</span><span class="a">PREC_AND</span><span class="o">);</span>               
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                        
+  <span class="i">parsePrecedence</span>(<span class="a">PREC_AND</span>);               
 
-  <span class="i">patchJump</span><span class="o">(</span><span class="i">endJump</span><span class="o">);</span>                      
-<span class="o">}</span>                                          
+  <span class="i">patchJump</span>(<span class="i">endJump</span>);                      
+}                                          
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>defineVariable</em>()</div>
 
@@ -593,7 +593,7 @@ affect performance.</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="o">{</span> <span class="a">NULL</span><span class="o">,</span>     <span class="i">or_</span><span class="o">,</span>     <span class="a">PREC_OR</span> <span class="o">},</span>         <span class="c">// TOKEN_OR   </span>
+  { <span class="a">NULL</span>,     <span class="i">or_</span>,     <span class="a">PREC_OR</span> },         <span class="c">// TOKEN_OR   </span>
 </pre><pre class="insert-after">
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
 </pre></div>
@@ -603,16 +603,16 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">or_</span><span class="o">(</span><span class="t">bool</span> <span class="i">canAssign</span><span class="o">)</span> <span class="o">{</span>           
-  <span class="t">int</span> <span class="i">elseJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP_IF_FALSE</span><span class="o">);</span>
-  <span class="t">int</span> <span class="i">endJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP</span><span class="o">);</span>          
+<span class="k">static</span> <span class="t">void</span> <span class="i">or_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {           
+  <span class="t">int</span> <span class="i">elseJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
+  <span class="t">int</span> <span class="i">endJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);          
 
-  <span class="i">patchJump</span><span class="o">(</span><span class="i">elseJump</span><span class="o">);</span>                      
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                         
+  <span class="i">patchJump</span>(<span class="i">elseJump</span>);                      
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                         
 
-  <span class="i">parsePrecedence</span><span class="o">(</span><span class="a">PREC_OR</span><span class="o">);</span>                 
-  <span class="i">patchJump</span><span class="o">(</span><span class="i">endJump</span><span class="o">);</span>                       
-<span class="o">}</span>                                           
+  <span class="i">parsePrecedence</span>(<span class="a">PREC_OR</span>);                 
+  <span class="i">patchJump</span>(<span class="i">endJump</span>);                       
+}                                           
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
 
@@ -644,8 +644,8 @@ keyword:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_WHILE</span><span class="o">))</span> <span class="o">{</span>     
-    <span class="i">whileStatement</span><span class="o">();</span>                  
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_WHILE</span>)) {     
+    <span class="i">whileStatement</span>();                  
 </pre><pre class="insert-after">
   } else if (match(TOKEN_LEFT_BRACE)) {
 </pre></div>
@@ -655,19 +655,19 @@ in <em>statement</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>printStatement</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">whileStatement</span><span class="o">()</span> <span class="o">{</span>                              
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span><span class="o">);</span>   
-  <span class="i">expression</span><span class="o">();</span>                                             
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span><span class="o">);</span>
+<span class="k">static</span> <span class="t">void</span> <span class="i">whileStatement</span>() {                              
+  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);   
+  <span class="i">expression</span>();                                             
+  <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span>);
 
-  <span class="t">int</span> <span class="i">exitJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP_IF_FALSE</span><span class="o">);</span>                
+  <span class="t">int</span> <span class="i">exitJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);                
 
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                                         
-  <span class="i">statement</span><span class="o">();</span>                                              
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                         
+  <span class="i">statement</span>();                                              
 
-  <span class="i">patchJump</span><span class="o">(</span><span class="i">exitJump</span><span class="o">);</span>                                      
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                                         
-<span class="o">}</span>                                                           
+  <span class="i">patchJump</span>(<span class="i">exitJump</span>);                                      
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                         
+}                                                           
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
 
@@ -687,7 +687,7 @@ for the logical operators.</p>
 in <em>whileStatement</em>()</div>
 <pre class="insert">
 
-  <span class="i">emitLoop</span><span class="o">(</span><span class="i">loopStart</span><span class="o">);</span>
+  <span class="i">emitLoop</span>(<span class="i">loopStart</span>);
 </pre><pre class="insert-after">
                       
   patchJump(exitJump);
@@ -705,7 +705,7 @@ static void whileStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>whileStatement</em>()</div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">loopStart</span> <span class="o">=</span> <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">count</span><span class="o">;</span>                 
+  <span class="t">int</span> <span class="i">loopStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;                 
 
 </pre><pre class="insert-after">
   consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after 'while'.&quot;);
@@ -720,15 +720,15 @@ Then we pass that into this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">emitLoop</span><span class="o">(</span><span class="t">int</span> <span class="i">loopStart</span><span class="o">)</span> <span class="o">{</span>                    
-  <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_LOOP</span><span class="o">);</span>                                     
+<span class="k">static</span> <span class="t">void</span> <span class="i">emitLoop</span>(<span class="t">int</span> <span class="i">loopStart</span>) {                    
+  <span class="i">emitByte</span>(<span class="a">OP_LOOP</span>);                                     
 
-  <span class="t">int</span> <span class="i">offset</span> <span class="o">=</span> <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">count</span> <span class="o">-</span> <span class="i">loopStart</span> <span class="o">+</span> <span class="n">2</span><span class="o">;</span>    
-  <span class="k">if</span> <span class="o">(</span><span class="i">offset</span> <span class="o">&gt;</span> <span class="a">UINT16_MAX</span><span class="o">)</span> <span class="i">error</span><span class="o">(</span><span class="s">&quot;Loop body too large.&quot;</span><span class="o">);</span>
+  <span class="t">int</span> <span class="i">offset</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="i">loopStart</span> + <span class="n">2</span>;    
+  <span class="k">if</span> (<span class="i">offset</span> &gt; <span class="a">UINT16_MAX</span>) <span class="i">error</span>(<span class="s">&quot;Loop body too large.&quot;</span>);
 
-  <span class="i">emitByte</span><span class="o">((</span><span class="i">offset</span> <span class="o">&gt;&gt;</span> <span class="n">8</span><span class="o">)</span> <span class="o">&amp;</span> <span class="n">0xff</span><span class="o">);</span>                        
-  <span class="i">emitByte</span><span class="o">(</span><span class="i">offset</span> <span class="o">&amp;</span> <span class="n">0xff</span><span class="o">);</span>                               
-<span class="o">}</span>                                                        
+  <span class="i">emitByte</span>((<span class="i">offset</span> &gt;&gt; <span class="n">8</span>) &amp; <span class="n">0xff</span>);                        
+  <span class="i">emitByte</span>(<span class="i">offset</span> &amp; <span class="n">0xff</span>);                               
+}                                                        
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
 
@@ -750,7 +750,7 @@ space available, so why not use it?</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_LOOP</span><span class="o">,</span>         
+  <span class="a">OP_LOOP</span>,         
 </pre><pre class="insert-after">
   OP_RETURN,       
 </pre></div>
@@ -763,11 +763,11 @@ in enum <em>OpCode</em></div>
 in <em>run</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="a">OP_LOOP</span><span class="o">:</span> <span class="o">{</span>                  
-        <span class="t">uint16_t</span> <span class="i">offset</span> <span class="o">=</span> <span class="a">READ_SHORT</span><span class="o">();</span>
-        <span class="i">vm</span><span class="o">.</span><span class="i">ip</span> <span class="o">-=</span> <span class="i">offset</span><span class="o">;</span>               
-        <span class="k">break</span><span class="o">;</span>                         
-      <span class="o">}</span>                                
+      <span class="k">case</span> <span class="a">OP_LOOP</span>: {                  
+        <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
+        <span class="i">vm</span>.<span class="i">ip</span> -= <span class="i">offset</span>;               
+        <span class="k">break</span>;                         
+      }                                
 </pre><pre class="insert-after">
       case OP_RETURN: {                
 </pre></div>
@@ -780,8 +780,8 @@ Disassembly is similar too:</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_LOOP</span><span class="o">:</span>                                                  
-      <span class="k">return</span> <span class="i">jumpInstruction</span><span class="o">(</span><span class="s">&quot;OP_LOOP&quot;</span><span class="o">,</span> <span class="o">-</span><span class="n">1</span><span class="o">,</span> <span class="i">chunk</span><span class="o">,</span> <span class="i">offset</span><span class="o">);</span>        
+    <span class="k">case</span> <span class="a">OP_LOOP</span>:                                                  
+      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_LOOP&quot;</span>, -<span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);        
 </pre><pre class="insert-after">
     case OP_RETURN:                                                
 </pre></div>
@@ -823,8 +823,8 @@ the <code>for</code> keyword:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_FOR</span><span class="o">))</span> <span class="o">{</span>
-    <span class="i">forStatement</span><span class="o">();</span>             
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_FOR</span>)) {
+    <span class="i">forStatement</span>();             
 </pre><pre class="insert-after">
   } else if (match(TOKEN_IF)) { 
 </pre></div>
@@ -835,19 +835,19 @@ like <code>for (;;)</code>, then we could implement it like this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">forStatement</span><span class="o">()</span> <span class="o">{</span>                                  
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_LEFT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span><span class="o">);</span>       
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="o">);</span>                    
+<span class="k">static</span> <span class="t">void</span> <span class="i">forStatement</span>() {                                  
+  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span>);       
+  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39;.&quot;</span>);                    
 
-  <span class="t">int</span> <span class="i">loopStart</span> <span class="o">=</span> <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">count</span><span class="o">;</span>                      
+  <span class="t">int</span> <span class="i">loopStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;                      
 
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39;.&quot;</span><span class="o">);</span>                    
-  <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="o">);</span>
+  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39;.&quot;</span>);                    
+  <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>);
 
-  <span class="i">statement</span><span class="o">();</span>                                                
+  <span class="i">statement</span>();                                                
 
-  <span class="i">emitLoop</span><span class="o">(</span><span class="i">loopStart</span><span class="o">);</span>                                        
-<span class="o">}</span>                                                             
+  <span class="i">emitLoop</span>(<span class="i">loopStart</span>);                                        
+}                                                             
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
 
@@ -868,13 +868,13 @@ the body, so it&rsquo;s straightforward:</p>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_SEMICOLON</span><span class="o">))</span> <span class="o">{</span>                        
+  <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_SEMICOLON</span>)) {                        
     <span class="c">// No initializer.                                 </span>
-  <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_VAR</span><span class="o">))</span> <span class="o">{</span>                       
-    <span class="i">varDeclaration</span><span class="o">();</span>                                  
-  <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                             
-    <span class="i">expressionStatement</span><span class="o">();</span>                             
-  <span class="o">}</span>                                                    
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_VAR</span>)) {                       
+    <span class="i">varDeclaration</span>();                                  
+  } <span class="k">else</span> {                                             
+    <span class="i">expressionStatement</span>();                             
+  }                                                    
 </pre><pre class="insert-after">
                                                        
   int loopStart = currentChunk()-&gt;count;               
@@ -894,7 +894,7 @@ static void forStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
-  <span class="i">beginScope</span><span class="o">();</span>                                        
+  <span class="i">beginScope</span>();                                        
 
 </pre><pre class="insert-after">
   consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after 'for'.&quot;);
@@ -908,7 +908,7 @@ in <em>forStatement</em>()</div>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
-  <span class="i">endScope</span><span class="o">();</span>         
+  <span class="i">endScope</span>();         
 </pre><pre class="insert-after">
 }                     
 </pre></div>
@@ -923,15 +923,15 @@ in <em>forStatement</em>()</div>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">exitJump</span> <span class="o">=</span> <span class="o">-</span><span class="n">1</span><span class="o">;</span>                                             
-  <span class="k">if</span> <span class="o">(!</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_SEMICOLON</span><span class="o">))</span> <span class="o">{</span>                                 
-    <span class="i">expression</span><span class="o">();</span>                                                
-    <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_SEMICOLON</span><span class="o">,</span> <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span><span class="o">);</span>
+  <span class="t">int</span> <span class="i">exitJump</span> = -<span class="n">1</span>;                                             
+  <span class="k">if</span> (!<span class="i">match</span>(<span class="a">TOKEN_SEMICOLON</span>)) {                                 
+    <span class="i">expression</span>();                                                
+    <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span>);
 
     <span class="c">// Jump out of the loop if the condition is false.           </span>
-    <span class="i">exitJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP_IF_FALSE</span><span class="o">);</span>                       
-    <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span> <span class="c">// Condition.                              </span>
-  <span class="o">}</span>                                                              
+    <span class="i">exitJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);                       
+    <span class="i">emitByte</span>(<span class="a">OP_POP</span>); <span class="c">// Condition.                              </span>
+  }                                                              
 
 </pre><pre class="insert-after">
   consume(TOKEN_RIGHT_PAREN, &quot;Expect ')' after for clauses.&quot;);   
@@ -953,10 +953,10 @@ it when the condition is true.</p>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
-  <span class="k">if</span> <span class="o">(</span><span class="i">exitJump</span> <span class="o">!=</span> <span class="o">-</span><span class="n">1</span><span class="o">)</span> <span class="o">{</span>            
-    <span class="i">patchJump</span><span class="o">(</span><span class="i">exitJump</span><span class="o">);</span>           
-    <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span> <span class="c">// Condition.</span>
-  <span class="o">}</span>                                
+  <span class="k">if</span> (<span class="i">exitJump</span> != -<span class="n">1</span>) {            
+    <span class="i">patchJump</span>(<span class="i">exitJump</span>);           
+    <span class="i">emitByte</span>(<span class="a">OP_POP</span>); <span class="c">// Condition.</span>
+  }                                
 </pre><pre class="insert-after">
                                    
   endScope();                      
@@ -983,18 +983,18 @@ C, right? Here&rsquo;s the code:</p>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="k">if</span> <span class="o">(!</span><span class="i">match</span><span class="o">(</span><span class="a">TOKEN_RIGHT_PAREN</span><span class="o">))</span> <span class="o">{</span>                              
-    <span class="t">int</span> <span class="i">bodyJump</span> <span class="o">=</span> <span class="i">emitJump</span><span class="o">(</span><span class="a">OP_JUMP</span><span class="o">);</span>                           
+  <span class="k">if</span> (!<span class="i">match</span>(<span class="a">TOKEN_RIGHT_PAREN</span>)) {                              
+    <span class="t">int</span> <span class="i">bodyJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);                           
 
-    <span class="t">int</span> <span class="i">incrementStart</span> <span class="o">=</span> <span class="i">currentChunk</span><span class="o">()-&gt;</span><span class="i">count</span><span class="o">;</span>                 
-    <span class="i">expression</span><span class="o">();</span>                                               
-    <span class="i">emitByte</span><span class="o">(</span><span class="a">OP_POP</span><span class="o">);</span>                                           
-    <span class="i">consume</span><span class="o">(</span><span class="a">TOKEN_RIGHT_PAREN</span><span class="o">,</span> <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span><span class="o">);</span>
+    <span class="t">int</span> <span class="i">incrementStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;                 
+    <span class="i">expression</span>();                                               
+    <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                           
+    <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>);
 
-    <span class="i">emitLoop</span><span class="o">(</span><span class="i">loopStart</span><span class="o">);</span>                                        
-    <span class="i">loopStart</span> <span class="o">=</span> <span class="i">incrementStart</span><span class="o">;</span>                                 
-    <span class="i">patchJump</span><span class="o">(</span><span class="i">bodyJump</span><span class="o">);</span>                                        
-  <span class="o">}</span>                                                             
+    <span class="i">emitLoop</span>(<span class="i">loopStart</span>);                                        
+    <span class="i">loopStart</span> = <span class="i">incrementStart</span>;                                 
+    <span class="i">patchJump</span>(<span class="i">bodyJump</span>);                                        
+  }                                                             
 </pre><pre class="insert-after">
                                                                 
   statement();                                                  
@@ -1209,34 +1209,34 @@ exit out of a series of nested loops:</p><span name="break">
 </span>
 <div class="codehilite"><pre>
 <span class="c">// See if the matrix contains a zero.</span>
-<span class="t">bool</span> <span class="i">found</span> <span class="o">=</span> <span class="k">false</span><span class="o">;</span>
-<span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">x</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">x</span> <span class="o">&lt;</span> <span class="i">xSize</span><span class="o">;</span> <span class="i">x</span><span class="o">++)</span> <span class="o">{</span>
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">y</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">y</span> <span class="o">&lt;</span> <span class="i">ySize</span><span class="o">;</span> <span class="i">y</span><span class="o">++)</span> <span class="o">{</span>
-    <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">z</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">z</span> <span class="o">&lt;</span> <span class="i">zSize</span><span class="o">;</span> <span class="i">z</span><span class="o">++)</span> <span class="o">{</span>
-      <span class="k">if</span> <span class="o">(</span><span class="i">matrix</span><span class="o">[</span><span class="i">x</span><span class="o">][</span><span class="i">y</span><span class="o">][</span><span class="i">z</span><span class="o">]</span> <span class="o">==</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>
-        <span class="i">printf</span><span class="o">(</span><span class="s">&quot;found&quot;</span><span class="o">);</span>
-        <span class="i">found</span> <span class="o">=</span> <span class="k">true</span><span class="o">;</span>
-        <span class="k">break</span><span class="o">;</span>
-      <span class="o">}</span>
-    <span class="o">}</span>
-    <span class="k">if</span> <span class="o">(</span><span class="i">found</span><span class="o">)</span> <span class="k">break</span><span class="o">;</span>
-  <span class="o">}</span>
-  <span class="k">if</span> <span class="o">(</span><span class="i">found</span><span class="o">)</span> <span class="k">break</span><span class="o">;</span>
-<span class="o">}</span>
+<span class="t">bool</span> <span class="i">found</span> = <span class="k">false</span>;
+<span class="k">for</span> (<span class="t">int</span> <span class="i">x</span> = <span class="n">0</span>; <span class="i">x</span> &lt; <span class="i">xSize</span>; <span class="i">x</span>++) {
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">y</span> = <span class="n">0</span>; <span class="i">y</span> &lt; <span class="i">ySize</span>; <span class="i">y</span>++) {
+    <span class="k">for</span> (<span class="t">int</span> <span class="i">z</span> = <span class="n">0</span>; <span class="i">z</span> &lt; <span class="i">zSize</span>; <span class="i">z</span>++) {
+      <span class="k">if</span> (<span class="i">matrix</span>[<span class="i">x</span>][<span class="i">y</span>][<span class="i">z</span>] == <span class="n">0</span>) {
+        <span class="i">printf</span>(<span class="s">&quot;found&quot;</span>);
+        <span class="i">found</span> = <span class="k">true</span>;
+        <span class="k">break</span>;
+      }
+    }
+    <span class="k">if</span> (<span class="i">found</span>) <span class="k">break</span>;
+  }
+  <span class="k">if</span> (<span class="i">found</span>) <span class="k">break</span>;
+}
 </pre></div>
 <p>Is that really better than:</p>
 <div class="codehilite"><pre>
-<span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">x</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">x</span> <span class="o">&lt;</span> <span class="i">xSize</span><span class="o">;</span> <span class="i">x</span><span class="o">++)</span> <span class="o">{</span>
-  <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">y</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">y</span> <span class="o">&lt;</span> <span class="i">ySize</span><span class="o">;</span> <span class="i">y</span><span class="o">++)</span> <span class="o">{</span>
-    <span class="k">for</span> <span class="o">(</span><span class="t">int</span> <span class="i">z</span> <span class="o">=</span> <span class="n">0</span><span class="o">;</span> <span class="i">z</span> <span class="o">&lt;</span> <span class="i">zSize</span><span class="o">;</span> <span class="i">z</span><span class="o">++)</span> <span class="o">{</span>
-      <span class="k">if</span> <span class="o">(</span><span class="i">matrix</span><span class="o">[</span><span class="i">x</span><span class="o">][</span><span class="i">y</span><span class="o">][</span><span class="i">z</span><span class="o">]</span> <span class="o">==</span> <span class="n">0</span><span class="o">)</span> <span class="o">{</span>
-        <span class="i">printf</span><span class="o">(</span><span class="s">&quot;found&quot;</span><span class="o">);</span>
-        <span class="k">goto</span> <span class="i">done</span><span class="o">;</span>
-      <span class="o">}</span>
-    <span class="o">}</span>
-  <span class="o">}</span>
-<span class="o">}</span>
-<span class="i">done</span><span class="o">:</span>
+<span class="k">for</span> (<span class="t">int</span> <span class="i">x</span> = <span class="n">0</span>; <span class="i">x</span> &lt; <span class="i">xSize</span>; <span class="i">x</span>++) {
+  <span class="k">for</span> (<span class="t">int</span> <span class="i">y</span> = <span class="n">0</span>; <span class="i">y</span> &lt; <span class="i">ySize</span>; <span class="i">y</span>++) {
+    <span class="k">for</span> (<span class="t">int</span> <span class="i">z</span> = <span class="n">0</span>; <span class="i">z</span> &lt; <span class="i">zSize</span>; <span class="i">z</span>++) {
+      <span class="k">if</span> (<span class="i">matrix</span>[<span class="i">x</span>][<span class="i">y</span>][<span class="i">z</span>] == <span class="n">0</span>) {
+        <span class="i">printf</span>(<span class="s">&quot;found&quot;</span>);
+        <span class="k">goto</span> <span class="i">done</span>;
+      }
+    }
+  }
+}
+<span class="i">done</span>:
 </pre></div>
 <aside name="break">
 <p>You could do this without <code>break</code> statements<span class="em">&mdash;</span>themselves a limited goto-ish

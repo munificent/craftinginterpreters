@@ -11,7 +11,7 @@ final languages = {
   "lox": lox,
   // TODO: This is just enough for the one line in "scanning". Do more if
   // needed.
-  "lua": Language(rules: [..._commonRules, _cOperatorRule]),
+  "lua": Language(rules: _commonRules),
   "python": python,
   "ruby": ruby,
 };
@@ -46,12 +46,12 @@ final java = Language(
   types: "boolean byte char double float int long short void",
   rules: [
     // Import.
-    Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
+    Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", ""]),
     // Static import.
     Rule.capture(r"(import\s+static?)(\s+)(\w+(?:\.\w+)*(?:\.\*)?)(;)",
-        ["k", "", "n", "o"]),
+        ["k", "", "n", ""]),
     // Package.
-    Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", "o"]),
+    Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", ""]),
     // Annotation.
     Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "a"),
 
@@ -62,7 +62,6 @@ final java = Language(
 
     ..._commonRules,
     _characterRule,
-    _cOperatorRule,
   ],
 );
 
@@ -70,35 +69,27 @@ final js = Language(
   keywords: "break case catch class const continue debugger default delete do "
       "else export extends finally for function if import in instanceof let "
       "new return super switch this throw try typeof var void while with yield",
-  rules: [..._commonRules, _cOperatorRule],
+  rules: _commonRules,
 );
 
 final lisp = Language(
   rules: [
     // TODO: Other punctuation characters.
     Rule(r"[a-zA-Z0-9_-]+", "n"),
-    Rule(r"[()[\]{}]+", "o"),
   ],
 );
 
 final lox = Language(
   keywords: "and class else false fun for if nil or print return super this "
       "true var while",
-  rules: [
-    ..._commonRules,
-    // Lox has fewer operator characters.
-    Rule(r"[(){}[\]!+\-/*;.,=<>]+", "o"),
-  ],
+  rules: _commonRules,
 );
 
 final python = Language(
   keywords: "and as assert break class continue def del elif else except "
       "exec finally for from global if import in is lambda not or pass "
       "print raise range return try while with yield",
-  rules: [
-    ..._commonRules,
-    _cOperatorRule,
-  ],
+  rules: _commonRules,
 );
 
 final ruby = Language(
@@ -106,10 +97,7 @@ final ruby = Language(
       "case class def defined? do else elsif end ensure false for if in lambda "
       "module next nil not or redo rescue retry return self super then true "
       "undef unless until when while yield",
-  rules: [
-    ..._commonRules,
-    _cOperatorRule,
-  ],
+  rules: _commonRules,
 );
 
 final _cKeywords =
@@ -128,13 +116,7 @@ final _cRules = [
 
   ..._commonRules,
   _characterRule,
-  _cOperatorRule,
 ];
-
-/// Matches the operator characters in C-like languages.
-// TODO: Allowing a space in here would produce visually identical output but
-// collapse to fewer spans in cases like ") + (".
-final _cOperatorRule = Rule(r"[(){}[\]!+\-/*:;.,|?=<>&^%]+", "o");
 
 // TODO: Multi-character escapes?
 final _characterRule = Rule(r"'\\?.'", "s");

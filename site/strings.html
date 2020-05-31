@@ -174,7 +174,7 @@ so we add another case to the union for that:</p>
 </pre><div class="source-file"><em>value.h</em><br>
 in struct <em>Value</em></div>
 <pre class="insert">
-    <span class="t">Obj</span><span class="o">*</span> <span class="i">obj</span><span class="o">;</span>     
+    <span class="t">Obj</span>* <span class="i">obj</span>;     
 </pre><pre class="insert-after">
   } as; // [as]   
 </pre></div>
@@ -254,7 +254,7 @@ the &ldquo;value&rdquo; module:</p>
                         
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sObj</span> <span class="t">Obj</span><span class="o">;</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sObj</span> <span class="t">Obj</span>;
 
 </pre><pre class="insert-after">
 typedef enum {          
@@ -271,9 +271,9 @@ create new file</div>
 <span class="a">#include &quot;common.h&quot;  </span>
 <span class="a">#include &quot;value.h&quot;   </span>
 
-<span class="k">struct</span> <span class="i">sObj</span> <span class="o">{</span>        
-  <span class="t">ObjType</span> <span class="i">type</span><span class="o">;</span>      
-<span class="o">};</span>                   
+<span class="k">struct</span> <span class="i">sObj</span> {        
+  <span class="t">ObjType</span> <span class="i">type</span>;      
+};                   
 
 <span class="a">#endif               </span>
 </pre></div>
@@ -286,9 +286,9 @@ bookkeeping information for memory management in there. The type enum is:</p>
 </pre><div class="source-file"><em>object.h</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">enum</span> <span class="o">{</span>    
-  <span class="a">OBJ_STRING</span><span class="o">,</span>     
-<span class="o">}</span> <span class="t">ObjType</span><span class="o">;</span>        
+<span class="k">typedef</span> <span class="k">enum</span> {    
+  <span class="a">OBJ_STRING</span>,     
+} <span class="t">ObjType</span>;        
 </pre><pre class="insert-after">
                   
 struct sObj {     
@@ -317,7 +317,7 @@ strings is defined in a separate struct. Again we need to forward-declare it:</p
 typedef struct sObj Obj;            
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sObjString</span> <span class="t">ObjString</span><span class="o">;</span>
+<span class="k">typedef</span> <span class="k">struct</span> <span class="i">sObjString</span> <span class="t">ObjString</span>;
 </pre><pre class="insert-after">
                                     
 typedef enum {                      
@@ -331,11 +331,11 @@ typedef enum {
 add after struct <em>sObj</em></div>
 <pre class="insert">
 
-<span class="k">struct</span> <span class="i">sObjString</span> <span class="o">{</span>
-  <span class="t">Obj</span> <span class="i">obj</span><span class="o">;</span>         
-  <span class="t">int</span> <span class="i">length</span><span class="o">;</span>      
-  <span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">;</span>     
-<span class="o">};</span>                 
+<span class="k">struct</span> <span class="i">sObjString</span> {
+  <span class="t">Obj</span> <span class="i">obj</span>;         
+  <span class="t">int</span> <span class="i">length</span>;      
+  <span class="t">char</span>* <span class="i">chars</span>;     
+};                 
 </pre><pre class="insert-after">
                    
 #endif             
@@ -398,9 +398,9 @@ Values. It relies on this inline function:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>sObjString</em></div>
 <pre class="insert">
-<span class="k">static</span> <span class="k">inline</span> <span class="t">bool</span> <span class="i">isObjType</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">,</span> <span class="t">ObjType</span> <span class="i">type</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="a">IS_OBJ</span><span class="o">(</span><span class="i">value</span><span class="o">)</span> <span class="o">&amp;&amp;</span> <span class="a">AS_OBJ</span><span class="o">(</span><span class="i">value</span><span class="o">)-&gt;</span><span class="i">type</span> <span class="o">==</span> <span class="i">type</span><span class="o">;</span>   
-<span class="o">}</span>                                                        
+<span class="k">static</span> <span class="k">inline</span> <span class="t">bool</span> <span class="i">isObjType</span>(<span class="t">Value</span> <span class="i">value</span>, <span class="t">ObjType</span> <span class="i">type</span>) {
+  <span class="k">return</span> <span class="a">IS_OBJ</span>(<span class="i">value</span>) &amp;&amp; <span class="a">AS_OBJ</span>(<span class="i">value</span>)-&gt;<span class="i">type</span> == <span class="i">type</span>;   
+}                                                        
 
 </pre><pre class="insert-after">
 #endif                                                   
@@ -415,7 +415,7 @@ more than once, that expression gets evaluated multiple times.</p>
 <p>That&rsquo;s bad if the expression has side effects. If we put the body of
 <code>isObjType()</code> into the macro definition and then you did, say:</p>
 <div class="codehilite"><pre>
-<span class="a">IS_STRING</span><span class="o">(</span><span class="a">POP</span><span class="o">())</span>
+<span class="a">IS_STRING</span>(<span class="a">POP</span>())
 </pre></div>
 <p>Then it would pop two values off the stack! Using a function fixes that.</p>
 <p>As long as we ensure that we set the type tag correctly whenever we create an
@@ -447,7 +447,7 @@ tokenizes string literals, so it&rsquo;s the parser&rsquo;s turn:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="o">{</span> <span class="i">string</span><span class="o">,</span>   <span class="a">NULL</span><span class="o">,</span>    <span class="a">PREC_NONE</span> <span class="o">},</span>       <span class="c">// TOKEN_STRING    </span>
+  { <span class="i">string</span>,   <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_STRING    </span>
 </pre><pre class="insert-after">
   { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER    
 </pre></div>
@@ -457,10 +457,10 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">string</span><span class="o">()</span> <span class="o">{</span>                                          
-  <span class="i">emitConstant</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">copyString</span><span class="o">(</span><span class="i">parser</span><span class="o">.</span><span class="i">previous</span><span class="o">.</span><span class="i">start</span> <span class="o">+</span> <span class="n">1</span><span class="o">,</span>    
-                                  <span class="i">parser</span><span class="o">.</span><span class="i">previous</span><span class="o">.</span><span class="i">length</span> <span class="o">-</span> <span class="n">2</span><span class="o">)));</span>
-<span class="o">}</span>                                                               
+<span class="k">static</span> <span class="t">void</span> <span class="i">string</span>() {                                          
+  <span class="i">emitConstant</span>(<span class="a">OBJ_VAL</span>(<span class="i">copyString</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">start</span> + <span class="n">1</span>,    
+                                  <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">length</span> - <span class="n">2</span>)));
+}                                                               
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
 
@@ -479,7 +479,7 @@ Since it doesn&rsquo;t, we can take the characters as they are.</p>
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>sObjString</em></div>
 <pre class="insert">
-<span class="t">ObjString</span><span class="o">*</span> <span class="i">copyString</span><span class="o">(</span><span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">);</span>    
+<span class="t">ObjString</span>* <span class="i">copyString</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>);    
 
 </pre><pre class="insert-after">
 static inline bool isObjType(Value value, ObjType type) {
@@ -511,13 +511,13 @@ create new file</div>
 <span class="a">#include &quot;value.h&quot;                                    </span>
 <span class="a">#include &quot;vm.h&quot;                                       </span>
 
-<span class="t">ObjString</span><span class="o">*</span> <span class="i">copyString</span><span class="o">(</span><span class="k">const</span> <span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">)</span> <span class="o">{</span>
-  <span class="t">char</span><span class="o">*</span> <span class="i">heapChars</span> <span class="o">=</span> <span class="a">ALLOCATE</span><span class="o">(</span><span class="t">char</span><span class="o">,</span> <span class="i">length</span> <span class="o">+</span> <span class="n">1</span><span class="o">);</span>       
-  <span class="i">memcpy</span><span class="o">(</span><span class="i">heapChars</span><span class="o">,</span> <span class="i">chars</span><span class="o">,</span> <span class="i">length</span><span class="o">);</span>                   
-  <span class="i">heapChars</span><span class="o">[</span><span class="i">length</span><span class="o">]</span> <span class="o">=</span> <span class="s">&#39;\0&#39;</span><span class="o">;</span>                           
+<span class="t">ObjString</span>* <span class="i">copyString</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>) {
+  <span class="t">char</span>* <span class="i">heapChars</span> = <span class="a">ALLOCATE</span>(<span class="t">char</span>, <span class="i">length</span> + <span class="n">1</span>);       
+  <span class="i">memcpy</span>(<span class="i">heapChars</span>, <span class="i">chars</span>, <span class="i">length</span>);                   
+  <span class="i">heapChars</span>[<span class="i">length</span>] = <span class="s">&#39;\0&#39;</span>;                           
 
-  <span class="k">return</span> <span class="i">allocateString</span><span class="o">(</span><span class="i">heapChars</span><span class="o">,</span> <span class="i">length</span><span class="o">);</span>           
-<span class="o">}</span>                                                     
+  <span class="k">return</span> <span class="i">allocateString</span>(<span class="i">heapChars</span>, <span class="i">length</span>);           
+}                                                     
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, create new file</div>
 
@@ -563,13 +563,13 @@ This way, every ObjString reliably owns its character array and can free it.</p>
                                                            
 </pre><div class="source-file"><em>object.c</em></div>
 <pre class="insert">
-<span class="k">static</span> <span class="t">ObjString</span><span class="o">*</span> <span class="i">allocateString</span><span class="o">(</span><span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">)</span> <span class="o">{</span>
-  <span class="t">ObjString</span><span class="o">*</span> <span class="i">string</span> <span class="o">=</span> <span class="a">ALLOCATE_OBJ</span><span class="o">(</span><span class="t">ObjString</span><span class="o">,</span> <span class="a">OBJ_STRING</span><span class="o">);</span> 
-  <span class="i">string</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">=</span> <span class="i">length</span><span class="o">;</span>                                 
-  <span class="i">string</span><span class="o">-&gt;</span><span class="i">chars</span> <span class="o">=</span> <span class="i">chars</span><span class="o">;</span>                                   
+<span class="k">static</span> <span class="t">ObjString</span>* <span class="i">allocateString</span>(<span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>) {
+  <span class="t">ObjString</span>* <span class="i">string</span> = <span class="a">ALLOCATE_OBJ</span>(<span class="t">ObjString</span>, <span class="a">OBJ_STRING</span>); 
+  <span class="i">string</span>-&gt;<span class="i">length</span> = <span class="i">length</span>;                                 
+  <span class="i">string</span>-&gt;<span class="i">chars</span> = <span class="i">chars</span>;                                   
 
-  <span class="k">return</span> <span class="i">string</span><span class="o">;</span>                                           
-<span class="o">}</span>                                                          
+  <span class="k">return</span> <span class="i">string</span>;                                           
+}                                                          
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em></div>
 
@@ -603,11 +603,11 @@ They will pay off in later chapters when we reuse them.</p>
 </pre><div class="source-file"><em>object.c</em></div>
 <pre class="insert">
 
-<span class="k">static</span> <span class="t">Obj</span><span class="o">*</span> <span class="i">allocateObject</span><span class="o">(</span><span class="t">size_t</span> <span class="i">size</span><span class="o">,</span> <span class="t">ObjType</span> <span class="i">type</span><span class="o">)</span> <span class="o">{</span>    
-  <span class="t">Obj</span><span class="o">*</span> <span class="i">object</span> <span class="o">=</span> <span class="o">(</span><span class="t">Obj</span><span class="o">*)</span><span class="i">reallocate</span><span class="o">(</span><span class="a">NULL</span><span class="o">,</span> <span class="n">0</span><span class="o">,</span> <span class="i">size</span><span class="o">);</span>           
-  <span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span> <span class="o">=</span> <span class="i">type</span><span class="o">;</span>                                     
-  <span class="k">return</span> <span class="i">object</span><span class="o">;</span>                                           
-<span class="o">}</span>                                                          
+<span class="k">static</span> <span class="t">Obj</span>* <span class="i">allocateObject</span>(<span class="t">size_t</span> <span class="i">size</span>, <span class="t">ObjType</span> <span class="i">type</span>) {    
+  <span class="t">Obj</span>* <span class="i">object</span> = (<span class="t">Obj</span>*)<span class="i">reallocate</span>(<span class="a">NULL</span>, <span class="n">0</span>, <span class="i">size</span>);           
+  <span class="i">object</span>-&gt;<span class="i">type</span> = <span class="i">type</span>;                                     
+  <span class="k">return</span> <span class="i">object</span>;                                           
+}                                                          
 </pre><pre class="insert-after">
                                                            
 static ObjString* allocateString(char* chars, int length) {
@@ -635,7 +635,7 @@ first step is to make the existing print code not barf on the new value type:</p
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>printValue</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">VAL_OBJ</span><span class="o">:</span>    <span class="i">printObject</span><span class="o">(</span><span class="i">value</span><span class="o">);</span> <span class="k">break</span><span class="o">;</span>            
+    <span class="k">case</span> <span class="a">VAL_OBJ</span>:    <span class="i">printObject</span>(<span class="i">value</span>); <span class="k">break</span>;            
 </pre><pre class="insert-after">
   }                                                        
 </pre></div>
@@ -646,7 +646,7 @@ the &ldquo;object&rdquo; module:</p>
 <div class="codehilite"><div class="source-file"><em>object.h</em><br>
 add after <em>copyString</em>()</div>
 <pre>
-<span class="t">void</span> <span class="i">printObject</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">);</span>
+<span class="t">void</span> <span class="i">printObject</span>(<span class="t">Value</span> <span class="i">value</span>);
 </pre></div>
 <div class="source-file-narrow"><em>object.h</em>, add after <em>copyString</em>()</div>
 
@@ -654,13 +654,13 @@ add after <em>copyString</em>()</div>
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>copyString</em>()</div>
 <pre>
-<span class="t">void</span> <span class="i">printObject</span><span class="o">(</span><span class="t">Value</span> <span class="i">value</span><span class="o">)</span> <span class="o">{</span>       
-  <span class="k">switch</span> <span class="o">(</span><span class="a">OBJ_TYPE</span><span class="o">(</span><span class="i">value</span><span class="o">))</span> <span class="o">{</span>          
-    <span class="k">case</span> <span class="a">OBJ_STRING</span><span class="o">:</span>                  
-      <span class="i">printf</span><span class="o">(</span><span class="s">&quot;%s&quot;</span><span class="o">,</span> <span class="a">AS_CSTRING</span><span class="o">(</span><span class="i">value</span><span class="o">));</span>
-      <span class="k">break</span><span class="o">;</span>                          
-  <span class="o">}</span>                                   
-<span class="o">}</span>                                     
+<span class="t">void</span> <span class="i">printObject</span>(<span class="t">Value</span> <span class="i">value</span>) {       
+  <span class="k">switch</span> (<span class="a">OBJ_TYPE</span>(<span class="i">value</span>)) {          
+    <span class="k">case</span> <span class="a">OBJ_STRING</span>:                  
+      <span class="i">printf</span>(<span class="s">&quot;%s&quot;</span>, <span class="a">AS_CSTRING</span>(<span class="i">value</span>));
+      <span class="k">break</span>;                          
+  }                                   
+}                                     
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
 
@@ -672,7 +672,7 @@ name="term-2">prints</span> the character array as a C string.</p>
 </aside>
 <p>The equality operators also need to gracefully handle strings. Consider:</p>
 <div class="codehilite"><pre>
-<span class="s">&quot;string&quot;</span> <span class="o">==</span> <span class="s">&quot;string&quot;</span>
+<span class="s">&quot;string&quot;</span> == <span class="s">&quot;string&quot;</span>
 </pre></div>
 <p>These are two separate string literals. The compiler will make two separate
 calls to <code>copyString()</code>, create two distinct ObjString objects and store them as
@@ -684,12 +684,12 @@ should evaluate to <code>true</code>. That requires a little special support:</p
 </pre><div class="source-file"><em>value.c</em><br>
 in <em>valuesEqual</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">VAL_OBJ</span><span class="o">:</span> <span class="o">{</span>                                                    
-      <span class="t">ObjString</span><span class="o">*</span> <span class="i">aString</span> <span class="o">=</span> <span class="a">AS_STRING</span><span class="o">(</span><span class="i">a</span><span class="o">);</span>                               
-      <span class="t">ObjString</span><span class="o">*</span> <span class="i">bString</span> <span class="o">=</span> <span class="a">AS_STRING</span><span class="o">(</span><span class="i">b</span><span class="o">);</span>                               
-      <span class="k">return</span> <span class="i">aString</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">==</span> <span class="i">bString</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">&amp;&amp;</span>                     
-          <span class="i">memcmp</span><span class="o">(</span><span class="i">aString</span><span class="o">-&gt;</span><span class="i">chars</span><span class="o">,</span> <span class="i">bString</span><span class="o">-&gt;</span><span class="i">chars</span><span class="o">,</span> <span class="i">aString</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">)</span> <span class="o">==</span> <span class="n">0</span><span class="o">;</span>
-    <span class="o">}</span>                                                                  
+    <span class="k">case</span> <span class="a">VAL_OBJ</span>: {                                                    
+      <span class="t">ObjString</span>* <span class="i">aString</span> = <span class="a">AS_STRING</span>(<span class="i">a</span>);                               
+      <span class="t">ObjString</span>* <span class="i">bString</span> = <span class="a">AS_STRING</span>(<span class="i">b</span>);                               
+      <span class="k">return</span> <span class="i">aString</span>-&gt;<span class="i">length</span> == <span class="i">bString</span>-&gt;<span class="i">length</span> &amp;&amp;                     
+          <span class="i">memcmp</span>(<span class="i">aString</span>-&gt;<span class="i">chars</span>, <span class="i">bString</span>-&gt;<span class="i">chars</span>, <span class="i">aString</span>-&gt;<span class="i">length</span>) == <span class="n">0</span>;
+    }                                                                  
 </pre><pre class="insert-after">
   }                                                                    
 </pre></div>
@@ -741,19 +741,19 @@ operands and chooses the right operation:</p>
 in <em>run</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_ADD</span><span class="o">:</span> <span class="o">{</span>                                                   
-        <span class="k">if</span> <span class="o">(</span><span class="a">IS_STRING</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">))</span> <span class="o">&amp;&amp;</span> <span class="a">IS_STRING</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">1</span><span class="o">)))</span> <span class="o">{</span>                
-          <span class="i">concatenate</span><span class="o">();</span>                                               
-        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="a">IS_NUMBER</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">0</span><span class="o">))</span> <span class="o">&amp;&amp;</span> <span class="a">IS_NUMBER</span><span class="o">(</span><span class="i">peek</span><span class="o">(</span><span class="n">1</span><span class="o">)))</span> <span class="o">{</span>         
-          <span class="t">double</span> <span class="i">b</span> <span class="o">=</span> <span class="a">AS_NUMBER</span><span class="o">(</span><span class="i">pop</span><span class="o">());</span>                                 
-          <span class="t">double</span> <span class="i">a</span> <span class="o">=</span> <span class="a">AS_NUMBER</span><span class="o">(</span><span class="i">pop</span><span class="o">());</span>                                 
-          <span class="i">push</span><span class="o">(</span><span class="a">NUMBER_VAL</span><span class="o">(</span><span class="i">a</span> <span class="o">+</span> <span class="i">b</span><span class="o">));</span>                                     
-        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                                       
-          <span class="i">runtimeError</span><span class="o">(</span><span class="s">&quot;Operands must be two numbers or two strings.&quot;</span><span class="o">);</span>
-          <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span><span class="o">;</span>                              
-        <span class="o">}</span>                                                              
-        <span class="k">break</span><span class="o">;</span>                                                         
-      <span class="o">}</span>                                                                
+      <span class="k">case</span> <span class="a">OP_ADD</span>: {                                                   
+        <span class="k">if</span> (<span class="a">IS_STRING</span>(<span class="i">peek</span>(<span class="n">0</span>)) &amp;&amp; <span class="a">IS_STRING</span>(<span class="i">peek</span>(<span class="n">1</span>))) {                
+          <span class="i">concatenate</span>();                                               
+        } <span class="k">else</span> <span class="k">if</span> (<span class="a">IS_NUMBER</span>(<span class="i">peek</span>(<span class="n">0</span>)) &amp;&amp; <span class="a">IS_NUMBER</span>(<span class="i">peek</span>(<span class="n">1</span>))) {         
+          <span class="t">double</span> <span class="i">b</span> = <span class="a">AS_NUMBER</span>(<span class="i">pop</span>());                                 
+          <span class="t">double</span> <span class="i">a</span> = <span class="a">AS_NUMBER</span>(<span class="i">pop</span>());                                 
+          <span class="i">push</span>(<span class="a">NUMBER_VAL</span>(<span class="i">a</span> + <span class="i">b</span>));                                     
+        } <span class="k">else</span> {                                                       
+          <span class="i">runtimeError</span>(<span class="s">&quot;Operands must be two numbers or two strings.&quot;</span>);
+          <span class="k">return</span> <span class="a">INTERPRET_RUNTIME_ERROR</span>;                              
+        }                                                              
+        <span class="k">break</span>;                                                         
+      }                                                                
 </pre><pre class="insert-after">
       case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;               
 </pre></div>
@@ -773,19 +773,19 @@ string&rdquo; code for each type, so I left it out of Lox.</p>
 <div class="codehilite"><div class="source-file"><em>vm.c</em><br>
 add after <em>isFalsey</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">concatenate</span><span class="o">()</span> <span class="o">{</span>                      
-  <span class="t">ObjString</span><span class="o">*</span> <span class="i">b</span> <span class="o">=</span> <span class="a">AS_STRING</span><span class="o">(</span><span class="i">pop</span><span class="o">());</span>               
-  <span class="t">ObjString</span><span class="o">*</span> <span class="i">a</span> <span class="o">=</span> <span class="a">AS_STRING</span><span class="o">(</span><span class="i">pop</span><span class="o">());</span>               
+<span class="k">static</span> <span class="t">void</span> <span class="i">concatenate</span>() {                      
+  <span class="t">ObjString</span>* <span class="i">b</span> = <span class="a">AS_STRING</span>(<span class="i">pop</span>());               
+  <span class="t">ObjString</span>* <span class="i">a</span> = <span class="a">AS_STRING</span>(<span class="i">pop</span>());               
 
-  <span class="t">int</span> <span class="i">length</span> <span class="o">=</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">+</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">;</span>            
-  <span class="t">char</span><span class="o">*</span> <span class="i">chars</span> <span class="o">=</span> <span class="a">ALLOCATE</span><span class="o">(</span><span class="t">char</span><span class="o">,</span> <span class="i">length</span> <span class="o">+</span> <span class="n">1</span><span class="o">);</span>      
-  <span class="i">memcpy</span><span class="o">(</span><span class="i">chars</span><span class="o">,</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">chars</span><span class="o">,</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">);</span>            
-  <span class="i">memcpy</span><span class="o">(</span><span class="i">chars</span> <span class="o">+</span> <span class="i">a</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">,</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">chars</span><span class="o">,</span> <span class="i">b</span><span class="o">-&gt;</span><span class="i">length</span><span class="o">);</span>
-  <span class="i">chars</span><span class="o">[</span><span class="i">length</span><span class="o">]</span> <span class="o">=</span> <span class="s">&#39;\0&#39;</span><span class="o">;</span>                          
+  <span class="t">int</span> <span class="i">length</span> = <span class="i">a</span>-&gt;<span class="i">length</span> + <span class="i">b</span>-&gt;<span class="i">length</span>;            
+  <span class="t">char</span>* <span class="i">chars</span> = <span class="a">ALLOCATE</span>(<span class="t">char</span>, <span class="i">length</span> + <span class="n">1</span>);      
+  <span class="i">memcpy</span>(<span class="i">chars</span>, <span class="i">a</span>-&gt;<span class="i">chars</span>, <span class="i">a</span>-&gt;<span class="i">length</span>);            
+  <span class="i">memcpy</span>(<span class="i">chars</span> + <span class="i">a</span>-&gt;<span class="i">length</span>, <span class="i">b</span>-&gt;<span class="i">chars</span>, <span class="i">b</span>-&gt;<span class="i">length</span>);
+  <span class="i">chars</span>[<span class="i">length</span>] = <span class="s">&#39;\0&#39;</span>;                          
 
-  <span class="t">ObjString</span><span class="o">*</span> <span class="i">result</span> <span class="o">=</span> <span class="i">takeString</span><span class="o">(</span><span class="i">chars</span><span class="o">,</span> <span class="i">length</span><span class="o">);</span> 
-  <span class="i">push</span><span class="o">(</span><span class="a">OBJ_VAL</span><span class="o">(</span><span class="i">result</span><span class="o">));</span>                         
-<span class="o">}</span>                                                
+  <span class="t">ObjString</span>* <span class="i">result</span> = <span class="i">takeString</span>(<span class="i">chars</span>, <span class="i">length</span>); 
+  <span class="i">push</span>(<span class="a">OBJ_VAL</span>(<span class="i">result</span>));                         
+}                                                
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>isFalsey</em>()</div>
 
@@ -813,7 +813,7 @@ new function, <code>takeString()</code>:</p>
 </pre><div class="source-file"><em>object.h</em><br>
 add after struct <em>sObjString</em></div>
 <pre class="insert">
-<span class="t">ObjString</span><span class="o">*</span> <span class="i">takeString</span><span class="o">(</span><span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">);</span>      
+<span class="t">ObjString</span>* <span class="i">takeString</span>(<span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>);      
 </pre><pre class="insert-after">
 ObjString* copyString(const char* chars, int length);
 void printObject(Value value);                       
@@ -825,9 +825,9 @@ void printObject(Value value);
 <div class="codehilite"><div class="source-file"><em>object.c</em><br>
 add after <em>allocateString</em>()</div>
 <pre>
-<span class="t">ObjString</span><span class="o">*</span> <span class="i">takeString</span><span class="o">(</span><span class="t">char</span><span class="o">*</span> <span class="i">chars</span><span class="o">,</span> <span class="t">int</span> <span class="i">length</span><span class="o">)</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="i">allocateString</span><span class="o">(</span><span class="i">chars</span><span class="o">,</span> <span class="i">length</span><span class="o">);</span>         
-<span class="o">}</span>                                               
+<span class="t">ObjString</span>* <span class="i">takeString</span>(<span class="t">char</span>* <span class="i">chars</span>, <span class="t">int</span> <span class="i">length</span>) {
+  <span class="k">return</span> <span class="i">allocateString</span>(<span class="i">chars</span>, <span class="i">length</span>);         
+}                                               
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, add after <em>allocateString</em>()</div>
 
@@ -856,7 +856,7 @@ includes:</p>
 <h2><a href="#freeing-objects" name="freeing-objects"><small>19&#8202;.&#8202;5</small>Freeing Objects</a></h2>
 <p>Behold this innocuous-seeming expression:</p>
 <div class="codehilite"><pre>
-<span class="s">&quot;st&quot;</span> <span class="o">+</span> <span class="s">&quot;ri&quot;</span> <span class="o">+</span> <span class="s">&quot;ng&quot;</span>
+<span class="s">&quot;st&quot;</span> + <span class="s">&quot;ri&quot;</span> + <span class="s">&quot;ng&quot;</span>
 </pre></div>
 <p>When the compiler chews through this, it allocates an ObjString for each of
 those three string literals and stores them in the chunk&rsquo;s constant table and
@@ -921,7 +921,7 @@ struct sObj {
 </pre><div class="source-file"><em>object.h</em><br>
 in struct <em>sObj</em></div>
 <pre class="insert">
-  <span class="k">struct</span> <span class="i">sObj</span><span class="o">*</span> <span class="i">next</span><span class="o">;</span>
+  <span class="k">struct</span> <span class="i">sObj</span>* <span class="i">next</span>;
 </pre><pre class="insert-after">
 };                  
 </pre></div>
@@ -934,7 +934,7 @@ in struct <em>sObj</em></div>
 in struct <em>VM</em></div>
 <pre class="insert">
 
-  <span class="t">Obj</span><span class="o">*</span> <span class="i">objects</span><span class="o">;</span>   
+  <span class="t">Obj</span>* <span class="i">objects</span>;   
 </pre><pre class="insert-after">
 } VM;             
 </pre></div>
@@ -946,7 +946,7 @@ in struct <em>VM</em></div>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>initVM</em>()</div>
 <pre class="insert">
-  <span class="i">vm</span><span class="o">.</span><span class="i">objects</span> <span class="o">=</span> <span class="a">NULL</span><span class="o">;</span>
+  <span class="i">vm</span>.<span class="i">objects</span> = <span class="a">NULL</span>;
 </pre><pre class="insert-after">
 }                   
 </pre></div>
@@ -959,8 +959,8 @@ in <em>initVM</em>()</div>
 in <em>allocateObject</em>()</div>
 <pre class="insert">
 
-  <span class="i">object</span><span class="o">-&gt;</span><span class="i">next</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">objects</span><span class="o">;</span>
-  <span class="i">vm</span><span class="o">.</span><span class="i">objects</span> <span class="o">=</span> <span class="i">object</span><span class="o">;</span>      
+  <span class="i">object</span>-&gt;<span class="i">next</span> = <span class="i">vm</span>.<span class="i">objects</span>;
+  <span class="i">vm</span>.<span class="i">objects</span> = <span class="i">object</span>;      
 </pre><pre class="insert-after">
   return object;            
 </pre></div>
@@ -977,7 +977,7 @@ module, so we need to expose that externally:</p>
 </pre><div class="source-file"><em>vm.h</em><br>
 add after enum <em>InterpretResult</em></div>
 <pre class="insert">
-<span class="k">extern</span> <span class="a">VM</span> <span class="i">vm</span><span class="o">;</span>     
+<span class="k">extern</span> <span class="a">VM</span> <span class="i">vm</span>;     
 
 </pre><pre class="insert-after">
 void initVM();    
@@ -994,7 +994,7 @@ void freeVM() {
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>freeVM</em>()</div>
 <pre class="insert">
-  <span class="i">freeObjects</span><span class="o">();</span>
+  <span class="i">freeObjects</span>();
 </pre><pre class="insert-after">
 }               
 </pre></div>
@@ -1007,7 +1007,7 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize);
 </pre><div class="source-file"><em>memory.h</em><br>
 add after <em>reallocate</em>()</div>
 <pre class="insert">
-<span class="t">void</span> <span class="i">freeObjects</span><span class="o">();</span>                                              
+<span class="t">void</span> <span class="i">freeObjects</span>();                                              
 </pre><pre class="insert-after">
                                                                  
 #endif                                                           
@@ -1018,14 +1018,14 @@ add after <em>reallocate</em>()</div>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>reallocate</em>()</div>
 <pre>
-<span class="t">void</span> <span class="i">freeObjects</span><span class="o">()</span> <span class="o">{</span>         
-  <span class="t">Obj</span><span class="o">*</span> <span class="i">object</span> <span class="o">=</span> <span class="i">vm</span><span class="o">.</span><span class="i">objects</span><span class="o">;</span>  
-  <span class="k">while</span> <span class="o">(</span><span class="i">object</span> <span class="o">!=</span> <span class="a">NULL</span><span class="o">)</span> <span class="o">{</span>   
-    <span class="t">Obj</span><span class="o">*</span> <span class="i">next</span> <span class="o">=</span> <span class="i">object</span><span class="o">-&gt;</span><span class="i">next</span><span class="o">;</span>
-    <span class="i">freeObject</span><span class="o">(</span><span class="i">object</span><span class="o">);</span>      
-    <span class="i">object</span> <span class="o">=</span> <span class="i">next</span><span class="o">;</span>           
-  <span class="o">}</span>                          
-<span class="o">}</span>                            
+<span class="t">void</span> <span class="i">freeObjects</span>() {         
+  <span class="t">Obj</span>* <span class="i">object</span> = <span class="i">vm</span>.<span class="i">objects</span>;  
+  <span class="k">while</span> (<span class="i">object</span> != <span class="a">NULL</span>) {   
+    <span class="t">Obj</span>* <span class="i">next</span> = <span class="i">object</span>-&gt;<span class="i">next</span>;
+    <span class="i">freeObject</span>(<span class="i">object</span>);      
+    <span class="i">object</span> = <span class="i">next</span>;           
+  }                          
+}                            
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, add after <em>reallocate</em>()</div>
 
@@ -1034,16 +1034,16 @@ its nodes. For each node, we call:</p>
 <div class="codehilite"><div class="source-file"><em>memory.c</em><br>
 add after <em>reallocate</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">freeObject</span><span class="o">(</span><span class="t">Obj</span><span class="o">*</span> <span class="i">object</span><span class="o">)</span> <span class="o">{</span>                     
-  <span class="k">switch</span> <span class="o">(</span><span class="i">object</span><span class="o">-&gt;</span><span class="i">type</span><span class="o">)</span> <span class="o">{</span>                                 
-    <span class="k">case</span> <span class="a">OBJ_STRING</span><span class="o">:</span> <span class="o">{</span>                                    
-      <span class="t">ObjString</span><span class="o">*</span> <span class="i">string</span> <span class="o">=</span> <span class="o">(</span><span class="t">ObjString</span><span class="o">*)</span><span class="i">object</span><span class="o">;</span>             
-      <span class="a">FREE_ARRAY</span><span class="o">(</span><span class="t">char</span><span class="o">,</span> <span class="i">string</span><span class="o">-&gt;</span><span class="i">chars</span><span class="o">,</span> <span class="i">string</span><span class="o">-&gt;</span><span class="i">length</span> <span class="o">+</span> <span class="n">1</span><span class="o">);</span>
-      <span class="a">FREE</span><span class="o">(</span><span class="t">ObjString</span><span class="o">,</span> <span class="i">object</span><span class="o">);</span>                            
-      <span class="k">break</span><span class="o">;</span>                                              
-    <span class="o">}</span>                                                     
-  <span class="o">}</span>                                                       
-<span class="o">}</span>                                                         
+<span class="k">static</span> <span class="t">void</span> <span class="i">freeObject</span>(<span class="t">Obj</span>* <span class="i">object</span>) {                     
+  <span class="k">switch</span> (<span class="i">object</span>-&gt;<span class="i">type</span>) {                                 
+    <span class="k">case</span> <span class="a">OBJ_STRING</span>: {                                    
+      <span class="t">ObjString</span>* <span class="i">string</span> = (<span class="t">ObjString</span>*)<span class="i">object</span>;             
+      <span class="a">FREE_ARRAY</span>(<span class="t">char</span>, <span class="i">string</span>-&gt;<span class="i">chars</span>, <span class="i">string</span>-&gt;<span class="i">length</span> + <span class="n">1</span>);
+      <span class="a">FREE</span>(<span class="t">ObjString</span>, <span class="i">object</span>);                            
+      <span class="k">break</span>;                                              
+    }                                                     
+  }                                                       
+}                                                         
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, add after <em>reallocate</em>()</div>
 
