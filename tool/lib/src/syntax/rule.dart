@@ -69,8 +69,6 @@ class StringRule extends Rule {
     while (!scanner.isDone) {
       if (scanner.scan(_escapePattern)) {
         if (scanner.position > start) {
-          // TODO: Something smarter than "-2" if we need multi-character
-          // escapes.
           highlighter.writeToken(
               "s", scanner.substring(start, scanner.position - 2));
         }
