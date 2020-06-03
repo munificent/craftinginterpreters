@@ -131,8 +131,8 @@ first principles, we have to go out into the field. That means *profiling*. A
 **profiler**, if you've never used one, is a tool that runs your <span
 name="program">program</span> and tracks hardware resource use as the code
 executes. Simple ones show you how much time was spent in each function in your
-program. Sophisticated ones track each instruction and data cache misses, memory
-allocations, and all sorts of other metrics.
+program. Sophisticated ones log data cache misses, instruction cache misses,
+branch mispredictions, memory allocations, and all sorts of other metrics.
 
 <aside name="program">
 
