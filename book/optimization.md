@@ -528,7 +528,7 @@ about the lowest levels of machine architecture.
 
 I'm not sure who first came up with this trick. The earliest source I can find
 is David Gudeman's 1993 paper "Representing Type Information in Dynamically
-Typed Languages". Everyone else cites that. But Guteman himself says the paper
+Typed Languages". Everyone else cites that. But Gudeman himself says the paper
 isn't novel work but instead "gathers together a body of folklore".
 
 Maybe the inventor has been lost to the mists of time, or maybe it's been
@@ -645,7 +645,7 @@ values, but they should at least not set your hand on fire if you touch them.
 
 Every double with all of its exponent bits set and its highest mantissa bit set
 is a quiet NaN. That leaves 52 bits unaccounted for. We'll avoid one of those so
-that we don't step on Intel's "QNan Floating-Point Indefinite" value, leaving us
+that we don't step on Intel's "QNaN Floating-Point Indefinite" value, leaving us
 51 bits. Those remaining bits can be anything. We're talking
 2,251,799,813,685,248 unique quiet NaN bit patterns.
 
@@ -720,7 +720,7 @@ new type:
 
 ^code nan-boxing (2 before, 1 after)
 
-When Nan boxing is enabled, the actual type of a Value is a flat unsigned 64-bit
+When NaN boxing is enabled, the actual type of a Value is a flat unsigned 64-bit
 integer. We could use double instead which would make the macros for dealing
 with Lox numbers a little simpler. But all of the other macros need to do
 bitwise operations and uint64_t is a much friendlier type for that. Outside of
@@ -757,7 +757,7 @@ point and arguments for and against seem to read more like Biblical hermeneutics
 or literary criticism than an unequivocal answer.
 
 Regardless of what the Good Spec says, just about every compiler under the sun
-permits type punning through unions, so relying on it is, at worse, a minor sin.
+permits type punning through unions, so relying on it is, at worst, a minor sin.
 
 </aside>
 
