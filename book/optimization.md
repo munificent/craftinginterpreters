@@ -456,7 +456,7 @@ And another one in the loop to remove unmarked entries from the string table:
 
 ^code remove-white (1 before, 1 after)
 
-Finally, the garbage collector tracks the amount of memory it frees so needs an
+Finally, the garbage collector tracks the amount of memory freed, so it needs an
 accurate count of the entry array size:
 
 ^code free-table (1 before, 1 after)
