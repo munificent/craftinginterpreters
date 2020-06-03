@@ -356,7 +356,7 @@ mask.
 
 Instead of storing the entry array *capacity* in Table, we'll directly store the
 *bit mask*. We'll keep the <span name="rename">same</span> `capacity` field but
-its meaning and value is now different. It now stores the mask and its value is
+its meaning and value are now different. It now stores the mask and its value is
 always one *less* than the size of the entry array.
 
 <aside name="rename">
