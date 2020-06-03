@@ -698,7 +698,7 @@ we'll get the machinery in place for later.
 
 ### Entering panic mode
 
-Back before we went on this side trek about error recovery, we were writing the
+Back before we went on this side trip around error recovery, we were writing the
 code to parse a parenthesized expression. After parsing the expression, it
 looks for the closing `)` by calling `consume()`. Here, finally, is that method:
 
