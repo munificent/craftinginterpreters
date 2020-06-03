@@ -546,24 +546,27 @@ has access to that:</p>
 class Interpreter implements Expr.Visitor&lt;Object&gt;, Stmt.Visitor&lt;Void&gt; {
 </pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em><br>
-replace 2 lines</div>
+replace 1 line</div>
 <pre class="insert">
   <span class="k">final</span> <span class="t">Environment</span> <span class="i">globals</span> = <span class="k">new</span> <span class="t">Environment</span>();                       
   <span class="k">private</span> <span class="t">Environment</span> <span class="i">environment</span> = <span class="i">globals</span>;                           
 </pre><pre class="insert-after">
+                                                                       
   void interpret(List&lt;Stmt&gt; statements) {                              
 </pre></div>
-<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em>, replace 2 lines</div>
+<div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em>, replace 1 line</div>
 
 <p>The <code>environment</code> field in the interpreter changes as we enter and exit local
 scopes. It tracks the <em>current</em> environment. This new <code>globals</code> field holds a
 fixed reference to the outermost global environment.</p>
 <p>When we instantiate an Interpreter, we stuff the native function in that global
 scope:</p>
-<div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
+<div class="codehilite"><pre class="insert-before">
+  private Environment environment = globals;               
+                                                           
+</pre><div class="source-file"><em>lox/Interpreter.java</em><br>
 in class <em>Interpreter</em></div>
-<pre>
-
+<pre class="insert">
   <span class="t">Interpreter</span>() {                                          
     <span class="i">globals</span>.<span class="i">define</span>(<span class="s">&quot;clock&quot;</span>, <span class="k">new</span> <span class="t">LoxCallable</span>() {            
       <span class="a">@Override</span>                                            
@@ -579,6 +582,9 @@ in class <em>Interpreter</em></div>
       <span class="k">public</span> <span class="t">String</span> <span class="i">toString</span>() { <span class="k">return</span> <span class="s">&quot;&lt;native fn&gt;&quot;</span>; }   
     });                                                    
   }                                                        
+
+</pre><pre class="insert-after">
+  void interpret(List&lt;Stmt&gt; statements) {                  
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, in class <em>Interpreter</em></div>
 

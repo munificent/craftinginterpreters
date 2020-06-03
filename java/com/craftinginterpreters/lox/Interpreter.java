@@ -22,7 +22,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //< Statements and State interpreter
 /* Statements and State environment-field < Functions global-environment
   private Environment environment = new Environment();
-
 */
 //> Functions global-environment
   final Environment globals = new Environment();
@@ -31,8 +30,10 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 //> Resolving and Binding locals-field
   private final Map<Expr, Integer> locals = new HashMap<>();
 //< Resolving and Binding locals-field
-//> Functions interpreter-constructor
+//> Statements and State environment-field
 
+//< Statements and State environment-field
+//> Functions interpreter-constructor
   Interpreter() {
     globals.define("clock", new LoxCallable() {
       @Override
@@ -48,6 +49,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
       public String toString() { return "<native fn>"; }
     });
   }
+  
 //< Functions interpreter-constructor
 /* Evaluating Expressions interpret < Statements and State interpret
   void interpret(Expr expression) {

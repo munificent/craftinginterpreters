@@ -386,7 +386,7 @@ successive invocations tells you how much time elapsed between the two calls.
 This function is defined in the global scope, so let's ensure the interpreter
 has access to that:
 
-^code global-environment (1 before, 1 after)
+^code global-environment (1 before, 2 after)
 
 The `environment` field in the interpreter changes as we enter and exit local
 scopes. It tracks the *current* environment. This new `globals` field holds a
@@ -395,7 +395,7 @@ fixed reference to the outermost global environment.
 When we instantiate an Interpreter, we stuff the native function in that global
 scope:
 
-^code interpreter-constructor
+^code interpreter-constructor (2 before, 1 after)
 
 This defines a <span name="lisp-1">variable</span> named "clock". Its value is a
 Java anonymous class that implements LoxCallable. The `clock()` function takes
