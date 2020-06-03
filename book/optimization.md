@@ -614,7 +614,7 @@ write.
 
 Since the sign bit is always present even if the number is zero, that implies
 that "positive zero" and "negative zero" have different bit representations and,
-indeed, IEE 754 does distinguish those.
+indeed, IEEE 754 does distinguish those.
 
 </aside>
 
