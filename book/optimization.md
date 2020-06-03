@@ -403,7 +403,7 @@ are released:
 
 ^code adjust-free (3 before, 1 after)
 
-There's going to be a lot of `+ 1` in and `<=` in this section. This is fertile
+There's going to be a lot of `+ 1` and `<=` in this section. This is fertile
 ground for subtle off-by-one bugs, so we should tread carefully to ensure we
 don't get stung.
 
@@ -506,7 +506,7 @@ To reinforce that point, let's go ahead and run the same benchmark in our
 now-optimized VM and see what the profiler shows us. On my machine, `tableGet()`
 is still a fairly large chunk of execution time. That's to be expected for a
 dynamically-typed language. But it has dropped from 72% of the total execution
-time down to 35%. That's much more inline with what we'd like to see and shows
+time down to 35%. That's much more in line with what we'd like to see and shows
 that our optimization didn't just make the program faster, but made it faster
 *in the way we expected*. Profilers are useful for verifying solutions just as
 they are for discovering problems.
