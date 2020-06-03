@@ -319,7 +319,7 @@ However, we can take advantage of the fact that we know more about our problem
 than the CPU does. We use modulo here to take a key string's hash code and
 wrap it to fit within the bounds of the table's entry array. That array starts
 out at eight elements and grows by a factor of two each time. We know -- and the
-CPU and C compiler do not -- that out our table's size is always a power of two.
+CPU and C compiler do not -- that our table's size is always a power of two.
 
 Because we're clever bit twiddlers, we know a faster way to calculate the
 remainder of a number modulo a power of two: *masking*. Let's say we want to
