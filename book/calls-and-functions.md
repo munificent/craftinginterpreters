@@ -1060,10 +1060,10 @@ It prints out:
 
 ```text
 Expected 0 arguments but got 2.
-[line 10] in c()
-[line 6] in b()
-[line 2] in a()
-[line 13] in script
+[line 4] in c()
+[line 2] in b()
+[line 1] in a()
+[line 7] in script
 ```
 
 That doesn't look too bad, does it?
