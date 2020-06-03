@@ -382,7 +382,7 @@ tell time. There's no way to do that now -- you can't implement a useful clock
 
 So we'll add `clock()`, a native function that returns the number of seconds
 that have passed since some fixed point in time. The difference between two
-successive invocations tell you how much time elapsed between the two calls.
+successive invocations tells you how much time elapsed between the two calls.
 This function is defined in the global scope, so lets ensure the interpreter has
 access to that:
 
