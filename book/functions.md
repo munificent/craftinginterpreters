@@ -584,7 +584,7 @@ its own environment. Otherwise, recursion would break. If there are multiple
 calls to the same function in play at the same time, each needs its *own*
 environment, even though they are all calls to the same function.
 
-For example, here's a convoluted way to count to three:
+For example, here's a convoluted way to count from three:
 
 ```lox
 fun count(n) {
