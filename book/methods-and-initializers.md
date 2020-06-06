@@ -177,8 +177,8 @@ compiler:
 
 ```lox
 class Brunch {
-  eggs() {}
   bacon() {}
+  eggs() {}
 }
 ```
 
