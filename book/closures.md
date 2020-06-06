@@ -14,13 +14,12 @@ reference a variable declared outside of its own body:
 var x = "global";
 fun outer() {
   var x = "outer";
-
   fun inner() {
     print x;
   }
-
   inner();
 }
+outer();
 ```
 
 Run this example now and it prints "global". It's supposed to print "outer". To
