@@ -795,6 +795,7 @@ fun outer() {
   inner();
   print x;
 }
+outer();
 ```
 
 This program should print "assigned" even though the closure assigns to `x` and
@@ -951,6 +952,7 @@ fun outer() {
   }
   inner();
 }
+outer();
 ```
 
 Run this and it correctly prints "outside".
