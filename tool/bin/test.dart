@@ -356,11 +356,12 @@ class Test {
     var index = 0;
     for (; index < outputLines.length; index++) {
       var line = outputLines[index];
+      var output = _expectedOutput[index][0] as String;
       if (index >= _expectedOutput.length) {
         fail("Got output '$line' when none was expected.");
-      } else if (_expectedOutput[index][0] != line) {
-        fail("Expected output '${_expectedOutput[index][0]}' on line $index "
-            "and got '$line'.");
+      } else if (output != line) {
+        var lineNum = _expectedOutput[index][1] as int;
+        fail("Expected output '$output' on line $lineNum and got '$line'.");
       }
     }
 
@@ -391,14 +392,19 @@ void _defineTestSuites() {
     _javaSuites.add(name);
   }
 
-  java("jlox", {
-    "test": "pass",
-
-    // These are just for earlier chapters.
+  // These are just for earlier chapters.
+  var earlyChapters = {
     "test/scanning": "skip",
     "test/expressions": "skip",
+  };
 
-    // No hardcoded limits in jlox.
+  // JVM doesn't correctly implement IEEE equality on boxed doubles.
+  var javaNaNEquality = {
+    "test/number/nan_equality.lox": "skip",
+  };
+
+  // No hardcoded limits in jlox.
+  var noJavaLimits = {
     "test/limit/loop_too_large.lox": "skip",
     "test/limit/no_reuse_constants.lox": "skip",
     "test/limit/too_many_constants.lox": "skip",
@@ -407,78 +413,10 @@ void _defineTestSuites() {
 
     // Rely on JVM for stack overflow checking.
     "test/limit/stack_overflow.lox": "skip",
-  });
+  };
 
-  java("chap04_scanning", {
-    // No interpreter yet.
-    "test": "skip",
-
-    "test/scanning": "pass"
-  });
-
-  // No test for chapter 5. It just has a hardcoded main() in AstPrinter.
-
-  java("chap06_parsing", {
-    // No real interpreter yet.
-    "test": "skip",
-
-    "test/expressions/parse.lox": "pass"
-  });
-
-  java("chap07_evaluating", {
-    // No real interpreter yet.
-    "test": "skip",
-
-    "test/expressions/evaluate.lox": "pass"
-  });
-
-  java("chap08_statements", {
-    "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No hardcoded limits in jlox.
-    "test/limit/loop_too_large.lox": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-
-    // Rely on JVM for stack overflow checking.
-    "test/limit/stack_overflow.lox": "skip",
-
-    // No control flow.
-    "test/block/empty.lox": "skip",
-    "test/for": "skip",
-    "test/if": "skip",
-    "test/logical_operator": "skip",
-    "test/while": "skip",
-    "test/variable/unreached_undefined.lox": "skip",
-
-    // No functions.
-    "test/call": "skip",
-    "test/closure": "skip",
-    "test/function": "skip",
-    "test/operator/not.lox": "skip",
-    "test/regression/40.lox": "skip",
-    "test/return": "skip",
-    "test/unexpected_character.lox": "skip",
-
-    // Broken because we haven"t fixed it yet by detecting the error.
-    "test/return/at_top_level.lox": "skip",
-    "test/variable/use_local_in_initializer.lox": "skip",
-
-    // No resolution.
-    "test/closure/assign_to_shadowed_later.lox": "skip",
-    "test/function/local_mutual_recursion.lox": "skip",
-    "test/variable/collide_with_parameter.lox": "skip",
-    "test/variable/duplicate_local.lox": "skip",
-    "test/variable/duplicate_parameter.lox": "skip",
-    "test/variable/early_bound.lox": "skip",
-
-    // No classes.
+  // No classes in Java yet.
+  var noJavaClasses = {
     "test/assignment/to_this.lox": "skip",
     "test/call/object.lox": "skip",
     "test/class": "skip",
@@ -497,26 +435,10 @@ void _defineTestSuites() {
     "test/this": "skip",
     "test/return/in_method.lox": "skip",
     "test/variable/local_from_method.lox": "skip",
-  });
+  };
 
-  java("chap09_control", {
-    "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No hardcoded limits in jlox.
-    "test/limit/loop_too_large.lox": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-
-    // Rely on JVM for stack overflow checking.
-    "test/limit/stack_overflow.lox": "skip",
-
-    // No functions.
+  // No functions in Java yet.
+  var noJavaFunctions = {
     "test/call": "skip",
     "test/closure": "skip",
     "test/for/closure_in_body.lox": "skip",
@@ -531,12 +453,10 @@ void _defineTestSuites() {
     "test/while/closure_in_body.lox": "skip",
     "test/while/return_closure.lox": "skip",
     "test/while/return_inside.lox": "skip",
+  };
 
-    // Broken because we haven"t fixed it yet by detecting the error.
-    "test/return/at_top_level.lox": "skip",
-    "test/variable/use_local_in_initializer.lox": "skip",
-
-    // No resolution.
+  // No resolution in Java yet.
+  var noJavaResolution = {
     "test/closure/assign_to_shadowed_later.lox": "skip",
     "test/function/local_mutual_recursion.lox": "skip",
     "test/variable/collide_with_parameter.lox": "skip",
@@ -544,7 +464,49 @@ void _defineTestSuites() {
     "test/variable/duplicate_parameter.lox": "skip",
     "test/variable/early_bound.lox": "skip",
 
-    // No classes.
+    // Broken because we haven"t fixed it yet by detecting the error.
+    "test/return/at_top_level.lox": "skip",
+    "test/variable/use_local_in_initializer.lox": "skip",
+  };
+
+  // No control flow in C yet.
+  var noCControlFlow = {
+    "test/block/empty.lox": "skip",
+    "test/for": "skip",
+    "test/if": "skip",
+    "test/limit/loop_too_large.lox": "skip",
+    "test/logical_operator": "skip",
+    "test/variable/unreached_undefined.lox": "skip",
+    "test/while": "skip",
+  };
+
+  // No functions in C yet.
+  var noCFunctions = {
+    "test/call": "skip",
+    "test/closure": "skip",
+    "test/for/closure_in_body.lox": "skip",
+    "test/for/return_closure.lox": "skip",
+    "test/for/return_inside.lox": "skip",
+    "test/for/syntax.lox": "skip",
+    "test/function": "skip",
+    "test/limit/no_reuse_constants.lox": "skip",
+    "test/limit/stack_overflow.lox": "skip",
+    "test/limit/too_many_constants.lox": "skip",
+    "test/limit/too_many_locals.lox": "skip",
+    "test/limit/too_many_upvalues.lox": "skip",
+    "test/regression/40.lox": "skip",
+    "test/return": "skip",
+    "test/unexpected_character.lox": "skip",
+    "test/variable/collide_with_parameter.lox": "skip",
+    "test/variable/duplicate_parameter.lox": "skip",
+    "test/variable/early_bound.lox": "skip",
+    "test/while/closure_in_body.lox": "skip",
+    "test/while/return_closure.lox": "skip",
+    "test/while/return_inside.lox": "skip",
+  };
+
+  // No classes in C yet.
+  var noCClasses = {
     "test/assignment/to_this.lox": "skip",
     "test/call/object.lox": "skip",
     "test/class": "skip",
@@ -557,118 +519,103 @@ void _defineTestSuites() {
     "test/number/trailing_dot.lox": "skip",
     "test/operator/equals_class.lox": "skip",
     "test/operator/equals_method.lox": "skip",
+    "test/operator/not.lox": "skip",
     "test/operator/not_class.lox": "skip",
     "test/regression/394.lox": "skip",
+    "test/return/in_method.lox": "skip",
     "test/super": "skip",
     "test/this": "skip",
-    "test/return/in_method.lox": "skip",
     "test/variable/local_from_method.lox": "skip",
+  };
+
+  // No inheritance in C yet.
+  var noCInheritance = {
+    "test/class/local_inherit_other.lox": "skip",
+    "test/class/local_inherit_self.lox": "skip",
+    "test/class/inherit_self.lox": "skip",
+    "test/class/inherited_method.lox": "skip",
+    "test/inheritance": "skip",
+    "test/regression/394.lox": "skip",
+    "test/super": "skip",
+  };
+
+  java("jlox", {
+    "test": "pass",
+    ...earlyChapters,
+    ...javaNaNEquality,
+    ...noJavaLimits,
+  });
+
+  java("chap04_scanning", {
+    // No interpreter yet.
+    "test": "skip",
+    "test/scanning": "pass"
+  });
+
+  // No test for chapter 5. It just has a hardcoded main() in AstPrinter.
+
+  java("chap06_parsing", {
+    // No real interpreter yet.
+    "test": "skip",
+    "test/expressions/parse.lox": "pass"
+  });
+
+  java("chap07_evaluating", {
+    // No real interpreter yet.
+    "test": "skip",
+    "test/expressions/evaluate.lox": "pass"
+  });
+
+  java("chap08_statements", {
+    "test": "pass",
+    ...earlyChapters,
+    ...javaNaNEquality,
+    ...noJavaLimits,
+    ...noJavaFunctions,
+    ...noJavaResolution,
+    ...noJavaClasses,
+
+    // No control flow.
+    "test/block/empty.lox": "skip",
+    "test/for": "skip",
+    "test/if": "skip",
+    "test/logical_operator": "skip",
+    "test/while": "skip",
+    "test/variable/unreached_undefined.lox": "skip",
+  });
+
+  java("chap09_control", {
+    "test": "pass",
+    ...earlyChapters,
+    ...javaNaNEquality,
+    ...noJavaLimits,
+    ...noJavaFunctions,
+    ...noJavaResolution,
+    ...noJavaClasses,
   });
 
   java("chap10_functions", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No hardcoded limits in jlox.
-    "test/limit/loop_too_large.lox": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-
-    // Rely on JVM for stack overflow checking.
-    "test/limit/stack_overflow.lox": "skip",
-
-    // Broken because we haven"t fixed it yet by detecting the error.
-    "test/return/at_top_level.lox": "skip",
-    "test/variable/use_local_in_initializer.lox": "skip",
-
-    // No resolution.
-    "test/closure/assign_to_shadowed_later.lox": "skip",
-    "test/function/local_mutual_recursion.lox": "skip",
-    "test/variable/collide_with_parameter.lox": "skip",
-    "test/variable/duplicate_local.lox": "skip",
-    "test/variable/duplicate_parameter.lox": "skip",
-    "test/variable/early_bound.lox": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/call/object.lox": "skip",
-    "test/class": "skip",
-    "test/closure/close_over_method_parameter.lox": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/return/in_method.lox": "skip",
-    "test/variable/local_from_method.lox": "skip",
+    ...earlyChapters,
+    ...javaNaNEquality,
+    ...noJavaLimits,
+    ...noJavaResolution,
+    ...noJavaClasses,
   });
 
   java("chap11_resolving", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No hardcoded limits in jlox.
-    "test/limit/loop_too_large.lox": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-
-    // Rely on JVM for stack overflow checking.
-    "test/limit/stack_overflow.lox": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/call/object.lox": "skip",
-    "test/class": "skip",
-    "test/closure/close_over_method_parameter.lox": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/return/in_method.lox": "skip",
-    "test/variable/local_from_method.lox": "skip",
+    ...earlyChapters,
+    ...javaNaNEquality,
+    ...noJavaLimits,
+    ...noJavaClasses,
   });
 
   java("chap12_classes", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No hardcoded limits in jlox.
-    "test/limit/loop_too_large.lox": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-
-    // Rely on JVM for stack overflow checking.
-    "test/limit/stack_overflow.lox": "skip",
+    ...earlyChapters,
+    ...noJavaLimits,
+    ...javaNaNEquality,
 
     // No inheritance.
     "test/class/local_inherit_other.lox": "skip",
@@ -682,75 +629,46 @@ void _defineTestSuites() {
 
   java("chap13_inheritance", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No hardcoded limits in jlox.
-    "test/limit/loop_too_large.lox": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-
-    // Rely on JVM for stack overflow checking.
-    "test/limit/stack_overflow.lox": "skip",
+    ...earlyChapters,
+    ...javaNaNEquality,
+    ...noJavaLimits,
   });
 
   c("clox", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip"
+    ...earlyChapters,
   });
-
-  // TODO: Other chapters.
 
   c("chap17_compiling", {
     // No real interpreter yet.
     "test": "skip",
-
     "test/expressions/evaluate.lox": "pass",
   });
 
   c("chap18_types", {
     // No real interpreter yet.
     "test": "skip",
-
     "test/expressions/evaluate.lox": "pass",
   });
 
   c("chap19_strings", {
     // No real interpreter yet.
     "test": "skip",
-
     "test/expressions/evaluate.lox": "pass",
   });
 
   c("chap20_hash", {
     // No real interpreter yet.
     "test": "skip",
-
     "test/expressions/evaluate.lox": "pass",
   });
 
   c("chap21_global", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No control flow.
-    "test/block/empty.lox": "skip",
-    "test/for": "skip",
-    "test/if": "skip",
-    "test/limit/loop_too_large.lox": "skip",
-    "test/logical_operator": "skip",
-    "test/variable/unreached_undefined.lox": "skip",
-    "test/while": "skip",
+    ...earlyChapters,
+    ...noCControlFlow,
+    ...noCFunctions,
+    ...noCClasses,
 
     // No blocks.
     "test/assignment/local.lox": "skip",
@@ -766,148 +684,27 @@ void _defineTestSuites() {
     "test/variable/shadow_global.lox": "skip",
     "test/variable/shadow_local.lox": "skip",
     "test/variable/use_local_in_initializer.lox": "skip",
-
-    // No functions.
-    "test/call": "skip",
-    "test/closure": "skip",
-    "test/function": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/stack_overflow.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-    "test/regression/40.lox": "skip",
-    "test/return": "skip",
-    "test/unexpected_character.lox": "skip",
-    "test/variable/collide_with_parameter.lox": "skip",
-    "test/variable/duplicate_parameter.lox": "skip",
-    "test/variable/early_bound.lox": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/class": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/variable/local_from_method.lox": "skip",
   });
 
   c("chap22_local", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No control flow.
-    "test/block/empty.lox": "skip",
-    "test/for": "skip",
-    "test/if": "skip",
-    "test/limit/loop_too_large.lox": "skip",
-    "test/logical_operator": "skip",
-    "test/variable/unreached_undefined.lox": "skip",
-    "test/while": "skip",
-
-    // No functions.
-    "test/call": "skip",
-    "test/closure": "skip",
-    "test/function": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/stack_overflow.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-    "test/regression/40.lox": "skip",
-    "test/return": "skip",
-    "test/unexpected_character.lox": "skip",
-    "test/variable/collide_with_parameter.lox": "skip",
-    "test/variable/duplicate_parameter.lox": "skip",
-    "test/variable/early_bound.lox": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/class": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/variable/local_from_method.lox": "skip",
+    ...earlyChapters,
+    ...noCControlFlow,
+    ...noCFunctions,
+    ...noCClasses,
   });
 
   c("chap23_jumping", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No functions.
-    "test/call": "skip",
-    "test/closure": "skip",
-    "test/for/closure_in_body.lox": "skip",
-    "test/for/return_closure.lox": "skip",
-    "test/for/return_inside.lox": "skip",
-    "test/for/syntax.lox": "skip",
-    "test/function": "skip",
-    "test/limit/no_reuse_constants.lox": "skip",
-    "test/limit/stack_overflow.lox": "skip",
-    "test/limit/too_many_constants.lox": "skip",
-    "test/limit/too_many_locals.lox": "skip",
-    "test/limit/too_many_upvalues.lox": "skip",
-    "test/regression/40.lox": "skip",
-    "test/return": "skip",
-    "test/unexpected_character.lox": "skip",
-    "test/variable/collide_with_parameter.lox": "skip",
-    "test/variable/duplicate_parameter.lox": "skip",
-    "test/variable/early_bound.lox": "skip",
-    "test/while/closure_in_body.lox": "skip",
-    "test/while/return_closure.lox": "skip",
-    "test/while/return_inside.lox": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/class": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/variable/local_from_method.lox": "skip",
+    ...earlyChapters,
+    ...noCFunctions,
+    ...noCClasses,
   });
 
   c("chap24_calls", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
+    ...earlyChapters,
+    ...noCClasses,
 
     // No closures.
     "test/closure": "skip",
@@ -918,101 +715,24 @@ void _defineTestSuites() {
     "test/regression/40.lox": "skip",
     "test/while/closure_in_body.lox": "skip",
     "test/while/return_closure.lox": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/call/object.lox": "skip",
-    "test/class": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/return/in_method.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/variable/local_from_method.lox": "skip",
   });
 
   c("chap25_closures", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/call/object.lox": "skip",
-    "test/class": "skip",
-    "test/closure/close_over_method_parameter.lox": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/return/in_method.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/variable/local_from_method.lox": "skip",
+    ...earlyChapters,
+    ...noCClasses,
   });
 
   c("chap26_garbage", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No classes.
-    "test/assignment/to_this.lox": "skip",
-    "test/call/object.lox": "skip",
-    "test/class": "skip",
-    "test/closure/close_over_method_parameter.lox": "skip",
-    "test/constructor": "skip",
-    "test/field": "skip",
-    "test/inheritance": "skip",
-    "test/method": "skip",
-    "test/number/decimal_point_at_eof.lox": "skip",
-    "test/number/trailing_dot.lox": "skip",
-    "test/operator/equals_class.lox": "skip",
-    "test/operator/equals_method.lox": "skip",
-    "test/operator/not.lox": "skip",
-    "test/operator/not_class.lox": "skip",
-    "test/regression/394.lox": "skip",
-    "test/return/in_method.lox": "skip",
-    "test/super": "skip",
-    "test/this": "skip",
-    "test/variable/local_from_method.lox": "skip",
+    ...earlyChapters,
+    ...noCClasses,
   });
 
   c("chap27_classes", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No inheritance.
-    "test/class/local_inherit_other.lox": "skip",
-    "test/class/local_inherit_self.lox": "skip",
-    "test/class/inherit_self.lox": "skip",
-    "test/class/inherited_method.lox": "skip",
-    "test/inheritance": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
+    ...earlyChapters,
+    ...noCInheritance,
 
     // No methods.
     "test/assignment/to_this.lox": "skip",
@@ -1033,34 +753,17 @@ void _defineTestSuites() {
 
   c("chap28_methods", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
-
-    // No inheritance.
-    "test/class/local_inherit_other.lox": "skip",
-    "test/class/local_inherit_self.lox": "skip",
-    "test/class/inherit_self.lox": "skip",
-    "test/class/inherited_method.lox": "skip",
-    "test/inheritance": "skip",
-    "test/regression/394.lox": "skip",
-    "test/super": "skip",
+    ...earlyChapters,
+    ...noCInheritance,
   });
 
   c("chap29_superclasses", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
+    ...earlyChapters,
   });
 
   c("chap30_optimization", {
     "test": "pass",
-
-    // These are just for earlier chapters.
-    "test/scanning": "skip",
-    "test/expressions": "skip",
+    ...earlyChapters,
   });
 }
