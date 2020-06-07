@@ -1050,11 +1050,20 @@ want to be *fully* compliant with IEEE 754, we need to handle this case:
 
 I know, it's weird. And there is a performance cost to doing this type test
 every time we check two Lox values for equality. If we are willing to sacrifice
-a little compatibility -- who *really* cares if NaN is not equal to itself? --
-we could leave this off. I'll leave it up to you to decide how pedantic you want
-to be.
+a little <span name="java">compatibility</span> -- who *really* cares if NaN is
+not equal to itself? -- we could leave this off. I'll leave it up to you to
+decide how pedantic you want to be.
 
-Finally, we close the conditional compilation section around the old implementation:
+<aside name="java">
+
+In fact, jlox gets NaN equality wrong. Java does the right thing when you
+compare primitive doubles using `==`, but not if you box those to Double or
+Object and compare them using `equals()`, which is how jlox implements equality.
+
+</aside>
+
+Finally, we close the conditional compilation section around the old
+implementation:
 
 ^code end-values-equal (1 before, 1 after)
 
