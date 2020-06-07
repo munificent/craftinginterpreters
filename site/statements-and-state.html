@@ -1483,11 +1483,17 @@ add after <em>expressionStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expressionStatement</em>()</div>
 
-<p>We create an empty list and then parse statements and add them to the list until
-we reach the end of the block, marked by the closing <code>}</code>. Note that the loop
-also has an explicit check for <code>isAtEnd()</code>. We have to be careful to avoid
-infinite loops, even when parsing invalid code. If the user forgot a closing
-<code>}</code>, the parser needs to not get stuck.</p>
+<p>We <span name="list">create</span> an empty list and then parse statements and
+add them to the list until we reach the end of the block, marked by the closing
+<code>}</code>. Note that the loop also has an explicit check for <code>isAtEnd()</code>. We have to
+be careful to avoid infinite loops, even when parsing invalid code. If the user
+forgot a closing <code>}</code>, the parser needs to not get stuck.</p>
+<aside name="list">
+<p>Having <code>block()</code> return the raw list of statements and leaving it to
+<code>statement()</code> to wrap that in a Stmt.Block looks a little odd. I did it that way
+because we&rsquo;ll reuse <code>block()</code> later for parsing function bodies and we don&rsquo;t
+want that body wrapped in a Stmt.Block.</p>
+</aside>
 <p>That&rsquo;s it for syntax. For semantics, we add another visit method to Interpreter:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>execute</em>()</div>
