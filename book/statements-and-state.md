@@ -1233,11 +1233,20 @@ All the real work happens here:
 
 ^code block
 
-We create an empty list and then parse statements and add them to the list until
-we reach the end of the block, marked by the closing `}`. Note that the loop
-also has an explicit check for `isAtEnd()`. We have to be careful to avoid
-infinite loops, even when parsing invalid code. If the user forgot a closing
-`}`, the parser needs to not get stuck.
+We <span name="list">create</span> an empty list and then parse statements and
+add them to the list until we reach the end of the block, marked by the closing
+`}`. Note that the loop also has an explicit check for `isAtEnd()`. We have to
+be careful to avoid infinite loops, even when parsing invalid code. If the user
+forgot a closing `}`, the parser needs to not get stuck.
+
+<aside name="list">
+
+Having `block()` return the raw list of statements and leaving it to
+`statement()` to wrap that in a Stmt.Block looks a little odd. I did it that way
+because we'll reuse `block()` later for parsing function bodies and we don't
+want that body wrapped in a Stmt.Block.
+
+</aside>
 
 That's it for syntax. For semantics, we add another visit method to Interpreter:
 
