@@ -8,13 +8,11 @@ import 'language.dart';
 /// syntax highlighting.
 ///
 /// Wraps the result in a <pre> tag with the given [preClass].
-String formatCode(String language, int length, List<String> lines,
-    [String preClass]) {
-  return Highlighter(language, length)._highlight(lines, preClass);
+String formatCode(String language, List<String> lines, [String preClass]) {
+  return Highlighter(language)._highlight(lines, preClass);
 }
 
 class Highlighter {
-  final int _lineLength;
   final StringBuffer _buffer = StringBuffer();
   StringScanner scanner;
   final Language language;
@@ -22,7 +20,7 @@ class Highlighter {
   /// Whether we are in a multi-line macro started on a previous line.
   bool _inMacro = false;
 
-  Highlighter(String language, this._lineLength)
+  Highlighter(String language)
       : language = grammar.languages[language] ??
             (throw "Unknown language '$language'.");
 
@@ -47,9 +45,9 @@ class Highlighter {
     if (language == grammar.c && line.endsWith("\\")) _inMacro = true;
 
     if (_inMacro) {
-      writeToken("a", line.padRight(_lineLength, " "));
+      writeToken("a", line);
     } else {
-      scanner = StringScanner(line.padRight(_lineLength, " "));
+      scanner = StringScanner(line);
       while (!scanner.isDone) {
         var found = false;
         for (var rule in language.rules) {

@@ -52,14 +52,13 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
       buffer.write("</pre>");
       code = buffer.toString();
     } else {
-      code = formatCode(language, 0, childLines);
+      code = formatCode(language, childLines);
     }
 
     var element = Element.text("div", code);
     element.attributes["class"] = "codehilite";
     return element;
   }
-
 }
 
 /// Recognizes `^code` tags and inserts the relevant snippet.
@@ -114,37 +113,17 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
 //    contents += "**ERROR: No location or context for {}**\n".format(name)
 //    return contents
 
-  // Figure out the length of the longest line. We pad all of the snippets to
-  // this length so that the background on the pre sections is as wide as the
-  // entire chunk of code.
-  var length = 0;
-  if (snippet.contextBefore.isNotEmpty) {
-    length = longestLine(length, snippet.contextBefore);
-  }
-  if (snippet.removed.isNotEmpty && snippet.added.isEmpty) {
-    length = longestLine(length, snippet.removed);
-  }
-  if (snippet.addedComma != null) {
-    length = longestLine(length, [snippet.addedComma]);
-  }
-  if (snippet.added.isNotEmpty) {
-    length = longestLine(length, snippet.added);
-  }
-  if (snippet.contextAfter.isNotEmpty) {
-    length = longestLine(length, snippet.contextAfter);
-  }
-
   var buffer = StringBuffer();
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
-    _writeContextLines(buffer, length, snippet.contextBefore,
+    _writeContextLines(buffer, snippet.contextBefore,
         snippet.added.isNotEmpty ? "insert-before" : null);
   }
 
   if (snippet.addedComma != null) {
     var commaLine = formatCode(
-        snippet.file.language, length, [snippet.addedComma], "insert-before");
+        snippet.file.language, [snippet.addedComma], "insert-before");
     var comma = commaLine.lastIndexOf(",");
     buffer.write(commaLine.substring(0, comma));
     buffer.write('<span class="insert-comma">,</span>');
@@ -157,13 +136,13 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.added != null) {
-    var added = formatCode(snippet.file.language, length, snippet.added,
+    var added = formatCode(snippet.file.language, snippet.added,
         tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
   }
 
   if (snippet.contextAfter.isNotEmpty) {
-    _writeContextLines(buffer, length, snippet.contextAfter,
+    _writeContextLines(buffer, snippet.contextAfter,
         snippet.added.isNotEmpty ? "insert-after" : null);
   }
 
@@ -178,13 +157,13 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
 }
 
 String _writeContextLines(
-    StringBuffer buffer, int length, List<String> lines, String preClass) {
+    StringBuffer buffer, List<String> lines, String preClass) {
   buffer.write("<pre");
   if (preClass != null) buffer.write(' class="$preClass"');
   buffer.writeln(">");
 
   for (var line in lines) {
-    buffer.writeln(escapeHtml(line.padRight(length)));
+    buffer.writeln(escapeHtml(line));
   }
 
   buffer.write("</pre>");
