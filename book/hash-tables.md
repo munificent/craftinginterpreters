@@ -305,8 +305,8 @@ array size (8) puts it in bucket 2:
 <img src="image/hash-tables/insert-2.png" alt="Bagel goes into bucket 2." class="wide" />
 
 Next, we insert "jam". That also wants to go in bucket 2 (106 mod 8 = 2), but
-that bucket's taken. We keeping probing to the next bucket. It's empty, so we
-put it there:
+that bucket's taken. We keep probing to the next bucket. It's empty, so we put
+it there:
 
 <img src="image/hash-tables/insert-3.png" alt="Jam goes into bucket 3, since 2 is full." class="wide" />
 
