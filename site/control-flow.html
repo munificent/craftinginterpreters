@@ -240,13 +240,13 @@ if the condition is truthy. Optionally, it may also have an <code>else</code> ke
 statement to execute if the condition is falsey. The <span name="if-ast">syntax
 tree node</span> has fields for each of those three pieces:</p>
 <div class="codehilite"><pre class="insert-before">
-      &quot;Expression : Expr expression&quot;,                                 
+      &quot;Expression : Expr expression&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
       <span class="s">&quot;If         : Expr condition, Stmt thenBranch, Stmt elseBranch&quot;</span>,
 </pre><pre class="insert-after">
-      &quot;Print      : Expr expression&quot;,                                 
+      &quot;Print      : Expr expression&quot;,
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
 
@@ -256,11 +256,11 @@ in <em>main</em>()</div>
 <p>Like other statements, the parser recognizes an if statement by the leading <code>if</code>
 keyword:</p>
 <div class="codehilite"><pre class="insert-before">
-  private Stmt statement() {                  
+  private Stmt statement() {
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-    <span class="k">if</span> (<span class="i">match</span>(<span class="n">IF</span>)) <span class="k">return</span> <span class="i">ifStatement</span>();      
+    <span class="k">if</span> (<span class="i">match</span>(<span class="n">IF</span>)) <span class="k">return</span> <span class="i">ifStatement</span>();
 </pre><pre class="insert-after">
     if (match(PRINT)) return printStatement();
 </pre></div>
@@ -270,19 +270,19 @@ in <em>statement</em>()</div>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>statement</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">ifStatement</span>() {                                         
-    <span class="i">consume</span>(<span class="n">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);                     
-    <span class="t">Expr</span> <span class="i">condition</span> = <span class="i">expression</span>();                                     
+  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">ifStatement</span>() {
+    <span class="i">consume</span>(<span class="n">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);
+    <span class="t">Expr</span> <span class="i">condition</span> = <span class="i">expression</span>();
     <span class="i">consume</span>(<span class="n">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after if condition.&quot;</span>);<span name="parens"> </span>
 
-    <span class="t">Stmt</span> <span class="i">thenBranch</span> = <span class="i">statement</span>();                                     
-    <span class="t">Stmt</span> <span class="i">elseBranch</span> = <span class="k">null</span>;                                            
-    <span class="k">if</span> (<span class="i">match</span>(<span class="n">ELSE</span>)) {                                                 
-      <span class="i">elseBranch</span> = <span class="i">statement</span>();                                        
-    }                                                                  
+    <span class="t">Stmt</span> <span class="i">thenBranch</span> = <span class="i">statement</span>();
+    <span class="t">Stmt</span> <span class="i">elseBranch</span> = <span class="k">null</span>;
+    <span class="k">if</span> (<span class="i">match</span>(<span class="n">ELSE</span>)) {
+      <span class="i">elseBranch</span> = <span class="i">statement</span>();
+    }
 
-    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">If</span>(<span class="i">condition</span>, <span class="i">thenBranch</span>, <span class="i">elseBranch</span>);             
-  }                                                                    
+    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">If</span>(<span class="i">condition</span>, <span class="i">thenBranch</span>, <span class="i">elseBranch</span>);
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>statement</em>()</div>
 
@@ -343,15 +343,15 @@ the else clause for itself before returning to the outer if statements.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre>
-  <span class="a">@Override</span>                                  
-  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitIfStmt</span>(<span class="t">Stmt</span>.<span class="t">If</span> <span class="i">stmt</span>) {    
+  <span class="a">@Override</span>
+  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitIfStmt</span>(<span class="t">Stmt</span>.<span class="t">If</span> <span class="i">stmt</span>) {
     <span class="k">if</span> (<span class="i">isTruthy</span>(<span class="i">evaluate</span>(<span class="i">stmt</span>.<span class="i">condition</span>))) {
-      <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">thenBranch</span>);              
-    } <span class="k">else</span> <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">elseBranch</span> != <span class="k">null</span>) {    
-      <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">elseBranch</span>);              
-    }                                        
-    <span class="k">return</span> <span class="k">null</span>;                             
-  }                                          
+      <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">thenBranch</span>);
+    } <span class="k">else</span> <span class="k">if</span> (<span class="i">stmt</span>.<span class="i">elseBranch</span> != <span class="k">null</span>) {
+      <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">elseBranch</span>);
+    }
+    <span class="k">return</span> <span class="k">null</span>;
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitExpressionStmt</em>()</div>
 
@@ -409,13 +409,13 @@ code path to handle the short circuiting. I think it&rsquo;s cleaner to define a
 name="logical-ast">new class</span> for these operators so that they get their
 own visit method.</p>
 <div class="codehilite"><pre class="insert-before">
-      &quot;Literal  : Object value&quot;,                         
+      &quot;Literal  : Object value&quot;,
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()</div>
 <pre class="insert">
       <span class="s">&quot;Logical  : Expr left, Token operator, Expr right&quot;</span>,
 </pre><pre class="insert-after">
-      &quot;Unary    : Token operator, Expr right&quot;,           
+      &quot;Unary    : Token operator, Expr right&quot;,
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>()</div>
 
@@ -430,10 +430,10 @@ for assignment to call <code>or()</code>:</p>
 in <em>assignment</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">or</span>();        
+    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">or</span>();
 </pre><pre class="insert-after">
-                             
-    if (match(EQUAL)) {      
+
+    if (match(EQUAL)) {
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>assignment</em>(), replace 1 line</div>
 
@@ -441,17 +441,17 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>assignment</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="t">Expr</span> <span class="i">or</span>() {                                
-    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">and</span>();                               
+  <span class="k">private</span> <span class="t">Expr</span> <span class="i">or</span>() {
+    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">and</span>();
 
-    <span class="k">while</span> (<span class="i">match</span>(<span class="n">OR</span>)) {                              
-      <span class="t">Token</span> <span class="i">operator</span> = <span class="i">previous</span>();                   
-      <span class="t">Expr</span> <span class="i">right</span> = <span class="i">and</span>();                            
+    <span class="k">while</span> (<span class="i">match</span>(<span class="n">OR</span>)) {
+      <span class="t">Token</span> <span class="i">operator</span> = <span class="i">previous</span>();
+      <span class="t">Expr</span> <span class="i">right</span> = <span class="i">and</span>();
       <span class="i">expr</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Logical</span>(<span class="i">expr</span>, <span class="i">operator</span>, <span class="i">right</span>);
-    }                                                
+    }
 
-    <span class="k">return</span> <span class="i">expr</span>;                                     
-  }                                                  
+    <span class="k">return</span> <span class="i">expr</span>;
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>assignment</em>()</div>
 
@@ -459,17 +459,17 @@ add after <em>assignment</em>()</div>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>or</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="t">Expr</span> <span class="i">and</span>() {                               
-    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">equality</span>();                          
+  <span class="k">private</span> <span class="t">Expr</span> <span class="i">and</span>() {
+    <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">equality</span>();
 
-    <span class="k">while</span> (<span class="i">match</span>(<span class="n">AND</span>)) {                             
-      <span class="t">Token</span> <span class="i">operator</span> = <span class="i">previous</span>();                   
-      <span class="t">Expr</span> <span class="i">right</span> = <span class="i">equality</span>();                       
+    <span class="k">while</span> (<span class="i">match</span>(<span class="n">AND</span>)) {
+      <span class="t">Token</span> <span class="i">operator</span> = <span class="i">previous</span>();
+      <span class="t">Expr</span> <span class="i">right</span> = <span class="i">equality</span>();
       <span class="i">expr</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Logical</span>(<span class="i">expr</span>, <span class="i">operator</span>, <span class="i">right</span>);
-    }                                                
+    }
 
-    <span class="k">return</span> <span class="i">expr</span>;                                     
-  }                                                  
+    <span class="k">return</span> <span class="i">expr</span>;
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>or</em>()</div>
 
@@ -478,18 +478,18 @@ again. We&rsquo;re ready to interpret it:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitLiteralExpr</em>()</div>
 <pre>
-  <span class="a">@Override</span>                                          
+  <span class="a">@Override</span>
   <span class="k">public</span> <span class="t">Object</span> <span class="i">visitLogicalExpr</span>(<span class="t">Expr</span>.<span class="t">Logical</span> <span class="i">expr</span>) {
-    <span class="t">Object</span> <span class="i">left</span> = <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">left</span>);               
+    <span class="t">Object</span> <span class="i">left</span> = <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">left</span>);
 
-    <span class="k">if</span> (<span class="i">expr</span>.<span class="i">operator</span>.<span class="i">type</span> == <span class="t">TokenType</span>.<span class="n">OR</span>) {        
-      <span class="k">if</span> (<span class="i">isTruthy</span>(<span class="i">left</span>)) <span class="k">return</span> <span class="i">left</span>;               
-    } <span class="k">else</span> {                                         
-      <span class="k">if</span> (!<span class="i">isTruthy</span>(<span class="i">left</span>)) <span class="k">return</span> <span class="i">left</span>;              
-    }                                                
+    <span class="k">if</span> (<span class="i">expr</span>.<span class="i">operator</span>.<span class="i">type</span> == <span class="t">TokenType</span>.<span class="n">OR</span>) {
+      <span class="k">if</span> (<span class="i">isTruthy</span>(<span class="i">left</span>)) <span class="k">return</span> <span class="i">left</span>;
+    } <span class="k">else</span> {
+      <span class="k">if</span> (!<span class="i">isTruthy</span>(<span class="i">left</span>)) <span class="k">return</span> <span class="i">left</span>;
+    }
 
-    <span class="k">return</span> <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">right</span>);                     
-  }                                                  
+    <span class="k">return</span> <span class="i">evaluate</span>(<span class="i">expr</span>.<span class="i">right</span>);
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitLiteralExpr</em>()</div>
 
@@ -532,16 +532,16 @@ expression, then a statement for the body.</p>
 <p>The new grammar rule gets its own <span name="while-ast">syntax tree
 node</span>:</p>
 <div class="codehilite"><pre class="insert-before">
-      &quot;Print      : Expr expression&quot;,             
+      &quot;Print      : Expr expression&quot;,
 </pre><pre class="insert-before">
       <span class="s">&quot;Var        : Token name, Expr initializer&quot;</span><span class="insert-comma">,</span>
 </pre><div class="source-file"><em>tool/GenerateAst.java</em><br>
 in <em>main</em>()<br>
 add <em>&ldquo;,&rdquo;</em> to previous line</div>
 <pre class="insert">
-      <span class="s">&quot;While      : Expr condition, Stmt body&quot;</span>    
+      <span class="s">&quot;While      : Expr condition, Stmt body&quot;</span>
 </pre><pre class="insert-after">
-    ));                                           
+    ));
 </pre></div>
 <div class="source-file-narrow"><em>tool/GenerateAst.java</em>, in <em>main</em>(), add <em>&ldquo;,&rdquo;</em> to previous line</div>
 
@@ -554,11 +554,11 @@ make it clear that the condition is an expression and the body is a statement.</
 <p>Over in the parser, we follow the same process we did for if. First, we add
 another case in <code>statement()</code> to detect and match the leading keyword:</p>
 <div class="codehilite"><pre class="insert-before">
-    if (match(PRINT)) return printStatement();            
+    if (match(PRINT)) return printStatement();
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-    <span class="k">if</span> (<span class="i">match</span>(<span class="n">WHILE</span>)) <span class="k">return</span> <span class="i">whileStatement</span>();            
+    <span class="k">if</span> (<span class="i">match</span>(<span class="n">WHILE</span>)) <span class="k">return</span> <span class="i">whileStatement</span>();
 </pre><pre class="insert-after">
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
 </pre></div>
@@ -568,14 +568,14 @@ in <em>statement</em>()</div>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>varDeclaration</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">whileStatement</span>() {                       
-    <span class="i">consume</span>(<span class="n">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);   
-    <span class="t">Expr</span> <span class="i">condition</span> = <span class="i">expression</span>();                      
+  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">whileStatement</span>() {
+    <span class="i">consume</span>(<span class="n">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);
+    <span class="t">Expr</span> <span class="i">condition</span> = <span class="i">expression</span>();
     <span class="i">consume</span>(<span class="n">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span>);
-    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();                            
+    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();
 
-    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);             
-  }                                                     
+    <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>varDeclaration</em>()</div>
 
@@ -584,13 +584,13 @@ Speaking of translating straight to Java, here&rsquo;s how we execute the new sy
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitVarStmt</em>()</div>
 <pre>
-  <span class="a">@Override</span>                                     
-  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitWhileStmt</span>(<span class="t">Stmt</span>.<span class="t">While</span> <span class="i">stmt</span>) { 
+  <span class="a">@Override</span>
+  <span class="k">public</span> <span class="t">Void</span> <span class="i">visitWhileStmt</span>(<span class="t">Stmt</span>.<span class="t">While</span> <span class="i">stmt</span>) {
     <span class="k">while</span> (<span class="i">isTruthy</span>(<span class="i">evaluate</span>(<span class="i">stmt</span>.<span class="i">condition</span>))) {
-      <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">body</span>);                       
-    }                                           
-    <span class="k">return</span> <span class="k">null</span>;                                
-  }                                             
+      <span class="i">execute</span>(<span class="i">stmt</span>.<span class="i">body</span>);
+    }
+    <span class="k">return</span> <span class="k">null</span>;
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Interpreter.java</em>, add after <em>visitVarStmt</em>()</div>
 
@@ -702,21 +702,21 @@ Instead, we go straight to parsing. First, add an import we&rsquo;ll need soon:<
 import java.util.ArrayList;
 </pre><div class="source-file"><em>lox/Parser.java</em></div>
 <pre class="insert">
-<span class="k">import</span> <span class="n">java.util.Arrays</span>;   
+<span class="k">import</span> <span class="n">java.util.Arrays</span>;
 </pre><pre class="insert-after">
-import java.util.List;     
+import java.util.List;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em></div>
 
 <p>Like every statement, we start parsing a for loop by matching its keyword:</p>
 <div class="codehilite"><pre class="insert-before">
-  private Stmt statement() {              
+  private Stmt statement() {
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
     <span class="k">if</span> (<span class="i">match</span>(<span class="n">FOR</span>)) <span class="k">return</span> <span class="i">forStatement</span>();
 </pre><pre class="insert-after">
-    if (match(IF)) return ifStatement();  
+    if (match(IF)) return ifStatement();
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>statement</em>()</div>
 
@@ -726,32 +726,32 @@ before the clauses.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>statement</em>()</div>
 <pre>
-  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">forStatement</span>() {                    
+  <span class="k">private</span> <span class="t">Stmt</span> <span class="i">forStatement</span>() {
     <span class="i">consume</span>(<span class="n">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span>);
 
-    <span class="c">// More here...                                </span>
-  }                                                
+    <span class="c">// More here...</span>
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>statement</em>()</div>
 
 <p>The first clause following that is the initializer:</p>
 <div class="codehilite"><pre class="insert-before">
     consume(LEFT_PAREN, &quot;Expect '(' after 'for'.&quot;);
-                                                   
+
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-    <span class="t">Stmt</span> <span class="i">initializer</span>;                              
-    <span class="k">if</span> (<span class="i">match</span>(<span class="n">SEMICOLON</span>)) {                        
-      <span class="i">initializer</span> = <span class="k">null</span>;                          
-    } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="n">VAR</span>)) {                       
-      <span class="i">initializer</span> = <span class="i">varDeclaration</span>();              
-    } <span class="k">else</span> {                                       
-      <span class="i">initializer</span> = <span class="i">expressionStatement</span>();         
-    }                                              
+    <span class="t">Stmt</span> <span class="i">initializer</span>;
+    <span class="k">if</span> (<span class="i">match</span>(<span class="n">SEMICOLON</span>)) {
+      <span class="i">initializer</span> = <span class="k">null</span>;
+    } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="n">VAR</span>)) {
+      <span class="i">initializer</span> = <span class="i">varDeclaration</span>();
+    } <span class="k">else</span> {
+      <span class="i">initializer</span> = <span class="i">expressionStatement</span>();
+    }
 </pre><pre class="insert-after">
-  }                                                
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>(), replace 1 line</div>
 
@@ -768,19 +768,19 @@ true, I guess.</p>
 </aside>
 <p>Next up is the condition:</p>
 <div class="codehilite"><pre class="insert-before">
-      initializer = expressionStatement();                 
-    }                                                      
+      initializer = expressionStatement();
+    }
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
-    <span class="t">Expr</span> <span class="i">condition</span> = <span class="k">null</span>;                                 
-    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">SEMICOLON</span>)) {                               
-      <span class="i">condition</span> = <span class="i">expression</span>();                            
-    }                                                      
+    <span class="t">Expr</span> <span class="i">condition</span> = <span class="k">null</span>;
+    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">SEMICOLON</span>)) {
+      <span class="i">condition</span> = <span class="i">expression</span>();
+    }
     <span class="i">consume</span>(<span class="n">SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span>);
 </pre><pre class="insert-after">
-  }                                                        
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
 
@@ -792,13 +792,13 @@ clause is the increment:</p>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
-    <span class="t">Expr</span> <span class="i">increment</span> = <span class="k">null</span>;                                 
-    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">RIGHT_PAREN</span>)) {                             
-      <span class="i">increment</span> = <span class="i">expression</span>();                            
-    }                                                      
-    <span class="i">consume</span>(<span class="n">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>); 
+    <span class="t">Expr</span> <span class="i">increment</span> = <span class="k">null</span>;
+    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">RIGHT_PAREN</span>)) {
+      <span class="i">increment</span> = <span class="i">expression</span>();
+    }
+    <span class="i">consume</span>(<span class="n">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>);
 </pre><pre class="insert-after">
-  }                                                        
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
 
@@ -812,11 +812,11 @@ closing parenthesis. All that remains is the <span name="body">body</span>:</p>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
-    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();                              
+    <span class="t">Stmt</span> <span class="i">body</span> = <span class="i">statement</span>();
 
-    <span class="k">return</span> <span class="i">body</span>;                                          
+    <span class="k">return</span> <span class="i">body</span>;
 </pre><pre class="insert-after">
-  }                                                       
+  }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
 
@@ -827,19 +827,19 @@ hand-desugared example I showed you earlier.</p>
 <p>The code is a little simpler if we work backwards, so we start with the
 increment clause:</p>
 <div class="codehilite"><pre class="insert-before">
-    Stmt body = statement();               
-                                           
+    Stmt body = statement();
+
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
-    <span class="k">if</span> (<span class="i">increment</span> != <span class="k">null</span>) {               
-      <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(<span class="t">Arrays</span>.<span class="i">asList</span>( 
-          <span class="i">body</span>,                            
+    <span class="k">if</span> (<span class="i">increment</span> != <span class="k">null</span>) {
+      <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(<span class="t">Arrays</span>.<span class="i">asList</span>(
+          <span class="i">body</span>,
           <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Expression</span>(<span class="i">increment</span>)));
-    }                                      
+    }
 
 </pre><pre class="insert-after">
-    return body;                           
+    return body;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
 
@@ -847,16 +847,16 @@ in <em>forStatement</em>()</div>
 loop. We do that by replacing the body with a little block that contains the
 original body followed by an expression statement that evaluates the increment.</p>
 <div class="codehilite"><pre class="insert-before">
-    }                                                         
-                                                              
+    }
+
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
     <span class="k">if</span> (<span class="i">condition</span> == <span class="k">null</span>) <span class="i">condition</span> = <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Literal</span>(<span class="k">true</span>);
-    <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);                   
+    <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">While</span>(<span class="i">condition</span>, <span class="i">body</span>);
 
 </pre><pre class="insert-after">
-    return body;                                              
+    return body;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
 
@@ -864,17 +864,17 @@ in <em>forStatement</em>()</div>
 while loop. If the condition is omitted, we jam in <code>true</code> to make an infinite
 loop.</p>
 <div class="codehilite"><pre class="insert-before">
-    body = new Stmt.While(condition, body);                   
-                                                              
+    body = new Stmt.While(condition, body);
+
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
-    <span class="k">if</span> (<span class="i">initializer</span> != <span class="k">null</span>) {                                
+    <span class="k">if</span> (<span class="i">initializer</span> != <span class="k">null</span>) {
       <span class="i">body</span> = <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Block</span>(<span class="t">Arrays</span>.<span class="i">asList</span>(<span class="i">initializer</span>, <span class="i">body</span>));
-    }                                                         
+    }
 
 </pre><pre class="insert-after">
-    return body;                                              
+    return body;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>forStatement</em>()</div>
 

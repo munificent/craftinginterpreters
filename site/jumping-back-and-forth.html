@@ -174,13 +174,13 @@ get started with that.</p>
 end and works its way through the pipeline. If statements are, well,
 statements, so that&rsquo;s where we hook them into the parser:</p>
 <div class="codehilite"><pre class="insert-before">
-  if (match(TOKEN_PRINT)) {            
-    printStatement();                  
+  if (match(TOKEN_PRINT)) {
+    printStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_IF</span>)) {        
-    <span class="i">ifStatement</span>();                     
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_IF</span>)) {
+    <span class="i">ifStatement</span>();
 </pre><pre class="insert-after">
   } else if (match(TOKEN_LEFT_BRACE)) {
 </pre></div>
@@ -190,16 +190,16 @@ in <em>statement</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">ifStatement</span>() {                                            
-  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);                 
-  <span class="i">expression</span>();                                                        
+<span class="k">static</span> <span class="t">void</span> <span class="i">ifStatement</span>() {
+  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;if&#39;.&quot;</span>);
+  <span class="i">expression</span>();
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span>);<span name="paren"> </span>
 
-  <span class="t">int</span> <span class="i">thenJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);                           
-  <span class="i">statement</span>();                                                         
+  <span class="t">int</span> <span class="i">thenJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
+  <span class="i">statement</span>();
 
-  <span class="i">patchJump</span>(<span class="i">thenJump</span>);                                                 
-}                                                                      
+  <span class="i">patchJump</span>(<span class="i">thenJump</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
 
@@ -243,11 +243,11 @@ compiled code.</p><img src="image/jumping-back-and-forth/patch.png" alt="A patch
 add after <em>emitBytes</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">int</span> <span class="i">emitJump</span>(<span class="t">uint8_t</span> <span class="i">instruction</span>) {
-  <span class="i">emitByte</span>(<span class="i">instruction</span>);                  
-  <span class="i">emitByte</span>(<span class="n">0xff</span>);                         
-  <span class="i">emitByte</span>(<span class="n">0xff</span>);                         
-  <span class="k">return</span> <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="n">2</span>;       
-}                                         
+  <span class="i">emitByte</span>(<span class="i">instruction</span>);
+  <span class="i">emitByte</span>(<span class="n">0xff</span>);
+  <span class="i">emitByte</span>(<span class="n">0xff</span>);
+  <span class="k">return</span> <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="n">2</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
 
@@ -265,17 +265,17 @@ compiling the then branch, we take that offset and pass it to:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitConstant</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">patchJump</span>(<span class="t">int</span> <span class="i">offset</span>) {                           
+<span class="k">static</span> <span class="t">void</span> <span class="i">patchJump</span>(<span class="t">int</span> <span class="i">offset</span>) {
   <span class="c">// -2 to adjust for the bytecode for the jump offset itself.</span>
-  <span class="t">int</span> <span class="i">jump</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="i">offset</span> - <span class="n">2</span>;              
+  <span class="t">int</span> <span class="i">jump</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="i">offset</span> - <span class="n">2</span>;
 
-  <span class="k">if</span> (<span class="i">jump</span> &gt; <span class="a">UINT16_MAX</span>) {                                    
-    <span class="i">error</span>(<span class="s">&quot;Too much code to jump over.&quot;</span>);                     
-  }                                                           
+  <span class="k">if</span> (<span class="i">jump</span> &gt; <span class="a">UINT16_MAX</span>) {
+    <span class="i">error</span>(<span class="s">&quot;Too much code to jump over.&quot;</span>);
+  }
 
-  <span class="i">currentChunk</span>()-&gt;<span class="i">code</span>[<span class="i">offset</span>] = (<span class="i">jump</span> &gt;&gt; <span class="n">8</span>) &amp; <span class="n">0xff</span>;          
-  <span class="i">currentChunk</span>()-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>] = <span class="i">jump</span> &amp; <span class="n">0xff</span>;             
-}                                                             
+  <span class="i">currentChunk</span>()-&gt;<span class="i">code</span>[<span class="i">offset</span>] = (<span class="i">jump</span> &gt;&gt; <span class="n">8</span>) &amp; <span class="n">0xff</span>;
+  <span class="i">currentChunk</span>()-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>] = <span class="i">jump</span> &amp; <span class="n">0xff</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitConstant</em>()</div>
 
@@ -287,30 +287,30 @@ that means right after we compile the then branch and before we compile the next
 statement.</p>
 <p>That&rsquo;s all we need at compile time. Let&rsquo;s get the new instruction working:</p>
 <div class="codehilite"><pre class="insert-before">
-  OP_PRINT,        
+  OP_PRINT,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
   <span class="a">OP_JUMP_IF_FALSE</span>,
 </pre><pre class="insert-after">
-  OP_RETURN,       
+  OP_RETURN,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>Over in the VM, we interpret it like so:</p>
 <div class="codehilite"><pre class="insert-before">
-      }                                        
-                                               
+      }
+
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>: {                 
-        <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();        
+      <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>: {
+        <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
         <span class="k">if</span> (<span class="i">isFalsey</span>(<span class="i">peek</span>(<span class="n">0</span>))) <span class="i">vm</span>.<span class="i">ip</span> += <span class="i">offset</span>;
-        <span class="k">break</span>;                                 
-      }                                        
+        <span class="k">break</span>;
+      }
 </pre><pre class="insert-after">
-      case OP_RETURN: {                        
+      case OP_RETURN: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -321,21 +321,21 @@ that from the chunk, we use this new macro:</p>
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-<span class="a">#define READ_SHORT() \                                           </span>
-<span class="a">    (vm.ip += 2, (uint16_t)((vm.ip[-2] &lt;&lt; 8) | vm.ip[-1]))       </span>
+<span class="a">#define READ_SHORT() \</span>
+<span class="a">    (vm.ip += 2, (uint16_t)((vm.ip[-2] &lt;&lt; 8) | vm.ip[-1]))</span>
 </pre><pre class="insert-after">
-#define READ_STRING() AS_STRING(READ_CONSTANT())                 
+#define READ_STRING() AS_STRING(READ_CONSTANT())
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
 <p>It yanks the next two bytes from the chunk and builds a 16-bit unsigned integer
 out of them. As usual, we clean up our macro when we&rsquo;re done with it:</p>
 <div class="codehilite"><pre class="insert-before">
-#undef READ_BYTE    
+#undef READ_BYTE
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-<span class="a">#undef READ_SHORT   </span>
+<span class="a">#undef READ_SHORT</span>
 </pre><pre class="insert-after">
 #undef READ_CONSTANT
 </pre></div>
@@ -377,14 +377,14 @@ support it at runtime in the VM.</p>
 Gomez. So, after we compile the then branch, we look for an <code>else</code> keyword. If
 we find one, we compile the else branch:</p>
 <div class="codehilite"><pre class="insert-before">
-  patchJump(thenJump);               
+  patchJump(thenJump);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
 
   <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_ELSE</span>)) <span class="i">statement</span>();
 </pre><pre class="insert-after">
-}                                    
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
@@ -397,15 +397,15 @@ condition is true, after we run the then branch, we need to jump over the else
 branch. That way, in either case, we only execute a single branch, like this:</p><img src="image/jumping-back-and-forth/if-else.png" alt="Flowchart of the compiled bytecode for an if with an else clause." />
 <p>To implement that, we need another jump from the end of the then branch:</p>
 <div class="codehilite"><pre class="insert-before">
-  statement();                     
-                                   
+  statement();
+
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
   <span class="t">int</span> <span class="i">elseJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);
 
 </pre><pre class="insert-after">
-  patchJump(thenJump);             
+  patchJump(thenJump);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
@@ -415,9 +415,9 @@ in <em>ifStatement</em>()</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="i">patchJump</span>(<span class="i">elseJump</span>);               
+  <span class="i">patchJump</span>(<span class="i">elseJump</span>);
 </pre><pre class="insert-after">
-}                                    
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
@@ -425,11 +425,11 @@ in <em>ifStatement</em>()</div>
 Unlike the other jump, this jump is unconditional. We always take it, so we need
 another instruction that expresses that:</p>
 <div class="codehilite"><pre class="insert-before">
-  OP_PRINT,        
+  OP_PRINT,
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_JUMP</span>,         
+  <span class="a">OP_JUMP</span>,
 </pre><pre class="insert-after">
   OP_JUMP_IF_FALSE,
 </pre></div>
@@ -437,19 +437,19 @@ in enum <em>OpCode</em></div>
 
 <p>We interpret it like so:</p>
 <div class="codehilite"><pre class="insert-before">
-      }                                
-                                       
+      }
+
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
-      <span class="k">case</span> <span class="a">OP_JUMP</span>: {                  
+      <span class="k">case</span> <span class="a">OP_JUMP</span>: {
         <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
-        <span class="i">vm</span>.<span class="i">ip</span> += <span class="i">offset</span>;               
-        <span class="k">break</span>;                         
-      }                                
+        <span class="i">vm</span>.<span class="i">ip</span> += <span class="i">offset</span>;
+        <span class="k">break</span>;
+      }
 
 </pre><pre class="insert-after">
-      case OP_JUMP_IF_FALSE: {         
+      case OP_JUMP_IF_FALSE: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -471,21 +471,21 @@ branch:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                         
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
 </pre><pre class="insert-after">
-  statement();                              
+  statement();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
 <p>Otherwise, we pop it at the beginning of the else branch:</p>
 <div class="codehilite"><pre class="insert-before">
-  patchJump(thenJump);               
+  patchJump(thenJump);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>ifStatement</em>()</div>
 <pre class="insert">
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                  
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
 </pre><pre class="insert-after">
-                                     
+
   if (match(TOKEN_ELSE)) statement();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
@@ -498,16 +498,16 @@ left it off, all it does is discard the condition value.</p>
 ensures the condition is popped first. All that remains it a little disassembler
 support:</p>
 <div class="codehilite"><pre class="insert-before">
-      return simpleInstruction(&quot;OP_PRINT&quot;, offset);                
+      return simpleInstruction(&quot;OP_PRINT&quot;, offset);
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_JUMP</span>:                                                  
-      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_JUMP&quot;</span>, <span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);         
-    <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>:                                         
+    <span class="k">case</span> <span class="a">OP_JUMP</span>:
+      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_JUMP&quot;</span>, <span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
+    <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>:
       <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_JUMP_IF_FALSE&quot;</span>, <span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">
-    case OP_RETURN:                                                
+    case OP_RETURN:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -516,13 +516,13 @@ utility function to disassemble them:</p>
 <div class="codehilite"><div class="source-file"><em>debug.c</em><br>
 add after <em>byteInstruction</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">int</span> <span class="i">jumpInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">int</span> <span class="i">sign</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>,  
-                           <span class="t">int</span> <span class="i">offset</span>) {                              
-  <span class="t">uint16_t</span> <span class="i">jump</span> = (<span class="t">uint16_t</span>)(<span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>] &lt;&lt; <span class="n">8</span>);           
-  <span class="i">jump</span> |= <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">2</span>];                                    
+<span class="k">static</span> <span class="t">int</span> <span class="i">jumpInstruction</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">name</span>, <span class="t">int</span> <span class="i">sign</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>,
+                           <span class="t">int</span> <span class="i">offset</span>) {
+  <span class="t">uint16_t</span> <span class="i">jump</span> = (<span class="t">uint16_t</span>)(<span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">1</span>] &lt;&lt; <span class="n">8</span>);
+  <span class="i">jump</span> |= <span class="i">chunk</span>-&gt;<span class="i">code</span>[<span class="i">offset</span> + <span class="n">2</span>];
   <span class="i">printf</span>(<span class="s">&quot;%-16s %4d -&gt; %d</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">name</span>, <span class="i">offset</span>, <span class="i">offset</span> + <span class="n">3</span> + <span class="i">sign</span> * <span class="i">jump</span>);
-  <span class="k">return</span> <span class="i">offset</span> + <span class="n">3</span>;                                                  
-}                                                                     
+  <span class="k">return</span> <span class="i">offset</span> + <span class="n">3</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, add after <em>byteInstruction</em>()</div>
 
@@ -547,9 +547,9 @@ it into the expression parsing table here:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="a">NULL</span>,     <span class="i">and_</span>,    <span class="a">PREC_AND</span> },        <span class="c">// TOKEN_AND   </span>
+  { <span class="a">NULL</span>,     <span class="i">and_</span>,    <span class="a">PREC_AND</span> },        <span class="c">// TOKEN_AND</span>
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS 
+  { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -557,14 +557,14 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>defineVariable</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">and_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {         
+<span class="k">static</span> <span class="t">void</span> <span class="i">and_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
   <span class="t">int</span> <span class="i">endJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
 
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                        
-  <span class="i">parsePrecedence</span>(<span class="a">PREC_AND</span>);               
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
+  <span class="i">parsePrecedence</span>(<span class="a">PREC_AND</span>);
 
-  <span class="i">patchJump</span>(<span class="i">endJump</span>);                      
-}                                          
+  <span class="i">patchJump</span>(<span class="i">endJump</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>defineVariable</em>()</div>
 
@@ -589,11 +589,11 @@ affect performance.</p>
 <h3><a href="#logical-or-operator" name="logical-or-operator"><small>23&#8202;.&#8202;2&#8202;.&#8202;1</small>Logical or operator</a></h3>
 <p>The <code>or</code> operator is a little more complex. First we add it to the parse table:</p>
 <div class="codehilite"><pre class="insert-before">
-  { literal,  NULL,    PREC_NONE },       // TOKEN_NIL  
+  { literal,  NULL,    PREC_NONE },       // TOKEN_NIL
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="a">NULL</span>,     <span class="i">or_</span>,     <span class="a">PREC_OR</span> },         <span class="c">// TOKEN_OR   </span>
+  { <span class="a">NULL</span>,     <span class="i">or_</span>,     <span class="a">PREC_OR</span> },         <span class="c">// TOKEN_OR</span>
 </pre><pre class="insert-after">
   { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
 </pre></div>
@@ -603,16 +603,16 @@ replace 1 line</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">or_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {           
+<span class="k">static</span> <span class="t">void</span> <span class="i">or_</span>(<span class="t">bool</span> <span class="i">canAssign</span>) {
   <span class="t">int</span> <span class="i">elseJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
-  <span class="t">int</span> <span class="i">endJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);          
+  <span class="t">int</span> <span class="i">endJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);
 
-  <span class="i">patchJump</span>(<span class="i">elseJump</span>);                      
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                         
+  <span class="i">patchJump</span>(<span class="i">elseJump</span>);
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
 
-  <span class="i">parsePrecedence</span>(<span class="a">PREC_OR</span>);                 
-  <span class="i">patchJump</span>(<span class="i">endJump</span>);                       
-}                                           
+  <span class="i">parsePrecedence</span>(<span class="a">PREC_OR</span>);
+  <span class="i">patchJump</span>(<span class="i">endJump</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
 
@@ -640,12 +640,12 @@ can be executed more than once. Lox only has two loop constructs, <code>while</c
 <code>for</code>. While loops are (much) simpler, so we kick off the party with its
 keyword:</p>
 <div class="codehilite"><pre class="insert-before">
-    ifStatement();                     
+    ifStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_WHILE</span>)) {     
-    <span class="i">whileStatement</span>();                  
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_WHILE</span>)) {
+    <span class="i">whileStatement</span>();
 </pre><pre class="insert-after">
   } else if (match(TOKEN_LEFT_BRACE)) {
 </pre></div>
@@ -655,19 +655,19 @@ in <em>statement</em>()</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>printStatement</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">whileStatement</span>() {                              
-  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);   
-  <span class="i">expression</span>();                                             
+<span class="k">static</span> <span class="t">void</span> <span class="i">whileStatement</span>() {
+  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;while&#39;.&quot;</span>);
+  <span class="i">expression</span>();
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after condition.&quot;</span>);
 
-  <span class="t">int</span> <span class="i">exitJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);                
+  <span class="t">int</span> <span class="i">exitJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
 
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                         
-  <span class="i">statement</span>();                                              
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
+  <span class="i">statement</span>();
 
-  <span class="i">patchJump</span>(<span class="i">exitJump</span>);                                      
-  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                         
-}                                                           
+  <span class="i">patchJump</span>(<span class="i">exitJump</span>);
+  <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
 
@@ -682,14 +682,14 @@ only difference from an if statement is the loop. That looks like this:</p>
 for the logical operators.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-  statement();        
+  statement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>whileStatement</em>()</div>
 <pre class="insert">
 
   <span class="i">emitLoop</span>(<span class="i">loopStart</span>);
 </pre><pre class="insert-after">
-                      
+
   patchJump(exitJump);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>whileStatement</em>()</div>
@@ -701,11 +701,11 @@ jump until after we emitted the jump instruction. We don&rsquo;t have that probl
 now. We&rsquo;ve already compiled the point in code that we want to jump back to<span class="em">&mdash;</span>it&rsquo;s right before the condition expression.</p>
 <p>All we need to do is capture that location as we compile it:</p>
 <div class="codehilite"><pre class="insert-before">
-static void whileStatement() {                           
+static void whileStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>whileStatement</em>()</div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">loopStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;                 
+  <span class="t">int</span> <span class="i">loopStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;
 
 </pre><pre class="insert-after">
   consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after 'while'.&quot;);
@@ -720,15 +720,15 @@ Then we pass that into this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">emitLoop</span>(<span class="t">int</span> <span class="i">loopStart</span>) {                    
-  <span class="i">emitByte</span>(<span class="a">OP_LOOP</span>);                                     
+<span class="k">static</span> <span class="t">void</span> <span class="i">emitLoop</span>(<span class="t">int</span> <span class="i">loopStart</span>) {
+  <span class="i">emitByte</span>(<span class="a">OP_LOOP</span>);
 
-  <span class="t">int</span> <span class="i">offset</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="i">loopStart</span> + <span class="n">2</span>;    
+  <span class="t">int</span> <span class="i">offset</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span> - <span class="i">loopStart</span> + <span class="n">2</span>;
   <span class="k">if</span> (<span class="i">offset</span> &gt; <span class="a">UINT16_MAX</span>) <span class="i">error</span>(<span class="s">&quot;Loop body too large.&quot;</span>);
 
-  <span class="i">emitByte</span>((<span class="i">offset</span> &gt;&gt; <span class="n">8</span>) &amp; <span class="n">0xff</span>);                        
-  <span class="i">emitByte</span>(<span class="i">offset</span> &amp; <span class="n">0xff</span>);                               
-}                                                        
+  <span class="i">emitByte</span>((<span class="i">offset</span> &gt;&gt; <span class="n">8</span>) &amp; <span class="n">0xff</span>);
+  <span class="i">emitByte</span>(<span class="i">offset</span> &amp; <span class="n">0xff</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitBytes</em>()</div>
 
@@ -750,26 +750,26 @@ space available, so why not use it?</p>
 </pre><div class="source-file"><em>chunk.h</em><br>
 in enum <em>OpCode</em></div>
 <pre class="insert">
-  <span class="a">OP_LOOP</span>,         
+  <span class="a">OP_LOOP</span>,
 </pre><pre class="insert-after">
-  OP_RETURN,       
+  OP_RETURN,
 </pre></div>
 <div class="source-file-narrow"><em>chunk.h</em>, in enum <em>OpCode</em></div>
 
 <p>And in the VM, its implementation is:</p>
 <div class="codehilite"><pre class="insert-before">
-      }                                
+      }
 </pre><div class="source-file"><em>vm.c</em><br>
 in <em>run</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="a">OP_LOOP</span>: {                  
+      <span class="k">case</span> <span class="a">OP_LOOP</span>: {
         <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
-        <span class="i">vm</span>.<span class="i">ip</span> -= <span class="i">offset</span>;               
-        <span class="k">break</span>;                         
-      }                                
+        <span class="i">vm</span>.<span class="i">ip</span> -= <span class="i">offset</span>;
+        <span class="k">break</span>;
+      }
 </pre><pre class="insert-after">
-      case OP_RETURN: {                
+      case OP_RETURN: {
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>run</em>()</div>
 
@@ -780,10 +780,10 @@ Disassembly is similar too:</p>
 </pre><div class="source-file"><em>debug.c</em><br>
 in <em>disassembleInstruction</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="a">OP_LOOP</span>:                                                  
-      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_LOOP&quot;</span>, -<span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);        
+    <span class="k">case</span> <span class="a">OP_LOOP</span>:
+      <span class="k">return</span> <span class="i">jumpInstruction</span>(<span class="s">&quot;OP_LOOP&quot;</span>, -<span class="n">1</span>, <span class="i">chunk</span>, <span class="i">offset</span>);
 </pre><pre class="insert-after">
-    case OP_RETURN:                                                
+    case OP_RETURN:
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
@@ -819,14 +819,14 @@ compiler will use the jump and loop instructions we already have.</p>
 <p>We&rsquo;ll work our way through the implementation a piece at a time, starting with
 the <code>for</code> keyword:</p>
 <div class="codehilite"><pre class="insert-before">
-    printStatement();           
+    printStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
   } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_FOR</span>)) {
-    <span class="i">forStatement</span>();             
+    <span class="i">forStatement</span>();
 </pre><pre class="insert-after">
-  } else if (match(TOKEN_IF)) { 
+  } else if (match(TOKEN_IF)) {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
 
@@ -835,19 +835,19 @@ like <code>for (;;)</code>, then we could implement it like this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expressionStatement</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">forStatement</span>() {                                  
-  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span>);       
-  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39;.&quot;</span>);                    
+<span class="k">static</span> <span class="t">void</span> <span class="i">forStatement</span>() {
+  <span class="i">consume</span>(<span class="a">TOKEN_LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &#39;for&#39;.&quot;</span>);
+  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39;.&quot;</span>);
 
-  <span class="t">int</span> <span class="i">loopStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;                      
+  <span class="t">int</span> <span class="i">loopStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;
 
-  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39;.&quot;</span>);                    
+  <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39;.&quot;</span>);
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>);
 
-  <span class="i">statement</span>();                                                
+  <span class="i">statement</span>();
 
-  <span class="i">emitLoop</span>(<span class="i">loopStart</span>);                                        
-}                                                             
+  <span class="i">emitLoop</span>(<span class="i">loopStart</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
 
@@ -868,16 +868,16 @@ the body, so it&rsquo;s straightforward:</p>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_SEMICOLON</span>)) {                        
-    <span class="c">// No initializer.                                 </span>
-  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_VAR</span>)) {                       
-    <span class="i">varDeclaration</span>();                                  
-  } <span class="k">else</span> {                                             
-    <span class="i">expressionStatement</span>();                             
-  }                                                    
+  <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_SEMICOLON</span>)) {
+    <span class="c">// No initializer.</span>
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">match</span>(<span class="a">TOKEN_VAR</span>)) {
+    <span class="i">varDeclaration</span>();
+  } <span class="k">else</span> {
+    <span class="i">expressionStatement</span>();
+  }
 </pre><pre class="insert-after">
-                                                       
-  int loopStart = currentChunk()-&gt;count;               
+
+  int loopStart = currentChunk()-&gt;count;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
 
@@ -890,11 +890,11 @@ initializer to leave anything on the stack.</p>
 <p>If a for statement declares a variable, that variable should be scoped to the
 loop body. We ensure that by wrapping the whole statement in a scope:</p>
 <div class="codehilite"><pre class="insert-before">
-static void forStatement() {                           
+static void forStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
-  <span class="i">beginScope</span>();                                        
+  <span class="i">beginScope</span>();
 
 </pre><pre class="insert-after">
   consume(TOKEN_LEFT_PAREN, &quot;Expect '(' after 'for'.&quot;);
@@ -908,33 +908,33 @@ in <em>forStatement</em>()</div>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
-  <span class="i">endScope</span>();         
+  <span class="i">endScope</span>();
 </pre><pre class="insert-after">
-}                     
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
 <h3><a href="#condition-clause" name="condition-clause"><small>23&#8202;.&#8202;4&#8202;.&#8202;2</small>Condition clause</a></h3>
 <p>Next, is the condition expression that can be used to exit the loop:</p>
 <div class="codehilite"><pre class="insert-before">
-  int loopStart = currentChunk()-&gt;count;                         
-                                                                 
+  int loopStart = currentChunk()-&gt;count;
+
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">exitJump</span> = -<span class="n">1</span>;                                             
-  <span class="k">if</span> (!<span class="i">match</span>(<span class="a">TOKEN_SEMICOLON</span>)) {                                 
-    <span class="i">expression</span>();                                                
+  <span class="t">int</span> <span class="i">exitJump</span> = -<span class="n">1</span>;
+  <span class="k">if</span> (!<span class="i">match</span>(<span class="a">TOKEN_SEMICOLON</span>)) {
+    <span class="i">expression</span>();
     <span class="i">consume</span>(<span class="a">TOKEN_SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after loop condition.&quot;</span>);
 
-    <span class="c">// Jump out of the loop if the condition is false.           </span>
-    <span class="i">exitJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);                       
-    <span class="i">emitByte</span>(<span class="a">OP_POP</span>); <span class="c">// Condition.                              </span>
-  }                                                              
+    <span class="c">// Jump out of the loop if the condition is false.</span>
+    <span class="i">exitJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP_IF_FALSE</span>);
+    <span class="i">emitByte</span>(<span class="a">OP_POP</span>); <span class="c">// Condition.</span>
+  }
 
 </pre><pre class="insert-after">
-  consume(TOKEN_RIGHT_PAREN, &quot;Expect ')' after for clauses.&quot;);   
+  consume(TOKEN_RIGHT_PAREN, &quot;Expect ')' after for clauses.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
 
@@ -947,19 +947,19 @@ value on the stack, we pop it before executing the body. That ensures we discard
 it when the condition is true.</p>
 <p>After the loop body, we need to patch that jump:</p>
 <div class="codehilite"><pre class="insert-before">
-                                   
-  emitLoop(loopStart);             
+
+  emitLoop(loopStart);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()</div>
 <pre class="insert">
 
-  <span class="k">if</span> (<span class="i">exitJump</span> != -<span class="n">1</span>) {            
-    <span class="i">patchJump</span>(<span class="i">exitJump</span>);           
+  <span class="k">if</span> (<span class="i">exitJump</span> != -<span class="n">1</span>) {
+    <span class="i">patchJump</span>(<span class="i">exitJump</span>);
     <span class="i">emitByte</span>(<span class="a">OP_POP</span>); <span class="c">// Condition.</span>
-  }                                
+  }
 </pre><pre class="insert-after">
-                                   
-  endScope();                      
+
+  endScope();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>()</div>
 
@@ -977,27 +977,27 @@ iteration.</p>
 <p>I know, a little weird, but, hey, it beats manually managing ASTs in memory in
 C, right? Here&rsquo;s the code:</p>
 <div class="codehilite"><pre class="insert-before">
-  }                                                             
-                                                                
+  }
+
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>forStatement</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="k">if</span> (!<span class="i">match</span>(<span class="a">TOKEN_RIGHT_PAREN</span>)) {                              
-    <span class="t">int</span> <span class="i">bodyJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);                           
+  <span class="k">if</span> (!<span class="i">match</span>(<span class="a">TOKEN_RIGHT_PAREN</span>)) {
+    <span class="t">int</span> <span class="i">bodyJump</span> = <span class="i">emitJump</span>(<span class="a">OP_JUMP</span>);
 
-    <span class="t">int</span> <span class="i">incrementStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;                 
-    <span class="i">expression</span>();                                               
-    <span class="i">emitByte</span>(<span class="a">OP_POP</span>);                                           
+    <span class="t">int</span> <span class="i">incrementStart</span> = <span class="i">currentChunk</span>()-&gt;<span class="i">count</span>;
+    <span class="i">expression</span>();
+    <span class="i">emitByte</span>(<span class="a">OP_POP</span>);
     <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after for clauses.&quot;</span>);
 
-    <span class="i">emitLoop</span>(<span class="i">loopStart</span>);                                        
-    <span class="i">loopStart</span> = <span class="i">incrementStart</span>;                                 
-    <span class="i">patchJump</span>(<span class="i">bodyJump</span>);                                        
-  }                                                             
+    <span class="i">emitLoop</span>(<span class="i">loopStart</span>);
+    <span class="i">loopStart</span> = <span class="i">incrementStart</span>;
+    <span class="i">patchJump</span>(<span class="i">bodyJump</span>);
+  }
 </pre><pre class="insert-after">
-                                                                
-  statement();                                                  
+
+  statement();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>forStatement</em>(), replace 1 line</div>
 

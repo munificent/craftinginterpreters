@@ -159,23 +159,23 @@ InterpretResult interpret(const char* source) {
 in <em>interpret</em>()<br>
 replace 2 lines</div>
 <pre class="insert">
-  <span class="t">Chunk</span> <span class="i">chunk</span>;                                 
-  <span class="i">initChunk</span>(&amp;<span class="i">chunk</span>);                           
+  <span class="t">Chunk</span> <span class="i">chunk</span>;
+  <span class="i">initChunk</span>(&amp;<span class="i">chunk</span>);
 
-  <span class="k">if</span> (!<span class="i">compile</span>(<span class="i">source</span>, &amp;<span class="i">chunk</span>)) {              
-    <span class="i">freeChunk</span>(&amp;<span class="i">chunk</span>);                         
-    <span class="k">return</span> <span class="a">INTERPRET_COMPILE_ERROR</span>;            
-  }                                            
+  <span class="k">if</span> (!<span class="i">compile</span>(<span class="i">source</span>, &amp;<span class="i">chunk</span>)) {
+    <span class="i">freeChunk</span>(&amp;<span class="i">chunk</span>);
+    <span class="k">return</span> <span class="a">INTERPRET_COMPILE_ERROR</span>;
+  }
 
-  <span class="i">vm</span>.<span class="i">chunk</span> = &amp;<span class="i">chunk</span>;                           
-  <span class="i">vm</span>.<span class="i">ip</span> = <span class="i">vm</span>.<span class="i">chunk</span>-&gt;<span class="i">code</span>;                      
+  <span class="i">vm</span>.<span class="i">chunk</span> = &amp;<span class="i">chunk</span>;
+  <span class="i">vm</span>.<span class="i">ip</span> = <span class="i">vm</span>.<span class="i">chunk</span>-&gt;<span class="i">code</span>;
 
-  <span class="t">InterpretResult</span> <span class="i">result</span> = <span class="i">run</span>();              
+  <span class="t">InterpretResult</span> <span class="i">result</span> = <span class="i">run</span>();
 
-  <span class="i">freeChunk</span>(&amp;<span class="i">chunk</span>);                           
-  <span class="k">return</span> <span class="i">result</span>;                               
+  <span class="i">freeChunk</span>(&amp;<span class="i">chunk</span>);
+  <span class="k">return</span> <span class="i">result</span>;
 </pre><pre class="insert-after">
-}                                              
+}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, in <em>interpret</em>(), replace 2 lines</div>
 
@@ -188,17 +188,17 @@ chunk.</p>
 VM finishes, we free the chunk and we&rsquo;re done. As you can see, the signature to
 <code>compile()</code> is different now:</p>
 <div class="codehilite"><pre class="insert-before">
-#define clox_compiler_h                        
-                                               
+#define clox_compiler_h
+
 </pre><div class="source-file"><em>compiler.h</em><br>
 replace 1 line</div>
 <pre class="insert">
-<span class="a">#include &quot;vm.h&quot;                                </span>
+<span class="a">#include &quot;vm.h&quot;</span>
 
 <span class="t">bool</span> <span class="i">compile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>);
 </pre><pre class="insert-after">
-                                               
-#endif                                         
+
+#endif
 </pre></div>
 <div class="source-file-narrow"><em>compiler.h</em>, replace 1 line</div>
 
@@ -206,15 +206,15 @@ replace 1 line</div>
 <code>compile()</code> returns whether or not compilation succeeded. Over in the
 implementation&hellip;</p>
 <div class="codehilite"><pre class="insert-before">
-#include &quot;scanner.h&quot;                            
-                                                
+#include &quot;scanner.h&quot;
+
 </pre><div class="source-file"><em>compiler.c</em><br>
 function <em>compile</em>()<br>
 replace 1 line</div>
 <pre class="insert">
 <span class="t">bool</span> <span class="i">compile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>, <span class="t">Chunk</span>* <span class="i">chunk</span>) {
 </pre><pre class="insert-after">
-  initScanner(source);                          
+  initScanner(source);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, function <em>compile</em>(), replace 1 line</div>
 
@@ -222,16 +222,16 @@ replace 1 line</div>
 out the temporary code we wrote to test the scanner and replace it with these
 three lines:</p>
 <div class="codehilite"><pre class="insert-before">
-  initScanner(source);                            
+  initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()<br>
 replace 13 lines</div>
 <pre class="insert">
-  <span class="i">advance</span>();                                      
-  <span class="i">expression</span>();                                   
+  <span class="i">advance</span>();
+  <span class="i">expression</span>();
   <span class="i">consume</span>(<span class="a">TOKEN_EOF</span>, <span class="s">&quot;Expect end of expression.&quot;</span>);
 </pre><pre class="insert-after">
-}                                                 
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>(), replace 13 lines</div>
 
@@ -299,20 +299,20 @@ and output the right bytecode.</p>
 <p>First up, the front half of the compiler. This function&rsquo;s name should sound
 familiar:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &quot;scanner.h&quot;                              
+#include &quot;scanner.h&quot;
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert">
 
-<span class="k">static</span> <span class="t">void</span> <span class="i">advance</span>() {                           
-  <span class="i">parser</span>.<span class="i">previous</span> = <span class="i">parser</span>.<span class="i">current</span>;               
+<span class="k">static</span> <span class="t">void</span> <span class="i">advance</span>() {
+  <span class="i">parser</span>.<span class="i">previous</span> = <span class="i">parser</span>.<span class="i">current</span>;
 
-  <span class="k">for</span> (;;) {                                      
-    <span class="i">parser</span>.<span class="i">current</span> = <span class="i">scanToken</span>();                 
+  <span class="k">for</span> (;;) {
+    <span class="i">parser</span>.<span class="i">current</span> = <span class="i">scanToken</span>();
     <span class="k">if</span> (<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span> != <span class="a">TOKEN_ERROR</span>) <span class="k">break</span>;
 
-    <span class="i">errorAtCurrent</span>(<span class="i">parser</span>.<span class="i">current</span>.<span class="i">start</span>);         
-  }                                               
-}                                                 
+    <span class="i">errorAtCurrent</span>(<span class="i">parser</span>.<span class="i">current</span>.<span class="i">start</span>);
+  }
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em></div>
 
@@ -327,19 +327,19 @@ leaves it up to the parser to report them. We do that here.</p>
 non-error one or reach the end. That way, the rest of the parser only sees
 &ldquo;real&rdquo; tokens. The current and previous token are stored in this struct:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &quot;scanner.h&quot;   
+#include &quot;scanner.h&quot;
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">struct</span> {       
-  <span class="t">Token</span> <span class="i">current</span>;       
-  <span class="t">Token</span> <span class="i">previous</span>;      
-} <span class="t">Parser</span>;              
+<span class="k">typedef</span> <span class="k">struct</span> {
+  <span class="t">Token</span> <span class="i">current</span>;
+  <span class="t">Token</span> <span class="i">previous</span>;
+} <span class="t">Parser</span>;
 
-<span class="t">Parser</span> <span class="i">parser</span>;         
+<span class="t">Parser</span> <span class="i">parser</span>;
 
 </pre><pre class="insert-after">
-                       
+
 static void advance() {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em></div>
@@ -354,8 +354,8 @@ happens using this:</p>
 add after variable <em>Parser</em></div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">errorAtCurrent</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">message</span>) {
-  <span class="i">errorAt</span>(&amp;<span class="i">parser</span>.<span class="i">current</span>, <span class="i">message</span>);             
-}                                                
+  <span class="i">errorAt</span>(&amp;<span class="i">parser</span>.<span class="i">current</span>, <span class="i">message</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
@@ -367,8 +367,8 @@ to this other function:</p>
 add after variable <em>Parser</em></div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">error</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">message</span>) {
-  <span class="i">errorAt</span>(&amp;<span class="i">parser</span>.<span class="i">previous</span>, <span class="i">message</span>);   
-}                                       
+  <span class="i">errorAt</span>(&amp;<span class="i">parser</span>.<span class="i">previous</span>, <span class="i">message</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
@@ -376,20 +376,20 @@ add after variable <em>Parser</em></div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">errorAt</span>(<span class="t">Token</span>* <span class="i">token</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">message</span>) {       
-  <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;[line %d] Error&quot;</span>, <span class="i">token</span>-&gt;<span class="i">line</span>);             
+<span class="k">static</span> <span class="t">void</span> <span class="i">errorAt</span>(<span class="t">Token</span>* <span class="i">token</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">message</span>) {
+  <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;[line %d] Error&quot;</span>, <span class="i">token</span>-&gt;<span class="i">line</span>);
 
-  <span class="k">if</span> (<span class="i">token</span>-&gt;<span class="i">type</span> == <span class="a">TOKEN_EOF</span>) {                              
-    <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot; at end&quot;</span>);                                
-  } <span class="k">else</span> <span class="k">if</span> (<span class="i">token</span>-&gt;<span class="i">type</span> == <span class="a">TOKEN_ERROR</span>) {                     
-    <span class="c">// Nothing.                                                </span>
-  } <span class="k">else</span> {                                                     
+  <span class="k">if</span> (<span class="i">token</span>-&gt;<span class="i">type</span> == <span class="a">TOKEN_EOF</span>) {
+    <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot; at end&quot;</span>);
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">token</span>-&gt;<span class="i">type</span> == <span class="a">TOKEN_ERROR</span>) {
+    <span class="c">// Nothing.</span>
+  } <span class="k">else</span> {
     <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot; at &#39;%.*s&#39;&quot;</span>, <span class="i">token</span>-&gt;<span class="i">length</span>, <span class="i">token</span>-&gt;<span class="i">start</span>);
-  }                                                            
+  }
 
-  <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;: %s</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">message</span>);                          
-  <span class="i">parser</span>.<span class="i">hadError</span> = <span class="k">true</span>;                                      
-}                                                              
+  <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;: %s</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">message</span>);
+  <span class="i">parser</span>.<span class="i">hadError</span> = <span class="k">true</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after variable <em>Parser</em></div>
 
@@ -402,9 +402,9 @@ It also lives in the parser struct:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Parser</em></div>
 <pre class="insert">
-  <span class="t">bool</span> <span class="i">hadError</span>; 
+  <span class="t">bool</span> <span class="i">hadError</span>;
 </pre><pre class="insert-after">
-} Parser;        
+} Parser;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Parser</em></div>
 
@@ -415,9 +415,9 @@ we can make it do that:</p>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
-  <span class="k">return</span> !<span class="i">parser</span>.<span class="i">hadError</span>;                        
+  <span class="k">return</span> !<span class="i">parser</span>.<span class="i">hadError</span>;
 </pre><pre class="insert-after">
-}                                                 
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
@@ -436,13 +436,13 @@ too easy to leak memory, forget to maintain invariants, or otherwise have a Very
 Bad Day.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-  bool hadError; 
+  bool hadError;
 </pre><div class="source-file"><em>compiler.c</em><br>
 in struct <em>Parser</em></div>
 <pre class="insert">
   <span class="t">bool</span> <span class="i">panicMode</span>;
 </pre><pre class="insert-after">
-} Parser;        
+} Parser;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Parser</em></div>
 
@@ -452,10 +452,10 @@ static void errorAt(Token* token, const char* message) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>errorAt</em>()</div>
 <pre class="insert">
-  <span class="i">parser</span>.<span class="i">panicMode</span> = <span class="k">true</span>;                              
+  <span class="i">parser</span>.<span class="i">panicMode</span> = <span class="k">true</span>;
 
 </pre><pre class="insert-after">
-  fprintf(stderr, &quot;[line %d] Error&quot;, token-&gt;line);      
+  fprintf(stderr, &quot;[line %d] Error&quot;, token-&gt;line);
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>errorAt</em>()</div>
 
@@ -468,9 +468,9 @@ static void errorAt(Token* token, const char* message) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>errorAt</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="i">parser</span>.<span class="i">panicMode</span>) <span class="k">return</span>;                         
+  <span class="k">if</span> (<span class="i">parser</span>.<span class="i">panicMode</span>) <span class="k">return</span>;
 </pre><pre class="insert-after">
-  parser.panicMode = true;                              
+  parser.panicMode = true;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>errorAt</em>()</div>
 
@@ -480,27 +480,27 @@ reaches a synchronization point. For Lox, we chose statement boundaries, so when
 we later add those to our compiler, we&rsquo;ll clear the flag.</p>
 <p>These new fields need to be initialized:</p>
 <div class="codehilite"><pre class="insert-before">
-  initScanner(source);     
+  initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
 
-  <span class="i">parser</span>.<span class="i">hadError</span> = <span class="k">false</span>; 
+  <span class="i">parser</span>.<span class="i">hadError</span> = <span class="k">false</span>;
   <span class="i">parser</span>.<span class="i">panicMode</span> = <span class="k">false</span>;
 
 </pre><pre class="insert-after">
-  advance();               
+  advance();
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
 <p>And to display the errors, we need a standard header:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &lt;stdio.h&gt; 
+#include &lt;stdio.h&gt;
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert">
 <span class="a">#include &lt;stdlib.h&gt;</span>
 </pre><pre class="insert-after">
-                   
+
 #include &quot;common.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em></div>
@@ -510,13 +510,13 @@ in <em>compile</em>()</div>
 add after <em>advance</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">consume</span>(<span class="t">TokenType</span> <span class="i">type</span>, <span class="k">const</span> <span class="t">char</span>* <span class="i">message</span>) {
-  <span class="k">if</span> (<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span> == <span class="i">type</span>) {                      
-    <span class="i">advance</span>();                                            
-    <span class="k">return</span>;                                               
-  }                                                       
+  <span class="k">if</span> (<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span> == <span class="i">type</span>) {
+    <span class="i">advance</span>();
+    <span class="k">return</span>;
+  }
 
-  <span class="i">errorAtCurrent</span>(<span class="i">message</span>);                                
-}                                                         
+  <span class="i">errorAtCurrent</span>(<span class="i">message</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>advance</em>()</div>
 
@@ -531,9 +531,9 @@ fundamental than appending a single byte to the chunk:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>consume</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">emitByte</span>(<span class="t">uint8_t</span> <span class="i">byte</span>) {                     
+<span class="k">static</span> <span class="t">void</span> <span class="i">emitByte</span>(<span class="t">uint8_t</span> <span class="i">byte</span>) {
   <span class="i">writeChunk</span>(<span class="i">currentChunk</span>(), <span class="i">byte</span>, <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">line</span>);
-}                                                        
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>consume</em>()</div>
 
@@ -544,17 +544,17 @@ associated with that line.</p>
 <p>The chunk that we&rsquo;re writing gets passed into <code>compile()</code>, but it needs to make
 its way to <code>emitByte()</code>. To do that, we rely on this intermediary function:</p>
 <div class="codehilite"><pre class="insert-before">
-Parser parser;                                          
-                                                        
+Parser parser;
+
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after variable <em>Parser</em></div>
 <pre class="insert">
 
-<span class="t">Chunk</span>* <span class="i">compilingChunk</span>;                                  
+<span class="t">Chunk</span>* <span class="i">compilingChunk</span>;
 
-<span class="k">static</span> <span class="t">Chunk</span>* <span class="i">currentChunk</span>() {                          
-  <span class="k">return</span> <span class="i">compilingChunk</span>;                                
-}                                                       
+<span class="k">static</span> <span class="t">Chunk</span>* <span class="i">currentChunk</span>() {
+  <span class="k">return</span> <span class="i">compilingChunk</span>;
+}
 
 </pre><pre class="insert-after">
 static void errorAt(Token* token, const char* message) {
@@ -568,14 +568,14 @@ change a lot of code, I encapsulate that logic in this function.</p>
 <p>We initialize this new module variable before we write any bytecode:</p>
 <div class="codehilite"><pre class="insert-before">
 bool compile(const char* source, Chunk* chunk) {
-  initScanner(source);                          
+  initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
-  <span class="i">compilingChunk</span> = <span class="i">chunk</span>;                       
+  <span class="i">compilingChunk</span> = <span class="i">chunk</span>;
 </pre><pre class="insert-after">
-                                                
-  parser.hadError = false;                      
+
+  parser.hadError = false;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
@@ -585,9 +585,9 @@ in <em>compile</em>()</div>
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
-  <span class="i">endCompiler</span>();                                  
+  <span class="i">endCompiler</span>();
 </pre><pre class="insert-after">
-  return !parser.hadError;                        
+  return !parser.hadError;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
@@ -596,8 +596,8 @@ in <em>compile</em>()</div>
 add after <em>emitByte</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">endCompiler</span>() {
-  <span class="i">emitReturn</span>();            
-}                          
+  <span class="i">emitReturn</span>();
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitByte</em>()</div>
 
@@ -609,8 +609,8 @@ have the compiler add one of those to the end of the chunk:</p>
 add after <em>emitByte</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">emitReturn</span>() {
-  <span class="i">emitByte</span>(<span class="a">OP_RETURN</span>);    
-}                         
+  <span class="i">emitByte</span>(<span class="a">OP_RETURN</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitByte</em>()</div>
 
@@ -619,9 +619,9 @@ add after <em>emitByte</em>()</div>
 add after <em>emitByte</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">emitBytes</span>(<span class="t">uint8_t</span> <span class="i">byte1</span>, <span class="t">uint8_t</span> <span class="i">byte2</span>) {
-  <span class="i">emitByte</span>(<span class="i">byte1</span>);                                   
-  <span class="i">emitByte</span>(<span class="i">byte2</span>);                                   
-}                                                    
+  <span class="i">emitByte</span>(<span class="i">byte1</span>);
+  <span class="i">emitByte</span>(<span class="i">byte2</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitByte</em>()</div>
 
@@ -635,8 +635,8 @@ the code in the middle that connects those together.</p><img src="image/compilin
 add after <em>endCompiler</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">expression</span>() {
-  <span class="c">// What goes here?      </span>
-}                         
+  <span class="c">// What goes here?</span>
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
@@ -663,10 +663,10 @@ at the <code>TOKEN_NUMBER</code> index in the array:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">number</span>() {                               
+<span class="k">static</span> <span class="t">void</span> <span class="i">number</span>() {
   <span class="t">double</span> <span class="i">value</span> = <span class="i">strtod</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">start</span>, <span class="a">NULL</span>);
-  <span class="i">emitConstant</span>(<span class="i">value</span>);                               
-}                                                    
+  <span class="i">emitConstant</span>(<span class="i">value</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
@@ -677,9 +677,9 @@ this function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitReturn</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">emitConstant</span>(<span class="t">Value</span> <span class="i">value</span>) {       
+<span class="k">static</span> <span class="t">void</span> <span class="i">emitConstant</span>(<span class="t">Value</span> <span class="i">value</span>) {
   <span class="i">emitBytes</span>(<span class="a">OP_CONSTANT</span>, <span class="i">makeConstant</span>(<span class="i">value</span>));
-}                                             
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitReturn</em>()</div>
 
@@ -689,15 +689,15 @@ constant table, we rely on:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitReturn</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">uint8_t</span> <span class="i">makeConstant</span>(<span class="t">Value</span> <span class="i">value</span>) {          
+<span class="k">static</span> <span class="t">uint8_t</span> <span class="i">makeConstant</span>(<span class="t">Value</span> <span class="i">value</span>) {
   <span class="t">int</span> <span class="i">constant</span> = <span class="i">addConstant</span>(<span class="i">currentChunk</span>(), <span class="i">value</span>);
-  <span class="k">if</span> (<span class="i">constant</span> &gt; <span class="a">UINT8_MAX</span>) {                       
-    <span class="i">error</span>(<span class="s">&quot;Too many constants in one chunk.&quot;</span>);      
-    <span class="k">return</span> <span class="n">0</span>;                                       
-  }                                                 
+  <span class="k">if</span> (<span class="i">constant</span> &gt; <span class="a">UINT8_MAX</span>) {
+    <span class="i">error</span>(<span class="s">&quot;Too many constants in one chunk.&quot;</span>);
+    <span class="k">return</span> <span class="n">0</span>;
+  }
 
-  <span class="k">return</span> (<span class="t">uint8_t</span>)<span class="i">constant</span>;                         
-}                                                   
+  <span class="k">return</span> (<span class="t">uint8_t</span>)<span class="i">constant</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>emitReturn</em>()</div>
 
@@ -730,10 +730,10 @@ like in a regular recursive descent parser. Here&rsquo;s how parentheses work:</
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">grouping</span>() {                                     
-  <span class="i">expression</span>();                                              
+<span class="k">static</span> <span class="t">void</span> <span class="i">grouping</span>() {
+  <span class="i">expression</span>();
   <span class="i">consume</span>(<span class="a">TOKEN_RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after expression.&quot;</span>);
-}                                                            
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
@@ -755,19 +755,19 @@ inside the parentheses.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>number</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">unary</span>() {                            
-  <span class="t">TokenType</span> <span class="i">operatorType</span> = <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>; 
+<span class="k">static</span> <span class="t">void</span> <span class="i">unary</span>() {
+  <span class="t">TokenType</span> <span class="i">operatorType</span> = <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>;
 
-  <span class="c">// Compile the operand.                        </span>
-  <span class="i">expression</span>();                                  
+  <span class="c">// Compile the operand.</span>
+  <span class="i">expression</span>();
 
-  <span class="c">// Emit the operator instruction.              </span>
-  <span class="k">switch</span> (<span class="i">operatorType</span>) {                        
+  <span class="c">// Emit the operator instruction.</span>
+  <span class="k">switch</span> (<span class="i">operatorType</span>) {
     <span class="k">case</span> <span class="a">TOKEN_MINUS</span>: <span class="i">emitByte</span>(<span class="a">OP_NEGATE</span>); <span class="k">break</span>;
-    <span class="k">default</span>:                                     
-      <span class="k">return</span>; <span class="c">// Unreachable.                    </span>
-  }                                              
-}                                                
+    <span class="k">default</span>:
+      <span class="k">return</span>; <span class="c">// Unreachable.</span>
+  }
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>number</em>()</div>
 
@@ -831,8 +831,8 @@ this:</p>
 add after <em>unary</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">parsePrecedence</span>(<span class="t">Precedence</span> <span class="i">precedence</span>) {
-  <span class="c">// What goes here?                                </span>
-}                                                   
+  <span class="c">// What goes here?</span>
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>()</div>
 
@@ -843,27 +843,27 @@ guess that it will use that table of parsing function pointers I&rsquo;ve been t
 about. For now, don&rsquo;t worry too much about how it works. In order to take the
 &ldquo;precedence&rdquo; as a parameter, we define it numerically:</p>
 <div class="codehilite"><pre class="insert-before">
-} Parser;                       
+} Parser;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after struct <em>Parser</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">enum</span> {                  
-  <span class="a">PREC_NONE</span>,                    
-  <span class="a">PREC_ASSIGNMENT</span>,  <span class="c">// =        </span>
-  <span class="a">PREC_OR</span>,          <span class="c">// or       </span>
-  <span class="a">PREC_AND</span>,         <span class="c">// and      </span>
-  <span class="a">PREC_EQUALITY</span>,    <span class="c">// == !=    </span>
+<span class="k">typedef</span> <span class="k">enum</span> {
+  <span class="a">PREC_NONE</span>,
+  <span class="a">PREC_ASSIGNMENT</span>,  <span class="c">// =</span>
+  <span class="a">PREC_OR</span>,          <span class="c">// or</span>
+  <span class="a">PREC_AND</span>,         <span class="c">// and</span>
+  <span class="a">PREC_EQUALITY</span>,    <span class="c">// == !=</span>
   <span class="a">PREC_COMPARISON</span>,  <span class="c">// &lt; &gt; &lt;= &gt;=</span>
-  <span class="a">PREC_TERM</span>,        <span class="c">// + -      </span>
-  <span class="a">PREC_FACTOR</span>,      <span class="c">// * /      </span>
-  <span class="a">PREC_UNARY</span>,       <span class="c">// ! -      </span>
-  <span class="a">PREC_CALL</span>,        <span class="c">// . ()     </span>
-  <span class="a">PREC_PRIMARY</span>                  
-} <span class="t">Precedence</span>;                   
+  <span class="a">PREC_TERM</span>,        <span class="c">// + -</span>
+  <span class="a">PREC_FACTOR</span>,      <span class="c">// * /</span>
+  <span class="a">PREC_UNARY</span>,       <span class="c">// ! -</span>
+  <span class="a">PREC_CALL</span>,        <span class="c">// . ()</span>
+  <span class="a">PREC_PRIMARY</span>
+} <span class="t">Precedence</span>;
 </pre><pre class="insert-after">
-                                
-Parser parser;                  
+
+Parser parser;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>Parser</em></div>
 
@@ -882,14 +882,14 @@ than unary operators.</p>
 <p>With this function in hand, it&rsquo;s a snap to fill in the missing body for
 <code>expression()</code>:</p>
 <div class="codehilite"><pre class="insert-before">
-static void expression() {         
+static void expression() {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>expression</em>()<br>
 replace 1 line</div>
 <pre class="insert">
   <span class="i">parsePrecedence</span>(<span class="a">PREC_ASSIGNMENT</span>);
 </pre><pre class="insert-after">
-}                                  
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>expression</em>(), replace 1 line</div>
 
@@ -897,14 +897,14 @@ replace 1 line</div>
 precedence expressions too. Now, to compile the operand for a unary expression,
 we call this new function and limit it to the appropriate level:</p>
 <div class="codehilite"><pre class="insert-before">
-  // Compile the operand.          
+  // Compile the operand.
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>unary</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="i">parsePrecedence</span>(<span class="a">PREC_UNARY</span>);     
+  <span class="i">parsePrecedence</span>(<span class="a">PREC_UNARY</span>);
 </pre><pre class="insert-after">
-                                   
+
   // Emit the operator instruction.
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>unary</em>(), replace 1 line</div>
@@ -958,24 +958,24 @@ types. The second column associates infix parser functions with token types.</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">binary</span>() {                                     
-  <span class="c">// Remember the operator.                                </span>
-  <span class="t">TokenType</span> <span class="i">operatorType</span> = <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>;           
+<span class="k">static</span> <span class="t">void</span> <span class="i">binary</span>() {
+  <span class="c">// Remember the operator.</span>
+  <span class="t">TokenType</span> <span class="i">operatorType</span> = <span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>;
 
-  <span class="c">// Compile the right operand.                            </span>
-  <span class="t">ParseRule</span>* <span class="i">rule</span> = <span class="i">getRule</span>(<span class="i">operatorType</span>);                 
-  <span class="i">parsePrecedence</span>((<span class="t">Precedence</span>)(<span class="i">rule</span>-&gt;<span class="i">precedence</span> + <span class="n">1</span>));     
+  <span class="c">// Compile the right operand.</span>
+  <span class="t">ParseRule</span>* <span class="i">rule</span> = <span class="i">getRule</span>(<span class="i">operatorType</span>);
+  <span class="i">parsePrecedence</span>((<span class="t">Precedence</span>)(<span class="i">rule</span>-&gt;<span class="i">precedence</span> + <span class="n">1</span>));
 
-  <span class="c">// Emit the operator instruction.                        </span>
-  <span class="k">switch</span> (<span class="i">operatorType</span>) {                                  
-    <span class="k">case</span> <span class="a">TOKEN_PLUS</span>:          <span class="i">emitByte</span>(<span class="a">OP_ADD</span>); <span class="k">break</span>;     
+  <span class="c">// Emit the operator instruction.</span>
+  <span class="k">switch</span> (<span class="i">operatorType</span>) {
+    <span class="k">case</span> <span class="a">TOKEN_PLUS</span>:          <span class="i">emitByte</span>(<span class="a">OP_ADD</span>); <span class="k">break</span>;
     <span class="k">case</span> <span class="a">TOKEN_MINUS</span>:         <span class="i">emitByte</span>(<span class="a">OP_SUBTRACT</span>); <span class="k">break</span>;
     <span class="k">case</span> <span class="a">TOKEN_STAR</span>:          <span class="i">emitByte</span>(<span class="a">OP_MULTIPLY</span>); <span class="k">break</span>;
-    <span class="k">case</span> <span class="a">TOKEN_SLASH</span>:         <span class="i">emitByte</span>(<span class="a">OP_DIVIDE</span>); <span class="k">break</span>;  
-    <span class="k">default</span>:                                               
-      <span class="k">return</span>; <span class="c">// Unreachable.                              </span>
-  }                                                        
-}                                                          
+    <span class="k">case</span> <span class="a">TOKEN_SLASH</span>:         <span class="i">emitByte</span>(<span class="a">OP_DIVIDE</span>); <span class="k">break</span>;
+    <span class="k">default</span>:
+      <span class="k">return</span>; <span class="c">// Unreachable.</span>
+  }
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
@@ -1058,19 +1058,19 @@ given token because all prefix operators in Lox have the same precedence.</p>
 <p>We wrap these three properties in a little struct which represents a single row
 in the parser table:</p>
 <div class="codehilite"><pre class="insert-before">
-} Precedence;           
+} Precedence;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">struct</span> {        
-  <span class="t">ParseFn</span> <span class="i">prefix</span>;       
-  <span class="t">ParseFn</span> <span class="i">infix</span>;        
+<span class="k">typedef</span> <span class="k">struct</span> {
+  <span class="t">ParseFn</span> <span class="i">prefix</span>;
+  <span class="t">ParseFn</span> <span class="i">infix</span>;
   <span class="t">Precedence</span> <span class="i">precedence</span>;
-} <span class="t">ParseRule</span>;            
+} <span class="t">ParseRule</span>;
 </pre><pre class="insert-after">
-                        
-Parser parser;          
+
+Parser parser;
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>Precedence</em></div>
 
@@ -1082,15 +1082,15 @@ typedef. I understand the intent behind the syntax<span class="em">&mdash;</span
 reflects use&rdquo; thing<span class="em">&mdash;</span>but I think it was a failed syntactic experiment.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-} Precedence;             
+} Precedence;
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after enum <em>Precedence</em></div>
 <pre class="insert">
 
 <span class="k">typedef</span> <span class="t">void</span> (*<span class="t">ParseFn</span>)();
 </pre><pre class="insert-after">
-                          
-typedef struct {          
+
+typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>Precedence</em></div>
 
@@ -1099,48 +1099,48 @@ talking about it forever, and finally you get to see it:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>unary</em>()</div>
 <pre>
-<span class="t">ParseRule</span> <span class="i">rules</span>[] = {                                              
-  { <span class="i">grouping</span>, <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_LEFT_PAREN      </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_RIGHT_PAREN     </span>
+<span class="t">ParseRule</span> <span class="i">rules</span>[] = {
+  { <span class="i">grouping</span>, <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_LEFT_PAREN</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_RIGHT_PAREN</span>
   { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },      <span class="c" name="big">// TOKEN_LEFT_BRACE</span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_RIGHT_BRACE     </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_COMMA           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_DOT             </span>
-  { <span class="i">unary</span>,    <span class="i">binary</span>,  <span class="a">PREC_TERM</span> },       <span class="c">// TOKEN_MINUS           </span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_TERM</span> },       <span class="c">// TOKEN_PLUS            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_SEMICOLON       </span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_FACTOR</span> },     <span class="c">// TOKEN_SLASH           </span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_FACTOR</span> },     <span class="c">// TOKEN_STAR            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_BANG            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_BANG_EQUAL      </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_EQUAL           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_EQUAL_EQUAL     </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_GREATER         </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_GREATER_EQUAL   </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_LESS            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_LESS_EQUAL      </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_IDENTIFIER      </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_STRING          </span>
-  { <span class="i">number</span>,   <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_NUMBER          </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_AND             </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_CLASS           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_ELSE            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FALSE           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FOR             </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FUN             </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_IF              </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_NIL             </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_OR              </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_PRINT           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_RETURN          </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_SUPER           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_THIS            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_TRUE            </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_VAR             </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_WHILE           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_ERROR           </span>
-  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_EOF             </span>
-};                                                                 
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_RIGHT_BRACE</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_COMMA</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_DOT</span>
+  { <span class="i">unary</span>,    <span class="i">binary</span>,  <span class="a">PREC_TERM</span> },       <span class="c">// TOKEN_MINUS</span>
+  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_TERM</span> },       <span class="c">// TOKEN_PLUS</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_SEMICOLON</span>
+  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_FACTOR</span> },     <span class="c">// TOKEN_SLASH</span>
+  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_FACTOR</span> },     <span class="c">// TOKEN_STAR</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_BANG</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_BANG_EQUAL</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_EQUAL</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_EQUAL_EQUAL</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_GREATER</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_GREATER_EQUAL</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_LESS</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_LESS_EQUAL</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_IDENTIFIER</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_STRING</span>
+  { <span class="i">number</span>,   <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_NUMBER</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_AND</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_CLASS</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_ELSE</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FALSE</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FOR</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FUN</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_IF</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_NIL</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_OR</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_PRINT</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_RETURN</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_SUPER</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_THIS</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_TRUE</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_VAR</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_WHILE</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_ERROR</span>
+  { <span class="a">NULL</span>,     <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_EOF</span>
+};
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>unary</em>()</div>
 
@@ -1163,8 +1163,8 @@ This is where our Pratt parser comes to life. The easiest function to define is
 add after <em>parsePrecedence</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">ParseRule</span>* <span class="i">getRule</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
-  <span class="k">return</span> &amp;<span class="i">rules</span>[<span class="i">type</span>];                     
-}                                          
+  <span class="k">return</span> &amp;<span class="i">rules</span>[<span class="i">type</span>];
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>parsePrecedence</em>()</div>
 
@@ -1183,18 +1183,18 @@ recursive, so let&rsquo;s get them all out of the way:</p>
 be compiled on a PDP-11.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-  emitReturn();                                    
-}                                                  
+  emitReturn();
+}
 </pre><div class="source-file"><em>compiler.c</em><br>
 add after <em>endCompiler</em>()</div>
 <pre class="insert">
 
-<span class="k">static</span> <span class="t">void</span> <span class="i">expression</span>();                          
-<span class="k">static</span> <span class="t">ParseRule</span>* <span class="i">getRule</span>(<span class="t">TokenType</span> <span class="i">type</span>);         
+<span class="k">static</span> <span class="t">void</span> <span class="i">expression</span>();
+<span class="k">static</span> <span class="t">ParseRule</span>* <span class="i">getRule</span>(<span class="t">TokenType</span> <span class="i">type</span>);
 <span class="k">static</span> <span class="t">void</span> <span class="i">parsePrecedence</span>(<span class="t">Precedence</span> <span class="i">precedence</span>);
 
 </pre><pre class="insert-after">
-static void binary() {                             
+static void binary() {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>endCompiler</em>()</div>
 
@@ -1206,21 +1206,21 @@ worry, though, if you get it wrong, the C compiler will be happy to tell you.</p
 parsing functions we&rsquo;ve defined is <code>parsePrecedence()</code>. Let&rsquo;s start with parsing
 prefix expressions:</p>
 <div class="codehilite"><pre class="insert-before">
-static void parsePrecedence(Precedence precedence) {         
+static void parsePrecedence(Precedence precedence) {
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-  <span class="i">advance</span>();                                                 
+  <span class="i">advance</span>();
   <span class="t">ParseFn</span> <span class="i">prefixRule</span> = <span class="i">getRule</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>)-&gt;<span class="i">prefix</span>;
-  <span class="k">if</span> (<span class="i">prefixRule</span> == <span class="a">NULL</span>) {                                  
-    <span class="i">error</span>(<span class="s">&quot;Expect expression.&quot;</span>);                             
-    <span class="k">return</span>;                                                  
-  }                                                          
+  <span class="k">if</span> (<span class="i">prefixRule</span> == <span class="a">NULL</span>) {
+    <span class="i">error</span>(<span class="s">&quot;Expect expression.&quot;</span>);
+    <span class="k">return</span>;
+  }
 
-  <span class="i">prefixRule</span>();                                              
+  <span class="i">prefixRule</span>();
 </pre><pre class="insert-after">
-}                                                            
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>(), replace 1 line</div>
 
@@ -1233,18 +1233,18 @@ tokens it needs, and returns back here. Infix expressions are where it gets
 challenging, since precedence comes into play. The implementation is remarkably
 simple:</p>
 <div class="codehilite"><pre class="insert-before">
-  prefixRule();                                                   
+  prefixRule();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>parsePrecedence</em>()</div>
 <pre class="insert">
 
   <span class="k">while</span> (<span class="i">precedence</span> &lt;= <span class="i">getRule</span>(<span class="i">parser</span>.<span class="i">current</span>.<span class="i">type</span>)-&gt;<span class="i">precedence</span>) {
-    <span class="i">advance</span>();                                                    
-    <span class="t">ParseFn</span> <span class="i">infixRule</span> = <span class="i">getRule</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>)-&gt;<span class="i">infix</span>;     
-    <span class="i">infixRule</span>();                                                  
-  }                                                               
+    <span class="i">advance</span>();
+    <span class="t">ParseFn</span> <span class="i">infixRule</span> = <span class="i">getRule</span>(<span class="i">parser</span>.<span class="i">previous</span>.<span class="i">type</span>)-&gt;<span class="i">infix</span>;
+    <span class="i">infixRule</span>();
+  }
 </pre><pre class="insert-after">
-}                                                                 
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>parsePrecedence</em>()</div>
 
@@ -1293,11 +1293,11 @@ earlier when we hand-authored the chunk. Now we&rsquo;ll put in some real code s
 we can enable it whenever we want.</p>
 <p>Since this isn&rsquo;t for end users, we hide it behind a flag:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &lt;stdint.h&gt;          
-                             
+#include &lt;stdint.h&gt;
+
 </pre><div class="source-file"><em>common.h</em></div>
 <pre class="insert">
-<span class="a">#define DEBUG_PRINT_CODE     </span>
+<span class="a">#define DEBUG_PRINT_CODE</span>
 </pre><pre class="insert-after">
 #define DEBUG_TRACE_EXECUTION
 </pre></div>
@@ -1306,17 +1306,17 @@ we can enable it whenever we want.</p>
 <p>When that flag is defined, we use our existing &ldquo;debug&rdquo; module to print out the
 chunk&rsquo;s bytecode:</p>
 <div class="codehilite"><pre class="insert-before">
-  emitReturn();                              
+  emitReturn();
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>endCompiler</em>()</div>
 <pre class="insert">
-<span class="a">#ifdef DEBUG_PRINT_CODE                      </span>
-  <span class="k">if</span> (!<span class="i">parser</span>.<span class="i">hadError</span>) {                    
+<span class="a">#ifdef DEBUG_PRINT_CODE</span>
+  <span class="k">if</span> (!<span class="i">parser</span>.<span class="i">hadError</span>) {
     <span class="i">disassembleChunk</span>(<span class="i">currentChunk</span>(), <span class="s">&quot;code&quot;</span>);
-  }                                          
-<span class="a">#endif                                       </span>
+  }
+<span class="a">#endif</span>
 </pre><pre class="insert-after">
-}                                            
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>()</div>
 
@@ -1326,16 +1326,16 @@ broken code. That&rsquo;s harmless because it won&rsquo;t get executed, but we&r
 confuse ourselves if we try to read it.</p>
 <p>Finally, to access <code>disassembleChunk()</code>, we need to include its header:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &quot;scanner.h&quot;   
+#include &quot;scanner.h&quot;
 </pre><div class="source-file"><em>compiler.c</em></div>
 <pre class="insert">
 
 <span class="a">#ifdef DEBUG_PRINT_CODE</span>
-<span class="a">#include &quot;debug.h&quot;     </span>
-<span class="a">#endif                 </span>
+<span class="a">#include &quot;debug.h&quot;</span>
+<span class="a">#endif</span>
 </pre><pre class="insert-after">
-                       
-typedef struct {       
+
+typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em></div>
 

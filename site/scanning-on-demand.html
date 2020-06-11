@@ -131,26 +131,26 @@ see what they are.</p>
 interpreter. No more hand-authored chunks of bytecode. It&rsquo;s time for a REPL and
 script loading. Tear out most of the code in <code>main()</code> and replace it with:</p>
 <div class="codehilite"><pre class="insert-before">
-int main(int argc, const char* argv[]) {    
-  initVM();                                 
-                                            
+int main(int argc, const char* argv[]) {
+  initVM();
+
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>main</em>()<br>
 replace 26 lines</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="i">argc</span> == <span class="n">1</span>) {                          
-    <span class="i">repl</span>();                                 
-  } <span class="k">else</span> <span class="k">if</span> (<span class="i">argc</span> == <span class="n">2</span>) {                   
-    <span class="i">runFile</span>(<span class="i">argv</span>[<span class="n">1</span>]);                       
-  } <span class="k">else</span> {                                  
+  <span class="k">if</span> (<span class="i">argc</span> == <span class="n">1</span>) {
+    <span class="i">repl</span>();
+  } <span class="k">else</span> <span class="k">if</span> (<span class="i">argc</span> == <span class="n">2</span>) {
+    <span class="i">runFile</span>(<span class="i">argv</span>[<span class="n">1</span>]);
+  } <span class="k">else</span> {
     <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;Usage: clox [path]</span><span class="e">\n</span><span class="s">&quot;</span>);
-    <span class="i">exit</span>(<span class="n">64</span>);                               
-  }                                         
+    <span class="i">exit</span>(<span class="n">64</span>);
+  }
 
-  <span class="i">freeVM</span>();                                 
+  <span class="i">freeVM</span>();
 </pre><pre class="insert-after">
-  return 0;                                 
-}                                           
+  return 0;
+}
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>main</em>(), replace 26 lines</div>
 
@@ -165,7 +165,7 @@ argument in <code>argv</code> is always the name of the executable being run.</p
 <div class="codehilite"><div class="source-file"><em>main.c</em><br>
 add to top of file</div>
 <pre class="insert">
-<span class="a">#include &lt;stdio.h&gt; </span>
+<span class="a">#include &lt;stdio.h&gt;</span>
 <span class="a">#include &lt;stdlib.h&gt;</span>
 <span class="a">#include &lt;string.h&gt;</span>
 
@@ -176,23 +176,23 @@ add to top of file</div>
 
 <p>And now to get the REPL up and REPL-ing:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &quot;vm.h&quot;                             
+#include &quot;vm.h&quot;
 </pre><div class="source-file"><em>main.c</em></div>
 <pre class="insert">
 
-<span class="k">static</span> <span class="t">void</span> <span class="i">repl</span>() {                        
-  <span class="t">char</span> <span class="i">line</span>[<span class="n">1024</span>];                          
-  <span class="k">for</span> (;;) {                                
-    <span class="i">printf</span>(<span class="s">&quot;&gt; &quot;</span>);                           
+<span class="k">static</span> <span class="t">void</span> <span class="i">repl</span>() {
+  <span class="t">char</span> <span class="i">line</span>[<span class="n">1024</span>];
+  <span class="k">for</span> (;;) {
+    <span class="i">printf</span>(<span class="s">&quot;&gt; &quot;</span>);
 
     <span class="k">if</span> (!<span class="i">fgets</span>(<span class="i">line</span>, <span class="k">sizeof</span>(<span class="i">line</span>), <span class="i">stdin</span>)) {
-      <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);                         
-      <span class="k">break</span>;                                
-    }                                       
+      <span class="i">printf</span>(<span class="s">&quot;</span><span class="e">\n</span><span class="s">&quot;</span>);
+      <span class="k">break</span>;
+    }
 
-    <span class="i">interpret</span>(<span class="i">line</span>);                        
-  }                                         
-}                                           
+    <span class="i">interpret</span>(<span class="i">line</span>);
+  }
+}
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em></div>
 
@@ -204,14 +204,14 @@ take care of loading scripts:</p>
 <div class="codehilite"><div class="source-file"><em>main.c</em><br>
 add after <em>repl</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">void</span> <span class="i">runFile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">path</span>) {           
-  <span class="t">char</span>* <span class="i">source</span> = <span class="i">readFile</span>(<span class="i">path</span>);                  
-  <span class="t">InterpretResult</span> <span class="i">result</span> = <span class="i">interpret</span>(<span class="i">source</span>);     
+<span class="k">static</span> <span class="t">void</span> <span class="i">runFile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">path</span>) {
+  <span class="t">char</span>* <span class="i">source</span> = <span class="i">readFile</span>(<span class="i">path</span>);
+  <span class="t">InterpretResult</span> <span class="i">result</span> = <span class="i">interpret</span>(<span class="i">source</span>);
   <span class="i">free</span>(<span class="i">source</span>);<span name="owner"> </span>
 
   <span class="k">if</span> (<span class="i">result</span> == <span class="a">INTERPRET_COMPILE_ERROR</span>) <span class="i">exit</span>(<span class="n">65</span>);
   <span class="k">if</span> (<span class="i">result</span> == <span class="a">INTERPRET_RUNTIME_ERROR</span>) <span class="i">exit</span>(<span class="n">70</span>);
-}                                                 
+}
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, add after <em>repl</em>()</div>
 
@@ -231,20 +231,20 @@ us to be more conscientious.</p>
 <div class="codehilite"><div class="source-file"><em>main.c</em><br>
 add after <em>repl</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">char</span>* <span class="i">readFile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">path</span>) {                        
-  <span class="a">FILE</span>* <span class="i">file</span> = <span class="i">fopen</span>(<span class="i">path</span>, <span class="s">&quot;rb&quot;</span>);                                
+<span class="k">static</span> <span class="t">char</span>* <span class="i">readFile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">path</span>) {
+  <span class="a">FILE</span>* <span class="i">file</span> = <span class="i">fopen</span>(<span class="i">path</span>, <span class="s">&quot;rb&quot;</span>);
 
-  <span class="i">fseek</span>(<span class="i">file</span>, <span class="n">0L</span>, <span class="a">SEEK_END</span>);                                     
-  <span class="t">size_t</span> <span class="i">fileSize</span> = <span class="i">ftell</span>(<span class="i">file</span>);                                 
-  <span class="i">rewind</span>(<span class="i">file</span>);                                                  
+  <span class="i">fseek</span>(<span class="i">file</span>, <span class="n">0L</span>, <span class="a">SEEK_END</span>);
+  <span class="t">size_t</span> <span class="i">fileSize</span> = <span class="i">ftell</span>(<span class="i">file</span>);
+  <span class="i">rewind</span>(<span class="i">file</span>);
 
-  <span class="t">char</span>* <span class="i">buffer</span> = (<span class="t">char</span>*)<span class="i">malloc</span>(<span class="i">fileSize</span> + <span class="n">1</span>);                    
+  <span class="t">char</span>* <span class="i">buffer</span> = (<span class="t">char</span>*)<span class="i">malloc</span>(<span class="i">fileSize</span> + <span class="n">1</span>);
   <span class="t">size_t</span> <span class="i">bytesRead</span> = <span class="i">fread</span>(<span class="i">buffer</span>, <span class="k">sizeof</span>(<span class="t">char</span>), <span class="i">fileSize</span>, <span class="i">file</span>);
-  <span class="i">buffer</span>[<span class="i">bytesRead</span>] = <span class="s">&#39;\0&#39;</span>;                                      
+  <span class="i">buffer</span>[<span class="i">bytesRead</span>] = <span class="s">&#39;\0&#39;</span>;
 
-  <span class="i">fclose</span>(<span class="i">file</span>);                                                  
-  <span class="k">return</span> <span class="i">buffer</span>;                                                 
-}                                                                
+  <span class="i">fclose</span>(<span class="i">file</span>);
+  <span class="k">return</span> <span class="i">buffer</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, add after <em>repl</em>()</div>
 
@@ -274,17 +274,17 @@ occurs. If we can&rsquo;t correctly read the user&rsquo;s script, all we can rea
 tell the user and exit the interpreter gracefully. First up, we might fail to
 open the file:</p>
 <div class="codehilite"><pre class="insert-before">
-  FILE* file = fopen(path, &quot;rb&quot;);                          
+  FILE* file = fopen(path, &quot;rb&quot;);
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>readFile</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="i">file</span> == <span class="a">NULL</span>) {                                      
+  <span class="k">if</span> (<span class="i">file</span> == <span class="a">NULL</span>) {
     <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;Could not open file </span><span class="e">\&quot;</span><span class="s">%s</span><span class="e">\&quot;</span><span class="s">.</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">path</span>);
-    <span class="i">exit</span>(<span class="n">74</span>);                                              
-  }                                                        
+    <span class="i">exit</span>(<span class="n">74</span>);
+  }
 </pre><pre class="insert-after">
-                                                           
-  fseek(file, 0L, SEEK_END);                               
+
+  fseek(file, 0L, SEEK_END);
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>readFile</em>()</div>
 
@@ -292,14 +292,14 @@ in <em>readFile</em>()</div>
 It&rsquo;s pretty common<span class="em">&mdash;</span>people mistype paths all the time.</p>
 <p>This failure is much rarer:</p>
 <div class="codehilite"><pre class="insert-before">
-  char* buffer = (char*)malloc(fileSize + 1);                    
+  char* buffer = (char*)malloc(fileSize + 1);
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>readFile</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="i">buffer</span> == <span class="a">NULL</span>) {                                          
+  <span class="k">if</span> (<span class="i">buffer</span> == <span class="a">NULL</span>) {
     <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;Not enough memory to read </span><span class="e">\&quot;</span><span class="s">%s</span><span class="e">\&quot;</span><span class="s">.</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">path</span>);
-    <span class="i">exit</span>(<span class="n">74</span>);                                                    
-  }                                                              
+    <span class="i">exit</span>(<span class="n">74</span>);
+  }
 
 </pre><pre class="insert-after">
   size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
@@ -315,13 +315,13 @@ you know.</p>
 </pre><div class="source-file"><em>main.c</em><br>
 in <em>readFile</em>()</div>
 <pre class="insert">
-  <span class="k">if</span> (<span class="i">bytesRead</span> &lt; <span class="i">fileSize</span>) {                                    
-    <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;Could not read file </span><span class="e">\&quot;</span><span class="s">%s</span><span class="e">\&quot;</span><span class="s">.</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">path</span>);      
-    <span class="i">exit</span>(<span class="n">74</span>);                                                    
-  }                                                              
+  <span class="k">if</span> (<span class="i">bytesRead</span> &lt; <span class="i">fileSize</span>) {
+    <span class="i">fprintf</span>(<span class="i">stderr</span>, <span class="s">&quot;Could not read file </span><span class="e">\&quot;</span><span class="s">%s</span><span class="e">\&quot;</span><span class="s">.</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">path</span>);
+    <span class="i">exit</span>(<span class="n">74</span>);
+  }
 
 </pre><pre class="insert-after">
-  buffer[bytesRead] = '\0';                                      
+  buffer[bytesRead] = '\0';
 </pre></div>
 <div class="source-file-narrow"><em>main.c</em>, in <em>readFile</em>()</div>
 
@@ -338,14 +338,14 @@ pipeline to scan, compile, and execute it. It&rsquo;s driven by <code>interpret(
 now, that function runs our old hard-coded test chunk. Let&rsquo;s change it to
 something closer to its final incarnation:</p>
 <div class="codehilite"><pre class="insert-before">
-void freeVM();                                
+void freeVM();
 </pre><div class="source-file"><em>vm.h</em><br>
 function <em>interpret</em>()<br>
 replace 1 line</div>
 <pre class="insert">
 <span class="t">InterpretResult</span> <span class="i">interpret</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>);
 </pre><pre class="insert-after">
-void push(Value value);                       
+void push(Value value);
 </pre></div>
 <div class="source-file-narrow"><em>vm.h</em>, function <em>interpret</em>(), replace 1 line</div>
 
@@ -356,22 +356,22 @@ function <em>interpret</em>()<br>
 replace 4 lines</div>
 <pre class="insert">
 <span class="t">InterpretResult</span> <span class="i">interpret</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>) {
-  <span class="i">compile</span>(<span class="i">source</span>);                             
-  <span class="k">return</span> <span class="a">INTERPRET_OK</span>;                         
+  <span class="i">compile</span>(<span class="i">source</span>);
+  <span class="k">return</span> <span class="a">INTERPRET_OK</span>;
 </pre><pre class="insert-after">
-}                                              
+}
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em>, function <em>interpret</em>(), replace 4 lines</div>
 
 <p>We don&rsquo;t have the actual <em>compiler</em> yet in this chapter, but we can start laying
 out its structure. It lives in a new module:</p>
 <div class="codehilite"><pre class="insert-before">
-#include &quot;common.h&quot;  
+#include &quot;common.h&quot;
 </pre><div class="source-file"><em>vm.c</em></div>
 <pre class="insert">
 <span class="a">#include &quot;compiler.h&quot;</span>
 </pre><pre class="insert-after">
-#include &quot;debug.h&quot;   
+#include &quot;debug.h&quot;
 </pre></div>
 <div class="source-file-narrow"><em>vm.c</em></div>
 
@@ -379,12 +379,12 @@ out its structure. It lives in a new module:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.h</em><br>
 create new file</div>
 <pre>
-<span class="a">#ifndef clox_compiler_h          </span>
-<span class="a">#define clox_compiler_h          </span>
+<span class="a">#ifndef clox_compiler_h</span>
+<span class="a">#define clox_compiler_h</span>
 
 <span class="t">void</span> <span class="i">compile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>);
 
-<span class="a">#endif                           </span>
+<span class="a">#endif</span>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.h</em>, create new file</div>
 
@@ -392,15 +392,15 @@ create new file</div>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 create new file</div>
 <pre>
-<span class="a">#include &lt;stdio.h&gt;                </span>
+<span class="a">#include &lt;stdio.h&gt;</span>
 
-<span class="a">#include &quot;common.h&quot;               </span>
-<span class="a">#include &quot;compiler.h&quot;             </span>
-<span class="a">#include &quot;scanner.h&quot;              </span>
+<span class="a">#include &quot;common.h&quot;</span>
+<span class="a">#include &quot;compiler.h&quot;</span>
+<span class="a">#include &quot;scanner.h&quot;</span>
 
 <span class="t">void</span> <span class="i">compile</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>) {
-  <span class="i">initScanner</span>(<span class="i">source</span>);            
-}                                 
+  <span class="i">initScanner</span>(<span class="i">source</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, create new file</div>
 
@@ -412,12 +412,12 @@ writing useful code. First, a new header:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.h</em><br>
 create new file</div>
 <pre>
-<span class="a">#ifndef clox_scanner_h               </span>
-<span class="a">#define clox_scanner_h               </span>
+<span class="a">#ifndef clox_scanner_h</span>
+<span class="a">#define clox_scanner_h</span>
 
 <span class="t">void</span> <span class="i">initScanner</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>);
 
-<span class="a">#endif                               </span>
+<span class="a">#endif</span>
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em>, create new file</div>
 
@@ -425,19 +425,19 @@ create new file</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 create new file</div>
 <pre>
-<span class="a">#include &lt;stdio.h&gt;    </span>
-<span class="a">#include &lt;string.h&gt;   </span>
+<span class="a">#include &lt;stdio.h&gt;</span>
+<span class="a">#include &lt;string.h&gt;</span>
 
-<span class="a">#include &quot;common.h&quot;   </span>
-<span class="a">#include &quot;scanner.h&quot;  </span>
+<span class="a">#include &quot;common.h&quot;</span>
+<span class="a">#include &quot;scanner.h&quot;</span>
 
-<span class="k">typedef</span> <span class="k">struct</span> {      
-  <span class="k">const</span> <span class="t">char</span>* <span class="i">start</span>;  
+<span class="k">typedef</span> <span class="k">struct</span> {
+  <span class="k">const</span> <span class="t">char</span>* <span class="i">start</span>;
   <span class="k">const</span> <span class="t">char</span>* <span class="i">current</span>;
-  <span class="t">int</span> <span class="i">line</span>;           
-} <span class="t">Scanner</span>;            
+  <span class="t">int</span> <span class="i">line</span>;
+} <span class="t">Scanner</span>;
 
-<span class="t">Scanner</span> <span class="i">scanner</span>;      
+<span class="t">Scanner</span> <span class="i">scanner</span>;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, create new file</div>
 
@@ -462,10 +462,10 @@ after that.</p>
 add after variable <em>Scanner</em></div>
 <pre>
 <span class="t">void</span> <span class="i">initScanner</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">source</span>) {
-  <span class="i">scanner</span>.<span class="i">start</span> = <span class="i">source</span>;             
-  <span class="i">scanner</span>.<span class="i">current</span> = <span class="i">source</span>;           
-  <span class="i">scanner</span>.<span class="i">line</span> = <span class="n">1</span>;                   
-}                                     
+  <span class="i">scanner</span>.<span class="i">start</span> = <span class="i">source</span>;
+  <span class="i">scanner</span>.<span class="i">current</span> = <span class="i">source</span>;
+  <span class="i">scanner</span>.<span class="i">line</span> = <span class="n">1</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after variable <em>Scanner</em></div>
 
@@ -486,25 +486,25 @@ returns the token by value. It doesn&rsquo;t need to dynamically allocate anythi
 so the scanner will just sit there doing nothing. To kick it into action, we&rsquo;ll
 write some temporary code to drive it:</p>
 <div class="codehilite"><pre class="insert-before">
-  initScanner(source);                                                        
+  initScanner(source);
 </pre><div class="source-file"><em>compiler.c</em><br>
 in <em>compile</em>()</div>
 <pre class="insert">
-  <span class="t">int</span> <span class="i">line</span> = -<span class="n">1</span>;                                                              
-  <span class="k">for</span> (;;) {                                                                  
-    <span class="t">Token</span> <span class="i">token</span> = <span class="i">scanToken</span>();                                                
-    <span class="k">if</span> (<span class="i">token</span>.<span class="i">line</span> != <span class="i">line</span>) {                                                 
-      <span class="i">printf</span>(<span class="s">&quot;%4d &quot;</span>, <span class="i">token</span>.<span class="i">line</span>);                                             
-      <span class="i">line</span> = <span class="i">token</span>.<span class="i">line</span>;                                                      
-    } <span class="k">else</span> {                                                                  
-      <span class="i">printf</span>(<span class="s">&quot;   | &quot;</span>);                                                        
-    }                                                                         
+  <span class="t">int</span> <span class="i">line</span> = -<span class="n">1</span>;
+  <span class="k">for</span> (;;) {
+    <span class="t">Token</span> <span class="i">token</span> = <span class="i">scanToken</span>();
+    <span class="k">if</span> (<span class="i">token</span>.<span class="i">line</span> != <span class="i">line</span>) {
+      <span class="i">printf</span>(<span class="s">&quot;%4d &quot;</span>, <span class="i">token</span>.<span class="i">line</span>);
+      <span class="i">line</span> = <span class="i">token</span>.<span class="i">line</span>;
+    } <span class="k">else</span> {
+      <span class="i">printf</span>(<span class="s">&quot;   | &quot;</span>);
+    }
     <span class="i">printf</span>(<span class="s">&quot;%2d &#39;%.*s&#39;</span><span class="e">\n</span><span class="s">&quot;</span>, <span class="i">token</span>.<span class="i">type</span>, <span class="i">token</span>.<span class="i">length</span>, <span class="i">token</span>.<span class="i">start</span>);<span name="format"> </span>
 
-    <span class="k">if</span> (<span class="i">token</span>.<span class="i">type</span> == <span class="a">TOKEN_EOF</span>) <span class="k">break</span>;                                       
-  }                                                                           
+    <span class="k">if</span> (<span class="i">token</span>.<span class="i">type</span> == <span class="a">TOKEN_EOF</span>) <span class="k">break</span>;
+  }
 </pre><pre class="insert-after">
-}                                                                             
+}
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>compile</em>()</div>
 
@@ -544,28 +544,28 @@ void initScanner(const char* source);
 </pre><div class="source-file"><em>scanner.h</em><br>
 add after <em>initScanner</em>()</div>
 <pre class="insert">
-<span class="t">Token</span> <span class="i">scanToken</span>();                   
+<span class="t">Token</span> <span class="i">scanToken</span>();
 </pre><pre class="insert-after">
-                                     
-#endif                               
+
+#endif
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em>, add after <em>initScanner</em>()</div>
 
 <p>Each call to this scans and returns the next token in the source code. A token
 looks like:</p>
 <div class="codehilite"><pre class="insert-before">
-#define clox_scanner_h               
+#define clox_scanner_h
 </pre><div class="source-file"><em>scanner.h</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">struct</span> {                     
-  <span class="t">TokenType</span> <span class="i">type</span>;                    
-  <span class="k">const</span> <span class="t">char</span>* <span class="i">start</span>;                 
-  <span class="t">int</span> <span class="i">length</span>;                        
-  <span class="t">int</span> <span class="i">line</span>;                          
-} <span class="t">Token</span>;                             
+<span class="k">typedef</span> <span class="k">struct</span> {
+  <span class="t">TokenType</span> <span class="i">type</span>;
+  <span class="k">const</span> <span class="t">char</span>* <span class="i">start</span>;
+  <span class="t">int</span> <span class="i">length</span>;
+  <span class="t">int</span> <span class="i">line</span>;
+} <span class="t">Token</span>;
 </pre><pre class="insert-after">
-                                     
+
 void initScanner(const char* source);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em></div>
@@ -574,39 +574,39 @@ void initScanner(const char* source);
 of token it is<span class="em">&mdash;</span>number, identifier, <code>+</code> operator, etc. The enum is virtually
 identical to the one in jlox, so let&rsquo;s just hammer out the whole thing:</p>
 <div class="codehilite"><pre class="insert-before">
-#ifndef clox_scanner_h                                
-#define clox_scanner_h                                
+#ifndef clox_scanner_h
+#define clox_scanner_h
 </pre><div class="source-file"><em>scanner.h</em></div>
 <pre class="insert">
 
-<span class="k">typedef</span> <span class="k">enum</span> {                                        
-  <span class="c">// Single-character tokens.                         </span>
-  <span class="a">TOKEN_LEFT_PAREN</span>, <span class="a">TOKEN_RIGHT_PAREN</span>,                
-  <span class="a">TOKEN_LEFT_BRACE</span>, <span class="a">TOKEN_RIGHT_BRACE</span>,                
-  <span class="a">TOKEN_COMMA</span>, <span class="a">TOKEN_DOT</span>, <span class="a">TOKEN_MINUS</span>, <span class="a">TOKEN_PLUS</span>,    
-  <span class="a">TOKEN_SEMICOLON</span>, <span class="a">TOKEN_SLASH</span>, <span class="a">TOKEN_STAR</span>,           
+<span class="k">typedef</span> <span class="k">enum</span> {
+  <span class="c">// Single-character tokens.</span>
+  <span class="a">TOKEN_LEFT_PAREN</span>, <span class="a">TOKEN_RIGHT_PAREN</span>,
+  <span class="a">TOKEN_LEFT_BRACE</span>, <span class="a">TOKEN_RIGHT_BRACE</span>,
+  <span class="a">TOKEN_COMMA</span>, <span class="a">TOKEN_DOT</span>, <span class="a">TOKEN_MINUS</span>, <span class="a">TOKEN_PLUS</span>,
+  <span class="a">TOKEN_SEMICOLON</span>, <span class="a">TOKEN_SLASH</span>, <span class="a">TOKEN_STAR</span>,
 
-  <span class="c">// One or two character tokens.                     </span>
-  <span class="a">TOKEN_BANG</span>, <span class="a">TOKEN_BANG_EQUAL</span>,                       
-  <span class="a">TOKEN_EQUAL</span>, <span class="a">TOKEN_EQUAL_EQUAL</span>,                     
-  <span class="a">TOKEN_GREATER</span>, <span class="a">TOKEN_GREATER_EQUAL</span>,                 
-  <span class="a">TOKEN_LESS</span>, <span class="a">TOKEN_LESS_EQUAL</span>,                       
+  <span class="c">// One or two character tokens.</span>
+  <span class="a">TOKEN_BANG</span>, <span class="a">TOKEN_BANG_EQUAL</span>,
+  <span class="a">TOKEN_EQUAL</span>, <span class="a">TOKEN_EQUAL_EQUAL</span>,
+  <span class="a">TOKEN_GREATER</span>, <span class="a">TOKEN_GREATER_EQUAL</span>,
+  <span class="a">TOKEN_LESS</span>, <span class="a">TOKEN_LESS_EQUAL</span>,
 
-  <span class="c">// Literals.                                        </span>
-  <span class="a">TOKEN_IDENTIFIER</span>, <span class="a">TOKEN_STRING</span>, <span class="a">TOKEN_NUMBER</span>,       
+  <span class="c">// Literals.</span>
+  <span class="a">TOKEN_IDENTIFIER</span>, <span class="a">TOKEN_STRING</span>, <span class="a">TOKEN_NUMBER</span>,
 
-  <span class="c">// Keywords.                                        </span>
-  <span class="a">TOKEN_AND</span>, <span class="a">TOKEN_CLASS</span>, <span class="a">TOKEN_ELSE</span>, <span class="a">TOKEN_FALSE</span>,    
+  <span class="c">// Keywords.</span>
+  <span class="a">TOKEN_AND</span>, <span class="a">TOKEN_CLASS</span>, <span class="a">TOKEN_ELSE</span>, <span class="a">TOKEN_FALSE</span>,
   <span class="a">TOKEN_FOR</span>, <span class="a">TOKEN_FUN</span>, <span class="a">TOKEN_IF</span>, <span class="a">TOKEN_NIL</span>, <span class="a">TOKEN_OR</span>,
-  <span class="a">TOKEN_PRINT</span>, <span class="a">TOKEN_RETURN</span>, <span class="a">TOKEN_SUPER</span>, <span class="a">TOKEN_THIS</span>, 
-  <span class="a">TOKEN_TRUE</span>, <span class="a">TOKEN_VAR</span>, <span class="a">TOKEN_WHILE</span>,                 
+  <span class="a">TOKEN_PRINT</span>, <span class="a">TOKEN_RETURN</span>, <span class="a">TOKEN_SUPER</span>, <span class="a">TOKEN_THIS</span>,
+  <span class="a">TOKEN_TRUE</span>, <span class="a">TOKEN_VAR</span>, <span class="a">TOKEN_WHILE</span>,
 
-  <span class="a">TOKEN_ERROR</span>,                                        
-  <span class="a">TOKEN_EOF</span>                                           
-} <span class="t">TokenType</span>;                                          
+  <span class="a">TOKEN_ERROR</span>,
+  <span class="a">TOKEN_EOF</span>
+} <span class="t">TokenType</span>;
 </pre><pre class="insert-after">
-                                                      
-typedef struct {                                      
+
+typedef struct {
 </pre></div>
 <div class="source-file-narrow"><em>scanner.h</em></div>
 
@@ -639,13 +639,13 @@ implementation, starting with this:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre>
-<span class="t">Token</span> <span class="i">scanToken</span>() {                          
-  <span class="i">scanner</span>.<span class="i">start</span> = <span class="i">scanner</span>.<span class="i">current</span>;           
+<span class="t">Token</span> <span class="i">scanToken</span>() {
+  <span class="i">scanner</span>.<span class="i">start</span> = <span class="i">scanner</span>.<span class="i">current</span>;
 
   <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_EOF</span>);
 
   <span class="k">return</span> <span class="i">errorToken</span>(<span class="s">&quot;Unexpected character.&quot;</span>);
-}                                            
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>initScanner</em>()</div>
 
@@ -666,9 +666,9 @@ jlox. First up:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">isAtEnd</span>() {           
+<span class="k">static</span> <span class="t">bool</span> <span class="i">isAtEnd</span>() {
   <span class="k">return</span> *<span class="i">scanner</span>.<span class="i">current</span> == <span class="s">&#39;\0&#39;</span>;
-}                                 
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>initScanner</em>()</div>
 
@@ -678,15 +678,15 @@ current character is the null byte, then we&rsquo;ve reached the end.</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>isAtEnd</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">Token</span> <span class="i">makeToken</span>(<span class="t">TokenType</span> <span class="i">type</span>) {                
-  <span class="t">Token</span> <span class="i">token</span>;                                          
-  <span class="i">token</span>.<span class="i">type</span> = <span class="i">type</span>;                                    
-  <span class="i">token</span>.<span class="i">start</span> = <span class="i">scanner</span>.<span class="i">start</span>;                          
+<span class="k">static</span> <span class="t">Token</span> <span class="i">makeToken</span>(<span class="t">TokenType</span> <span class="i">type</span>) {
+  <span class="t">Token</span> <span class="i">token</span>;
+  <span class="i">token</span>.<span class="i">type</span> = <span class="i">type</span>;
+  <span class="i">token</span>.<span class="i">start</span> = <span class="i">scanner</span>.<span class="i">start</span>;
   <span class="i">token</span>.<span class="i">length</span> = (<span class="t">int</span>)(<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span>);
-  <span class="i">token</span>.<span class="i">line</span> = <span class="i">scanner</span>.<span class="i">line</span>;                            
+  <span class="i">token</span>.<span class="i">line</span> = <span class="i">scanner</span>.<span class="i">line</span>;
 
-  <span class="k">return</span> <span class="i">token</span>;                                         
-}                                                       
+  <span class="k">return</span> <span class="i">token</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>isAtEnd</em>()</div>
 
@@ -697,14 +697,14 @@ a sister function for returning error tokens:</p>
 add after <em>makeToken</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">Token</span> <span class="i">errorToken</span>(<span class="k">const</span> <span class="t">char</span>* <span class="i">message</span>) {
-  <span class="t">Token</span> <span class="i">token</span>;                                
-  <span class="i">token</span>.<span class="i">type</span> = <span class="a">TOKEN_ERROR</span>;                   
-  <span class="i">token</span>.<span class="i">start</span> = <span class="i">message</span>;                      
-  <span class="i">token</span>.<span class="i">length</span> = (<span class="t">int</span>)<span class="i">strlen</span>(<span class="i">message</span>);        
-  <span class="i">token</span>.<span class="i">line</span> = <span class="i">scanner</span>.<span class="i">line</span>;                  
+  <span class="t">Token</span> <span class="i">token</span>;
+  <span class="i">token</span>.<span class="i">type</span> = <span class="a">TOKEN_ERROR</span>;
+  <span class="i">token</span>.<span class="i">start</span> = <span class="i">message</span>;
+  <span class="i">token</span>.<span class="i">length</span> = (<span class="t">int</span>)<span class="i">strlen</span>(<span class="i">message</span>);
+  <span class="i">token</span>.<span class="i">line</span> = <span class="i">scanner</span>.<span class="i">line</span>;
 
-  <span class="k">return</span> <span class="i">token</span>;                               
-}                                             
+  <span class="k">return</span> <span class="i">token</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>makeToken</em>()</div>
 
@@ -724,29 +724,29 @@ rules.</p>
 <h2><a href="#a-lexical-grammar-for-lox" name="a-lexical-grammar-for-lox"><small>16&#8202;.&#8202;3</small>A Lexical Grammar for Lox</a></h2>
 <p>The simplest tokens are only a single character. We recognize those like so:</p>
 <div class="codehilite"><pre class="insert-before">
-  if (isAtEnd()) return makeToken(TOKEN_EOF);     
+  if (isAtEnd()) return makeToken(TOKEN_EOF);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
 
-  <span class="t">char</span> <span class="i">c</span> = <span class="i">advance</span>();                             
+  <span class="t">char</span> <span class="i">c</span> = <span class="i">advance</span>();
 
-  <span class="k">switch</span> (<span class="i">c</span>) {                                    
-    <span class="k">case</span> <span class="s">&#39;(&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_LEFT_PAREN</span>); 
+  <span class="k">switch</span> (<span class="i">c</span>) {
+    <span class="k">case</span> <span class="s">&#39;(&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_LEFT_PAREN</span>);
     <span class="k">case</span> <span class="s">&#39;)&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_RIGHT_PAREN</span>);
-    <span class="k">case</span> <span class="s">&#39;{&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_LEFT_BRACE</span>); 
+    <span class="k">case</span> <span class="s">&#39;{&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_LEFT_BRACE</span>);
     <span class="k">case</span> <span class="s">&#39;}&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_RIGHT_BRACE</span>);
-    <span class="k">case</span> <span class="s">&#39;;&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_SEMICOLON</span>);  
-    <span class="k">case</span> <span class="s">&#39;,&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_COMMA</span>);      
-    <span class="k">case</span> <span class="s">&#39;.&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_DOT</span>);        
-    <span class="k">case</span> <span class="s">&#39;-&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_MINUS</span>);      
-    <span class="k">case</span> <span class="s">&#39;+&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_PLUS</span>);       
-    <span class="k">case</span> <span class="s">&#39;/&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_SLASH</span>);      
-    <span class="k">case</span> <span class="s">&#39;*&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_STAR</span>);       
-  }                                               
+    <span class="k">case</span> <span class="s">&#39;;&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_SEMICOLON</span>);
+    <span class="k">case</span> <span class="s">&#39;,&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_COMMA</span>);
+    <span class="k">case</span> <span class="s">&#39;.&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_DOT</span>);
+    <span class="k">case</span> <span class="s">&#39;-&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_MINUS</span>);
+    <span class="k">case</span> <span class="s">&#39;+&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_PLUS</span>);
+    <span class="k">case</span> <span class="s">&#39;/&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_SLASH</span>);
+    <span class="k">case</span> <span class="s">&#39;*&#39;</span>: <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_STAR</span>);
+  }
 </pre><pre class="insert-after">
-                                                  
-  return errorToken(&quot;Unexpected character.&quot;);     
+
+  return errorToken(&quot;Unexpected character.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -757,10 +757,10 @@ it:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>isAtEnd</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">char</span> <span class="i">advance</span>() {      
-  <span class="i">scanner</span>.<span class="i">current</span>++;         
+<span class="k">static</span> <span class="t">char</span> <span class="i">advance</span>() {
+  <span class="i">scanner</span>.<span class="i">current</span>++;
   <span class="k">return</span> <span class="i">scanner</span>.<span class="i">current</span>[-<span class="n">1</span>];
-}                            
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>isAtEnd</em>()</div>
 
@@ -769,22 +769,22 @@ these also has a corresponding single-character token. That means that when we
 see a character like <code>!</code>, we don&rsquo;t know if we&rsquo;re in a <code>!</code> token or a <code>!=</code> until
 we look at the next character too. We handle those like so:</p>
 <div class="codehilite"><pre class="insert-before">
-    case '*': return makeToken(TOKEN_STAR);                          
+    case '*': return makeToken(TOKEN_STAR);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="s">&#39;!&#39;</span>:                                                        
-      <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_BANG_EQUAL</span> : <span class="a">TOKEN_BANG</span>);  
-    <span class="k">case</span> <span class="s">&#39;=&#39;</span>:                                                        
+    <span class="k">case</span> <span class="s">&#39;!&#39;</span>:
+      <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_BANG_EQUAL</span> : <span class="a">TOKEN_BANG</span>);
+    <span class="k">case</span> <span class="s">&#39;=&#39;</span>:
       <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_EQUAL_EQUAL</span> : <span class="a">TOKEN_EQUAL</span>);
-    <span class="k">case</span> <span class="s">&#39;&lt;&#39;</span>:                                                        
-      <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_LESS_EQUAL</span> : <span class="a">TOKEN_LESS</span>);  
-    <span class="k">case</span> <span class="s">&#39;&gt;&#39;</span>:                                                        
-      <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ?                                  
-                       <span class="a">TOKEN_GREATER_EQUAL</span> : <span class="a">TOKEN_GREATER</span>);         
+    <span class="k">case</span> <span class="s">&#39;&lt;&#39;</span>:
+      <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ? <span class="a">TOKEN_LESS_EQUAL</span> : <span class="a">TOKEN_LESS</span>);
+    <span class="k">case</span> <span class="s">&#39;&gt;&#39;</span>:
+      <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">match</span>(<span class="s">&#39;=&#39;</span>) ?
+                       <span class="a">TOKEN_GREATER_EQUAL</span> : <span class="a">TOKEN_GREATER</span>);
 </pre><pre class="insert-after">
-  }                                                                  
-                                                                     
+  }
+
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -796,13 +796,13 @@ appropriate one-character token.</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>advance</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">match</span>(<span class="t">char</span> <span class="i">expected</span>) {               
-  <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="k">false</span>;                   
+<span class="k">static</span> <span class="t">bool</span> <span class="i">match</span>(<span class="t">char</span> <span class="i">expected</span>) {
+  <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="k">false</span>;
   <span class="k">if</span> (*<span class="i">scanner</span>.<span class="i">current</span> != <span class="i">expected</span>) <span class="k">return</span> <span class="k">false</span>;
 
-  <span class="i">scanner</span>.<span class="i">current</span>++;                             
-  <span class="k">return</span> <span class="k">true</span>;                                   
-}                                                
+  <span class="i">scanner</span>.<span class="i">current</span>++;
+  <span class="k">return</span> <span class="k">true</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>advance</em>()</div>
 
@@ -820,15 +820,15 @@ when you call it. We&rsquo;d have to wrap the whole body of the function in a lo
 something.</p>
 <p>Instead, before starting the token, we shunt off to a separate function:</p>
 <div class="codehilite"><pre class="insert-before">
-Token scanToken() {               
+Token scanToken() {
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
-  <span class="i">skipWhitespace</span>();               
+  <span class="i">skipWhitespace</span>();
 
 </pre><pre class="insert-after">
   scanner.start = scanner.current;
-                                  
+
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -839,20 +839,20 @@ source code).</p>
 add after <em>errorToken</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">void</span> <span class="i">skipWhitespace</span>() {
-  <span class="k">for</span> (;;) {                  
-    <span class="t">char</span> <span class="i">c</span> = <span class="i">peek</span>();          
-    <span class="k">switch</span> (<span class="i">c</span>) {              
-      <span class="k">case</span> <span class="s">&#39; &#39;</span>:               
-      <span class="k">case</span> <span class="s">&#39;\r&#39;</span>:              
-      <span class="k">case</span> <span class="s">&#39;\t&#39;</span>:              
-        <span class="i">advance</span>();            
-        <span class="k">break</span>;                
+  <span class="k">for</span> (;;) {
+    <span class="t">char</span> <span class="i">c</span> = <span class="i">peek</span>();
+    <span class="k">switch</span> (<span class="i">c</span>) {
+      <span class="k">case</span> <span class="s">&#39; &#39;</span>:
+      <span class="k">case</span> <span class="s">&#39;\r&#39;</span>:
+      <span class="k">case</span> <span class="s">&#39;\t&#39;</span>:
+        <span class="i">advance</span>();
+        <span class="k">break</span>;
 
-      <span class="k">default</span>:                
-        <span class="k">return</span>;               
-    }                         
-  }                           
-}                             
+      <span class="k">default</span>:
+        <span class="k">return</span>;
+    }
+  }
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>errorToken</em>()</div>
 
@@ -862,27 +862,27 @@ character it encounters. We need to be careful that it does <em>not</em> consume
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>advance</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">char</span> <span class="i">peek</span>() {      
+<span class="k">static</span> <span class="t">char</span> <span class="i">peek</span>() {
   <span class="k">return</span> *<span class="i">scanner</span>.<span class="i">current</span>;
-}                         
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>advance</em>()</div>
 
 <p>This simply returns the current character, but doesn&rsquo;t consume it. The previous
 code handles all the whitespace characters except for newlines:</p>
 <div class="codehilite"><pre class="insert-before">
-        break;         
+        break;
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="s">&#39;\n&#39;</span>:       
+      <span class="k">case</span> <span class="s">&#39;\n&#39;</span>:
         <span class="i">scanner</span>.<span class="i">line</span>++;
-        <span class="i">advance</span>();     
-        <span class="k">break</span>;         
+        <span class="i">advance</span>();
+        <span class="k">break</span>;
 </pre><pre class="insert-after">
-                       
-      default:         
+
+      default:
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>skipWhitespace</em>()</div>
 
@@ -892,22 +892,22 @@ in <em>skipWhitespace</em>()</div>
 your terminology, but as far as Lox is concerned, they may as well be, so we
 skip those too:</p>
 <div class="codehilite"><pre class="insert-before">
-        break;                                           
+        break;
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>skipWhitespace</em>()</div>
 <pre class="insert">
 
-      <span class="k">case</span> <span class="s">&#39;/&#39;</span>:                                          
-        <span class="k">if</span> (<span class="i">peekNext</span>() == <span class="s">&#39;/&#39;</span>) {                         
-          <span class="c">// A comment goes until the end of the line.   </span>
+      <span class="k">case</span> <span class="s">&#39;/&#39;</span>:
+        <span class="k">if</span> (<span class="i">peekNext</span>() == <span class="s">&#39;/&#39;</span>) {
+          <span class="c">// A comment goes until the end of the line.</span>
           <span class="k">while</span> (<span class="i">peek</span>() != <span class="s">&#39;\n&#39;</span> &amp;&amp; !<span class="i">isAtEnd</span>()) <span class="i">advance</span>();
-        } <span class="k">else</span> {                                         
-          <span class="k">return</span>;                                        
-        }                                                
-        <span class="k">break</span>;                                           
+        } <span class="k">else</span> {
+          <span class="k">return</span>;
+        }
+        <span class="k">break</span>;
 </pre><pre class="insert-after">
-                                                         
-      default:                                           
+
+      default:
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>skipWhitespace</em>()</div>
 
@@ -919,10 +919,10 @@ even if the <code>=</code> wasn&rsquo;t found. Comments are different, if we don
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>peek</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">char</span> <span class="i">peekNext</span>() {     
+<span class="k">static</span> <span class="t">char</span> <span class="i">peekNext</span>() {
   <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="s">&#39;\0&#39;</span>;
-  <span class="k">return</span> <span class="i">scanner</span>.<span class="i">current</span>[<span class="n">1</span>]; 
-}                            
+  <span class="k">return</span> <span class="i">scanner</span>.<span class="i">current</span>[<span class="n">1</span>];
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>peek</em>()</div>
 
@@ -942,10 +942,10 @@ recognize<span class="em">&mdash;</span>they always begin with a double quote:</
 in <em>scanToken</em>()</div>
 <pre class="insert">
 
-    <span class="k">case</span> <span class="s">&#39;&quot;&#39;</span>: <span class="k">return</span> <span class="i">string</span>();                              
+    <span class="k">case</span> <span class="s">&#39;&quot;&#39;</span>: <span class="k">return</span> <span class="i">string</span>();
 </pre><pre class="insert-after">
-  }                                                         
-                                                            
+  }
+
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -953,18 +953,18 @@ in <em>scanToken</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">Token</span> <span class="i">string</span>() {                                    
-  <span class="k">while</span> (<span class="i">peek</span>() != <span class="s">&#39;&quot;&#39;</span> &amp;&amp; !<span class="i">isAtEnd</span>()) {                    
-    <span class="k">if</span> (<span class="i">peek</span>() == <span class="s">&#39;\n&#39;</span>) <span class="i">scanner</span>.<span class="i">line</span>++;                    
-    <span class="i">advance</span>();                                             
-  }                                                        
+<span class="k">static</span> <span class="t">Token</span> <span class="i">string</span>() {
+  <span class="k">while</span> (<span class="i">peek</span>() != <span class="s">&#39;&quot;&#39;</span> &amp;&amp; !<span class="i">isAtEnd</span>()) {
+    <span class="k">if</span> (<span class="i">peek</span>() == <span class="s">&#39;\n&#39;</span>) <span class="i">scanner</span>.<span class="i">line</span>++;
+    <span class="i">advance</span>();
+  }
 
   <span class="k">if</span> (<span class="i">isAtEnd</span>()) <span class="k">return</span> <span class="i">errorToken</span>(<span class="s">&quot;Unterminated string.&quot;</span>);
 
-  <span class="c">// The closing quote.                                    </span>
-  <span class="i">advance</span>();                                               
-  <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_STRING</span>);                          
-}                                                          
+  <span class="c">// The closing quote.</span>
+  <span class="i">advance</span>();
+  <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_STRING</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>skipWhitespace</em>()</div>
 
@@ -994,14 +994,14 @@ keeps our scanner simpler.</p>
 <p>Next up, numbers. Instead of adding a switch case for each of the ten digits
 that can start a number, we handle them here:</p>
 <div class="codehilite"><pre class="insert-before">
-  char c = advance();             
+  char c = advance();
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
   <span class="k">if</span> (<span class="i">isDigit</span>(<span class="i">c</span>)) <span class="k">return</span> <span class="i">number</span>();
 </pre><pre class="insert-after">
-                                  
-  switch (c) {                    
+
+  switch (c) {
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -1009,9 +1009,9 @@ in <em>scanToken</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">isDigit</span>(<span class="t">char</span> <span class="i">c</span>) { 
+<span class="k">static</span> <span class="t">bool</span> <span class="i">isDigit</span>(<span class="t">char</span> <span class="i">c</span>) {
   <span class="k">return</span> <span class="i">c</span> &gt;= <span class="s">&#39;0&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;9&#39;</span>;
-}                             
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>initScanner</em>()</div>
 
@@ -1019,19 +1019,19 @@ add after <em>initScanner</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">Token</span> <span class="i">number</span>() {                      
-  <span class="k">while</span> (<span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();         
+<span class="k">static</span> <span class="t">Token</span> <span class="i">number</span>() {
+  <span class="k">while</span> (<span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
 
-  <span class="c">// Look for a fractional part.             </span>
+  <span class="c">// Look for a fractional part.</span>
   <span class="k">if</span> (<span class="i">peek</span>() == <span class="s">&#39;.&#39;</span> &amp;&amp; <span class="i">isDigit</span>(<span class="i">peekNext</span>())) {
-    <span class="c">// Consume the &quot;.&quot;.                      </span>
-    <span class="i">advance</span>();                               
+    <span class="c">// Consume the &quot;.&quot;.</span>
+    <span class="i">advance</span>();
 
-    <span class="k">while</span> (<span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();       
-  }                                          
+    <span class="k">while</span> (<span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
+  }
 
-  <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_NUMBER</span>);            
-}                                            
+  <span class="k">return</span> <span class="i">makeToken</span>(<span class="a">TOKEN_NUMBER</span>);
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>skipWhitespace</em>()</div>
 
@@ -1044,15 +1044,15 @@ different from how we did it in jlox, and touches on some important data
 structures.</p>
 <p>First, though, we have to scan the lexeme. Names start with a letter:</p>
 <div class="codehilite"><pre class="insert-before">
-  char c = advance();                 
+  char c = advance();
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>scanToken</em>()</div>
 <pre class="insert">
 
   <span class="k">if</span> (<span class="i">isAlpha</span>(<span class="i">c</span>)) <span class="k">return</span> <span class="i">identifier</span>();
 </pre><pre class="insert-after">
-  if (isDigit(c)) return number();    
-                                      
+  if (isDigit(c)) return number();
+
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>scanToken</em>()</div>
 
@@ -1060,11 +1060,11 @@ in <em>scanToken</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>initScanner</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">bool</span> <span class="i">isAlpha</span>(<span class="t">char</span> <span class="i">c</span>) {     
+<span class="k">static</span> <span class="t">bool</span> <span class="i">isAlpha</span>(<span class="t">char</span> <span class="i">c</span>) {
   <span class="k">return</span> (<span class="i">c</span> &gt;= <span class="s">&#39;a&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;z&#39;</span>) ||
          (<span class="i">c</span> &gt;= <span class="s">&#39;A&#39;</span> &amp;&amp; <span class="i">c</span> &lt;= <span class="s">&#39;Z&#39;</span>) ||
-          <span class="i">c</span> == <span class="s">&#39;_&#39;</span>;               
-}                                 
+          <span class="i">c</span> == <span class="s">&#39;_&#39;</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>initScanner</em>()</div>
 
@@ -1072,11 +1072,11 @@ add after <em>initScanner</em>()</div>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">Token</span> <span class="i">identifier</span>() {                            
+<span class="k">static</span> <span class="t">Token</span> <span class="i">identifier</span>() {
   <span class="k">while</span> (<span class="i">isAlpha</span>(<span class="i">peek</span>()) || <span class="i">isDigit</span>(<span class="i">peek</span>())) <span class="i">advance</span>();
 
-  <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">identifierType</span>());                  
-}                                                      
+  <span class="k">return</span> <span class="i">makeToken</span>(<span class="i">identifierType</span>());
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>skipWhitespace</em>()</div>
 
@@ -1087,9 +1087,9 @@ Determining that &ldquo;proper&rdquo; type is where the excitement happens:</p>
 add after <em>skipWhitespace</em>()</div>
 <pre>
 <span class="k">static</span> <span class="t">TokenType</span> <span class="i">identifierType</span>()
-{                                
-  <span class="k">return</span> <span class="a">TOKEN_IDENTIFIER</span>;       
-}                                
+{
+  <span class="k">return</span> <span class="a">TOKEN_IDENTIFIER</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>skipWhitespace</em>()</div>
 
@@ -1200,26 +1200,26 @@ and that&rsquo;s currently one of the world&rsquo;s most sophisticated, fastest 
 implementations.</p>
 </aside>
 <div class="codehilite"><pre class="insert-before">
-{                                                              
+{
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert">
-  <span class="k">switch</span> (<span class="i">scanner</span>.<span class="i">start</span>[<span class="n">0</span>]) {                                  
-    <span class="k">case</span> <span class="s">&#39;a&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">2</span>, <span class="s">&quot;nd&quot;</span>, <span class="a">TOKEN_AND</span>);      
-    <span class="k">case</span> <span class="s">&#39;c&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;lass&quot;</span>, <span class="a">TOKEN_CLASS</span>);  
-    <span class="k">case</span> <span class="s">&#39;e&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">3</span>, <span class="s">&quot;lse&quot;</span>, <span class="a">TOKEN_ELSE</span>);    
-    <span class="k">case</span> <span class="s">&#39;i&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">1</span>, <span class="s">&quot;f&quot;</span>, <span class="a">TOKEN_IF</span>);        
-    <span class="k">case</span> <span class="s">&#39;n&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">2</span>, <span class="s">&quot;il&quot;</span>, <span class="a">TOKEN_NIL</span>);      
-    <span class="k">case</span> <span class="s">&#39;o&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">1</span>, <span class="s">&quot;r&quot;</span>, <span class="a">TOKEN_OR</span>);        
-    <span class="k">case</span> <span class="s">&#39;p&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;rint&quot;</span>, <span class="a">TOKEN_PRINT</span>);  
+  <span class="k">switch</span> (<span class="i">scanner</span>.<span class="i">start</span>[<span class="n">0</span>]) {
+    <span class="k">case</span> <span class="s">&#39;a&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">2</span>, <span class="s">&quot;nd&quot;</span>, <span class="a">TOKEN_AND</span>);
+    <span class="k">case</span> <span class="s">&#39;c&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;lass&quot;</span>, <span class="a">TOKEN_CLASS</span>);
+    <span class="k">case</span> <span class="s">&#39;e&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">3</span>, <span class="s">&quot;lse&quot;</span>, <span class="a">TOKEN_ELSE</span>);
+    <span class="k">case</span> <span class="s">&#39;i&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">1</span>, <span class="s">&quot;f&quot;</span>, <span class="a">TOKEN_IF</span>);
+    <span class="k">case</span> <span class="s">&#39;n&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">2</span>, <span class="s">&quot;il&quot;</span>, <span class="a">TOKEN_NIL</span>);
+    <span class="k">case</span> <span class="s">&#39;o&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">1</span>, <span class="s">&quot;r&quot;</span>, <span class="a">TOKEN_OR</span>);
+    <span class="k">case</span> <span class="s">&#39;p&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;rint&quot;</span>, <span class="a">TOKEN_PRINT</span>);
     <span class="k">case</span> <span class="s">&#39;r&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">5</span>, <span class="s">&quot;eturn&quot;</span>, <span class="a">TOKEN_RETURN</span>);
-    <span class="k">case</span> <span class="s">&#39;s&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;uper&quot;</span>, <span class="a">TOKEN_SUPER</span>);  
-    <span class="k">case</span> <span class="s">&#39;v&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">2</span>, <span class="s">&quot;ar&quot;</span>, <span class="a">TOKEN_VAR</span>);      
-    <span class="k">case</span> <span class="s">&#39;w&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;hile&quot;</span>, <span class="a">TOKEN_WHILE</span>);  
-  }                                                            
+    <span class="k">case</span> <span class="s">&#39;s&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;uper&quot;</span>, <span class="a">TOKEN_SUPER</span>);
+    <span class="k">case</span> <span class="s">&#39;v&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">2</span>, <span class="s">&quot;ar&quot;</span>, <span class="a">TOKEN_VAR</span>);
+    <span class="k">case</span> <span class="s">&#39;w&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">1</span>, <span class="n">4</span>, <span class="s">&quot;hile&quot;</span>, <span class="a">TOKEN_WHILE</span>);
+  }
 
 </pre><pre class="insert-after">
-  return TOKEN_IDENTIFIER;                                     
+  return TOKEN_IDENTIFIER;
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
@@ -1232,15 +1232,15 @@ function that tests the rest of a potential keyword&rsquo;s lexeme:</p>
 <div class="codehilite"><div class="source-file"><em>scanner.c</em><br>
 add after <em>skipWhitespace</em>()</div>
 <pre>
-<span class="k">static</span> <span class="t">TokenType</span> <span class="i">checkKeyword</span>(<span class="t">int</span> <span class="i">start</span>, <span class="t">int</span> <span class="i">length</span>,      
-    <span class="k">const</span> <span class="t">char</span>* <span class="i">rest</span>, <span class="t">TokenType</span> <span class="i">type</span>) {                   
+<span class="k">static</span> <span class="t">TokenType</span> <span class="i">checkKeyword</span>(<span class="t">int</span> <span class="i">start</span>, <span class="t">int</span> <span class="i">length</span>,
+    <span class="k">const</span> <span class="t">char</span>* <span class="i">rest</span>, <span class="t">TokenType</span> <span class="i">type</span>) {
   <span class="k">if</span> (<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span> == <span class="i">start</span> + <span class="i">length</span> &amp;&amp;
-      <span class="i">memcmp</span>(<span class="i">scanner</span>.<span class="i">start</span> + <span class="i">start</span>, <span class="i">rest</span>, <span class="i">length</span>) == <span class="n">0</span>) { 
-    <span class="k">return</span> <span class="i">type</span>;                                          
-  }                                                       
+      <span class="i">memcmp</span>(<span class="i">scanner</span>.<span class="i">start</span> + <span class="i">start</span>, <span class="i">rest</span>, <span class="i">length</span>) == <span class="n">0</span>) {
+    <span class="k">return</span> <span class="i">type</span>;
+  }
 
-  <span class="k">return</span> <span class="a">TOKEN_IDENTIFIER</span>;                                
-}                                                         
+  <span class="k">return</span> <span class="a">TOKEN_IDENTIFIER</span>;
+}
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, add after <em>skipWhitespace</em>()</div>
 
@@ -1256,21 +1256,21 @@ regular identifier.</p>
 letter. If the lexeme starts with &ldquo;f&rdquo;, it could be <code>false</code>, <code>for</code>, or <code>fun</code>. So
 we add another switch for the branches coming off the &ldquo;f&rdquo; node:</p>
 <div class="codehilite"><pre class="insert-before">
-    case 'e': return checkKeyword(1, 3, &quot;lse&quot;, TOKEN_ELSE);       
+    case 'e': return checkKeyword(1, 3, &quot;lse&quot;, TOKEN_ELSE);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="s">&#39;f&#39;</span>:                                                     
-      <span class="k">if</span> (<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span> &gt; <span class="n">1</span>) {                  
-        <span class="k">switch</span> (<span class="i">scanner</span>.<span class="i">start</span>[<span class="n">1</span>]) {                               
+    <span class="k">case</span> <span class="s">&#39;f&#39;</span>:
+      <span class="k">if</span> (<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span> &gt; <span class="n">1</span>) {
+        <span class="k">switch</span> (<span class="i">scanner</span>.<span class="i">start</span>[<span class="n">1</span>]) {
           <span class="k">case</span> <span class="s">&#39;a&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">3</span>, <span class="s">&quot;lse&quot;</span>, <span class="a">TOKEN_FALSE</span>);
-          <span class="k">case</span> <span class="s">&#39;o&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">1</span>, <span class="s">&quot;r&quot;</span>, <span class="a">TOKEN_FOR</span>);    
-          <span class="k">case</span> <span class="s">&#39;u&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">1</span>, <span class="s">&quot;n&quot;</span>, <span class="a">TOKEN_FUN</span>);    
-        }                                                         
-      }                                                           
-      <span class="k">break</span>;                                                      
+          <span class="k">case</span> <span class="s">&#39;o&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">1</span>, <span class="s">&quot;r&quot;</span>, <span class="a">TOKEN_FOR</span>);
+          <span class="k">case</span> <span class="s">&#39;u&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">1</span>, <span class="s">&quot;n&quot;</span>, <span class="a">TOKEN_FUN</span>);
+        }
+      }
+      <span class="k">break</span>;
 </pre><pre class="insert-after">
-    case 'i': return checkKeyword(1, 1, &quot;f&quot;, TOKEN_IF);           
+    case 'i': return checkKeyword(1, 1, &quot;f&quot;, TOKEN_IF);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
@@ -1278,20 +1278,20 @@ in <em>identifierType</em>()</div>
 itself is a valid identifier too, after all. The other letter that branches is
 &ldquo;t&rdquo;:</p>
 <div class="codehilite"><pre class="insert-before">
-    case 's': return checkKeyword(1, 4, &quot;uper&quot;, TOKEN_SUPER);   
+    case 's': return checkKeyword(1, 4, &quot;uper&quot;, TOKEN_SUPER);
 </pre><div class="source-file"><em>scanner.c</em><br>
 in <em>identifierType</em>()</div>
 <pre class="insert">
-    <span class="k">case</span> <span class="s">&#39;t&#39;</span>:                                                   
-      <span class="k">if</span> (<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span> &gt; <span class="n">1</span>) {                
-        <span class="k">switch</span> (<span class="i">scanner</span>.<span class="i">start</span>[<span class="n">1</span>]) {                             
+    <span class="k">case</span> <span class="s">&#39;t&#39;</span>:
+      <span class="k">if</span> (<span class="i">scanner</span>.<span class="i">current</span> - <span class="i">scanner</span>.<span class="i">start</span> &gt; <span class="n">1</span>) {
+        <span class="k">switch</span> (<span class="i">scanner</span>.<span class="i">start</span>[<span class="n">1</span>]) {
           <span class="k">case</span> <span class="s">&#39;h&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">2</span>, <span class="s">&quot;is&quot;</span>, <span class="a">TOKEN_THIS</span>);
           <span class="k">case</span> <span class="s">&#39;r&#39;</span>: <span class="k">return</span> <span class="i">checkKeyword</span>(<span class="n">2</span>, <span class="n">2</span>, <span class="s">&quot;ue&quot;</span>, <span class="a">TOKEN_TRUE</span>);
-        }                                                       
-      }                                                         
-      <span class="k">break</span>;                                                    
+        }
+      }
+      <span class="k">break</span>;
 </pre><pre class="insert-after">
-    case 'v': return checkKeyword(1, 2, &quot;ar&quot;, TOKEN_VAR);       
+    case 'v': return checkKeyword(1, 2, &quot;ar&quot;, TOKEN_VAR);
 </pre></div>
 <div class="source-file-narrow"><em>scanner.c</em>, in <em>identifierType</em>()</div>
 
