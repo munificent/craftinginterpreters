@@ -176,8 +176,8 @@ back out:
 
 <aside name="as-null">
 
-There's no `AS_NULL` macro because there is only one `nil` value, so a Value
-with type `VAL_NIL` doesn't carry any extra data.
+There's no `AS_NIL` macro because there is only one `nil` value, so a Value with
+type `VAL_NIL` doesn't carry any extra data.
 
 </aside>
 
