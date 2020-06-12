@@ -236,8 +236,7 @@ way you create new instances isn't. Ruby, following Smalltalk, creates instances
 by calling a method on the class object itself, a <span
 name="turtles">recursively</span> graceful approach. Some, like C++ and Java
 have a `new` keyword dedicated to birthing a new object. Python has you "call"
-the class itself like a function. (JavaScript, ever weird, sort of does both of
-the latter.)
+the class itself like a function. (JavaScript, ever weird, sort of does both.)
 
 <aside name="turtles">
 
