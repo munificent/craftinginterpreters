@@ -572,7 +572,7 @@ Picture me doing an awkward robot dance when you read that. "AU-TO-MATE."
 
 </aside>
 
-Instead of tediously hand-writing each class definion, field declaration,
+Instead of tediously hand-writing each class definition, field declaration,
 constructor, and initializer, we'll hack together a <span
 name="python">script</span> that does it for us. It has a description of each
 tree type -- its name and fields -- and it prints out the Java code needed to
