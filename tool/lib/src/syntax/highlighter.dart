@@ -8,8 +8,9 @@ import 'language.dart';
 /// syntax highlighting.
 ///
 /// Wraps the result in a <pre> tag with the given [preClass].
-String formatCode(String language, List<String> lines, [String preClass]) {
-  return Highlighter(language)._highlight(lines, preClass);
+String formatCode(String language, List<String> lines,
+    {String preClass, int indent = 0}) {
+  return Highlighter(language)._highlight(lines, preClass, indent);
 }
 
 class Highlighter {
@@ -24,24 +25,32 @@ class Highlighter {
       : language = grammar.languages[language] ??
             (throw "Unknown language '$language'.");
 
-  String _highlight(List<String> lines, [String preClass]) {
+  String _highlight(List<String> lines, String preClass, int indent) {
     _buffer.write("<pre");
     if (preClass != null) _buffer.write(' class="$preClass"');
     _buffer.writeln(">");
-    lines.forEach(_scanLine);
+    for (var line in lines) {
+      _scanLine(line, indent);
+    }
     _buffer.write("</pre>");
     return _buffer.toString();
   }
 
-  void _scanLine(String line) {
+  void _scanLine(String line, int indent) {
     if (line.trim().isEmpty) {
       _buffer.writeln();
       return;
     }
 
-    /// Hackish. If the line ends with `\`, then it is a multi-line macro
-    /// definition and we want to highlight subsequent lines like preprocessor
-    /// code too.
+    // If the entire code block is indented, remove that indentation from the
+    // code lines.
+    if (line.length > indent) {
+      line = line.substring(indent);
+    }
+
+    // Hackish. If the line ends with `\`, then it is a multi-line macro
+    // definition and we want to highlight subsequent lines like preprocessor
+    // code too.
     if (language == grammar.c && line.endsWith("\\")) _inMacro = true;
 
     if (_inMacro) {

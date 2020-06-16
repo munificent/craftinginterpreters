@@ -9,7 +9,7 @@ import '../text.dart';
 
 /// Custom code block formatter that uses our syntax highlighter.
 class HighlightedCodeBlockSyntax extends BlockSyntax {
-  static final _codeFencePattern = RegExp(r'^```(.*)$');
+  static final _codeFencePattern = RegExp(r'^(\s*)```(.*)$');
 
   RegExp get pattern => _codeFencePattern;
 
@@ -37,7 +37,8 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
   Node parse(BlockParser parser) {
     // Get the syntax identifier, if there is one.
     var match = pattern.firstMatch(parser.current);
-    var language = match.group(1);
+    var indent = match.group(1).length;
+    var language = match.group(2);
 
     var childLines = parseChildLines(parser);
 
@@ -47,12 +48,16 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
       var buffer = StringBuffer();
       buffer.write("<pre>");
       for (var line in childLines) {
+        // Strip off any leading indentation.
+        if (line.length > indent) {
+          line = line.substring(indent);
+        }
         buffer.writeln(escapeHtml(line));
       }
       buffer.write("</pre>");
       code = buffer.toString();
     } else {
-      code = formatCode(language, childLines);
+      code = formatCode(language, childLines, indent: indent);
     }
 
     var element = Element.text("div", code);
@@ -122,8 +127,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.addedComma != null) {
-    var commaLine = formatCode(
-        snippet.file.language, [snippet.addedComma], "insert-before");
+    var commaLine = formatCode(snippet.file.language, [snippet.addedComma],
+        preClass: "insert-before");
     var comma = commaLine.lastIndexOf(",");
     buffer.write(commaLine.substring(0, comma));
     buffer.write('<span class="insert-comma">,</span>');
@@ -137,7 +142,7 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
 
   if (snippet.added != null) {
     var added = formatCode(snippet.file.language, snippet.added,
-        tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
+        preClass: tag.beforeCount > 0 || tag.afterCount > 0 ? "insert" : null);
     buffer.write(added);
   }
 
