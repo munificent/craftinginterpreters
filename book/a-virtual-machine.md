@@ -712,7 +712,7 @@ The intent is to execute both statements of the macro body only if `morning` is
 true. But it expands to:
 
 ```c
-if (morning) makeCoffee(); drinkCoffee();
+if (morning) makeCoffee(); drinkCoffee();;
 ```
 
 Oops. The `if` only attaches to the *first* statement. You might think you could
