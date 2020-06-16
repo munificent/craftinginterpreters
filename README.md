@@ -45,10 +45,8 @@ other utilities are all written in [Dart][]. Instructions to install Dart are
 [here][install]. Once you have Dart installed and on your path, run:
 
 ```sh
-$ pushd tool; pub get; popd
+$ make get
 ```
-
-(Or simply invoke `pub get` from inside the `tool` directory).
 
 [dart]: https://dart.dev/
 [install]: https://dart.dev/get-dart

@@ -5,13 +5,14 @@ TEST_SNAPSHOT := $(BUILD_DIR)/test.dart.snapshot
 
 default: book clox jlox
 
+# Run pub get on tool directory.
+get:
+	@ cd tool; pub get
+
 # Remove all build outputs and intermediate files.
 clean:
 	@ rm -rf $(BUILD_DIR)
 	@ rm -rf gen
-
-old:
-	@ ./util/build.py
 
 # Build the site.
 book: $(BUILD_SNAPSHOT)
@@ -175,4 +176,4 @@ compile_snippets:
 	@ dart tool/bin/compile_snippets.dart
 
 .PHONY: book c_chapters clean clox compile_snippets debug default diffs \
-	java_chapters jlox serve split_chapters test test_all test_c test_java
+	get java_chapters jlox serve split_chapters test test_all test_c test_java
