@@ -866,7 +866,7 @@ done:
 <aside name="break">
 
 You could do this without `break` statements -- themselves a limited goto-ish
-construct -- by inserting `!found and` at the beginning of the condition clause
+construct -- by inserting `!found &&` at the beginning of the condition clause
 of each loop.
 
 </aside>
