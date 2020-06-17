@@ -428,7 +428,7 @@ It's declared here:
 
 Which means the "memory" module needs an include:
 
-^code memory-include-compiler (1 before, 1 after)
+^code memory-include-compiler (2 before, 1 after)
 
 And the definition is over in the "compiler" module:
 

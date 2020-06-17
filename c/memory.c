@@ -1,7 +1,6 @@
 //> Chunks of Bytecode memory-c
 #include <stdlib.h>
 
-#include "common.h"
 //> Garbage Collection memory-include-compiler
 #include "compiler.h"
 //< Garbage Collection memory-include-compiler
