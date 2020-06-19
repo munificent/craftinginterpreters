@@ -880,11 +880,11 @@ heap-allocates a new ObjBoundMethod, initializes its fields, then pulls them
 right back out. Later, the GC has to spend time freeing all of those ephemeral
 bound methods.
 
-Most of the time, a Lox program accesses a method and and then immediately calls
-it. The bound method is created by one bytecode instruction and then consumed by
-the very next one. In fact, it's so immediate that the compiler can even
-textually *see* that it's happening -- a dotted property access followed by an
-opening parenthesis is most likely a method call.
+Most of the time, a Lox program accesses a method and then immediately calls it.
+The bound method is created by one bytecode instruction and then consumed by the
+very next one. In fact, it's so immediate that the compiler can even textually
+*see* that it's happening -- a dotted property access followed by an opening
+parenthesis is most likely a method call.
 
 Since we can recognize this pair of operations at compile time, we have the
 opportunity to emit a <span name="super">new special</span> instruction that

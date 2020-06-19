@@ -429,7 +429,7 @@ the source table's array:
 
 That's another `<` to `<=` change.
 
-The `findEntry()` function has a sister function, `tableFindStrings()` that does
+The `findEntry()` function has a sister function, `tableFindString()` that does
 a hash table lookup for interning strings. We need to make the same changes
 there that we made in `findEntry()`. We use `capacity` as a mask when wrapping
 the string's hash key:
