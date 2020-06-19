@@ -537,8 +537,8 @@ steps. The first is *declaring* it:
 
 This adds the variable to the innermost scope so that it shadows any outer one
 and so that we know the variable exists. We mark it as "not ready yet" by
-binding its name to `false` in the scope map. Each value in the scope map means
-"is finished being initialized".
+binding its name to `false` in the scope map. The value associated with a key in
+the scope map represents whether or not that variable has been initialized yet.
 
 Then we resolve the variable's initializer expression itself in the scope where
 the new variable is declared but unavailable. Once the initializer expression is
