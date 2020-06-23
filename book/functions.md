@@ -129,9 +129,13 @@ time we see a `(`, we call `finishCall()` to parse the call expression using the
 previously parsed expression as the callee. The returned expression becomes the
 new `expr` and we loop to see if the result is itself called.
 
-The `while (true)` and the explicit `break` look dumb. It would be simpler as
-`while (match(LEFT_PAREN))`. It will make sense later when we add more code to
-this function to handle properties on objects.
+<aside name="while-true">
+
+This code would be simpler as `while (match(LEFT_PAREN))` instead of the silly
+`while (true)` and `break`. Don't worry, it will make sense when we expand
+parser later to handle properties on objects.
+
+</aside>
 
 The code to parse the argument list is in this helper:
 

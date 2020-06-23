@@ -430,7 +430,7 @@ class Parser {
   private Expr call() {
     Expr expr = primary();
 
-    while (true) {
+    while (true) { // [while-true]
       if (match(LEFT_PAREN)) {
         expr = finishCall(expr);
 //> Classes parse-property
