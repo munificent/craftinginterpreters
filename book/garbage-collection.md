@@ -500,7 +500,7 @@ object is in and what work is left to do.
 
 Advanced garbage collection algorithms often add other colors to the
 abstraction. I've seen multiple shades of gray and even purple in some designs.
-My puce-chartreuse-fuschia-malachite collector paper was, alas, not accepted for
+My puce-chartreuse-fuchsia-malachite collector paper was, alas, not accepted for
 publication.
 
 </aside>
