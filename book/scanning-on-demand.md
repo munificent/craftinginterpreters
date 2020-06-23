@@ -246,8 +246,8 @@ into the original source string and doesn't have a terminator at the end.
 </aside>
 
 This loops indefinitely. Each turn through the loop, it scans one token and
-prints it. When it reaches a special "end of file" token, it stops. For example,
-if we run the interpreter on this program:
+prints it. When it reaches a special "end of file" token or an error, it stops.
+For example, if we run the interpreter on this program:
 
 ```lox
 print 1 + 2;
