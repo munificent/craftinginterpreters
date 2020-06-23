@@ -14,10 +14,20 @@ import 'package:tool/src/page.dart';
 import 'package:tool/src/term.dart' as term;
 import 'package:tool/src/text.dart';
 
-final _asideCommentPattern =
+/// Aside comment marker in highlighted code.
+final _asideHighlightedCommentPattern =
     RegExp(r' ?<span class="c">// \[([-a-z0-9]+)\] *</span>');
-final _asideWithCommentPattern =
+
+/// Aside comment marker in highlighted code with a comment too.
+final _asideHighlightedWithCommentPattern =
     RegExp(r' ?<span class="c">// (.+) \[([-a-z0-9]+)\] *</span>');
+
+/// Aside comment marker in context lines which are not syntax highlighted.
+final _asideCommentPattern = RegExp(r' +// \[([-a-z0-9]+)\]');
+
+/// Aside comment marker in context lines which are not syntax highlighted with
+/// a comment too.
+final _asideWithCommentPattern = RegExp(r' +// (.+) \[([-a-z0-9]+)\]');
 
 Future<void> main(List<String> arguments) async {
   _buildSass();
@@ -82,10 +92,14 @@ int _buildPage(Book book, Mustache mustache, Page page,
   // no content.
   // <span class="c">// [repl]</span>
   // TODO: Do this directly in the syntax highlighter instead of after the fact.
+  output = output.replaceAllMapped(_asideHighlightedCommentPattern,
+      (match) => '<span name="${match[1]}"> </span>');
+  output = output.replaceAllMapped(_asideHighlightedWithCommentPattern,
+      (match) => '<span class="c" name="${match[2]}">// ${match[1]}</span>');
   output = output.replaceAllMapped(
       _asideCommentPattern, (match) => '<span name="${match[1]}"> </span>');
   output = output.replaceAllMapped(_asideWithCommentPattern,
-      (match) => '<span class="c" name="${match[2]}">// ${match[1]}</span>');
+      (match) => '<span name="${match[2]}">// ${match[1]}</span>');
 
   // Write the output.
   File(page.htmlPath).writeAsStringSync(output);
