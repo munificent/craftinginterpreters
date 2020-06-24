@@ -1175,6 +1175,15 @@ interpreter to crash or go into undefined behavior. Avoid that by
 dynamically growing the stack as needed.</p>
 <p>What are the costs and benefits of doing so?</p>
 </li>
+<li>
+<p>To interpret <code>OP_NEGATE</code>, we pop the operand, negate the value, and then
+push the result. That&rsquo;s a simple implementation, but it increments and
+decrements <code>ip</code> unnecessarily, since the stack ends up the same height in
+the end. It might be faster to simply negate the value in place on the stack
+and leave <code>ip</code> alone. Try that and see if you can measure a performance
+difference.</p>
+<p>Are there other instructions where you can do a similar optimization?</p>
+</li>
 </ol>
 </div>
 <div class="design-note">
