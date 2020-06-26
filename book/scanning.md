@@ -77,8 +77,11 @@ Working outwards from the most nested call, you **R**ead a line of input,
 
 ^code prompt
 
-(Escape that infinite loop by hitting Control-C or throwing your machine at the
-wall if you have anger management problems.)
+The `readLine()` function, as the name so helpfully implies, reads a line of
+input from the user on the command line and returns the result. To kill an
+interactive command-line app, you usually type Control-D. Doing so signals an
+"end-of-file" condition to the program. When that happens `readLine()` returns
+`null`, so we check for that to exit the loop.
 
 Both the prompt and the file runner are thin wrappers around this core function:
 
