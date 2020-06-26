@@ -133,15 +133,25 @@
                    | ( "/" | "*" ) multiplication ;
     ```
 
-    Things to note:
+    Note that "-" isn't an error production because that *is* a valid prefix
+    expression.
 
-    * "-" isn't an error production because that *is* a valid prefix
-      expression.
+    With the normal infix productions, the operand non-terminals are one
+    precedence level higher than the operator's own precedence. In order to
+    handle a series of operators of the same precedence, the rules explicitly
+    allow repetition.
 
-    * The precedence for each operator is one level higher than it is for the
-      normal correct. We also don't parse a sequence, just a single RHS. Using
-      the same precedence level handles a sequence for us and helps us only
-      show the error once?
+    With the error productions, though, the right-hand operand rule is the same
+    precedence level. That will effectively strip off the erroneous leading
+    operator and then consume a series of infix uses of operators at the same
+    level by reusing the existing correct rule. For example:
+
+    ```lox
+    + a - b + c - d
+    ```
+
+    The error production for `+` will match the leading `+` and then use
+    `addition` to also match the rest of the expression.
 
     ```java
     private Expr primary() {
