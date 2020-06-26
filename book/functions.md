@@ -868,13 +868,13 @@ example -- a recursive function to calculate Fibonacci numbers:
 <span name="slow"></span>
 
 ```lox
-fun fibonacci(n) {
+fun fib(n) {
   if (n <= 1) return n;
-  return fibonacci(n - 2) + fibonacci(n - 1);
+  return fib(n - 2) + fib(n - 1);
 }
 
 for (var i = 0; i < 20; i = i + 1) {
-  print fibonacci(i);
+  print fib(i);
 }
 ```
 
@@ -907,7 +907,7 @@ Right now, it is always `globals`, the top level global environment. That way,
 if an identifier isn't defined inside the function body itself, the interpreter
 can look outside the function in the global scope to find it. In the Fibonacci
 example, that's how the interpreter is able to look up the recursive call to
-`fibonacci` inside the function's own body -- `fibonacci` is a global variable.
+`fib` inside the function's own body -- `fib` is a global variable.
 
 But recall that in Lox, function declarations are allowed *anywhere* a name can
 be bound. That includes the top level of a Lox script, but also the inside of
