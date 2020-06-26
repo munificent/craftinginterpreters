@@ -216,14 +216,19 @@ add after <em>runFile</em>()</div>
 
     <span class="k">for</span> (;;) {<span name="repl"> </span>
       <span class="t">System</span>.<span class="i">out</span>.<span class="i">print</span>(<span class="s">&quot;&gt; &quot;</span>);
-      <span class="i">run</span>(<span class="i">reader</span>.<span class="i">readLine</span>());
+      <span class="t">String</span> <span class="i">line</span> = <span class="i">reader</span>.<span class="i">readLine</span>();
+      <span class="k">if</span> (<span class="i">line</span> == <span class="k">null</span>) <span class="k">break</span>;
+      <span class="i">run</span>(<span class="i">line</span>);
     }
   }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Lox.java</em>, add after <em>runFile</em>()</div>
 
-<p>(Escape that infinite loop by hitting Control-C or throwing your machine at the
-wall if you have anger management problems.)</p>
+<p>The <code>readLine()</code> function, as the name so helpfully implies, reads a line of
+input from the user on the command line and returns the result. To kill an
+interactive command-line app, you usually type Control-D. Doing so signals an
+&ldquo;end-of-file&rdquo; condition to the program. When that happens <code>readLine()</code> returns
+<code>null</code>, so we check for that to exit the loop.</p>
 <p>Both the prompt and the file runner are thin wrappers around this core function:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Lox.java</em><br>
 add after <em>runPrompt</em>()</div>
@@ -325,7 +330,7 @@ in <em>runFile</em>()</div>
 <p>We need to reset this flag in the interactive loop. If the user makes a mistake,
 it shouldn&rsquo;t kill their entire session:</p>
 <div class="codehilite"><pre class="insert-before">
-      run(reader.readLine());
+      run(line);
 </pre><div class="source-file"><em>lox/Lox.java</em><br>
 in <em>runPrompt</em>()</div>
 <pre class="insert">

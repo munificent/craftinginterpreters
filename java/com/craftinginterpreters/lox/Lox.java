@@ -51,7 +51,9 @@ public class Lox {
 
     for (;;) { // [repl]
       System.out.print("> ");
-      run(reader.readLine());
+      String line = reader.readLine();
+      if (line == null) break;
+      run(line);
 //> reset-had-error
       hadError = false;
 //< reset-had-error
