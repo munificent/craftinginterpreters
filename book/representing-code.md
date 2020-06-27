@@ -247,7 +247,7 @@ bread      → "English muffin" ;
 
 We can use that grammar to generate random breakfasts. Let's play a round and
 see how it works. By age-old convention, the game starts with the first rule in
-the grammar, here `breakfast`. There are three productions for that, and we
+the grammar, `breakfast`. There are three productions for that, and we
 randomly pick the first one. Our resulting string looks like:
 
 ```text
