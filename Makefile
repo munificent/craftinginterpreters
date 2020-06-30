@@ -7,7 +7,7 @@ default: book clox jlox
 
 # Run pub get on tool directory.
 get:
-	@ cd tool; pub get
+	@ cd ./tool; pub get
 
 # Remove all build outputs and intermediate files.
 clean:
