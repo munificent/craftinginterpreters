@@ -473,11 +473,10 @@ That sounds like a lot of cases to handle, but here's the implementation:
 
 ^code memory-c
 
-Pretty simple. We handle the deallocation case ourselves by calling `free()`
-when `newSize` is zero. Otherwise, we fall through to calling the C standard
-library's `realloc()` function. That function conveniently supports the other
-three aspects of our policy. When `oldSize` is zero, `realloc()` is equivalent
-to calling `malloc()`.
+When `newSize` is zero, we handle the deallocation case ourselves by calling
+`free()`. Otherwise, we rely on the C standard library's `realloc()` function.
+That function conveniently supports the other three aspects of our policy. When
+`oldSize` is zero, `realloc()` is equivalent to calling `malloc()`.
 
 The interesting cases are when both `oldSize` and `newSize` are not zero. Those
 tell `realloc()` to resize the previously-allocated block. If the new size is
@@ -491,6 +490,17 @@ there isn't room to grow the block, `realloc()` instead allocates a *new* block
 of memory of the desired size, copies over the old bytes, frees the old block,
 and then returns a pointer to the new block. Remember, that's exactly the
 behavior we want for our dynamic array.
+
+Because computers are finite lumps of matter and not the perfect mathematical
+abstractions computer science theory would have us believe, allocation can fail
+if there isn't enough memory and `realloc()` will return `NULL`. We should
+handle that:
+
+^code out-of-memory (1 before, 1 after)
+
+There's not really anything *useful* that our VM can do if it can't get the
+memory it needs, but we at least detect that and abort the process immediately
+instead of returning a `NULL` pointer and letting it go off the rails later.
 
 <aside name="shrink">
 
