@@ -733,7 +733,11 @@ the Value and CallFrame stacks in the VM, we won't use an array. Instead, we use
 a linked list. Each Compiler points back to the Compiler for the function that
 encloses it, all the way back to the root Compiler for the top level code:
 
-^code enclosing-field (1 before, 1 after)
+^code enclosing-field (2 before, 1 after)
+
+Inside the Compiler struct, we can't reference the Compiler *typedef* since that
+declaration hasn't finished yet. Instead, we give a name to the struct itself
+and use that for the field's type. C is weird.
 
 When initializing a new Compiler, we capture the about-to-no-longer-be-current
 one in that pointer:
