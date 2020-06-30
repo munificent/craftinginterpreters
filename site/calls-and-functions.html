@@ -361,9 +361,9 @@ support that implicit top-level function. It starts with the Compiler struct.
 Instead of pointing directly to a Chunk that the compiler writes to, it will
 instead have a reference to the function object being built:</p>
 <div class="codehilite"><pre class="insert-before">
-typedef struct Compiler {
+typedef struct {
 </pre><div class="source-file"><em>compiler.c</em><br>
-in struct <em>Compiler</em></div>
+add after struct <em>null</em></div>
 <pre class="insert">
   <span class="t">ObjFunction</span>* <span class="i">function</span>;
   <span class="t">FunctionType</span> <span class="i">type</span>;
@@ -371,7 +371,7 @@ in struct <em>Compiler</em></div>
 </pre><pre class="insert-after">
   Local locals[UINT8_COUNT];
 </pre></div>
-<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after struct <em>null</em></div>
 
 <p>We also have a little FunctionType enum. This lets the compiler tell when it&rsquo;s
 compiling top level code versus the body of a function. Most of the compiler
@@ -1181,16 +1181,22 @@ the Value and CallFrame stacks in the VM, we won&rsquo;t use an array. Instead, 
 a linked list. Each Compiler points back to the Compiler for the function that
 encloses it, all the way back to the root Compiler for the top level code:</p>
 <div class="codehilite"><pre class="insert-before">
-typedef struct Compiler {
+} FunctionType;
+
 </pre><div class="source-file"><em>compiler.c</em><br>
-in struct <em>Compiler</em></div>
+add after enum <em>FunctionType</em><br>
+replace 1 line</div>
 <pre class="insert">
+<span class="k">typedef</span> <span class="k">struct</span> <span class="t">Compiler</span> {
   <span class="k">struct</span> <span class="t">Compiler</span>* <span class="i">enclosing</span>;
 </pre><pre class="insert-after">
   ObjFunction* function;
 </pre></div>
-<div class="source-file-narrow"><em>compiler.c</em>, in struct <em>Compiler</em></div>
+<div class="source-file-narrow"><em>compiler.c</em>, add after enum <em>FunctionType</em>, replace 1 line</div>
 
+<p>Inside the Compiler struct, we can&rsquo;t reference the Compiler <em>typedef</em> since that
+declaration hasn&rsquo;t finished yet. Instead, we give a name to the struct itself
+and use that for the field&rsquo;s type. C is weird.</p>
 <p>When initializing a new Compiler, we capture the about-to-no-longer-be-current
 one in that pointer:</p>
 <div class="codehilite"><pre class="insert-before">

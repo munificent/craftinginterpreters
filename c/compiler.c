@@ -94,8 +94,11 @@ typedef enum {
 //< Calls and Functions function-type-enum
 //> Local Variables compiler-struct
 
-typedef struct Compiler {
+/* Local Variables compiler-struct < Calls and Functions enclosing-field
+typedef struct {
+*/
 //> Calls and Functions enclosing-field
+typedef struct Compiler {
   struct Compiler* enclosing;
 //< Calls and Functions enclosing-field
 //> Calls and Functions function-fields
