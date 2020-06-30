@@ -649,16 +649,16 @@ create new file</div>
     <span class="k">return</span> <span class="a">NULL</span>;
   }
 
-  <span class="k">return</span> <span class="i">realloc</span>(<span class="i">previous</span>, <span class="i">newSize</span>);
+  <span class="t">void</span>* <span class="i">result</span> = <span class="i">realloc</span>(<span class="i">previous</span>, <span class="i">newSize</span>);
+  <span class="k">return</span> <span class="i">result</span>;
 }
 </pre></div>
 <div class="source-file-narrow"><em>memory.c</em>, create new file</div>
 
-<p>Pretty simple. We handle the deallocation case ourselves by calling <code>free()</code>
-when <code>newSize</code> is zero. Otherwise, we fall through to calling the C standard
-library&rsquo;s <code>realloc()</code> function. That function conveniently supports the other
-three aspects of our policy. When <code>oldSize</code> is zero, <code>realloc()</code> is equivalent
-to calling <code>malloc()</code>.</p>
+<p>When <code>newSize</code> is zero, we handle the deallocation case ourselves by calling
+<code>free()</code>. Otherwise, we rely on the C standard library&rsquo;s <code>realloc()</code> function.
+That function conveniently supports the other three aspects of our policy. When
+<code>oldSize</code> is zero, <code>realloc()</code> is equivalent to calling <code>malloc()</code>.</p>
 <p>The interesting cases are when both <code>oldSize</code> and <code>newSize</code> are not zero. Those
 tell <code>realloc()</code> to resize the previously-allocated block. If the new size is
 smaller than the existing block of memory, it simply <span
@@ -670,6 +670,24 @@ there isn&rsquo;t room to grow the block, <code>realloc()</code> instead allocat
 of memory of the desired size, copies over the old bytes, frees the old block,
 and then returns a pointer to the new block. Remember, that&rsquo;s exactly the
 behavior we want for our dynamic array.</p>
+<p>Because computers are finite lumps of matter and not the perfect mathematical
+abstractions computer science theory would have us believe, allocation can fail
+if there isn&rsquo;t enough memory and <code>realloc()</code> will return <code>NULL</code>. We should
+handle that:</p>
+<div class="codehilite"><pre class="insert-before">
+  void* result = realloc(previous, newSize);
+</pre><div class="source-file"><em>memory.c</em><br>
+in <em>reallocate</em>()</div>
+<pre class="insert">
+  <span class="k">if</span> (<span class="i">result</span> == <span class="a">NULL</span>) <span class="i">exit</span>(<span class="n">1</span>);
+</pre><pre class="insert-after">
+  return result;
+</pre></div>
+<div class="source-file-narrow"><em>memory.c</em>, in <em>reallocate</em>()</div>
+
+<p>There&rsquo;s not really anything <em>useful</em> that our VM can do if it can&rsquo;t get the
+memory it needs, but we at least detect that and abort the process immediately
+instead of returning a <code>NULL</code> pointer and letting it go off the rails later.</p>
 <aside name="shrink">
 <p>Since all we passed in was a bare pointer to the first byte of memory, what does
 it mean to &ldquo;update&rdquo; the block&rsquo;s size? Under the hood, the memory allocator

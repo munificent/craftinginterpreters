@@ -44,7 +44,11 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
     return NULL;
   }
 
-  return realloc(previous, newSize);
+  void* result = realloc(previous, newSize);
+//> out-of-memory
+  if (result == NULL) exit(1);
+//< out-of-memory
+  return result;
 }
 //> Garbage Collection mark-object
 void markObject(Obj* object) {
