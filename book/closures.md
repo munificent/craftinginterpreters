@@ -1316,7 +1316,7 @@ pointer is the VM's head pointer.
 There is a shorter implementation that handles updating either the head pointer
 or the previous upvalue's `next` pointer uniformly by using a pointer to a
 pointer, but that kind of code confuses almost everyone who hasn't reached some
-Zen master level of pointer expertise. I went with the basic if statement
+Zen master level of pointer expertise. I went with the basic `if` statement
 approach.
 
 </aside>
@@ -1546,7 +1546,7 @@ globalTwo();
 ```
 
 The code is convoluted because Lox has no collection types. The important part
-is that the `main()` function does two iterations of a for loop. Each time
+is that the `main()` function does two iterations of a `for` loop. Each time
 through the loop, it creates a closure that captures the loop variable. It
 stores the first closure in `globalOne` and the second in `globalTwo`.
 
@@ -1678,7 +1678,7 @@ iteration of a `foreach` loop. This was such a frequent source of user confusion
 that they took the very rare step of shipping a breaking change to the language.
 In C# 5, each iteration creates a fresh variable.
 
-Old C-style for loops are harder. The increment clause really does look like
+Old C-style `for` loops are harder. The increment clause really does look like
 mutation. That implies there is a single variable that's getting updated each
 step. But it's almost never *useful* for each iteration to share a loop
 variable. The only time you can even detect this is when closures capture it.
@@ -1686,7 +1686,7 @@ And it's rarely helpful to have a closure that references a variable whose value
 is whatever value caused you to exit the loop.
 
 The pragmatically useful answer is probably to do what JavaScript does with
-`let` in for loops. Make it look like mutation but actually create a new
+`let` in `for` loops. Make it look like mutation but actually create a new
 variable each time because that's what users want. It is kind of weird when you
 think about it, though.
 

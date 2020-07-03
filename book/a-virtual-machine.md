@@ -201,7 +201,7 @@ If you want to learn some of these techniques, look up "direct threaded code",
 
 Alas, the fastest solutions require either non-standard extensions to C, or
 hand-written assembly code. For clox, we'll keep it simple. Just like our
-disassembler, we have a single giant switch statement with a case for each
+disassembler, we have a single giant `switch` statement with a case for each
 opcode. The body of each case implements that opcode's behavior.
 
 So far, we only handle a single instruction, `OP_RETURN`, and the only thing it
@@ -273,7 +273,7 @@ it:
 ^code vm-include-debug (1 before, 1 after)
 
 I know this code isn't super impressive so far -- it's literally a switch
-statement wrapped in a for loop but, believe it or not, this is one of the two
+statement wrapped in a `for` loop but, believe it or not, this is one of the two
 major components of our VM. With this, we can imperatively execute instructions.
 Its simplicity is a virtue -- the less work it does, the faster it can do it.
 Contrast this with all of the complexity and overhead we had in jlox with the
@@ -290,7 +290,7 @@ in:
 print 3 - 2;
 ```
 
-We obviously need instructions for the constants 3 and 2, the print statement,
+We obviously need instructions for the constants 3 and 2, the `print` statement,
 and the subtraction. But how does the subtraction instruction know that 3 is
 the <span name="word">minuend</span> and 2 is the subtrahend? How does the print
 instruction know to print the result of that?
@@ -339,7 +339,7 @@ pain to figure out what's going on.
 
 </aside>
 
-Here is the syntax tree for the print statement:
+Here is the syntax tree for the `print` statement:
 
 <img src="image/a-virtual-machine/ast.png" alt="The AST for the example
 statement, with numbers marking the order that the nodes are evaluated." />
@@ -693,10 +693,10 @@ I know, you can just *feel* the temptation to abuse this, can't you?
 
 </aside>
 
-If you aren't familiar with the trick already, that outer do-while loop probably
-looks really weird. This macro needs to expand to a series of statements. To be
-careful macro authors, we want to ensure those statements all end up in the same
-scope when the macro is expanded. Imagine if you defined:
+If you aren't familiar with the trick already, that outer `do while` loop
+probably looks really weird. This macro needs to expand to a series of
+statements. To be careful macro authors, we want to ensure those statements all
+end up in the same scope when the macro is expanded. Imagine if you defined:
 
 ```c
 #define WAKE_UP() makeCoffee(); drinkCoffee();
@@ -732,8 +732,8 @@ else
 ```
 
 Now you get a compile error on the `else` because of that trailing `;` after the
-macro's block. Using a do-while loop in the macro looks funny, but it gives you
-a way to contain multiple statements inside a block that *also* permits a
+macro's block. Using a `do while` loop in the macro looks funny, but it gives
+you a way to contain multiple statements inside a block that *also* permits a
 semicolon at the end.
 
 Where were we? Right, so what the body of that macro does is straightforward. A

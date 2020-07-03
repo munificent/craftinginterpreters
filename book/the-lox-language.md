@@ -393,7 +393,7 @@ You've seen a couple of kinds of statements already. The first one was:
 print "Hello, world!";
 ```
 
-A <span name="print">print statement</span> evaluates a single expression
+A <span name="print">`print` statement</span> evaluates a single expression
 and displays the result to the user. You've also seen some statements like:
 
 <aside name="print">
@@ -507,7 +507,7 @@ while (a < 10) {
 
 <aside name="do">
 
-I left `do-while` loops out of Lox because they aren't that common and wouldn't
+I left `do while` loops out of Lox because they aren't that common and wouldn't
 teach you anything that you won't already learn from `while`. Go ahead and add
 it to your implementation if it makes you happy. It's your party.
 

@@ -755,7 +755,7 @@ itself is a valid identifier too, after all. The other letter that branches is
 
 ^code keyword-t (1 before, 1 after)
 
-That's it. A couple of nested switch statements. Not only is this code <span
+That's it. A couple of nested `switch` statements. Not only is this code <span
 name="short">short</span>, but it's very very fast. It does the minimum amount
 of work required to detect a keyword, and bails out as soon as it can tell the
 identifier will not be a reserved one.

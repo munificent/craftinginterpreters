@@ -726,9 +726,9 @@ in <em>function</em>()</div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, in <em>function</em>()</div>
 
 <p>This is like the code for handling arguments in a call, except not split out
-into a helper method. The outer if statement handles the zero parameter case,
-and the inner while loop parses parameters as long as we find commas to separate
-them. The result is the list of tokens for each parameter&rsquo;s name.</p>
+into a helper method. The outer <code>if</code> statement handles the zero parameter case,
+and the inner <code>while</code> loop parses parameters as long as we find commas to
+separate them. The result is the list of tokens for each parameter&rsquo;s name.</p>
 <p>Just like we do with arguments at function calls, we validate at parse time
 that you don&rsquo;t exceed the maximum number of parameters a function is allowed to
 have.</p>
@@ -928,7 +928,7 @@ get results back <span name="hotel"><em>out</em></span>. If Lox was an
 expression-oriented language like Ruby or Scheme, the body would be an
 expression whose value is implicitly the function&rsquo;s result. But in Lox, the body
 of a function is a list of statements which don&rsquo;t produce values, so we need
-dedicated syntax for emitting a result. In other words, return statements. I&rsquo;m
+dedicated syntax for emitting a result. In other words, <code>return</code> statements. I&rsquo;m
 sure you can guess the grammar already:</p>
 <aside name="hotel">
 <p>The Hotel California of data.</p>
@@ -945,13 +945,13 @@ sure you can guess the grammar already:</p>
 <span class="i">returnStmt</span> → <span class="s">&quot;return&quot;</span> <span class="i">expression</span>? <span class="s">&quot;;&quot;</span> ;
 </pre></div>
 <p>We&rsquo;ve got one more<span class="em">&mdash;</span>the final, in fact<span class="em">&mdash;</span>production under the venerable
-<code>statement</code> rule. A return statement is the <code>return</code> keyword followed by an
+<code>statement</code> rule. A <code>return</code> statement is the <code>return</code> keyword followed by an
 optional expression and terminated with a semicolon.</p>
 <p>The return value is optional to support exiting early from a function that
 doesn&rsquo;t return a useful value. In statically-typed languages, &ldquo;void&rdquo; functions
 don&rsquo;t return a value and non-void ones do. Since Lox is dynamically typed, there
 are no true void functions. The compiler has no way of preventing you from
-taking the result value of a call to a function that doesn&rsquo;t contain a return
+taking the result value of a call to a function that doesn&rsquo;t contain a <code>return</code>
 statement:</p>
 <div class="codehilite"><pre>
 <span class="k">fun</span> <span class="i">procedure</span>() {
@@ -962,9 +962,9 @@ statement:</p>
 <span class="k">print</span> <span class="i">result</span>; <span class="c">// ?</span>
 </pre></div>
 <p>This means every Lox function must return <em>something</em>, even if it contains no
-return statements at all. We use <code>nil</code> for this, which is why LoxFunction&rsquo;s
+<code>return</code> statements at all. We use <code>nil</code> for this, which is why LoxFunction&rsquo;s
 implementation of <code>call()</code> returns <code>null</code> at the end. In that same vein, if you
-omit the value in a return statement, we simply treat it as:</p>
+omit the value in a <code>return</code> statement, we simply treat it as:</p>
 <div class="codehilite"><pre>
 <span class="k">return</span> <span class="k">nil</span>;
 </pre></div>
@@ -1020,13 +1020,13 @@ it&rsquo;s hard to tell if a return value is <em>present</em>. Instead, we check
 <em>absent</em>. Since a semicolon can&rsquo;t occur in an expression, if the next token is
 that, we know there must not be a value.</p>
 <h3><a href="#returning-from-calls" name="returning-from-calls"><small>10&#8202;.&#8202;5&#8202;.&#8202;1</small>Returning from calls</a></h3>
-<p>Interpreting a return statement is tricky. You can return from anywhere within
+<p>Interpreting a <code>return</code> statement is tricky. You can return from anywhere within
 the body of a function, even deeply nested inside other statements. When the
 return is executed, the interpreter needs to jump all the way out of whatever
 context it&rsquo;s currently in and cause the function call to complete, like some
 kind of jacked up control flow construct.</p>
 <p>For example, say we&rsquo;re running this program and we&rsquo;re about to execute the
-return statement:</p>
+<code>return</code> statement:</p>
 <div class="codehilite"><pre>
 <span class="k">fun</span> <span class="i">count</span>(<span class="i">n</span>) {
   <span class="k">while</span> (<span class="i">n</span> &lt; <span class="n">100</span>) {
@@ -1049,9 +1049,9 @@ LoxFunction.call()
 Interpreter.visitCallExpr()
 </pre></div>
 <p>We need to get from the top of the stack all the way back to <code>call()</code>. I don&rsquo;t
-know about you, but to me that sounds like exceptions. When we execute a return
-statement, we&rsquo;ll use an exception to unwind the interpreter past the visit
-methods of all of the containing statements back to the code that began
+know about you, but to me that sounds like exceptions. When we execute a
+<code>return</code> statement, we&rsquo;ll use an exception to unwind the interpreter past the
+visit methods of all of the containing statements back to the code that began
 executing the body.</p>
 <p>The visit method for our new AST node looks like this:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
@@ -1120,8 +1120,8 @@ replace 1 line</div>
 <p>We wrap the call to <code>executeBlock()</code> in a try-catch block. When it catches a
 return exception, it pulls out the value and makes that the return value from
 <code>call()</code>. If it never catches one of these exceptions, it means the function
-reached the end of its body without hitting a return statement. In that case, it
-implicitly returns <code>nil</code>.</p>
+reached the end of its body without hitting a <code>return</code> statement. In that case,
+it implicitly returns <code>nil</code>.</p>
 <p>Let&rsquo;s try it out. We finally have enough power to support this classic
 example<span class="em">&mdash;</span>a recursive function to calculate Fibonacci numbers:</p>
 <p><span name="slow"></span></p>

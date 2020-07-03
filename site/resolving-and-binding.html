@@ -175,7 +175,7 @@ variable is used&rdquo;.</p>
 }
 </pre></div>
 <p>Here, the <code>a</code> being printed is the outer one since it appears <span
-name="hoisting">before</span> the print statement that uses it. In most
+name="hoisting">before</span> the <code>print</code> statement that uses it. In most
 cases, in straight line code, the declaration preceding in <em>text</em> will also
 precede the usage in <em>time</em>. But that&rsquo;s not <em>always</em> true. As we&rsquo;ll see,
 functions may defer a chunk of code such that its <em>dynamic temporal</em>
@@ -250,9 +250,9 @@ that implies the second call to <code>showA()</code> should print the same thing
 block
 </pre></div>
 <p>Let me stress that this program never reassigns any variable and only contains a
-single print statement. Yet, somehow, that print statement for a never-assigned
-variable prints two different values at different points in time. We definitely
-broke something somewhere.</p>
+single <code>print</code> statement. Yet, somehow, that <code>print</code> statement for a
+never-assigned variable prints two different values at different points in time.
+We definitely broke something somewhere.</p>
 <h3><a href="#scopes-and-mutable-environments" name="scopes-and-mutable-environments"><small>11&#8202;.&#8202;1&#8202;.&#8202;1</small>Scopes and mutable environments</a></h3>
 <p>In our interpreter, environments are the dynamic manifestation of static scopes.
 The two mostly stay in sync with each other<span class="em">&mdash;</span>we create a new environment when
@@ -304,7 +304,7 @@ actually the same scope. Consider:</p>
 <p>At the first marked line, only <code>a</code> is in scope. At the second line, both <code>a</code> and
 <code>b</code> are. If you define a &ldquo;scope&rdquo; to be a set of declarations, then those are
 clearly not the same scope<span class="em">&mdash;</span>they don&rsquo;t contain the same declarations. It&rsquo;s
-like each variable statement <span name="split">splits</span> the block into two
+like each <code>var</code> statement <span name="split">splits</span> the block into two
 separate scopes, the scope before the variable is declared and the one after,
 which includes the new variable.</p>
 <aside name="split">
@@ -408,7 +408,7 @@ have no effect.</p>
 </li>
 <li>
 <p><strong>There is no control flow.</strong> Loops are only visited <span
-name="fix">once</span>. Both branches are visited in if statements. Logic
+name="fix">once</span>. Both branches are visited in <code>if</code> statements. Logic
 operators are not short-circuited.</p>
 </li>
 </ul>
@@ -812,7 +812,7 @@ add after <em>visitFunctionStmt</em>()</div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitFunctionStmt</em>()</div>
 
 <p>Here, we can see how resolution is different from interpretation. When we
-resolve an if statement, there is no control flow. We resolve the condition and
+resolve an <code>if</code> statement, there is no control flow. We resolve the condition and
 <em>both</em> branches. Where a dynamic execution only steps into the branch that <em>is</em>
 run, a static analysis is conservative<span class="em">&mdash;</span>it analyzes any branch that <em>could</em> be
 run. Since either one could be reached at runtime, it resolves both.</p>
@@ -828,7 +828,7 @@ add after <em>visitIfStmt</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitIfStmt</em>()</div>
 
-<p>Like expression statements, a print statement contains a single subexpression.</p>
+<p>Like expression statements, a <code>print</code> statement contains a single subexpression.</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
 add after <em>visitPrintStmt</em>()</div>
 <pre>
@@ -856,7 +856,7 @@ add after <em>visitVarStmt</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, add after <em>visitVarStmt</em>()</div>
 
-<p>As in if statements, with a while statement, we resolve its condition and
+<p>As in <code>if</code> statements, with a <code>while</code> statement, we resolve its condition and
 resolve the body exactly once.</p>
 <p>That covers all the statements. Onto expressions&hellip;</p>
 <div class="codehilite"><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1211,7 +1211,7 @@ report an error.</p>
 <div class="codehilite"><pre>
 <span class="k">return</span> <span class="s">&quot;at top level&quot;</span>;
 </pre></div>
-<p>This executes a return statement but it&rsquo;s not even inside a function at all.
+<p>This executes a <code>return</code> statement but it&rsquo;s not even inside a function at all.
 It&rsquo;s top level code. I don&rsquo;t know what the user <em>thinks</em> is going to happen, but
 I don&rsquo;t think we want Lox to allow this.</p>
 <p>We can extend the resolver to detect this statically. Much like it tracks scopes
@@ -1292,7 +1292,7 @@ in <em>resolveFunction</em>()</div>
 <div class="source-file-narrow"><em>lox/Resolver.java</em>, in <em>resolveFunction</em>()</div>
 
 <p>Now that we can always tell whether or not we&rsquo;re inside a function declaration,
-we check that when resolving a return statement:</p>
+we check that when resolving a <code>return</code> statement:</p>
 <div class="codehilite"><pre class="insert-before">
   public Void visitReturnStmt(Stmt.Return stmt) {
 </pre><div class="source-file"><em>lox/Resolver.java</em><br>
@@ -1329,11 +1329,11 @@ in <em>run</em>()</div>
 <div class="source-file-narrow"><em>lox/Lox.java</em>, in <em>run</em>()</div>
 
 <p>You could imagine doing lots of other analysis in here. For example, if we added
-break statements to Lox, we probably want to ensure they are only used inside
+<code>break</code> statements to Lox, we probably want to ensure they are only used inside
 loops.</p>
 <p>We could go farther and report warnings for code that isn&rsquo;t necessarily <em>wrong</em>
 but probably isn&rsquo;t useful. For example, many IDEs will warn if you have
-unreachable code after a return statement, or a local variable whose value is
+unreachable code after a <code>return</code> statement, or a local variable whose value is
 never read. All of that would be pretty easy to add to our static visiting pass,
 or as <span name="separate">separate</span> passes.</p>
 <aside name="separate">

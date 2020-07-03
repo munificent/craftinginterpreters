@@ -77,7 +77,7 @@ There's a lot to unpack in that:
     ```
 
     Here, the `a` being printed is the outer one since it appears <span
-    name="hoisting">before</span> the print statement that uses it. In most
+    name="hoisting">before</span> the `print` statement that uses it. In most
     cases, in straight line code, the declaration preceding in *text* will also
     precede the usage in *time*. But that's not *always* true. As we'll see,
     functions may defer a chunk of code such that its *dynamic temporal*
@@ -170,9 +170,9 @@ block
 ```
 
 Let me stress that this program never reassigns any variable and only contains a
-single print statement. Yet, somehow, that print statement for a never-assigned
-variable prints two different values at different points in time. We definitely
-broke something somewhere.
+single `print` statement. Yet, somehow, that `print` statement for a
+never-assigned variable prints two different values at different points in time.
+We definitely broke something somewhere.
 
 ### Scopes and mutable environments
 
@@ -249,7 +249,7 @@ actually the same scope. Consider:
 At the first marked line, only `a` is in scope. At the second line, both `a` and
 `b` are. If you define a "scope" to be a set of declarations, then those are
 clearly not the same scope -- they don't contain the same declarations. It's
-like each variable statement <span name="split">splits</span> the block into two
+like each `var` statement <span name="split">splits</span> the block into two
 separate scopes, the scope before the variable is declared and the one after,
 which includes the new variable.
 
@@ -383,7 +383,7 @@ execution:
     have no effect.
 
 *   **There is no control flow.** Loops are only visited <span
-    name="fix">once</span>. Both branches are visited in if statements. Logic
+    name="fix">once</span>. Both branches are visited in `if` statements. Logic
     operators are not short-circuited.
 
 <aside name="fix">
@@ -639,7 +639,7 @@ An expression statement contains a single expression to traverse.
 ^code visit-if-stmt
 
 Here, we can see how resolution is different from interpretation. When we
-resolve an if statement, there is no control flow. We resolve the condition and
+resolve an `if` statement, there is no control flow. We resolve the condition and
 *both* branches. Where a dynamic execution only steps into the branch that *is*
 run, a static analysis is conservative -- it analyzes any branch that *could* be
 run. Since either one could be reached at runtime, it resolves both.
@@ -648,7 +648,7 @@ Moving along...
 
 ^code visit-print-stmt
 
-Like expression statements, a print statement contains a single subexpression.
+Like expression statements, a `print` statement contains a single subexpression.
 
 ^code visit-return-stmt
 
@@ -656,7 +656,7 @@ Same deal for return.
 
 ^code visit-while-stmt
 
-As in if statements, with a while statement, we resolve its condition and
+As in `if` statements, with a `while` statement, we resolve its condition and
 resolve the body exactly once.
 
 That covers all the statements. Onto expressions...
@@ -876,7 +876,7 @@ Here's another nasty little script:
 return "at top level";
 ```
 
-This executes a return statement but it's not even inside a function at all.
+This executes a `return` statement but it's not even inside a function at all.
 It's top level code. I don't know what the user *thinks* is going to happen, but
 I don't think we want Lox to allow this.
 
@@ -914,7 +914,7 @@ value:
 ^code restore-current-function (1 before, 1 after)
 
 Now that we can always tell whether or not we're inside a function declaration,
-we check that when resolving a return statement:
+we check that when resolving a `return` statement:
 
 ^code return-from-top (1 before, 1 after)
 
@@ -931,12 +931,12 @@ add *another* check:
 ^code resolution-error (1 before, 2 after)
 
 You could imagine doing lots of other analysis in here. For example, if we added
-break statements to Lox, we probably want to ensure they are only used inside
+`break` statements to Lox, we probably want to ensure they are only used inside
 loops.
 
 We could go farther and report warnings for code that isn't necessarily *wrong*
 but probably isn't useful. For example, many IDEs will warn if you have
-unreachable code after a return statement, or a local variable whose value is
+unreachable code after a `return` statement, or a local variable whose value is
 never read. All of that would be pretty easy to add to our static visiting pass,
 or as <span name="separate">separate</span> passes.
 

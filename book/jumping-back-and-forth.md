@@ -7,10 +7,10 @@
 It's taken a while to get here, but we're finally ready to add control flow to
 our virtual machine. In the tree-walk interpreter we built for jlox, we
 implemented Lox's control flow in terms of Java's. To execute a Lox if
-statement, we used a Java if statement to run the chosen branch. That works, but
-isn't entirely satisfying. By what magic does the *JVM* or a native CPU
-implement if statements? Now that we have our own bytecode VM to hack on, we can
-answer that.
+statement, we used a Java `if` statement to run the chosen branch. That works,
+but isn't entirely satisfying. By what magic does the *JVM* or a native CPU
+implement `if` statements? Now that we have our own bytecode VM to hack on, we
+can answer that.
 
 When we talk about "control flow", what are we referring to? By "flow" we mean
 the way execution moves through the text of the program. Almost like there is a
@@ -27,14 +27,14 @@ value of that field is exactly "where we are" in the program.
 Execution proceeds normally by incrementing the `ip`. But we can mutate that
 value however we want to. So in order to implement control flow, all that's
 necessary is to change the `ip` in more interesting ways. The simplest control
-flow construct is an if statement with no else clause:
+flow construct is an `if` statement with no else clause:
 
 ```lox
 if (condition) print("condition was truthy");
 ```
 
 The VM evaluates the bytecode for the condition expression. If the result is
-truthy, then it continues along and executes the print statement in the body.
+truthy, then it continues along and executes the `print` statement in the body.
 The interesting case is when the condition is falsey. When that happens,
 execution skips over the then branch and proceeds to the next statement.
 
@@ -71,8 +71,8 @@ get started with that.
 ## If Statements
 
 This many chapters in, you know the drill. Any new feature starts in the front
-end and works its way through the pipeline. If statements are, well,
-statements, so that's where we hook them into the parser:
+end and works its way through the pipeline. An `if` statement is, well, a
+statement, so that's where we hook it into the parser:
 
 ^code parse-if (2 before, 1 after)
 
@@ -157,7 +157,7 @@ compiling the then branch, we take that offset and pass it to:
 This goes back into the bytecode and replaces the operand at the given location
 with the calculated jump offset. We call `patchJump()` right before we emit the
 next instruction that we want the jump to land on, so it uses the current
-bytecode count to determine how far to jump. In the case of an if statement,
+bytecode count to determine how far to jump. In the case of an `if` statement,
 that means right after we compile the then branch and before we compile the next
 statement.
 
@@ -191,12 +191,12 @@ then branch.
 
 <aside name="if">
 
-I said we wouldn't use C's if statement to implement Lox's control flow, but we
-do use one here to determine whether or not to offset the instruction pointer.
-But we aren't really using C for *control flow*. If we wanted to, we could do
-the same thing purely arithmetically. Let's assume we have a function `falsey()`
-that takes a Lox Value and returns 1 if it's falsey or 0 otherwise. Then we
-could implement the jump instruction like:
+I said we wouldn't use C's `if` statement to implement Lox's control flow, but
+we do use one here to determine whether or not to offset the instruction
+pointer. But we aren't really using C for *control flow*. If we wanted to, we
+could do the same thing purely arithmetically. Let's assume we have a function
+`falsey()` that takes a Lox Value and returns 1 if it's falsey or 0 otherwise.
+Then we could implement the jump instruction like:
 
 ```c
 case OP_JUMP_IF_FALSE: {
@@ -215,14 +215,14 @@ doesn't affect how our VM does its own control flow.
 Note that the jump instruction doesn't pop the condition value off the stack. So
 we aren't totally done here, since this leaves an extra value floating around on
 the stack. We'll clean that up soon. Ignoring that for the moment, we do have a
-working if statement in Lox now, with only one little instruction required to
+working `if` statement in Lox now, with only one little instruction required to
 support it at runtime in the VM.
 
 ### Else clauses
 
-An if statement without support for else clauses is like Morticia Addams without
-Gomez. So, after we compile the then branch, we look for an `else` keyword. If
-we find one, we compile the else branch:
+An `if` statement without support for `else` clauses is like Morticia Addams
+without Gomez. So, after we compile the then branch, we look for an `else`
+keyword. If we find one, we compile the else branch:
 
 ^code compile-else (1 before, 1 after)
 
@@ -268,7 +268,7 @@ the stack should be as tall as it was before.
 We could have the `OP_JUMP_IF_FALSE` instruction pop the condition itself, but
 soon we'll use that same instruction for the logical operators where we don't
 want the condition popped. Instead, we'll have the compiler emit a couple of
-explicit `OP_POP` instructions when compiling an if statement. We need to take
+explicit `OP_POP` instructions when compiling an `if` statement. We need to take
 care that every execution path through the generated code pops the condition.
 
 When the condition is truthy, we pop it right before the code inside the then
@@ -280,9 +280,9 @@ Otherwise, we pop it at the beginning of the else branch:
 
 ^code pop-end (1 before, 2 after)
 
-This little instruction here also means that every if statement has an implicit
-else branch even if the user didn't write an else clause. In the case where they
-left it off, all it does is discard the condition value.
+This little instruction here also means that every `if` statement has an
+implicit else branch even if the user didn't write an `else` clause. In the case
+where they left it off, all the branch does is discard the condition value.
 
 The full correct flow looks like this:
 
@@ -317,8 +317,8 @@ aren't just another pair of binary operators like `+` and `-`. Because they
 short-circuit and may not evaluate their right operand depending on the value of
 the left one, they work more like control flow expressions.
 
-They're basically a little variation on an if statement with an else clause. The
-easiest way to explain them is to just show you the compiler code and the
+They're basically a little variation on an `if` statement with an `else` clause.
+The easiest way to explain them is to just show you the compiler code and the
 control flow it produces in the resulting bytecode. Starting with `and`, we hook
 it into the expression parsing table here:
 
@@ -392,7 +392,7 @@ and maybe a conditional expression like `?:`, but Lox keeps it simple.
 
 That takes us to the *looping* statements, which jump *backwards* so that code
 can be executed more than once. Lox only has two loop constructs, `while` and
-`for`. While loops are (much) simpler, so we kick off the party with its
+`for`. A `while` loop is (much) simpler, so we kick off the party with its
 keyword:
 
 ^code parse-while (1 before, 1 after)
@@ -401,13 +401,13 @@ That calls:
 
 ^code while-statement
 
-Most of this mirrors if statements -- we compile the condition expression,
+Most of this mirrors `if` statements -- we compile the condition expression,
 surrounded by mandatory parentheses. That's followed by a jump instruction that
 skips over the subsequent body statement if the condition is falsey.
 
 We patch the jump after compiling the body and take care to <span
 name="pop">pop</span> the condition value from the stack on either path. The
-only difference from an if statement is the loop. That looks like this:
+only difference from an `if` statement is the loop. That looks like this:
 
 <aside name="pop">
 
@@ -429,11 +429,11 @@ All we need to do is capture that location as we compile it:
 
 ^code loop-start (1 before, 1 after)
 
-After executing the body of a while loop, we jump all the way back to before the
-condition. That way, we re-evaluate the condition expression on each iteration.
-We store chunk's current instruction count in `loopStart` to record the offset
-in the bytecode right before the condition expression we're about to compile.
-Then we pass that into this helper function:
+After executing the body of a `while` loop, we jump all the way back to before
+the condition. That way, we re-evaluate the condition expression on each
+iteration. We store chunk's current instruction count in `loopStart` to record
+the offset in the bytecode right before the condition expression we're about to
+compile. Then we pass that into this helper function:
 
 ^code emit-loop
 
@@ -464,7 +464,7 @@ Disassembly is similar too:
 
 ^code disassemble-loop (1 before, 1 after)
 
-That's our while statement. It contains two jumps -- a conditional forward one
+That's our `while` statement. It contains two jumps -- a conditional forward one
 to escape the loop when the condition isn't met, and an unconditional loop
 backwards after we have executed the body. The flow looks like this:
 
@@ -472,8 +472,8 @@ backwards after we have executed the body. The flow looks like this:
 
 ## For Statements
 
-The other looping statement in Lox is the venerable for loop, inherited from C.
-It's got a lot more going on with it compared to a while loop. It has three
+The other looping statement in Lox is the venerable `for` loop, inherited from
+C. It's got a lot more going on with it compared to a `while` loop. It has three
 clauses, all of which are optional:
 
 <span name="detail"></span>
@@ -481,7 +481,7 @@ clauses, all of which are optional:
 *   The initializer can be a variable declaration or an expression. It runs once
     at the beginning of the statement.
 
-*   The condition clause is an expression. Like in a while loop, we exit the
+*   The condition clause is an expression. Like in a `while` loop, we exit the
     loop when it evaluates to something falsey.
 
 *   The increment expression runs once at the end of each loop iteration.
@@ -495,23 +495,23 @@ semantics [in more detail][jlox].
 
 </aside>
 
-In jlox, the parser desugared a for loop to a synthesized AST for a while loop
-with some extra stuff before it and at the end of the body. We'll do something
-similiar, though we won't go through anything like an AST. Instead, our bytecode
-compiler will use the jump and loop instructions we already have.
+In jlox, the parser desugared a `for` loop to a synthesized AST for a `while`
+loop with some extra stuff before it and at the end of the body. We'll do
+something similiar, though we won't go through anything like an AST. Instead,
+our bytecode compiler will use the jump and loop instructions we already have.
 
 We'll work our way through the implementation a piece at a time, starting with
 the `for` keyword:
 
 ^code parse-for (1 before, 1 after)
 
-It calls a helper function. If we only supported for loops with empty clauses
+It calls a helper function. If we only supported `for` loops with empty clauses
 like `for (;;)`, then we could implement it like this:
 
 ^code for-statement
 
 There's a bunch of mandatory punctuation at the top. Then we compile the body.
-Like we did for while loops, we record the bytecode offset at the top of the
+Like we did for `while` loops, we record the bytecode offset at the top of the
 body and emit a loop to jump back to that point after it. We've got a working
 implementation of <span name="infinite">infinite</span> loops now.
 
@@ -536,7 +536,7 @@ For the expression case, we call `expressionStatement()` instead of
 emits an `OP_POP` instruction to discard the value. We don't want the
 initializer to leave anything on the stack.
 
-If a for statement declares a variable, that variable should be scoped to the
+If a `for` statement declares a variable, that variable should be scoped to the
 loop body. We ensure that by wrapping the whole statement in a scope:
 
 ^code for-begin-scope (1 before, 1 after)
@@ -572,7 +572,7 @@ jump to patch and no condition to pop.
 I've saved the best for last, the increment clause. It's pretty convoluted. It
 appears textually before the body, but executes *after* it. If we parsed to an
 AST and generated code in a separate pass, we could simply traverse into and
-compile the for statement AST's body field before its increment clause.
+compile the `for` statement AST's body field before its increment clause.
 
 Unfortunately, we can't compile the increment clause later, since our compiler
 only makes a single pass over the code. Instead, we'll jump over the increment,
@@ -595,7 +595,7 @@ Whatever it is, we only execute it for its side effect, so we also emit a pop to
 discard its value.
 
 The last part is a little tricky. First, we emit a loop instruction. This is the
-main loop that takes us back to the top of the for loop -- right before the
+main loop that takes us back to the top of the `for` loop -- right before the
 condition expression if there is one. That loop happens right after the
 increment, since the increment executes at the end of each loop iteration.
 
@@ -626,7 +626,7 @@ I couldn't resist the pun. I regret nothing.
 
 ## Challenges
 
-1.  In addition to if statements, most C-family languages have a multi-way
+1.  In addition to `if` statements, most C-family languages have a multi-way
     `switch` statement. Add one to clox. The grammar is:
 
     ```ebnf
@@ -636,32 +636,32 @@ I couldn't resist the pun. I regret nothing.
     defaultCase → "default" ":" statement* ;
     ```
 
-    To execute a switch statement, first evaluate the parenthesized switch value
-    expression. Then walk the cases. For each case, evaluate its value
+    To execute a `switch` statement, first evaluate the parenthesized switch
+    value expression. Then walk the cases. For each case, evaluate its value
     expression. If the case value is equal to the switch value, execute the
-    statements under the case and then exit the switch statement. Otherwise, try
-    the next case. If no case matches and there is a `default` clause, execute
-    its statements.
+    statements under the case and then exit the `switch` statement. Otherwise,
+    try the next case. If no case matches and there is a `default` clause,
+    execute its statements.
 
     To keep things simpler, we're omitting fallthrough and `break` statements.
     Each case automatically jumps to the end of the switch statement after its
     statements are done.
 
-1.  In jlox, we had a challenge to add support for break statements. This time,
-    let's do continue:
+1.  In jlox, we had a challenge to add support for `break` statements. This
+    time, let's do `continue`:
 
     ```ebnf
     continueStmt → "continue" ";" ;
     ```
 
-    A continue statement jumps directly to the top of the nearest enclosing
-    loop, skipping the rest of the loop body. Inside a for loop, a continue
+    A `continue` statement jumps directly to the top of the nearest enclosing
+    loop, skipping the rest of the loop body. Inside a `for` loop, a `continue`
     jumps to the increment clause, if there is one. It's a compile-time error to
-    have a continue statement not enclosed in a loop.
+    have a `continue` statement not enclosed in a loop.
 
     Make sure to think about scope. What should happen to local variables
     declared inside the body of the loop or in blocks nested inside the loop
-    when a continue is executed?
+    when a `continue` is executed?
 
 1.  Control flow constructs have been mostly unchanged since Algol 68. Language
     evolution since then has focused on making code more declarative and high
@@ -751,8 +751,8 @@ If your program only allows simple statements like assignment, it's easy. You
 just need to know the point after the last statement you executed. Basically a
 breakpoint, the `ip` in our VM, or the line number in an error message.
 
-Adding branching control flow like if and switch doesn't add any more to this.
-Even if the marker points inside a branch, we can still tell where we are.
+Adding branching control flow like `if` and `switch` doesn't add any more to
+this. Even if the marker points inside a branch, we can still tell where we are.
 
 Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
@@ -788,7 +788,7 @@ that one approach is unsatisfactory:
 
 But... that's effectively what loop counters do, and he was fine with those.
 It's not like every loop is a simple "for every integer from 0 to 10"
-incrementing count. Many are while loops with complex conditionals.
+incrementing count. Many are `while` loops with complex conditionals.
 
 Taking an example close to home, consider the core bytecode execution loop at
 the heart of clox. Dijkstra argues that that loop is tractable because we can

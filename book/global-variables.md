@@ -33,8 +33,8 @@ the same language feature will have multiple implementation techniques, each
 tuned for different use patterns. For example, JavaScript VMs often have a
 faster representation for objects that are used more like instances of classes
 compared to other objects whose set of properties is more freely modified. C and
-C++ compilers usually have a variety of ways to compile switch statements based
-on the number of cases and how densely packed the case values are.
+C++ compilers usually have a variety of ways to compile `switch` statements
+based on the number of cases and how densely packed the case values are.
 
 </aside>
 
@@ -150,9 +150,9 @@ We may as well write out the forward declarations now:
 
 ### Print statements
 
-We have two statement types to support. Let's start with print statements, which
-begin, naturally enough, with a `print` token. We detect that using this helper
-function:
+We have two statement types to support. Let's start with `print` statements,
+which begin, naturally enough, with a `print` token. We detect that using this
+helper function:
 
 ^code match
 
@@ -188,10 +188,9 @@ using:
 
 ^code print-statement
 
-A print statement evaluates an expression and prints the result, so we first
+A `print` statement evaluates an expression and prints the result, so we first
 parse and compile that expression. The grammar expects a semicolon after that,
-so we consume it. Finally, we emit a new instruction to print the
-result:
+so we consume it. Finally, we emit a new instruction to print the result:
 
 ^code op-print (1 before, 1 after)
 

@@ -59,6 +59,6 @@
 
     Also:
 
-    3.  No break or continue for loops.
+    3.  No `break` or `continue` for loops.
 
-    4.  No switch.
+    4.  No `switch`.

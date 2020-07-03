@@ -121,10 +121,10 @@ discover that, even if it was useful, it was meaningless.</p>
 <p>It&rsquo;s taken a while to get here, but we&rsquo;re finally ready to add control flow to
 our virtual machine. In the tree-walk interpreter we built for jlox, we
 implemented Lox&rsquo;s control flow in terms of Java&rsquo;s. To execute a Lox if
-statement, we used a Java if statement to run the chosen branch. That works, but
-isn&rsquo;t entirely satisfying. By what magic does the <em>JVM</em> or a native CPU
-implement if statements? Now that we have our own bytecode VM to hack on, we can
-answer that.</p>
+statement, we used a Java <code>if</code> statement to run the chosen branch. That works,
+but isn&rsquo;t entirely satisfying. By what magic does the <em>JVM</em> or a native CPU
+implement <code>if</code> statements? Now that we have our own bytecode VM to hack on, we
+can answer that.</p>
 <p>When we talk about &ldquo;control flow&rdquo;, what are we referring to? By &ldquo;flow&rdquo; we mean
 the way execution moves through the text of the program. Almost like there is a
 little robot inside the computer wandering through our program, executing each
@@ -138,12 +138,12 @@ value of that field is exactly &ldquo;where we are&rdquo; in the program.</p>
 <p>Execution proceeds normally by incrementing the <code>ip</code>. But we can mutate that
 value however we want to. So in order to implement control flow, all that&rsquo;s
 necessary is to change the <code>ip</code> in more interesting ways. The simplest control
-flow construct is an if statement with no else clause:</p>
+flow construct is an <code>if</code> statement with no else clause:</p>
 <div class="codehilite"><pre>
 <span class="k">if</span> (<span class="i">condition</span>) <span class="k">print</span>(<span class="s">&quot;condition was truthy&quot;</span>);
 </pre></div>
 <p>The VM evaluates the bytecode for the condition expression. If the result is
-truthy, then it continues along and executes the print statement in the body.
+truthy, then it continues along and executes the <code>print</code> statement in the body.
 The interesting case is when the condition is falsey. When that happens,
 execution skips over the then branch and proceeds to the next statement.</p>
 <p>To skip over a chunk of code, we simply set the <code>ip</code> field to the address of the
@@ -171,8 +171,8 @@ statement, as long as it doesn&rsquo;t have an <code>else</code> clause. So let&
 get started with that.</p>
 <h2><a href="#if-statements" name="if-statements"><small>23&#8202;.&#8202;1</small>If Statements</a></h2>
 <p>This many chapters in, you know the drill. Any new feature starts in the front
-end and works its way through the pipeline. If statements are, well,
-statements, so that&rsquo;s where we hook them into the parser:</p>
+end and works its way through the pipeline. An <code>if</code> statement is, well, a
+statement, so that&rsquo;s where we hook it into the parser:</p>
 <div class="codehilite"><pre class="insert-before">
   if (match(TOKEN_PRINT)) {
     printStatement();
@@ -282,7 +282,7 @@ add after <em>emitConstant</em>()</div>
 <p>This goes back into the bytecode and replaces the operand at the given location
 with the calculated jump offset. We call <code>patchJump()</code> right before we emit the
 next instruction that we want the jump to land on, so it uses the current
-bytecode count to determine how far to jump. In the case of an if statement,
+bytecode count to determine how far to jump. In the case of an <code>if</code> statement,
 that means right after we compile the then branch and before we compile the next
 statement.</p>
 <p>That&rsquo;s all we need at compile time. Let&rsquo;s get the new instruction working:</p>
@@ -350,12 +350,12 @@ We&rsquo;ve offset the <code>ip</code>, so when the outer instruction dispatch l
 it will pick up execution at that new instruction, past all of the code in the
 then branch.</p>
 <aside name="if">
-<p>I said we wouldn&rsquo;t use C&rsquo;s if statement to implement Lox&rsquo;s control flow, but we
-do use one here to determine whether or not to offset the instruction pointer.
-But we aren&rsquo;t really using C for <em>control flow</em>. If we wanted to, we could do
-the same thing purely arithmetically. Let&rsquo;s assume we have a function <code>falsey()</code>
-that takes a Lox Value and returns 1 if it&rsquo;s falsey or 0 otherwise. Then we
-could implement the jump instruction like:</p>
+<p>I said we wouldn&rsquo;t use C&rsquo;s <code>if</code> statement to implement Lox&rsquo;s control flow, but
+we do use one here to determine whether or not to offset the instruction
+pointer. But we aren&rsquo;t really using C for <em>control flow</em>. If we wanted to, we
+could do the same thing purely arithmetically. Let&rsquo;s assume we have a function
+<code>falsey()</code> that takes a Lox Value and returns 1 if it&rsquo;s falsey or 0 otherwise.
+Then we could implement the jump instruction like:</p>
 <div class="codehilite"><pre>
 <span class="k">case</span> <span class="a">OP_JUMP_IF_FALSE</span>: {
   <span class="t">uint16_t</span> <span class="i">offset</span> = <span class="a">READ_SHORT</span>();
@@ -370,12 +370,12 @@ doesn&rsquo;t affect how our VM does its own control flow.</p>
 <p>Note that the jump instruction doesn&rsquo;t pop the condition value off the stack. So
 we aren&rsquo;t totally done here, since this leaves an extra value floating around on
 the stack. We&rsquo;ll clean that up soon. Ignoring that for the moment, we do have a
-working if statement in Lox now, with only one little instruction required to
+working <code>if</code> statement in Lox now, with only one little instruction required to
 support it at runtime in the VM.</p>
 <h3><a href="#else-clauses" name="else-clauses"><small>23&#8202;.&#8202;1&#8202;.&#8202;1</small>Else clauses</a></h3>
-<p>An if statement without support for else clauses is like Morticia Addams without
-Gomez. So, after we compile the then branch, we look for an <code>else</code> keyword. If
-we find one, we compile the else branch:</p>
+<p>An <code>if</code> statement without support for <code>else</code> clauses is like Morticia Addams
+without Gomez. So, after we compile the then branch, we look for an <code>else</code>
+keyword. If we find one, we compile the else branch:</p>
 <div class="codehilite"><pre class="insert-before">
   patchJump(thenJump);
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -462,7 +462,7 @@ the stack should be as tall as it was before.</p>
 <p>We could have the <code>OP_JUMP_IF_FALSE</code> instruction pop the condition itself, but
 soon we&rsquo;ll use that same instruction for the logical operators where we don&rsquo;t
 want the condition popped. Instead, we&rsquo;ll have the compiler emit a couple of
-explicit <code>OP_POP</code> instructions when compiling an if statement. We need to take
+explicit <code>OP_POP</code> instructions when compiling an <code>if</code> statement. We need to take
 care that every execution path through the generated code pops the condition.</p>
 <p>When the condition is truthy, we pop it right before the code inside the then
 branch:</p>
@@ -490,9 +490,9 @@ in <em>ifStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>ifStatement</em>()</div>
 
-<p>This little instruction here also means that every if statement has an implicit
-else branch even if the user didn&rsquo;t write an else clause. In the case where they
-left it off, all it does is discard the condition value.</p>
+<p>This little instruction here also means that every <code>if</code> statement has an
+implicit else branch even if the user didn&rsquo;t write an <code>else</code> clause. In the case
+where they left it off, all the branch does is discard the condition value.</p>
 <p>The full correct flow looks like this:</p><img src="image/jumping-back-and-forth/full-if-else.png" alt="Flowchart of the compiled bytecode including necessary pop instructions." />
 <p>If you trace through you can see that it always executes a single branch and
 ensures the condition is popped first. All that remains it a little disassembler
@@ -538,8 +538,8 @@ so we&rsquo;ll have to grind it out ourselves.</p>
 aren&rsquo;t just another pair of binary operators like <code>+</code> and <code>-</code>. Because they
 short-circuit and may not evaluate their right operand depending on the value of
 the left one, they work more like control flow expressions.</p>
-<p>They&rsquo;re basically a little variation on an if statement with an else clause. The
-easiest way to explain them is to just show you the compiler code and the
+<p>They&rsquo;re basically a little variation on an <code>if</code> statement with an <code>else</code> clause.
+The easiest way to explain them is to just show you the compiler code and the
 control flow it produces in the resulting bytecode. Starting with <code>and</code>, we hook
 it into the expression parsing table here:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -637,7 +637,7 @@ and maybe a conditional expression like <code>?:</code>, but Lox keeps it simple
 <h2><a href="#while-statements" name="while-statements"><small>23&#8202;.&#8202;3</small>While Statements</a></h2>
 <p>That takes us to the <em>looping</em> statements, which jump <em>backwards</em> so that code
 can be executed more than once. Lox only has two loop constructs, <code>while</code> and
-<code>for</code>. While loops are (much) simpler, so we kick off the party with its
+<code>for</code>. A <code>while</code> loop is (much) simpler, so we kick off the party with its
 keyword:</p>
 <div class="codehilite"><pre class="insert-before">
     ifStatement();
@@ -671,12 +671,12 @@ add after <em>printStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>printStatement</em>()</div>
 
-<p>Most of this mirrors if statements<span class="em">&mdash;</span>we compile the condition expression,
+<p>Most of this mirrors <code>if</code> statements<span class="em">&mdash;</span>we compile the condition expression,
 surrounded by mandatory parentheses. That&rsquo;s followed by a jump instruction that
 skips over the subsequent body statement if the condition is falsey.</p>
 <p>We patch the jump after compiling the body and take care to <span
 name="pop">pop</span> the condition value from the stack on either path. The
-only difference from an if statement is the loop. That looks like this:</p>
+only difference from an <code>if</code> statement is the loop. That looks like this:</p>
 <aside name="pop">
 <p>Really starting to second-guess my decision to use the same jump instructions
 for the logical operators.</p>
@@ -712,11 +712,11 @@ in <em>whileStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>whileStatement</em>()</div>
 
-<p>After executing the body of a while loop, we jump all the way back to before the
-condition. That way, we re-evaluate the condition expression on each iteration.
-We store chunk&rsquo;s current instruction count in <code>loopStart</code> to record the offset
-in the bytecode right before the condition expression we&rsquo;re about to compile.
-Then we pass that into this helper function:</p>
+<p>After executing the body of a <code>while</code> loop, we jump all the way back to before
+the condition. That way, we re-evaluate the condition expression on each
+iteration. We store chunk&rsquo;s current instruction count in <code>loopStart</code> to record
+the offset in the bytecode right before the condition expression we&rsquo;re about to
+compile. Then we pass that into this helper function:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>emitBytes</em>()</div>
 <pre>
@@ -787,12 +787,12 @@ in <em>disassembleInstruction</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>debug.c</em>, in <em>disassembleInstruction</em>()</div>
 
-<p>That&rsquo;s our while statement. It contains two jumps<span class="em">&mdash;</span>a conditional forward one
+<p>That&rsquo;s our <code>while</code> statement. It contains two jumps<span class="em">&mdash;</span>a conditional forward one
 to escape the loop when the condition isn&rsquo;t met, and an unconditional loop
 backwards after we have executed the body. The flow looks like this:</p><img src="image/jumping-back-and-forth/while.png" alt="Flowchart of the compiled bytecode of a while statement." />
 <h2><a href="#for-statements" name="for-statements"><small>23&#8202;.&#8202;4</small>For Statements</a></h2>
-<p>The other looping statement in Lox is the venerable for loop, inherited from C.
-It&rsquo;s got a lot more going on with it compared to a while loop. It has three
+<p>The other looping statement in Lox is the venerable <code>for</code> loop, inherited from
+C. It&rsquo;s got a lot more going on with it compared to a <code>while</code> loop. It has three
 clauses, all of which are optional:</p>
 <p><span name="detail"></span></p>
 <ul>
@@ -801,7 +801,7 @@ clauses, all of which are optional:</p>
 at the beginning of the statement.</p>
 </li>
 <li>
-<p>The condition clause is an expression. Like in a while loop, we exit the
+<p>The condition clause is an expression. Like in a <code>while</code> loop, we exit the
 loop when it evaluates to something falsey.</p>
 </li>
 <li>
@@ -812,10 +812,10 @@ loop when it evaluates to something falsey.</p>
 <p>If you want a refresher, the corresponding chapter in part I goes through the
 semantics <a href="control-flow.html#for-loops">in more detail</a>.</p>
 </aside>
-<p>In jlox, the parser desugared a for loop to a synthesized AST for a while loop
-with some extra stuff before it and at the end of the body. We&rsquo;ll do something
-similiar, though we won&rsquo;t go through anything like an AST. Instead, our bytecode
-compiler will use the jump and loop instructions we already have.</p>
+<p>In jlox, the parser desugared a <code>for</code> loop to a synthesized AST for a <code>while</code>
+loop with some extra stuff before it and at the end of the body. We&rsquo;ll do
+something similiar, though we won&rsquo;t go through anything like an AST. Instead,
+our bytecode compiler will use the jump and loop instructions we already have.</p>
 <p>We&rsquo;ll work our way through the implementation a piece at a time, starting with
 the <code>for</code> keyword:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -830,7 +830,7 @@ in <em>statement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>statement</em>()</div>
 
-<p>It calls a helper function. If we only supported for loops with empty clauses
+<p>It calls a helper function. If we only supported <code>for</code> loops with empty clauses
 like <code>for (;;)</code>, then we could implement it like this:</p>
 <div class="codehilite"><div class="source-file"><em>compiler.c</em><br>
 add after <em>expressionStatement</em>()</div>
@@ -852,7 +852,7 @@ add after <em>expressionStatement</em>()</div>
 <div class="source-file-narrow"><em>compiler.c</em>, add after <em>expressionStatement</em>()</div>
 
 <p>There&rsquo;s a bunch of mandatory punctuation at the top. Then we compile the body.
-Like we did for while loops, we record the bytecode offset at the top of the
+Like we did for <code>while</code> loops, we record the bytecode offset at the top of the
 body and emit a loop to jump back to that point after it. We&rsquo;ve got a working
 implementation of <span name="infinite">infinite</span> loops now.</p>
 <aside name="infinite">
@@ -887,7 +887,7 @@ For the expression case, we call <code>expressionStatement()</code> instead of
 <code>expression()</code>. That looks for a semicolon, which we need here too, and also
 emits an <code>OP_POP</code> instruction to discard the value. We don&rsquo;t want the
 initializer to leave anything on the stack.</p>
-<p>If a for statement declares a variable, that variable should be scoped to the
+<p>If a <code>for</code> statement declares a variable, that variable should be scoped to the
 loop body. We ensure that by wrapping the whole statement in a scope:</p>
 <div class="codehilite"><pre class="insert-before">
 static void forStatement() {
@@ -969,7 +969,7 @@ jump to patch and no condition to pop.</p>
 <p>I&rsquo;ve saved the best for last, the increment clause. It&rsquo;s pretty convoluted. It
 appears textually before the body, but executes <em>after</em> it. If we parsed to an
 AST and generated code in a separate pass, we could simply traverse into and
-compile the for statement AST&rsquo;s body field before its increment clause.</p>
+compile the <code>for</code> statement AST&rsquo;s body field before its increment clause.</p>
 <p>Unfortunately, we can&rsquo;t compile the increment clause later, since our compiler
 only makes a single pass over the code. Instead, we&rsquo;ll jump over the increment,
 run the body, jump back up to the increment, run it, and then go to the next
@@ -1010,7 +1010,7 @@ loop.</p>
 Whatever it is, we only execute it for its side effect, so we also emit a pop to
 discard its value.</p>
 <p>The last part is a little tricky. First, we emit a loop instruction. This is the
-main loop that takes us back to the top of the for loop<span class="em">&mdash;</span>right before the
+main loop that takes us back to the top of the <code>for</code> loop<span class="em">&mdash;</span>right before the
 condition expression if there is one. That loop happens right after the
 increment, since the increment executes at the end of each loop iteration.</p>
 <p>Then we change <code>loopStart</code> to point to the offset where the increment expression
@@ -1032,7 +1032,7 @@ That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM
 <h2><a href="#challenges" name="challenges">Challenges</a></h2>
 <ol>
 <li>
-<p>In addition to if statements, most C-family languages have a multi-way
+<p>In addition to <code>if</code> statements, most C-family languages have a multi-way
 <code>switch</code> statement. Add one to clox. The grammar is:</p>
 <div class="codehilite"><pre>
 <span class="i">switchStmt</span>  → <span class="s">&quot;switch&quot;</span> <span class="s">&quot;(&quot;</span> <span class="i">expression</span> <span class="s">&quot;)&quot;</span>
@@ -1040,29 +1040,29 @@ That&rsquo;s a pretty good effort-to-reward ratio for the architecture of our VM
 <span class="i">switchCase</span>  → <span class="s">&quot;case&quot;</span> <span class="i">expression</span> <span class="s">&quot;:&quot;</span> <span class="i">statement</span>* ;
 <span class="i">defaultCase</span> → <span class="s">&quot;default&quot;</span> <span class="s">&quot;:&quot;</span> <span class="i">statement</span>* ;
 </pre></div>
-<p>To execute a switch statement, first evaluate the parenthesized switch value
-expression. Then walk the cases. For each case, evaluate its value
+<p>To execute a <code>switch</code> statement, first evaluate the parenthesized switch
+value expression. Then walk the cases. For each case, evaluate its value
 expression. If the case value is equal to the switch value, execute the
-statements under the case and then exit the switch statement. Otherwise, try
-the next case. If no case matches and there is a <code>default</code> clause, execute
-its statements.</p>
+statements under the case and then exit the <code>switch</code> statement. Otherwise,
+try the next case. If no case matches and there is a <code>default</code> clause,
+execute its statements.</p>
 <p>To keep things simpler, we&rsquo;re omitting fallthrough and <code>break</code> statements.
 Each case automatically jumps to the end of the switch statement after its
 statements are done.</p>
 </li>
 <li>
-<p>In jlox, we had a challenge to add support for break statements. This time,
-let&rsquo;s do continue:</p>
+<p>In jlox, we had a challenge to add support for <code>break</code> statements. This
+time, let&rsquo;s do <code>continue</code>:</p>
 <div class="codehilite"><pre>
 <span class="i">continueStmt</span> → <span class="s">&quot;continue&quot;</span> <span class="s">&quot;;&quot;</span> ;
 </pre></div>
-<p>A continue statement jumps directly to the top of the nearest enclosing
-loop, skipping the rest of the loop body. Inside a for loop, a continue
+<p>A <code>continue</code> statement jumps directly to the top of the nearest enclosing
+loop, skipping the rest of the loop body. Inside a <code>for</code> loop, a <code>continue</code>
 jumps to the increment clause, if there is one. It&rsquo;s a compile-time error to
-have a continue statement not enclosed in a loop.</p>
+have a <code>continue</code> statement not enclosed in a loop.</p>
 <p>Make sure to think about scope. What should happen to local variables
 declared inside the body of the loop or in blocks nested inside the loop
-when a continue is executed?</p>
+when a <code>continue</code> is executed?</p>
 </li>
 <li>
 <p>Control flow constructs have been mostly unchanged since Algol 68. Language
@@ -1145,8 +1145,8 @@ other computer to be able to stop it exactly as far along as the first one was?<
 <p>If your program only allows simple statements like assignment, it&rsquo;s easy. You
 just need to know the point after the last statement you executed. Basically a
 breakpoint, the <code>ip</code> in our VM, or the line number in an error message.</p>
-<p>Adding branching control flow like if and switch doesn&rsquo;t add any more to this.
-Even if the marker points inside a branch, we can still tell where we are.</p>
+<p>Adding branching control flow like <code>if</code> and <code>switch</code> doesn&rsquo;t add any more to
+this. Even if the marker points inside a branch, we can still tell where we are.</p>
 <p>Once you add function calls, you need something more. You could have paused the
 first computer in the middle of a function, but that function may be called from
 multiple places. To pause the second machine at exactly the same point in <em>the
@@ -1178,7 +1178,7 @@ coordinate, although unique, is utterly unhelpful.</p>
 </blockquote>
 <p>But&hellip; that&rsquo;s effectively what loop counters do, and he was fine with those.
 It&rsquo;s not like every loop is a simple &ldquo;for every integer from 0 to 10&rdquo;
-incrementing count. Many are while loops with complex conditionals.</p>
+incrementing count. Many are <code>while</code> loops with complex conditionals.</p>
 <p>Taking an example close to home, consider the core bytecode execution loop at
 the heart of clox. Dijkstra argues that that loop is tractable because we can
 simply count how many times the loop has run to reason about its progress. But

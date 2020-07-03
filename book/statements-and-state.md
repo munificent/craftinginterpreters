@@ -56,7 +56,7 @@ from expressions. We start with the two simplest kinds:
 
     </aside>
 
-2.  A **print statement** evaluates an expression and displays the result to the
+2.  A **`print` statement** evaluates an expression and displays the result to the
     user. I admit it's weird to bake print right into the language instead of
     making it a library function. Doing so is a concession to the fact that
     we're building this interpreter one chapter at a time and want to be able to
@@ -68,8 +68,8 @@ from expressions. We start with the two simplest kinds:
     <aside name="print">
 
     I will note with only a modicum of defensiveness that BASIC and Python
-    have dedicated print statements and they are real languages. Granted,
-    Python did remove their print statement in 3.0...
+    have dedicated `print` statements and they are real languages. Granted,
+    Python did remove their `print` statement in 3.0...
 
     </aside>
 
@@ -103,7 +103,7 @@ syntax trees.
 
 There is no place in the grammar where both an expression and a statement is
 allowed. The operands of, say, `+` are always expressions, never statements. The
-body of a while loop is always a statement.
+body of a `while` loop is always a statement.
 
 Since the two syntaxes are disjoint, we don't need a single base class that they
 all inherit from. Splitting them into separate class hierarchies enables the
@@ -136,7 +136,7 @@ The generated code for the new nodes is in [Appendix II][appendix-ii]: [Expressi
 </aside>
 
 Run that script and behold your new "Stmt.java" file with the syntax tree
-classes we need for expression and print statements. Don't forget to add it to
+classes we need for expression and `print` statements. Don't forget to add it to
 your IDE project or makefile or whatever.
 
 ### Parsing statements
@@ -168,7 +168,7 @@ A program is a list of statements, and we parse one of those statements using:
 
 It's a little bare bones, but we'll fill it in with more statement types later.
 It determines which specific statement rule is matched by looking at the current
-token. A `print` token means it's obviously a print statement.
+token. A `print` token means it's obviously a `print` statement.
 
 If the next token doesn't look like any known kind of statement, we assume it
 must be an expression statement. That's the typical final fallthrough case when
@@ -192,12 +192,12 @@ is in when a method is called. For Lox's little parser, I didn't bother.
 
 </aside>
 
-If we didn't match a print statement, we must have one of these:
+If we didn't match a `print` statement, we must have one of these:
 
 ^code parse-expression-statement
 
-Similar to print, it parses an expression followed by a semicolon. It wraps that
-Expr in a Stmt and returns it.
+Similar to the previous method, it parses an expression followed by a semicolon.
+It wraps that Expr in a Stmt and returns it.
 
 ### Executing statements
 
@@ -235,7 +235,7 @@ discards the value (appropriately enough by using a Java expression statement to
 call `evaluate()`). Then we return `null`. Java requires that to satisfy the
 special capitalized Void return type. Weird, but what can you do?
 
-The print statement's visit method isn't much different:
+The `print` statement's visit method isn't much different:
 
 ^code visit-print
 
@@ -330,9 +330,9 @@ from other statements, and we're going to split the statement grammar in two to
 handle them. That's because the grammar restricts where some kinds of statements
 are allowed.
 
-The clauses in control flow statements -- think the "then" and "else" parts of
-an if statement or the body of a while -- are each a single statement. But that
-statement is not allowed to be one that declares a name. This is OK:
+The clauses in control flow statements -- think the then and else branches of
+an `if` statement or the body of a `while` -- are each a single statement. But
+that statement is not allowed to be one that declares a name. This is OK:
 
 ```lox
 if (monday) print "Ugh, already?";
@@ -345,8 +345,9 @@ if (monday) var beverage = "espresso";
 ```
 
 We *could* allow the latter, but it's confusing. What is the scope of that
-`beverage` variable? Does it persist after the if statement? If so, what is its
-value on days other than Monday? Does the variable exist at all on those days?
+`beverage` variable? Does it persist after the `if` statement? If so, what is
+its value on days other than Monday? Does the variable exist at all on those
+days?
 
 Code like this is weird, so C, Java, and friends all disallow it. It's as if
 there are two levels of <span name="brace">"precedence"</span> for statements.
@@ -359,7 +360,7 @@ the "higher" precedence statements that don't declare names.
 In this analogy, a block statement, where you stuff a series of statements
 inside a pair of curly braces, works sort of like parentheses for expressions. A
 block statement is itself in the "higher" precedence level and can be used
-anywhere, like in the clauses of an if statement. But the statements it
+anywhere, like in the clauses of an `if` statement. But the statements it
 *contains* can be lower precedence. You're allowed to declare variables and
 other names inside the block. The curlies let you escape back into the full
 statement grammar from a place where only some statements are allowed.
