@@ -161,7 +161,7 @@ Functions return values, but procedures cannot. There is a statement form
 for calling a procedure, but functions can only be called where an expression is expected. There are no statement expressions.</p>
 </aside></li>
 <li>
-<p>A <strong>print statement</strong> evaluates an expression and displays the result to the
+<p>A <strong><code>print</code> statement</strong> evaluates an expression and displays the result to the
 user. I admit it&rsquo;s weird to bake print right into the language instead of
 making it a library function. Doing so is a concession to the fact that
 we&rsquo;re building this interpreter one chapter at a time and want to be able to
@@ -171,8 +171,8 @@ functions <span name="print">before</span> we could witness any side
 effects.</p>
 <aside name="print">
 <p>I will note with only a modicum of defensiveness that BASIC and Python
-have dedicated print statements and they are real languages. Granted,
-Python did remove their print statement in 3.0&hellip;</p>
+have dedicated <code>print</code> statements and they are real languages. Granted,
+Python did remove their <code>print</code> statement in 3.0&hellip;</p>
 </aside></li>
 </ol>
 <p>New syntax means new grammar rules. In this chapter, we finally gain the ability
@@ -199,7 +199,7 @@ The next step is turning this grammar into something we can store in memory<span
 <h3><a href="#statement-syntax-trees" name="statement-syntax-trees"><small>8&#8202;.&#8202;1&#8202;.&#8202;1</small>Statement syntax trees</a></h3>
 <p>There is no place in the grammar where both an expression and a statement is
 allowed. The operands of, say, <code>+</code> are always expressions, never statements. The
-body of a while loop is always a statement.</p>
+body of a <code>while</code> loop is always a statement.</p>
 <p>Since the two syntaxes are disjoint, we don&rsquo;t need a single base class that they
 all inherit from. Splitting them into separate class hierarchies enables the
 Java compiler to help us find dumb mistakes like passing a statement to a Java
@@ -233,7 +233,7 @@ in <em>main</em>()</div>
 <p>The generated code for the new nodes is in <a href="appendix-ii.html">Appendix II</a>: <a href="appendix-ii.html#expression-statement">Expression statement</a>, <a href="appendix-ii.html#print-statement">Print statement</a>.</p>
 </aside>
 <p>Run that script and behold your new &ldquo;Stmt.java&rdquo; file with the syntax tree
-classes we need for expression and print statements. Don&rsquo;t forget to add it to
+classes we need for expression and <code>print</code> statements. Don&rsquo;t forget to add it to
 your IDE project or makefile or whatever.</p>
 <h3><a href="#parsing-statements" name="parsing-statements"><small>8&#8202;.&#8202;1&#8202;.&#8202;2</small>Parsing statements</a></h3>
 <p>The parser&rsquo;s <code>parse()</code> method that parses and returns a single expression was a
@@ -288,7 +288,7 @@ add after <em>expression</em>()</div>
 
 <p>It&rsquo;s a little bare bones, but we&rsquo;ll fill it in with more statement types later.
 It determines which specific statement rule is matched by looking at the current
-token. A <code>print</code> token means it&rsquo;s obviously a print statement.</p>
+token. A <code>print</code> token means it&rsquo;s obviously a <code>print</code> statement.</p>
 <p>If the next token doesn&rsquo;t look like any known kind of statement, we assume it
 must be an expression statement. That&rsquo;s the typical final fallthrough case when
 parsing a statement, since it&rsquo;s hard to proactively recognize an expression from
@@ -314,7 +314,7 @@ some of its corresponding grammar rule has already been consumed. In a big
 complex parser, this helps maintainers keep track of what state the token stream
 is in when a method is called. For Lox&rsquo;s little parser, I didn&rsquo;t bother.</p>
 </aside>
-<p>If we didn&rsquo;t match a print statement, we must have one of these:</p>
+<p>If we didn&rsquo;t match a <code>print</code> statement, we must have one of these:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Parser.java</em><br>
 add after <em>printStatement</em>()</div>
 <pre>
@@ -326,8 +326,8 @@ add after <em>printStatement</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>printStatement</em>()</div>
 
-<p>Similar to print, it parses an expression followed by a semicolon. It wraps that
-Expr in a Stmt and returns it.</p>
+<p>Similar to the previous method, it parses an expression followed by a semicolon.
+It wraps that Expr in a Stmt and returns it.</p>
 <h3><a href="#executing-statements" name="executing-statements"><small>8&#8202;.&#8202;1&#8202;.&#8202;3</small>Executing statements</a></h3>
 <p>We&rsquo;re running through the previous couple of chapters in microcosm, working our
 way through the front end. Our parser can now produce statement syntax trees, so
@@ -371,7 +371,7 @@ add after <em>evaluate</em>()</div>
 discards the value (appropriately enough by using a Java expression statement to
 call <code>evaluate()</code>). Then we return <code>null</code>. Java requires that to satisfy the
 special capitalized Void return type. Weird, but what can you do?</p>
-<p>The print statement&rsquo;s visit method isn&rsquo;t much different:</p>
+<p>The <code>print</code> statement&rsquo;s visit method isn&rsquo;t much different:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em><br>
 add after <em>visitExpressionStmt</em>()</div>
 <pre>
@@ -511,9 +511,9 @@ with the syntax. Variable declarations are statements, but they are different
 from other statements, and we&rsquo;re going to split the statement grammar in two to
 handle them. That&rsquo;s because the grammar restricts where some kinds of statements
 are allowed.</p>
-<p>The clauses in control flow statements<span class="em">&mdash;</span>think the &ldquo;then&rdquo; and &ldquo;else&rdquo; parts of
-an if statement or the body of a while<span class="em">&mdash;</span>are each a single statement. But that
-statement is not allowed to be one that declares a name. This is OK:</p>
+<p>The clauses in control flow statements<span class="em">&mdash;</span>think the then and else branches of
+an <code>if</code> statement or the body of a <code>while</code><span class="em">&mdash;</span>are each a single statement. But
+that statement is not allowed to be one that declares a name. This is OK:</p>
 <div class="codehilite"><pre>
 <span class="k">if</span> (<span class="i">monday</span>) <span class="k">print</span> <span class="s">&quot;Ugh, already?&quot;</span>;
 </pre></div>
@@ -522,8 +522,9 @@ statement is not allowed to be one that declares a name. This is OK:</p>
 <span class="k">if</span> (<span class="i">monday</span>) <span class="k">var</span> <span class="i">beverage</span> = <span class="s">&quot;espresso&quot;</span>;
 </pre></div>
 <p>We <em>could</em> allow the latter, but it&rsquo;s confusing. What is the scope of that
-<code>beverage</code> variable? Does it persist after the if statement? If so, what is its
-value on days other than Monday? Does the variable exist at all on those days?</p>
+<code>beverage</code> variable? Does it persist after the <code>if</code> statement? If so, what is
+its value on days other than Monday? Does the variable exist at all on those
+days?</p>
 <p>Code like this is weird, so C, Java, and friends all disallow it. It&rsquo;s as if
 there are two levels of <span name="brace">&ldquo;precedence&rdquo;</span> for statements.
 Some places where a statement is allowed<span class="em">&mdash;</span>like inside a block or at the top
@@ -533,7 +534,7 @@ the &ldquo;higher&rdquo; precedence statements that don&rsquo;t declare names.</
 <p>In this analogy, a block statement, where you stuff a series of statements
 inside a pair of curly braces, works sort of like parentheses for expressions. A
 block statement is itself in the &ldquo;higher&rdquo; precedence level and can be used
-anywhere, like in the clauses of an if statement. But the statements it
+anywhere, like in the clauses of an <code>if</code> statement. But the statements it
 <em>contains</em> can be lower precedence. You&rsquo;re allowed to declare variables and
 other names inside the block. The curlies let you escape back into the full
 statement grammar from a place where only some statements are allowed.</p>

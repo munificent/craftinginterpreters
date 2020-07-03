@@ -70,14 +70,14 @@ Property assignment, or "set" expressions are introduced in
 
 ### Super expression
 
-The `super` keyword is introduced in
+The `super` expression is introduced in
 "[Inheritance](inheritance.html#calling-superclass-methods)":
 
 ^code expr-super
 
 ### This expression
 
-The `this` keyword is introduced in "[Classes](classes.html#this)":
+The `this` expression is introduced in "[Classes](classes.html#this)":
 
 ^code expr-this
 
@@ -104,60 +104,63 @@ State](statements-and-state.html)".
 
 ### Block statement
 
-Curly-braced block statements to define local scopes are introduced in
+The curly-braced block statement that defines a local scope is introduced in
 "[Statements and State](statements-and-state.html#block-syntax-and-semantics)":
 
 ^code stmt-block
 
 ### Class statement
 
-Class declaration statements are introduced in, unsurprisingly, "[Classes](classes.html#class-declarations)":
+Class declaration is introduced in, unsurprisingly,
+"[Classes](classes.html#class-declarations)":
 
 ^code stmt-class
 
 ### Expression statement
 
-Expression statements are introduced in "[Statements and
+The expression statement is introduced in "[Statements and
 State](statements-and-state.html#statements)":
 
 ^code stmt-expression
 
 ### Function statement
 
-Function declaration statements are introduced in, you guessed it, "[Functions](functions.html#function-declarations)":
+Function declaration is introduced in, you guessed it,
+"[Functions](functions.html#function-declarations)":
 
 ^code stmt-function
 
 ### If statement
 
-If statements are introduced in "[Control
+The `if` statement is introduced in "[Control
 Flow](control-flow.html#conditional-execution)":
 
 ^code stmt-if
 
 ### Print statement
 
-Print statements are introduced in "[Statements and
+The `print` statement is introduced in "[Statements and
 State](statements-and-state.html#statements)":
 
 ^code stmt-print
 
 ### Return statement
 
-You need a function to return from, so return statements are introduced in "[Functions](functions.html#return-statements)":
+You need a function to return from, so `return` statements are introduced in
+"[Functions](functions.html#return-statements)":
 
 ^code stmt-return
 
 ### Variable statement
 
-Variable declaration statements are introduced in "[Statements and
+Variable declaration is introduced in "[Statements and
 State](statements-and-state.html#variable-syntax)":
 
 ^code stmt-var
 
 ### While statement
 
-While statements are introduced in "[Control
+The `while` statement is introduced in "[Control
 Flow](control-flow.html#while-loops)":
 
 ^code stmt-while

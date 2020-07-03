@@ -613,12 +613,12 @@ enough, it's a hash table that provides the tool we need.
 </aside>
 
 *   Otherwise, the bucket has an entry in it, but with a different key. This is
-    a collision. In that case, we start probing. That's what that for loop does.
-    We start at the bucket where the entry would ideally go. If that bucket is
-    empty or has the same key, we're done. Otherwise, we advance to the next
-    element -- this is the *linear* part of "linear probing" -- and check there.
-    If we go past the end of the array, that second modulo operator wraps us
-    back around to the beginning.
+    a collision. In that case, we start probing. That's what that `for` loop
+    does. We start at the bucket where the entry would ideally go. If that
+    bucket is empty or has the same key, we're done. Otherwise, we advance to
+    the next element -- this is the *linear* part of "linear probing" -- and
+    check there. If we go past the end of the array, that second modulo operator
+    wraps us back around to the beginning.
 
 We exit the loop when we find either an empty bucket or a bucket with the same
 key as the one we're looking for. You might be wondering about an infinite loop.

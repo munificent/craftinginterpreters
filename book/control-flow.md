@@ -129,9 +129,9 @@ into two kinds:
     stop looping as well.
 
 Branching is simpler, so we'll start there. C-derived languages have two main
-conditional execution features, the if statement and the perspicaciously named
-"conditional" <span name="ternary">operator</span> (`? :`). An if statement lets
-you conditionally execute statements and the conditional operator lets you
+conditional execution features, the `if` statement and the perspicaciously named
+"conditional" <span name="ternary">operator</span> (`? :`). An `if` statement
+lets you conditionally execute statements and the conditional operator lets you
 conditionally execute expressions.
 
 <aside name="ternary">
@@ -142,7 +142,7 @@ only operator in C that takes three operands.
 </aside>
 
 For simplicity's sake, Lox doesn't have a conditional operator, so let's get our
-if statement on. It gets a new production under the statement grammar rule:
+`if` statement on. It gets a new production under the statement grammar rule:
 
 <span name="semicolon"></span>
 
@@ -159,12 +159,12 @@ ifStmt    → "if" "(" expression ")" statement ( "else" statement )? ;
 
 The semicolons in the rules aren't quoted, which means they are part of the
 grammar metasyntax, not Lox's syntax. A block does not have a `;` at the end and
-an if statement doesn't either unless the then or else statement happens to be
+an `if` statement doesn't either unless the then or else statement happens to be
 one that ends in a semicolon.
 
 </aside>
 
-An if statement has an expression for the condition then a statement to execute
+An `if` statement has an expression for the condition then a statement to execute
 if the condition is truthy. Optionally, it may also have an `else` keyword and a
 statement to execute if the condition is falsey. The <span name="if-ast">syntax
 tree node</span> has fields for each of those three pieces:
@@ -179,8 +179,8 @@ The generated code for the new node is in [Appendix II][appendix-if].
 
 </aside>
 
-Like other statements, the parser recognizes an if statement by the leading `if`
-keyword:
+Like other statements, the parser recognizes an `if` statement by the leading
+`if` keyword:
 
 ^code match-if (1 before, 1 after)
 
@@ -215,18 +215,18 @@ grammar. Consider:
 if (first) if (second) whenTrue(); else whenFalse();
 ```
 
-Here's the riddle: Which if statement does that else clause belong to? This
+Here's the riddle: Which `if` statement does that else clause belong to? This
 isn't just a theoretical question about how we notate our grammar. It actually
 affects how the code executes.
 
-*   If we attach the else to the first if statement, then `whenFalse()` is
+*   If we attach the else to the first `if` statement, then `whenFalse()` is
     called if `first` is falsey, regardless of what value `second` has.
 
-*   If we attach it to the second if statement, then `whenFalse()` is only
+*   If we attach it to the second `if` statement, then `whenFalse()` is only
     called if `first` is truthy and `second` is falsey.
 
 Since else clauses are optional, and there is no explicit delimiter marking the
-end of the if statement, the grammar is ambiguous when you nest ifs in this way.
+end of the `if` statement, the grammar is ambiguous when you nest ifs in this way.
 This classic pitfall of syntax is called the **"[dangling else][]&rdquo;**
 problem.
 
@@ -246,16 +246,16 @@ the human reader.
 
 It *is* possible to define a context-free grammar that avoids the ambiguity
 directly, but it requires splitting most of the statement rules into pairs, one
-that allows an if with an else and one that doesn't. It's annoying.
+that allows an `if` with an `else` and one that doesn't. It's annoying.
 
 Instead, most languages and parsers avoid the problem in an ad hoc way. No
 matter what hack they use to get themselves out of the trouble, they always
-choose the same interpretation -- the else is bound to the nearest if that
+choose the same interpretation -- the `else` is bound to the nearest `if` that
 precedes it.
 
 Our parser conveniently does that already. Since `ifStatement()` eagerly looks
 for an `else` before returning, the innermost call to a nested series will claim
-the else clause for itself before returning to the outer if statements.
+the else clause for itself before returning to the outer `if` statements.
 
 Syntax in hand, we are ready to interpret:
 
@@ -266,10 +266,10 @@ evaluates the condition. If it's truthy, it executes the then branch. Otherwise,
 if there is an else branch, it executes that.
 
 If you compare this code to how the interpreter handles other syntax we've
-implemented, the part that makes control flow special is that Java if statement.
-Most other syntax trees always evaluate their subtrees. Here, we may not
-evaluate the then or else statement. If either of those has a side effect, the
-choice not to evaluate it becomes user-visible.
+implemented, the part that makes control flow special is that Java `if`
+statement. Most other syntax trees always evaluate their subtrees. Here, we may
+not evaluate the then or else statement. If either of those has a side effect,
+the choice not to evaluate it becomes user-visible.
 
 ## Logical Operators
 
@@ -286,7 +286,7 @@ expression must be, we don't evaluate the right operand. For example:
 false and sideEffect();
 ```
 
-For an and expression to evaluate to something truthy, both operands must be
+For an `and` expression to evaluate to something truthy, both operands must be
 truthy. We can see as soon as we evaluate the left `false` operand that that
 isn't going to be the case, so there's no need to evaluate `sideEffect()` and so
 it gets skipped.
@@ -346,11 +346,11 @@ for assignment to call `or()`:
 
 ^code or-in-assignment (1 before, 2 after)
 
-The code to parse a series of or expressions mirrors other binary operators:
+The code to parse a series of `or` expressions mirrors other binary operators:
 
 ^code or
 
-Its operands are the next higher level of precedence, the new and expression:
+Its operands are the next higher level of precedence, the new `and` expression:
 
 ^code and
 
@@ -446,7 +446,7 @@ code.
 ## For Loops
 
 We're down to the last control flow construct, <span name="for">Ye Olde</span>
-C-style for loop. I probably don't need to remind you, but it looks like this:
+C-style `for` loop. I probably don't need to remind you, but it looks like this:
 
 ```lox
 for (var i = 0; i < 10; i = i + 1) print i;
@@ -471,15 +471,15 @@ forStmt   → "for" "(" ( varDecl | exprStmt | ";" )
 
 Most modern languages have a higher-level looping statement for iterating over
 arbitrary user-defined sequences. C# has `foreach`, Java has "enhanced for",
-even C++ has range-based for statements now. Those offer cleaner syntax than C's
-for statement by implicitly calling into an iteration protocol that the object
-being looped over supports.
+even C++ has range-based `for` statements now. Those offer cleaner syntax than
+C's `for` statement by implicitly calling into an iteration protocol that the
+object being looped over supports.
 
 Those are great. For Lox, though, we're limited by building up the interpreter a
 chapter at a time. We don't have objects and methods yet, so we have no way of
-defining an iteration protocol that the for loop could use. So we'll stick with
-the old school C for loop. Think of it as "vintage". The fixie of control flow
-statements.
+defining an iteration protocol that the `for` loop could use. So we'll stick
+with the old school C `for` loop. Think of it as "vintage". The fixie of control
+flow statements.
 
 </aside>
 
@@ -488,9 +488,9 @@ Inside the parentheses, you have three clauses separated by semicolons:
 1.  The first clause is the *initializer*. It is executed exactly once, before
     anything else. It's usually an expression, but for convenience, we also
     allow a variable declaration. In that case, the variable is scoped to the
-    rest of the for loop -- the other two clauses and the body.
+    rest of the `for` loop -- the other two clauses and the body.
 
-2.  Next is the *condition*. As in a while loop, this expression controls when
+2.  Next is the *condition*. As in a `while` loop, this expression controls when
     to exit the loop. It's evaluated once at the beginning of each iteration,
     including the first. If the result is truthy, it executes the loop body.
     Otherwise, it bails.
@@ -506,14 +506,14 @@ the body.
 ### Desugaring
 
 That's a lot of machinery, but note that none of it does anything you couldn't
-do with the statements we already have. If for loops didn't support initializer
-clauses, you could just put the initializer expression before the for statement.
-If it didn't have an increment clause, you could simply put the increment
-expression at the end of the body yourself.
+do with the statements we already have. If `for` loops didn't support
+initializer clauses, you could just put the initializer expression before the
+`for` statement. If it didn't have an increment clause, you could simply put the
+increment expression at the end of the body yourself.
 
-In other words, Lox doesn't *need* for loops, they just make some common code
+In other words, Lox doesn't *need* `for` loops, they just make some common code
 patterns more pleasant to write. These kinds of features are called <span
-name="sugar">**syntactic sugar**</span>. For example, the previous for loop
+name="sugar">**syntactic sugar**</span>. For example, the previous `for` loop
 could be rewritten to:
 
 <aside name="sugar">
@@ -540,7 +540,7 @@ calculus underneath.
 That has the exact same semantics, though it's certainly not as easy on the
 eyes. Reducing syntactic sugar to semantically equivalent but more verbose forms
 is called <span name="caramel">**desugaring**</span>. We'll use this technique
-inside our interpreter. Instead of directly interpreting for loops, the parser
+inside our interpreter. Instead of directly interpreting `for` loops, the parser
 will consume the new syntax and translate it to more primitive forms that the
 interpreter already knows how to execute.
 
@@ -567,7 +567,7 @@ Instead, we go straight to parsing. First, add an import we'll need soon:
 
 ^code import-arrays (1 before, 1 after)
 
-Like every statement, we start parsing a for loop by matching its keyword:
+Like every statement, we start parsing a `for` loop by matching its keyword:
 
 ^code match-for (1 before, 1 after)
 
@@ -618,7 +618,7 @@ Is it just me or does that sound morbid? "All that remained... was the *body."*
 
 Something is clearly missing. What about all of the clauses we parsed? This is
 where the desugaring comes in. We'll take those and use them to synthesize
-syntax tree nodes that express the semantics of the for loop, like the
+syntax tree nodes that express the semantics of the `for` loop, like the
 hand-desugared example I showed you earlier.
 
 The code is a little simpler if we work backwards, so we start with the
@@ -633,7 +633,7 @@ original body followed by an expression statement that evaluates the increment.
 ^code for-desugar-condition (2 before, 1 after)
 
 Next, we take the condition and the body and build the loop using a primitive
-while loop. If the condition is omitted, we jam in `true` to make an infinite
+`while` loop. If the condition is omitted, we jam in `true` to make an infinite
 loop.
 
 ^code for-desugar-initializer (2 before, 1 after)
@@ -642,7 +642,7 @@ Finally, if there is an initializer, it runs once before the entire loop. We do
 that by, again, replacing the whole statement with a block that runs the
 initializer and then executes the loop.
 
-That's it. Our interpreter now supports C-style for loops and we didn't have to
+That's it. Our interpreter now supports C-style `for` loops and we didn't have to
 touch the Interpreter class at all. Since we desugared to nodes it already knows
 how to visit, there is no more work to do.
 
@@ -675,14 +675,15 @@ while (a < 10000) {
     interpreter supports an important optimization. What is it, and why is it
     necessary? Name a language that uses this technique for iteration.
 
-3.  Unlike Lox, most other C-style languages also support break and continue
-    statements inside loops. Add support for break statements.
+3.  Unlike Lox, most other C-style languages also support `break` and `continue`
+    statements inside loops. Add support for `break` statements.
 
     The syntax is a `break` keyword followed by a semicolon. It should be a
-    syntax error to have a break statement appear outside of any enclosing loop.
-    At runtime, a break statement causes execution to jump to the end of the
-    nearest enclosing loop and proceeds from there. Note that the break may be
-    nested inside other blocks and if statements that also need to be exited.
+    syntax error to have a `break` statement appear outside of any enclosing
+    loop. At runtime, a `break` statement causes execution to jump to the end of
+    the nearest enclosing loop and proceeds from there. Note that the `break`
+    may be nested inside other blocks and `if` statements that also need to be
+    exited.
 
 </div>
 

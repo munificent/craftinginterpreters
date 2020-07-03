@@ -526,9 +526,9 @@ Next, we parse the parameter list and the pair of parentheses wrapped around it:
 ^code parse-parameters (1 before, 1 after)
 
 This is like the code for handling arguments in a call, except not split out
-into a helper method. The outer if statement handles the zero parameter case,
-and the inner while loop parses parameters as long as we find commas to separate
-them. The result is the list of tokens for each parameter's name.
+into a helper method. The outer `if` statement handles the zero parameter case,
+and the inner `while` loop parses parameters as long as we find commas to
+separate them. The result is the list of tokens for each parameter's name.
 
 Just like we do with arguments at function calls, we validate at parse time
 that you don't exceed the maximum number of parameters a function is allowed to
@@ -706,7 +706,7 @@ get results back <span name="hotel">*out*</span>. If Lox was an
 expression-oriented language like Ruby or Scheme, the body would be an
 expression whose value is implicitly the function's result. But in Lox, the body
 of a function is a list of statements which don't produce values, so we need
-dedicated syntax for emitting a result. In other words, return statements. I'm
+dedicated syntax for emitting a result. In other words, `return` statements. I'm
 sure you can guess the grammar already:
 
 <aside name="hotel">
@@ -728,14 +728,14 @@ returnStmt → "return" expression? ";" ;
 ```
 
 We've got one more -- the final, in fact -- production under the venerable
-`statement` rule. A return statement is the `return` keyword followed by an
+`statement` rule. A `return` statement is the `return` keyword followed by an
 optional expression and terminated with a semicolon.
 
 The return value is optional to support exiting early from a function that
 doesn't return a useful value. In statically-typed languages, "void" functions
 don't return a value and non-void ones do. Since Lox is dynamically typed, there
 are no true void functions. The compiler has no way of preventing you from
-taking the result value of a call to a function that doesn't contain a return
+taking the result value of a call to a function that doesn't contain a `return`
 statement:
 
 ```lox
@@ -748,9 +748,9 @@ print result; // ?
 ```
 
 This means every Lox function must return *something*, even if it contains no
-return statements at all. We use `nil` for this, which is why LoxFunction's
+`return` statements at all. We use `nil` for this, which is why LoxFunction's
 implementation of `call()` returns `null` at the end. In that same vein, if you
-omit the value in a return statement, we simply treat it as:
+omit the value in a `return` statement, we simply treat it as:
 
 ```lox
 return nil;
@@ -786,14 +786,14 @@ that, we know there must not be a value.
 
 ### Returning from calls
 
-Interpreting a return statement is tricky. You can return from anywhere within
+Interpreting a `return` statement is tricky. You can return from anywhere within
 the body of a function, even deeply nested inside other statements. When the
 return is executed, the interpreter needs to jump all the way out of whatever
 context it's currently in and cause the function call to complete, like some
 kind of jacked up control flow construct.
 
 For example, say we're running this program and we're about to execute the
-return statement:
+`return` statement:
 
 ```lox
 fun count(n) {
@@ -821,9 +821,9 @@ Interpreter.visitCallExpr()
 ```
 
 We need to get from the top of the stack all the way back to `call()`. I don't
-know about you, but to me that sounds like exceptions. When we execute a return
-statement, we'll use an exception to unwind the interpreter past the visit
-methods of all of the containing statements back to the code that began
+know about you, but to me that sounds like exceptions. When we execute a
+`return` statement, we'll use an exception to unwind the interpreter past the
+visit methods of all of the containing statements back to the code that began
 executing the body.
 
 The visit method for our new AST node looks like this:
@@ -859,8 +859,8 @@ We want this to unwind all the way to where the function call began, the
 We wrap the call to `executeBlock()` in a try-catch block. When it catches a
 return exception, it pulls out the value and makes that the return value from
 `call()`. If it never catches one of these exceptions, it means the function
-reached the end of its body without hitting a return statement. In that case, it
-implicitly returns `nil`.
+reached the end of its body without hitting a `return` statement. In that case,
+it implicitly returns `nil`.
 
 Let's try it out. We finally have enough power to support this classic
 example -- a recursive function to calculate Fibonacci numbers:

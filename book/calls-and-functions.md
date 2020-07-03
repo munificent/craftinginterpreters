@@ -941,8 +941,8 @@ call begins here:
 
 <aside name="switch">
 
-Using a switch statement to check a single type is overkill right now, but will
-make more sense later as we add more cases to handle other callable types.
+Using a `switch` statement to check a single type is overkill right now, but
+will make more sense later as we add more cases to handle other callable types.
 
 </aside>
 
@@ -1128,7 +1128,7 @@ take parameters! It almost looks like we know what we're doing here.
 ## Return Statements
 
 If you want a function that returns something other than the implicit `nil`, you
-need a return statement:
+need a `return` statement:
 
 ^code match-return (1 before, 1 after)
 
@@ -1144,10 +1144,10 @@ value expression and return it with an `OP_RETURN` instruction.
 
 This is the same `OP_RETURN` instruction we've already implemented -- we don't
 need any new runtime code. This is quite a difference from jlox. There, we had
-to use exceptions to unwind the stack when a return statement was executed. That
-was because you could return from deep inside some nested blocks. Since jlox
-recursively walks the AST, that means there's a bunch of Java method calls we
-need to escape out of.
+to use exceptions to unwind the stack when a `return` statement was executed.
+That was because you could return from deep inside some nested blocks. Since
+jlox recursively walks the AST, that means there's a bunch of Java method calls
+we need to escape out of.
 
 Our bytecode compiler flattens that all out. We do recursive descent during
 parsing, but at runtime, the VM's bytecode dispatch loop is completely flat.
@@ -1155,10 +1155,10 @@ There is no recursion going on at the C level at all. So returning, even from
 within some nested blocks, is as straightforward as returning from the end of
 the function's body.
 
-We're not totally done, though. Return statements give us a new compile error to
-worry about. Returns are useful for returning from functions but the top level
-of a Lox program is imperative code too. You shouldn't be able to <span
-name="worst">return</span> from there:
+We're not totally done, though. The new `return` statement gives us a new
+compile error to worry about. Returns are useful for returning from functions
+but the top level of a Lox program is imperative code too. You shouldn't be able
+to <span name="worst">return</span> from there:
 
 ```lox
 return "What?!";
@@ -1166,14 +1166,14 @@ return "What?!";
 
 <aside name="worst">
 
-Allowing returns at the top level isn't the worst idea in the world. It would
+Allowing `return` at the top level isn't the worst idea in the world. It would
 give you a natural way to terminate a script early. You could maybe even use a
 returned number to indicate the process's exit code.
 
 </aside>
 
-We've specified that it's a compile error to have a return statement outside of
-any function:
+We've specified that it's a compile error to have a `return` statement outside
+of any function:
 
 ^code return-from-script (1 before, 1 after)
 

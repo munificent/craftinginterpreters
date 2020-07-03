@@ -813,7 +813,7 @@ the type to decide whether to insert the initializer-specific behavior:
 
 In an initializer, instead of pushing `nil` onto the stack before returning,
 we load slot zero, which contains the instance. This `emitReturn()` function is
-also called when compiling a return statement without a value, so this also
+also called when compiling a `return` statement without a value, so this also
 correctly handles cases where the user does an early return inside the
 initializer.
 
@@ -825,8 +825,8 @@ that the compiler tracks the method type, this is straightforward:
 
 ^code return-from-init (3 before, 1 after)
 
-We report an error if a return statement in an initializer has a value. We still
-go ahead and compile the value afterwards so that the compiler doesn't get
+We report an error if a `return` statement in an initializer has a value. We
+still go ahead and compile the value afterwards so that the compiler doesn't get
 confused by the trailing expression and report a bunch of cascaded errors.
 
 Aside from inheritance, which we'll get to [soon][super], we now have a

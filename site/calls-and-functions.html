@@ -1509,8 +1509,8 @@ add after <em>peek</em>()</div>
 <div class="source-file-narrow"><em>vm.c</em>, add after <em>peek</em>()</div>
 
 <aside name="switch">
-<p>Using a switch statement to check a single type is overkill right now, but will
-make more sense later as we add more cases to handle other callable types.</p>
+<p>Using a <code>switch</code> statement to check a single type is overkill right now, but
+will make more sense later as we add more cases to handle other callable types.</p>
 </aside>
 <p>There&rsquo;s more going on here than just initializing a new CallFrame. Because Lox
 is dynamically typed, there&rsquo;s nothing to prevent a user from writing bad code
@@ -1770,7 +1770,7 @@ onto the stack. And with that, we have working function calls! They can even
 take parameters! It almost looks like we know what we&rsquo;re doing here.</p>
 <h2><a href="#return-statements" name="return-statements"><small>24&#8202;.&#8202;6</small>Return Statements</a></h2>
 <p>If you want a function that returns something other than the implicit <code>nil</code>, you
-need a return statement:</p>
+need a <code>return</code> statement:</p>
 <div class="codehilite"><pre class="insert-before">
     ifStatement();
 </pre><div class="source-file"><em>compiler.c</em><br>
@@ -1806,29 +1806,29 @@ which implicitly emits an <code>OP_NIL</code> instruction. Otherwise, we compile
 value expression and return it with an <code>OP_RETURN</code> instruction.</p>
 <p>This is the same <code>OP_RETURN</code> instruction we&rsquo;ve already implemented<span class="em">&mdash;</span>we don&rsquo;t
 need any new runtime code. This is quite a difference from jlox. There, we had
-to use exceptions to unwind the stack when a return statement was executed. That
-was because you could return from deep inside some nested blocks. Since jlox
-recursively walks the AST, that means there&rsquo;s a bunch of Java method calls we
-need to escape out of.</p>
+to use exceptions to unwind the stack when a <code>return</code> statement was executed.
+That was because you could return from deep inside some nested blocks. Since
+jlox recursively walks the AST, that means there&rsquo;s a bunch of Java method calls
+we need to escape out of.</p>
 <p>Our bytecode compiler flattens that all out. We do recursive descent during
 parsing, but at runtime, the VM&rsquo;s bytecode dispatch loop is completely flat.
 There is no recursion going on at the C level at all. So returning, even from
 within some nested blocks, is as straightforward as returning from the end of
 the function&rsquo;s body.</p>
-<p>We&rsquo;re not totally done, though. Return statements give us a new compile error to
-worry about. Returns are useful for returning from functions but the top level
-of a Lox program is imperative code too. You shouldn&rsquo;t be able to <span
-name="worst">return</span> from there:</p>
+<p>We&rsquo;re not totally done, though. The new <code>return</code> statement gives us a new
+compile error to worry about. Returns are useful for returning from functions
+but the top level of a Lox program is imperative code too. You shouldn&rsquo;t be able
+to <span name="worst">return</span> from there:</p>
 <div class="codehilite"><pre>
 <span class="k">return</span> <span class="s">&quot;What?!&quot;</span>;
 </pre></div>
 <aside name="worst">
-<p>Allowing returns at the top level isn&rsquo;t the worst idea in the world. It would
+<p>Allowing <code>return</code> at the top level isn&rsquo;t the worst idea in the world. It would
 give you a natural way to terminate a script early. You could maybe even use a
 returned number to indicate the process&rsquo;s exit code.</p>
 </aside>
-<p>We&rsquo;ve specified that it&rsquo;s a compile error to have a return statement outside of
-any function:</p>
+<p>We&rsquo;ve specified that it&rsquo;s a compile error to have a <code>return</code> statement outside
+of any function:</p>
 <div class="codehilite"><pre class="insert-before">
 static void returnStatement() {
 </pre><div class="source-file"><em>compiler.c</em><br>

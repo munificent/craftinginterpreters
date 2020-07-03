@@ -395,9 +395,9 @@ rule translates to code roughly like:
 <tbody>
   <tr><td>Terminal</td><td>Code to match and consume a token</td></tr>
   <tr><td>Nonterminal</td><td>Call to that rule&rsquo;s function</td></tr>
-  <tr><td><code>|</code></td><td>If or switch statement</td></tr>
-  <tr><td><code>*</code> or <code>+</code></td><td>While or for loop</td></tr>
-  <tr><td><code>?</code></td><td>If statement</td></tr>
+  <tr><td><code>|</code></td><td><code>if</code> or <code>switch</code> statement</td></tr>
+  <tr><td><code>*</code> or <code>+</code></td><td><code>while</code> or <code>for</code> loop</td></tr>
+  <tr><td><code>?</code></td><td><code>if</code> statement</td></tr>
 </tbody>
 </table>
 
@@ -447,8 +447,8 @@ Let's step through it. The left `comparison` nonterminal in the body is
 translated to the first call to `comparison()` and we store that in a local
 variable.
 
-Then, the `( ... )*` loop in the rule is mapped to a while loop. We need to know
-when to exit that loop. We can see that inside the rule, we must first find
+Then, the `( ... )*` loop in the rule is mapped to a `while` loop. We need to
+know when to exit that loop. We can see that inside the rule, we must first find
 either a `!=` or `==` token. So, if we *don't* see one of those, we must be done
 with the sequence of equality operators. We express that check using a handy
 `match()` method:
@@ -481,7 +481,7 @@ consumed token. The latter makes it easier to use `match()` and then access the
 just-matched token.
 
 That's most of the parsing infrastructure we need. Where were we? Right, so if
-we are inside the while loop in `equality()`, then the parser knows it found a
+we are inside the `while` loop in `equality()`, then the parser knows it found a
 `!=` or `==` operator and must be parsing an equality expression.
 
 It grabs the token that was matched for the operator so we can track which kind

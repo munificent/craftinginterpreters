@@ -93,7 +93,7 @@ It's like the circle of life, *sans* Sir Elton John.
 
 ## Class Declarations
 
-Like we do, we're gonna start with syntax. A class statement introduces a new
+Like we do, we're gonna start with syntax. A `class` statement introduces a new
 name, so it lives in the `declaration` grammar rule:
 
 ```ebnf
@@ -356,7 +356,7 @@ method:
 
 ^code parse-property (3 before, 4 after)
 
-The outer while loop there corresponds to the `*` in the grammar rule. We zip
+The outer `while` loop there corresponds to the `*` in the grammar rule. We zip
 along the tokens building up a chain of calls and gets as we find parentheses
 and dots, like so:
 
@@ -977,7 +977,7 @@ has clearly made a mistake. The sooner they find and fix that mistake, the
 happier they'll be.
 
 Our resolution pass is a fine place to detect this error statically. It already
-detects return statements outside of functions. We'll do something similar for
+detects `return` statements outside of functions. We'll do something similar for
 `this`. In the vein of our existing FunctionType enum, we define a new ClassType
 one:
 
@@ -1168,13 +1168,13 @@ initializer or not:
 
 ^code resolver-initializer-type (1 before, 1 after)
 
-When we later traverse into a return statement, we check that field and make it
-an error to return a value from inside an `init()` method:
+When we later traverse into a `return` statement, we check that field and make
+it an error to return a value from inside an `init()` method:
 
 ^code return-in-initializer (1 before, 1 after)
 
 We're *still* not done. We statically disallow returning a *value* from an
-initializer, but you can still use an empty early return:
+initializer, but you can still use an empty early `return`:
 
 ```lox
 class Foo {
@@ -1190,8 +1190,8 @@ over in LoxFunction:
 
 ^code early-return-this (1 before, 1 after)
 
-If we're in an initializer and execute a return statement, instead of returning
-the value (which will always be `nil`), we again return `this`.
+If we're in an initializer and execute a `return` statement, instead of
+returning the value (which will always be `nil`), we again return `this`.
 
 Phew! That was a whole list of tasks but our reward is that our little
 interpreter has grown an entire programming paradigm. Classes, methods, fields,

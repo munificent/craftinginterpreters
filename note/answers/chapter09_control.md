@@ -96,7 +96,7 @@
     chunk of code more than once, hoist it out into a function that calls itself
     at the end of its body for the next iteration.
 
-    For example, we could represent this for loop:
+    For example, we could represent this `for` loop:
 
     ```lox
     for (var i = 0; i < 100; i = i + 1) {
@@ -184,7 +184,7 @@
     ```
 
     We need some additional parser support. It should be a syntax error to use
-    "break" outside of a loop. We do that by adding a field in Parser to track
+    `break` outside of a loop. We do that by adding a field in Parser to track
     how many enclosing loops there currently are:
 
     ```java
@@ -230,7 +230,7 @@
     }
     ```
 
-    Now we can check that when parsing the break statement:
+    Now we can check that when parsing the `break` statement:
 
     ```java
     private Stmt breakStatement() {
@@ -249,7 +249,7 @@
     private static class BreakException extends RuntimeException {}
     ```
 
-    Executing a break simply throws that:
+    Executing a `break` simply throws that:
 
     ```java
     @Override
@@ -258,7 +258,7 @@
     }
     ```
 
-    That gets caught by the while loop code and then proceeds from there.
+    That gets caught by the `while` loop code and then proceeds from there.
 
     ```java
     @Override

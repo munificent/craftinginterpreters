@@ -23,11 +23,11 @@ interchangeable.
 </aside>
 
 Scanning is a good starting point for us too because the code isn't very hard --
-pretty much a switch statement with delusions of grandeur. It will help us warm
-up before we tackle some of the more interesting material later. By the end of
-this chapter, we'll have a full-featured, fast scanner that can take any string
-of Lox source code and produce the tokens that we'll feed into the parser in the
-next chapter.
+pretty much a `switch` statement with delusions of grandeur. It will help us
+warm up before we tackle some of the more interesting material later. By the end
+of this chapter, we'll have a full-featured, fast scanner that can take any
+string of Lox source code and produce the tokens that we'll feed into the parser
+in the next chapter.
 
 ## The Interpreter Framework
 
@@ -786,7 +786,7 @@ detect, but there are a handful of nasty ones:
     "value"
     ```
 
-    Is "value" the value being returned, or do we have a return statement with
+    Is "value" the value being returned, or do we have a `return` statement with
     no value followed by an expression statement containing a string literal?
 
 * A parenthesized expression on the next line:
@@ -824,7 +824,7 @@ are separators. Here are a couple:
 
     Lua avoids the `return` problem by requiring a `return` statement to be the
     very last statement in a block. If there is a value after `return` before
-    the keyword `end`, it *must* be for the return. For the other two cases,
+    the keyword `end`, it *must* be for the `return`. For the other two cases,
     they allow an explicit `;` and expect users to use that. In practice, that
     almost never happens because there's no point in a parenthesized or unary
     negation expression statement.
