@@ -68,7 +68,7 @@ separate rule for each precedence level to make it explicit:
 expression     → assignment ;
 
 assignment     → ( call "." )? IDENTIFIER "=" assignment
-               | logic_or;
+               | logic_or ;
 
 logic_or       → logic_and ( "or" logic_and )* ;
 logic_and      → equality ( "and" equality )* ;

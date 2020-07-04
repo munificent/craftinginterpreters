@@ -204,8 +204,9 @@ their own tastes.
 [bnf]: https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
 
 I tried to come up with something clean. Each rule is a name, followed by an
-arrow (`→`), followed by its sequence of symbols. Terminals are quoted strings,
-and nonterminals are lowercase words.
+arrow (`→`), followed by a sequence of symbols, and finally ending with a
+semicolon (`;`). Terminals are quoted strings, and nonterminals are lowercase
+words.
 
 <aside name="turtles">
 
@@ -636,8 +637,9 @@ There we go. All of that glorious Java boilerplate is done. It declares each
 field in the class body. It defines a constructor for the class with parameters
 for each field and initializes them in the body.
 
-Run this script now and it <span name="longer">blasts</span> out a few dozen
-lines of code. That's about to get even longer.
+Compile and this Java program now and it <span name="longer">blasts</span> out
+new ".java" file containing a few dozen lines of code. That file's about to get
+even longer.
 
 <aside name="longer">
 
@@ -651,12 +653,13 @@ implementing jlox and defined all of its syntax tree nodes.
 ## Working with Trees
 
 Put on your imagination hat for a moment. Even though we aren't there yet,
-consider what the interpreter will do with the syntax trees. It needs to select
-a different chunk of code to handle each kind of expression. With tokens, we can
-simply switch on the TokenType. But we don't have a "type" enum for the syntax
-trees, just a separate Java class for each one.
+consider what the interpreter will do with the syntax trees. Each kind of
+expression in Lox behaves differently at runtime. That means the interpreter
+needs to select a different chunk of code to handle each expression type. With
+tokens, we can simply switch on the TokenType. But we don't have a "type" enum
+for the syntax trees, just a separate Java class for each one.
 
-We could write some long chain of type tests:
+We could write a long chain of type tests:
 
 ```java
 if (expr instanceof Expr.Binary) {
@@ -912,8 +915,13 @@ own type:
 ^code accept-method (1 before, 2 after)
 
 There we go. Now we can define operations on expressions without having to muck
-with the classes or our generator script. Before we end this rambling chapter,
-let's try it out...
+with the classes or our generator script. Compile and run this generator script
+to output an updated "Expr.java" file. It contains a generated Visitor
+interface and a set of expression node classes that support the Visitor pattern
+using it.
+
+Before we end this rambling chapter, let's see implement that Visitor interface
+and see the pattern in action.
 
 ## A (Not Very) Pretty Printer
 
