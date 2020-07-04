@@ -448,7 +448,7 @@ on the left-hand side:
 
 ```ebnf
 assignment → ( call "." )? IDENTIFIER "=" assignment
-           | logic_or;
+           | logic_or ;
 ```
 
 Unlike getters, setters don't chain. The reference to `call` allows any high
