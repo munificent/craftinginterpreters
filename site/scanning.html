@@ -39,7 +39,7 @@
 
 <ul>
     <li><a href="#the-interpreter-framework"><small>4.1</small> The Interpreter Framework</a></li>
-    <li><a href="#tokens-and-lexemes"><small>4.2</small> Tokens and Lexemes</a></li>
+    <li><a href="#lexemes-and-tokens"><small>4.2</small> Lexemes and Tokens</a></li>
     <li><a href="#regular-languages-and-expressions"><small>4.3</small> Regular Languages and Expressions</a></li>
     <li><a href="#the-scanner-class"><small>4.4</small> The Scanner Class</a></li>
     <li><a href="#recognizing-lexemes"><small>4.5</small> Recognizing Lexemes</a></li>
@@ -74,7 +74,7 @@
 
 <ul>
     <li><a href="#the-interpreter-framework"><small>4.1</small> The Interpreter Framework</a></li>
-    <li><a href="#tokens-and-lexemes"><small>4.2</small> Tokens and Lexemes</a></li>
+    <li><a href="#lexemes-and-tokens"><small>4.2</small> Lexemes and Tokens</a></li>
     <li><a href="#regular-languages-and-expressions"><small>4.3</small> Regular Languages and Expressions</a></li>
     <li><a href="#the-scanner-class"><small>4.4</small> The Scanner Class</a></li>
     <li><a href="#recognizing-lexemes"><small>4.5</small> Recognizing Lexemes</a></li>
@@ -124,8 +124,9 @@
 </blockquote>
 <p>The first step in any compiler or interpreter is <span
 name="lexing">scanning</span>. The scanner takes in raw source code as a series
-of characters and groups it into meaningful chunks<span class="em">&mdash;</span>the &ldquo;words&rdquo; and
-&ldquo;punctuation&rdquo; that make up the language&rsquo;s grammar.</p>
+of characters and groups it into a series of chunks we call <strong>tokens</strong>. These
+are the meaningful &ldquo;words&rdquo; and &ldquo;punctuation&rdquo; that make up the language&rsquo;s
+grammar.</p>
 <aside name="lexing">
 <p>This task has been variously called &ldquo;scanning&rdquo; and &ldquo;lexing&rdquo; (short for &ldquo;lexical
 analysis&rdquo;) over the years. Way back when computers were as big as Winnebagos but
@@ -360,27 +361,28 @@ because it felt over-engineered for the minimal interpreter in this book.</p>
 </aside>
 <p>With that in place, our application shell is ready. Once we have a Scanner class
 with a <code>scanTokens()</code> method, we can start running it. Before we get to that,
-let&rsquo;s talk about these mysterious &ldquo;tokens&rdquo;.</p>
-<h2><a href="#tokens-and-lexemes" name="tokens-and-lexemes"><small>4&#8202;.&#8202;2</small>Tokens and Lexemes</a></h2>
+let&rsquo;s get more precise about what tokens are.</p>
+<h2><a href="#lexemes-and-tokens" name="lexemes-and-tokens"><small>4&#8202;.&#8202;2</small>Lexemes and Tokens</a></h2>
 <p>Here&rsquo;s a line of Lox code:</p>
 <div class="codehilite"><pre>
 <span class="k">var</span> <span class="i">language</span> = <span class="s">&quot;lox&quot;</span>;
 </pre></div>
 <p>Here, <code>var</code> is the keyword for declaring a variable. That three-character
-sequence &lsquo;v&rsquo; &lsquo;a&rsquo; &lsquo;r&rsquo; <em>means</em> something. If we yank three letters out of the
-middle of <code>language</code>, like <code>gua</code>, those don&rsquo;t mean anything on their own.</p>
+sequence &ldquo;v-a-r&rdquo; means something. But if we yank three letters out of the
+middle of <code>language</code>, like &ldquo;g-u-a&rdquo;, those don&rsquo;t mean anything on their own.</p>
 <p>That&rsquo;s what lexical analysis is about. Our job is to scan through the list of
 characters and group them together into the smallest sequences that still
 represent something. Each of these blobs of characters is called a <strong>lexeme</strong>.
 In that example line of code, the lexemes are:</p><img src="image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" />
 <p>The lexemes are only the raw substrings of the source code. However, in the
-process of recognizing them, we also stumble upon some other useful information.
-Things like:</p>
-<h3><a href="#lexeme-type" name="lexeme-type"><small>4&#8202;.&#8202;2&#8202;.&#8202;1</small>Lexeme type</a></h3>
+process of grouping character sequences into lexemes, we also stumble upon some
+other useful information. When we take the lexeme and bundle it together with
+that other data, the result is a token. It includes useful stuff like:</p>
+<h3><a href="#token-type" name="token-type"><small>4&#8202;.&#8202;2&#8202;.&#8202;1</small>Token type</a></h3>
 <p>Keywords are part of the shape of the language&rsquo;s grammar, so the parser often
 has code like, &ldquo;If the next token is <code>while</code> then do&hellip;&rdquo; That means the parser
-wants to know not just that it has a lexeme for some word, but that it has a
-<em>reserved</em> word, and <em>which</em> keyword it is.</p>
+wants to know not just that it has a lexeme for some identifier, but that it has
+a <em>reserved</em> word, and <em>which</em> keyword it is.</p>
 <p>The <span name="ugly">parser</span> could categorize tokens from the raw lexeme
 by comparing the strings, but that&rsquo;s slow and kind of ugly. Instead, at the
 point that we recognize a lexeme, we also remember which <em>kind</em> of lexeme it
@@ -440,7 +442,7 @@ column to the user.</em> Most tokens never appear in an error message. For those
 the less time you spend calculating position information ahead of time, the
 better.</p>
 </aside>
-<p>We take all of this and wrap it up in a class:</p>
+<p>We take all of this data and wrap it in a class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Token.java</em><br>
 create new file</div>
 <pre>
@@ -466,8 +468,8 @@ create new file</div>
 </pre></div>
 <div class="source-file-narrow"><em>lox/Token.java</em>, create new file</div>
 
-<p>That&rsquo;s a <strong>token</strong>: a bundle containing the raw lexeme along with the other
-things the scanner learned about it.</p>
+<p>Now we have an object with enough structure to be useful for all of the later
+phases of the interpreter.</p>
 <h2><a href="#regular-languages-and-expressions" name="regular-languages-and-expressions"><small>4&#8202;.&#8202;3</small>Regular Languages and Expressions</a></h2>
 <p>Now that we know what we&rsquo;re trying to produce, let&rsquo;s, well, produce it. The core
 of the scanner is a loop. Starting at the first character of the source code, it

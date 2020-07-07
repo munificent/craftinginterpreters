@@ -4,8 +4,9 @@
 
 The first step in any compiler or interpreter is <span
 name="lexing">scanning</span>. The scanner takes in raw source code as a series
-of characters and groups it into meaningful chunks -- the "words" and
-"punctuation" that make up the language's grammar.
+of characters and groups it into a series of chunks we call **tokens**. These
+are the meaningful "words" and "punctuation" that make up the language's
+grammar.
 
 <aside name="lexing">
 
@@ -186,9 +187,9 @@ because it felt over-engineered for the minimal interpreter in this book.
 
 With that in place, our application shell is ready. Once we have a Scanner class
 with a `scanTokens()` method, we can start running it. Before we get to that,
-let's talk about these mysterious "tokens".
+let's get more precise about what tokens are.
 
-## Tokens and Lexemes
+## Lexemes and Tokens
 
 Here's a line of Lox code:
 
@@ -197,8 +198,8 @@ var language = "lox";
 ```
 
 Here, `var` is the keyword for declaring a variable. That three-character
-sequence 'v' 'a' 'r' *means* something. If we yank three letters out of the
-middle of `language`, like `gua`, those don't mean anything on their own.
+sequence "v-a-r" means something. But if we yank three letters out of the
+middle of `language`, like "g-u-a", those don't mean anything on their own.
 
 That's what lexical analysis is about. Our job is to scan through the list of
 characters and group them together into the smallest sequences that still
@@ -208,15 +209,16 @@ In that example line of code, the lexemes are:
 <img src="image/scanning/lexemes.png" alt="'var', 'language', '=', 'lox', ';'" />
 
 The lexemes are only the raw substrings of the source code. However, in the
-process of recognizing them, we also stumble upon some other useful information.
-Things like:
+process of grouping character sequences into lexemes, we also stumble upon some
+other useful information. When we take the lexeme and bundle it together with
+that other data, the result is a token. It includes useful stuff like:
 
-### Lexeme type
+### Token type
 
 Keywords are part of the shape of the language's grammar, so the parser often
 has code like, "If the next token is `while` then do..." That means the parser
-wants to know not just that it has a lexeme for some word, but that it has a
-*reserved* word, and *which* keyword it is.
+wants to know not just that it has a lexeme for some identifier, but that it has
+a *reserved* word, and *which* keyword it is.
 
 The <span name="ugly">parser</span> could categorize tokens from the raw lexeme
 by comparing the strings, but that's slow and kind of ugly. Instead, at the
@@ -263,12 +265,12 @@ better.
 
 </aside>
 
-We take all of this and wrap it up in a class:
+We take all of this data and wrap it in a class:
 
 ^code token-class
 
-That's a **token**: a bundle containing the raw lexeme along with the other
-things the scanner learned about it.
+Now we have an object with enough structure to be useful for all of the later
+phases of the interpreter.
 
 ## Regular Languages and Expressions
 
