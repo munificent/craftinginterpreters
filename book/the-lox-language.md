@@ -570,10 +570,10 @@ fun printSum(a, b) {
 }
 ```
 
-Now's a good time to clarify some terminology. Some people throw around
-"parameter" and "argument" like they are interchangeable and, to many, they are.
-We're going to spend a lot of time splitting the finest of downy hairs around
-semantics, so let's sharpen our words. From here on out:
+Now's a good time to clarify some <span name="define">terminology</span>. Some
+people throw around "parameter" and "argument" like they are interchangeable
+and, to many, they are. We're going to spend a lot of time splitting the finest
+of downy hairs around semantics, so let's sharpen our words. From here on out:
 
 *   An **argument** is an actual value you pass to a function when you call it.
     So a function *call* has an *argument* list. Sometimes you hear **"actual
@@ -582,6 +582,19 @@ semantics, so let's sharpen our words. From here on out:
 *   A **parameter** is a variable that holds the value of the argument inside
     the body of the function. Thus, a function *declaration* has a *parameter*
     list. Others call these **"formal parameters"** or simply **"formals"**.
+
+<aside name="define">
+
+Speaking of terminology, some statically-typed languages like C make a
+distinction between *declaring* a function and *defining* it. The declaration
+binds the function's type to its name so calls can be type-checked but does not
+provide a body. The definition also fills in the body of the function so that it
+can be compiled.
+
+Since Lox is dynamically typed, this distinction isn't meaningful. A function
+declaration fully specifies the function including its body.
+
+</aside>
 
 The body of a function is always a block. Inside it, you can return a value
 using a `return` statement:
