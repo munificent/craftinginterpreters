@@ -20,7 +20,7 @@
 #define GC_HEAP_GROW_FACTOR 2
 //< Garbage Collection heap-grow-factor
 
-void* reallocate(void* previous, size_t oldSize, size_t newSize) {
+void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
 //> Garbage Collection updated-bytes-allocated
   vm.bytesAllocated += newSize - oldSize;
 
@@ -40,11 +40,11 @@ void* reallocate(void* previous, size_t oldSize, size_t newSize) {
 
 //< Garbage Collection call-collect
   if (newSize == 0) {
-    free(previous);
+    free(pointer);
     return NULL;
   }
 
-  void* result = realloc(previous, newSize);
+  void* result = realloc(pointer, newSize);
 //> out-of-memory
   if (result == NULL) exit(1);
 //< out-of-memory

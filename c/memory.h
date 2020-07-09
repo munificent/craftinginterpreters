@@ -20,16 +20,16 @@
     ((capacity) < 8 ? 8 : (capacity) * 2)
 //> grow-array
 
-#define GROW_ARRAY(previous, type, oldCount, count) \
-    (type*)reallocate(previous, sizeof(type) * (oldCount), \
-        sizeof(type) * (count))
+#define GROW_ARRAY(type, pointer, oldCount, newCount) \
+    (type*)reallocate(pointer, sizeof(type) * (oldCount), \
+        sizeof(type) * (newCount))
 //> free-array
 
 #define FREE_ARRAY(type, pointer, oldCount) \
     reallocate(pointer, sizeof(type) * (oldCount), 0)
 //< free-array
 
-void* reallocate(void* previous, size_t oldSize, size_t newSize);
+void* reallocate(void* pointer, size_t oldSize, size_t newSize);
 //< grow-array
 //> Garbage Collection mark-object-h
 void markObject(Obj* object);
