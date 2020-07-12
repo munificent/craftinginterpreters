@@ -741,46 +741,72 @@ We'll start with numbers since they have the most direct representation under
 NaN boxing. To "convert" a C double to a NaN-boxed clox Value, we don't need to
 touch a single bit -- the representation is exactly the same. But we do need to
 convince our C compiler of that fact, which we made harder by defining Value to
-be a uint64_t.
+be uint64_t.
 
 We need to get the compiler to take a set of bits that it thinks are a double
 and use those same bits as a uint64_t, or vice versa -- called **type punning**.
-The <span name="close">closest</span> thing to an officially supported way of
-doing that in C is through a union:
+C and C++ programmers have been doing this since the days of bell bottoms and
+8-tracks, but the language specifications have <span
+name="hesitate">hesitated</span> to say which of the many ways to do this is
+officially sanctioned.
 
-<aside name="close" class="bottom">
+<aside name="hesitate" class="bottom">
 
-I say "closest" because it's not *entirely* clear to me that the standard
-officially supports this even though the technique has been in wide use since
-the early days of C. I've read a number of interpretations of the spec on this
-point and arguments for and against seem to read more like Biblical hermeneutics
-or literary criticism than an unequivocal answer.
+Spec authors don't like type punning because it makes optimization harder. A key
+optimization technique is reordering instructions to fill the CPU's execution
+pipelines. A compiler can only reorder code when doing so doesn't have a user
+visible effect, obviously.
 
-Regardless of what the Good Spec says, just about every compiler under the sun
-permits type punning through unions, so relying on it is, at worst, a minor sin.
+Pointers make that harder. If two pointers point to the same value, then a write
+through one and a read through the other cannot be reordered. But what about two
+pointers of *different* types? If those could point to the same object then
+basically *any* two pointers could be aliases to the same value. That
+drastically limits the amount of code the compiler is free to rearrange.
+
+To avoid that, compilers want to assume **strict aliasing** -- pointers of
+incompatible types cannot point to the same value. Type punning, by nature,
+breaks that assumption.
 
 </aside>
 
-^code double-union (1 before, 2 after)
-
-The idea is that you store a value into one of the union's fields and then read
-out the other field. Voilà, the bits have been transmuted from the first field's
-type to the second's. Alas, I don't know an elegant way to pack those operations
-into a single expression, so the conversion macros will call out to helper
-functions. Here's the first macro:
+I know one way to convert a `double` to `Value` and back that I believe is
+supported by both the C and C++ specs. Unfortunately, it doesn't fit in a single
+expression, so the conversion macros have to call out to helper functions.
+Here's the first macro:
 
 ^code number-val (1 before, 2 after)
 
-It hands off the double to:
+That macro passes the double to:
 
 ^code num-to-value (1 before, 2 after)
 
-This creates a temporary union, stores the double in it, and then yanks out the
-uint64_t whose bits overlap that in memory. This code appears slow: a function
-call, a local variable, an assignment, and a read. Fortunately, compilers are
-smart enough to optimize it all away.
+I know, weird, right? The way to treat a series of bytes as having a different
+type without changing their value at all is `memcpy()`? This looks horrendously
+slow. Create a local variable. Pass its address to the operating system through
+a syscall to copy a few bytes. Then return the result, which is the exact same
+bytes as the input.
 
-"Unwrapping" a Lox number is the mirror image:
+Fortunately, because this *is* the supported idiom for type punning, most
+compilers recognize the pattern and <span name="union">optimize</span> away the
+`memcpy()` entirely. "Unwrapping" a Lox number is the mirror image:
+
+<aside name="union" class="bottom">
+
+On the off chance you find yourself with a compiler that does not optimize this
+away, try this trick instead:
+
+```c
+double valueToNum(Value value) {
+  union {
+    uint64_t bits;
+    double num;
+  } data;
+  data.bits = value;
+  return data.num;
+}
+```
+
+</aside>
 
 ^code as-number (1 before, 2 after)
 
@@ -788,8 +814,12 @@ That macro calls this function:
 
 ^code value-to-num (1 before, 2 after)
 
-It works exactly the same except we flip which field we write and which we read.
-Again, the compiler will eliminate all of it.
+It works exactly the same except we swap the types. Again, the compiler will
+eliminate all of it. Even though those calls to `memcpy()` will disappear, we
+still need to show the compiler *which* `memcpy()` we're calling so we also need
+an include:
+
+^code include-string (1 before, 2 after)
 
 That was a lot of code to ultimately do nothing but silence the C type checker.
 Doing a runtime type *test* on a Lox number is a little more interesting. If all
