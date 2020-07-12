@@ -88,13 +88,13 @@ CodeTag _createCodeTag(Page page, int index, String name, String options) {
 
       var match = _beforePattern.firstMatch(option);
       if (match != null) {
-        beforeCount = int.parse(match.group(1));
+        beforeCount = int.parse(match[1]);
         continue;
       }
 
       match = _afterPattern.firstMatch(option);
       if (match != null) {
-        afterCount = int.parse(match.group(1));
+        afterCount = int.parse(match[1]);
         continue;
       }
 
