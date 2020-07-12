@@ -129,14 +129,14 @@ struct sObjString {
 };
 //< obj-string
 //> Closures obj-upvalue
-typedef struct sUpvalue {
+typedef struct ObjUpvalue {
   Obj obj;
   Value* location;
 //> closed-field
   Value closed;
 //< closed-field
 //> next-field
-  struct sUpvalue* next;
+  struct ObjUpvalue* next;
 //< next-field
 } ObjUpvalue;
 //< Closures obj-upvalue
@@ -152,7 +152,7 @@ typedef struct {
 //< Closures obj-closure
 //> Classes and Instances obj-class
 
-typedef struct sObjClass {
+typedef struct {
   Obj obj;
   ObjString* name;
 //> Methods and Initializers class-methods

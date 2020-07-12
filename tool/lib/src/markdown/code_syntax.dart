@@ -37,8 +37,8 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
   Node parse(BlockParser parser) {
     // Get the syntax identifier, if there is one.
     var match = pattern.firstMatch(parser.current);
-    var indent = match.group(1).length;
-    var language = match.group(2);
+    var indent = match[1].length;
+    var language = match[2];
 
     var childLines = parseChildLines(parser);
 

@@ -20,7 +20,8 @@ final _modulePattern = RegExp(r"^(\w+) (\w+);");
 final _structPattern = RegExp(r"^struct (s\w+)? {$");
 final _typePattern =
     RegExp(r"(public )?(abstract )?(class|enum|interface) ([A-Z]\w+)");
-final _typedefPattern = RegExp(r"^typedef (enum|struct|union)( \w+)? {$");
+final _namedTypedefPattern = RegExp(r"^typedef (enum|struct|union) (\w+) {$");
+final _unnamedTypedefPattern = RegExp(r"^typedef (enum|struct|union) {$");
 final _typedefNamePattern = RegExp(r"^\} (\w+);$");
 
 /// Reserved words that can appear like a return type in a function declaration
@@ -33,6 +34,8 @@ class SourceFileParser {
   final SourceFile _file;
   final List<String> _lines;
   final List<_ParseState> _states = [];
+
+  Location _unnamedTypedef;
 
   Location _location;
   Location _locationBeforeBlock;
@@ -106,7 +109,7 @@ class SourceFileParser {
     var match = _functionPattern.firstMatch(line);
     if (match != null &&
         !line.contains("#define") &&
-        !_keywords.contains(match.group(1))) {
+        !_keywords.contains(match[1])) {
       // Hack. Don't get caught by comments or string literals.
       if (!line.contains("//") && !line.contains('"')) {
         var isFunctionDeclaration = line.endsWith(";");
@@ -117,8 +120,8 @@ class SourceFileParser {
         }
 
         _location = Location(_location,
-            _file.language == "java" ? "method" : "function", match.group(2),
-            signature: match.group(3),
+            _file.language == "java" ? "method" : "function", match[2],
+            signature: match[3],
             isFunctionDeclaration: isFunctionDeclaration);
         return;
       }
@@ -126,7 +129,7 @@ class SourceFileParser {
 
     match = _constructorPattern.firstMatch(line);
     if (match != null) {
-      _location = Location(_location, "constructor", match.group(1));
+      _location = Location(_location, "constructor", match[1]);
       return;
     }
 
@@ -134,8 +137,8 @@ class SourceFileParser {
     if (match != null) {
       // Hack. Don't get caught by comments or string literals.
       if (!line.contains("//") && !line.contains('"')) {
-        var kind = match.group(3);
-        var name = match.group(4);
+        var kind = match[3];
+        var name = match[4];
         _location = Location(_location, kind, name);
       }
       return;
@@ -143,20 +146,27 @@ class SourceFileParser {
 
     match = _structPattern.firstMatch(line);
     if (match != null) {
-      _location = Location(_location, "struct", match.group(1));
+      _location = Location(_location, "struct", match[1]);
       return;
     }
 
-    match = _typedefPattern.firstMatch(line);
+    match = _namedTypedefPattern.firstMatch(line);
+    if (match != null) {
+      _location = Location(_location, match[1], match[2]);
+      return;
+    }
+
+    match = _unnamedTypedefPattern.firstMatch(line);
     if (match != null) {
       // We don't know the name of the typedef yet.
-      _location = Location(_location, match.group(1), null);
+      _location = Location(_location, match[1], null);
+      _unnamedTypedef = _location;
       return;
     }
 
     match = _modulePattern.firstMatch(line);
     if (match != null) {
-      _location = Location(_location, "variable", match.group(1));
+      _location = Location(_location, "variable", match[1]);
       return;
     }
   }
@@ -165,7 +175,8 @@ class SourceFileParser {
     var match = _typedefNamePattern.firstMatch(line);
     if (match != null) {
       // Now we know the typedef name.
-      _location.name = match.group(1);
+      _unnamedTypedef?.name = match[1];
+      _unnamedTypedef = null;
       _location = _location.parent;
     }
 
@@ -202,17 +213,17 @@ class SourceFileParser {
     var match = _blockPattern.firstMatch(line);
     if (match != null) {
       _push(
-          startChapter: _book.findChapter(match.group(1)),
-          startName: match.group(2),
-          endChapter: _book.findChapter(match.group(3)),
-          endName: match.group(4));
+          startChapter: _book.findChapter(match[1]),
+          startName: match[2],
+          endChapter: _book.findChapter(match[3]),
+          endName: match[4]);
       _locationBeforeBlock = _location;
       return true;
     }
 
     match = _blockSnippetPattern.firstMatch(line);
     if (match != null) {
-      _push(endChapter: _currentState.start.chapter, endName: match.group(1));
+      _push(endChapter: _currentState.start.chapter, endName: match[1]);
       _locationBeforeBlock = _location;
       return true;
     }
@@ -225,7 +236,7 @@ class SourceFileParser {
 
     match = _beginSnippetPattern.firstMatch(line);
     if (match != null) {
-      var name = match.group(1);
+      var name = match[1];
 //        var tag = source_code.find_snippet_tag(state.start.chapter, name);
 //        if tag < state.start:
 //          error("Can't push earlier snippet {} from {}.".format(name, state.start.name))
@@ -237,7 +248,7 @@ class SourceFileParser {
 
     match = _endSnippetPattern.firstMatch(line);
     if (match != null) {
-//      var name = match.group(1);
+//      var name = match[1];
 //        if name != state.start.name:
 //          error("Expecting to pop {} but got {}.".format(state.start.name, name))
 //        if state.parent.start.chapter == None:
@@ -248,8 +259,8 @@ class SourceFileParser {
 
     match = _beginChapterPattern.firstMatch(line);
     if (match != null) {
-      var chapter = _book.findChapter(match.group(1));
-      var name = match.group(2);
+      var chapter = _book.findChapter(match[1]);
+      var name = match[2];
 
 //        if state.start != None:
 //          old_chapter = book.chapter_number(state.start.chapter)
@@ -268,8 +279,8 @@ class SourceFileParser {
 
     match = _endChapterPattern.firstMatch(line);
     if (match != null) {
-//      var chapter = match.group(1);
-//      var name = match.group(2);
+//      var chapter = match[1];
+//      var name = match[2];
 //        if chapter != state.start.chapter or name != state.start.name:
 //          error('Expecting to pop "{} {}" but got "{} {}".'.format(
 //              state.start.chapter, state.start.name, chapter, name))
