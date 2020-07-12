@@ -888,40 +888,31 @@ it one value type at a time, from easiest to hardest.</p>
 NaN boxing. To &ldquo;convert&rdquo; a C double to a NaN-boxed clox Value, we don&rsquo;t need to
 touch a single bit<span class="em">&mdash;</span>the representation is exactly the same. But we do need to
 convince our C compiler of that fact, which we made harder by defining Value to
-be a uint64_t.</p>
+be uint64_t.</p>
 <p>We need to get the compiler to take a set of bits that it thinks are a double
 and use those same bits as a uint64_t, or vice versa<span class="em">&mdash;</span>called <strong>type punning</strong>.
-The <span name="close">closest</span> thing to an officially supported way of
-doing that in C is through a union:</p>
-<aside name="close" class="bottom">
-<p>I say &ldquo;closest&rdquo; because it&rsquo;s not <em>entirely</em> clear to me that the standard
-officially supports this even though the technique has been in wide use since
-the early days of C. I&rsquo;ve read a number of interpretations of the spec on this
-point and arguments for and against seem to read more like Biblical hermeneutics
-or literary criticism than an unequivocal answer.</p>
-<p>Regardless of what the Good Spec says, just about every compiler under the sun
-permits type punning through unions, so relying on it is, at worst, a minor sin.</p>
+C and C++ programmers have been doing this since the days of bell bottoms and
+8-tracks, but the language specifications have <span
+name="hesitate">hesitated</span> to say which of the many ways to do this is
+officially sanctioned.</p>
+<aside name="hesitate" class="bottom">
+<p>Spec authors don&rsquo;t like type punning because it makes optimization harder. A key
+optimization technique is reordering instructions to fill the CPU&rsquo;s execution
+pipelines. A compiler can only reorder code when doing so doesn&rsquo;t have a user
+visible effect, obviously.</p>
+<p>Pointers make that harder. If two pointers point to the same value, then a write
+through one and a read through the other cannot be reordered. But what about two
+pointers of <em>different</em> types? If those could point to the same object then
+basically <em>any</em> two pointers could be aliases to the same value. That
+drastically limits the amount of code the compiler is free to rearrange.</p>
+<p>To avoid that, compilers want to assume <strong>strict aliasing</strong><span class="em">&mdash;</span>pointers of
+incompatible types cannot point to the same value. Type punning, by nature,
+breaks that assumption.</p>
 </aside>
-<div class="codehilite"><pre class="insert-before">
-typedef uint64_t Value;
-</pre><div class="source-file"><em>value.h</em></div>
-<pre class="insert">
-
-<span class="k">typedef</span> <span class="k">union</span> {
-  <span class="t">uint64_t</span> <span class="i">bits</span>;
-  <span class="t">double</span> <span class="i">num</span>;
-} <span class="t">DoubleUnion</span>;
-</pre><pre class="insert-after">
-
-#else
-</pre></div>
-<div class="source-file-narrow"><em>value.h</em></div>
-
-<p>The idea is that you store a value into one of the union&rsquo;s fields and then read
-out the other field. Voilà, the bits have been transmuted from the first field&rsquo;s
-type to the second&rsquo;s. Alas, I don&rsquo;t know an elegant way to pack those operations
-into a single expression, so the conversion macros will call out to helper
-functions. Here&rsquo;s the first macro:</p>
+<p>I know one way to convert a <code>double</code> to <code>Value</code> and back that I believe is
+supported by both the C and C++ specs. Unfortunately, it doesn&rsquo;t fit in a single
+expression, so the conversion macros have to call out to helper functions.
+Here&rsquo;s the first macro:</p>
 <div class="codehilite"><pre class="insert-before">
 typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
@@ -930,33 +921,49 @@ typedef uint64_t Value;
 <span class="a">#define NUMBER_VAL(num) numToValue(num)</span>
 </pre><pre class="insert-after">
 
-typedef union {
+#else
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>It hands off the double to:</p>
+<p>That macro passes the double to:</p>
 <div class="codehilite"><pre class="insert-before">
-} DoubleUnion;
-</pre><div class="source-file"><em>value.h</em><br>
-add after union <em>DoubleUnion</em></div>
+#define NUMBER_VAL(num) numToValue(num)
+</pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
 <span class="k">static</span> <span class="k">inline</span> <span class="t">Value</span> <span class="i">numToValue</span>(<span class="t">double</span> <span class="i">num</span>) {
-  <span class="t">DoubleUnion</span> <span class="i">data</span>;
-  <span class="i">data</span>.<span class="i">num</span> = <span class="i">num</span>;
-  <span class="k">return</span> <span class="i">data</span>.<span class="i">bits</span>;
+  <span class="t">Value</span> <span class="i">value</span>;
+  <span class="i">memcpy</span>(&amp;<span class="i">value</span>, &amp;<span class="i">num</span>, <span class="k">sizeof</span>(<span class="t">double</span>));
+  <span class="k">return</span> <span class="i">value</span>;
 }
 </pre><pre class="insert-after">
 
 #else
 </pre></div>
-<div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
+<div class="source-file-narrow"><em>value.h</em></div>
 
-<p>This creates a temporary union, stores the double in it, and then yanks out the
-uint64_t whose bits overlap that in memory. This code appears slow: a function
-call, a local variable, an assignment, and a read. Fortunately, compilers are
-smart enough to optimize it all away.</p>
-<p>&ldquo;Unwrapping&rdquo; a Lox number is the mirror image:</p>
+<p>I know, weird, right? The way to treat a series of bytes as having a different
+type without changing their value at all is <code>memcpy()</code>? This looks horrendously
+slow. Create a local variable. Pass its address to the operating system through
+a syscall to copy a few bytes. Then return the result, which is the exact same
+bytes as the input.</p>
+<p>Fortunately, because this <em>is</em> the supported idiom for type punning, most
+compilers recognize the pattern and <span name="union">optimize</span> away the
+<code>memcpy()</code> entirely. &ldquo;Unwrapping&rdquo; a Lox number is the mirror image:</p>
+<aside name="union" class="bottom">
+<p>On the off chance you find yourself with a compiler that does not optimize this
+away, try this trick instead:</p>
+<div class="codehilite"><pre>
+<span class="t">double</span> <span class="i">valueToNum</span>(<span class="t">Value</span> <span class="i">value</span>) {
+  <span class="k">union</span> {
+    <span class="t">uint64_t</span> <span class="i">bits</span>;
+    <span class="t">double</span> <span class="i">num</span>;
+  } <span class="i">data</span>;
+  <span class="i">data</span>.<span class="i">bits</span> = <span class="i">value</span>;
+  <span class="k">return</span> <span class="i">data</span>.<span class="i">num</span>;
+}
+</pre></div>
+</aside>
 <div class="codehilite"><pre class="insert-before">
 typedef uint64_t Value;
 </pre><div class="source-file"><em>value.h</em></div>
@@ -971,24 +978,37 @@ typedef uint64_t Value;
 
 <p>That macro calls this function:</p>
 <div class="codehilite"><pre class="insert-before">
-} DoubleUnion;
-</pre><div class="source-file"><em>value.h</em><br>
-add after union <em>DoubleUnion</em></div>
+#define NUMBER_VAL(num) numToValue(num)
+</pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
 
 <span class="k">static</span> <span class="k">inline</span> <span class="t">double</span> <span class="i">valueToNum</span>(<span class="t">Value</span> <span class="i">value</span>) {
-  <span class="t">DoubleUnion</span> <span class="i">data</span>;
-  <span class="i">data</span>.<span class="i">bits</span> = <span class="i">value</span>;
-  <span class="k">return</span> <span class="i">data</span>.<span class="i">num</span>;
+  <span class="t">double</span> <span class="i">num</span>;
+  <span class="i">memcpy</span>(&amp;<span class="i">num</span>, &amp;<span class="i">value</span>, <span class="k">sizeof</span>(<span class="t">Value</span>));
+  <span class="k">return</span> <span class="i">num</span>;
 }
 </pre><pre class="insert-after">
 
 static inline Value numToValue(double num) {
 </pre></div>
-<div class="source-file-narrow"><em>value.h</em>, add after union <em>DoubleUnion</em></div>
+<div class="source-file-narrow"><em>value.h</em></div>
 
-<p>It works exactly the same except we flip which field we write and which we read.
-Again, the compiler will eliminate all of it.</p>
+<p>It works exactly the same except we swap the types. Again, the compiler will
+eliminate all of it. Even though those calls to <code>memcpy()</code> will disappear, we
+still need to show the compiler <em>which</em> <code>memcpy()</code> we&rsquo;re calling so we also need
+an include:</p>
+<div class="codehilite"><pre class="insert-before">
+#define clox_value_h
+</pre><div class="source-file"><em>value.h</em></div>
+<pre class="insert">
+
+<span class="a">#include &lt;string.h&gt;</span>
+</pre><pre class="insert-after">
+
+#include &quot;common.h&quot;
+</pre></div>
+<div class="source-file-narrow"><em>value.h</em></div>
+
 <p>That was a lot of code to ultimately do nothing but silence the C type checker.
 Doing a runtime type <em>test</em> on a Lox number is a little more interesting. If all
 we have are exactly the bits for a double, how do we tell that it <em>is</em> a double?</p>
@@ -1194,7 +1214,7 @@ of the quiet NaN bits and the sign bit:</p>
 <span class="a">    (Value)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))</span>
 </pre><pre class="insert-after">
 
-typedef union {
+static inline double valueToNum(Value value) {
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
