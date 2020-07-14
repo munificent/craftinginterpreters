@@ -228,7 +228,7 @@ add after <em>unary</em>()</div>
     <span class="t">Expr</span> <span class="i">expr</span> = <span class="i">primary</span>();
 
     <span class="k">while</span> (<span class="k">true</span>) {<span name="while-true"> </span>
-      <span class="k">if</span> (<span class="i">match</span>(<span class="n">LEFT_PAREN</span>)) {
+      <span class="k">if</span> (<span class="i">match</span>(<span class="i">LEFT_PAREN</span>)) {
         <span class="i">expr</span> = <span class="i">finishCall</span>(<span class="i">expr</span>);
       } <span class="k">else</span> {
         <span class="k">break</span>;
@@ -258,13 +258,13 @@ add after <em>unary</em>()</div>
 <pre>
   <span class="k">private</span> <span class="t">Expr</span> <span class="i">finishCall</span>(<span class="t">Expr</span> <span class="i">callee</span>) {
     <span class="t">List</span>&lt;<span class="t">Expr</span>&gt; <span class="i">arguments</span> = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
-    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">RIGHT_PAREN</span>)) {
+    <span class="k">if</span> (!<span class="i">check</span>(<span class="i">RIGHT_PAREN</span>)) {
       <span class="k">do</span> {
         <span class="i">arguments</span>.<span class="i">add</span>(<span class="i">expression</span>());
-      } <span class="k">while</span> (<span class="i">match</span>(<span class="n">COMMA</span>));
+      } <span class="k">while</span> (<span class="i">match</span>(<span class="i">COMMA</span>));
     }
 
-    <span class="t">Token</span> <span class="i">paren</span> = <span class="i">consume</span>(<span class="n">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span>);
+    <span class="t">Token</span> <span class="i">paren</span> = <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after arguments.&quot;</span>);
 
     <span class="k">return</span> <span class="k">new</span> <span class="t">Expr</span>.<span class="t">Call</span>(<span class="i">callee</span>, <span class="i">paren</span>, <span class="i">arguments</span>);
   }
@@ -321,7 +321,7 @@ this, but we&rsquo;ll worry about that when we get there. First, our interpreter
 a new import:</p>
 <div class="codehilite"><div class="source-file"><em>lox/Interpreter.java</em></div>
 <pre class="insert">
-<span class="k">import</span> <span class="n">java.util.ArrayList</span>;
+<span class="k">import</span> <span class="i">java.util.ArrayList</span>;
 </pre><pre class="insert-after">
 import java.util.List;
 </pre></div>
@@ -373,9 +373,9 @@ own Callable interface. Alas, all the good simple names are already taken.</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxCallable.java</em><br>
 create new file</div>
 <pre>
-<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span>;
+<span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
-<span class="k">import</span> <span class="n">java.util.List</span>;
+<span class="k">import</span> <span class="i">java.util.List</span>;
 
 <span class="k">interface</span> <span class="t">LoxCallable</span> {
   <span class="t">Object</span> <span class="i">call</span>(<span class="t">Interpreter</span> <span class="i">interpreter</span>, <span class="t">List</span>&lt;<span class="t">Object</span>&gt; <span class="i">arguments</span>);
@@ -678,7 +678,7 @@ store the body as the list of statements contained inside the curly braces.</p>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>declaration</em>()</div>
 <pre class="insert">
-      <span class="k">if</span> (<span class="i">match</span>(<span class="n">FUN</span>)) <span class="k">return</span> <span class="i">function</span>(<span class="s">&quot;function&quot;</span>);
+      <span class="k">if</span> (<span class="i">match</span>(<span class="i">FUN</span>)) <span class="k">return</span> <span class="i">function</span>(<span class="s">&quot;function&quot;</span>);
 </pre><pre class="insert-after">
       if (match(VAR)) return varDeclaration();
 </pre></div>
@@ -692,7 +692,7 @@ method up a piece at a time, starting with:</p>
 add after <em>expressionStatement</em>()</div>
 <pre>
   <span class="k">private</span> <span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">function</span>(<span class="t">String</span> <span class="i">kind</span>) {
-    <span class="t">Token</span> <span class="i">name</span> = <span class="i">consume</span>(<span class="n">IDENTIFIER</span>, <span class="s">&quot;Expect &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; name.&quot;</span>);
+    <span class="t">Token</span> <span class="i">name</span> = <span class="i">consume</span>(<span class="i">IDENTIFIER</span>, <span class="s">&quot;Expect &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; name.&quot;</span>);
   }
 </pre></div>
 <div class="source-file-narrow"><em>lox/Parser.java</em>, add after <em>expressionStatement</em>()</div>
@@ -708,18 +708,18 @@ error messages are specific to the kind of declaration being parsed.</p>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>function</em>()</div>
 <pre class="insert">
-    <span class="i">consume</span>(<span class="n">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; name.&quot;</span>);
+    <span class="i">consume</span>(<span class="i">LEFT_PAREN</span>, <span class="s">&quot;Expect &#39;(&#39; after &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; name.&quot;</span>);
     <span class="t">List</span>&lt;<span class="t">Token</span>&gt; <span class="i">parameters</span> = <span class="k">new</span> <span class="t">ArrayList</span>&lt;&gt;();
-    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">RIGHT_PAREN</span>)) {
+    <span class="k">if</span> (!<span class="i">check</span>(<span class="i">RIGHT_PAREN</span>)) {
       <span class="k">do</span> {
         <span class="k">if</span> (<span class="i">parameters</span>.<span class="i">size</span>() &gt;= <span class="n">255</span>) {
           <span class="i">error</span>(<span class="i">peek</span>(), <span class="s">&quot;Cannot have more than 255 parameters.&quot;</span>);
         }
 
-        <span class="i">parameters</span>.<span class="i">add</span>(<span class="i">consume</span>(<span class="n">IDENTIFIER</span>, <span class="s">&quot;Expect parameter name.&quot;</span>));
-      } <span class="k">while</span> (<span class="i">match</span>(<span class="n">COMMA</span>));
+        <span class="i">parameters</span>.<span class="i">add</span>(<span class="i">consume</span>(<span class="i">IDENTIFIER</span>, <span class="s">&quot;Expect parameter name.&quot;</span>));
+      } <span class="k">while</span> (<span class="i">match</span>(<span class="i">COMMA</span>));
     }
-    <span class="i">consume</span>(<span class="n">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span>);
+    <span class="i">consume</span>(<span class="i">RIGHT_PAREN</span>, <span class="s">&quot;Expect &#39;)&#39; after parameters.&quot;</span>);
 </pre><pre class="insert-after">
   }
 </pre></div>
@@ -739,7 +739,7 @@ have.</p>
 in <em>function</em>()</div>
 <pre class="insert">
 
-    <span class="i">consume</span>(<span class="n">LEFT_BRACE</span>, <span class="s">&quot;Expect &#39;{&#39; before &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; body.&quot;</span>);
+    <span class="i">consume</span>(<span class="i">LEFT_BRACE</span>, <span class="s">&quot;Expect &#39;{&#39; before &quot;</span> + <span class="i">kind</span> + <span class="s">&quot; body.&quot;</span>);
     <span class="t">List</span>&lt;<span class="t">Stmt</span>&gt; <span class="i">body</span> = <span class="i">block</span>();
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Function</span>(<span class="i">name</span>, <span class="i">parameters</span>, <span class="i">body</span>);
 </pre><pre class="insert-after">
@@ -766,9 +766,9 @@ implement that. Instead, we wrap it in a new class:</p>
 <div class="codehilite"><div class="source-file"><em>lox/LoxFunction.java</em><br>
 create new file</div>
 <pre>
-<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span>;
+<span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
-<span class="k">import</span> <span class="n">java.util.List</span>;
+<span class="k">import</span> <span class="i">java.util.List</span>;
 
 <span class="k">class</span> <span class="t">LoxFunction</span> <span class="k">implements</span> <span class="t">LoxCallable</span> {
   <span class="k">private</span> <span class="k">final</span> <span class="t">Stmt</span>.<span class="t">Function</span> <span class="i">declaration</span>;
@@ -991,7 +991,7 @@ statements, by recognizing the initial keyword:</p>
 </pre><div class="source-file"><em>lox/Parser.java</em><br>
 in <em>statement</em>()</div>
 <pre class="insert">
-    <span class="k">if</span> (<span class="i">match</span>(<span class="n">RETURN</span>)) <span class="k">return</span> <span class="i">returnStatement</span>();
+    <span class="k">if</span> (<span class="i">match</span>(<span class="i">RETURN</span>)) <span class="k">return</span> <span class="i">returnStatement</span>();
 </pre><pre class="insert-after">
     if (match(WHILE)) return whileStatement();
 </pre></div>
@@ -1004,11 +1004,11 @@ add after <em>printStatement</em>()</div>
   <span class="k">private</span> <span class="t">Stmt</span> <span class="i">returnStatement</span>() {
     <span class="t">Token</span> <span class="i">keyword</span> = <span class="i">previous</span>();
     <span class="t">Expr</span> <span class="i">value</span> = <span class="k">null</span>;
-    <span class="k">if</span> (!<span class="i">check</span>(<span class="n">SEMICOLON</span>)) {
+    <span class="k">if</span> (!<span class="i">check</span>(<span class="i">SEMICOLON</span>)) {
       <span class="i">value</span> = <span class="i">expression</span>();
     }
 
-    <span class="i">consume</span>(<span class="n">SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span>);
+    <span class="i">consume</span>(<span class="i">SEMICOLON</span>, <span class="s">&quot;Expect &#39;;&#39; after return value.&quot;</span>);
     <span class="k">return</span> <span class="k">new</span> <span class="t">Stmt</span>.<span class="t">Return</span>(<span class="i">keyword</span>, <span class="i">value</span>);
   }
 </pre></div>
@@ -1072,7 +1072,7 @@ that value and wrap it in a custom exception class and throw it. That class is:<
 <div class="codehilite"><div class="source-file"><em>lox/Return.java</em><br>
 create new file</div>
 <pre>
-<span class="k">package</span> <span class="n">com.craftinginterpreters.lox</span>;
+<span class="k">package</span> <span class="i">com.craftinginterpreters.lox</span>;
 
 <span class="k">class</span> <span class="t">Return</span> <span class="k">extends</span> <span class="t">RuntimeException</span> {
   <span class="k">final</span> <span class="t">Object</span> <span class="i">value</span>;
