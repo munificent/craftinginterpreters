@@ -323,7 +323,7 @@ this last stage is pretty simple and you get to reuse the rest of the compiler
 pipeline across all of the machines you support. You're basically using your
 bytecode as an intermediate representation.
 
-<aside name="shared">
+<aside name="shared" class="bottom">
 
 The basic principle here is that the farther down the pipeline you can push the
 architecture-specific work, the more of the earlier phases you can share across
@@ -336,13 +336,27 @@ which should be target-specific is an art.
 
 </aside>
 
-Or you can write a **virtual machine** (**VM**), a program that emulates a
-hypothetical chip supporting your virtual architecture at runtime. Running
-bytecode in a VM is slower than translating it to native code ahead of time
-because every instruction must be simulated at runtime each time it executes. In
-return, you get simplicity and portability. Implement your VM in, say, C, and
-you can run your language on any platform that has a C compiler. This is what
-our second interpreter does.
+Or you can write a <span name="vm">**virtual machine**</span> (**VM**), a
+program that emulates a hypothetical chip supporting your virtual architecture
+at runtime. Running bytecode in a VM is slower than translating it to native
+code ahead of time because every instruction must be simulated at runtime each
+time it executes. In return, you get simplicity and portability. Implement your
+VM in, say, C, and you can run your language on any platform that has a C
+compiler. This is what our second interpreter does.
+
+<aside name="vm">
+
+The term "virtual machine" also refers to a different kind of abstraction. A
+**system virtual machine** emulates an entire hardware platform and operating
+system in software. This is how you can play Windows games on your Linux
+machine, and how cloud providers give customers the user experience of
+controlling their own "server" without needing to physically allocate separate
+computers for each user.
+
+The kind of VMs we'll talk about in this book are **language virtual machines**
+or **process virtual machines** if you want to be unambiguous.
+
+</aside>
 
 ### Runtime
 
