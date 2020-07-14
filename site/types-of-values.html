@@ -613,37 +613,37 @@ skip right to the parser. With our table-based Pratt parser, we just need to
 slot parser functions into the rows associated with those keyword token types.
 We&rsquo;ll use the same function in all three slots:</p>
 <div class="codehilite"><pre class="insert-before">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
+  [TOKEN_ELSE]          = { NULL,     NULL,   PREC_NONE },
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="i">literal</span>,  <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_FALSE</span>
+  [<span class="a">TOKEN_FALSE</span>]         = { <span class="i">literal</span>,  <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
+  [TOKEN_FOR]           = { NULL,     NULL,   PREC_NONE },
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And:</p>
 <div class="codehilite"><pre class="insert-before">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
+  [TOKEN_THIS]          = { NULL,     NULL,   PREC_NONE },
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="i">literal</span>,  <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_TRUE</span>
+  [<span class="a">TOKEN_TRUE</span>]          = { <span class="i">literal</span>,  <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
+  [TOKEN_VAR]           = { NULL,     NULL,   PREC_NONE },
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And finally:</p>
 <div class="codehilite"><pre class="insert-before">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
+  [TOKEN_IF]            = { NULL,     NULL,   PREC_NONE },
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="i">literal</span>,  <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_NIL</span>
+  [<span class="a">TOKEN_NIL</span>]           = { <span class="i">literal</span>,  <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_OR
+  [TOKEN_OR]            = { NULL,     NULL,   PREC_NONE },
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -755,13 +755,13 @@ in enum <em>OpCode</em></div>
 <p>We can reuse the <code>unary()</code> parser function we wrote for unary <code>-</code> to compile a
 prefix <code>!</code> expression. We just need to slot it into the parsing table:</p>
 <div class="codehilite"><pre class="insert-before">
-  { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
+  [TOKEN_STAR]          = { NULL,     binary, PREC_FACTOR },
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="i">unary</span>,    <span class="a">NULL</span>,    <span class="a">PREC_NONE</span> },       <span class="c">// TOKEN_BANG</span>
+  [<span class="a">TOKEN_BANG</span>]          = { <span class="i">unary</span>,    <span class="a">NULL</span>,   <span class="a">PREC_NONE</span> },
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG_EQUAL
+  [TOKEN_BANG_EQUAL]    = { NULL,     NULL,   PREC_NONE },
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
@@ -883,29 +883,29 @@ matter in your real language implementations.</p>
 table. We use the same <code>binary()</code> parser function from before. Here&rsquo;s the row
 for <code>!=</code>:</p>
 <div class="codehilite"><pre class="insert-before">
-  { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
+  [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 1 line</div>
 <pre class="insert">
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_EQUALITY</span> },   <span class="c">// TOKEN_BANG_EQUAL</span>
+  [<span class="a">TOKEN_BANG_EQUAL</span>]    = { <span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_EQUALITY</span> },
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
+  [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 1 line</div>
 
 <p>And the remaining five operators are a little farther down in the table:</p>
 <div class="codehilite"><pre class="insert-before">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
+  [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },
 </pre><div class="source-file"><em>compiler.c</em><br>
 replace 5 lines</div>
 <pre class="insert">
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_EQUALITY</span> },   <span class="c">// TOKEN_EQUAL_EQUAL</span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_COMPARISON</span> }, <span class="c">// TOKEN_GREATER</span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_COMPARISON</span> }, <span class="c">// TOKEN_GREATER_EQUAL</span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_COMPARISON</span> }, <span class="c">// TOKEN_LESS</span>
-  { <span class="a">NULL</span>,     <span class="i">binary</span>,  <span class="a">PREC_COMPARISON</span> }, <span class="c">// TOKEN_LESS_EQUAL</span>
+  [<span class="a">TOKEN_EQUAL_EQUAL</span>]   = { <span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_EQUALITY</span> },
+  [<span class="a">TOKEN_GREATER</span>]       = { <span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span> },
+  [<span class="a">TOKEN_GREATER_EQUAL</span>] = { <span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span> },
+  [<span class="a">TOKEN_LESS</span>]          = { <span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span> },
+  [<span class="a">TOKEN_LESS_EQUAL</span>]    = { <span class="a">NULL</span>,     <span class="i">binary</span>, <span class="a">PREC_COMPARISON</span> },
 </pre><pre class="insert-after">
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
+  [TOKEN_IDENTIFIER]    = { NULL,     NULL,   PREC_NONE },
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, replace 5 lines</div>
 
