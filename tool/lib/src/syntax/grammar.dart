@@ -46,19 +46,19 @@ final java = Language(
   types: "boolean byte char double float int long short void",
   rules: [
     // Import.
-    Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", ""]),
+    Rule.capture(r"(import)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "i", ""]),
     // Static import.
     Rule.capture(r"(import\s+static?)(\s+)(\w+(?:\.\w+)*(?:\.\*)?)(;)",
-        ["k", "", "n", ""]),
+        ["k", "", "i", ""]),
     // Package.
-    Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "n", ""]),
+    Rule.capture(r"(package)(\s+)(\w+(?:\.\w+)*)(;)", ["k", "", "i", ""]),
     // Annotation.
     Rule(r"@[a-zA-Z_][a-zA-Z0-9_]*", "a"),
 
     // ALL_CAPS constant names are colored like normal identifiers. We give
     // them their own rule so that it matches before the capitalized type name
     // rule.
-    Rule(r"[A-Z][A-Z0-9_]+", "n"),
+    Rule(r"[A-Z][A-Z0-9_]+", "i"),
 
     ..._commonRules,
     _characterRule,
@@ -75,7 +75,7 @@ final js = Language(
 final lisp = Language(
   rules: [
     // TODO: Other punctuation characters.
-    Rule(r"[a-zA-Z0-9_-]+", "n"),
+    Rule(r"[a-zA-Z0-9_-]+", "i"),
   ],
 );
 
