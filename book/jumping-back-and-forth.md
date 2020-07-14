@@ -447,9 +447,9 @@ instruction's own operands which we also need to jump over.
 From the VM's perspective, there really is no semantic difference between
 `OP_LOOP` and `OP_JUMP`. Both just add an offset to the `ip`. We could have used
 a single instruction for both and given it a signed offset operand. But I
-figured it was a little easier to sidestep the annoying bit juggling required to
-manually pack a signed 16-bit integer into two bytes, and we've got the opcode
-space available, so why not use it?
+figured it was a little easier to sidestep the annoying bit twiddling required
+to manually pack a signed 16-bit integer into two bytes, and we've got the
+opcode space available, so why not use it?
 
 The new instruction is:
 
