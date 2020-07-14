@@ -873,119 +873,119 @@ static void unary(bool canAssign) {
 //> Compiling Expressions rules
 ParseRule rules[] = {
 /* Compiling Expressions rules < Calls and Functions infix-left-paren
-  { grouping, NULL,    PREC_NONE },       // TOKEN_LEFT_PAREN
+  [TOKEN_LEFT_PAREN]    = { grouping, NULL,   PREC_NONE },
 */
 //> Calls and Functions infix-left-paren
-  { grouping, call,    PREC_CALL },       // TOKEN_LEFT_PAREN
+  [TOKEN_LEFT_PAREN]    = { grouping, call,   PREC_CALL },
 //< Calls and Functions infix-left-paren
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_PAREN
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_LEFT_BRACE [big]
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_RIGHT_BRACE
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_COMMA
+  [TOKEN_RIGHT_PAREN]   = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_LEFT_BRACE]    = { NULL,     NULL,   PREC_NONE }, // [big]
+  [TOKEN_RIGHT_BRACE]   = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_COMMA]         = { NULL,     NULL,   PREC_NONE },
 /* Compiling Expressions rules < Classes and Instances table-dot
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_DOT
+  [TOKEN_DOT]           = { NULL,     NULL,   PREC_NONE },
 */
 //> Classes and Instances table-dot
-  { NULL,     dot,     PREC_CALL },       // TOKEN_DOT
+  [TOKEN_DOT]           = { NULL,     dot,    PREC_CALL },
 //< Classes and Instances table-dot
-  { unary,    binary,  PREC_TERM },       // TOKEN_MINUS
-  { NULL,     binary,  PREC_TERM },       // TOKEN_PLUS
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_SEMICOLON
-  { NULL,     binary,  PREC_FACTOR },     // TOKEN_SLASH
-  { NULL,     binary,  PREC_FACTOR },     // TOKEN_STAR
+  [TOKEN_MINUS]         = { unary,    binary, PREC_TERM },
+  [TOKEN_PLUS]          = { NULL,     binary, PREC_TERM },
+  [TOKEN_SEMICOLON]     = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_SLASH]         = { NULL,     binary, PREC_FACTOR },
+  [TOKEN_STAR]          = { NULL,     binary, PREC_FACTOR },
 /* Compiling Expressions rules < Types of Values table-not
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG
+  [TOKEN_BANG]          = { NULL,     NULL,   PREC_NONE },
 */
 //> Types of Values table-not
-  { unary,    NULL,    PREC_NONE },       // TOKEN_BANG
+  [TOKEN_BANG]          = { unary,    NULL,   PREC_NONE },
 //< Types of Values table-not
 /* Compiling Expressions rules < Types of Values table-equal
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_BANG_EQUAL
+  [TOKEN_BANG_EQUAL]    = { NULL,     NULL,   PREC_NONE },
 */
 //> Types of Values table-equal
-  { NULL,     binary,  PREC_EQUALITY },   // TOKEN_BANG_EQUAL
+  [TOKEN_BANG_EQUAL]    = { NULL,     binary, PREC_EQUALITY },
 //< Types of Values table-equal
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL
+  [TOKEN_EQUAL]         = { NULL,     NULL,   PREC_NONE },
 /* Compiling Expressions rules < Types of Values table-comparisons
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_EQUAL_EQUAL
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_GREATER
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_GREATER_EQUAL
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_LESS
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_LESS_EQUAL
+  [TOKEN_EQUAL_EQUAL]   = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_GREATER]       = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_GREATER_EQUAL] = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_LESS]          = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_LESS_EQUAL]    = { NULL,     NULL,   PREC_NONE },
 */
 //> Types of Values table-comparisons
-  { NULL,     binary,  PREC_EQUALITY },   // TOKEN_EQUAL_EQUAL
-  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER
-  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_GREATER_EQUAL
-  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS
-  { NULL,     binary,  PREC_COMPARISON }, // TOKEN_LESS_EQUAL
+  [TOKEN_EQUAL_EQUAL]   = { NULL,     binary, PREC_EQUALITY },
+  [TOKEN_GREATER]       = { NULL,     binary, PREC_COMPARISON },
+  [TOKEN_GREATER_EQUAL] = { NULL,     binary, PREC_COMPARISON },
+  [TOKEN_LESS]          = { NULL,     binary, PREC_COMPARISON },
+  [TOKEN_LESS_EQUAL]    = { NULL,     binary, PREC_COMPARISON },
 //< Types of Values table-comparisons
 /* Compiling Expressions rules < Global Variables table-identifier
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
+  [TOKEN_IDENTIFIER]    = { NULL,     NULL,   PREC_NONE },
 */
 //> Global Variables table-identifier
-  { variable, NULL,    PREC_NONE },       // TOKEN_IDENTIFIER
+  [TOKEN_IDENTIFIER]    = { variable, NULL,   PREC_NONE },
 //< Global Variables table-identifier
 /* Compiling Expressions rules < Strings table-string
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_STRING
+  [TOKEN_STRING]        = { NULL,     NULL,   PREC_NONE },
 */
 //> Strings table-string
-  { string,   NULL,    PREC_NONE },       // TOKEN_STRING
+  [TOKEN_STRING]        = { string,   NULL,   PREC_NONE },
 //< Strings table-string
-  { number,   NULL,    PREC_NONE },       // TOKEN_NUMBER
+  [TOKEN_NUMBER]        = { number,   NULL,   PREC_NONE },
 /* Compiling Expressions rules < Jumping Back and Forth table-and
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_AND
+  [TOKEN_AND]           = { NULL,     NULL,   PREC_NONE },
 */
 //> Jumping Back and Forth table-and
-  { NULL,     and_,    PREC_AND },        // TOKEN_AND
+  [TOKEN_AND]           = { NULL,     and_,   PREC_AND },
 //< Jumping Back and Forth table-and
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_CLASS
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_ELSE
+  [TOKEN_CLASS]         = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_ELSE]          = { NULL,     NULL,   PREC_NONE },
 /* Compiling Expressions rules < Types of Values table-false
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_FALSE
+  [TOKEN_FALSE]         = { NULL,     NULL,   PREC_NONE },
 */
 //> Types of Values table-false
-  { literal,  NULL,    PREC_NONE },       // TOKEN_FALSE
+  [TOKEN_FALSE]         = { literal,  NULL,   PREC_NONE },
 //< Types of Values table-false
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_FOR
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_FUN
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_IF
+  [TOKEN_FOR]           = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_FUN]           = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_IF]            = { NULL,     NULL,   PREC_NONE },
 /* Compiling Expressions rules < Types of Values table-nil
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_NIL
+  [TOKEN_NIL]           = { NULL,     NULL,   PREC_NONE },
 */
 //> Types of Values table-nil
-  { literal,  NULL,    PREC_NONE },       // TOKEN_NIL
+  [TOKEN_NIL]           = { literal,  NULL,   PREC_NONE },
 //< Types of Values table-nil
 /* Compiling Expressions rules < Jumping Back and Forth table-or
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_OR
+  [TOKEN_OR]            = { NULL,     NULL,   PREC_NONE },
 */
 //> Jumping Back and Forth table-or
-  { NULL,     or_,     PREC_OR },         // TOKEN_OR
+  [TOKEN_OR]            = { NULL,     or_,    PREC_OR },
 //< Jumping Back and Forth table-or
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_PRINT
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_RETURN
+  [TOKEN_PRINT]         = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_RETURN]        = { NULL,     NULL,   PREC_NONE },
 /* Compiling Expressions rules < Superclasses table-super
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_SUPER
+  [TOKEN_SUPER]         = { NULL,     NULL,   PREC_NONE },
 */
 //> Superclasses table-super
-  { super_,   NULL,    PREC_NONE },       // TOKEN_SUPER
+  [TOKEN_SUPER]         = { super_,   NULL,   PREC_NONE },
 //< Superclasses table-super
 /* Compiling Expressions rules < Methods and Initializers table-this
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_THIS
+  [TOKEN_THIS]          = { NULL,     NULL,   PREC_NONE },
 */
 //> Methods and Initializers table-this
-  { this_,    NULL,    PREC_NONE },       // TOKEN_THIS
+  [TOKEN_THIS]          = { this_,    NULL,   PREC_NONE },
 //< Methods and Initializers table-this
 /* Compiling Expressions rules < Types of Values table-true
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_TRUE
+  [TOKEN_TRUE]          = { NULL,     NULL,   PREC_NONE },
 */
 //> Types of Values table-true
-  { literal,  NULL,    PREC_NONE },       // TOKEN_TRUE
+  [TOKEN_TRUE]          = { literal,  NULL,   PREC_NONE },
 //< Types of Values table-true
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_VAR
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_WHILE
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_ERROR
-  { NULL,     NULL,    PREC_NONE },       // TOKEN_EOF
+  [TOKEN_VAR]           = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_WHILE]         = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_ERROR]         = { NULL,     NULL,   PREC_NONE },
+  [TOKEN_EOF]           = { NULL,     NULL,   PREC_NONE },
 };
 //< Compiling Expressions rules
 //> Compiling Expressions parse-precedence

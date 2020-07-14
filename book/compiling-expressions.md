@@ -715,6 +715,10 @@ talking about it forever, and finally you get to see it:
 See what I mean about not wanting to revisit the table each time we needed a new
 column? It's a beast.
 
+If you haven't seen the `[TOKEN_DOT] = ` syntax in a C array literal, that is
+C99's designated initializer syntax. It's clearer than having to count array
+indexes by hand.
+
 </aside>
 
 There are a lot of `NULL` and `PREC_NONE` values in here. Most of those are
