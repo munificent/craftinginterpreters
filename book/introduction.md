@@ -286,9 +286,17 @@ what's in the chapter. They force you to step off the guided path and explore on
 your own. They will make you research other languages, figure out how to
 implement features, or otherwise get you to strike out on your own.
 
-Vanquish them and you'll come away with a broader understanding and possibly a
-few bumps and scrapes. Or skip them if you want to stay inside the comfy
-confines of the tour bus. It's your book.
+<span name="warning">Vanquish</span> them and you'll come away with a broader
+understanding and possibly a few bumps and scrapes. Or skip them if you want to
+stay inside the comfy confines of the tour bus. It's your book.
+
+<aside name="warning">
+
+A word of warning: the challenges often ask you to make changes to the
+interpreter you're building. You'll want to implement those in a copy of your
+code. The later chapters assume your interpreter is in a pristine state.
+
+</aside>
 
 ### Design notes
 
