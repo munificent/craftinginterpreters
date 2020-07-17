@@ -920,8 +920,8 @@ to output an updated "Expr.java" file. It contains a generated Visitor
 interface and a set of expression node classes that support the Visitor pattern
 using it.
 
-Before we end this rambling chapter, let's see implement that Visitor interface
-and see the pattern in action.
+Before we end this rambling chapter, let's implement that Visitor interface and
+see the pattern in action.
 
 ## A (Not Very) Pretty Printer
 
