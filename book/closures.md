@@ -1627,7 +1627,9 @@ closures[1]()
 
 Python doesn't really have block scope. Variables are implicitly declared and
 are automatically scoped to the surrounding function. Kind of like hoisting in
-JS, now that I think about it. So this prints "3" twice.
+JS, now that I think about it. So both closures capture the same variable.
+Unlike C, though, we don't exit the loop by incrementing `i` *past* the last
+value, so this prints "2" twice.
 
 What about Ruby? Ruby has two typical ways to iterate numerically. Here's the
 classic imperative style:
@@ -1642,7 +1644,7 @@ closures[0].call
 closures[1].call
 ```
 
-This, like Python, prints "3" twice. But the more idiomatic Ruby style is using
+This, like Python, prints "2" twice. But the more idiomatic Ruby style is using
 a higher-order `each()` method on range objects:
 
 ```ruby
