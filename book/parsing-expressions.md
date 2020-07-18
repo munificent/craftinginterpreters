@@ -35,10 +35,10 @@ tokens into one of those syntax trees.
 [last chapter]: representing-code.html
 
 Some CS textbooks make a big deal out of parsers. In the 60s, computer
-scientists -- reasonably fed up with programming in assembly language -- started
-designing more sophisticated, <span name="human">human</span>-friendly languages
-like FORTRAN and ALGOL. Alas, they weren't very *machine*-friendly, for the
-primitive machines at the time.
+scientists -- understandably tired of programming in assembly language --
+started designing more sophisticated, <span name="human">human</span>-friendly
+languages like FORTRAN and ALGOL. Alas, they weren't very *machine*-friendly,
+for the primitive machines at the time.
 
 <aside name="human">
 
@@ -74,8 +74,11 @@ that is *ambiguous*, where different choices of productions can lead to the same
 string. When you're using the grammar to *generate* strings, that doesn't matter
 much. Once you have the string, who cares how you got to it?
 
-When parsing, ambiguity means the parser may misunderstand the user's code.
-Here's the Lox expression grammar we put together in the last chapter:
+When parsing, ambiguity means the parser may misunderstand the user's code. As
+we parse, we aren't just determining if the string is valid Lox code, we're
+also tracking which rules match which parts of it so that we know what part of
+the language each token belongs to. Here's the Lox expression grammar we put
+together in the last chapter:
 
 ```ebnf
 expression → literal
@@ -168,8 +171,8 @@ operator isn't associative, so `a .. b` is OK, but `a .. b .. c` is an error.
 
 Without well-defined precedence and associativity, an expression that uses
 multiple operators is ambiguous -- it can be parsed into different syntax trees,
-which could in turn evaluate to different results. For Lox, we follow the same
-precedence rules as C, going from highest to lowest:
+which could in turn evaluate to different results. We'll fix that in Lox by
+applying the same precedence rules as C, going from lowest to highest:
 
 <table>
 <thead>
@@ -181,18 +184,8 @@ precedence rules as C, going from highest to lowest:
 </thead>
 <tbody>
 <tr>
-  <td>Unary</td>
-  <td><code>!</code> <code>-</code></td>
-  <td>Right</td>
-</tr>
-<tr>
-  <td>Multiplication</td>
-  <td><code>/</code> <code>*</code></td>
-  <td>Left</td>
-</tr>
-<tr>
-  <td>Addition</td>
-  <td><code>-</code> <code>+</code></td>
+  <td>Equality</td>
+  <td><code>==</code> <code>!=</code></td>
   <td>Left</td>
 </tr>
 <tr>
@@ -202,16 +195,40 @@ precedence rules as C, going from highest to lowest:
   <td>Left</td>
 </tr>
 <tr>
-  <td>Equality</td>
-  <td><code>==</code> <code>!=</code></td>
+  <td>Addition</td>
+  <td><code>-</code> <code>+</code></td>
   <td>Left</td>
+</tr>
+<tr>
+  <td>Multiplication</td>
+  <td><code>/</code> <code>*</code></td>
+  <td>Left</td>
+</tr>
+<tr>
+  <td>Unary</td>
+  <td><code>!</code> <code>-</code></td>
+  <td>Right</td>
 </tr>
 </tbody>
 </table>
 
-How do we <span name="massage">stuff these restrictions</span> into our
-context-free grammar? Right now, when we have an expression that contains
-subexpressions, like a binary operator, we allow *any* expression in there:
+Right now, the grammar stuffs all expression types into a single `expression`
+rule. That same rule is used as the non-terminal for subexpressions, which lets
+the grammar accept any kind of expression as an operand, regardless of whether
+the precedence rules allow it.
+
+We fix that by <span name="massage">stratifying</span> the grammar. We define a
+separate rule for each precedence level:
+
+```ebnf
+expression     → ...
+equality       → ...
+comparison     → ...
+addition       → ...
+multiplication → ...
+unary          → ...
+primary        → ...
+```
 
 <aside name="massage">
 
@@ -222,43 +239,74 @@ disambiguate.
 
 </aside>
 
-```ebnf
-binary → expression operator expression ;
-```
+Each rule here only matches expressions at its precedence level or higher. For
+example, `unary` matches a unary expression like `!negated` or a primary
+expression like `1234`. And `addition` can match `1 + 2` but also `3 * 4 / 5`.
+The final `primary` rule covers the highest-precedence expressions -- literals
+and parenthesized grouping expressions.
 
-The `expression` nonterminal allows us to pick any kind of expression as an
-operand, regardless of the operator we picked. The rules of precedence limit
-that. For example, an operand of a `*` expression cannot be a `+` <span
-name="paren">expression</span>, since the latter has lower precedence.
+We just need to fill in the productions for each of those rules. We'll do the
+easy ones first. The top `expression` rule matches any expression at any
+precedence level. Since <span name="equality">`equality`</span> has the lowest
+precedence, if we match that, then it covers everything:
 
-<aside name="paren">
+<aside name="equality">
 
-Of course, it could be a *parenthesized* addition expression, but that's because
-the parentheses themselves are treated as having the highest precedence.
+We could eliminate `expression` and simply use `equality` in the other rules
+that contain expressions, but using `expression` makes those other rules read a
+little better.
+
+Also, in later chapters, when we expand the grammar to include assignment and
+logical operators, we'll only need to change `expression` instead of touching
+every rule that contains an expression.
 
 </aside>
 
-For the multiplication operands, we need a nonterminal that means "any kind of
-expression of higher precedence than `*`". Something like:
-
 ```ebnf
-multiplication → higherThanMultiply "*" higherThanMultiply ;
+expression     → equality
 ```
 
-Since `*` and `/` have the same precedence and the level above them is unary
-operators, a better approximation is:
+Over at the other end of the precedence table, a primary expression contains
+all the literals and grouping expressions:
 
 ```ebnf
-multiplication → unary ( "*" | "/" ) unary ;
+primary        → NUMBER | STRING | "false" | "true" | "nil"
+               | "(" expression ")" ;
 ```
 
-Except that's not *quite* right. We broke associativity. This `multiplication`
-rule doesn't allow `1 * 2 * 3`. To support associativity, we make one side
-permit expressions at the *same* level. Which side we choose determines if the
-operator is left- or right-associative. Since multiplication and <span
-name="div">division</span> are left-associative, it's:
+A unary expression starts with a unary operator followed by the operand. Since
+unary operators can nest -- `!!true` is a valid if weird expression -- the
+operand can itself be a unary operator. A recursive rule handles that nicely:
 
-<aside name="div">
+```ebnf
+unary          → ( "!" | "-" ) unary ;
+```
+
+But this rule has a problem. It never terminates. Remember, each rule needs to
+match expressions at that precedence level *or higher*, so we also need to let
+this match a primary expression:
+
+```ebnf
+unary          → ( "!" | "-" ) unary
+               | primary ;
+```
+
+That works.
+
+The remaining rules are all binary operators. We'll start with the rule for
+multiplication and division. Here's a first try:
+
+```ebnf
+multiplication → multiplication ( "/" | "*" ) unary
+               | unary ;
+```
+
+The rule recurses to match the left operand. That enables the rule to match a
+series of multiplication and division expressions like `1 * 2 / 3`. Putting the
+recursive production on the left side and `unary` on the makes the rule <span
+name="mult">left-associative</span> and unambiguous.
+
+<aside name="mult">
 
 In principle, it doesn't matter whether you treat multiplication as left- or
 right-associative -- you get the same result either way. Alas, in the real world
@@ -280,24 +328,26 @@ numbers, the first evaluates to `0.006`, while the second yields
 
 </aside>
 
-```ebnf
-multiplication → multiplication ( "*" | "/" ) unary ;
-```
+All of this is correct, but the fact that the first nonterminal in the body of
+the rule is the same as the head of the rule means this production is
+**left-recursive**. Some parsing techniques, including the one we're going to
+use, have trouble with left recursion. (Recursion elsewhere, like we have in
+`unary` and the indirect recursion for grouping in `primary` are not a problem.)
 
-This is correct, but the fact that the first nonterminal in the body of the rule
-is the same as the head of the rule means this production is **left-recursive**.
-Some parsing techniques, including the one we're going to use, have trouble with
-left recursion. Instead, we'll use this other style:
+There are many grammars you can define that match the same language. The choice
+for how to model a particular language is partially a matter of taste and
+partially a pragmatic one. This rule is correct, but not optimal for how we
+intend to parse it. Instead of a left recursive rule, we'll use a different one:
 
 ```ebnf
 multiplication → unary ( ( "/" | "*" ) unary )* ;
 ```
 
-At the grammar level, this sidesteps left recursion by saying a multiplication
-expression is a flat *sequence* of multiplications and divisions. This mirrors
-the code we'll use to parse a sequence of multiplications.
-
-If we rejigger all of the binary operator rules in the same way, we get:
+We define a multiplication expression as a flat *sequence* of multiplications
+and divisions. This matches the same syntax as the previous rule, but better
+mirrors the code we'll write to parse code. We use the same structure for all of
+other binary operator precedence levels giving us this complete expression
+grammar:
 
 ```ebnf
 expression     → equality ;
@@ -311,29 +361,9 @@ primary        → NUMBER | STRING | "false" | "true" | "nil"
                | "(" expression ")" ;
 ```
 
-Instead of a single `binary` rule, there are now four separate rules for each binary operator precedence level. The main `expression` rule is no longer a flat series of `|` branches for each kind of expression. Instead, it is simply an alias for the lowest-precedence expression form, <span name="equality">`equality`</span>, because that includes all higher-precedence expressions too.
-
-<aside name="equality">
-
-In later chapters, when we expand the grammar to include assignment and logical
-operators, this will change, but equality is the lowest for now.
-
-</aside>
-
-Each binary operator's operands use the next-higher precedence level. After the
-binary operators, we go to `unary`, the rule for unary operator expressions,
-since those bind tighter than binary ones. For `unary`, we *do* use a recursive
-rule because unary operators are right-associative, which means instead of left
-recursion, we have **right recursion**. The `unary` nonterminal is at the end of
-the body for `unary`, not the beginning, and our parser won't have any trouble
-with that.
-
-Finally, the `unary` rule alternately bubbles up to `primary` in cases where it
-doesn't match a unary operator. "Primary" is the time-honored name for the
-highest level of precedence including the atomic expressions like literals.
-
-Our grammar grew a bit, but it's unambiguous now. We're ready to make a parser
-for it.
+This grammar is more complex than the one we had before, but in return we have
+eliminated the previous one's ambiguity. It's just what we need to make a
+parser.
 
 ## Recursive Descent Parsing
 
