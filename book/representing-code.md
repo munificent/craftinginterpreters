@@ -637,9 +637,9 @@ There we go. All of that glorious Java boilerplate is done. It declares each
 field in the class body. It defines a constructor for the class with parameters
 for each field and initializes them in the body.
 
-Compile this Java program now and it <span name="longer">blasts</span> out
-new ".java" file containing a few dozen lines of code. That file's about to get
-even longer.
+Compile and run this Java program now and it <span name="longer">blasts</span>
+out a new &ldquo;.java" file containing a few dozen lines of code. That file's
+about to get even longer.
 
 <aside name="longer">
 
