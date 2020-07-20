@@ -657,8 +657,8 @@ other overload to handle tokens with literal values later.)</p>
 <p>Before we get too far in, let&rsquo;s take a moment to think about errors at the
 lexical level. What happens if a user throws a source file containing some
 characters Lox doesn&rsquo;t use, like <code>@#^</code> at our interpreter? Right now, those
-characters get silently added to the next token. That ain&rsquo;t right.</p>
-<p>Let&rsquo;s fix that:</p>
+characters get silently discarded. They aren&rsquo;t used by the Lox language, but
+that doesn&rsquo;t mean the interpreter can pretend they aren&rsquo;t there:</p>
 <div class="codehilite"><pre class="insert-before">
       case '*': addToken(STAR); break;<span name="slash"> </span>
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
@@ -666,7 +666,7 @@ in <em>scanToken</em>()</div>
 <pre class="insert">
 
       <span class="k">default</span>:
-          <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">line</span>, <span class="s">&quot;Unexpected character.&quot;</span>);
+        <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">line</span>, <span class="s">&quot;Unexpected character.&quot;</span>);
         <span class="k">break</span>;
 </pre><pre class="insert-after">
     }
@@ -802,7 +802,7 @@ in <em>scanToken</em>()</div>
 </pre><pre class="insert-after">
 
       default:
-          Lox.error(line, &quot;Unexpected character.&quot;);
+        Lox.error(line, &quot;Unexpected character.&quot;);
 </pre></div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>()</div>
 
