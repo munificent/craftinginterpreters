@@ -105,7 +105,7 @@ class Scanner {
 
       default:
 /* Scanning char-error < Scanning digit-start
-          Lox.error(line, "Unexpected character.");
+        Lox.error(line, "Unexpected character.");
 */
 //> digit-start
         if (isDigit(c)) {

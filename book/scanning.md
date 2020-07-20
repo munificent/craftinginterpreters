@@ -417,9 +417,8 @@ other overload to handle tokens with literal values later.)
 Before we get too far in, let's take a moment to think about errors at the
 lexical level. What happens if a user throws a source file containing some
 characters Lox doesn't use, like `@#^` at our interpreter? Right now, those
-characters get silently added to the next token. That ain't right.
-
-Let's fix that:
+characters get silently discarded. They aren't used by the Lox language, but
+that doesn't mean the interpreter can pretend they aren't there:
 
 ^code char-error (1 before, 1 after)
 
