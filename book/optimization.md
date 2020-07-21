@@ -920,8 +920,7 @@ know *is* a Lox Boolean. To check that, there's one more macro:
 
 ^code is-bool (2 before, 1 after)
 
-That looks a little weird. It *kind* of looks like it only checks for `false`
-but what about `true`? A more obvious macro would look like:
+That looks a little strange. A more obvious macro would look like:
 
 ```c
 #define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)
@@ -931,16 +930,15 @@ Unfortunately, that's not safe. The expansion mentions `v` twice which means if
 that expression has any side effects, they will be executed twice. We could have
 the macro call out to a separate function, but, ugh, what a chore.
 
-Instead, we can take advantage of the bits we chose for the type tags. Note that
-both `true` and `false` have the second bit set and `nil` does not. If our Value
-has all of its quiet NaN bits set, we know it's not a number. And if the second
-bit is set, we know it's not `nil`. It must be `true` or `false`. Conveniently,
-`FALSE_VAL` is just the right bit pattern to check both the quiet NaN bits and
-that second tag bit, so we just test against that.
+Instead, we bitwise or a 1 onto the value to merge the only two valid Boolean
+bit patterns. That leaves three potential states the value could be in:
 
-<img src="image/optimization/bool-mask.png" alt="TRUE_VAL & FALSE_VAL is the same as FALSE_VAL & FALSE_VAL." />
+1. It was `FALSE_VAL` and has now been converted to `TRUE_VAL`.
+2. It was `TRUE_VAL` and the `| 1` did nothing and it's still `TRUE_VAL`.
+3. It's some other non-Boolean value.
 
-This is more subtle than I like to be with my bit hackery, but here we are.
+At that point, we can simply compare the result to `TRUE_VAL` to see if we're
+in the first two states or the third.
 
 ### Objects
 

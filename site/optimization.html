@@ -1160,27 +1160,28 @@ typedef uint64_t Value;
 
 </pre><div class="source-file"><em>value.h</em></div>
 <pre class="insert">
-<span class="a">#define IS_BOOL(v)      (((v) &amp; FALSE_VAL) == FALSE_VAL)</span>
+<span class="a">#define IS_BOOL(v)      (((v) | 1) == TRUE_VAL)</span>
 </pre><pre class="insert-after">
 #define IS_NIL(v)       ((v) == NIL_VAL)
 </pre></div>
 <div class="source-file-narrow"><em>value.h</em></div>
 
-<p>That looks a little weird. It <em>kind</em> of looks like it only checks for <code>false</code>
-but what about <code>true</code>? A more obvious macro would look like:</p>
+<p>That looks a little strange. A more obvious macro would look like:</p>
 <div class="codehilite"><pre>
 <span class="a">#define IS_BOOL(v) ((v) == TRUE_VAL || (v) == FALSE_VAL)</span>
 </pre></div>
 <p>Unfortunately, that&rsquo;s not safe. The expansion mentions <code>v</code> twice which means if
 that expression has any side effects, they will be executed twice. We could have
 the macro call out to a separate function, but, ugh, what a chore.</p>
-<p>Instead, we can take advantage of the bits we chose for the type tags. Note that
-both <code>true</code> and <code>false</code> have the second bit set and <code>nil</code> does not. If our Value
-has all of its quiet NaN bits set, we know it&rsquo;s not a number. And if the second
-bit is set, we know it&rsquo;s not <code>nil</code>. It must be <code>true</code> or <code>false</code>. Conveniently,
-<code>FALSE_VAL</code> is just the right bit pattern to check both the quiet NaN bits and
-that second tag bit, so we just test against that.</p><img src="image/optimization/bool-mask.png" alt="TRUE_VAL & FALSE_VAL is the same as FALSE_VAL & FALSE_VAL." />
-<p>This is more subtle than I like to be with my bit hackery, but here we are.</p>
+<p>Instead, we bitwise or a 1 onto the value to merge the only two valid Boolean
+bit patterns. That leaves three potential states the value could be in:</p>
+<ol>
+<li>It was <code>FALSE_VAL</code> and has now been converted to <code>TRUE_VAL</code>.</li>
+<li>It was <code>TRUE_VAL</code> and the <code>| 1</code> did nothing and it&rsquo;s still <code>TRUE_VAL</code>.</li>
+<li>It&rsquo;s some other non-Boolean value.</li>
+</ol>
+<p>At that point, we can simply compare the result to <code>TRUE_VAL</code> to see if we&rsquo;re
+in the first two states or the third.</p>
 <h3><a href="#objects" name="objects"><small>30&#8202;.&#8202;3&#8202;.&#8202;5</small>Objects</a></h3>
 <p>The last value type is the hardest. Unlike the singleton values, there are
 billions of different pointer values we need to box inside a NaN. This means we

@@ -35,7 +35,7 @@ typedef uint64_t Value;
 //> is-number
 
 //> is-bool
-#define IS_BOOL(v)      (((v) & FALSE_VAL) == FALSE_VAL)
+#define IS_BOOL(v)      (((v) | 1) == TRUE_VAL)
 //< is-bool
 //> is-nil
 #define IS_NIL(v)       ((v) == NIL_VAL)
