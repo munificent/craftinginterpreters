@@ -106,17 +106,7 @@ This calls out to:
 
 ^code print-function-helper
 
-Since we have the function's name, we may as well use it.
-
-While we're here, there's a funny little edge case to handle. The implicit
-function that the compiler creates to contain the top level code for a script
-doesn't have a name. If we try to print it, we'll crash. You might correctly
-note that there's no way for a user to get a reference to that function in the
-first place. But our diagnostic code that prints the entire stack when
-`DEBUG_TRACE_EXECUTION` is defined *will* print it, and we don't want that to
-blow up. So:
-
-^code print-script (1 before, 1 after)
+Since functions know their name, they may as well say it.
 
 Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually *is* a function:
@@ -266,6 +256,17 @@ debug the compiler. We should fix that now that the generated chunk is wrapped
 in a function:
 
 ^code disassemble-end (2 before, 2 after)
+
+Notice the check in here to see if the function's name is `NULL`? User-defined
+functions have names, but the implicit function we create for the top-level code
+does not, and we need to handle that gracefully even in our own diagnostic code.
+Speaking of which:
+
+^code print-script (1 before, 1 after)
+
+There's no way for a *user* to get a reference to top-level function and try to
+print it, but our `DEBUG_TRACE_EXECUTION` diagnostic code that prints the entire
+stack can and does.
 
 Bumping up a level to `compile()`, we adjust its signature:
 

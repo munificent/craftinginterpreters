@@ -289,28 +289,7 @@ add after <em>copyString</em>()</div>
 </pre></div>
 <div class="source-file-narrow"><em>object.c</em>, add after <em>copyString</em>()</div>
 
-<p>Since we have the function&rsquo;s name, we may as well use it.</p>
-<p>While we&rsquo;re here, there&rsquo;s a funny little edge case to handle. The implicit
-function that the compiler creates to contain the top level code for a script
-doesn&rsquo;t have a name. If we try to print it, we&rsquo;ll crash. You might correctly
-note that there&rsquo;s no way for a user to get a reference to that function in the
-first place. But our diagnostic code that prints the entire stack when
-<code>DEBUG_TRACE_EXECUTION</code> is defined <em>will</em> print it, and we don&rsquo;t want that to
-blow up. So:</p>
-<div class="codehilite"><pre class="insert-before">
-static void printFunction(ObjFunction* function) {
-</pre><div class="source-file"><em>object.c</em><br>
-in <em>printFunction</em>()</div>
-<pre class="insert">
-  <span class="k">if</span> (<span class="i">function</span>-&gt;<span class="i">name</span> == <span class="a">NULL</span>) {
-    <span class="i">printf</span>(<span class="s">&quot;&lt;script&gt;&quot;</span>);
-    <span class="k">return</span>;
-  }
-</pre><pre class="insert-after">
-  printf(&quot;&lt;fn %s&gt;&quot;, function-&gt;name-&gt;chars);
-</pre></div>
-<div class="source-file-narrow"><em>object.c</em>, in <em>printFunction</em>()</div>
-
+<p>Since functions know their name, they may as well say it.</p>
 <p>Finally, we have a couple of macros for converting values to functions. First,
 make sure your value actually <em>is</em> a function:</p>
 <div class="codehilite"><pre class="insert-before">
@@ -558,6 +537,27 @@ replace 1 line</div>
 </pre></div>
 <div class="source-file-narrow"><em>compiler.c</em>, in <em>endCompiler</em>(), replace 1 line</div>
 
+<p>Notice the check in here to see if the function&rsquo;s name is <code>NULL</code>? User-defined
+functions have names, but the implicit function we create for the top-level code
+does not, and we need to handle that gracefully even in our own diagnostic code.
+Speaking of which:</p>
+<div class="codehilite"><pre class="insert-before">
+static void printFunction(ObjFunction* function) {
+</pre><div class="source-file"><em>object.c</em><br>
+in <em>printFunction</em>()</div>
+<pre class="insert">
+  <span class="k">if</span> (<span class="i">function</span>-&gt;<span class="i">name</span> == <span class="a">NULL</span>) {
+    <span class="i">printf</span>(<span class="s">&quot;&lt;script&gt;&quot;</span>);
+    <span class="k">return</span>;
+  }
+</pre><pre class="insert-after">
+  printf(&quot;&lt;fn %s&gt;&quot;, function-&gt;name-&gt;chars);
+</pre></div>
+<div class="source-file-narrow"><em>object.c</em>, in <em>printFunction</em>()</div>
+
+<p>There&rsquo;s no way for a <em>user</em> to get a reference to top-level function and try to
+print it, but our <code>DEBUG_TRACE_EXECUTION</code> diagnostic code that prints the entire
+stack can and does.</p>
 <p>Bumping up a level to <code>compile()</code>, we adjust its signature:</p>
 <div class="codehilite"><pre class="insert-before">
 #include &quot;vm.h&quot;
