@@ -1365,16 +1365,21 @@ optimizations we can do in our VM.
     Implement this optimization. Write a couple of benchmarks and see how it
     affects the performance. Do you think the extra code complexity is worth it?
 
-2.  Right now, there's no way for a native function to signal a runtime error.
+2.  Native functions calls are fast in part because we don't validate that the
+    call passes as many arguments as the function expects function. We really
+    should, or an incorrect call to a native function without enough arguments
+    could cause the function to read uninitialized memory. Add arity checking.
+
+3.  Right now, there's no way for a native function to signal a runtime error.
     In a real implementation, this is something we'd need to support because
     native functions live in the statically-typed world of C but are called
     from dynamically-typed Lox land. If a user, say, tries to pass a string to
     `sin()`, that native function needs to report a runtime error.
 
     Extend the native function system to support that. How does this capability
-    affect performance of native calls?
+    affect the performance of native calls?
 
-3.  Add some more native functions to do things you find useful. Write some
+4.  Add some more native functions to do things you find useful. Write some
     programs using those. What did you add? How do they affect the feel of the
     language and how practical it is?
 
