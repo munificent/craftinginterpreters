@@ -123,8 +123,8 @@ reporting **syntax errors**.
 
 The first two stages are pretty similar across all implementations. Now, the
 individual characteristics of each language start coming into play. At this
-point, we know the syntactic structure of the code -- things like operator
-precedence and expression nesting -- but we don't know much more than that.
+point, we know the syntactic structure of the code -- things like which
+expressions are nested in which others -- but we don't know much more than that.
 
 In an expression like `a + b`, we know we are adding `a` and `b`, but we don't
 know what those names refer to. Are they local variables? Global? Where are they
