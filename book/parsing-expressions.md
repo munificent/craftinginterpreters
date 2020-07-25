@@ -303,8 +303,8 @@ multiplication → multiplication ( "/" | "*" ) unary
 
 The rule recurses to match the left operand. That enables the rule to match a
 series of multiplication and division expressions like `1 * 2 / 3`. Putting the
-recursive production on the left side and `unary` on the makes the rule <span
-name="mult">left-associative</span> and unambiguous.
+recursive production on the left side and `unary` on the right makes the rule
+<span name="mult">left-associative</span> and unambiguous.
 
 <aside name="mult">
 
