@@ -1,4 +1,5 @@
-> Fairy tales are more than true: not because they tell us that dragons exist, but because they tell us that dragons can be beaten.”
+> Fairy tales are more than true: not because they tell us that dragons exist,
+> but because they tell us that dragons can be beaten.
 >
 > <cite>Neil Gaiman, <em>Coraline</em></cite>
 
