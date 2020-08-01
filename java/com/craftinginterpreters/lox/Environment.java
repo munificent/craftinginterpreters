@@ -11,7 +11,7 @@ class Environment {
   private final Map<String, Object> values = new HashMap<>();
 //> environment-constructors
   Environment() {
-    enclosing = null;
+    this.enclosing = null;
   }
 
   Environment(Environment enclosing) {
