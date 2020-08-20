@@ -60,9 +60,10 @@
     }
     ```
 
-    The parser changes are a little more complex. We split function() into two
-    methods, one for functions in names that now is defined in terms of the one
-    that handles anonymous functions too:
+    The parser changes are a little more complex.
+    The logic to handle anonymous functions is separated out into a new method.
+    The method to handle named functions is now a wrapper around the one
+    that handles anonymous functions:
 
     ```java
     private Stmt.Function function(String kind) {
