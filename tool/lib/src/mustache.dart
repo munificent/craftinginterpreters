@@ -12,7 +12,7 @@ import 'text.dart';
 class Mustache {
   final Map<String, Template> _templates = {};
 
-  String render(Book book, Page page, String body) {
+  String render(Book book, Page page, String body, {String template}) {
     var part = page.part?.title;
 
     var up = "Table of Contents";
@@ -69,7 +69,7 @@ class Mustache {
       "part_3": _makePartData(book, 2),
     };
 
-    return _load(page.template).renderString(data);
+    return _load(template ?? page.template).renderString(data);
   }
 
   Map<String, dynamic> _makePartData(Book book, int partIndex) {

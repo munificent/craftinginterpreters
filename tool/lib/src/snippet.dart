@@ -49,7 +49,7 @@ class Snippet {
 
   /// Describes where in the file this snippet appears. Returns a list of HTML
   /// strings.
-  List<String> get locationDescription {
+  List<String> get locationHtmlLines {
     var result = ["<em>${file.nicePath}</em>"];
 
     var html = _location.toHtml(precedingLocation, removed);
@@ -66,6 +66,26 @@ class Snippet {
     }
 
     return result;
+  }
+
+  /// Describes where in the file this snippet appears.
+  String get locationXml {
+    var result = StringBuffer();
+    result.writeln("<location-file>${file.nicePath}</location-file>");
+
+    var xml = _location.toXml(precedingLocation, removed);
+    var changes = [
+      if (xml != null) xml,
+      if (removed.isNotEmpty && added.isNotEmpty)
+        "replace ${removed.length} line${pluralize(removed)}"
+      else if (removed.isNotEmpty && added.isEmpty)
+        "remove ${removed.length} line${pluralize(removed)}",
+      if (addedComma != null)
+        "add <location-comma>&ldquo;,&rdquo;</location-comma> to previous line"
+    ].map((change) => "<location-change>$change</location-change>");
+
+    result.writeAll(changes, "\n");
+    return result.toString();
   }
 
   String toString() => "${file.nicePath} ${tag.name}";

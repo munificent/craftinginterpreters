@@ -12,14 +12,19 @@ class BookHeaderSyntax extends BlockSyntax {
   static final _headerPattern = RegExp(r'^(#{1,6}) (.*)$');
 
   final Page _page;
+  final bool _isXml;
 
   RegExp get pattern => _headerPattern;
 
-  BookHeaderSyntax(this._page);
+  BookHeaderSyntax(this._page, {bool xml = false}) : _isXml = xml;
 
   Node parse(BlockParser parser) {
     var header = _page.headers[parser.current];
     parser.advance();
+
+    if (_isXml) {
+      return Element("h${header.level}", [UnparsedContent(header.name)]);
+    }
 
     var number = "";
     if (!header.isSpecial) {

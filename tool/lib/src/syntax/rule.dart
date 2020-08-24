@@ -1,6 +1,5 @@
 import 'package:charcode/ascii.dart';
 
-import 'grammar.dart' as grammar;
 import 'highlighter.dart';
 
 abstract class Rule {

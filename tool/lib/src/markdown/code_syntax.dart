@@ -11,7 +11,11 @@ import '../text.dart';
 class HighlightedCodeBlockSyntax extends BlockSyntax {
   static final _codeFencePattern = RegExp(r'^(\s*)```(.*)$');
 
+  final bool _isXml;
+
   RegExp get pattern => _codeFencePattern;
+
+  HighlightedCodeBlockSyntax({bool xml = false}) : _isXml = xml;
 
   bool canParse(BlockParser parser) =>
       pattern.firstMatch(parser.current) != null;
@@ -46,19 +50,24 @@ class HighlightedCodeBlockSyntax extends BlockSyntax {
     if (language == "text") {
       // Don't syntax highlight text.
       var buffer = StringBuffer();
-      buffer.write("<pre>");
+      if (!_isXml) buffer.write("<pre>");
+
       for (var line in childLines) {
         // Strip off any leading indentation.
-        if (line.length > indent) {
-          line = line.substring(indent);
-        }
+        if (line.length > indent) line = line.substring(indent);
+        checkLineLength(line);
         buffer.writeln(escapeHtml(line));
       }
-      buffer.write("</pre>");
+
+      if (!_isXml) buffer.write("</pre>");
+
       code = buffer.toString();
     } else {
-      code = formatCode(language, childLines, indent: indent);
+      code = formatCode(language, childLines, indent: indent, xml: _isXml);
     }
+
+    // Don't wrap in a div for XML.
+    if (_isXml) return Element.text("pre", code);
 
     var element = Element.text("div", code);
     element.attributes["class"] = "codehilite";
@@ -72,8 +81,9 @@ class CodeTagBlockSyntax extends BlockSyntax {
 
   final Book _book;
   final Page _page;
+  final bool _isXml;
 
-  CodeTagBlockSyntax(this._book, this._page);
+  CodeTagBlockSyntax(this._book, this._page, {bool xml = false}) : _isXml = xml;
 
   RegExp get pattern => _startPattern;
 
@@ -86,7 +96,13 @@ class CodeTagBlockSyntax extends BlockSyntax {
     parser.advance();
 
     var codeTag = _page.findCodeTag(name);
-    return Text(_buildSnippet(codeTag, _book.findSnippet(codeTag)));
+    String snippet;
+    if (_isXml) {
+      snippet = _buildSnippetXml(codeTag, _book.findSnippet(codeTag));
+    } else {
+      snippet = _buildSnippet(codeTag, _book.findSnippet(codeTag));
+    }
+    return Text(snippet);
   }
 }
 
@@ -108,22 +124,14 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
 //  snippets[name] = False
 
   var location = <String>[];
-  if (tag.showLocation) location = snippet.locationDescription;
-
-//  # Make sure every snippet shows the reader where it goes.
-//  if (showLocation and len(location) <= 1
-//      and beforeLines == 0 and afterLines == 0):
-//    print("No location or context for {}".format(name))
-//    errors.append("No location or context for {}".format(name))
-//    contents += "**ERROR: No location or context for {}**\n".format(name)
-//    return contents
+  if (tag.showLocation) location = snippet.locationHtmlLines;
 
   var buffer = StringBuffer();
   buffer.write('<div class="codehilite">');
 
   if (snippet.contextBefore.isNotEmpty) {
-    _writeContextLines(buffer, snippet.contextBefore,
-        snippet.added.isNotEmpty ? "insert-before" : null);
+    _writeContextHtml(buffer, snippet.contextBefore,
+        cssClass: snippet.added.isNotEmpty ? "insert-before" : null);
   }
 
   if (snippet.addedComma != null) {
@@ -147,8 +155,8 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   }
 
   if (snippet.contextAfter.isNotEmpty) {
-    _writeContextLines(buffer, snippet.contextAfter,
-        snippet.added.isNotEmpty ? "insert-after" : null);
+    _writeContextHtml(buffer, snippet.contextAfter,
+        cssClass: snippet.added.isNotEmpty ? "insert-after" : null);
   }
 
   buffer.writeln('</div>');
@@ -161,10 +169,60 @@ String _buildSnippet(CodeTag tag, Snippet snippet) {
   return buffer.toString();
 }
 
-String _writeContextLines(
-    StringBuffer buffer, List<String> lines, String preClass) {
+String _buildSnippetXml(CodeTag tag, Snippet snippet) {
+  var buffer = StringBuffer();
+
+  if (tag.showLocation) buffer.writeln(snippet.locationXml);
+
+  if (snippet.contextBefore.isNotEmpty) {
+    _writeContextXml(buffer, snippet.contextBefore, "before");
+  }
+
+  if (snippet.addedComma != null) {
+    // TODO: How should this look in print?
+    buffer.write("TODO added comma");
+//    var commaLine = formatCode(snippet.file.language, [snippet.addedComma],
+//        preClass: "insert-before", xml: true);
+//    var comma = commaLine.lastIndexOf(",");
+//    buffer.write(commaLine.substring(0, comma));
+//    buffer.write('<span class="insert-comma">,</span>');
+//    buffer.write(commaLine.substring(comma + 1));
+  }
+
+  if (snippet.added != null) {
+    // Use different tags based on whether there is context before, after,
+    // neither, or both.
+    String insertTag;
+    if (tag.beforeCount > 0) {
+      if (tag.afterCount > 0) {
+        insertTag = "interpreter-between";
+      } else {
+        insertTag = "interpreter-after";
+      }
+    } else {
+      if (tag.afterCount > 0) {
+        insertTag = "interpreter-before";
+      } else {
+        insertTag = "interpreter";
+      }
+    }
+
+    buffer.write("<$insertTag>");
+    buffer.write(formatCode(snippet.file.language, snippet.added, xml: true));
+    buffer.write("</$insertTag>");
+  }
+
+  if (snippet.contextAfter.isNotEmpty) {
+    _writeContextXml(buffer, snippet.contextAfter, "after");
+  }
+
+  return buffer.toString();
+}
+
+void _writeContextHtml(StringBuffer buffer, List<String> lines,
+    {String cssClass}) {
   buffer.write("<pre");
-  if (preClass != null) buffer.write(' class="$preClass"');
+  if (cssClass != null) buffer.write(' class="$cssClass"');
   buffer.writeln(">");
 
   for (var line in lines) {
@@ -172,4 +230,12 @@ String _writeContextLines(
   }
 
   buffer.write("</pre>");
+}
+
+void _writeContextXml(StringBuffer buffer, List<String> lines, String tag) {
+  buffer.write("<context-$tag>");
+  for (var line in lines) {
+    buffer.writeln(escapeHtml(line));
+  }
+  buffer.write("</context-$tag>");
 }
