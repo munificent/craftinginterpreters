@@ -171,7 +171,6 @@ class Book {
   ///
   /// Note: Not very fast.
   CodeTag findTag(Page page, String name) {
-    Snippet last;
     for (var tag in _snippets.keys) {
       if (tag.chapter != page) continue;
       if (tag.name == name) return tag;

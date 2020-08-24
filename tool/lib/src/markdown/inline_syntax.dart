@@ -2,16 +2,24 @@ import 'package:charcode/ascii.dart';
 import 'package:markdown/markdown.dart';
 
 class EllipseSyntax extends InlineSyntax {
-  EllipseSyntax() : super(r"\.\.\.", startCharacter: $dot);
+  final bool _isXml;
+
+  EllipseSyntax({bool xml = false})
+      : _isXml = xml,
+        super(r"\.\.\.", startCharacter: $dot);
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text("&hellip;"));
+    parser.addNode(Text(_isXml ? "&#8230;" : "&hellip;"));
     return true;
   }
 }
 
 class ApostropheSyntax extends InlineSyntax {
-  ApostropheSyntax() : super(r"'", startCharacter: $apostrophe);
+  final bool _isXml;
+
+  ApostropheSyntax({bool xml = false})
+      : _isXml = xml,
+        super(r"'", startCharacter: $apostrophe);
 
   bool onMatch(InlineParser parser, Match match) {
     var before = -1;
@@ -19,7 +27,13 @@ class ApostropheSyntax extends InlineSyntax {
       before = parser.charAt(parser.pos - 1);
     }
 
-    var quote = _isRight(before) ? "rsquo" : "lsquo";
+    var isRight = _isRight(before);
+    String quote;
+    if (_isXml) {
+      quote = isRight ? "#8217" : "#8216";
+    } else {
+      quote = isRight ? "rsquo" : "lsquo";
+    }
     parser.addNode(Text("&$quote;"));
     return true;
   }
@@ -34,7 +48,11 @@ class ApostropheSyntax extends InlineSyntax {
 }
 
 class SmartQuoteSyntax extends InlineSyntax {
-  SmartQuoteSyntax() : super(r'"', startCharacter: $double_quote);
+  final bool _isXml;
+
+  SmartQuoteSyntax({bool xml = false})
+      : _isXml = xml,
+        super(r'"', startCharacter: $double_quote);
 
   bool onMatch(InlineParser parser, Match match) {
     var before = -1;
@@ -46,7 +64,14 @@ class SmartQuoteSyntax extends InlineSyntax {
       after = parser.charAt(parser.pos + 1);
     }
 
-    var quote = _isRight(before, after) ? "rdquo" : "ldquo";
+    var isRight = _isRight(before, after);
+    String quote;
+    if (_isXml) {
+      quote = isRight ? "#8221" : "#8220";
+    } else {
+      quote = isRight ? "rdquo" : "ldquo";
+    }
+
     parser.addNode(Text("&$quote;"));
     return true;
   }
@@ -70,10 +95,25 @@ class SmartQuoteSyntax extends InlineSyntax {
 }
 
 class EmDashSyntax extends InlineSyntax {
-  EmDashSyntax() : super(r"\s--\s");
+  final bool _isXml;
+
+  EmDashSyntax({bool xml = false})
+      : _isXml = xml,
+        super(r"\s--\s");
 
   bool onMatch(InlineParser parser, Match match) {
-    parser.addNode(Text('<span class="em">&mdash;</span>'));
+    parser.addNode(Text(_isXml ? '—' : '<span class="em">&mdash;</span>'));
+    return true;
+  }
+}
+
+/// Remove newlines in paragraphs and turn them into spaces since InDesign
+/// treats them as line breaks.
+class NewlineSyntax extends InlineSyntax {
+  NewlineSyntax() : super("\n", startCharacter: $lf);
+
+  bool onMatch(InlineParser parser, Match match) {
+    parser.addNode(Text(" "));
     return true;
   }
 }

@@ -1,19 +1,36 @@
 import 'package:charcode/ascii.dart';
 import 'package:string_scanner/string_scanner.dart';
 
+import '../term.dart' as term;
 import 'grammar.dart' as grammar;
 import 'language.dart';
+
+const _maxLineLength = 67;
 
 /// Takes a string of source code and returns a block of HTML with spans for
 /// syntax highlighting.
 ///
 /// Wraps the result in a <pre> tag with the given [preClass].
 String formatCode(String language, List<String> lines,
-    {String preClass, int indent = 0}) {
-  return Highlighter(language)._highlight(lines, preClass, indent);
+    {String preClass, int indent = 0, bool xml = false}) {
+  return Highlighter(language, xml: xml)._highlight(lines, preClass, indent);
+}
+
+void checkLineLength(String line) {
+  final asideCommentPattern = RegExp(r' +// \[([-a-z0-9]+)\]');
+  final asideWithCommentPattern = RegExp(r' +// (.+) \[([-a-z0-9]+)\]');
+
+  line = line.replaceAll(asideCommentPattern, '');
+  line = line.replaceAll(asideWithCommentPattern, '');
+
+  if (line.length <= _maxLineLength) return;
+
+  print(line.substring(0, _maxLineLength) +
+      term.red(line.substring(_maxLineLength)));
 }
 
 class Highlighter {
+  final bool _isXml;
   final StringBuffer _buffer = StringBuffer();
   StringScanner scanner;
   final Language language;
@@ -21,18 +38,23 @@ class Highlighter {
   /// Whether we are in a multi-line macro started on a previous line.
   bool _inMacro = false;
 
-  Highlighter(String language)
+  Highlighter(String language, {bool xml = false})
       : language = grammar.languages[language] ??
-            (throw "Unknown language '$language'.");
+            (throw "Unknown language '$language'."),
+        _isXml = xml;
 
   String _highlight(List<String> lines, String preClass, int indent) {
-    _buffer.write("<pre");
-    if (preClass != null) _buffer.write(' class="$preClass"');
-    _buffer.writeln(">");
+    if (!_isXml) {
+      _buffer.write("<pre");
+      if (preClass != null) _buffer.write(' class="$preClass"');
+      _buffer.writeln(">");
+    }
+
     for (var line in lines) {
       _scanLine(line, indent);
     }
-    _buffer.write("</pre>");
+
+    if (!_isXml) _buffer.write("</pre>");
     return _buffer.toString();
   }
 
@@ -44,9 +66,9 @@ class Highlighter {
 
     // If the entire code block is indented, remove that indentation from the
     // code lines.
-    if (line.length > indent) {
-      line = line.substring(indent);
-    }
+    if (line.length > indent) line = line.substring(indent);
+
+    checkLineLength(line);
 
     // Hackish. If the line ends with `\`, then it is a multi-line macro
     // definition and we want to highlight subsequent lines like preprocessor
@@ -77,9 +99,19 @@ class Highlighter {
 
   void writeToken(String type, [String text]) {
     text ??= scanner.lastMatch[0];
-    _buffer.write('<span class="$type">');
-    writeText(text);
-    _buffer.write('</span>');
+
+    if (_isXml) {
+      // Only highlight keywords and comments in XML.
+      var tag = {"k": "keyword", "c": "comment"}[type];
+
+      if (tag != null) _buffer.write("<$tag>");
+      writeText(text);
+      if (tag != null) _buffer.write("</$tag>");
+    } else {
+      _buffer.write('<span class="$type">');
+      writeText(text);
+      _buffer.write('</span>');
+    }
   }
 
   void writeText(String string) {

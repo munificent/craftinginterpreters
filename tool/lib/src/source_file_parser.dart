@@ -30,7 +30,6 @@ const _keywords = {"new", "return", "throw"};
 
 class SourceFileParser {
   final Book _book;
-  final String _path;
   final SourceFile _file;
   final List<String> _lines;
   final List<_ParseState> _states = [];
@@ -40,9 +39,9 @@ class SourceFileParser {
   Location _location;
   Location _locationBeforeBlock;
 
-  SourceFileParser(this._book, this._path, String relative)
+  SourceFileParser(this._book, String path, String relative)
       : _file = SourceFile(relative),
-        _lines = File(_path).readAsLinesSync() {
+        _lines = File(path).readAsLinesSync() {
     _location = Location(null, "file", _file.nicePath);
   }
 
@@ -121,8 +120,7 @@ class SourceFileParser {
 
         _location = Location(_location,
             _file.language == "java" ? "method" : "function", match[2],
-            signature: match[3],
-            isFunctionDeclaration: isFunctionDeclaration);
+            signature: match[3], isFunctionDeclaration: isFunctionDeclaration);
         return;
       }
     }
