@@ -291,7 +291,7 @@ the sooner the implementation draws my attention to it, the better. So for Lox,
 we'll take Python's approach. Before invoking the callable, we check to see if
 the argument list's length matches the callable's arity:
 
-^code check-arity (2 before, 1 after)
+^code check-arity (1 before, 1 after)
 
 That requires a new method on the LoxCallable interface to ask it its arity:
 
