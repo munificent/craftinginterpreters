@@ -204,7 +204,7 @@ data between Lox's dynamic world and C's static one.
 
 <aside name="universe">
 
-![The earthly C firmament with the Lox heavens above.](image/types-of-values/universe.png)
+<img src="image/types-of-values/universe.png" alt="The earthly C firmament with the Lox heavens above.">
 
 The `_VAL` macros lift a C value into the heavens. The `AS_` macros bring it
 back down.

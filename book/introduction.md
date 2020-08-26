@@ -200,7 +200,7 @@ Yacc wasn't the first of its ilk, which is why it's named "Yacc" -- *Yet
 Another* Compiler-Compiler. A later similar tool is [Bison][], named as a pun on
 the pronunciation of Yacc like "yak".
 
-![A yak.](image/introduction/yak.png)
+<img src="image/introduction/yak.png" alt="A yak.">
 
 [bison]: https://en.wikipedia.org/wiki/GNU_bison
 
@@ -374,7 +374,7 @@ compile future versions of itself and you can discard the original one compiled
 from the other compiler. This is called **"bootstrapping"** from the image of
 pulling yourself up by your own bootstraps.
 
-![Fact: This is the primary mode of transportation of the American cowboy.](image/introduction/bootstrap.png)
+<img src="image/introduction/bootstrap.png" alt="Fact: This is the primary mode of transportation of the American cowboy.">
 
 </aside>
 
