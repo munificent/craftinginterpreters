@@ -404,7 +404,7 @@ Confusingly, we also use direction metaphorically when talking about "high" and
 reach the lowest-precedence expressions first because they may in turn contain
 subexpressions of higher precedence.
 
-![Top-down grammar rules in order of increasing precedence.](image/parsing-expressions/direction.png)
+<img src="image/parsing-expressions/direction.png" alt="Top-down grammar rules in order of increasing precedence.">
 
 CS people really need to get together and straighten out their metaphors. Don't
 even get me started on which direction the stack is supposed to grow.
@@ -697,7 +697,7 @@ issue. Simple, fast error recovery is fine.
 
 You know you want to push it.
 
-![A big shiny "PANIC" button.](image/parsing-expressions/panic.png)
+<img src="image/parsing-expressions/panic.png" alt="A big shiny 'PANIC' button.">
 
 </aside>
 

@@ -83,7 +83,7 @@ stamina.
 
 <aside name="circle">
 
-![The relationships between classes, methods, instances, constructors, and fields.](image/classes/circle.png)
+<img src="image/classes/circle.png" alt="The relationships between classes, methods, instances, constructors, and fields.">
 
 It's like the circle of life, *sans* Sir Elton John.
 
