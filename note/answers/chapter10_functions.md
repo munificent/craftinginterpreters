@@ -132,6 +132,41 @@
     ```
 
     Now only a function with a name is parsed as such.
+    
+    Then our interpreter needs to handle both cases:
+
+
+    ```java
+  
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        String fnName = stmt.name.lexeme;
+        environment.define(fnName, new LoxFunction(fnName, stmt.function, environment));
+        return null;
+    }
+
+    @Override
+    public Object visitFunctionExpr(Expr.Function expr) {
+        return new LoxFunction(null, expr, environment);
+    }
+    ```
+
+    We could have re-used visitFunctionExpr but that would lose the function name if someone were to print it, this ensures we preserve it.
+    ```lox
+    fun whichFn(fn) {
+      print fn;
+    }
+
+    whichFn(fun (b) {
+     print b;
+    });
+
+    fun named(a) { print a; }
+    whichFn(named);
+    //
+    // <fn>
+    // <fn named>
+    ```
 
 3.  No, it isn't. Lox uses the same scope for the parameters and local variables
     immediately inside the body. That's why Stmt.Function stores the body as a
