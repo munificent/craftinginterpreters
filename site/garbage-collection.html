@@ -1597,10 +1597,10 @@ nasty bugs that live under it, and garbage collector bugs really are some of the
 grossest invertebrates out there.</p>
 <p>The collector&rsquo;s job is to free dead objects and preserve live ones. Mistakes are
 easy to make in both directions. If the VM fails to free objects that aren&rsquo;t
-needed, it can slowly leak memory over time. If it frees an object that is in
-use, the user&rsquo;s program can access invalid memory. These failures often don&rsquo;t
-immediately cause a crash, which makes it harder for us to trace backwards in
-time to find the bug.</p>
+needed, it slowly leaks memory. If it frees an object that is in use, the user&rsquo;s
+program can access invalid memory. These failures often don&rsquo;t immediately cause
+a crash, which makes it harder for us to trace backwards in time to find the
+bug.</p>
 <p>This is made harder by the fact that we don&rsquo;t know when the collector will run.
 Any call that eventually allocates some memory is a place in the VM where a
 collection could happen. It&rsquo;s like musical chairs. At any point, the GC might
@@ -1615,9 +1615,9 @@ CallFrame stacks, but the C stack is <span name="c">hidden</span> to it.</p>
 <p>Our GC can&rsquo;t find addresses in the C stack, but many can. Conservative garbage
 collectors look all through memory, including the native stack. The most
 well-known of this variety is the <a href="https://en.wikipedia.org/wiki/Boehm_garbage_collector">Boehm–Demers–Weiser garbage
-collector</a>, usually just called the &ldquo;Boehm collector&rdquo;. (The best way to
-fame in CS is a last name that&rsquo;s alphabetically early so that it shows up first
-in sorted lists of names.)</p>
+collector</a>, usually just called the &ldquo;Boehm collector&rdquo;. (The shortest path
+to fame in CS is a last name that&rsquo;s alphabetically early so that it shows up
+first in sorted lists of names.)</p>
 <p>Many precise GCs walk the C stack too. Even those have to be careful about
 pointers to live objects that exist only in <em>CPU registers</em>.</p>
 </aside>
@@ -1645,7 +1645,7 @@ on the C stack. That function appends the object to the constant table. If the
 table doesn&rsquo;t have enough capacity and needs to grow, it calls <code>reallocate()</code>.
 That in turn triggers a GC, which fails to mark the new constant object and
 thus sweeps it right before we have a chance to add it to the table. Crash.</p>
-<p>The fix, as you&rsquo;ve seen in other places, is to push it onto the stack
+<p>The fix, as you&rsquo;ve seen in other places, is to push the constant onto the stack
 temporarily:</p>
 <div class="codehilite"><pre class="insert-before">
 int addConstant(Chunk* chunk, Value value) {
