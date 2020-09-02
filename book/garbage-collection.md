@@ -4,7 +4,7 @@
 >
 > <cite>The Whip, <em>Trash</em></cite>
 
-We say Lox is a "high-level" language because it frees programmers worrying
+We say Lox is a "high-level" language because it frees programmers from worrying
 about details irrelevant to the problem they're solving. The user becomes an
 executive giving the machine abstract goals and letting the lowly computer
 figure out how to get there.
