@@ -484,7 +484,7 @@ relies on dynamic dispatch for selectively executing code.
 
 </aside>
 
-An `if ()` statement executes one of two statements based on some condition:
+An `if` statement executes one of two statements based on some condition:
 
 ```lox
 if (condition) {
@@ -494,8 +494,8 @@ if (condition) {
 }
 ```
 
-A `while` <span name="do">loop</span> executes the body repeatedly as long as the condition expression
-evaluates to true:
+A `while` <span name="do">loop</span> executes the body repeatedly as long as
+the condition expression evaluates to true:
 
 ```lox
 var a = 1;
