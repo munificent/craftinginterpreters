@@ -154,7 +154,7 @@
     }
     ```
 
-    Run that to get the new now. Now we need to push the syntax through the
+    Run that to get the new AST class. Now we need to push the syntax through the
     front end, starting with the new keyword. In TokenType, add `BREAK`:
 
     ```java
