@@ -149,7 +149,7 @@
     I'm not a fan of Dart's choice. I think shadowing should be allowed in
     general because it helps ensure changes to code are encapsulated and don't
     affect parts of the program unrelated to the change. (See this design note
-    for more: http://localhost:8000/statements-and-state.html#design-note).
+    for more: http://craftinginterpreters.com/statements-and-state.html#design-note).
 
     But shadowing still usually leads to more confusing code, so it should be
     avoided when possible. The only thing putting parameters in an outer scope
