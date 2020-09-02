@@ -103,13 +103,16 @@ class XmlRenderer implements NodeVisitor {
 
   final StringBuffer _buffer = StringBuffer();
 
-  String _block;
+  _ChapterSection _section = _ChapterSection.main;
 
-  /// Since asides are pulled out of the main text flow, we want a <p>
-  /// immediately after </aside> to become <p-next> if there was a <p> before
-  /// the aside. This tracks that.
-  bool _wasParagraphBeforeAside = false;
+  final List<String> _tags = [];
+
   bool _isPending = false;
+
+  String _paragraphTag;
+  String _lastParagraphTag;
+  String _lastSidebarTag;
+  bool _isNextParagraph = false;
 
   String render(List<Node> nodes) {
     for (final node in nodes) {
@@ -126,71 +129,85 @@ class XmlRenderer implements NodeVisitor {
     // Since aside tags appear in the Markdown as literal HTML, they are parsed
     // as text, not Markdown elements.
     if (text.startsWith("<aside")) {
-      _wasParagraphBeforeAside = _block == "p" || _block == "p-next";
-      _endBlock();
-      _buffer.write(text);
-      _block = "aside";
-      _isPending = false;
+      _pushTag("aside");
     } else if (text.startsWith("</aside>")) {
-      _endBlock();
-      if (_wasParagraphBeforeAside) {
-        _block = "p-next";
-        _isPending = true;
-      }
-    } else if (text.startsWith("<location")) {
-      _endBlock();
-      _buffer.write(text);
+      _popTag();
+    // } else if (text.startsWith("<location")) {
+      // _endBlock();
+      // _buffer.write(text);
     } else if (text.startsWith("<cite>")) {
-      // End the <quote> block.
-      _endBlock();
+      // End the <quote> block and push placeholder <cite> tag. This way when
+      // the blockquote is popped, there is a tag to pop.
+      _switchTag("cite");
       _buffer.writeln(text);
     } else if (text.startsWith("<div") || text.startsWith("</div>")) {
-      // Don't wrap the challenge and design note divs in paragraphs.
-      _buffer.writeln(text);
+      // Discard the challenge and design note divs.
     } else if (text.startsWith("<img")) {
+      // Reset the paragraph are a main column image so that we don't indent
+      // after an image.
+      if (!_isInContext("aside")) _resetParagraph();
+
       var match = _imagePathPattern.firstMatch(text);
-      if (match != null) {
-        _buffer.write("<image>${match[1]}</image>");
-      } else {
-        print("Could not parse img tag:\n$text");
-        _buffer.write("<image>$text</image>");
-      }
+      _buffer.writeln("<image>${match[1]}</image>");
     } else {
-      _flushPending();
-      _buffer.write(text);
+      if (_flushParagraph()) {
+        // Just started a block level tag, so discard any leading whitespace.
+        _buffer.write(text.trimLeft());
+      } else {
+        _buffer.write(text);
+      }
     }
   }
 
   bool visitElementBefore(Element element) {
-    // TODO: Handle <pre> and <blockquote> tags inside asides.
+    // TODO: Handle <blockquote> tags inside asides.
 
     var tag = element.tag;
     switch (tag) {
       case "p":
-        if (_block == null) _startBlock("p");
+        _startParagraph();
         return true;
 
       case "blockquote":
-        _startBlock("quote");
+        _pushTag("quote");
         return true;
 
       case "pre":
-        var wasAside = _block == "aside" || _block == "aside-next";
-        _endBlock();
-        if (wasAside) {
-          tag = "aside-$tag";
-          _block = "aside-pre";
-        }
+        tag = _preTag(tag);
+        _resetParagraph();
         break;
 
       case "h2":
-      case "h3":
-      case "li":
-      case "ol":
-      case "ul":
-        // Block-level tags.
-        _endBlock();
+        _resetParagraph();
+        var text = element.textContent;
+        if (text == "Challenges") {
+          _buffer.writeln('<h2-challenge>Challenges</h2-challenge>');
+          _section = _ChapterSection.challenges;
+          return false;
+        } else if (text.contains("Design Note")) {
+          _buffer.writeln('<h2-design>$text</h2-design>');
+          _section = _ChapterSection.designNote;
+          return false;
+        }
         break;
+
+      case "h3":
+        _resetParagraph();
+        break;
+
+      case "li":
+        // Start a new paragraph so that we don't use `-next` for the
+        // first paragraph in the next list item.
+        _resetParagraph();
+        return true;
+
+      case "ol":
+        _pushTag("ordered");
+        return true;
+
+      case "ul":
+        _pushTag("bullet");
+        return true;
 
       case "a":
       case "code":
@@ -198,9 +215,7 @@ class XmlRenderer implements NodeVisitor {
       case "small":
       case "strong":
         // Inline tags.
-        if (_block == "aside" || _block == "aside-next") {
-          tag = "aside-$tag";
-        }
+        tag = _inlineTag(tag);
         break;
 
       default:
@@ -211,6 +226,9 @@ class XmlRenderer implements NodeVisitor {
     _buffer.write('<$tag');
 
     for (var entry in element.attributes.entries) {
+      // Skip links because InDesign tries to follow them.
+      // TODO: How should I handle <a> tags?
+      if (entry.key == "href") continue;
       _buffer.write(' ${entry.key}="${entry.value}"');
     }
 
@@ -220,39 +238,35 @@ class XmlRenderer implements NodeVisitor {
       _buffer.write('>');
     }
     return !element.isEmpty;
-
   }
 
   void visitElementAfter(Element element) {
     var tag = element.tag;
+
     switch (tag) {
       case "blockquote":
-        _endBlock();
+      case "ol":
+      case "ul":
+        _popTag();
         return;
+
       case "p":
-        if (_block != null) {
-          var nextBlock = _block;
-          if (!nextBlock.endsWith("-next")) nextBlock += "-next";
-          _endBlock();
-          _startBlock(nextBlock);
-        }
+        _endParagraph();
         return;
+
+      case "li":
+        // Ignore.
+        break;
 
       case "h2":
       case "h3":
-      case "li":
-      case "ol":
-      case "ul":
         // Block-level tags that don't contain newlines.
         _buffer.writeln('</$tag>');
-      break;
+        break;
 
       case "pre":
-        if (_block == "aside-pre") {
-          _endBlock();
-        } else {
-          _buffer.write('</$tag>');
-        }
+        tag = _preTag(tag);
+        _buffer.write('</$tag>');
         break;
 
       case "a":
@@ -261,9 +275,7 @@ class XmlRenderer implements NodeVisitor {
       case "small":
       case "strong":
         // Inline tags.
-        if (_block == "aside" || _block == "aside-next") {
-          tag = "aside-$tag";
-        }
+        tag = _inlineTag(tag);
         _buffer.write('</$tag>');
         break;
 
@@ -272,27 +284,124 @@ class XmlRenderer implements NodeVisitor {
     }
   }
 
-  void _startBlock(String tag) {
-    // Should not already be in a block.
-    assert(_block == null);
+  /// The XML [tag] to use for inline tags given the current context.
+  String _inlineTag(String tag) {
+    if (_isInContext("quote")) {
+      return "quote-$tag";
+    } else if (_isInContext("aside")) {
+      return "aside-$tag";
+    } else {
+      return tag;
+    }
+  }
 
-    _block = tag;
+  /// The XML [tag] to use for <pre> tags given the current context.
+  String _preTag(String tag) {
+    // TODO: Different tag for pre in challenge?
+    if (_isInContext("aside")) {
+      return "aside-$tag";
+    } else if (_isInContext("ordered") || _isInContext("bullet")) {
+      return "list-$tag";
+    } else {
+      return tag;
+    }
+  }
+
+  void _pushTag(String tag) {
+    _tags.add(tag);
+  }
+
+  void _switchTag(String tag) {
+    _popTag();
+    _pushTag(tag);
+  }
+
+  void _popTag() {
+    _tags.removeLast();
+  }
+
+  void _startParagraph() {
+    if (_isInContext("quote")) {
+      _paragraphTag = "quote";
+    } else if (_isInContext("aside")) {
+      _paragraphTag = "aside";
+    } else if (_isInContext("ordered")) {
+      if (_section == _ChapterSection.challenges) {
+        _paragraphTag = "challenge";
+      } else {
+        _paragraphTag = "ordered";
+      }
+    } else if (_isInContext("bullet")) {
+      _paragraphTag = "bullet";
+    } else {
+      _paragraphTag = "p";
+    }
+
+    if (_isSidebarTag(_paragraphTag)) {
+      _isNextParagraph = _paragraphTag == _lastSidebarTag;
+    } else {
+      _isNextParagraph = _paragraphTag == _lastParagraphTag;
+
+      // We are back into the main column, so the next sidebar will be new.
+      _lastSidebarTag = null;
+    }
+
     _isPending = true;
   }
 
-  void _endBlock() {
-    // May not be in a block if we exited it early (for example because of a
-    // <cite> in a <blockquote>.
-    if (_block == null) return;
-
-    if (!_isPending) _buffer.writeln("</$_block>");
-    _block = null;
-  }
-
-  void _flushPending() {
-    if (_block == null || !_isPending) return;
-
-    _buffer.write('<$_block>');
+  void _endParagraph() {
+    if (!_isPending) {
+      var tag = _paragraphTag;
+      if (_isNextParagraph) tag += "-next";
+      _buffer.writeln('</$tag>');
+    }
     _isPending = false;
+
+    if (_isSidebarTag(_paragraphTag)) {
+      _lastSidebarTag = _paragraphTag;
+    } else {
+      _lastParagraphTag = _paragraphTag;
+    }
+
+    _paragraphTag = null;
   }
+
+  bool _flushParagraph() {
+    if (!_isPending) return false;
+
+    var tag = _paragraphTag;
+    if (_isNextParagraph) tag += "-next";
+    _buffer.write('<$tag>');
+
+    _isPending = false;
+    return true;
+  }
+
+  void _resetParagraph() {
+    if (_paragraphTag != null) _endParagraph();
+    _lastParagraphTag = null;
+    _lastSidebarTag = null;
+  }
+
+  /// Whether [tag] is a paragraph tag that appears in the sidebar (like an
+  /// aside) or in the main column.
+  bool _isSidebarTag(String tag) {
+    return const {"aside"}.contains(tag);
+  }
+
+  bool _isInContext(String tag1, [String tag2]) {
+    if (_tags.isEmpty) return false;
+    if (_tags.last != tag1) return false;
+    if (tag2 != null) {
+      if (_tags.length < 2) return false;
+      if (_tags[_tags.length - 2] != tag2) return false;
+    }
+    return true;
+  }
+}
+
+enum _ChapterSection {
+  main,
+  challenges,
+  designNote,
 }
