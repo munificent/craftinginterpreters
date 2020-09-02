@@ -1329,8 +1329,8 @@ stack now.
 ### Closing upvalues at runtime
 
 The compiler helpfully emits an `OP_CLOSE_UPVALUE` instruction to tell the VM
-exactly when it should hoist a local variable onto the heap. Now is the
-interpreter's responsibility:
+exactly when a local variable should be hoisted onto the heap. Executing that is
+the interpreter's responsibility:
 
 ^code interpret-close-upvalue (2 before, 1 after)
 
