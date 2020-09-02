@@ -70,7 +70,7 @@
             new Expr.Grouping(
                 new Expr.Literal("str")));
 
-        System.out.println(new AstPrinter().print(expression));
+        System.out.println(new RpnPrinter().print(expression));
       }
     }
     ```

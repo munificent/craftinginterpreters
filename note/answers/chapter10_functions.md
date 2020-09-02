@@ -132,6 +132,41 @@
     ```
 
     Now only a function with a name is parsed as such.
+    
+    Then our interpreter needs to handle both cases:
+
+
+    ```java
+  
+    @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        String fnName = stmt.name.lexeme;
+        environment.define(fnName, new LoxFunction(fnName, stmt.function, environment));
+        return null;
+    }
+
+    @Override
+    public Object visitFunctionExpr(Expr.Function expr) {
+        return new LoxFunction(null, expr, environment);
+    }
+    ```
+
+    We could have re-used visitFunctionExpr but that would lose the function name if someone were to print it, this ensures we preserve it.
+    ```lox
+    fun whichFn(fn) {
+      print fn;
+    }
+
+    whichFn(fun (b) {
+     print b;
+    });
+
+    fun named(a) { print a; }
+    whichFn(named);
+    //
+    // <fn>
+    // <fn named>
+    ```
 
 3.  No, it isn't. Lox uses the same scope for the parameters and local variables
     immediately inside the body. That's why Stmt.Function stores the body as a
@@ -149,7 +184,7 @@
     I'm not a fan of Dart's choice. I think shadowing should be allowed in
     general because it helps ensure changes to code are encapsulated and don't
     affect parts of the program unrelated to the change. (See this design note
-    for more: http://localhost:8000/statements-and-state.html#design-note).
+    for more: http://craftinginterpreters.com/statements-and-state.html#design-note).
 
     But shadowing still usually leads to more confusing code, so it should be
     avoided when possible. The only thing putting parameters in an outer scope
