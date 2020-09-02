@@ -1059,10 +1059,10 @@ grossest invertebrates out there.
 
 The collector's job is to free dead objects and preserve live ones. Mistakes are
 easy to make in both directions. If the VM fails to free objects that aren't
-needed, it can slowly leak memory over time. If it frees an object that is in
-use, the user's program can access invalid memory. These failures often don't
-immediately cause a crash, which makes it harder for us to trace backwards in
-time to find the bug.
+needed, it slowly leaks memory. If it frees an object that is in use, the user's
+program can access invalid memory. These failures often don't immediately cause
+a crash, which makes it harder for us to trace backwards in time to find the
+bug.
 
 This is made harder by the fact that we don't know when the collector will run.
 Any call that eventually allocates some memory is a place in the VM where a
@@ -1081,9 +1081,9 @@ CallFrame stacks, but the C stack is <span name="c">hidden</span> to it.
 Our GC can't find addresses in the C stack, but many can. Conservative garbage
 collectors look all through memory, including the native stack. The most
 well-known of this variety is the [Boehm–Demers–Weiser garbage
-collector][boehm], usually just called the "Boehm collector". (The best way to
-fame in CS is a last name that's alphabetically early so that it shows up first
-in sorted lists of names.)
+collector][boehm], usually just called the "Boehm collector". (The shortest path
+to fame in CS is a last name that's alphabetically early so that it shows up
+first in sorted lists of names.)
 
 [boehm]: https://en.wikipedia.org/wiki/Boehm_garbage_collector
 
@@ -1121,7 +1121,7 @@ table doesn't have enough capacity and needs to grow, it calls `reallocate()`.
 That in turn triggers a GC, which fails to mark the new constant object and
 thus sweeps it right before we have a chance to add it to the table. Crash.
 
-The fix, as you've seen in other places, is to push it onto the stack
+The fix, as you've seen in other places, is to push the constant onto the stack
 temporarily:
 
 ^code add-constant-push (1 before, 1 after)
