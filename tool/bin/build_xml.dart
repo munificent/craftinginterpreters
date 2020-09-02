@@ -18,7 +18,8 @@ Future<void> main(List<String> arguments) async {
 
   for (var page in book.pages) {
     if (!page.isChapter) continue;
-    if (page.fileName != "functions") continue;
+
+    if (arguments.isNotEmpty && page.fileName != arguments.first) continue;
     _buildPage(book, mustache, page);
   }
 }
