@@ -62,25 +62,25 @@ adhered to this tangible substrate.
 
 ## Why Learn This Stuff?
 
-Every introduction to every language book seems to have this section. I don't
+Every introduction to every compiler book seems to have this section. I don't
 know what it is about programming languages that causes such existential doubt.
 I don't think ornithology books worry about justifying their existence. They
-assume the reader loves birds and get moving.
+assume the reader loves birds and start teaching.
 
 But programming languages are a little different. I suppose it is true that the
 odds of any of us creating a broadly successful general-purpose programming
 language are slim. The designers of the world's widely-used languages could fit
-in a Volkswagen bus, even without putting the pop top camper up. If joining that
+in a Volkswagen bus, even without putting the pop-top camper up. If joining that
 elite group was the *only* reason to learn languages, it would be hard to
 justify. Fortunately, it isn't.
 
 ### Little languages are everywhere
 
-For every successful general-purpose language out there, there are a thousand
-successful niche ones. We used to call them "little languages", but inflation in
-the jargon economy led today to the name "domain-specific languages". These are
-pidgins tailor-built to a specific task. Things like application scripting
-languages, template engines, markup formats, and configuration files.
+For every successful general-purpose language, there are a thousand successful
+niche ones. We used to call them "little languages", but inflation in the jargon
+economy led today to the name "domain-specific languages". These are pidgins
+tailor-built to a specific task. Think application scripting languages, template
+engines, markup formats, and configuration files.
 
 <span name="little"></span><img src="image/introduction/little-languages.png" alt="A random selection of little languages." />
 
@@ -97,8 +97,8 @@ other trappings, doing it yourself becomes a tall order.
 
 But there's still a good chance you'll find yourself needing to whip up a parser
 or something when there isn't an existing library that fits your needs. Even
-when there *is* one to reuse, you'll inevitably end up needing to debug and
-maintain it and poke around in its guts.
+when are reusing some existing implementation, you'll inevitably end up needing
+to debug and maintain it and poke around in its guts.
 
 ### Languages are great exercise
 
@@ -113,9 +113,9 @@ graphs, and hash tables. You probably use hash tables at least in your
 day-to-day programming, but how well do you *really* understand them? Well,
 after we've crafted our own from scratch, I guarantee you will.
 
-While I intend to show you that a programming language isn't as daunting as you
-might believe, it is still a challenge. Rise to it, and you'll come away a
-stronger programmer, and smarter about how you use data structures and
+While I intend to show you that an interpreter isn't as daunting as you might
+believe, implementing one well is still a challenge. Rise to it, and you'll come
+away a stronger programmer, and smarter about how you use data structures and
 algorithms in your day job.
 
 ### One more reason
@@ -125,9 +125,10 @@ Ever since I learned to program as a kid, I felt there was something magical
 about languages. When I first tapped out BASIC programs one key at a time I
 couldn't conceive how BASIC *itself* was made.
 
-Later, the mixture of awe and terror my college friends used to refer to their
-compilers class was enough to convince me language hackers were a different
-breed of human. Some sort of wizards granted privileged access to arcane arts.
+Later, the mixture of awe and terror on my college friends' faces when talking
+about their compilers class was enough to convince me language hackers were a
+different breed of human -- some sort of wizards granted privileged access to
+arcane arts.
 
 It's a charming <span name="image">image</span>, but it has a darker side. *I*
 didn't feel like a wizard, so I was left thinking I lacked some in-born quality
@@ -161,19 +162,20 @@ And, who knows, maybe you *will* make the next great language. Someone has to.
 ## How the Book is Organized
 
 This book is broken into three parts. You're reading the first one now. It's a
-couple of chapters to get you oriented, teach you some of the lingo language
-hackers use, and introduce you to Lox, the language we'll be implementing.
+couple of chapters to get you oriented, teach you some of the lingo that
+language hackers use, and introduce you to Lox, the language we'll be
+implementing.
 
 Each of the other two parts builds one complete Lox interpreter. Within those
-parts, each chapter is structured the same. Every one takes a single language
-feature, teaches you the concepts behind it, and walks through an implementation
-of it.
+parts, each chapter is structured the same way. The chapter takes a single
+language feature, teaches you the concepts behind it, and walks through an
+implementation.
 
 It took a good bit of trial and error on my part, but I managed to carve up the
-two interpreters into chapter-sized chunks so that each builds on the previous
-ones. From the very first chapter, you'll have a program you can run and play
-with. With each passing chapter, it grows increasingly full-featured until you
-eventually have a complete language.
+two interpreters into chapter-sized chunks that build on the previous chapters
+but require nothing from later ones. From the very first chapter, you'll have a
+working program you can run and play with. With each passing chapter, it grows
+increasingly full-featured until you eventually have a complete language.
 
 Aside from copious, scintillating English prose, chapters have a few other
 delightful facets:
@@ -185,10 +187,10 @@ single line of code needed is included, and each snippet tells you where to
 insert it in your ever-growing implementation.
 
 Many other language books and language implementations use tools like [Lex][]
-and <span name="yacc">[Yacc][]</span>, "compiler-compilers" to automatically
-generate some of the source files for an implementation from some higher level
-description. There are pros and cons to tools like those, and strong
-opinions -- some might say religious convictions -- on both sides.
+and <span name="yacc">[Yacc][]</span>, so-called **compiler-compilers** that
+automatically generate some of the source files for an implementation from some
+higher level description. There are pros and cons to tools like those, and
+strong opinions -- some might say religious convictions -- on both sides.
 
 <aside name="yacc">
 
@@ -229,40 +231,42 @@ is surrounded by several paragraphs of honest-to-God prose explaining it. When
 you write a book to accompany your program, you are welcome to omit comments
 too. Otherwise, you should probably use `//` a little more than I do.
 
-What this book *doesn't* contain is the machinery needed to compile and run the
-code. I assume you can slap together a makefile or a project in your IDE of
-choice in order to get the code to run.
+While the book contains every line of code and teaches what each means, it does
+not describe the machinery needed to compile and run the interpreter. I assume
+you can slap together a makefile or a project in your IDE of choice in order to
+get the code to run. Those kinds of instructions get out of date quickly, and
+I want this book to age like XO brandy, not backyard hooch.
 
 ### Snippets
 
 Since the book contains literally every line of code needed for the
 implementations, the snippets are quite precise. Also, because I try to keep the
-program in a runnable state even when it's half-implemented, sometimes we add
-temporary code that gets replaced in later snippets.
+program in a runnable state even when major features are missing, sometimes we
+add temporary code that gets replaced in later snippets.
 
 A snippet with all the bells and whistles looks like this:
 
 <div class="codehilite"><pre class="insert-before">
-      default:                                     
+      default:
 </pre><div class="source-file"><em>lox/Scanner.java</em><br>
 in <em>scanToken</em>()<br>
 replace 1 line</div>
 <pre class="insert">
-        <span class="k">if</span> <span class="o">(</span><span class="i">isDigit</span><span class="o">(</span><span class="i">c</span><span class="o">))</span> <span class="o">{</span>                          
-          <span class="i">number</span><span class="o">();</span>                                
-        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>                                   
-          <span class="t">Lox</span><span class="o">.</span><span class="i">error</span><span class="o">(</span><span class="i">line</span><span class="o">,</span> <span class="s">&quot;Unexpected character.&quot;</span><span class="o">);</span>
-        <span class="o">}</span>                                          
+        <span class="k">if</span> (<span class="i">isDigit</span>(<span class="i">c</span>)) {
+          <span class="i">number</span>();
+        } <span class="k">else</span> {
+          <span class="t">Lox</span>.<span class="i">error</span>(<span class="i">line</span>, <span class="s">&quot;Unexpected character.&quot;</span>);
+        }
 </pre><pre class="insert-after">
-        break;                                     
+        break;
 </pre></div>
 <div class="source-file-narrow"><em>lox/Scanner.java</em>, in <em>scanToken</em>(), replace 1 line</div>
 
-In the center, you have the new code being added in this snippet. It may have a
-few faded out lines above or below to show you where to insert it in the
-existing code. There is also a little blurb telling you which file and where in
-the file it goes. If it says "replace _ lines", there was some previous code
-between the faded lines that you need to remove and replace with this snippet.
+In the center, you have the new code to add. It may have a few faded out lines
+above or below to show where it goes in the existing surrounding code. There is
+also a little blurb telling you in which file and where to place the snippet. If
+that blurb says "replace _ lines", there is some existing code between the faded
+lines that you need to remove and replace with the new snippet.
 
 ### Asides
 
@@ -282,20 +286,21 @@ drawings.
 ### Challenges
 
 Each chapter ends with a few exercises. Unlike textbook problem sets which tend
-to rehash material you already covered, these are to help you learn *more* than
+to review material you already covered, these are to help you learn *more* than
 what's in the chapter. They force you to step off the guided path and explore on
 your own. They will make you research other languages, figure out how to
-implement features, or otherwise get you to strike out on your own.
+implement features, or otherwise get you to out of your comfort zone.
 
-<span name="warning">Vanquish</span> them and you'll come away with a broader
-understanding and possibly a few bumps and scrapes. Or skip them if you want to
-stay inside the comfy confines of the tour bus. It's your book.
+<span name="warning">Vanquish</span> the challenges and you'll come away with a
+broader understanding and possibly a few bumps and scrapes. Or skip them if you
+want to stay inside the comfy confines of the tour bus. It's your book.
 
 <aside name="warning">
 
 A word of warning: the challenges often ask you to make changes to the
 interpreter you're building. You'll want to implement those in a copy of your
-code. The later chapters assume your interpreter is in a pristine state.
+code. The later chapters assume your interpreter is in a pristine
+("unchallenged"?) state.
 
 </aside>
 
@@ -324,7 +329,7 @@ whom.
 
 <aside name="fortran">
 
-Hopefully a language that doesn't hardcode assumptions about the width of a
+Hopefully your new language doesn't hardcode assumptions about the width of a
 punched card into its grammar.
 
 </aside>
@@ -346,13 +351,14 @@ supposed to behave.
 
 Java is a great language for this. It's high level enough that we don't get
 overwhelmed by fiddly implementation details, but it's still pretty explicit.
-Unlike scripting languages, there tends to be less magic under the hood, and
-you've got static types to see what data structures you're working with.
+Unlike scripting languages, there tends to be less complex machinery hiding
+under the hood, and you've got static types to see what data structures you're
+working with.
 
-I also chose it specifically because it is an *object-oriented* language. That
+I also chose Java specifically because it is an object-oriented language. That
 paradigm swept the programming world in the 90s and is now the dominant way of
 thinking for millions of programmers. Odds are good you're already used to
-organizing things into classes and methods, so we'll keep you in that comfort
+organizing code into classes and methods, so we'll keep you in that comfort
 zone.
 
 While academic language folks sometimes look down on object-oriented languages,
@@ -363,16 +369,16 @@ written *in* the <span name="host">same language</span>.
 
 <aside name="host">
 
-A compiler reads in files in one language and translates them to files in
+A compiler reads files in one language. translates them, and outputs files in
 another language. You can implement a compiler in any language, including the
 same language it compiles, a process called **"self-hosting".**
 
-You can't compile it using itself yet, but if you have another compiler for your
-language written in some other language, you use *that* one to compile your
-compiler once. Now you can use the compiled version of your own compiler to
-compile future versions of itself and you can discard the original one compiled
-from the other compiler. This is called **"bootstrapping"** from the image of
-pulling yourself up by your own bootstraps.
+You can't compile your compiler using itself yet, but if you have another
+compiler for your language written in some other language, you use *that* one to
+compile your compiler once. Now you can use the compiled version of your own
+compiler to compile future versions of itself and you can discard the original
+one compiled from the other compiler. This is called **"bootstrapping"** from
+the image of pulling yourself up by your own bootstraps.
 
 <img src="image/introduction/bootstrap.png" alt="Fact: This is the primary mode of transportation of the American cowboy.">
 
@@ -383,23 +389,23 @@ already know it, so there's less for you to learn to get going in the book. If
 you aren't that familiar with Java, don't freak out. I try to stick to a fairly
 minimal subset of it. I use the diamond operator from Java 7 to make things a
 little more terse, but that's about it as far as "advanced" features go. If you
-know another object-oriented language like C# or C++, you can probably muddle
-through fine.
+know another object-oriented language like C# or C++, you can muddle through.
 
 By the end of part II, we'll have a simple, readable implementation. What we
-won't have is a *fast* one. It also leans on the Java virtual machine's runtime
-facilities, but we want to learn how Java *itself* implements those things.
+won't have is a *fast* one. It also takes advantage of the Java virtual
+machine's own runtime facilities. We want to learn how Java *itself* implements
+those things.
 
 ## The Second Interpreter
 
-So in the next part, we'll start all over again, but this time in C. C is the
+So in the next part, we start all over again, but this time in C. C is the
 perfect language for understanding how an implementation *really* works, all the
 way down to the bytes in memory and the code flowing through the CPU.
 
 A big reason that we're using C is so I can show you things C is particularly
-good at, but that *does* mean you'll need to be pretty handy with it. You don't
-have to be the reincarnation of Dennis Ritchie, but you shouldn't be spooked by
-pointers either.
+good at, but that *does* mean you'll need to be pretty comfortable with it. You
+don't have to be the reincarnation of Dennis Ritchie, but you shouldn't be
+spooked by pointers either.
 
 If you aren't there yet, pick up an introductory book on C and chew through it,
 then come back here when you're done. In return, you'll come away from this book
@@ -420,10 +426,10 @@ I pronounce the name like "sea-locks", but you can say it "clocks" or even
 
 Our Java implementation was focused on being correct. Now that we have that
 down, we'll turn to also being *fast*. Our C interpreter will contain a <span
-name="compiler">compiler</span> that translates the code to an efficient
-bytecode representation (don't worry, I'll get into what that means soon) which
-it then executes. This is the same technique used by implementations of Lua,
-Python, Ruby, PHP and many other successful languages.
+name="compiler">compiler</span> that translates Lox to an efficient bytecode
+representation (don't worry, I'll get into what that means soon) which it then
+executes. This is the same technique used by implementations of Lua, Python,
+Ruby, PHP, and many other successful languages.
 
 <aside name="compiler">
 
@@ -432,7 +438,7 @@ Two for the price of one!
 
 </aside>
 
-We'll even try our hand at benchmarking and optimization. By the end we'll have
+We'll even try our hand at benchmarking and optimization. By the end, we'll have
 a robust, accurate, fast interpreter for our language, able to keep up with
 other professional caliber implementations out there. Not bad for one book and a
 few thousand lines of code.
@@ -474,15 +480,15 @@ language, naming is deviously hard. A good name satisfies a few criteria:
     syllables or a handful of letters will annoy them to no end.
 
 3.  **It's distinct enough to search for.** People will Google your language's
-    name to find docs for it, so you want a word that's rare enough that most
-    results point to your docs. Though, with the amount of AI most search
-    engines are packing today, that's less of an issue. Still, you won't be
-    doing your users any favors if you name your language "for".
+    name to learn about it, so you want a word that's rare enough that most
+    results point to your docs. Though, with the amount of AI search engines are
+    packing today, that's less of an issue. Still, you won't be doing your users
+    any favors if you name your language "for".
 
 4.  **It doesn't have negative connotations across a number of cultures.** This
     is hard to guard for, but it's worth considering. The designer of Nimrod
     ended up renaming his language to "Nim" because too many people only
-    remember that Bugs Bunny used "Nimrod" as an insult.
+    remember that Bugs Bunny used "Nimrod" (ironically, actually) as an insult.
 
 If your potential name makes it through that gauntlet, keep it. Don't get hung
 up on trying to find an appellation that captures the quintessence of your
