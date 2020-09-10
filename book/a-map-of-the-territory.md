@@ -1,5 +1,5 @@
 > You must have a map, no matter how rough. Otherwise you wander all over the
-> place. In The Lord of the Rings I never made anyone go farther than he could
+> place. In "The Lord of the Rings" I never made anyone go farther than he could
 > on a given day.
 >
 > <cite>J.R.R. Tolkien</cite>
@@ -18,7 +18,7 @@ language's specification, it's all implementation detail.
 We're going to spend a lot of time on those details, so if I have to write
 "language *implementation*" every single time I mention them, I'll wear my
 fingers off. Instead, I'll use "language" to refer to either a language or an
-implementation of it, or both, unless the distinction isn't obvious.
+implementation of it, or both, unless the distinction matters.
 
 ## The Parts of a Language
 
@@ -28,7 +28,7 @@ hard, and we enlisted their help. I find it fascinating that even though today's
 machines are literally a million times faster and have orders of magnitude more
 storage, the way we build programming languages is virtually unchanged.
 
-Though the territory covered by language designers is vast, the trails they've
+Though the area explored by language designers is vast, the trails they've
 carved through it are <span name="dead">few</span>. Not every language takes the
 exact same path -- some take a shortcut or two -- but otherwise they are
 reassuringly similar from Rear Admiral Grace Hopper's first COBOL compiler all
@@ -38,9 +38,9 @@ somewhere.
 
 <aside name="dead">
 
-Though there are certainly dead ends, sad little cul-de-sacs of CS papers with
-zero citations and now-forgotten optimizations that only made sense when memory
-was measured in individual bytes.
+There are certainly dead ends, sad little cul-de-sacs of CS papers with zero
+citations and now-forgotten optimizations that only made sense when memory was
+measured in individual bytes.
 
 </aside>
 
@@ -51,8 +51,8 @@ transforms it to some higher-level representation where the semantics -- what
 the author wants the computer to do -- becomes more apparent.
 
 Eventually we reach the peak. We have a bird's-eye view of the users's program
-and can see what their code *means*. Next, we descend the other side of the
-mountain. We transform from this highest-level representation down to
+and can see what their code *means*. We begin our descent down the other side of
+the mountain. We transform this highest-level representation down to
 successively lower-level forms to get closer and closer to something we know how
 to make the CPU actually execute.
 
@@ -71,8 +71,8 @@ thing. I like "lexing" because it sounds like something an evil supervillain
 would do, but I'll use "scanning" because it seems to be marginally more
 commonplace.
 
-A **scanner** (or **"lexer"**) takes in the linear stream of characters and
-chunks them together into a series of something more akin to <span
+A **scanner** (or **lexer**) takes in the linear stream of characters and chunks
+them together into a series of something more akin to <span
 name="word">"words"</span>. In programming languages, each of these words is
 called a **token**. Some tokens are single characters, like `(` and `,`. Others
 may be several characters long, like numbers (`123`), string literals (`"hi!"`),
@@ -115,9 +115,9 @@ researchers who were trying to get computers to talk to us.
 
 It turns out human languages are too messy for the rigid grammars those parsers
 could handle, but they were a perfect fit for the simpler artificial grammars of
-programming languages. Alas, we flawed humans still manage to fail to use those
-simple grammars correctly, so the parser's job also includes telling us by
-reporting **syntax errors**.
+programming languages. Alas, we flawed humans still manage to use those simple
+grammars incorrectly, so the parser's job also includes letting us know when we
+do by reporting **syntax errors**.
 
 ### Static analysis
 
@@ -171,20 +171,20 @@ implementation. You might guess everything after this is the **back end**, but
 no. Back in the days of yore when "front end" and "back end" were coined,
 compilers were much simpler. Later researchers invented new phases to stuff
 between the two halves. Rather than discard the old terms, William Wulf and
-company lumped them into the charming but spatially paradoxical name **"middle
-end"**.
+company lumped them into the charming but spatially paradoxical name **middle
+end**.
 
 ### Intermediate representations
 
 You can think of the compiler as a pipeline where each stage's job is to
-organize the code in a way that makes the next stage simpler to implement. The
-front end of the pipeline is specific to the source language the user is
-programming in. The back end is concerned with the final architecture that the
-code will run on.
+organize the data representing the user's code in a way that makes the next
+stage simpler to implement. The front end of the pipeline is specific to the
+source language the program is written in. The back end is concerned with the
+final architecture where the program will run.
 
 In the middle, the code may be stored in some <span name="ir">**intermediate
-representation**</span> (or **"IR"**) that isn't tightly tied to either the
-source or destination forms (hence "intermediate"). Instead, the IR acts as an
+representation**</span> (or **IR**) that isn't tightly tied to either the source
+or destination forms (hence "intermediate"). Instead, the IR acts as an
 interface between these two languages.
 
 <aside name="ir">
@@ -265,9 +265,9 @@ replacement of aggregates", "dead code elimination", and "loop unrolling".
 
 We have applied all of the optimizations we can think of to the user's program.
 The last step is converting it to a form the machine can actually run. In other
-words **generating code**, where "code" refers to the kind of primitive
-assembly-like instructions a CPU runs and not the kind of "source code" a human
-might want to read.
+words **generating code** (or **codegen**), where "code" here usually refers to
+the kind of primitive assembly-like instructions a CPU runs and not the kind of
+"source code" a human might want to read.
 
 Finally, we are in the **back end**, descending the other side of the mountain.
 From here on out, our representation of the code becomes more and more
@@ -278,7 +278,8 @@ We have a decision to make. Do we generate instructions for a real CPU or a
 virtual one? If we generate real machine code, we get an executable that the OS
 can load directly onto the chip. Native code is lightning fast, but generating
 it is a lot of work. Today's architectures have piles of instructions, complex
-pipelines, and enough <span name="aad">historical baggage</span> to fill a 747.
+pipelines, and enough <span name="aad">historical baggage</span> to fill a 747's
+luggage bay.
 
 Speaking the chip's language also means your compiler is tied to a specific
 architecture. If your compiler targets [x86][] machine code, it's not going to
@@ -325,7 +326,7 @@ bytecode as an intermediate representation.
 
 <aside name="shared" class="bottom">
 
-The basic principle here is that the farther down the pipeline you can push the
+The basic principle here is that the farther down the pipeline you push the
 architecture-specific work, the more of the earlier phases you can share across
 architectures.
 
@@ -342,7 +343,7 @@ at runtime. Running bytecode in a VM is slower than translating it to native
 code ahead of time because every instruction must be simulated at runtime each
 time it executes. In return, you get simplicity and portability. Implement your
 VM in, say, C, and you can run your language on any platform that has a C
-compiler. This is what our second interpreter does.
+compiler. This is how the second interpreter we build in this book works.
 
 <aside name="vm">
 
@@ -372,12 +373,13 @@ collector going in order to reclaim unused bits. If our language supports
 "instance of" tests so you can see what kind of object you have, then we need
 some representation to keep track of the type of each object during execution.
 
-All of this stuff is going at runtime, so it's called, well, the **"runtime"**.
-In a fully compiled language, the code implementing the runtime gets inserted
-directly into the resulting executable. In, say, [Go][], each compiled
-application has its own copy of Go's runtime directly embedded in it. If the
-language is run inside an interpreter or VM, then the runtime lives there. This
-is how most implementations of languages like Java, Python, and JavaScript work.
+All of this stuff is going at runtime, so it's called, appropriately, the
+**runtime**. In a fully compiled language, the code implementing the runtime
+gets inserted directly into the resulting executable. In, say, [Go][], each
+compiled application has its own copy of Go's runtime directly embedded in it.
+If the language is run inside an interpreter or VM, then the runtime lives
+there. This is how most implementations of languages like Java, Python, and
+JavaScript work.
 
 [go]: https://golang.org/
 
@@ -413,33 +415,32 @@ Pascal and C were designed around this limitation. At the time, memory was so
 precious that a compiler might not even be able to hold an entire *source file*
 in memory, much less the whole program. This is why Pascal's grammar requires
 type declarations to appear first in a block. It's why in C you can't call a
-function above the code that defines it unless you have an explicit *forward
-declaration* that tells the compiler what it needs to know to generate code for
-a call to the later function.
+function above the code that defines it unless you have an explicit forward
+declaration that tells the compiler what it needs to know to generate code for a
+call to the later function.
 
 ### Tree-walk interpreters
 
 Some programming languages begin executing code right after parsing it to an AST
-(with maybe a bit of static analysis applied). To run the program, they traverse
-the syntax tree one branch and leaf at a time, evaluating each node as it goes.
+(with maybe a bit of static analysis applied). To run the program, the
+interpreter traverses the syntax tree one branch and leaf at a time, evaluating
+each node as it goes.
 
-This style of interpretation is common for student projects and little
-languages, but is not widely used for general-purpose languages since it tends
-to be slow. A notable exception is the original implementation of <span
-name="ruby">Ruby</span> which was a tree walker prior to version 1.9.
+This implementation style is common for student projects and little languages,
+but is not widely used for <span name="ruby">general-purpose</span> languages
+since it tends to be slow. Some people use "interpreter" to mean only these
+kinds of implementations, but others define that word more generally, so I'll
+use the inarguably explicit **"tree-walk interpreter"** to refer to these. Our
+first interpreter rolls this way.
 
 <aside name="ruby">
 
-At 1.9, the canonical implementation of Ruby switched from the original MRI
-("Matz' Ruby Interpreter") to Koichi Sasada's YARV ("Yet Another Ruby VM"). YARV
-is a bytecode virtual machine.
+A notable exception is early versions of Ruby, which were tree walkers. At 1.9,
+the canonical implementation of Ruby switched from the original MRI ("Matz' Ruby
+Interpreter") to Koichi Sasada's YARV ("Yet Another Ruby VM"). YARV is a
+bytecode virtual machine.
 
 </aside>
-
-Some people use "interpreter" to mean only these kinds of implementations, but
-others define that word more generally, so I'll use the inarguably explicit
-**"tree-walk interpreter"** to refer to these. Our first interpreter rolls this
-way.
 
 ### Transpilers
 
@@ -449,17 +450,16 @@ front end onto that. Otherwise, it seems like you're stuck. But what if you
 treated some other *source language* as if it were an intermediate
 representation?
 
-We write a front end for our language. Then, in the back end, instead of doing
-all the work to *lower* the semantics to some primitive target language, we
+You write a front end for your language. Then, in the back end, instead of doing
+all the work to *lower* the semantics to some primitive target language, you
 produce a string of valid source code for some other language that's about as
-high level as ours. Then, we use the existing compilation tools for *that*
-language as our escape route off the mountain and down to something we can
+high level as yours. Then, you use the existing compilation tools for *that*
+language as your escape route off the mountain and down to something you can
 execute.
 
-They used to call this a **"source-to-source compiler"** or a
-**"transcompiler"**. After the rise of languages that compile to JavaScript in
-order to run in the browser, they've affected the hipster sobriquet
-**"transpiler"**.
+They used to call this a **source-to-source compiler** or a **transcompiler**.
+After the rise of languages that compile to JavaScript in order to run in the
+browser, they've affected the hipster sobriquet **transpiler**.
 
 <aside name="gary">
 
@@ -483,8 +483,8 @@ hell lived before he did.
 </aside>
 
 While the first transcompiler translated one assembly language to another,
-today, almost all transpilers work on higher-level languages. After the viral
-spread of UNIX to machines various and sundry, there began a long tradition of
+today, most transpilers work on higher-level languages. After the viral spread
+of UNIX to machines various and sundry, there began a long tradition of
 compilers that produced C as their output language. C compilers were available
 everywhere UNIX was and produced efficient code, so targeting C was a good way
 to get your language running on a lot of architectures.
@@ -522,7 +522,7 @@ existing compilation pipeline and you're good to go.
 
 ### Just-in-time compilation
 
-This last one is less of a shortcut and more a challenging scramble best
+This last one is less of a shortcut and more a dangerous alpine scramble best
 reserved for experts. The fastest way to execute code is by compiling it to
 machine code, but you might not know what architecture your end user's machine
 supports. What to do?
@@ -553,9 +553,9 @@ time immemorial: "What's the difference between a compiler and an interpreter?"
 
 It turns out this is like asking the difference between a fruit and a vegetable.
 That seems like a binary either-or choice, but actually "fruit" is a *botanical*
-term and "vegetable" is *culinary*. One does not imply the negation of the
-other. There are fruits that aren't vegetables (apples) and vegetables that are
-not fruits (carrots), but also edible plants that are both fruits *and*
+term and "vegetable" is *culinary*. One does not strictly imply the negation of
+the other. There are fruits that aren't vegetables (apples) and vegetables that
+are not fruits (carrots), but also edible plants that are both fruits *and*
 vegetables, like tomatoes.
 
 <span name="veg"></span></span>
@@ -564,8 +564,13 @@ vegetables, like tomatoes.
 
 <aside name="veg">
 
-There are even plant-based foods that are *neither*, like nuts and cereals. (And
-peanuts aren't even nuts!)
+Peanuts (which are not even nuts) and cereals like wheat are actually fruit, but
+I got this drawing wrong. What can I say, I'm a software engineer, not a
+botanist. I should probably erase the little peanut guy, but he's so cute that I
+can't bear to.
+
+Now *pine nuts*, on the other hand, are plant-based foods that are neither
+fruits nor vegetables. At least as far as I can tell.
 
 </aside>
 
@@ -590,8 +595,8 @@ end user runs that executable directly and may never even know which tool was
 used to compile it. So those are *compilers* for C.
 
 In older versions of Matz' canonical implementation of Ruby, the user ran Ruby
-from source. The implementation parsed it and ran it directly by traversing the
-syntax tree. No other translation occurred, either internally or in any
+from source. The implementation parsed it and executed it directly by traversing
+the syntax tree. No other translation occurred, either internally or in any
 user-visible form. So this was definitely an *interpreter* for Ruby.
 
 But what of CPython? When you run your Python program using it, the code is
