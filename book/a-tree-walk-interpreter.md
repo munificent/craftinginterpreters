@@ -1,10 +1,10 @@
 With this part, we begin jlox, the first of our two interpreters. Programming
 languages are a huge topic with piles of concepts and terminology to cram into
-your brain all at once. There's theory -- though not too much in this book --
-which requires a level of mental rigor that you probably haven't had to summon
-since your last Calculus final.
+your brain all at once. Programming language theory requires a level of mental
+rigor that you probably haven't had to summon since your last Calculus final.
+(Fortunately there isn't too much theory in this book.)
 
-*Implementing* an interpreter uses a few architectural tricks and design
+Implementing an interpreter uses a few architectural tricks and design
 patterns uncommon in other kinds of applications, so we'll be getting used to
 the engineering side of things too. Given all of that, we'll keep the code we
 have to write as simple and plain as possible.
