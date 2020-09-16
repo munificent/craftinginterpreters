@@ -131,9 +131,7 @@ class Scanner {
     addToken(IDENTIFIER);
 */
 //> keyword-type
-    // See if the identifier is a reserved word.
     String text = source.substring(start, current);
-
     TokenType type = keywords.get(text);
     if (type == null) type = IDENTIFIER;
     addToken(type);
@@ -163,7 +161,6 @@ class Scanner {
       advance();
     }
 
-    // Unterminated string.
     if (isAtEnd()) {
       Lox.error(line, "Unterminated string.");
       return;

@@ -51,9 +51,9 @@ find.
 Stick that in a text file, and go get your IDE or Makefile or whatever set up.
 I'll be right here when you're ready. Good? OK!
 
-Lox is a scripting language, which means it executes directly from source. There
-are actually two ways you can run some code. If you start jlox from the command
-line and give it a path to a file, it reads the file and executes it:
+Lox is a scripting language, which means it executes directly from source. Our
+interpreter supports two ways of running code. If you start jlox from the
+command line and give it a path to a file, it reads the file and executes it.
 
 ^code run-file
 
@@ -105,9 +105,9 @@ about our language at all -- their headspace is all about *their program*. It's
 usually only when things go wrong that they notice our implementation.
 
 <span name="errors">When</span> that happens, it's up to us to give the user all
-of the information they need to understand what went wrong and guide them gently
+the information they need to understand what went wrong and guide them gently
 back to where they are trying to go. Doing that well means thinking about error
-handling all through the implementation of our interpreter, starting now:
+handling all through the implementation of our interpreter, starting now.
 
 <aside name="errors">
 
@@ -119,10 +119,10 @@ fun stuff, but there's only so much ink in the pen.
 
 ^code lox-error
 
-This tells users some syntax error occurred on a given line. This is really the
-bare minimum to be able to claim you even *have* error reporting. Imagine if you
-accidentally left a dangling comma in some function call and the interpreter
-printed out:
+This `error()` function and its `report()` helper tells the user some syntax
+error occurred on a given line. That is really the bare minimum to be able to
+claim you even *have* error reporting. Imagine if you accidentally left a
+dangling comma in some function call and the interpreter printed out:
 
 ```text
 Error: Unexpected "," *somewhere* in your program. Good luck finding it!
@@ -152,12 +152,12 @@ class is because of that `hadError` field. It's defined here:
 
 We'll use this to ensure we don't try to execute code that has a known error.
 Also, it lets us exit with a non-zero exit code like a good command line citizen
-should:
+should.
 
 ^code exit-code (1 before, 1 after)
 
 We need to reset this flag in the interactive loop. If the user makes a mistake,
-it shouldn't kill their entire session:
+it shouldn't kill their entire session.
 
 ^code reset-had-error (1 before, 1 after)
 
@@ -185,9 +185,9 @@ because it felt over-engineered for the minimal interpreter in this book.
 
 </aside>
 
-With that in place, our application shell is ready. Once we have a Scanner class
-with a `scanTokens()` method, we can start running it. Before we get to that,
-let's get more precise about what tokens are.
+With some rudimentary error handling in place, our application shell is ready.
+Once we have a Scanner class with a `scanTokens()` method, we can start running
+it. Before we get to that, let's get more precise about what tokens are.
 
 ## Lexemes and Tokens
 
@@ -224,12 +224,12 @@ The <span name="ugly">parser</span> could categorize tokens from the raw lexeme
 by comparing the strings, but that's slow and kind of ugly. Instead, at the
 point that we recognize a lexeme, we also remember which *kind* of lexeme it
 represents. We have a different type for each keyword, operator, bit of
-punctuation, and literal type:
+punctuation, and literal type.
 
 <aside name="ugly">
 
 After all, string comparison ends up looking at individual characters, and isn't
-that the *scanner's* job?
+that the scanner's job?
 
 </aside>
 
@@ -239,8 +239,8 @@ that the *scanner's* job?
 
 There are lexemes for literal values -- numbers and strings and the like. Since
 the scanner has to walk each character in the literal to correctly identify it,
-it can also convert it to the real runtime value that will be used by the
-interpreter later.
+it can also convert that textual representation of a value to the living runtime
+object that will be used by the interpreter later.
 
 ### Location information
 
@@ -258,14 +258,14 @@ calculate them.
 
 An offset can be converted to line and column positions later by looking back at
 the source file and counting the preceding newlines. That sounds slow, and it
-is. However *you only need to do it when you need to actually display a line and
-column to the user.* Most tokens never appear in an error message. For those,
-the less time you spend calculating position information ahead of time, the
-better.
+is. However, you only need to do it *when you need to actually display a line
+and column to the user.* Most tokens never appear in an error message. For
+those, the less time you spend calculating position information ahead of time,
+the better.
 
 </aside>
 
-We take all of this data and wrap it in a class:
+We take all of this data and wrap it in a class.
 
 ^code token-class
 
@@ -282,7 +282,7 @@ it emits a token.
 
 Then it loops back and does it again, starting from the very next character in
 the source code. It keeps doing that, eating characters and occasionally, uh,
-excreting tokens, until it runs out of characters.
+excreting tokens, until it reaches the end of the input.
 
 <span name="alligator"></span>
 
@@ -305,8 +305,8 @@ identifiers (variable names and the like). This regex matches one:
 ```
 
 If you did think of regular expressions, your intuition is a deep one. The rules
-that determine how characters are grouped into lexemes for some language are
-called its <span name="theory">**lexical grammar**</span>. In Lox, as in most
+that determine a particular language groups characters into lexemes are called
+its <span name="theory">**lexical grammar**</span>. In Lox, as in most
 programming languages, the rules of that grammar are simple enough to be
 classified a **[regular language][]**. That's the same "regular" as in regular
 expressions.
@@ -315,15 +315,15 @@ expressions.
 
 <aside name="theory">
 
-It pains me to gloss over the theory so much, especially when it's as fun as I
-think the [Chomsky hierarchy][] and [FSMs][] are. But the honest truth is other
-books cover this better than I could. [Compilers: Principles, Techniques, and
-Tools][dragon] (universally known as "the Dragon Book") is the canonical
-reference.
+It pains me to gloss over the theory so much, especially when it's as
+interesting as I think the [Chomsky hierarchy][] and [finite-state machines][]
+are. But the honest truth is other books cover this better than I could.
+[Compilers: Principles, Techniques, and Tools][dragon] (universally known as
+"the Dragon Book") is the canonical reference.
 
 [chomsky hierarchy]: https://en.wikipedia.org/wiki/Chomsky_hierarchy
 [dragon]: https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools
-[fsms]: https://en.wikipedia.org/wiki/Finite-state_machine
+[finite-state machines]: https://en.wikipedia.org/wiki/Finite-state_machine
 
 </aside>
 
@@ -335,10 +335,10 @@ at them, and they give you a complete scanner <span name="lex">back</span>.
 
 <aside name="lex">
 
-Lex was created by Mike Lesk and Eric Schmidt. Yes, the same Eric Schmidt who is
-executive chairman of Google as of this writing. I'm not saying programming
-languages are a sure-fire path to wealth and fame, but we *can* count at least
-one multi-billionaire among us.
+Lex was created by Mike Lesk and Eric Schmidt. Yes, the same Eric Schmidt who
+was executive chairman of Google. I'm not saying programming languages are a
+sure-fire path to wealth and fame, but we *can* count at least one
+mega-billionaire among us.
 
 </aside>
 
@@ -368,32 +368,33 @@ looks like this:
 
 ^code scan-tokens
 
-The scanner works its way through the source code, adding tokens, until it runs
-out of characters. When it's done, it appends one final "end of file" token.
-That isn't strictly needed, but it makes our parser a little cleaner.
+The scanner works its way through the source code, adding tokens until it runs
+out of characters. Then it appends one final "end of file" token. That isn't
+strictly needed, but it makes our parser a little cleaner.
 
-This loop depends on a couple of fields to keep track of where in the source
-code we are:
+This loop depends on a couple of fields to keep track of where the scanner is in
+the source code.
 
 ^code scan-state (1 before, 2 after)
 
-The `start` and `current` fields are offsets in the string -- the first
-character in the current lexeme being scanned, and the character we're currently
-considering. The other field tracks what source line `current` is on so we can
-produce tokens that know their location.
+The `start` and `current` fields are offsets that index into the string. The
+`start` field points to the first character in the lexeme being scanned, and
+`current` points at the character currently being considered. The `line` field
+tracks what source line `current` is on so we can produce tokens that know their
+location.
 
 Then we have one little helper function that tells us if we've consumed all the
-characters:
+characters.
 
 ^code is-at-end
 
 ## Recognizing Lexemes
 
 Each turn of the loop, we scan a single token. This is the real heart of the
-scanner. We'll start simple. Imagine if every lexeme was only a single character
+scanner. We'll start simple. Imagine if every lexeme is only a single character
 long. All you need to do is consume the next character and pick a token type for
 it. Several lexemes *are* only a single character in Lox, so let's start with
-those:
+those.
 
 ^code scan-token
 
@@ -403,14 +404,14 @@ Wondering why `/` isn't in here? Don't worry, we'll get to it.
 
 </aside>
 
-Again, we need a couple of helper methods:
+Again, we need a couple of helper methods.
 
 ^code advance-and-add-token
 
 The `advance()` method consumes the next character in the source file and
 returns it. Where `advance()` is for input, `addToken()` is for output. It grabs
-the text of the current lexeme and creates a new token for it. (We'll use the
-other overload to handle tokens with literal values later.)
+the text of the current lexeme and creates a new token for it. We'll use the
+other overload to handle tokens with literal values soon.
 
 ### Lexical errors
 
@@ -418,7 +419,8 @@ Before we get too far in, let's take a moment to think about errors at the
 lexical level. What happens if a user throws a source file containing some
 characters Lox doesn't use, like `@#^` at our interpreter? Right now, those
 characters get silently discarded. They aren't used by the Lox language, but
-that doesn't mean the interpreter can pretend they aren't there:
+that doesn't mean the interpreter can pretend they aren't there. Instead, we
+report an error.
 
 ^code char-error (1 before, 1 after)
 
@@ -429,7 +431,7 @@ Note also that we <span name="shotgun">*keep scanning*</span>. There may be
 other errors later in the program. It gives our users a better experience if we
 detect as many of those as possible in one go. Otherwise, they see one tiny
 error and fix it, only to have the next error appear, and so on. Syntax error
-whack-a-mole is no fun.
+Whack-a-mole is no fun.
 
 (Don't worry. Since `hadError` gets set, we'll never try to *execute* any of the
 code, even though we keep going and scan the rest of it.)
@@ -445,31 +447,35 @@ user experience.
 
 ### Operators
 
-We have single-character lexemes covered, but that doesn't cover all of Lox's
+We have single-character lexemes working, but that doesn't cover all of Lox's
 operators. What about `!`? It's a single character, right? Sometimes, yes, but
-not when it's followed by an `=`. In that case, it should be a `!=` lexeme.
-Likewise, `<`, `>`, and `=` can all be followed by `=`.
+if the very next character is an equals sign, then we should instead create a
+`!=` lexeme. Note that the `!` and `=` are *not* two independent operators. You
+can't write `!   =` in Lox and have it behave like an inequality operator.
+That's why we need to scan `!=` as a single lexeme. Likewise, `<`, `>`, and `=`
+can all be followed by `=` to create the other equality and comparison
+operators.
 
-For those, we need to look at the second character:
+For all of these, we need to look at the second character.
 
 ^code two-char-tokens (1 before, 2 after)
 
-Those use this new method:
+Those cases use this new method:
 
 ^code match
 
-It's like a conditional `advance()`. It only consumes the current character if
+It's like a conditional `advance()`. We only consume the current character if
 it's what we're looking for.
 
-Using that, we recognize these lexemes in two stages. When we hit, say `!`, we
-jump to its switch case. That case means "OK, we know the lexeme *starts* with
-`!`". Then we look at the next character to determine if we're on a `!` or a
-`!=`.
+Using `match()`, we recognize these lexemes in two stages. When we reach, for
+example, `!`, we jump to its switch case. That means we know the lexeme *starts*
+with `!`. Then we look at the next character to determine if we're on a `!=` or
+merely a `!`.
 
 ## Longer Lexemes
 
-We're still missing one operator, `/`. That one needs a little special handling
-because comments begin with a slash too.
+We're still missing one operator, `/` for division. That character needs a
+little special handling because comments begin with a slash too.
 
 ^code slash (1 before, 2 after)
 
@@ -478,8 +484,8 @@ second `/`, we don't end the token yet. Instead, we keep consuming characters
 until we reach the end of the line.
 
 This is our general strategy for handling longer lexemes. After we detect the
-beginning of one, we shunt off to some code specific to that kind of lexeme that
-keeps eating characters until it sees the end.
+beginning of one, we shunt over to some lexeme-specific code that keeps eating
+characters until it sees the end.
 
 We've got another helper:
 
@@ -488,9 +494,9 @@ We've got another helper:
 It's sort of like `advance()`, but doesn't consume the character. This is called
 <span name="match">**lookahead**</span>. Since it only looks at the current
 unconsumed character, we have *one character of lookahead*. The smaller this
-number is, generally, the faster the scanner runs. The lexical grammar dictates
-how much lookahead we need. Fortunately, most languages in wide use only need
-one or two characters of lookahead.
+number is, generally, the faster the scanner runs. The rules of the lexical
+grammar dictate how much lookahead we need. Fortunately, most languages in wide
+use only peek one or two characters ahead.
 
 <aside name="match">
 
@@ -504,8 +510,8 @@ to deal with them. So when we reach the end of the comment, we *don't* call
 `addToken()`. When we loop back around to start the next lexeme, `start` gets
 reset and the comment's lexeme disappears in a puff of smoke.
 
-Now's a good time to skip over those other meaningless characters, newlines and
-whitespace, too:
+While we're at it, now's a good time to skip over those other meaningless
+characters: newlines and whitespace.
 
 ^code whitespace (1 before, 3 after)
 
@@ -513,10 +519,9 @@ When encountering whitespace, we simply go back to the beginning of the scan
 loop. That starts a new lexeme *after* the whitespace character. For newlines,
 we do the same thing, but we also increment the line counter. (This is why we
 used `peek()` to find the newline ending a comment instead of `match()`. We want
-that newline to get here and update `line`.)
+that newline to get us here so we can update `line`.)
 
-Our scanner is starting to feel more real now. It can handle fairly free-form
-code like:
+Our scanner is getting smarter. It can handle fairly free-form code like:
 
 ```lox
 // this is a comment
@@ -535,9 +540,9 @@ That calls:
 
 ^code string
 
-Like with comments, it consumes characters until it hits the `"` that ends the
-string. It also gracefully handles running out of input before the string is
-closed and reports an error for that.
+Like with comments, we consume characters until we hit the `"` that ends the
+string. We also gracefully handle running out of input before the string is
+closed and report an error for that.
 
 For no particular reason, Lox supports multi-line strings. There are pros and
 cons to that, but prohibiting them was a little more complex than allowing them,
@@ -553,7 +558,8 @@ quotes. If Lox supported escape sequences like `\n`, we'd unescape those here.
 
 All numbers in Lox are floating point at runtime, but it supports both integer
 and decimal literals. A number literal is a series of <span
-name="minus">digits</span> optionally followed by a `.` and one or more digits:
+name="minus">digits</span> optionally followed by a `.` and one or more trailing
+digits:
 
 <aside name="minus">
 
@@ -566,8 +572,8 @@ interesting edge case if we were to add method calls on numbers. Consider:
 print -123.abs();
 ```
 
-This prints `-123` because `-` has lower precedence than `.`. We could fix that
-by making `-` part of the number literal. But then consider:
+This prints `-123` because negation has lower precedence than method calls. We
+could fix that by making `-` part of the number literal. But then consider:
 
 ```lox
 var n = 123;
@@ -596,11 +602,11 @@ latter gets weird if we ever want to allow methods on numbers like `123.sqrt()`.
 
 To recognize the beginning of a number lexeme, we look for any digit. It's kind
 of tedious to add cases for every decimal digit, so we'll stuff it in the
-default case instead:
+default case instead.
 
 ^code digit-start (1 before, 1 after)
 
-This relies on:
+This relies on this little utility:
 
 ^code is-digit
 
@@ -615,15 +621,18 @@ fullwidth numbers, and other funny stuff we don't want.
 </aside>
 
 Once we know we are in a number, we branch to a separate method to consume the
-rest of the literal, like we do with strings:
+rest of the literal, like we do with strings.
 
 ^code number
 
-It consumes as many digits as it finds for the integer part of the literal. Then
-it looks for a fractional part, which is a decimal point (`.`) followed by at
-least one digit. This requires another character of lookahead since we don't
-want to consume the `.` until we're sure there is a digit *after* it. So we
-add:
+We consume as many digits as we find for the integer part of the literal. Then
+we look for a fractional part, which is a decimal point (`.`) followed by at
+least one digit. If we do have a fractional part, again, we consume as many
+digits as we can find.
+
+Looking past the decimal point requires a second character of lookahead since we
+don't want to consume the `.` until we're sure there is a digit *after* it. So
+we add:
 
 ^code peek-next
 
@@ -636,14 +645,12 @@ of the code that our scanner only looks ahead at most two characters.
 
 </aside>
 
-If we do have a fractional part, again, we consume as many digits as we can
-find.
 
 Finally, we convert the lexeme to its numeric value. Our interpreter uses Java's
 `Double` type to represent numbers, so we produce a value of that type. We're
 using Java's own parsing method to convert the lexeme to a real Java double. We
-could implement it ourselves, but really, unless you're trying to cram for an
-upcoming programming interview, it's not worth your time.
+could implement that ourselves, but, honestly, unless you're trying to cram for
+an upcoming programming interview, it's not worth your time.
 
 The remaining literals are Booleans and `nil`, but we handle those as keywords,
 which gets us to...
@@ -705,29 +712,29 @@ parser.
 Maximal munch means we can't easily detect a reserved word until we've reached
 the end of what might instead be an identifier. After all, a reserved word *is*
 an identifier, it's just one that has been claimed by the language for its own
-use. That's where the term **"reserved word"** comes from.
+use. That's where the term **reserved word** comes from.
 
-Instead, we assume any lexeme starting with a letter or underscore is an
-identifier:
+So we begin by assuming any lexeme starting with a letter or underscore is an
+identifier.
 
 ^code identifier-start (3 before, 3 after)
 
-That calls:
+The rest of the code lives over here:
 
 ^code identifier
 
-Those use these helpers:
+We define that in terms of these helpers:
 
 ^code is-alpha
 
-Now identifiers are working. To handle keywords, we see if the identifier's
+That gets identifiers working. To handle keywords, we see if the identifier's
 lexeme is one of the reserved words. If so, we use a token type specific to that
-keyword. We define this set of reserved words in a map:
+keyword. We define the set of reserved words in a map:
 
 ^code keyword-map
 
-Then, after we scan an identifier, we check to see if it matches one of these
-keywords:
+Then, after we scan an identifier, we check to see if it matches anything in the
+map:
 
 ^code keyword-type (2 before, 1 after)
 
@@ -772,7 +779,7 @@ syntactic lichen that almost every new language scrapes off (and some ancient
 ones like BASIC never had) is `;` as an explicit statement terminator.
 
 Instead, they treat a newline as a statement terminator where it makes sense to
-do so. The "where it makes sense" part is the interesting bit. While *most*
+do so. The "where it makes sense" part is the challenging bit. While *most*
 statements are on their own line, sometimes you need to spread a single
 statement across a couple of lines. Those intermingled newlines should not be
 treated as terminators.
@@ -783,7 +790,7 @@ detect, but there are a handful of nasty ones:
 * A return value on the next line:
 
     ```js
-    return
+    if (condition) return
     "value"
     ```
 
@@ -812,8 +819,8 @@ detect, but there are a handful of nasty ones:
 
 In all of these, either treating the newline as a separator or not would both
 produce valid code, but possibly not the code the user wants. Across languages,
-there is an unsettling variety in the rules they use to decide which newlines
-are separators. Here are a couple:
+there is an unsettling variety of rules they use to decide which newlines are
+separators. Here are a couple:
 
 *   [Lua][] completely ignores newlines, but carefully controls its grammar such
     that no separator between statements is needed at all in most cases. This is
@@ -838,11 +845,11 @@ are separators. Here are a couple:
     with this simple rule.
 
 *   [Python][] treats all newlines as significant unless an explicit backslash
-    is used at the end of a line to continue it to the next line. Also, newlines
-    anywhere inside a pair of brackets (`()`, `[]`, or `{}`) are ignored.
-    Idiomatic style strongly prefers the latter.
+    is used at the end of a line to continue it to the next line. However,
+    newlines anywhere inside a pair of brackets (`()`, `[]`, or `{}`) are
+    ignored. Idiomatic style strongly prefers the latter.
 
-    This rule works well for Python because it is a deeply statement-oriented
+    This rule works well for Python because it is a highly statement-oriented
     language. In particular, Python's grammar ensures a statement never appears
     inside an expression. C does the same, but many other languages which have a
     "lambda" or function literal syntax do not.
@@ -868,12 +875,12 @@ And now you know why Python's `lambda` only allows a single expression body.
 
 </aside>
 
-*   JavaScript's "[automatic semicolon insertion][asi]" rule is the odd one.
-    Where other languages assume most newlines *are* meaningful and only a few
-    should be ignored in multi-line statements, JS assumes the opposite. It
-    treats all of your newlines as meaningless whitespace *unless* it
-    encounters a parse error. If it does, it goes back and tries turning the
-    previous newline into a semicolon to get something grammatically valid.
+*   JavaScript's "[automatic semicolon insertion][asi]" rule is the real odd
+    one. Where other languages assume most newlines *are* meaningful and only a
+    few should be ignored in multi-line statements, JS assumes the opposite. It
+    treats all of your newlines as meaningless whitespace *unless* it encounters
+    a parse error. If it does, it goes back and tries turning the previous
+    newline into a semicolon to get something grammatically valid.
 
     This design note would turn into a design diatribe if I went into complete
     detail about how that even *works*, much less all the various ways that
