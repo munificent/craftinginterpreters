@@ -129,14 +129,14 @@ fun makeClosure() {
 }
 
 var closure = makeClosure();
-// GC here.
 closure();
 ```
 
-Say we pause the program on the marked line and run the garbage collector. When
-the collector is done and the program resumes, it will call the closure, which
-will in turn print `"data"`. So the collector needs to *not* free that string.
-But here's what the stack looks like when we pause the program:
+Say we pause the program just after `OP_GET_GLOBAL` pushes `closure` onto the stack,
+before `OP_CALL` calls it, and run the garbage collector. When the collector 
+is done and the  program resumes, it will call  the closure, which will in turn 
+print `"data"`. So the collector needs to *not*  free that string. But here's 
+what the stack looks like when we pause the program:
 
 <img src="image/garbage-collection/stack.png" alt="The stack, containing only the script and closure." />
 
