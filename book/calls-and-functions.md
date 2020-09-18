@@ -1365,10 +1365,10 @@ optimizations we can do in our VM.
     Implement this optimization. Write a couple of benchmarks and see how it
     affects the performance. Do you think the extra code complexity is worth it?
 
-2.  Native functions calls are fast in part because we don't validate that the
-    call passes as many arguments as the function expects function. We really
-    should, or an incorrect call to a native function without enough arguments
-    could cause the function to read uninitialized memory. Add arity checking.
+2.  Native function calls are fast in part because we don't validate that the
+    call passes as many arguments as the function expects. We really should, or
+    an incorrect call to a native function without enough arguments could cause
+    the function to read uninitialized memory. Add arity checking.
 
 3.  Right now, there's no way for a native function to signal a runtime error.
     In a real implementation, this is something we'd need to support because
