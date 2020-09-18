@@ -242,7 +242,7 @@ make a little side trip to one of the great questions of Western philosophy:
 OK, maybe we're not going to really get into the universal question, but at
 least inside the world of <span name="weird">Lox</span>, we need to decide what
 happens when you use something other than `true` or `false` in a logic operation
-like `!` or other place where a Boolean is expected.
+like `!` or any other place where a Boolean is expected.
 
 We *could* just say it's an error because we don't roll with implicit
 conversions, but most dynamically-typed languages aren't that ascetic. Instead,
