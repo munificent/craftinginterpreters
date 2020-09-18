@@ -289,7 +289,7 @@ Each chapter ends with a few exercises. Unlike textbook problem sets which tend
 to review material you already covered, these are to help you learn *more* than
 what's in the chapter. They force you to step off the guided path and explore on
 your own. They will make you research other languages, figure out how to
-implement features, or otherwise get you to out of your comfort zone.
+implement features, or otherwise get you out of your comfort zone.
 
 <span name="warning">Vanquish</span> the challenges and you'll come away with a
 broader understanding and possibly a few bumps and scrapes. Or skip them if you
