@@ -132,7 +132,7 @@ new `expr` and we loop to see if the result is itself called.
 <aside name="while-true">
 
 This code would be simpler as `while (match(LEFT_PAREN))` instead of the silly
-`while (true)` and `break`. Don't worry, it will make sense when we expand
+`while (true)` and `break`. Don't worry, it will make sense when we expand the
 parser later to handle properties on objects.
 
 </aside>
