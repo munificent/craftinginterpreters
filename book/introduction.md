@@ -97,8 +97,8 @@ other trappings, doing it yourself becomes a tall order.
 
 But there's still a good chance you'll find yourself needing to whip up a parser
 or something when there isn't an existing library that fits your needs. Even
-when are reusing some existing implementation, you'll inevitably end up needing
-to debug and maintain it and poke around in its guts.
+when you are reusing some existing implementation, you'll inevitably end up
+needing to debug and maintain it and poke around in its guts.
 
 ### Languages are great exercise
 
