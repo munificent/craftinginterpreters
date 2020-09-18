@@ -815,12 +815,12 @@ static InterpretResult run() {
 
 //< Closures interpret-close-upvalue
       case OP_RETURN: {
-/* Global Variables op-return < Calls and Functions interpret-return
-        // Exit interpreter.
-*/
 /* A Virtual Machine print-return < Global Variables op-return
         printValue(pop());
         printf("\n");
+*/
+/* Global Variables op-return < Calls and Functions interpret-return
+        // Exit interpreter.
 */
 /* A Virtual Machine run < Calls and Functions interpret-return
         return INTERPRET_OK;
