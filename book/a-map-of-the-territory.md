@@ -491,16 +491,16 @@ to get your language running on a lot of architectures.
 
 Web browsers are the "machines" of today, and their "machine code" is
 JavaScript, so these days it seems [almost every language out there][js] has a
-compiler that targets JS since that's the <span name="js">only</span> way to get
+compiler that targets JS since that's the <span name="js">main</span> way to get
 your code running in a browser.
 
 [js]: https://github.com/jashkenas/coffeescript/wiki/list-of-languages-that-compile-to-js
 
 <aside name="js">
 
-JS may not be the only language browsers natively support for much longer. If
-[Web Assembly][] takes off, browsers will support another lower-level language
-specifically designed to be targeted by compilers.
+JS used to be the *only* way to execute code in a browser. Thanks to
+[Web Assembly][], compilers now have a second, lower-level language they can
+target that runs on the web.
 
 [web assembly]: https://github.com/webassembly/
 
