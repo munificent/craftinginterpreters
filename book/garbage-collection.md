@@ -206,15 +206,16 @@ of CS seem to be timeless.
 
 As the name implies, mark-sweep works in two phases:
 
-*   **Marking.** We start with the roots and traverse or <span
+*   **Marking** &ndash; We start with the roots and traverse or <span
     name="trace">*trace*</span> through all of the objects those roots refer to.
     This is a classic graph traversal of all of the reachable objects. Each time
     we visit an object, we *mark* it in some way. (Implementations differ in how
     they record the mark.)
 
-*   **Sweeping.** Once the mark phase completes, every reachable object in the
-    heap is marked. That means any unmarked object is unreachable and ripe for
-    reclamation. We go through all the unmarked objects and free each one.
+*   **Sweeping** &ndash; Once the mark phase completes, every reachable object
+    in the heap is marked. That means any unmarked object is unreachable and
+    ripe for reclamation. We go through all the unmarked objects and free each
+    one.
 
 It looks something like this:
 
