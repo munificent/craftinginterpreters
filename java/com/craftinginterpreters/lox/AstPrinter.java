@@ -1,7 +1,6 @@
 //> Representing Code ast-printer
 package com.craftinginterpreters.lox;
 
-// Creates an unambiguous, if ugly, string representation of AST nodes.
 /* Representing Code ast-printer < Statements and State omit
 class AstPrinter implements Expr.Visitor<String> {
 */
