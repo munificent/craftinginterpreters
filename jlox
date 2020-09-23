@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
 
-script_dir=$(dirname "$0")
-java -cp ${script_dir}/build/java com.craftinginterpreters.lox.Lox $@
+if [[ "$OSTYPE" == "linux-gnu"* ]]
+then
+	DIR=$(dirname $(readlink -f "$0"))
+elif [[ "$OSTYPE" == "darwin"* ]]
+then
+	LINK=$(python -c "import os,sys; print(os.path.realpath(os.path.expanduser(sys.argv[1])))" "${0}")
+	DIR=$(dirname "$LINK")
+else
+	DIR=$(dirname "$0")
+fi
+
+java -cp ${DIR}/build/java com.craftinginterpreters.lox.Lox $@
