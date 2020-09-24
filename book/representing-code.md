@@ -429,7 +429,7 @@ expression → literal
            | binary
            | grouping ;
 
-literal    → NUMBER | STRING | "true" | "false" | "nil" ;
+literal    → NUMBER | STRING | "false" | "true" | "nil" ;
 grouping   → "(" expression ")" ;
 unary      → ( "-" | "!" ) expression ;
 binary     → expression operator expression ;

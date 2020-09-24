@@ -366,7 +366,7 @@ class Parser {
     return expr;
   }
 //< comparison
-//> addition-and-multiplication
+//> addition
   private Expr addition() {
     Expr expr = multiplication();
 
@@ -378,7 +378,8 @@ class Parser {
 
     return expr;
   }
-
+//< addition
+//> multiplication
   private Expr multiplication() {
     Expr expr = unary();
 
@@ -390,7 +391,7 @@ class Parser {
 
     return expr;
   }
-//< addition-and-multiplication
+//< multiplication
 //> unary
   private Expr unary() {
     if (match(BANG, MINUS)) {

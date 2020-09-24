@@ -37,25 +37,26 @@ tokens into one of those syntax trees.
 Some CS textbooks make a big deal out of parsers. In the 60s, computer
 scientists -- understandably tired of programming in assembly language --
 started designing more sophisticated, <span name="human">human</span>-friendly
-languages like FORTRAN and ALGOL. Alas, they weren't very *machine*-friendly,
-for the primitive machines at the time.
+languages like FORTRAN and ALGOL. Alas, they weren't very *machine*-friendly
+for the primitive computers of the time.
 
 <aside name="human">
 
-Consider how harrowing assembly programming on those old machines must have been
-for *FORTRAN* to be an improvement.
+Imagine how harrowing assembly programming on those old machines must have been
+that they considered *FORTRAN* to be an improvement.
 
 </aside>
 
-They designed languages that they honestly weren't even sure how to write
-compilers for, and then did ground-breaking work inventing parsing and compiling
-techniques that could handle these new big languages on those old tiny machines.
+These pioneers designed languages that they honestly weren't even sure how to
+write compilers for, and then did ground-breaking work inventing parsing and
+compiling techniques that could handle these new big languages on those old tiny
+machines.
 
-Classic compiler books read like fawning hagiographies of these pioneers and
-their tools. The cover of "Compilers: Principles, Techniques, and Tools"
-literally has a dragon labeled "complexity of compiler design" being slain by a
-knight bearing a sword and shield branded "LALR parser generator" and "syntax
-directed translation". They laid it on thick.
+Classic compiler books read like fawning hagiographies of these heroes and their
+tools. The cover of "Compilers: Principles, Techniques, and Tools" literally has
+a dragon labeled "complexity of compiler design" being slain by a knight bearing
+a sword and shield branded "LALR parser generator" and "syntax directed
+translation". They laid it on thick.
 
 A little self-congratulation is well-deserved, but the truth is you don't need
 to know most of that stuff to bang out a high quality parser for a modern
@@ -65,9 +66,9 @@ later, but this book omits the trophy case.
 ## Ambiguity and the Parsing Game
 
 In the last chapter, I said you can "play" a context free grammar like a game in
-order to *generate* strings. Now, we play that game in reverse. Given a
-string -- a series of tokens -- we map those tokens to terminals in the grammar
-to figure out which rules could have generated that string.
+order to *generate* strings. Parsers play that game in reverse. Given a string
+-- a series of tokens -- we map those tokens to terminals in the grammar to
+figure out which rules could have generated that string.
 
 The "could have" part is interesting. It's entirely possible to create a grammar
 that is *ambiguous*, where different choices of productions can lead to the same
@@ -114,14 +115,15 @@ Another is:
 4. Back at the outer `binary`, for the operator, pick `"-"`.
 4. For the right-hand `expression`, pick `NUMBER`, and use `1`.
 
-Those produce the same *strings*, but not the same *syntax trees*:
+Those produce the same *strings*, but not the same *syntax trees:*
 
 <img src="image/parsing-expressions/syntax-trees.png" alt="Two valid syntax trees: (6 / 3) - 1 and 6 / (3 - 1)" />
 
 In other words, the grammar allows seeing the expression as `(6 / 3) - 1` or `6
-/ (3 - 1)`. That in turn affects the result of evaluating it. The way
-mathematicians have solved this ambiguity since blackboards were first invented
-is by defining rules for precedence and associativity.
+/ (3 - 1)`. The `binary` rule lets operands nest any which way you want. That in
+turn affects the result of evaluating the parsed tree. The way mathematicians
+have addressed this ambiguity since blackboards were first invented is by
+defining rules for precedence and associativity.
 
 *   <span name="nonassociative">**Precedence**</span> determines which operator
     is evaluated first in an expression containing a mixture of different
@@ -213,12 +215,12 @@ applying the same precedence rules as C, going from lowest to highest:
 </table>
 
 Right now, the grammar stuffs all expression types into a single `expression`
-rule. That same rule is used as the non-terminal for subexpressions, which lets
-the grammar accept any kind of expression as an operand, regardless of whether
+rule. That same rule is used as the non-terminal for operands, which lets the
+grammar accept any kind of expression as a subexpression, regardless of whether
 the precedence rules allow it.
 
 We fix that by <span name="massage">stratifying</span> the grammar. We define a
-separate rule for each precedence level:
+separate rule for each precedence level.
 
 ```ebnf
 expression     → ...
@@ -242,8 +244,8 @@ disambiguate.
 Each rule here only matches expressions at its precedence level or higher. For
 example, `unary` matches a unary expression like `!negated` or a primary
 expression like `1234`. And `addition` can match `1 + 2` but also `3 * 4 / 5`.
-The final `primary` rule covers the highest-precedence expressions -- literals
-and parenthesized grouping expressions.
+The final `primary` rule covers the highest-precedence forms -- literals and
+parenthesized expressions.
 
 We just need to fill in the productions for each of those rules. We'll do the
 easy ones first. The top `expression` rule matches any expression at any
@@ -257,8 +259,8 @@ that contain expressions, but using `expression` makes those other rules read a
 little better.
 
 Also, in later chapters, when we expand the grammar to include assignment and
-logical operators, we'll only need to change `expression` instead of touching
-every rule that contains an expression.
+logical operators, we'll only need to change the production for `expression`
+instead of touching every rule that contains an expression.
 
 </aside>
 
@@ -267,7 +269,7 @@ expression     → equality
 ```
 
 Over at the other end of the precedence table, a primary expression contains
-all the literals and grouping expressions:
+all the literals and grouping expressions.
 
 ```ebnf
 primary        → NUMBER | STRING | "false" | "true" | "nil"
@@ -276,7 +278,7 @@ primary        → NUMBER | STRING | "false" | "true" | "nil"
 
 A unary expression starts with a unary operator followed by the operand. Since
 unary operators can nest -- `!!true` is a valid if weird expression -- the
-operand can itself be a unary operator. A recursive rule handles that nicely:
+operand can itself be a unary operator. A recursive rule handles that nicely.
 
 ```ebnf
 unary          → ( "!" | "-" ) unary ;
@@ -284,7 +286,7 @@ unary          → ( "!" | "-" ) unary ;
 
 But this rule has a problem. It never terminates. Remember, each rule needs to
 match expressions at that precedence level *or higher*, so we also need to let
-this match a primary expression:
+this match a primary expression.
 
 ```ebnf
 unary          → ( "!" | "-" ) unary
@@ -337,7 +339,7 @@ use, have trouble with left recursion. (Recursion elsewhere, like we have in
 There are many grammars you can define that match the same language. The choice
 for how to model a particular language is partially a matter of taste and
 partially a pragmatic one. This rule is correct, but not optimal for how we
-intend to parse it. Instead of a left recursive rule, we'll use a different one:
+intend to parse it. Instead of a left recursive rule, we'll use a different one.
 
 ```ebnf
 multiplication → unary ( ( "/" | "*" ) unary )* ;
@@ -345,8 +347,8 @@ multiplication → unary ( ( "/" | "*" ) unary )* ;
 
 We define a multiplication expression as a flat *sequence* of multiplications
 and divisions. This matches the same syntax as the previous rule, but better
-mirrors the code we'll write to parse code. We use the same structure for all of
-other binary operator precedence levels giving us this complete expression
+mirrors the code we'll write to parse Lox. We use the same structure for all of
+the other binary operator precedence levels, giving us this complete expression
 grammar:
 
 ```ebnf
@@ -367,18 +369,18 @@ parser.
 
 ## Recursive Descent Parsing
 
-There is a whole pack of parsing techniques whose names mostly seem to be
-combinations of "L" and "R" -- [LL(k)][], [LR(1)][lr], [LALR][] -- along with
-more exotic beasts like [parser combinators][], [Earley parsers][],
-[the shunting yard algorithm][], and [packrat parsing][]. For our first
-interpreter, one technique is more than sufficient: **recursive descent**.
+There is a whole pack of parsing techniques whose names are mostly combinations
+of "L" and "R" -- [LL(k)][], [LR(1)][lr], [LALR][] -- along with more exotic
+beasts like [parser combinators][], [Earley parsers][], [the shunting yard
+algorithm][yard], and [packrat parsing][]. For our first interpreter, one
+technique is more than sufficient: **recursive descent**.
 
 [ll(k)]: https://en.wikipedia.org/wiki/LL_parser
 [lr]: https://en.wikipedia.org/wiki/LR_parser
 [lalr]: https://en.wikipedia.org/wiki/LALR_parser
 [parser combinators]: https://en.wikipedia.org/wiki/Parser_combinator
 [earley parsers]: https://en.wikipedia.org/wiki/Earley_parser
-[the shunting yard algorithm]: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+[yard]: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
 [packrat parsing]: https://en.wikipedia.org/wiki/Parsing_expression_grammar
 
 Recursive descent is the simplest way to build a parser, and doesn't require
@@ -387,10 +389,10 @@ straightforward hand-written code. Don't be fooled by its simplicity, though.
 Recursive descent parsers are fast, robust, and can support sophisticated
 error-handling. In fact, GCC, V8 (the JavaScript VM in Chrome), Roslyn (the C#
 compiler written in C#) and many other heavyweight production language
-implementations use recursive descent. It kicks ass.
+implementations use recursive descent. It rocks.
 
-It is considered a **top-down parser** because it starts from the top or
-outermost grammar rule (here `expression`) and works its way <span
+Recursive descent is considered a **top-down parser** because it starts from the
+top or outermost grammar rule (here `expression`) and works its way <span
 name="descent">down</span> into the nested subexpressions before finally
 reaching the leaves of the syntax tree. This is in contrast with bottom-up
 parsers like LR that start with primary expressions and compose them into larger
@@ -407,7 +409,8 @@ subexpressions of higher precedence.
 <img src="image/parsing-expressions/direction.png" alt="Top-down grammar rules in order of increasing precedence.">
 
 CS people really need to get together and straighten out their metaphors. Don't
-even get me started on which direction the stack is supposed to grow.
+even get me started on which direction a stack grows or why trees have their
+roots on top.
 
 </aside>
 
@@ -431,28 +434,29 @@ rule translates to code roughly like:
 </tbody>
 </table>
 
-It's called "*recursive* descent" because when a grammar rule refers to itself
--- directly or indirectly -- that translates to recursive method calls.
+The "recursive" part of recursive descent is because when a grammar rule refers
+to itself -- directly or indirectly -- that translates to a recursive function
+call.
 
 ### The parser class
 
-Each grammar rule becomes a method inside this new class:
+Each grammar rule becomes a method inside this new class.
 
 ^code parser
 
-Like the scanner, it consumes a sequence, only now we're working at the level of
-entire tokens. It takes in a list of tokens and uses `current` to point to the
-next token eagerly waiting to be used.
+Like the scanner, the parser consumes a flat input sequence, only now we're
+reading tokens instead of characters. We store the list of tokens and use
+`current` to point to the next token eagerly waiting to be parsed.
 
 We're going to run straight through the expression grammar now and translate
 each rule to Java code. The first rule, `expression`, simply expands to the
-`equality` rule, so that's straightforward:
+`equality` rule, so that's straightforward.
 
 ^code expression
 
 Each method for parsing a grammar rule produces a syntax tree for that rule and
 returns it to the caller. When the body of the rule contains a nonterminal -- a
-reference to another rule -- we <span name="left">call</span> that rule's
+reference to another rule -- we <span name="left">call</span> that other rule's
 method.
 
 <aside name="left">
@@ -463,7 +467,7 @@ and so on, until the parser hits a stack overflow and dies.
 
 </aside>
 
-The rule for equality is a little more complex:
+The rule for equality is a little more complex.
 
 ```ebnf
 equality → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -473,35 +477,34 @@ In Java, that becomes:
 
 ^code equality
 
-Let's step through it. The left `comparison` nonterminal in the body is
-translated to the first call to `comparison()` and we store that in a local
-variable.
+Let's step through it. The first `comparison` nonterminal in the body translates
+to the first call to `comparison()` in the method. We take that result and store
+it in a local variable.
 
-Then, the `( ... )*` loop in the rule is mapped to a `while` loop. We need to
-know when to exit that loop. We can see that inside the rule, we must first find
+Then, the `( ... )*` loop in the rule maps to a `while` loop. We need to know
+when to exit that loop. We can see that inside the rule, we must first find
 either a `!=` or `==` token. So, if we *don't* see one of those, we must be done
 with the sequence of equality operators. We express that check using a handy
-`match()` method:
+`match()` method.
 
 ^code match
 
-This checks to see if the current token is any of the given types. If so, it
+This checks to see if the current token has any of the given types. If so, it
 consumes the token and returns `true`. Otherwise, it returns `false` and leaves
-the token as the current one.
-
-The `match()` method is defined in terms of two more fundamental operations:
+the current token alone. The `match()` method is defined in terms of two more
+fundamental operations.
 
 ^code check
 
-This returns `true` if the current token is of the given type. Unlike `match()`,
-it doesn't consume the token, it only looks at it.
+The `check()` method returns `true` if the current token is of the given type.
+Unlike `match()`, it never consumes the token, it only looks at it.
 
 ^code advance
 
-This consumes the current token and returns it, similar to how our scanner's
-`advance()` method did with characters.
+The `advance()` method consumes the current token and returns it, similar to how
+our scanner's corresponding method crawled through characters.
 
-These methods bottom out on the last handful of primitive operations:
+These methods bottom out on the last handful of primitive operations.
 
 ^code utils
 
@@ -511,14 +514,14 @@ consumed token. The latter makes it easier to use `match()` and then access the
 just-matched token.
 
 That's most of the parsing infrastructure we need. Where were we? Right, so if
-we are inside the `while` loop in `equality()`, then the parser knows it found a
+we are inside the `while` loop in `equality()`, then we know we have found a
 `!=` or `==` operator and must be parsing an equality expression.
 
-It grabs the token that was matched for the operator so we can track which kind
-of binary expression this is. Then it calls `comparison()` again to parse the
-right-hand operand. It combines the operator and the two operands into a new
-`Expr.Binary` syntax tree node, and then loops around. Each time, it stores the
-expression back in the same `expr` local variable. As it zips through a sequence
+We grab the matched operator token so we can track which kind of equality
+expression we have. Then we call `comparison()` again to parse the right-hand
+operand. We combine the operator and its two operands into a new `Expr.Binary`
+syntax tree node, and then loop around. Each iteration, we store the resulting
+expression back in the same `expr` local variable. As we zip through a sequence
 of equality expressions, that creates a left-associative nested tree of binary
 operator nodes.
 
@@ -534,10 +537,11 @@ expression using the previous one as the left operand.
 </aside>
 
 The parser falls out of the loop once it hits a token that's not an equality
-operator. Finally, it returns the expression. Note that if it doesn't encounter
-a single equality operator, then it never enters the loop. In that case, the
-`equality()` method effectively calls and returns `comparison()`. In that way,
-this method matches an equality operator *or anything of higher precedence*.
+operator. Finally, it returns the expression. Note that if the parser never
+encounters an equality operator, then it never enters the loop. In that case,
+the `equality()` method effectively calls and returns `comparison()`. In that
+way, this method matches an equality operator *or anything of higher
+precedence*.
 
 Moving on to the next rule...
 
@@ -549,32 +553,38 @@ Translated to Java:
 
 ^code comparison
 
-The grammar rule is virtually identical to `equality` and so is the
-corresponding code. The only <span name="handle">differences</span> are the
-token types for the operators we match, and the method we call for the operands,
-now `addition()` instead of `comparison()`. The remaining two binary operator
-rules follow the same pattern:
+The grammar rule is virtually <span name="handle">identical</span> to `equality`
+and so is the corresponding code. The only differences are the token types for
+the operators we match, and the method we call for the operands -- now
+`addition()` instead of `comparison()`. The remaining two binary operator rules
+follow the same pattern.
+
+In order of precedence, first addition and subtraction:
 
 <aside name="handle">
 
 If you wanted to do some clever Java 8, you could create a helper method for
 parsing a left-associative series of binary operators given a list of token
-types and an operand method handle and unify some of this redundant code.
+types and an operand method handle to simplify this redundant code.
 
 </aside>
 
-^code addition-and-multiplication
+^code addition
+
+And finally multiplication and division:
+
+^code multiplication
 
 That's all of the binary operators, parsed with the correct precedence and
 associativity. We're crawling up the precedence hierarchy and now we've reached
-the unary operators:
+the unary operators.
 
 ```ebnf
 unary → ( "!" | "-" ) unary
       | primary ;
 ```
 
-The code for this is a little different:
+The code for this is a little different.
 
 ^code unary
 
@@ -598,8 +608,8 @@ primary → NUMBER | STRING | "false" | "true" | "nil"
         | "(" expression ")" ;
 ```
 
-Most of the cases for the rule are single terminals, so it's pretty
-straightforward:
+Most of the cases for the rule are single terminals, so parsing is
+straightforward.
 
 ^code primary
 
@@ -674,16 +684,16 @@ really want to raise the ante beyond that. A decent parser should:
     longer really knows what's going on. It tries to get itself back on track
     and keep going, but if it gets confused, it may report a slew of ghost
     errors that don't indicate other real problems in the code. When the first
-    error is fixed, they disappear, because they merely represent the parser's
-    own confusion. These are annoying because they can scare the user into
-    thinking their code is in a worse state than it is.
+    error is fixed, those phantoms disappear, because they reflect only the
+    parser's own confusion. Cascaded errors are annoying because they can scare
+    the user into thinking their code is in a worse state than it is.
 
 The last two points are in tension. We want to report as many separate errors as
 we can, but we don't want to report ones that are merely side effects of an
 earlier one.
 
 The way a parser responds to an error and keeps going to look for later errors
-is called **"error recovery"**. It was a hot research topic in the 60s. Back
+is called **error recovery**. This was a hot research topic in the 60s. Back
 then, you'd hand a stack of punch cards to the secretary and come back the next
 day to see if the compiler succeeded. With an iteration loop that slow, you
 *really* wanted to find every single error in your code in one pass.
@@ -702,8 +712,8 @@ You know you want to push it.
 </aside>
 
 Of all the recovery techniques devised in yesteryear, the one that best stood
-the test of time is called -- somewhat alarmingly -- <span name="panic">"panic
-mode"</span>. As soon as the parser detects an error, it enters panic mode. It
+the test of time is called -- somewhat alarmingly -- <span name="panic">**panic
+mode**</span>. As soon as the parser detects an error, it enters panic mode. It
 knows at least one token doesn't make sense given its current state in the
 middle of some stack of grammar productions.
 
@@ -748,29 +758,30 @@ This reports an error at a given token. It shows the token's location and the
 token itself. This will come in handy later since we use tokens throughout the
 interpreter to track locations in code.
 
-After this is called, the user knows about the syntax error, but what does the
+After we report the error, the user knows about their mistake, but what does the
 *parser* do next? Back in `error()`, it creates and returns a ParseError, an
-instance of:
+instance of this new class:
 
 ^code parse-error (1 before, 1 after)
 
 This is a simple sentinel class we use to unwind the parser. The `error()`
-method *returns* it instead of *throwing* because we want to let the caller
-decide whether to unwind or not.
+method *returns* it instead of *throwing* because we want to let the calling
+method inside the parser decide whether to unwind or not. Some parse errors
+occur in places where the parser isn't likely to get into a weird state and we
+don't need to <span name="production">synchronize</span>. In those places, we
+simply report the error and keep on truckin'.
 
-Some parse errors occur in places where the parser isn't likely to get into a
-weird state and we don't need to <span name="production">synchronize</span>. In
-those places, we simply report the error and keep on truckin'. For example, Lox
-limits the number of arguments you can pass to a function. If you pass too many,
-the parser needs to report that error, but it can and should simply keep on
-parsing the extra arguments instead of freaking out and going into panic mode.
+For example, Lox limits the number of arguments you can pass to a function. If
+you pass too many, the parser needs to report that error, but it can and should
+simply keep on parsing the extra arguments instead of freaking out and going
+into panic mode.
 
 <aside name="production">
 
 Another way to handle common syntax errors is with **error productions**. You
-augment the grammar with a rule that matches the erroneous syntax. The parser
-safely parses it but then reports it as an error instead of producing a syntax
-tree.
+augment the grammar with a rule that *successfully* matches the *erroneous*
+syntax. The parser safely parses it but then reports it as an error instead of
+producing a syntax tree.
 
 For example, some languages have a unary `+` operator, like `+123`, but Lox does
 not. Instead of getting confused when the parser stumbles onto a `+` at the
@@ -800,13 +811,13 @@ parser's own state?
 
 With recursive descent, the parser's state -- which rules it is in the middle of
 recognizing -- is not stored explicitly in fields. Instead, we use Java's
-own call stack to track what the parser is doing. Each rule in the process of
-being parsed is a callframe on the stack. In order to reset that state, we need
-to clear out those callframes.
+own call stack to track what the parser is doing. Each rule in the middle of
+being parsed is a call frame on the stack. In order to reset that state, we need
+to clear out those call frames.
 
 The natural way to do that in Java is exceptions. When we want to synchronize,
 we *throw* that ParseError object. Higher up in the method for the grammar rule
-we are synchronizing to, we'll catch it. Since we are synchronizing on statement
+we are synchronizing to, we'll catch it. Since we synchronize on statement
 boundaries, we'll catch the exception there. After the exception is caught, the
 parser is in the right state. All that's left is to synchronize the tokens.
 
@@ -819,7 +830,7 @@ about to start a statement.
 
 <aside name="semicolon">
 
-I say "probably" because we could hit a semicolon separating clauses in a for
+I say "probably" because we could hit a semicolon separating clauses in a `for`
 loop. Our synchronization isn't perfect, but that's OK. We've already reported
 the first error precisely, so everything after that is kind of "best effort".
 
@@ -848,12 +859,12 @@ We are mostly done parsing expressions now. There is one other place where we
 need to add a little error handling. As the parser descends through the parsing
 methods for each grammar rule, it eventually hits `primary()`. If none of the
 cases in there match, it means we are sitting on a token that can't start an
-expression. We need to handle that error too:
+expression. We need to handle that error too.
 
 ^code primary-error (5 before, 1 after)
 
 With that, all that remains in the parser is to define an initial method to kick
-it off. It's called, naturally enough, `parse()`:
+it off. That method is called, naturally enough, `parse()`.
 
 ^code parse
 
@@ -885,13 +896,14 @@ any more complex than the binary operators we tackled here.
 
 <aside name="harder">
 
-It is possible to define a grammar that's more difficult than Lox's to parse
-using recursive descent. Predictive parsing gets tricky when you may need to
-look ahead a large number of tokens to figure out what you're sitting on.
+It is possible to define a more complex grammar than Lox's that's difficult to
+parse using recursive descent. Predictive parsing gets tricky when you may need
+to look ahead a large number of tokens to figure out what you're sitting on.
 
 In practice, most languages are designed to avoid that. Even in cases where they
 aren't, you can usually hack around it without too much pain. If you can parse
-C++ using recursive descent, you can parse anything.
+C++ using recursive descent -- which many C++ compilers do -- you can parse
+anything.
 
 </aside>
 
@@ -969,7 +981,7 @@ language, you force users to start that process all over again.
 
 Taking advantage of what users already know is one of the most powerful tools
 you can use to ease adoption of your language. It's almost impossible to
-underestimate how useful this is. But it faces you with a nasty problem: What
+underestimate how valuable this is. But it faces you with a nasty problem: What
 happens when the thing the users all know *kind of sucks?* C's bitwise operator
 precedence is a mistake that doesn't make sense. But it's a *familiar* mistake
 that millions have already gotten used to and learned to live with.
@@ -987,6 +999,6 @@ In practice, it's often better to make the most of what users already know.
 Getting them to come to your language requires a big leap. The smaller you can
 make that chasm, the more people will be willing to cross it. But you can't
 *always* stick to history, or your language won't have anything new and
-compelling to get people to *want* to jump over.
+compelling to give people a *reason* to jump over.
 
 </div>

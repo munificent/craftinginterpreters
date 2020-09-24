@@ -251,7 +251,7 @@ we'll be adding to it. This code here anticipates that future.
 Most of the work we need to do is in the runtime. We have to handle the new
 instruction, naturally. But we also need to touch every piece of code in the VM
 that works with ObjFunction and change it to use ObjClosure instead -- function
-calls, callframes, etc. We'll start with the instruction, though:
+calls, call frames, etc. We'll start with the instruction, though:
 
 ^code interpret-closure (2 before, 1 after)
 
@@ -1397,7 +1397,7 @@ immediately inside the function. Those need to get closed too.
 There's nothing *preventing* us from closing the outermost function scope in the
 compiler and emitting `OP_POP` and `OP_CLOSE_UPVALUE` instructions. Doing so was
 just unnecessary because the runtime discards all of the stack slots used by the
-function implicitly when it pops the callframe.
+function implicitly when it pops the call frame.
 
 </aside>
 
